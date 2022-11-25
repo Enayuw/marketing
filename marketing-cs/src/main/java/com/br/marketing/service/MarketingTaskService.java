@@ -73,4 +73,6 @@ public interface MarketingTaskService {
     Integer getPart(Integer sum,Integer index);
 
     Integer getPart(Integer index);
+
+    Integer getPartNum(Integer sum);
 }

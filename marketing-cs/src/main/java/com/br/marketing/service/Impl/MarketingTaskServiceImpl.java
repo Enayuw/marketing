@@ -753,4 +753,14 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         }
          return index%mo;
     }
+
+    @Override
+    public Integer getPartNum(Integer sum) {
+        Integer zu = 1;
+        Integer zuNum = marketingCommonConfig.getQuantileValue() == null ? 50000000:marketingCommonConfig.getQuantileValue();
+        while (sum>zuNum*zu){
+            zu++;
+        }
+        return zu*mo;
+    }
 }
