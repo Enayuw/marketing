@@ -2,6 +2,8 @@ package com.br.marketing.service.Impl;
 
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -46,9 +49,11 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
     public void pushSmyUploadDataToDaas() {
         //7410437 为测试apiCode
         List<MarketingSyncUser> marketingSyncUserList = marketingSyncInfoMapper.getSmyDataByGroupType("7410437", "S09");
-        List<DassImportDataDTO> dassImportDataDTOlist = new ArrayList<>();
+        List<BatchRealTimeUserDataDTO> subList = new ArrayList<>();
         marketingSyncUserList.stream().forEach(msu -> {
             DassImportDataDTO dassImportDataDTO = new DassImportDataDTO();
+            PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
+            BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
             dassImportDataDTO.setId(msu.getId());
             dassImportDataDTO.setName("1");
             dassImportDataDTO.setOrgname("samoye");
@@ -58,37 +63,43 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
 //            dassImportDataDTO.setRecvVars();
             dassImportDataDTO.setUid(msu.getCustNum());
             dassImportDataDTO.setSource("23");
-            dassImportDataDTOlist.add(dassImportDataDTO);
-
+            batchRealTimeUserDataDTO.setDassImportDataDTO(dassImportDataDTO);
+            BeanUtils.copyProperties(msu, phoneSaleExtendInfo);
+            phoneSaleExtendInfo.setSourceId(Long.valueOf(23));
+            batchRealTimeUserDataDTO.setPhoneSaleExtendInfo(phoneSaleExtendInfo);
+            subList.add(batchRealTimeUserDataDTO);
         });
-        smyPushDaas(dassImportDataDTOlist);
+
+        smyPushDaas(subList);
 
     }
 
 
-    public void smyPushDaas(List<DassImportDataDTO> daasImportDataDTOlist) {
+    public void smyPushDaas(List<BatchRealTimeUserDataDTO> batchRealTimeUserDataDTOList) {
         /**
-         * 批量推电销接口 每1000条数据一个批次
+         * 批量人工推电销接口 每1000条数据一个批次
          */
         int pageSize = 1000;
-        int totalCount = daasImportDataDTOlist.size();
+        int totalCount = batchRealTimeUserDataDTOList.size();
         int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
         for (int i = 1; i <= pageCount; i++) {
-            List<DassImportDataDTO> subList = new ArrayList<>();
+            List<BatchRealTimeUserDataDTO> subList = new ArrayList<>();
             if (i == pageCount) {
-                subList = daasImportDataDTOlist.subList((i - 1) * pageSize, totalCount);
+                subList = batchRealTimeUserDataDTOList.subList((i - 1) * pageSize, totalCount);
             } else {
-                subList = daasImportDataDTOlist.subList((i - 1) * pageSize, pageSize * (i));
+                subList = batchRealTimeUserDataDTOList.subList((i - 1) * pageSize, pageSize * (i));
             }
-            List<PhoneSaleExtendInfo> phoneSaleExtendInfos = new ArrayList<>();
             DassImportAdapDTO dassImportAdapDTO = new DassImportAdapDTO();
-            dassImportAdapDTO.setList(subList);
-            BeanUtils.copyProperties(subList, phoneSaleExtendInfos);
+
+            List<DassImportDataDTO> dataDTOS = subList.stream().map(batchData->batchData.getDassImportDataDTO()).collect(Collectors.toList());
+            List<PhoneSaleExtendInfo> phoneSaleExtendInfos = subList.stream().map(batchData->batchData.getPhoneSaleExtendInfo())
+                    .filter(item-> StringUtils.isNotEmpty(item)).collect(Collectors.toList());
+            dassImportAdapDTO.setList(dataDTOS);
             dassImportAdapDTO.setPhoneSaleExtendInfos(phoneSaleExtendInfos);
-            if (!CollectionUtils.isEmpty(phoneSaleExtendInfos)) {
+            if (!CollectionUtils.isEmpty(phoneSaleExtendInfos)){
                 phoneSaleExtendInfoMapper.saveBatch(dassImportAdapDTO.getPhoneSaleExtendInfos());
             }
-            methodRetryHandlerService.callDassRealTimeBatchData(dassImportAdapDTO, 0);
+            methodRetryHandlerService.callDaasSmyRealTimeBatchData(dassImportAdapDTO, 0);
         }
     }
 

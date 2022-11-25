@@ -26,10 +26,7 @@ import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.dto.SingleDassAndRecordDTO;
-import com.br.marketing.entity.DataCompare;
-import com.br.marketing.entity.PhoneSaleExtendHaluo;
-import com.br.marketing.entity.PhoneSaleExtendHaluoExample;
-import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.DataCompareMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendHaluoMapper;
@@ -217,7 +214,29 @@ public class MethodRetryHandlerService {
         log.error("调用批量人工实时转电销失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
-
+    @RetryMethod(isOrNoDbRetry = true)
+    public Result callDaasSmyRealTimeBatchData(DassImportAdapDTO dassImportAdapDTO, Integer retry) {
+        Result result = dassServiceClient.postHermesUserData(dassImportAdapDTO);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                Set<String> set = dassImportAdapDTO.getPhoneSaleExtendInfos()
+                        .stream().map(PhoneSaleExtendInfo::getId)
+                        .map(String::valueOf)
+                        .collect(Collectors.toSet());
+                saveBizLog(String.join(",", set), InterfaceHandlerEnum.ARTIFICIAL_BATCH_REALTIME_DATA.getCode(),
+                        dassImportAdapDTO.getTransferInfoId());
+            List<Long> ids = dassImportAdapDTO.getPhoneSaleExtendInfos()
+                    .stream().map(PhoneSaleExtendInfo::getId)
+                    .collect(Collectors.toList());
+            PhoneSaleExtendInfoExample updateExample = new PhoneSaleExtendInfoExample();
+            updateExample.createCriteria().andIdIn(ids);
+            PhoneSaleExtendInfo updateEntity = new PhoneSaleExtendInfo();
+            updateEntity.setPStatus(2);
+            phoneSaleExtendInfoMapper.updateByExampleSelective(updateEntity,updateExample);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("调用批量人工实时转电销失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
 
     /**
      * 调用电销批量接口
