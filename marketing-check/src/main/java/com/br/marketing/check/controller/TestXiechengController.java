@@ -13,11 +13,13 @@ import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +44,12 @@ public class TestXiechengController {
 
     @Autowired
     private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
-
+    @Resource
+    MarketingSmyPushService marketingSmyPushService;
+    @GetMapping("/test")
+    public void transfersmyTest(){
+        marketingSmyPushService.pushSmyUploadDataToDaas();
+    }
     @GetMapping("/resultVolumeCheck")
     public void process() {
         PhoneSaleExtendInfoExample updateExample = new PhoneSaleExtendInfoExample();

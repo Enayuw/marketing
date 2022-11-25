@@ -47,12 +47,7 @@ public class AlarmAndNoticeTest {
     LoanFileMapper loanFileMapper;
 
 
-    @Resource
-     MarketingSmyPushService marketingSmyPushService;
-    @Test
-    public void transfersmyTest(){
-        marketingSmyPushService.pushSmyUploadDataToDaas();
-    }
+
 
     @Test
     public void testAes(){

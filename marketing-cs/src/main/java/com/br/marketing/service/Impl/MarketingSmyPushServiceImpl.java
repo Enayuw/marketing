@@ -1,8 +1,10 @@
 package com.br.marketing.service.Impl;
 
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
+import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
@@ -13,6 +15,7 @@ import com.br.marketing.strategy.MethodRetryHandlerService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -47,6 +50,9 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
     @Autowired
     private MethodRetryHandlerService methodRetryHandlerService;
 
+    @Value("${api.dass.aesKey:00}")
+    private String aesKey;
+
     @Override
     public void pushSmyUploadDataToDaas() {
         //7410437 为测试apiCode
@@ -59,7 +65,8 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
             dassImportDataDTO.setId(msu.getId());
             dassImportDataDTO.setName("1");
             dassImportDataDTO.setOrgname("samoye");
-            dassImportDataDTO.setPhone(msu.getCell());
+            String cell = BrCipherMaker.getInstance().decode(msu.getCell());
+            dassImportDataDTO.setPhone( AESUtil.aesEncrypty(cell, aesKey));
             dassImportDataDTO.setUserType("1");
 //            dassImportDataDTO.setRecvData();
 //            dassImportDataDTO.setRecvVars();
