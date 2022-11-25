@@ -113,18 +113,18 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
             dassTransferDataDTO.setUid(transfer.getCustNum());
             dassTransferDataDTO.setSource("23");
             dassTransferDataDTO.setUserType("1");
+            String cell = BrCipherMaker.getInstance().decode(transfer.getCell());
+            dassTransferDataDTO.setPhone( cell);
             dassTransferDataDTO.setPhone(transfer.getCell());
             dassTransferDataDTO.setOrgName("samoye");
             dassTransferDataDTO.setIfTransform("1");
             dassTransferDataDTO.setTransformStatus("1");
             dassImportDataDTOlist.add(dassTransferDataDTO);
-
-    public void smyPushDaas(List<BatchRealTimeUserDataDTO> batchRealTimeUserDataDTOList) {
         });
         smyTransferPushDaas(dassImportDataDTOlist);
 
     }
-    public void smyPushDaas(List<DassImportDataDTO> daasImportDataDTOlist) {
+    public void smyPushDaas(List<BatchRealTimeUserDataDTO> batchRealTimeUserDataDTOList) {
         /**
          * 批量人工推电销接口 每1000条数据一个批次
          */
