@@ -36,30 +36,30 @@ import java.util.stream.Collectors;
  * @Author: guangchao.zhang
  * ------------------------------
  */
-@RestController
-@RequestMapping("/test/")
-@Slf4j
+//@RestController
+//@RequestMapping("/test/")
+//@Slf4j
 public class TestXiechengController {
 
-
-    @Autowired
-    private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
-    @Resource
-    MarketingSmyPushService marketingSmyPushService;
-    @GetMapping("/test")
-    public void transfersmyTest(){
-        marketingSmyPushService.pushSmyUploadDataToDaas();
-    }
-    @GetMapping("/resultVolumeCheck")
-    public void process() {
-        PhoneSaleExtendInfoExample updateExample = new PhoneSaleExtendInfoExample();
-        List<Long> ids = new ArrayList<>();
-        ids.add(690057L);
-        updateExample.createCriteria().andIdIn(ids);
-        PhoneSaleExtendInfo updateEntity = new PhoneSaleExtendInfo();
-        updateEntity.setPStatus(2);
-        phoneSaleExtendInfoMapper.updateByExampleSelective(updateEntity,updateExample);
-    }
+//
+//    @Autowired
+//    private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
+//    @Resource
+//    MarketingSmyPushService marketingSmyPushService;
+//    @GetMapping("/test")
+//    public void transfersmyTest(){
+//        marketingSmyPushService.pushSmyUploadDataToDaas();
+//    }
+//    @GetMapping("/resultVolumeCheck")
+//    public void process() {
+//        PhoneSaleExtendInfoExample updateExample = new PhoneSaleExtendInfoExample();
+//        List<Long> ids = new ArrayList<>();
+//        ids.add(690057L);
+//        updateExample.createCriteria().andIdIn(ids);
+//        PhoneSaleExtendInfo updateEntity = new PhoneSaleExtendInfo();
+//        updateEntity.setPStatus(2);
+//        phoneSaleExtendInfoMapper.updateByExampleSelective(updateEntity,updateExample);
+//    }
 
 
 

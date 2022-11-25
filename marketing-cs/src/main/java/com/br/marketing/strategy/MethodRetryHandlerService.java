@@ -214,30 +214,6 @@ public class MethodRetryHandlerService {
         log.error("调用批量人工实时转电销失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
-//    @RetryMethod(isOrNoDbRetry = true)
-//    public Result callDaasSmyRealTimeBatchData(DassImportAdapDTO dassImportAdapDTO, Integer retry) {
-//        Result result = dassServiceClient.postHermesUserData(dassImportAdapDTO);
-//        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-//                Set<String> set = dassImportAdapDTO.getPhoneSaleExtendInfos()
-//                        .stream().map(PhoneSaleExtendInfo::getId)
-//                        .map(String::valueOf)
-//                        .collect(Collectors.toSet());
-//                saveBizLog(String.join(",", set), InterfaceHandlerEnum.ARTIFICIAL_BATCH_REALTIME_DATA.getCode(),
-//                        dassImportAdapDTO.getTransferInfoId());
-//            List<Long> ids = dassImportAdapDTO.getPhoneSaleExtendInfos()
-//                    .stream().map(PhoneSaleExtendInfo::getId)
-//                    .collect(Collectors.toList());
-//            PhoneSaleExtendInfoExample updateExample = new PhoneSaleExtendInfoExample();
-//            updateExample.createCriteria().andIdIn(ids);
-//            PhoneSaleExtendInfo updateEntity = new PhoneSaleExtendInfo();
-//            updateEntity.setPStatus(2);
-//            phoneSaleExtendInfoMapper.updateByExampleSelective(updateEntity,updateExample);
-//            return new Result().setCode(ResultCode.SUCCESS.getValue());
-//        }
-//        log.error("调用批量人工实时转电销失败 -- {}", JSON.toJSONString(result));
-//        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
-//    }
-
     /**
      * 调用电销批量接口
      * 调用成功，将该批数据记录到数据库中以便数据对比
