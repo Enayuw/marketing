@@ -15,7 +15,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -67,6 +69,11 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
             BeanUtils.copyProperties(msu, phoneSaleExtendInfo);
             phoneSaleExtendInfo.setSourceId(msu.getId());
             phoneSaleExtendInfo.setPStatus(1);
+            phoneSaleExtendInfo.setCreateTime(new Date());
+            phoneSaleExtendInfo.setUpdateTime(new Date());
+            phoneSaleExtendInfo.setPushDxTime(new Date());
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            phoneSaleExtendInfo.setAppletTime(simpleDateFormat.format(msu.getAppletTime()));
             batchRealTimeUserDataDTO.setPhoneSaleExtendInfo(phoneSaleExtendInfo);
             subList.add(batchRealTimeUserDataDTO);
         });
