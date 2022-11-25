@@ -26,10 +26,7 @@ import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.dto.SingleDassAndRecordDTO;
-import com.br.marketing.entity.DataCompare;
-import com.br.marketing.entity.PhoneSaleExtendHaluo;
-import com.br.marketing.entity.PhoneSaleExtendHaluoExample;
-import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.DataCompareMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendHaluoMapper;
@@ -217,8 +214,6 @@ public class MethodRetryHandlerService {
         log.error("调用批量人工实时转电销失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
-
-
     /**
      * 调用电销批量接口
      * 调用成功，将该批数据记录到数据库中以便数据对比

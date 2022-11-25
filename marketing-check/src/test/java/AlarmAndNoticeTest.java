@@ -10,6 +10,7 @@ import com.br.marketing.service.Impl.TransferToFileByJiuFuServiceImpl;
 import com.br.marketing.service.Impl.TransferToFileByPPDServiceImpl;
 import com.br.marketing.service.Impl.TransferToFileByShuHeServiceImpl;
 import com.br.marketing.service.Impl.TransferToFileByYiXinRealTimeServiceImpl;
+import com.br.marketing.service.MarketingSmyPushService;
 import com.br.marketing.service.TransferToFileByTongChengServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,6 +45,9 @@ public class AlarmAndNoticeTest {
 
     @Resource
     LoanFileMapper loanFileMapper;
+
+
+
 
     @Test
     public void testAes(){
