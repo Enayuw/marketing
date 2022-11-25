@@ -66,6 +66,7 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
             batchRealTimeUserDataDTO.setDassImportDataDTO(dassImportDataDTO);
             BeanUtils.copyProperties(msu, phoneSaleExtendInfo);
             phoneSaleExtendInfo.setSourceId(msu.getId());
+            phoneSaleExtendInfo.setPStatus(1);
             batchRealTimeUserDataDTO.setPhoneSaleExtendInfo(phoneSaleExtendInfo);
             subList.add(batchRealTimeUserDataDTO);
         });
