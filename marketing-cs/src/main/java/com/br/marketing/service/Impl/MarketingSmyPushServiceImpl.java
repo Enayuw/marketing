@@ -65,7 +65,7 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
             dassImportDataDTO.setSource("23");
             batchRealTimeUserDataDTO.setDassImportDataDTO(dassImportDataDTO);
             BeanUtils.copyProperties(msu, phoneSaleExtendInfo);
-            phoneSaleExtendInfo.setSourceId(Long.valueOf(23));
+            phoneSaleExtendInfo.setSourceId(msu.getId());
             batchRealTimeUserDataDTO.setPhoneSaleExtendInfo(phoneSaleExtendInfo);
             subList.add(batchRealTimeUserDataDTO);
         });
@@ -99,7 +99,7 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
             if (!CollectionUtils.isEmpty(phoneSaleExtendInfos)){
                 phoneSaleExtendInfoMapper.saveBatch(dassImportAdapDTO.getPhoneSaleExtendInfos());
             }
-            methodRetryHandlerService.callDaasSmyRealTimeBatchData(dassImportAdapDTO, 0);
+            methodRetryHandlerService.callDassRealTimeBatchData(dassImportAdapDTO, 0);
         }
     }
 
