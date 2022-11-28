@@ -512,7 +512,6 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             LocalDate lastMonth = today.minusMonths(1);
             // 获取上月的最后一天
             startDay = lastMonth.with(TemporalAdjusters.lastDayOfMonth());
-            endDay = startDay;
         }else if(7 == dayOfMonth){
             startDay = firstDay;
         }else if(14 == dayOfMonth || 21 == dayOfMonth || 28 == dayOfMonth){
