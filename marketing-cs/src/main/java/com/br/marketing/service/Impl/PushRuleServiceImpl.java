@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import IceInternal.Ex;
 import com.alibaba.fastjson.*;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
@@ -506,11 +507,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         extendInfosByFileIds.forEach(t -> {
             hsTaskExtend.put(t.getFileId(), t);
         });
-        ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(10, 10);
-        ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(5, 5);
-        for (Integer i = 0; i < parNum; i++) {
-            Future<List<Future<Result<Integer>>>> submit = actionEs.submit(new actionEs(pushJc, customerInfoPushMain, fileIds, numList, i.toString(), _3kEncrypt));
-        }
+
 //        if (customerInfoPushMain.getmNumMin() != null && customerInfoPushMain.getmNumMax() != null) {
 //            queryBaseBean.setAmountTop(customerInfoPushMain.getmNumMin().toString()
 //                    .concat(",").concat(customerInfoPushMain.getmNumMax().toString()));
@@ -533,10 +530,34 @@ public class PushRuleServiceImpl implements PushRuleService {
 //            searchAfterStr = s;
 //        }
         Integer realTotalNum = 0;
-        Integer number = 0;
         CustomerInfoPushMain main = new CustomerInfoPushMain();
         main.setmStatus(2);
-
+        ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(10, 10);
+        ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(5, 5);
+        List<Future<List<Future<Result<Integer>>>>> res = new ArrayList<>();
+        long startTime = System.currentTimeMillis();
+        for (Integer i = 0; i < parNum; i++) {
+            res.add(actionEs.submit(new actionEs(pushJc, customerInfoPushMain, fileIds, numList, i.toString(), _3kEncrypt)));
+        }
+        log.warn("推送决策 任务id：{}；获取所有分组数据耗时：{}",customerInfoPushMain.getId(),System.currentTimeMillis()-startTime);
+        try {
+            for (Future<List<Future<Result<Integer>>>> actionFuture : res) {
+                List<Future<Result<Integer>>> futures = actionFuture.get();
+                for (Future<Result<Integer>> pushFuture : futures) {
+                    Result<Integer> pushRes = pushFuture.get();
+                    if(!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())){
+                        main.setmStatus(3);
+                    }else{
+                        realTotalNum+=pushRes.getData();
+                    }
+                }
+            }
+        }catch (Exception ex){
+            main.setmStatus(3);
+        }
+        log.warn("推送决策 任务id：{}；全部耗时：{}；计划数量：{}；实际数量：{}；"
+                ,customerInfoPushMain.getId(),System.currentTimeMillis()-startTime
+                ,customerInfoPushMain.getmRealyNum(),realTotalNum);
         main.setId(customerInfoPushMain.getId());
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         //endregion
