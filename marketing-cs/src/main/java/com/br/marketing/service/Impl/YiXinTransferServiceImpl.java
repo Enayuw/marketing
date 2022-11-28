@@ -689,6 +689,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                 //endregion
 
                 Set<PushDTO.DataItems> datas = new HashSet<>();
+                HashMap<String, String> ruleTypeMap = new HashMap<>();
                 for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
                     try {
                         //region check
@@ -716,6 +717,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
                         //region 符合type=1的判断
                         Integer type = 0;
+                        String ruleType = "";
                         LocalDate _applyDtDate = LocalDate.parse(applyDt.substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                         MarketingSyncUser syncUser = syncUserMap.get(marketingTransferSyncUser.getCustNum());
                         LocalDate userStart = LocalDate.parse(syncUser.getAppletDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -723,6 +725,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                                 && "1".equals(applyResult)
                                 && _applyDtDate.compareTo(userStart) >= 0) {
                             type = 1;
+                            ruleType= "1";
                         }
                         if (StringUtils.isNotBlank(marketingTransferSyncUser.getRegisterTime())
                                 && LocalDate.parse(marketingTransferSyncUser.getRegisterTime().substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd")).compareTo(userStart) >= 0
@@ -732,12 +735,14 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                                 && LocalDate.parse(marketingTransferSyncUser.getAuditTime().substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd")).compareTo(userStart) >= 0
                                 && StringUtils.isBlank(marketingTransferSyncUser.getLentTime())) {
                             type = 1;
+                            ruleType= "2";
                         }
                         if (!type.equals(1)) {
                             continue;
                         }
                         //endregion
                         _hasCustNums.add(syncUser.getCustNum());
+                        ruleTypeMap.put(syncUser.getCusBatch().concat(":").concat(syncUser.getCustNum()),ruleType);
                         datas.add(new PushDTO.DataItems(syncUser.getCusBatch(), syncUser.getCustNum()));
                     }catch (Exception ex){
                         log.error("数据有问题 数据id："+marketingTransferSyncUser.getId()+";apicode:"+marketingTransferSyncUser.getApiCode());
@@ -753,6 +758,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                 HaierReqDTO haierReqDTO = new HaierReqDTO();
                 haierReqDTO.setFormData(formData);
                 haierReqDTO.setApiCode(apiCode);
+                haierReqDTO.setRuleMap(ruleTypeMap);
                 if(datas.size()>0){
                     Result<Response2Entity> response2EntityResult = haierServiceClient.pushToTeleSalesWithSave(haierReqDTO);
                     results.add(response2EntityResult);
