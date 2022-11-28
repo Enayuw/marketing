@@ -66,9 +66,27 @@ public class MarketingCommonConfig {
      */
     private List<String> universalProcessApiCode;
 
+    /**
+     * 众安推送黑名单定时任务执行时间
+     */
+    private String zhongAnPushBlackDataExecuteTime;
 
     /**
-     * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day天
+     * 众安推送黑名单定时任务开关
+     * true 打开，false 关闭执行
+     */
+    private Boolean zhongAnPushBlackDataSwitch;
+    /**
+     * 众安推送黑名单数据有效期
+     */
+    private String zhongAnPushBlackDataPeriod;
+    /**
+     * 众安推送黑名单线程数设置
+     */
+    private String zhongAnPushBlackThreadNum;
+
+    /**
+     * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
      */
     private Map<String, String> shuHeTransferExtractDayMap;
 
@@ -88,7 +106,7 @@ public class MarketingCommonConfig {
     private Boolean shuHeTransferExtractIfUseQuasiTotalQuantity;
 
     /**
-     * 数禾有效期, T 代表当前天到月底； T+/-day 代表当前天到day天
+     * 数禾有效期, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
      */
     private Map<String, String> shuHePeriodOfValidityDayMap;
 
@@ -253,7 +271,7 @@ public class MarketingCommonConfig {
      */
     private Integer OffLineInserEsThreadNum;
     /**
-     * 同程金融转化有效期, T 代表当前天到月底； T+/-day 代表当前天到day天
+     * 同程金融转化有效期, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
      */
     private String tongChengPeriodOfValidityDay;
 
@@ -325,6 +343,21 @@ public class MarketingCommonConfig {
      * 萨摩耶转化数据提取apicode集合
      */
     private List<String> saMoYeTransferFileApiCodes;
+
+    /**
+     * 接口日志记录判断标识key为接口名称，第一个为db记录判断，第二为file记录判断{"zanPushDetail":[false,true],"zanZk":[false,true]}
+     */
+    private HashMap<String, List<Boolean>> apiLogMark;
+
+    /**
+     * 众安名单锁定推送数据线有效期, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
+     */
+    private Map<String, String> zhongAnPeriodOfValidityDay;
+
+    /**
+     * 众安名单锁定推送数据线程池配置,eg：[25,50],25为核心线程数，50为最大线程数
+     */
+    private List<Integer> zhongAnPushTreadPoolSize;
 
     /**
      * 跑分分组分位值
