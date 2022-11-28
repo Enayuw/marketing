@@ -60,10 +60,10 @@ public class HaierServiceClient {
     @Resource
     private HttpProxyClient httpProxyClient;
 
-    @Autowired
+    @Resource
     HaierDataMapper haierDataMapper;
 
-    @Autowired
+    @Resource
     HaierReqMapper haierReqMapper;
 
     /**
