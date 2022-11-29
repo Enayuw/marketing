@@ -116,6 +116,4 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
             @Param("status") String status,
             @Param("pageNum") int pageNum,
             @Param("pageSize") int pageSize);
-
-
 }
