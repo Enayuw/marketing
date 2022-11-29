@@ -529,35 +529,44 @@ public class PushRuleServiceImpl implements PushRuleService {
 //            String s = marketingHistoryEsService.builderMarketingWithSearchAfter(queryBaseBean);
 //            searchAfterStr = s;
 //        }
+        Integer getEsNum = 10;
+        boolean isPercentageOrTop = (customerInfoPushMain.getmPercentage() != null
+                && customerInfoPushMain.getmPercentage().compareTo(BigDecimal.ZERO) > 0)
+                || (customerInfoPushMain.getmPlanNum() != null && customerInfoPushMain.getmPlanNum() > 0);
+        if (isPercentageOrTop) {
+            parNum = 1;
+            getEsNum = 1;
+        }
         Integer realTotalNum = 0;
         CustomerInfoPushMain main = new CustomerInfoPushMain();
         main.setmStatus(2);
-        ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(10, 10);
+        ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum);
         ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(5, 5);
         List<Future<List<Future<Result<Integer>>>>> res = new ArrayList<>();
         long startTime = System.currentTimeMillis();
         for (Integer i = 0; i < parNum; i++) {
-            res.add(actionEs.submit(new actionEs(pushJc, customerInfoPushMain, fileIds, numList, i.toString(), _3kEncrypt)));
+            res.add(actionEs.submit(new actionEs(pushJc, customerInfoPushMain
+                    , fileIds, numList, i.toString(), _3kEncrypt, isPercentageOrTop)));
         }
-        log.warn("推送决策 任务id：{}；获取所有分组数据耗时：{}",customerInfoPushMain.getId(),System.currentTimeMillis()-startTime);
+        log.warn("推送决策 任务id：{}；获取所有分组数据耗时：{}", customerInfoPushMain.getId(), System.currentTimeMillis() - startTime);
         try {
             for (Future<List<Future<Result<Integer>>>> actionFuture : res) {
                 List<Future<Result<Integer>>> futures = actionFuture.get();
                 for (Future<Result<Integer>> pushFuture : futures) {
                     Result<Integer> pushRes = pushFuture.get();
-                    if(!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())){
+                    if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
                         main.setmStatus(3);
-                    }else{
-                        realTotalNum+=pushRes.getData();
+                    } else {
+                        realTotalNum += pushRes.getData();
                     }
                 }
             }
-        }catch (Exception ex){
+        } catch (Exception ex) {
             main.setmStatus(3);
         }
         log.warn("推送决策 任务id：{}；全部耗时：{}；计划数量：{}；实际数量：{}；"
-                ,customerInfoPushMain.getId(),System.currentTimeMillis()-startTime
-                ,customerInfoPushMain.getmRealyNum(),realTotalNum);
+                , customerInfoPushMain.getId(), System.currentTimeMillis() - startTime
+                , customerInfoPushMain.getmRealyNum(), realTotalNum);
         main.setId(customerInfoPushMain.getId());
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         //endregion
@@ -584,16 +593,19 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         private Integer _3kEncrypt;
 
+        private Boolean isPerOrTop;
+
         public actionEs(ThreadPoolExecutor pushJcPool
                 , CustomerInfoPushMain customerInfoPushMain
                 , List<Long> fileIds, List<String> numList
-                , String part, Integer _3kEncrypt) {
+                , String part, Integer _3kEncrypt, Boolean isPerOrTop) {
             this.pushJcPool = pushJcPool;
             this.customerInfoPushMain = customerInfoPushMain;
             this.fileIds = fileIds;
             this.numList = numList;
             this.part = part;
             this._3kEncrypt = _3kEncrypt;
+            this.isPerOrTop = isPerOrTop;
         }
 
         @Override
@@ -603,9 +615,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
             queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
             queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
-            queryBaseBean.setPart(part);
+            if (!isPerOrTop) {
+                queryBaseBean.setPart(part);
+            }
             Integer pageSize = 2000;
-            Integer total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+            Integer total = isPerOrTop ? customerInfoPushMain.getmRealyNum()
+                    : marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
             int totalYuShu = total % pageSize;
             String searchAfterStr = "";
             int totalPage = total / pageSize + (totalYuShu > 0 ? 1 : 0);
