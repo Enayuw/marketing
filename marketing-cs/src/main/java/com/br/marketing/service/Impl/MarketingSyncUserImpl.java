@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
@@ -13,8 +14,10 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
@@ -107,6 +110,30 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
         }
         return (localDate.isAfter(firstDate) || localDate.isEqual(firstDate))
                 && (localDate.isBefore(lastDate) || localDate.isEqual(lastDate));
+    }
+
+    @Override
+    public PeriodOfValidityBO.Builder getPeriodOfValidityRange(Integer day, Date validityDate) {
+        if (ObjectUtils.isEmpty(validityDate)) {
+            return null;
+        }
+        ZonedDateTime creatDate = validityDate.toInstant().atZone(ZoneId.systemDefault());
+        Instant firstInstant;
+        Instant lastInstant;
+        if (day == null) {
+            firstInstant = creatDate.toInstant();
+            lastInstant = creatDate.with(TemporalAdjusters.lastDayOfMonth()).toInstant();
+        } else if (day == 0) {
+            firstInstant = creatDate.toInstant();
+            lastInstant = firstInstant;
+        } else if (day > 0) {
+            firstInstant = creatDate.toInstant();
+            lastInstant = creatDate.plusDays(day).toInstant();
+        } else {
+            lastInstant = creatDate.toInstant();
+            firstInstant = creatDate.plusDays(day).toInstant();
+        }
+        return new PeriodOfValidityBO.Builder(Date.from(firstInstant), Date.from(lastInstant));
     }
 
     @Override
@@ -214,5 +241,17 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     private Map<String, List<MarketingSyncUser>> getGroupByCustNumMap(List<MarketingSyncUser> list) {
         return CollectionUtils.isEmpty(list) ? null : list.stream().collect(
                 Collectors.groupingBy(MarketingSyncUser::getCustNum));
+    }
+
+    @Override
+    public Map<String, MarketingSyncUser> getCellByCellAndMaxAppletTimeMap(String apiCode
+            , Set<String> cellSet) {
+        List<MarketingSyncUser> cellByCellAndMaxAppletTime = marketingSyncUserMapper.getCellByCellAndMaxAppletTime(
+                apiCode, cellSet);
+        if (CollectionUtils.isEmpty(cellByCellAndMaxAppletTime)) {
+            return null;
+        }
+        return cellByCellAndMaxAppletTime.parallelStream().collect(Collectors.toMap(MarketingSyncUser::getCell
+                , Function.identity()));
     }
 }

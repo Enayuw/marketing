@@ -117,17 +117,17 @@ public class AlarmAndNoticeTest {
     }
 
     @Resource
-    private TransferToFileByTongChengServiceImpl transferToFileByShuHeService;
+    private TransferToFileByYiXinRealTimeServiceImpl transferToFileService;
 
     @Test
     public void transferFileTest(){
-        String jobParameter = "7412002#2022-07-01;7492632#true";
-        Result<List<TransferFileTask>> listResult = transferToFileByShuHeService.buildTransferTask("7492634");
+        String jobParameter = "7410787#2022-05-21;7492632#true";
+        String myParam = transferToFileService.isMyParam("7410787", jobParameter);
+        Result<List<TransferFileTask>> listResult = transferToFileService.buildTransferTask("7410787",myParam);
         if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0){
             List<TransferFileTask> data = listResult.getData();
             for (TransferFileTask datum : data){
-                String myParam = transferToFileByShuHeService.isMyParam(datum.getApiCode(), jobParameter);
-                Result result = transferToFileByShuHeService.actionTransferToFile(datum,myParam);
+                Result result = transferToFileService.actionTransferToFile(datum,myParam);
                 System.out.println(result.getCode());
             }
         }

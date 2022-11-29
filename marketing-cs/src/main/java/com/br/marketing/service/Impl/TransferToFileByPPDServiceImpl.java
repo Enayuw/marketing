@@ -79,7 +79,7 @@ public class TransferToFileByPPDServiceImpl implements ITransferToFileService {
     }
 
     @Override
-    public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
+    public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam) {
         List<TransferFileTask> resultList = new ArrayList<>();
         Date now = new Date();
         //可配置

@@ -409,4 +409,12 @@
         where TO_DAYS(create_time) = TO_DAYS(NOW()) and  group_type = #{groupType}
         and status = 1 order by id desc;
     </select>
+
+    <select id="getUnresolvedCount" resultType="java.lang.Integer">
+        select count(id)
+        from b_marketing_sync_info
+        where api_code = #{apiCode}
+           <![CDATA[ AND create_time >= #{startDate} and create_time < #{endDate} ]]>
+          and status = 1
+    </select>
 </mapper>

@@ -730,7 +730,7 @@
         select local_id
         from b_marketing_customer_calling_dialog
         where
-          and send_status = 0
+         send_status = 0
           and status = '1'
         order by id desc limit 1;
     </select>

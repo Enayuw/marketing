@@ -70,7 +70,7 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
     }
 
     @Override
-    public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
+    public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam) {
 
         List<TransferFileTask> resultList = new ArrayList<>();
         String yyyyMMdd = LocalDate.now().format(yyyyMMddDF);

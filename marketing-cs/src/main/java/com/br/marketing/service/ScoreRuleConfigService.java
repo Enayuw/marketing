@@ -85,4 +85,6 @@ public interface ScoreRuleConfigService {
 
 
     Result<List<String>> getDataCondition(MarketingTaskExtend taskExtend,MarketingTask task,String date);
+
+    Integer getPart(Integer count,Integer index);
 }

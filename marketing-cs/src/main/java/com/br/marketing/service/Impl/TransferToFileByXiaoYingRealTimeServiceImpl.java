@@ -82,7 +82,7 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
     }
 
     @Override
-    public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
+    public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam) {
         List<TransferFileTask> list = new ArrayList<>();
         //1.登录未申请授信（断点）
         List<TransferFileTask> duanDian = buildTransferTaskDengLuDuanDian(apiCode);
