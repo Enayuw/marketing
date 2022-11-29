@@ -310,4 +310,12 @@
         </foreach>
         AND apply_dt >=#{applyDt}
     </select>
+
+    <select id="getTransferDataCount" resultType="java.lang.Integer">
+        select count(id) from
+        b_marketing_transfer_sync_${tcId}
+        where
+        api_code = #{apiCode}
+        AND request_data = #{requestData}
+    </select>
 </mapper>
