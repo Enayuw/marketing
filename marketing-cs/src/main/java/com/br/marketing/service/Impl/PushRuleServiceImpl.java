@@ -477,6 +477,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     //    @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<Boolean> consumerPushCustomer(Long id) {
+        long initTime = System.currentTimeMillis();
         CustomerInfoPushMain customerInfoPushMain = customerInfoPushMainMapper.selectByPrimaryKey(id);
         CustomerInfoPushBatchExample searchPushBatch = new CustomerInfoPushBatchExample();
         searchPushBatch.createCriteria().andMIdEqualTo(customerInfoPushMain.getId());
@@ -564,8 +565,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (Exception ex) {
             main.setmStatus(3);
         }
-        log.warn("推送决策 任务id：{}；全部耗时：{}；计划数量：{}；实际数量：{}；"
-                , customerInfoPushMain.getId(), System.currentTimeMillis() - startTime
+        log.warn("推送决策 任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}；实际数量：{}；"
+                , customerInfoPushMain.getId()
+                , System.currentTimeMillis() - startTime
+                , System.currentTimeMillis() - initTime
                 , customerInfoPushMain.getmRealyNum(), realTotalNum);
         main.setId(customerInfoPushMain.getId());
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
