@@ -228,7 +228,17 @@ public class MethodRetryHandlerService {
         log.error("调用批量人工实时转电销失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
-
+    @RetryMethod(isOrNoDbRetry = true)
+    public Result smyCallDassRealTimeBatchData(DassImportAdapDTO dassImportAdapDTO, Integer retry) {
+        Result result = dassServiceClient.postHermesUserData(dassImportAdapDTO);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            Set<String> set = dassImportAdapDTO.getList().stream().map(DassImportDataDTO::getId).map(String::valueOf).collect(Collectors.toSet());
+            phoneSaleExtendInfoMapper.updateBatch(set);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("调用批量萨摩耶实时转电销失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
 
     /**
      * 调用电销批量接口

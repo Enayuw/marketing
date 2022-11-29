@@ -114,7 +114,7 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
             if (!CollectionUtils.isEmpty(phoneSaleExtendInfos)){
                 phoneSaleExtendInfoMapper.saveBatch(dassImportAdapDTO.getPhoneSaleExtendInfos());
             }
-            methodRetryHandlerService.callDassRealTimeBatchData(dassImportAdapDTO, 0);
+            methodRetryHandlerService.smyCallDassRealTimeBatchData(dassImportAdapDTO, 0);
         }
     }
 
