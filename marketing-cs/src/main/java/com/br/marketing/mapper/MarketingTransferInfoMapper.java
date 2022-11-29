@@ -36,6 +36,6 @@ public interface MarketingTransferInfoMapper extends MarketingTransferInfoMapper
     List<Long> countByApiCodAndLast(@Param("apiCode") String apiCode, @Param("createTime") Date createTime, @Param("last") String last);
 
 
-    @Select("select bt.*,bs.cell from b_marketing_transfer_info_${apiCode} bt left join b_marketing_sync_info_${apiCode} bs on bt.cust_num = cust_num where TO_DAYS(bt.create_time) = TO_DAYS(NOW()) and  bt.group_type = #{groupType} and bt.reserve_field1 =1")
-    List<MarketingTransferCell> getSmyTransferDataByGroupType(@Param("apiCode") String apiCode, @Param("groupType") String groupType);
+    @Select("select bt.*,bs.cell from b_marketing_transfer_sync_${cid} bt left join b_marketing_sync_${apiCode} bs on bt.cust_num = bs.cust_num where TO_DAYS(bt.create_time) = TO_DAYS(NOW()) and  bs.group_type = #{groupType} and bt.reserve_field1 =1")
+    List<MarketingTransferCell> getSmyTransferDataByGroupType(@Param("cid") String cid,@Param("apiCode") String apiCode, @Param("groupType") String groupType);
 }

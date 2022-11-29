@@ -105,7 +105,7 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
     @Override
     public void pushSmyTransferDataToDaas() {
         //7410437 为测试apiCode
-        List<MarketingTransferCell> marketingTransferInfoList = marketingTransferInfoMapper.getSmyTransferDataByGroupType("7410437", "S09");
+        List<MarketingTransferCell> marketingTransferInfoList = marketingTransferInfoMapper.getSmyTransferDataByGroupType("762","7410437", "S09");
         List<DassTransferDataDTO> dassImportDataDTOlist = new ArrayList<>();
         marketingTransferInfoList.stream().forEach(transfer -> {
             DassTransferDataDTO dassTransferDataDTO = new DassTransferDataDTO();
