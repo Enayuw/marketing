@@ -69,7 +69,7 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
     @Override
     public void pushSmyUploadDataToDaas() {
         //7410437 为测试apiCode
-        List<MarketingSyncUser> marketingSyncUserList = marketingSyncInfoMapper.getSmyDataByGroupType("7410437", "S09");
+        List<MarketingSyncUser> marketingSyncUserList = marketingSyncInfoMapper.getSmyDataByGroupType("3710013", "S09");
         List<BatchRealTimeUserDataDTO> subList = new ArrayList<>();
         marketingSyncUserList.stream().forEach(msu -> {
             DassImportDataDTO dassImportDataDTO = new DassImportDataDTO();
@@ -148,7 +148,7 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
             if (!CollectionUtils.isEmpty(phoneSaleExtendInfos)){
                 phoneSaleExtendInfoMapper.saveBatch(dassImportAdapDTO.getPhoneSaleExtendInfos());
             }
-            methodRetryHandlerService.callDassRealTimeBatchData(dassImportAdapDTO, 0);
+            methodRetryHandlerService.smyCallDassRealTimeBatchData(dassImportAdapDTO, 0);
         }
     }
     public void smyTransferPushDaas(List<DassTransferDataDTO> transferData) {

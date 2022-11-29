@@ -77,4 +77,24 @@ public interface MarketingSyncUserMapper {
     List<MarketingSyncUser> getCellByCustNumsAndMaxCreateTime(@Param("apiCode") String apiCode
             , @Param("set") Set<String> set);
 
+    /**
+     * 2022/10/10 11:20
+     * 根据手机号 批量获取最新时间上传数据信息
+     *
+     * @return list
+     */
+    List<MarketingSyncUser> getCellByCellAndMaxAppletTime(@Param("apiCode") String apiCode
+            , @Param("cellSet") Set<String> cellSet);
+
+
+    /**
+     * 分页获取上传数据，appletdate区间
+     * @param apiCode
+     * @param startDate
+     * @param endDate
+     * @param minId
+     * @return
+     */
+    List<MarketingSyncUser> getSyncUserByAppletDate(@Param("apiCode") String apiCode, @Param("startDate") String startDate, @Param("endDate") String endDate, @Param("minId") Long minId);
+
 }

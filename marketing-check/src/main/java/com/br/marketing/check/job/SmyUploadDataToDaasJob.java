@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author guangchao.zhang
  * @Classname SmyUploadDataToDaasJob
- * @Description 回调第三方接口发送不打信息
+ * @Description 萨摩耶数据推daas
  * @Date 2022/11/18 10:02 AM
  */
 @Component

@@ -4,7 +4,6 @@ import ch.qos.logback.classic.spi.ThrowableProxy;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.net.IpUtil;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.service.EmailService;

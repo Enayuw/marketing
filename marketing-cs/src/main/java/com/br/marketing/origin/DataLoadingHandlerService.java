@@ -109,18 +109,49 @@ public class DataLoadingHandlerService {
             shuHePeriodOfValidityDayMap.put("促申完", "T+15");
             shuHePeriodOfValidityDayMap.put("促首借", "T+31");
             shuHePeriodOfValidityDayMap.put("促复借", "T");
-            shuHePeriodOfValidityDayMap.put("重申","T");
+            shuHePeriodOfValidityDayMap.put("重申", "T");
         }
-        if (shuHePeriodOfValidityDayMap.containsKey(userType)) {
-            Matcher matcher = PATTERN.matcher(shuHePeriodOfValidityDayMap.get(userType));
-            if (matcher.find()) {
-                String day = matcher.group();
-                return new BigDecimal(day).setScale(0, BigDecimal.ROUND_HALF_UP).intValue() - 1;
-            } else {
-                return null;
-            }
+        try {
+            return getPeriodOfValidityDay(shuHePeriodOfValidityDayMap, userType);
+        } catch (IllegalAccessException e) {
+            throw new IllegalAccessException("未知的场景类:" + userType);
         }
-        throw new IllegalAccessException("未知的场景类:" + userType);
+    }
+
+    /**
+     * 2022/3/22 16:22
+     * 获取有效期，有效期包含当天
+     *
+     * @param periodOfValidityDayMap 有效期配置 eg:{"test":"T+30"}
+     * @param key                    配置有效期key eg:test
+     * @return null时为当前月底
+     */
+    public Integer getPeriodOfValidityDay(Map<String, String> periodOfValidityDayMap, String key)
+            throws IllegalAccessException {
+        if (periodOfValidityDayMap.containsKey(key)) {
+            return periodOfValidityDay(periodOfValidityDayMap.get(key));
+        }
+        throw new IllegalAccessException("有效期配置，未知的配置有效期key:" + key);
+    }
+
+    /**
+     * 2022/3/22 16:22
+     * 获取有效期，有效期包含当天，其中“T+n” n表示共多少天
+     * 计算时需要将配置的时间减去一天
+     * eg：T+30;当天日期时2022/3/1,有效期范围为：2022/3/1至2022/3/29,共30天
+     *
+     * @param periodOfValidity 有效期配置,T 代表当前天到月底; T+/-day 代表当前天到day-1天; day为0时为当天，共day天，eg：T+30
+     * @return null时为当前月底
+     */
+    public Integer periodOfValidityDay(String periodOfValidity) {
+        Matcher matcher = PATTERN.matcher(periodOfValidity);
+        if (matcher.find()) {
+            String dayStr = matcher.group();
+            int day = new BigDecimal(dayStr).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
+            return day > 0 ? (day - 1) : day == 0 ? day : (day + 1);
+        } else {
+            return null;
+        }
     }
 
 

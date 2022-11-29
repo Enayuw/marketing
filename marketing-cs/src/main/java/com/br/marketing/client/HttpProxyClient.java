@@ -60,8 +60,8 @@ public class HttpProxyClient {
 	private static final PoolingHttpClientConnectionManager HTTP_CLIENT_POOL = new PoolingHttpClientConnectionManager();
 
 	static {
-		HTTP_CLIENT_POOL.setMaxTotal(150);
-		HTTP_CLIENT_POOL.setDefaultMaxPerRoute(50);
+		HTTP_CLIENT_POOL.setMaxTotal(5000);
+		HTTP_CLIENT_POOL.setDefaultMaxPerRoute(500);
 	}
 
 
@@ -166,7 +166,15 @@ public class HttpProxyClient {
 	@Autowired
 	ThreadPoolExecutor interfaceLogDbpool;
 
+	public  HashMap<String,String> sendByCodeWithLog(Object param, String url, Boolean isPorxy, String mediaType,String extendInfo,Boolean isDbLog,Boolean isFileLog) {
+		return sendByCodePool(param,url,isPorxy,mediaType,extendInfo,isDbLog,isFileLog);
+	}
+
 	public  HashMap<String,String> sendByCode(Object param, String url, Boolean isPorxy, String mediaType,String extendInfo) {
+		return sendByCode(param,url,isPorxy,mediaType,extendInfo,true,false);
+	}
+
+	private  HashMap<String,String> sendByCode(Object param, String url, Boolean isPorxy, String mediaType,String extendInfo,Boolean isDbLog,Boolean isFileLog) {
 		InterfaceLog interfaceLog = new InterfaceLog();
 		interfaceLog.setExtendInfo(extendInfo);
 		interfaceLog.setRequestId(UUID.randomUUID().toString());
@@ -227,13 +235,94 @@ public class HttpProxyClient {
 			interfaceLog.setResult(e.getMessage());
 			res.put("content",e.getMessage());
 		}
-		interfaceLogDbpool.submit(()->{
-			try {
-				interfaceLogMapper.insertSelective(interfaceLog);
-			}catch (Exception ex){
-				log.error(String.format("插入接口日志报错:%s",ex.getMessage()),ex);
+		if(isDbLog) {
+			interfaceLogDbpool.submit(() -> {
+				try {
+					interfaceLogMapper.insertSelective(interfaceLog);
+				} catch (Exception ex) {
+					log.error(String.format("插入接口日志报错:%s", ex.getMessage()), ex);
+				}
+			});
+		}
+		if(isFileLog){
+			log.warn(JSON.toJSONString(interfaceLog));
+		}
+		return res;
+	}
+
+	private  HashMap<String,String> sendByCodePool(Object param, String url, Boolean isPorxy, String mediaType,String extendInfo,Boolean isDbLog,Boolean isFileLog) {
+		InterfaceLog interfaceLog = new InterfaceLog();
+		interfaceLog.setExtendInfo(extendInfo);
+		interfaceLog.setRequestId(UUID.randomUUID().toString());
+		interfaceLog.setUrl(url);
+		interfaceLog.setCreateTime(new Date());
+		HttpClient httpClient =getHttpClientInner(isPorxy);
+		HashMap<String,String> res = new HashMap<>();
+		Long start = System.currentTimeMillis();
+		try {
+			HttpPost post = new HttpPost(url);
+			HttpEntity requestEntity = null;
+			if(mediaType.equals(MediaType.APPLICATION_JSON_UTF8_VALUE)){
+				String s = JSON.toJSONString(param);
+				interfaceLog.setRequestParam(s);
+				requestEntity = new StringEntity(s, CHARSET_UTF8);
+			}else if(mediaType.equals(MediaType.APPLICATION_FORM_URLENCODED_VALUE)){
+				StringBuilder paramStr = new StringBuilder();
+				BeanMap beanMap = BeanMap.create(param);
+				for (Object o : beanMap.keySet()) {
+					paramStr.append(String.format("%s=%s&",o.toString(), URLEncoder.encode(beanMap.get(o).toString(),"utf-8")));
+				}
+				interfaceLog.setRequestParam(paramStr.toString());
+				requestEntity = new StringEntity(paramStr.toString(), CHARSET_UTF8);
+			}else{
+				throw new RuntimeException("不支持的请求类型");
 			}
-		});
+			post.setEntity(requestEntity);
+			post.setHeader("content-type",mediaType);
+			interfaceLog.setHeader(post.getAllHeaders().toString());
+			RequestConfig requestConfig= getRequestConfig(isPorxy,10000);
+			post.setConfig(requestConfig);
+			HttpResponse response = null;
+			start = System.currentTimeMillis();
+			if(isPorxy){
+				AuthCache authCache = new BasicAuthCache();
+				AuthScheme authScheme = new BasicScheme(ChallengeState.PROXY);
+				authCache.put(new HttpHost(proxyHost, proxyPort),authScheme);
+				HttpContext httpContext = new BasicHttpContext();
+				httpContext.setAttribute(ClientContext.AUTH_CACHE,authCache);
+				response = httpClient.execute(post,httpContext);
+			}else{
+				response = httpClient.execute(post);
+			}
+			Long end = System.currentTimeMillis();
+			interfaceLog.setExpire(String.valueOf(end-start));
+			int statusCode = response.getStatusLine().getStatusCode();
+			res.put("httpcode",String.valueOf(statusCode));
+			String result = EntityUtils.toString(response.getEntity(),CHARSET_UTF8);
+			res.put("content",result);
+			interfaceLog.setExpire(String.valueOf(end-start));
+			interfaceLog.setResult(result);
+			interfaceLog.setHttpCode(statusCode);
+			post.releaseConnection();
+		} catch (Exception e) {
+			log.error("url={} param={}", url, param, e);
+			Long end = System.currentTimeMillis();
+			interfaceLog.setExpire(String.valueOf(end-start));
+			interfaceLog.setResult(e.getMessage());
+			res.put("content",e.getMessage());
+		}
+		if(isDbLog) {
+			interfaceLogDbpool.submit(() -> {
+				try {
+					interfaceLogMapper.insertSelective(interfaceLog);
+				} catch (Exception ex) {
+					log.error(String.format("插入接口日志报错:%s", ex.getMessage()), ex);
+				}
+			});
+		}
+		if(isFileLog){
+			log.warn(JSON.toJSONString(interfaceLog));
+		}
 		return res;
 	}
 
@@ -250,6 +339,22 @@ public class HttpProxyClient {
 			return httpClient;
 		}
 	}
+
+	public  HttpClient getHttpClientInner(Boolean isProxy) {
+		if(isProxy){
+			// 设置代理HttpHost
+			HttpHost proxy = new HttpHost(proxyHost, proxyPort );
+			// 设置认证
+			CredentialsProvider provider = new BasicCredentialsProvider();
+			provider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials(userName, password));
+			CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(HTTP_CLIENT_POOL).setDefaultCredentialsProvider(provider).build();
+			return httpClient;
+		}else {
+			CloseableHttpClient httpClient = HttpClientBuilder.create().setConnectionManager(HTTP_CLIENT_POOL).build();
+			return httpClient;
+		}
+	}
+
 	/**
 	 * @description:获取兆维HttpClient代理对象
 	 * @author: lei.zhang2@100credit.com
@@ -299,9 +404,9 @@ public class HttpProxyClient {
 		if(isProxy) {
 			return RequestConfig.custom()
 					.setSocketTimeout(sockTimeout)
-					.setConnectTimeout(1000)
+					.setConnectTimeout(5000)
 					.setProxy(new HttpHost(proxyHost, proxyPort ))
-					.setConnectionRequestTimeout(1000)
+					.setConnectionRequestTimeout(5000)
 					.build();
 		}else {
 			return	RequestConfig.custom()
