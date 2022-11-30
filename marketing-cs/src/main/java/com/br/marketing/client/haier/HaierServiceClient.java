@@ -126,7 +126,7 @@ public class HaierServiceClient {
                     && "00000".equals(response2Entity.getHead().getRetFlag())){
                 HaierData record = new HaierData();
                 record.setPushStatus(2);
-                record.setRuleType("2".equals(record.getType())?"3":("3".equals(record.getType())?"4":null));
+                record.setRuleType("2".equals(haierReqDTO.getFormData().getType())?"3":("3".equals(haierReqDTO.getFormData().getType())?"4":null));
                 HaierDataExample updateExample = new HaierDataExample();
                 updateExample.createCriteria().andIdIn(ids);
                 haierDataMapper.updateByExampleSelective(record,updateExample);
