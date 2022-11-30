@@ -106,7 +106,7 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
     public void pushSmyTransferDataToDaas() {
         //7410437 为测试apiCode
         List<MarketingTransferCell> marketingTransferInfoList = marketingTransferInfoMapper.getSmyTransferDataByGroupType("762","7410437", "S09");
-        List<DassTransferDataDTO> dassImportDataDTOlist = new ArrayList<>();
+        List<DassTransferDataDTO> dassTransferDataDTOList = new ArrayList<>();
         marketingTransferInfoList.stream().forEach(transfer -> {
             DassTransferDataDTO dassTransferDataDTO = new DassTransferDataDTO();
             dassTransferDataDTO.setId(transfer.getId());
@@ -119,9 +119,9 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
             dassTransferDataDTO.setOrgName("samoye");
             dassTransferDataDTO.setIfTransform("1");
             dassTransferDataDTO.setTransformStatus("1");
-            dassImportDataDTOlist.add(dassTransferDataDTO);
+            dassTransferDataDTOList.add(dassTransferDataDTO);
         });
-        smyTransferPushDaas(dassImportDataDTOlist);
+        smyTransferPushDaas(dassTransferDataDTOList);
 
     }
     public void smyPushDaas(List<BatchRealTimeUserDataDTO> batchRealTimeUserDataDTOList) {
@@ -153,7 +153,7 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
     }
     public void smyTransferPushDaas(List<DassTransferDataDTO> transferData) {
         /**
-         * 电销转化接口 每500条数据一个批次
+         * 萨摩耶转化数据剔除 每500条数据一个批次
          */
         int pageSize = 500;
         int totalCount = transferData.size();
@@ -167,7 +167,7 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
             }
             DassTransferDataAdapDTO dassTransferDataAdapDTO = new DassTransferDataAdapDTO();
             dassTransferDataAdapDTO.setDassTransferDataDTOList(subList);
-            methodRetryHandlerService.callDassTransferData(dassTransferDataAdapDTO, 0);
+            methodRetryHandlerService.smyCallDassTransferData(dassTransferDataAdapDTO, 0);
         }
     }
 }
