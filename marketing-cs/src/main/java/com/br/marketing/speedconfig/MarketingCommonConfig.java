@@ -363,4 +363,9 @@ public class MarketingCommonConfig {
      * 跑分分组分位值
      */
     private Integer quantileValue;
+
+    /**
+     * 推送决策优化跑分记录时间节点
+     */
+    private String scoreFileYhTime;
 }

@@ -492,6 +492,15 @@ public class PushRuleServiceImpl implements PushRuleService {
         StraHisFileExample fileExample = new StraHisFileExample();
         fileExample.createCriteria().andIdIn(fileIds);
         List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(fileExample);
+        String scoreFileYhTime = marketingCommonConfig.getScoreFileYhTime();
+        Date yhTime = null;
+        try {
+            yhTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(scoreFileYhTime);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        Date yh = yhTime;
+        long beforeCount = straHisFiles.stream().filter(t -> t.getCreateTime().compareTo(yh) <= 0).count();
         Optional<StraHisFile> first = straHisFiles.stream().sorted(Comparator.comparing(StraHisFile::getIndexNum).reversed()).findFirst();
         Integer parNum = 0;
         if (first.isPresent()) {
@@ -531,10 +540,11 @@ public class PushRuleServiceImpl implements PushRuleService {
 //            searchAfterStr = s;
 //        }
         Integer getEsNum = 10;
-        boolean isPercentageOrTop = (customerInfoPushMain.getmPercentage() != null
+        boolean isSigle = (customerInfoPushMain.getmPercentage() != null
                 && customerInfoPushMain.getmPercentage().compareTo(BigDecimal.ZERO) > 0)
-                || (customerInfoPushMain.getmPlanNum() != null && customerInfoPushMain.getmPlanNum() > 0);
-        if (isPercentageOrTop) {
+                || (customerInfoPushMain.getmPlanNum() != null && customerInfoPushMain.getmPlanNum() > 0)
+                || beforeCount>0;
+        if (isSigle) {
             parNum = 1;
             getEsNum = 1;
         }
@@ -547,7 +557,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         long startTime = System.currentTimeMillis();
         for (Integer i = 0; i < parNum; i++) {
             res.add(actionEs.submit(new actionEs(pushJc, customerInfoPushMain
-                    , fileIds, numList, i.toString(), _3kEncrypt, isPercentageOrTop)));
+                    , fileIds, numList, i.toString(), _3kEncrypt, isSigle)));
         }
         log.warn("推送决策 任务id：{}；获取所有分组数据耗时：{}", customerInfoPushMain.getId(), System.currentTimeMillis() - startTime);
         try {
