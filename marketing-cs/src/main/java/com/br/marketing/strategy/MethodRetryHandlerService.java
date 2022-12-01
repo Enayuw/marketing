@@ -310,6 +310,7 @@ public class MethodRetryHandlerService {
     @RetryMethod(isOrNoDbRetry = true)
     public Result smyCallDassTransferData(DassTransferDataAdapDTO dassTransferDataAdapDTO, Integer retry) {
         Result result = dassServiceClient.postTransferData(dassTransferDataAdapDTO);
+        log.warn("萨摩耶调用电销转化接口返回结果 -- {}", JSON.toJSONString(result));
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
