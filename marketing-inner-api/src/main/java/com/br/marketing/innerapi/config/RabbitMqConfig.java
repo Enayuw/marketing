@@ -351,6 +351,13 @@ public class RabbitMqConfig {
         return containerFactory(configurer, connectionFactory, 5);
     }
 
+    @Bean(name = "thirtyDataContainerFactory")
+    public SimpleRabbitListenerContainerFactory thirtyDataContainerFactory(
+            SimpleRabbitListenerContainerFactoryConfigurer configurer,
+            @Qualifier("primaryConnectionFactory") ConnectionFactory connectionFactory) {
+        return containerFactory(configurer, connectionFactory, 30);
+    }
+
     /**
      * 配置
      *
