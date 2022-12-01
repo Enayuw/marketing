@@ -130,7 +130,7 @@ public class ConsumerApp {
      */
     @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_UNIVERSAL_TRANSFER_RECEIVE, durable = "true")
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
-            , key = MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE)}, containerFactory = "thirtyDataContainerFactory")
+            , key = MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE)}, containerFactory = "fiveDataContainerFactory")
     public void consumerUniversalTransfer(Channel channel, Message message) {
         String o = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
