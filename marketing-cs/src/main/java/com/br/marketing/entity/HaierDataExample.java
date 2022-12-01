@@ -555,6 +555,76 @@ public class HaierDataExample {
             return (Criteria) this;
         }
 
+        public Criteria andRuleTypeIsNull() {
+            addCriterion("rule_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeIsNotNull() {
+            addCriterion("rule_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeEqualTo(String value) {
+            addCriterion("rule_type =", value, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeNotEqualTo(String value) {
+            addCriterion("rule_type <>", value, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeGreaterThan(String value) {
+            addCriterion("rule_type >", value, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeGreaterThanOrEqualTo(String value) {
+            addCriterion("rule_type >=", value, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeLessThan(String value) {
+            addCriterion("rule_type <", value, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeLessThanOrEqualTo(String value) {
+            addCriterion("rule_type <=", value, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeLike(String value) {
+            addCriterion("rule_type like", value, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeNotLike(String value) {
+            addCriterion("rule_type not like", value, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeIn(List<String> values) {
+            addCriterion("rule_type in", values, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeNotIn(List<String> values) {
+            addCriterion("rule_type not in", values, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeBetween(String value1, String value2) {
+            addCriterion("rule_type between", value1, value2, "ruleType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRuleTypeNotBetween(String value1, String value2) {
+            addCriterion("rule_type not between", value1, value2, "ruleType");
+            return (Criteria) this;
+        }
+
         public Criteria andTaskIdIsNull() {
             addCriterion("task_id is null");
             return (Criteria) this;
@@ -882,76 +952,6 @@ public class HaierDataExample {
 
         public Criteria andDataMessageNotBetween(String value1, String value2) {
             addCriterion("data_message not between", value1, value2, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendIsNull() {
-            addCriterion("extend is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendIsNotNull() {
-            addCriterion("extend is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendEqualTo(String value) {
-            addCriterion("extend =", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendNotEqualTo(String value) {
-            addCriterion("extend <>", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendGreaterThan(String value) {
-            addCriterion("extend >", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendGreaterThanOrEqualTo(String value) {
-            addCriterion("extend >=", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendLessThan(String value) {
-            addCriterion("extend <", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendLessThanOrEqualTo(String value) {
-            addCriterion("extend <=", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendLike(String value) {
-            addCriterion("extend like", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendNotLike(String value) {
-            addCriterion("extend not like", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendIn(List<String> values) {
-            addCriterion("extend in", values, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendNotIn(List<String> values) {
-            addCriterion("extend not in", values, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendBetween(String value1, String value2) {
-            addCriterion("extend between", value1, value2, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendNotBetween(String value1, String value2) {
-            addCriterion("extend not between", value1, value2, "extend");
             return (Criteria) this;
         }
 
