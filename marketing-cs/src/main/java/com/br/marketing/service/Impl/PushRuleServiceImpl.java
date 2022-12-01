@@ -497,7 +497,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         try {
             yhTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(scoreFileYhTime);
         } catch (ParseException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(),e);
         }
         Date yh = yhTime;
         long beforeCount = straHisFiles.stream().filter(t -> t.getCreateTime().compareTo(yh) <= 0).count();
@@ -539,7 +539,14 @@ public class PushRuleServiceImpl implements PushRuleService {
 //            String s = marketingHistoryEsService.builderMarketingWithSearchAfter(queryBaseBean);
 //            searchAfterStr = s;
 //        }
-        Integer getEsNum = 10;
+        Integer getEsNum = marketingCommonConfig.getScoreByEsThreadNum()!=null
+                && marketingCommonConfig.getScoreByEsThreadNum()>0
+        ? marketingCommonConfig.getScoreByEsThreadNum()
+        :10;
+        Integer getJcNum = marketingCommonConfig.getScoreToJcThreadNum()!=null
+                && marketingCommonConfig.getScoreToJcThreadNum()>0
+                ? marketingCommonConfig.getScoreToJcThreadNum()
+                :2;
         boolean isSigle = (customerInfoPushMain.getmPercentage() != null
                 && customerInfoPushMain.getmPercentage().compareTo(BigDecimal.ZERO) > 0)
                 || (customerInfoPushMain.getmPlanNum() != null && customerInfoPushMain.getmPlanNum() > 0)
@@ -552,7 +559,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         CustomerInfoPushMain main = new CustomerInfoPushMain();
         main.setmStatus(2);
         ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum);
-        ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(5, 5);
+        ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(getJcNum, getJcNum);
         List<Future<List<Future<Result<Integer>>>>> res = new ArrayList<>();
         long startTime = System.currentTimeMillis();
         for (Integer i = 0; i < parNum; i++) {
@@ -575,6 +582,19 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (Exception ex) {
             main.setmStatus(3);
         }
+        try {
+            actionEs.shutdown();
+            pushJc.shutdown();
+            while (!pushJc.awaitTermination(5L,TimeUnit.SECONDS)){
+
+            }
+            while (!actionEs.awaitTermination(5L,TimeUnit.SECONDS)){
+
+            }
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+        }
+
         log.warn("推送决策 任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}；实际数量：{}；"
                 , customerInfoPushMain.getId()
                 , System.currentTimeMillis() - startTime
