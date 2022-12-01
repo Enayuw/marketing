@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import IceInternal.Ex;
 import com.alibaba.fastjson.*;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
@@ -446,11 +447,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(taskExtendExample);
         Set<Integer> encrgyTypes = marketingTaskExtends.stream()
                 .map(t -> {
-                    if(StringUtils.isBlank(t.getExtendConfigInfo())){
+                    if (StringUtils.isBlank(t.getExtendConfigInfo())) {
                         return ScoreThreeKeyEncryptEnum.md5.getValue();
                     }
                     Integer threekEncryptType = JSONObject.parseObject(t.getExtendConfigInfo(), TaskExtendExtendFieldDTO.class).getThreekEncryptType();
-                    return threekEncryptType==null?ScoreThreeKeyEncryptEnum.md5.getValue():threekEncryptType;
+                    return threekEncryptType == null ? ScoreThreeKeyEncryptEnum.md5.getValue() : threekEncryptType;
                 })
                 .collect(Collectors.toSet());
         if (encrgyTypes.size() > 1) {
@@ -476,21 +477,38 @@ public class PushRuleServiceImpl implements PushRuleService {
     //    @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<Boolean> consumerPushCustomer(Long id) {
+        long initTime = System.currentTimeMillis();
         CustomerInfoPushMain customerInfoPushMain = customerInfoPushMainMapper.selectByPrimaryKey(id);
         CustomerInfoPushBatchExample searchPushBatch = new CustomerInfoPushBatchExample();
         searchPushBatch.createCriteria().andMIdEqualTo(customerInfoPushMain.getId());
         List<CustomerInfoPushBatch> customerInfoPushBatches = customerInfoPushBatchMapper.selectByExample(searchPushBatch);
         int total = customerInfoPushMain.getmRealyNum();
-        String searchAfterStr = "";
         List<String> numList = new ArrayList<>();
         List<Long> fileIds = new ArrayList<>();
         for (CustomerInfoPushBatch customerInfoPushBatch : customerInfoPushBatches) {
             numList.add(customerInfoPushBatch.getmBatchNumber());
             fileIds.add(customerInfoPushBatch.getmFileId());
         }
+        StraHisFileExample fileExample = new StraHisFileExample();
+        fileExample.createCriteria().andIdIn(fileIds);
+        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(fileExample);
+        String scoreFileYhTime = marketingCommonConfig.getScoreFileYhTime();
+        Date yhTime = null;
+        try {
+            yhTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(scoreFileYhTime);
+        } catch (ParseException e) {
+            log.error(e.getMessage(),e);
+        }
+        Date yh = yhTime;
+        long beforeCount = straHisFiles.stream().filter(t -> t.getCreateTime().compareTo(yh) <= 0).count();
+        Optional<StraHisFile> first = straHisFiles.stream().sorted(Comparator.comparing(StraHisFile::getIndexNum).reversed()).findFirst();
+        Integer parNum = 0;
+        if (first.isPresent()) {
+            parNum = first.get().getIndexNum();
+        }
         Result<Integer> integerResult = checkThreekEnc(fileIds);
-        if(!ResultCode.SUCCESS.getValue().equals(integerResult.getCode())){
-            log.error(String.format("该推送不符合推送决策的限制条件 流水号：%s,原因：%s",id.toString(),integerResult.getMessage()));
+        if (!ResultCode.SUCCESS.getValue().equals(integerResult.getCode())) {
+            log.error(String.format("该推送不符合推送决策的限制条件 流水号：%s,原因：%s", id.toString(), integerResult.getMessage()));
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
         Integer _3kEncrypt = integerResult.getData();
@@ -499,11 +517,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         extendInfosByFileIds.forEach(t -> {
             hsTaskExtend.put(t.getFileId(), t);
         });
-        QueryBaseBean queryBaseBean = new QueryBaseBean();
-        queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
-        queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
-        queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
-        queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
+
 //        if (customerInfoPushMain.getmNumMin() != null && customerInfoPushMain.getmNumMax() != null) {
 //            queryBaseBean.setAmountTop(customerInfoPushMain.getmNumMin().toString()
 //                    .concat(",").concat(customerInfoPushMain.getmNumMax().toString()));
@@ -525,86 +539,67 @@ public class PushRuleServiceImpl implements PushRuleService {
 //            String s = marketingHistoryEsService.builderMarketingWithSearchAfter(queryBaseBean);
 //            searchAfterStr = s;
 //        }
+        Integer getEsNum = marketingCommonConfig.getScoreByEsThreadNum()!=null
+                && marketingCommonConfig.getScoreByEsThreadNum()>0
+        ? marketingCommonConfig.getScoreByEsThreadNum()
+        :10;
+        Integer getJcNum = marketingCommonConfig.getScoreToJcThreadNum()!=null
+                && marketingCommonConfig.getScoreToJcThreadNum()>0
+                ? marketingCommonConfig.getScoreToJcThreadNum()
+                :2;
+        boolean isSigle = (customerInfoPushMain.getmPercentage() != null
+                && customerInfoPushMain.getmPercentage().compareTo(BigDecimal.ZERO) > 0)
+                || (customerInfoPushMain.getmPlanNum() != null && customerInfoPushMain.getmPlanNum() > 0)
+                || beforeCount>0;
+        if (isSigle) {
+            parNum = 1;
+            getEsNum = 1;
+        }
         Integer realTotalNum = 0;
-        Integer number = 0;
         CustomerInfoPushMain main = new CustomerInfoPushMain();
         main.setmStatus(2);
-        Integer pageSize = 500;
-        int totalYuShu = total % pageSize;
-        int totalPage = total / pageSize + (totalYuShu > 0 ? 1 : 0);
-        for (int i = 1; i <= totalPage; i++) {
-            String sn = String.valueOf(i);
-            if (i == totalPage && totalYuShu > 0) {
-                queryBaseBean.setPageSize(totalYuShu);
-            } else {
-                queryBaseBean.setPageSize(pageSize);
-            }
-            queryBaseBean.setSearchAfter(searchAfterStr);
-            List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
-            Integer realNum = marketingHistories.size();
-            List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
-            for (int k = 0; k < marketingHistories.size(); k++) {
-                number++;
-                MarketingHistory marketingHistory = marketingHistories.get(k);
-                if (k == (marketingHistories.size() - 1)) {
-                    searchAfterStr = marketingHistory.getSearchAfter();
-                }
-                //人员信息
-                PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
-//                dto1.setCaseNumber("test_202106020100".concat("_").concat(String.valueOf(System.currentTimeMillis())));
-                if (log.isInfoEnabled()) {
-                    log.info("人员信息：cusnum:{};batchnumber:{}", marketingHistory.getCusNum(),
-                            (StringUtils.isNotBlank(marketingHistory.getBatchNumber()) ? marketingHistory.getBatchNumber() : ""));
-                }
-                dto1.setCaseNumber(marketingHistory.getCusNum());
-                dto1.setPhone(encrypt3k(_3kEncrypt,marketingHistory.getCell()));
-                JSONObject varObject = JSON.parseObject(marketingHistory.getReserveField());
-                if (varObject == null) {
-                    varObject = new JSONObject();
-                }
-                for (MarketingCondition marketingCondition : marketingHistory.getCondition()) {
-                    if (StringUtils.isNotBlank(marketingCondition.getCode())) {
-                        varObject.put(marketingCondition.getFieldKey(), marketingCondition.getDValue());
+        ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum);
+        ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(getJcNum, getJcNum);
+        List<Future<List<Future<Result<Integer>>>>> res = new ArrayList<>();
+        long startTime = System.currentTimeMillis();
+        for (Integer i = 0; i < parNum; i++) {
+            res.add(actionEs.submit(new actionEs(pushJc, customerInfoPushMain
+                    , fileIds, numList, i.toString(), _3kEncrypt, isSigle)));
+        }
+        log.warn("推送决策 任务id：{}；获取所有分组数据耗时：{}", customerInfoPushMain.getId(), System.currentTimeMillis() - startTime);
+        try {
+            for (Future<List<Future<Result<Integer>>>> actionFuture : res) {
+                List<Future<Result<Integer>>> futures = actionFuture.get();
+                for (Future<Result<Integer>> pushFuture : futures) {
+                    Result<Integer> pushRes = pushFuture.get();
+                    if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
+                        main.setmStatus(3);
                     } else {
-                        varObject.put(marketingCondition.getFieldKey(), marketingCondition.getStrValue());
+                        realTotalNum += pushRes.getData();
                     }
                 }
-                varObject.put("custNum", marketingHistory.getCusNum());
-                varObject.put("idCard", encrypt3k(_3kEncrypt,marketingHistory.getIdCard()));
-                varObject.put("name", encrypt3k(_3kEncrypt,marketingHistory.getName()));
-                varObject.put("batchNumber", marketingHistory.getBatchNumber());
-                varObject.put("taskId", marketingHistory.getTaskId());
-                varObject.put("userType", marketingHistory.getUserType());
-                varObject.put("scoreDate", new SimpleDateFormat("yyyy-MM-dd").format(marketingHistory.getRequestTime()));
-                dto1.setVariables(varObject);
-                userDetailDTOS.add(dto1);
             }
-
-            //推送任务基础信息
-            PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
-            pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
-            pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
-            pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + sn);
-            pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
-
-            //传输参数信息
-            PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
-            pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
-            pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
-            pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
-
-            Result<Integer> result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO, customerInfoPushMain.getId(),
-                    pushMarketingUserTaskInfoDTO.getAccessNumber(), userDetailDTOS.size());
-            if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
-                result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO, customerInfoPushMain.getId(),
-                        pushMarketingUserTaskInfoDTO.getAccessNumber(), userDetailDTOS.size());
-            }
-            if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                main.setmStatus(3);
-            } else {
-                realTotalNum += realNum;
-            }
+        } catch (Exception ex) {
+            main.setmStatus(3);
         }
+        try {
+            actionEs.shutdown();
+            pushJc.shutdown();
+            while (!pushJc.awaitTermination(5L,TimeUnit.SECONDS)){
+
+            }
+            while (!actionEs.awaitTermination(5L,TimeUnit.SECONDS)){
+
+            }
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+        }
+
+        log.warn("推送决策 任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}；实际数量：{}；"
+                , customerInfoPushMain.getId()
+                , System.currentTimeMillis() - startTime
+                , System.currentTimeMillis() - initTime
+                , customerInfoPushMain.getmRealyNum(), realTotalNum);
         main.setId(customerInfoPushMain.getId());
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         //endregion
@@ -615,6 +610,152 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
 
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+    }
+
+    class actionEs implements Callable<List<Future<Result<Integer>>>> {
+
+        private ThreadPoolExecutor pushJcPool;
+
+        private CustomerInfoPushMain customerInfoPushMain;
+
+        private List<Long> fileIds;
+
+        private List<String> numList;
+
+        private String part;
+
+        private Integer _3kEncrypt;
+
+        private Boolean isPerOrTop;
+
+        public actionEs(ThreadPoolExecutor pushJcPool
+                , CustomerInfoPushMain customerInfoPushMain
+                , List<Long> fileIds, List<String> numList
+                , String part, Integer _3kEncrypt, Boolean isPerOrTop) {
+            this.pushJcPool = pushJcPool;
+            this.customerInfoPushMain = customerInfoPushMain;
+            this.fileIds = fileIds;
+            this.numList = numList;
+            this.part = part;
+            this._3kEncrypt = _3kEncrypt;
+            this.isPerOrTop = isPerOrTop;
+        }
+
+        @Override
+        public List<Future<Result<Integer>>> call() {
+            QueryBaseBean queryBaseBean = new QueryBaseBean();
+            queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
+            queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
+            queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
+            queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
+            if (!isPerOrTop) {
+                queryBaseBean.setPart(part);
+            }
+            Integer pageSize = 2000;
+            Integer total = isPerOrTop ? customerInfoPushMain.getmRealyNum()
+                    : marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+            int totalYuShu = total % pageSize;
+            String searchAfterStr = "";
+            int totalPage = total / pageSize + (totalYuShu > 0 ? 1 : 0);
+            List<Future<Result<Integer>>> resList = new ArrayList<>();
+            for (int i = 1; i <= totalPage; i++) {
+                String sn = String.valueOf(i);
+                if (i == totalPage && totalYuShu > 0) {
+                    queryBaseBean.setPageSize(totalYuShu);
+                } else {
+                    queryBaseBean.setPageSize(pageSize);
+                }
+                queryBaseBean.setSearchAfter(searchAfterStr);
+                List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+                Integer realNum = marketingHistories.size();
+                List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
+                for (int k = 0; k < marketingHistories.size(); k++) {
+                    MarketingHistory marketingHistory = marketingHistories.get(k);
+                    if (k == (marketingHistories.size() - 1)) {
+                        searchAfterStr = marketingHistory.getSearchAfter();
+                    }
+                    //人员信息
+                    PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
+//                dto1.setCaseNumber("test_202106020100".concat("_").concat(String.valueOf(System.currentTimeMillis())));
+                    if (log.isInfoEnabled()) {
+                        log.info("人员信息：cusnum:{};batchnumber:{}", marketingHistory.getCusNum(),
+                                (StringUtils.isNotBlank(marketingHistory.getBatchNumber()) ? marketingHistory.getBatchNumber() : ""));
+                    }
+                    dto1.setCaseNumber(marketingHistory.getCusNum());
+                    dto1.setPhone(encrypt3k(_3kEncrypt, marketingHistory.getCell()));
+                    JSONObject varObject = JSON.parseObject(marketingHistory.getReserveField());
+                    if (varObject == null) {
+                        varObject = new JSONObject();
+                    }
+                    for (MarketingCondition marketingCondition : marketingHistory.getCondition()) {
+                        if (StringUtils.isNotBlank(marketingCondition.getCode())) {
+                            varObject.put(marketingCondition.getFieldKey(), marketingCondition.getDValue());
+                        } else {
+                            varObject.put(marketingCondition.getFieldKey(), marketingCondition.getStrValue());
+                        }
+                    }
+                    varObject.put("custNum", marketingHistory.getCusNum());
+                    varObject.put("idCard", encrypt3k(_3kEncrypt, marketingHistory.getIdCard()));
+                    varObject.put("name", encrypt3k(_3kEncrypt, marketingHistory.getName()));
+                    varObject.put("batchNumber", marketingHistory.getBatchNumber());
+                    varObject.put("taskId", marketingHistory.getTaskId());
+                    varObject.put("userType", marketingHistory.getUserType());
+                    varObject.put("scoreDate", new SimpleDateFormat("yyyy-MM-dd").format(marketingHistory.getRequestTime()));
+                    dto1.setVariables(varObject);
+                    userDetailDTOS.add(dto1);
+                }
+
+                //推送任务基础信息
+                PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
+                pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
+                pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
+                pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + part + "_" + sn);
+                pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
+
+                //传输参数信息
+                PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
+                pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
+                pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
+                pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
+
+
+                resList.add(pushJcPool.submit(new PushJcAction(pushMarketingUserDTO
+                        , pushMarketingUserTaskInfoDTO.getAccessNumber()
+                        , customerInfoPushMain.getId()
+                        , userDetailDTOS.size())));
+            }
+            return resList;
+        }
+    }
+
+    class PushJcAction implements Callable<Result<Integer>> {
+
+        private PushMarketingUserDTO pushMarketingUserDTO;
+
+        private String accessNumber;
+
+        private Long mainId;
+
+        private Integer size;
+
+        public PushJcAction(PushMarketingUserDTO pushMarketingUserDTO, String accessNumber, Long mainId, Integer size) {
+            this.pushMarketingUserDTO = pushMarketingUserDTO;
+            this.accessNumber = accessNumber;
+            this.mainId = mainId;
+            this.size = size;
+        }
+
+        @Override
+        public Result<Integer> call() {
+            Result<Integer> result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO, mainId,
+                    accessNumber, size);
+            if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
+                result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO, mainId,
+                        accessNumber, size);
+            }
+            result.setDate(size);
+            return result;
+        }
     }
 
     @Override
@@ -978,7 +1119,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.info("数据解析插入耗时:{}", (System.currentTimeMillis() - l));
         }
         List<String> initDataPushApiCode = marketingCommonConfig.getInitDataPushRule() == null ? new ArrayList<String>() : marketingCommonConfig.getInitDataPushRule();
-        if(status&&initDataPushApiCode.contains(apiCode)){
+        if (status && initDataPushApiCode.contains(apiCode)) {
             MqFact mqFact = new MqFact();
             mqFact.setSourceId(infoId);
             mqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
@@ -1133,21 +1274,21 @@ public class PushRuleServiceImpl implements PushRuleService {
                 transferSyncUser.setSettleTime(dateTimeComplet(transferDataItemDTO.getSettleTime()));
                 transferSyncUser.setTransformTime(dateTimeComplet(transferDataItemDTO.getTransformTime()));
                 //桔子特殊处理
-                if(marketingCommonConfig.getJuZiTransferInsertApiCodes().contains(transferSyncUser.getApiCode())
-                        && StringUtils.isNotBlank(transferDataItemDTO.getCustNum()) && transferDataItemDTO.getCustNum().length()>15){
+                if (marketingCommonConfig.getJuZiTransferInsertApiCodes().contains(transferSyncUser.getApiCode())
+                        && StringUtils.isNotBlank(transferDataItemDTO.getCustNum()) && transferDataItemDTO.getCustNum().length() > 15) {
                     transferSyncUser.setCustNum(transferDataItemDTO.getCustNum().substring(15));
                     String reserveField1 = transferDataItemDTO.getReserveField1();
                     if (StringUtils.isNotBlank(reserveField1)) {
-                        try{
+                        try {
                             JSONObject json = JSON.parseObject(reserveField1);
-                            json.put("initCustNum",transferDataItemDTO.getCustNum());
+                            json.put("initCustNum", transferDataItemDTO.getCustNum());
                             transferSyncUser.setReserveField1(JSON.toJSONString(json));
-                        }catch (Exception e){
-                            transferSyncUser.setReserveField1(reserveField1+","+transferDataItemDTO.getCustNum());
+                        } catch (Exception e) {
+                            transferSyncUser.setReserveField1(reserveField1 + "," + transferDataItemDTO.getCustNum());
                         }
-                    }else {
+                    } else {
                         JSONObject json = new JSONObject();
-                        json.put("initCustNum",transferDataItemDTO.getCustNum());
+                        json.put("initCustNum", transferDataItemDTO.getCustNum());
                         transferSyncUser.setReserveField1(JSON.toJSONString(json));
                     }
                 }
@@ -2232,7 +2373,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (CollectionUtils.isEmpty(transferList)) {
             String smg = String.format("apiCode:[%s],RequestId:[%s],transferInfoId:[%s]转化结果不存在！日期:%s", apiCode
                     , transferInfo.getRequestId(), transferInfo.getId(), DateUtils.getNowyyyy_MM_dd());
-            alarmClient.sendAlarm(smg, title,AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());
+            alarmClient.sendAlarm(smg, title, AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());
             return null;
         }
         Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());

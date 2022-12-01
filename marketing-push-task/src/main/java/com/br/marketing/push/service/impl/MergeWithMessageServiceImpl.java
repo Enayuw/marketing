@@ -9,6 +9,7 @@ import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.service.MarketingHistoryEsService;
 import com.br.marketing.es.util.UuidUtils;
 import com.br.marketing.rpcclient.RpcClientProxy;
+import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 
 import java.text.ParseException;
@@ -95,6 +96,9 @@ public class MergeWithMessageServiceImpl {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
+
+    @Autowired
+    MarketingTaskService marketingTaskService;
 
     /**
      * 消费文件合并信息
@@ -309,6 +313,8 @@ public class MergeWithMessageServiceImpl {
         Integer offLineInserEsThreadNum = marketingCommonConfig.getOffLineInserEsThreadNum();
         Integer threadNum = offLineInserEsThreadNum != null && offLineInserEsThreadNum > 0 ? offLineInserEsThreadNum : 50;
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
+        Integer sumNum = 0;
+        Integer index = 0;
         for (File f : files) {
             try {
                 FileReader read = new FileReader(f);
@@ -318,12 +324,15 @@ public class MergeWithMessageServiceImpl {
                 List<String> heads = new ArrayList<>();
                 while ((ss = br.readLine()) != null) {
                     number++;
+                    sumNum++;
+                    index++;
                     if (number == 1) {
                         heads = Arrays.stream(ss.split(",")).collect(Collectors.toList());
                     } else {
                         final String content = ss;
                         final List<String> titles = heads;
-                        threadPool.submit(new EsRun(ss, heads, file, hxFields, baseFields, enc, JSON.parseArray(task.getProductInfo())));
+                        String part = marketingTaskService.getPart(sumNum, index).toString();
+                        threadPool.submit(new EsRun(ss, heads, file, hxFields, baseFields, enc, JSON.parseArray(task.getProductInfo()), part));
                     }
                 }
                 br.close();
@@ -370,7 +379,12 @@ public class MergeWithMessageServiceImpl {
 
         private JSONArray products;
 
-        public EsRun(String content, List<String> heads, StraHisFile file, List<String> hxFields, List<String> baseFields, Integer encryptionType, JSONArray products) {
+        private String part;
+
+        public EsRun(String content, List<String> heads, StraHisFile file
+                , List<String> hxFields, List<String> baseFields
+                , Integer encryptionType, JSONArray products
+                , String part) {
             this.content = content;
             this.heads = heads;
             this.file = file;
@@ -378,6 +392,7 @@ public class MergeWithMessageServiceImpl {
             this.baseFields = baseFields;
             this.encryptionType = encryptionType;
             this.products = products;
+            this.part = part;
         }
 
         @Override
@@ -396,6 +411,8 @@ public class MergeWithMessageServiceImpl {
                     : row.get("id"), "id", encryptionType));
             history.setCell(threeKdec(row.get("cell"), "cell", encryptionType));
             history.setName(threeKdec(row.get("name"), "name", encryptionType));
+            history.setPart(part);
+            history.setScoreTime(System.currentTimeMillis());
             try {
                 history.setRequestTime(new SimpleDateFormat("yyyy-MM-dd").parse(row.get("request_time")));
             } catch (ParseException e) {
