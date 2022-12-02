@@ -877,8 +877,8 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Override
     public Result pushXieChengToDbData(Long id) {
-        Integer xiechengDateSendThread = marketingCommonConfig.getXiechengDateSendThread();
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(xiechengDateSendThread, xiechengDateSendThread);
+//        Integer xiechengDateSendThread = marketingCommonConfig.getXiechengDateSendThread();
+//        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(xiechengDateSendThread, xiechengDateSendThread);
         // 判断当前时间是否在 9:30~20:00之间
         String format = "HH:mm:ss";
         try {
@@ -907,7 +907,7 @@ public class PushDataServiceImpl implements PushDataService {
                 }
                 for (int i = 0; i < xieChengDatalist.size(); i++) {
                     XieChengData xieChengData = xieChengDatalist.get(i);
-                    threadPool.submit(() -> {
+//                    threadPool.submit(() -> {
                         String result = xieChengService.pushXieChengData(xieChengData);
                         JSONObject resultJson = JSONObject.parseObject(result);
                         Integer code = resultJson.getInteger("code");
@@ -920,7 +920,7 @@ public class PushDataServiceImpl implements PushDataService {
                         }
                         resultData.setDataMessage(result);
                         xieChengDataMapper.updateByPrimaryKeySelective(resultData);
-                    });
+//                    });
 
                 }
             }
