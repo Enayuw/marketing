@@ -409,7 +409,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             }
             if ((localFileOld.getPushNumber() != null
                     && localFileOld.getPushNumber().equals(dto.getNumber())
-                    && localFile.getPushEndTime() != null)) {
+                    && localFileOld.getPushEndTime() != null)) {
                 continue;
             }
             localFile.setPushNumber(dto.getNumber());
