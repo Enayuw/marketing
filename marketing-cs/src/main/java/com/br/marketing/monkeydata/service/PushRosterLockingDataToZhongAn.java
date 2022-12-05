@@ -404,7 +404,8 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         for (SftpFilePushSuccessDTO dto : successSum) {
             LocalFile localFile = new LocalFile();
             LocalFile localFileOld = localFileMapper.selectByPrimaryKey(dto.getLocalId());
-            if (ObjectUtils.isEmpty(localFileOld)) {
+            if (ObjectUtils.isEmpty(localFileOld)
+                    || (localFileOld.getPushNumber() == dto.getNumber() && localFile.getPushEndTime() != null)) {
                 continue;
             }
             localFile.setPushNumber(dto.getNumber());
