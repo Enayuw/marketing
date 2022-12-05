@@ -72,4 +72,11 @@
         and push_start_time is null
     </update>
 
+    <select id="getByPrimaryKey" resultType="com.br.marketing.entity.LocalFile">
+        select *
+        from b_local_file
+        where id = #{id}
+    </select>
+
+
 </mapper>
