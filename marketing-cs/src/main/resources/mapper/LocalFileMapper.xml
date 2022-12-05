@@ -69,6 +69,7 @@
         <foreach collection="ids" item="id" separator="," close=")" open="(">
             #{id}
         </foreach>
+        and (push_start_time is null or push_start_time='')
     </update>
 
 </mapper>
