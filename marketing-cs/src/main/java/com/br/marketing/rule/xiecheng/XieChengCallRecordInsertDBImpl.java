@@ -4,13 +4,11 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.XieChengDataDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.XieChengData;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.security.SecureRandom;
 
 /**
@@ -22,11 +20,10 @@ import java.security.SecureRandom;
 @Service
 @Slf4j
 public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengDataDTO> {
-    @Resource
-    private MarketingSyncInfoMapper marketingSyncInfoMapper;
+
     private final String[] factor = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
-            , "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"
-            , "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
+            , "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q"
+            , "r", "s", "t", "u", "v", "w", "x", "y", "z"};
 
 
     @Override
@@ -38,9 +35,10 @@ public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengData
         xieChengData.setApiCode(bo.getApiCode());
         xieChengData.setActionType("IVR");
         xieChengDataDTO.setInitId(bo.getId());
-//        xieChengData.setSha256Tel(bo.getCaseNum());
+        xieChengData.setSha256Tel(bo.getCaseNum());
+        // 13位时间戳+ 随机5位数字字母 + CaseNum
         xieChengData.setClickId(System.currentTimeMillis()
-                + randomAlphanumeric(5)
+                + randomAlphanumeric()
                 + bo.getCaseNum());
         return null;
     }
@@ -69,11 +67,12 @@ public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengData
      * 2022-12-05 15:05
      * 生成任意长度的随机字母+随机数字
      */
-    private String randomAlphanumeric(int length) {
+    private String randomAlphanumeric() {
         SecureRandom random = new SecureRandom();
         StringBuilder str = new StringBuilder();
         int len = factor.length;
-        for (int i = 0; i < length; i++) {
+        int l = 5;
+        for (int i = 0; i < l; i++) {
             str.append(factor[random.nextInt(len)]);
         }
         return str.toString();
