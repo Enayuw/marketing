@@ -41,7 +41,6 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         long start = System.currentTimeMillis();
         List<String> list = new ArrayList<>(Collections.singletonList("3710048"));
-        list.add("7410906");
         String parameter = shardingContext.getJobParameter();
         if (StringUtils.isNotEmpty(parameter)) {
             StringTokenizer string = new StringTokenizer(parameter, ",");
