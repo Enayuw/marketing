@@ -877,22 +877,23 @@ public class PushDataServiceImpl implements PushDataService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
+    /**
+     *         // TODO: 2022/12/6
+     *         // 1. 通过循环，根据localId 和当前最小id 查询数据，第一个id 为 null，分页为每页1w条 type =0 为 sftp 上传数据，1 为 api上传数据。
+     *         // 2. 启动线程池。将每条数据放入到线程池里。
+     *         // 3. 新建redis锁key  public static final String pushXieCheng = prefix.concat("xieCheng:pushXieCheng");
+     *         // 4. 判断当前数据是否已推送过，如果推送过 直接剔除 ，sftp 不会计算推送条数。
+     *         // 5. 执行推送逻辑，根据返回值 进行重试。
+     *         // 7. 成功后释放锁
+     *         // 8. 全部推送结束  关闭线程池。
+     *         // 9. 若 type 为 0 ，则需要统计上传推送数量 和重复数据
+     * @param id
+     * @return
+     */
     @Override
     public Result pushXieChengToDbData(Long id) {
-        // TODO: 2022/12/6
-        // 1. 通过循环，根据localId 和当前最小id 查询数据，第一个id 为 null，分页为每页1w条 type =0 为 sftp 上传数据，1 为 api上传数据。
-        // 2. 启动线程池。将每条数据放入到线程池里。
-        // 3. 新建redis锁key  public static final String pushXieCheng = prefix.concat("xieCheng:pushXieCheng");
-        // 4. 判断当前数据是否已推送过，如果推送过 直接剔除 ，sftp 不会计算推送条数。
-        // 5. 执行推送逻辑，根据返回值 进行重试。
-        // 7. 成功后释放锁
-        // 8. 全部推送结束  关闭线程池。
-        // 9. 若 type 为 0 ，则需要统计上传推送数量 和重复数据
-
-
-
-        Integer xiechengDateSendThread = marketingCommonConfig.getXiechengDateSendThread();
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(xiechengDateSendThread, xiechengDateSendThread);
+        Integer xieChengDateSendThread = marketingCommonConfig.getXiechengDateSendThread();
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(xieChengDateSendThread, xieChengDateSendThread);
         try {
             LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
             if (localFile != null) {
@@ -909,43 +910,7 @@ public class PushDataServiceImpl implements PushDataService {
                 for (int i = 0; i < xieChengDatalist.size(); i++) {
                     XieChengData xieChengData = xieChengDatalist.get(i);
                     minId = xieChengData.getId();
-                    threadPool.submit(() -> {
-                        // 获取redis 锁
-                        String key = RedisKeyConstant.pushXieCheng.concat(":")
-                                .concat(xieChengData.getApiCode())
-                                .concat(xieChengData.getClickTel());
-                        String value = UUID.randomUUID().toString();
-                        redisChgService.lock(key,value);
-                        // 字段修改兼容
-                        String sha256Tel = xieChengData.getClickTel()==null?xieChengData.getSha256Tel():xieChengData.getClickTel();
-                        // 查询到当前电话数据是否推送过。
-                        List<XieChengData> xieChengRepeatDatalist =   xieChengDataMapper.getByCellToday(sha256Tel);
-                        XieChengData resultData = new XieChengData();
-                        if(xieChengRepeatDatalist.isEmpty()){
-                            // 组装 clickId 13位时间戳+ 随机5位数字字母 + sha256tel
-                            String clickId = System.currentTimeMillis()+getCode(5)+sha256Tel;
-                            xieChengData.setClickId(clickId);
-                            // 携程推送
-                            String result = xieChengService.pushXieChengData(xieChengData);
-                            JSONObject resultJson = JSONObject.parseObject(result);
-                            Integer code = resultJson.getInteger("code");
-                            resultData.setId(xieChengData.getId());
-                            if (code == 0) {
-                                resultData.setPushStatus(2);
-                            } else {
-                                resultData.setPushStatus(3);
-                            }
-                            resultData.setClickId(clickId);
-                            resultData.setDataMessage(result);
-                        }else {
-                            resultData.setId(xieChengData.getId());
-                            resultData.setStatus(2);
-                            resultData.setDataMessage("数据重复未推送");
-                        }
-                        xieChengDataMapper.updateByPrimaryKeySelective(resultData);
-                        redisChgService.unlock(key,value);
-                    });
-
+                    threadPool.submit(() -> pushXieChengData(xieChengData));
                 }
             }
             threadPool.shutdown();
@@ -958,21 +923,61 @@ public class PushDataServiceImpl implements PushDataService {
                 } catch (Exception e) {
                 }
             }
-            if (localFile != null) {
-                localFile.setPushEndTime(new Date());
-                XieChengDataExample xieChengDataExample = new XieChengDataExample();
-                xieChengDataExample.createCriteria().andLocalIdEqualTo(id)
-                        .andPushStatusEqualTo(2)
-                        .andStatusEqualTo(1);
-                int i = xieChengDataMapper.countByExample(xieChengDataExample);
-                localFile.setPushNumber(i);
-                localFileMapper.updateByPrimaryKeySelective(localFile);
-            }
-
+            updateLocalFile(localFile);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+    }
+
+    private void updateLocalFile(LocalFile localFile) {
+        if (localFile != null) {
+            localFile.setPushEndTime(new Date());
+            XieChengDataExample xieChengDataExample = new XieChengDataExample();
+            xieChengDataExample.createCriteria().andLocalIdEqualTo(localFile.getId())
+                    .andPushStatusEqualTo(2)
+                    .andStatusEqualTo(1);
+            int i = xieChengDataMapper.countByExample(xieChengDataExample);
+            localFile.setPushNumber(i);
+            localFileMapper.updateByPrimaryKeySelective(localFile);
+        }
+    }
+
+    private void pushXieChengData(XieChengData xieChengData) {
+        // 获取redis 锁
+        String key = RedisKeyConstant.pushXieChengLock.concat(":")
+                .concat(xieChengData.getApiCode())
+                .concat(xieChengData.getClickTel());
+        String value = UUID.randomUUID().toString();
+        redisChgService.lock(key,value);
+        // 字段修改兼容
+        String sha256Tel = xieChengData.getClickTel()==null? xieChengData.getSha256Tel(): xieChengData.getClickTel();
+        // 查询到当前电话数据是否推送过。
+        List<XieChengData> xieChengRepeatDatalist =   xieChengDataMapper.getByCellToday(sha256Tel);
+        XieChengData resultData = new XieChengData();
+        if(xieChengRepeatDatalist.isEmpty()){
+            // 组装 clickId 13位时间戳+ 随机5位数字字母 + sha256tel
+            String clickId = System.currentTimeMillis()+getCode(5)+sha256Tel;
+            xieChengData.setClickId(clickId);
+            // 携程推送
+            String result = xieChengService.pushXieChengData(xieChengData);
+            JSONObject resultJson = JSONObject.parseObject(result);
+            Integer code = resultJson.getInteger("code");
+            resultData.setId(xieChengData.getId());
+            if (code == 0) {
+                resultData.setPushStatus(2);
+            } else {
+                resultData.setPushStatus(3);
+            }
+            resultData.setClickId(clickId);
+            resultData.setDataMessage(result);
+        }else {
+            resultData.setId(xieChengData.getId());
+            resultData.setStatus(2);
+            resultData.setDataMessage("数据重复未推送");
+        }
+        xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+        redisChgService.unlock(key,value);
     }
 
     /**
