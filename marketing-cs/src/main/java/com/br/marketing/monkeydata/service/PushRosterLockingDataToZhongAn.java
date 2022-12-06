@@ -78,7 +78,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
     @Resource
     private LocalFileMapper localFileMapper;
 
-    private static final ThreadPoolExecutor POOL = BrExecutors.getThreadPool(25, 50);
+    private static final ThreadPoolExecutor POOL = BrExecutors.getThreadPool(15, 20);
 
     @Override
     public Result<IterationResult<ZhonganRosterLockingData, Page2Condition<ZhonganRosterLockingData>>> getInputData(
