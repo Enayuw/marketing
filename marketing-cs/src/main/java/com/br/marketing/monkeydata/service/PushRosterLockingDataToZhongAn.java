@@ -412,8 +412,9 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             boolean pushEndTimeBool = localFileOld.getPushEndTime() != null && bizDate.equals(LocalDateTime.ofInstant(
                     localFileOld.getPushEndTime().toInstant(), ZoneId.systemDefault())
                     .toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE));
-            boolean numberBool = localFileOld.getPushNumber() != null
-                    && localFileOld.getPushNumber().equals(dto.getNumber());
+            boolean isNotNull = localFileOld.getPushNumber() != null;
+            boolean numberBool = isNotNull && (localFileOld.getPushNumber().equals(dto.getNumber())
+                    || dto.getNumber() < localFileOld.getPushNumber());
             if (pushEndTimeBool && numberBool) {
                 continue;
             }
