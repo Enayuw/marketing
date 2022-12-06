@@ -409,15 +409,16 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             if (ObjectUtils.isEmpty(localFileOld)) {
                 continue;
             }
-            if (localFileOld.getPushNumber() != null && localFileOld.getPushNumber().equals(dto.getNumber())
-                    && localFileOld.getPushEndTime() != null
-                    && bizDate.equals(LocalDateTime.ofInstant(
+            boolean pushEndTimeBool = localFileOld.getPushEndTime() != null && bizDate.equals(LocalDateTime.ofInstant(
                     localFileOld.getPushEndTime().toInstant(), ZoneId.systemDefault())
-                    .toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE))) {
+                    .toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE));
+            boolean numberBool = localFileOld.getPushNumber() != null
+                    && localFileOld.getPushNumber().equals(dto.getNumber());
+            if (pushEndTimeBool && numberBool) {
                 continue;
             }
-            localFile.setPushNumber(localFileOld.getPushNumber() == null
-                    ? dto.getNumber() : localFileOld.getPushNumber() + dto.getNumber());
+            localFile.setPushNumber(localFileOld.getPushNumber() == null || pushEndTimeBool
+                    ? dto.getNumber() : (localFileOld.getPushNumber() + dto.getNumber()));
             localFile.setId(dto.getLocalId());
             localFile.setPushEndTime(new Date());
             localFileMapper.updateByPrimaryKeySelective(localFile);
