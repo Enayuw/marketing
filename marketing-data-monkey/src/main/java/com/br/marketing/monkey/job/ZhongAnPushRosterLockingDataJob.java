@@ -41,7 +41,6 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         long start = System.currentTimeMillis();
         List<String> list = new ArrayList<>(Collections.singletonList("3710048"));
-        list.add("7410906");
         String parameter = shardingContext.getJobParameter();
         if (StringUtils.isNotEmpty(parameter)) {
             StringTokenizer string = new StringTokenizer(parameter, ",");
@@ -51,37 +50,36 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
         }
         String bizDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
 
-        long startcg = System.currentTimeMillis();
-        action("CG", list, bizDate);
-        long endcg = System.currentTimeMillis();
-        log.warn("【CG名单锁定推送众安】结束，耗时:{}", endcg - startcg);
-
-        long startmg = System.currentTimeMillis();
-        action("MG", list, bizDate);
-        long endmg = System.currentTimeMillis();
-        log.warn("【MG名单锁定推送众安】结束，耗时:{}", endmg - startmg);
-
-        long end = System.currentTimeMillis();
-        log.warn("【名单锁定推送众安】调度结束，耗时:{}", end - start);
-    }
-
-    private void action(String tag, List<String> list, String bizDate) {
         Page2Condition<ZhonganRosterLockingData> data = new Page2Condition<>();
         data.setPageIndex(0);
         data.setPageSize(2000);
         for (String apiCode : list) {
-            ZhonganRosterLockingData zhonganRosterLockingData = new ZhonganRosterLockingData();
-            zhonganRosterLockingData.setApiCode(apiCode);
-            zhonganRosterLockingData.setTag(tag);
-            zhonganRosterLockingData.setBizDate(bizDate);
-            zhonganRosterLockingData.setPushStatus(1);
-            data.setParam(zhonganRosterLockingData);
             List<Long> sftpFileIdList = zhonganRosterLockingDataMapper.getSftpFileIdList(apiCode, bizDate);
             if (!CollectionUtils.isEmpty(sftpFileIdList)) {
                 localFileMapper.updateUploadStartTimeById(sftpFileIdList, new Date());
             }
-            rosterLockingDataToZhongAn.action(data);
+            long startcg = System.currentTimeMillis();
+            action("CG", apiCode, bizDate, data);
+            long endcg = System.currentTimeMillis();
+            log.warn("{}【CG名单锁定推送众安】结束，耗时:{}", apiCode, endcg - startcg);
+
+            long startmg = System.currentTimeMillis();
+            action("MG", apiCode, bizDate, data);
+            long endmg = System.currentTimeMillis();
+            log.warn("{}【MG名单锁定推送众安】结束，耗时:{}", apiCode, endmg - startmg);
             rosterLockingDataToZhongAn.localFilePushStatis(apiCode, bizDate);
         }
+        long end = System.currentTimeMillis();
+        log.warn("【名单锁定推送众安】调度结束，耗时:{}", end - start);
+    }
+
+    private void action(String tag, String apiCode, String bizDate, Page2Condition<ZhonganRosterLockingData> data) {
+        ZhonganRosterLockingData zhonganRosterLockingData = new ZhonganRosterLockingData();
+        zhonganRosterLockingData.setApiCode(apiCode);
+        zhonganRosterLockingData.setTag(tag);
+        zhonganRosterLockingData.setBizDate(bizDate);
+        zhonganRosterLockingData.setPushStatus(1);
+        data.setParam(zhonganRosterLockingData);
+        rosterLockingDataToZhongAn.action(data);
     }
 }
