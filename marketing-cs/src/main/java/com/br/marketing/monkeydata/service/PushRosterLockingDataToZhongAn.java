@@ -37,6 +37,8 @@ import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
@@ -407,12 +409,15 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             if (ObjectUtils.isEmpty(localFileOld)) {
                 continue;
             }
-            if ((localFileOld.getPushNumber() != null
-                    && localFileOld.getPushNumber().equals(dto.getNumber())
-                    && localFileOld.getPushEndTime() != null)) {
+            if (localFileOld.getPushNumber() != null && localFileOld.getPushNumber().equals(dto.getNumber())
+                    && localFileOld.getPushEndTime() != null
+                    && bizDate.equals(LocalDateTime.ofInstant(
+                    localFileOld.getPushEndTime().toInstant(), ZoneId.systemDefault())
+                    .toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE))) {
                 continue;
             }
-            localFile.setPushNumber(dto.getNumber());
+            localFile.setPushNumber(localFileOld.getPushNumber() == null
+                    ? dto.getNumber() : localFileOld.getPushNumber() + dto.getNumber());
             localFile.setId(dto.getLocalId());
             localFile.setPushEndTime(new Date());
             localFileMapper.updateByPrimaryKeySelective(localFile);
