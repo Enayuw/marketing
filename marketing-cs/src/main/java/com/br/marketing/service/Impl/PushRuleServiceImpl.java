@@ -1292,6 +1292,24 @@ public class PushRuleServiceImpl implements PushRuleService {
                         transferSyncUser.setReserveField1(JSON.toJSONString(json));
                     }
                 }
+                //携程特殊处理
+                if (marketingCommonConfig.getXieChengTransferInsertApiCodes().contains(transferSyncUser.getApiCode())){
+                    transferSyncUser.setCustNum(transferDataItemDTO.getCustNum().substring(18));
+                    String reserveField1 = transferDataItemDTO.getReserveField1();
+                    if (StringUtils.isNotBlank(reserveField1)) {
+                        try {
+                            JSONObject json = JSON.parseObject(reserveField1);
+                            json.put("initCustNum", transferDataItemDTO.getCustNum());
+                            transferSyncUser.setReserveField1(JSON.toJSONString(json));
+                        } catch (Exception e) {
+                            transferSyncUser.setReserveField1(reserveField1 + "," + transferDataItemDTO.getCustNum());
+                        }
+                    } else {
+                        JSONObject json = new JSONObject();
+                        json.put("initCustNum", transferDataItemDTO.getCustNum());
+                        transferSyncUser.setReserveField1(JSON.toJSONString(json));
+                    }
+                }
                 try {
                     marketingTransferSyncUserMapper.insertSelective(transferSyncUser);
                 } catch (Exception ex) {
