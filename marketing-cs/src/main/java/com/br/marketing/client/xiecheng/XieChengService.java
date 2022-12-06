@@ -76,15 +76,10 @@ public class XieChengService {
 
     @RetryMethod(retryNowNum = 3)
     public String pushXieChengData(XieChengData xieChengData) {
-        log.warn("携程明文参数 para={}", xieChengData);
-        try {
-            return send(xieChengData);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return send(xieChengData);
     }
 
-    private String send(XieChengData xieChengData) throws Exception {
+    private String send(XieChengData xieChengData) {
         /**
          * data 组装
          */
