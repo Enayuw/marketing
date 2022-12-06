@@ -2,6 +2,7 @@ package com.br.marketing.rule.xiecheng;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -37,6 +38,9 @@ public class XieChengCustomerTransferAImpl implements AssembleData<ConversionDat
         conversionData.setInversionStatus("0");
         String query = RpcClientProxy.decode(transfer.getCustNum(), "cell", "sha", "");
         conversionData.setPhone(query);
+        if (!StringUtils.isEmpty(transfer.getCreateTime())){
+            conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+        }
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
