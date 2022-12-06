@@ -359,4 +359,23 @@ public class MarketingCommonConfig {
      */
     private List<Integer> zhongAnPushTreadPoolSize;
 
+    /**
+     * 跑分分组分位值
+     */
+    private Integer quantileValue;
+
+    /**
+     * 推送决策优化跑分记录时间节点
+     */
+    private String scoreFileYhTime;
+
+    /**
+     *规则筛选从es获取的最大线程数
+     */
+    private Integer scoreByEsThreadNum;
+
+    /**
+     * 规则筛选调用决策接口的线程数
+     */
+    private Integer scoreToJcThreadNum;
 }

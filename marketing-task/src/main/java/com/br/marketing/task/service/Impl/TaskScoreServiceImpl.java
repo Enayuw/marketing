@@ -246,6 +246,7 @@ public class TaskScoreServiceImpl {
                 } else {
                     updateFile.setStatus(task.getMonitorType().equals(2) ? ScoreStatusEnum.FINISH.getValue() : ScoreStatusEnum.MERGE.getValue());
                 }
+                updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
                 straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 MarketingTask updateTask = new MarketingTask();
                 updateTask.setId(task.getId());
@@ -337,6 +338,7 @@ public class TaskScoreServiceImpl {
             param.put("appSecretKey", appSecretKey);
             param.put("isRepair", marketingTask.getIsRepair());
             param.put("fileId", marketingTask.getFileId().toString());
+            param.put("part",marketingTaskService.getPart(num).toString());
             warrningExecutor.submit(new CoreScoreThread(
                     list, param, currentPage, true, customer
                     , marketingTask, noflagproductlist
@@ -524,6 +526,7 @@ public class TaskScoreServiceImpl {
             AssertResult.assertResult(dataCondition);
             List<String> conditionDatas = dataCondition.getData();
             int currentPage = 1;
+            Integer sumNum = 0;
             long startTime = System.currentTimeMillis();
             //是否是预览跑分
             boolean isVerScore = 2 == blt.getMonitorType();
@@ -553,7 +556,7 @@ public class TaskScoreServiceImpl {
                             threadpoolStatus = Boolean.FALSE;
                             continue;
                         }
-
+                        sumNum += list.size();
                         //region 如果是预览跑分并且第一次进入循环 插入表头数据
                         if (isVerScore && isHead) {
                             StringBuilder verHead = new StringBuilder();
@@ -589,6 +592,7 @@ public class TaskScoreServiceImpl {
                             param.put("isRepair", blt.getIsRepair());
                             param.put("fileId", fileId);
                             param.put("noflagproduct", noflagproduct);
+                            param.put("part",marketingTaskService.getPart(sumNum,currentPage).toString());
                             warrningExecutor.submit(new CoreScoreThread(
                                     list, param, currentPage
                                     , firstTime, customer, blt

@@ -59,6 +59,7 @@ public class CoreScoreThread implements Callable<String> {
     private List<String> flagProductList;
     private MarketingTaskService marketingTaskService;
     private Boolean isRetry;
+    private String part;
 
     public CoreScoreThread(List<MarketingSyncUser> list, Map<String, String> param
             , int currentPage, boolean firstTime, MarketingCustomer customer, MarketingTask marketingTask
@@ -87,6 +88,7 @@ public class CoreScoreThread implements Callable<String> {
         this.isRetry = isRetry;
         this.fieldInfo = fieldInfo;
         this.baseHeadConfigVO = baseHeadConfigVO;
+        this.part = param.get("part");
         Scheduler.ac.getBean(ProFieldsClient.class).setLoanPro(strategyStr, meal);
     }
 
@@ -416,7 +418,7 @@ public class CoreScoreThread implements Callable<String> {
                             , fw, sep, proFieldMap, blu
                             , meal, cusBatchNumber, fileId
                             , customer.getPushCustomer().toString()
-                            , baseHeadConfigVO, fieldInfo, marketingTask, marketingTaskService);
+                            , baseHeadConfigVO, fieldInfo, marketingTask, marketingTaskService,part);
                 }
             }
         } catch (Exception e) {
@@ -432,7 +434,7 @@ public class CoreScoreThread implements Callable<String> {
                         , fw, sep, proFieldMap, blu
                         , meal, cusBatchNumber, fileId
                         , customer.getPushCustomer().toString()
-                        , baseHeadConfigVO, fieldInfo, marketingTask, marketingTaskService);
+                        , baseHeadConfigVO, fieldInfo, marketingTask, marketingTaskService,part);
             }
         } catch (Exception e) {
             log.error("dealResult出错了", e);

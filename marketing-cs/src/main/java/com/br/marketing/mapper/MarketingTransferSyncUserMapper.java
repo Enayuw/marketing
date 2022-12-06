@@ -43,7 +43,8 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param limitStart
      * @return
      */
-    List<MarketingTransferSyncUser> getTransferByApplyDt(@Param("cid") String cid,@Param("apiCode") String apiCode,@Param("limitStart") Integer limitStart);
+    List<MarketingTransferSyncUser> getTransferByApplyDt(@Param("cid") String cid,@Param("apiCode") String apiCode,@Param("limitStart") Integer limitStart,
+                                                         @Param("startDay") String startDay,@Param("endDay") String endDay);
     /**
      * 获取指定日期，指定custNum的非延时数据
      * @param cid

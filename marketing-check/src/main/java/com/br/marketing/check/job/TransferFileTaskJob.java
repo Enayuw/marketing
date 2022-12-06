@@ -89,13 +89,13 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 if (serviceImpl == null) {
                     continue;
                 }
-                Result<List<TransferFileTask>> listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode());
+                //自定义参数传入格式举例 7410785#20220711,true;7412003#123;.....
+                String myParam = serviceImpl.isMyParam(marketingCustomer.getApiCode(), jobParameter);
+                log.warn("apicode={}获取的自定义参数为{}",marketingCustomer.getApiCode(),myParam);
+                Result<List<TransferFileTask>> listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(),myParam);
                 if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
                     List<TransferFileTask> data = listResult.getData();
                     for (TransferFileTask datum : data) {
-                        //自定义参数传入格式举例 7410785#20220711,true;7412003#123;.....
-                        String myParam = serviceImpl.isMyParam(datum.getApiCode(), jobParameter);
-                        log.warn("apicode={}获取的自定义参数为{}",datum.getApiCode(),myParam);
                         Result result = serviceImpl.actionTransferToFile(datum, myParam);
                         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                             Result res = sftpInnerService.pushInnerSftp(datum);

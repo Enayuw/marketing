@@ -1,4 +1,5 @@
 package com.br.marketing.client.haier;
+import com.google.common.collect.Sets;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -27,10 +28,7 @@ import org.springframework.util.StringUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * 海尔消金客户端
@@ -62,10 +60,10 @@ public class HaierServiceClient {
     @Resource
     private HttpProxyClient httpProxyClient;
 
-    @Autowired
+    @Resource
     HaierDataMapper haierDataMapper;
 
-    @Autowired
+    @Resource
     HaierReqMapper haierReqMapper;
 
     /**
@@ -100,6 +98,7 @@ public class HaierServiceClient {
         return result;
     }
 
+
 //    @RetryMethod
     public Result<Response2Entity> pushToTeleSalesWithIds(HaierReqDTO haierReqDTO, int retr) throws Exception {
         PushDTO.FormData formData = haierReqDTO.getFormData();
@@ -127,6 +126,7 @@ public class HaierServiceClient {
                     && "00000".equals(response2Entity.getHead().getRetFlag())){
                 HaierData record = new HaierData();
                 record.setPushStatus(2);
+                record.setRuleType("2".equals(haierReqDTO.getFormData().getType())?"3":("3".equals(haierReqDTO.getFormData().getType())?"4":null));
                 HaierDataExample updateExample = new HaierDataExample();
                 updateExample.createCriteria().andIdIn(ids);
                 haierDataMapper.updateByExampleSelective(record,updateExample);
@@ -147,8 +147,10 @@ public class HaierServiceClient {
         return result;
     }
 
+
     public Result<Response2Entity> pushToTeleSalesWithSave(HaierReqDTO haierReqDTO){
         PushDTO.FormData formData = haierReqDTO.getFormData();
+        HashMap<String, String> ruleMap = haierReqDTO.getRuleMap();
         Result<Response2Entity> result = new Result<>();
         Assert.notNull(formData, "\"List\" is not null");
 //        log.warn("##地址：{}；apicode：{}；apikey：{}", url, apiCode, apiKey);
@@ -186,6 +188,7 @@ public class HaierServiceClient {
                     record.setCreateTime(date);
                     record.setLocalId(666L);
                     record.setPushStatus(2);
+                    record.setRuleType(ruleMap.get(dataItem.getTaskId().concat(":").concat(dataItem.getCustNum())));
                     record.setType(haierReqDTO.getFormData().getType());
                     record.setCreateDate(Integer.valueOf(yyyyMMdd));
                     haierDataMapper.insertSelective(record);

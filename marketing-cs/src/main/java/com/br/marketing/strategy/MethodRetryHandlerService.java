@@ -229,6 +229,23 @@ public class MethodRetryHandlerService {
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
+    /**
+     * 萨摩耶推daas
+     * @param dassImportAdapDTO
+     * @param retry
+     * @return
+     */
+    @RetryMethod(isOrNoDbRetry = true)
+    public Result smyCallDassRealTimeBatchData(DassImportAdapDTO dassImportAdapDTO, Integer retry) {
+        Result result = dassServiceClient.postHermesUserData(dassImportAdapDTO);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            Set<String> set = dassImportAdapDTO.getList().stream().map(DassImportDataDTO::getId).map(String::valueOf).collect(Collectors.toSet());
+            phoneSaleExtendInfoMapper.updateBatch(set);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("调用批量萨摩耶实时转电销失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
 
     /**
      * 调用电销批量接口
@@ -284,6 +301,22 @@ public class MethodRetryHandlerService {
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
+    /**
+     * 萨摩耶转化数据剔除
+     * @param dassTransferDataAdapDTO
+     * @param retry
+     * @return
+     */
+    @RetryMethod(isOrNoDbRetry = true)
+    public Result smyCallDassTransferData(DassTransferDataAdapDTO dassTransferDataAdapDTO, Integer retry) {
+        Result result = dassServiceClient.postTransferData(dassTransferDataAdapDTO);
+        log.warn("萨摩耶调用电销转化接口返回结果 -- {}", JSON.toJSONString(result));
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("萨摩耶调用电销转化接口失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
     /**
      * 推送决策接口
      *
