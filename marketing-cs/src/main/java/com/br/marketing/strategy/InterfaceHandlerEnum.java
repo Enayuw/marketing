@@ -12,10 +12,11 @@ public enum InterfaceHandlerEnum {
     ARTIFICIAL_REAL_TIME_USERDATA(8, "人工实时推送用户名单"),
     ARTIFICIAL_BATCH_REALTIME_DATA(9, "人工推电销批量接口"),
     BATCH_MESSAGE_DELAY(10, "消息延迟批量接口"),
-    ARTIFICIAL_SHUHE_BLACK_DATA(11,"数禾黑名单推人工转化接口"),
+    ARTIFICIAL_SHUHE_BLACK_DATA(11, "数禾黑名单推人工转化接口"),
     MULTIPLE_DASSBATCH_CUSTOMERBLACK(12, "推送电销和客服黑名单组合接口"),
     INIT_TO_POLICY(13, "原始数据推送决策接口"),
-    ZHONGAN_LOCK_DATA_INSERT(14, "众安明细锁定数据落库");
+    ZHONGAN_LOCK_DATA_INSERT(14, "众安明细锁定数据落库"),
+    XIE_CHENG_CALL_RECORD_INSERT_DB(15, "携程通话明细保存到携程推营销数据表");
 
     InterfaceHandlerEnum(Integer code, String name) {
         this.code = code;
