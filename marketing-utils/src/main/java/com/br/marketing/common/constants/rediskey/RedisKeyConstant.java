@@ -72,7 +72,7 @@ public class RedisKeyConstant {
     /**
      * 携程拨打数据推送缓存锁  key
      */
-    public static final String pushXieCheng = prefix.concat("xieCheng:pushXieCheng");
+    public static final String pushXieChengLock = prefix.concat("xieCheng:pushXieCheng");
 
 
 }
