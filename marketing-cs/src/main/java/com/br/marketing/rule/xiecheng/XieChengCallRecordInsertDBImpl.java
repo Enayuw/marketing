@@ -37,10 +37,8 @@ public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengData
         xieChengDataDTO.setInitId(bo.getId());
         xieChengData.setSha256Tel(bo.getCaseNum());
         // 13位时间戳+ 随机5位数字字母 + CaseNum
-        xieChengData.setClickId(System.currentTimeMillis()
-                + randomAlphanumeric()
-                + bo.getCaseNum());
-        return null;
+        xieChengData.setClickId(System.currentTimeMillis() + randomAlphanumeric() + bo.getCaseNum());
+        return xieChengDataDTO;
     }
 
     @Override
