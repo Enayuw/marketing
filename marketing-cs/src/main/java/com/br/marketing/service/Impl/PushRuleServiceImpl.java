@@ -576,7 +576,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 partDataNum.put(i, nowNum);
                 nowSum += nowNum;
             }
-            if (customerInfoPushMain.getmRealyNum() != nowSum) {
+            if (!customerInfoPushMain.getmRealyNum().equals(nowSum)) {
                 log.error("任务id：{}，分组查询和预览总数不一致，请手动处理！，分组查询的总数：{}，预览总数：{}"
                         , customerInfoPushMain.getId(), nowSum.toString(), customerInfoPushMain.getmRealyNum().toString());
                 return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
