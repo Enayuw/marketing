@@ -378,4 +378,10 @@ public class MarketingCommonConfig {
      * 规则筛选调用决策接口的线程数
      */
     private Integer scoreToJcThreadNum;
+
+    /**
+     * 携程推送短信退订接口线程数设置
+     */
+    private String xieChengSmsQuitThreadNum;
 }
+

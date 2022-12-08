@@ -21,6 +21,7 @@ import com.br.marketing.client.twosevenservice.TwoSevenService;
 import com.br.marketing.client.twosevenservice.intput.RequestSevenDTO;
 import com.br.marketing.client.twosevenservice.output.ResponseSevenZDTO;
 import com.br.marketing.client.twosevenservice.output.SevenDetailVO;
+import com.br.marketing.client.xiecheng.SmsQuitReq;
 import com.br.marketing.client.xiecheng.XieChengService;
 import com.br.marketing.client.yiqianbao.YiQianBaoService;
 import com.br.marketing.client.yiqianbao.input.YqbDetailVo;
@@ -57,6 +58,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -102,6 +104,8 @@ public class PushDataServiceImpl implements PushDataService {
     @Resource
     private XieChengDataMapper xieChengDataMapper;
 
+    @Resource
+    private XiechengSmsQuitDataMapper xiechengSmsQuitDataMapper;
     @Resource
     private AlarmApiClient alarmClient;
     @Value("${otherConfig.alarm.outsideSecretKey:00}")
@@ -872,7 +876,60 @@ public class PushDataServiceImpl implements PushDataService {
             localFile.setPushNumber(pushCount);
             localFileMapper.updateByPrimaryKeySelective(localFile);
         }
+        //携程短信退订推送
+        if("xiechengsms".equals(localFile.getFileType())){
+            pushSmsQuitData(localFile);
+        }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+    }
+
+    public void pushSmsQuitData(LocalFile localFile) {
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5);
+        localFile.setPushStartTime(new Date());
+        Boolean actionMark = true;
+        Long minId = null;
+        while (actionMark) {
+            if (StringUtils.isNotEmpty(marketingCommonConfig.getXieChengSmsQuitThreadNum())) {
+                pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getXieChengSmsQuitThreadNum()));
+                pool.setMaximumPoolSize(Integer.valueOf(marketingCommonConfig.getXieChengSmsQuitThreadNum()));
+                log.warn("携程推送短信退订接口线程调整，corePoolSize={},maxPoolSize={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
+            }
+            List<XiechengSmsQuitData> dataList = xiechengSmsQuitDataMapper.getSmsQuitData(localFile.getId(), minId);
+            if (dataList.size() <= 0) {
+                actionMark = false;
+                continue;
+            }
+            minId = dataList.get(dataList.size() - 1).getId();
+            dataList.forEach(pushList -> {
+                pool.submit(() -> {
+                    SmsQuitReq smsQuitReq = new SmsQuitReq(pushList.getCipherMobile(), pushList.getBlackListType());
+                    Result result = xieChengService.sendSmsQuitData(smsQuitReq);
+                    XiechengSmsQuitData xiechengSmsQuitData = new XiechengSmsQuitData();
+                    xiechengSmsQuitData.setId(pushList.getId());
+                    if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
+                        xiechengSmsQuitData.setPushStatus(2);
+                    } else {
+                        xiechengSmsQuitData.setPushStatus(3);
+                    }
+                    xiechengSmsQuitDataMapper.updateByPrimaryKeySelective(xiechengSmsQuitData);
+                });
+            });
+        }
+        pool.shutdown();
+        try {
+            while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+        localFile.setPushEndTime(new Date());
+        XiechengSmsQuitDataExample xiechengSmsQuitDataExample = new XiechengSmsQuitDataExample();
+        xiechengSmsQuitDataExample.createCriteria().andLocalIdEqualTo(localFile.getId())
+                .andPushStatusEqualTo(2)
+                .andStatusEqualTo(1);
+        Long i = xiechengSmsQuitDataMapper.countByExample(xiechengSmsQuitDataExample);
+        localFile.setPushNumber(i.intValue());
+        localFileMapper.updateByPrimaryKeySelective(localFile);
     }
 
     @Override
