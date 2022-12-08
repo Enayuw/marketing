@@ -33,6 +33,9 @@ public interface IFileToMarketingRuleService {
         JSONObject reserveFieldJo = new JSONObject();
         for (FileToMarketingDataFieldVO vo : vos) {
             switch (vo.getInterfaceField()){
+                case "custNum":
+                    dto.setCustNum(vo.getDataValue());
+                    break;
                 case"cell":
                     dto.setCell(vo.getDataValue());
                     break;
@@ -55,7 +58,7 @@ public interface IFileToMarketingRuleService {
                     reserveFieldJo.put("userType",vo.getDataValue());
                     break;
             }
-            if(vo.getIsExtend()){
+            if(vo.getIsExtend()!=null && vo.getIsExtend()){
                 reserveFieldJo.put(StringUtils.isBlank(vo.getInterfaceField())?vo.getHeadField():vo.getInterfaceField(),vo.getDataValue());
             }
         }

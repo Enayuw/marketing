@@ -1,5 +1,8 @@
 package com.br.marketing.check.job;
+import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.service.PushInfoService;
 import com.google.common.collect.Lists;
 
@@ -51,6 +54,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -82,7 +87,10 @@ import java.util.stream.Collectors;
  **/
 @Component
 @Slf4j
-public class SftpToDbJob extends AbstractSimpleElasticJob {
+public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
+
+    @Autowired
+    private AlarmApiClient alarmClient;
 
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;
@@ -152,30 +160,43 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
      */
     private void fileAction(String apiCode, MarketingDataFileConfig fileConfig, String path, String fileNm, Long localId, IFileToMarketingRuleService iFileToMarketingRuleService) {
 
+        LocalFile updateFile = new LocalFile();
+        updateFile.setId(localId);
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String tasId = apiCode.concat("_").concat(yyyyMMdd);
         String requestIdPrefix = apiCode.concat("_").concat(fileNm).concat("_");
         String fileStr = path.concat(fileNm);
         List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(fileConfig.getFieldConfig(), FileToMarketingFieldVO.class);
         Map<String, List<FileToMarketingFieldVO>> fieldVosMap = fieldVos.stream().collect(Collectors.groupingBy(FileToMarketingFieldVO::getHeadField));
+        Map<String, List<FileToMarketingFieldVO>> _noMustDefaultFieldMap = fieldVos.stream().filter(t -> !t.getIsMust() && StringUtils.isNotBlank(t.getDefalutValue())).collect(Collectors.groupingBy(FileToMarketingFieldVO::getInterfaceField));
+        Set<String> _noMustDefaultFieldSet = null;
+        if(_noMustDefaultFieldMap!=null){
+            _noMustDefaultFieldSet = _noMustDefaultFieldMap.keySet();
+        }
         List<String> mustHeads = fieldVos.stream().filter(t -> t.getIsMust()).map(t -> t.getHeadField()).collect(Collectors.toList());
         File file = new File(fileStr);
+        Integer line = 0;
+        Integer errorNum = 0;
+        Integer pushSum = 0;
+        ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(5, 5);
+        Date startDate = new Date();
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String row = "";
-            Integer line = 1;
-            Integer errorNum = 0;
-            Integer pushNum = 500;
+            Integer pushNum = 2;
             Integer pushBatchNumber = 1;
             HashMap<Integer, String> address = new HashMap<>();
             HashSet<String> extra = new HashSet<>();
-            LocalFile updateFile = new LocalFile();
-            updateFile.setId(localId);
             List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
             Boolean isNotFinal = Boolean.TRUE;
             while (isNotFinal) {
                 row = br.readLine();
                 if (row == null) {
                     isNotFinal = Boolean.FALSE;
+                }else {
+                    line++;
+                }
+                if(line==0&&!isNotFinal){
+                    continue;
                 }
                 if(isNotFinal){
                     if (line == 1) {
@@ -184,12 +205,14 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                             updateFile.setComplete("2");
                             localFileMapper.updateByPrimaryKeySelective(updateFile);
                             log.error(String.format("%s 文件：%s", fileNm, result.getMessage()));
-                            break;
+                            return;
                         }
                     } else {
                         List<String> datas = Splitter.on(",").splitToList(row);
                         StringBuilder errorMsg = new StringBuilder();
                         List<FileToMarketingDataFieldVO> dataFieldVOS = new ArrayList<>();
+                        HashSet hasSet = new HashSet();
+                        String cell = "";
                         for (int i = 0; i < datas.size(); i++) {
                             String value = datas.get(i);
                             String headNm = address.get(i);
@@ -217,12 +240,36 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                             }
                             vo.setDataValue(value);
                             vo.setIsExtend(extra.contains(headNm)?Boolean.TRUE:Boolean.FALSE);
+                            hasSet.add(vo.getInterfaceField());
                             dataFieldVOS.add(vo);
+                            if("cell".equals(vo.getInterfaceField())){
+                                cell = vo.getDataValue();
+                            }
                         }
                         if(StringUtils.isNotBlank(errorMsg.toString())){
                             errorNum++;
                             log.warn("文件名:{};行数:{};错误:{};",fileNm,line,errorMsg.toString());
                             continue;
+                        }
+                        if (_noMustDefaultFieldSet !=null) {
+                            HashSet<String> resSet = new HashSet<>();
+                            resSet.addAll(_noMustDefaultFieldSet);
+                            resSet.removeAll(hasSet);
+                            for (String s : resSet) {
+                                List<FileToMarketingFieldVO> fileToMarketingFieldVOS = _noMustDefaultFieldMap.get(s);
+                                if (fileToMarketingFieldVOS !=null && fileToMarketingFieldVOS.size()>0) {
+                                    FileToMarketingFieldVO _defField = fileToMarketingFieldVOS.get(0);
+
+                                    FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
+                                    BeanUtils.copyProperties(_defField,vo);
+                                    if("{cell}".equals(_defField.getDefalutValue())){
+                                        vo.setDataValue(cell);
+                                    }else{
+                                        vo.setDataValue(_defField.getDefalutValue());
+                                    }
+                                    dataFieldVOS.add(vo);
+                                }
+                            }
                         }
                         Result vaild = iFileToMarketingRuleService.isVaild(dataFieldVOS);
                         if(!ResultCode.SUCCESS.getValue().equals(vaild.getCode())){
@@ -230,11 +277,13 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                             log.warn("文件名:{};行数:{};错误:{};",fileNm,line,vaild.getMessage());
                             continue;
                         }
+
                         MarketingPreUserDetailDTO make = iFileToMarketingRuleService.make(dataFieldVOS);
                         syncUsers.add(make);
                     }
                 }
-                if (syncUsers.size() == pushNum||!isNotFinal) {
+                if (syncUsers.size() == pushNum||(!isNotFinal&&syncUsers.size()>0)) {
+                    pushSum += syncUsers.size();
                     MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
                     marketingPreUserDTO.setTaskId(tasId);
                     marketingPreUserDTO.setRequestId(requestIdPrefix.concat(pushBatchNumber.toString()));
@@ -242,15 +291,45 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
                     UploadDataDTO uploadDataDTO = new UploadDataDTO();
                     uploadDataDTO.setApiCode(apiCode);
                     uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
-                    pushInfoService.pushUploadByRetry(uploadDataDTO,null);
+                    pushPool.submit(()->{
+                        pushInfoService.pushUploadByRetry(uploadDataDTO,null);
+                    });
                     syncUsers = new ArrayList<>();
                     pushBatchNumber++;
                 }
-                line++;
+
+            }
+            pushPool.shutdown();
+            while (!pushPool.awaitTermination(5L, TimeUnit.SECONDS)){
+
             }
         } catch (Exception ex) {
-
+            log.error(ex.getMessage(),ex);
         }
+
+        Date end = new Date();
+        updateFile.setActualNumber(line>0?line-1:line);
+        updateFile.setPushNumber(pushSum);
+        updateFile.setErrorActualNumber(errorNum);
+        updateFile.setPushStartTime(startDate);
+        updateFile.setPushEndTime(end);
+        updateFile.setComplete(errorNum>0?"3":"1");
+        localFileMapper.updateByPrimaryKeySelective(updateFile);
+        //region 提示
+        try {
+            StringBuilder content = new StringBuilder();
+            content.append("导入文件名称：".concat(fileNm).concat("\r\n"))
+                    .append("文件id：".concat(updateFile.getId().toString()).concat("\r\n"))
+                    .append("文件类型：".concat(updateFile.getFileType()).concat("\r\n"))
+                    .append("导入文件状态：".concat(errorNum == 0 ? "正常" : "不正常").concat("\r\n"))
+                    .append("导入数据行数：".concat(updateFile.getActualNumber().toString()).concat("\r\n"))
+                    .append("其中有问题行数：".concat(String.valueOf(errorNum)).concat("\r\n"));
+            alarmClient.sendAlarm(content.toString(), "sftp数据上传", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+        //endregion
+
     }
 
     /**
