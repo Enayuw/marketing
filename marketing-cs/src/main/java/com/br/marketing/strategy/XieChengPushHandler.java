@@ -34,7 +34,6 @@ public class XieChengPushHandler extends AbstractExternalInterfaceHandler<XieChe
         for (XieChengDataDTO dto : list) {
             XieChengData xieChengData = dto.getXieChengData();
             xieChengData.setCreateTime(new Date());
-            xieChengData.setUpdateTime(xieChengData.getCreateTime());
             xieChengData.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
             xieChengData.setLocalId(dto.getInitId());
             xieChengData.setPushStatus(1);
