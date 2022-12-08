@@ -10,6 +10,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.vo.FileToMarketingDataFieldVO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 文件写入营销数据 规则服务
@@ -20,7 +21,7 @@ public interface IFileToMarketingRuleService {
      * 是否剔除 true有效；false无效
      * @return
      */
-    default Result isVaild(List<FileToMarketingDataFieldVO> vos){
+    default Result isVaild(List<FileToMarketingDataFieldVO> vos, Map<String,FileToMarketingDataFieldVO> voMaps){
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 

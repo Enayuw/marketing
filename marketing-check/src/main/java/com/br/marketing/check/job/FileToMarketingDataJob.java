@@ -187,6 +187,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
             HashMap<Integer, String> address = new HashMap<>();
             HashSet<String> extra = new HashSet<>();
             List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
+            Integer headSum = 0;
             Boolean isNotFinal = Boolean.TRUE;
             while (isNotFinal) {
                 row = br.readLine();
@@ -200,6 +201,8 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                 }
                 if(isNotFinal){
                     if (line == 1) {
+                        String[] split = row.split(",", -1);
+                        headSum = split.length;
                         Result result = SftpToDbUtils.statisticsHeadByCommon(row, address, extra, mustHeads);
                         if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                             updateFile.setComplete("2");
@@ -209,8 +212,14 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                         }
                     } else {
                         List<String> datas = Splitter.on(",").splitToList(row);
+                        if(!headSum.equals(datas.size())){
+                            errorNum++;
+                            log.warn("文件名:{};行数:{};错误:{};",fileNm,line,"该行与表头列数不一致");
+                            continue;
+                        }
                         StringBuilder errorMsg = new StringBuilder();
                         List<FileToMarketingDataFieldVO> dataFieldVOS = new ArrayList<>();
+                        HashMap<String,FileToMarketingDataFieldVO> dataFieldMap = new HashMap<>();
                         HashSet hasSet = new HashSet();
                         String cell = "";
                         for (int i = 0; i < datas.size(); i++) {
@@ -242,6 +251,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                             vo.setIsExtend(extra.contains(headNm)?Boolean.TRUE:Boolean.FALSE);
                             hasSet.add(vo.getInterfaceField());
                             dataFieldVOS.add(vo);
+                            dataFieldMap.put(vo.getHeadField(),vo);
                             if("cell".equals(vo.getInterfaceField())){
                                 cell = vo.getDataValue();
                             }
@@ -268,10 +278,11 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                                         vo.setDataValue(_defField.getDefalutValue());
                                     }
                                     dataFieldVOS.add(vo);
+                                    dataFieldMap.put(vo.getHeadField(),vo);
                                 }
                             }
                         }
-                        Result vaild = iFileToMarketingRuleService.isVaild(dataFieldVOS);
+                        Result vaild = iFileToMarketingRuleService.isVaild(dataFieldVOS,dataFieldMap);
                         if(!ResultCode.SUCCESS.getValue().equals(vaild.getCode())){
                             errorNum++;
                             log.warn("文件名:{};行数:{};错误:{};",fileNm,line,vaild.getMessage());
