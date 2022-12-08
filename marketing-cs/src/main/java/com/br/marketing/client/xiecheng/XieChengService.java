@@ -76,15 +76,10 @@ public class XieChengService {
 
     @RetryMethod(retryNowNum = 3)
     public String pushXieChengData(XieChengData xieChengData) {
-        log.warn("携程明文参数 para={}", xieChengData);
-        try {
-            return send(xieChengData);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return send(xieChengData);
     }
 
-    private String send(XieChengData xieChengData) throws Exception {
+    private String send(XieChengData xieChengData) {
         /**
          * data 组装
          */
@@ -105,10 +100,15 @@ public class XieChengService {
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(thirdAdOuterReq), key, iv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, singKey));
         log.warn("携程发送参数 para={}", JSON.toJSONString(retMap));
-        String send = httpProxyClient.send(JSON.toJSONString(retMap), openUrl, isProxy);
-//        String send = "{\"code\":0,\"msg\":\"测试成功\",\"data\":null}";
-        log.warn("携程数据返回信息：{}", send);
-        return send;
+//        String result = httpProxyClient.send(JSON.toJSONString(retMap), openUrl, isProxy);
+        String result = "{\"code\":500,\"msg\":\"测试成功\",\"data\":null}";
+        JSONObject resultJson = JSONObject.parseObject(result);
+        Integer code = resultJson.getInteger("code");
+        log.warn("携程数据返回信息：{}", result);
+        if (code == 500 || code == 704) {
+            throw new RuntimeException("携程数据推送重试：".concat(String.valueOf(code)));
+        }
+        return result;
 
     }
 
