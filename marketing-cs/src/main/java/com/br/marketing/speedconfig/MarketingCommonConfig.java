@@ -378,4 +378,9 @@ public class MarketingCommonConfig {
      * 规则筛选调用决策接口的线程数
      */
     private Integer scoreToJcThreadNum;
+
+    /**
+     * 携程转化数据入库特殊处理apicode集合
+     */
+    private List<String> xieChengTransferInsertApiCodes;
 }
