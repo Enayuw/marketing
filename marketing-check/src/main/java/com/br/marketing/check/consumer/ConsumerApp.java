@@ -2,6 +2,7 @@ package com.br.marketing.check.consumer;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.PushDataService;
@@ -14,6 +15,7 @@ import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

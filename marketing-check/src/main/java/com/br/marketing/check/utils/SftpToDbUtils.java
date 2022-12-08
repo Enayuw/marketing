@@ -371,4 +371,29 @@ public class SftpToDbUtils {
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue());
     }
+
+    public static Result statisticsHeadByCommon(String head,HashMap<Integer, String> address,HashSet extra,List<String> baseHeads){
+        List<String> heads = Splitter.on(",").splitToList(head);
+        if(heads.size()<=0){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("head信息不存在");
+        }
+        Boolean startExt = false;
+        if(!heads.containsAll(baseHeads)){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("表头缺少必填字段");
+        }
+        for (int i = 0; i < heads.size(); i++) {
+            String s = heads.get(i);
+            if(StringUtils.isBlank(s)){
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("head信息不能有空字段");
+            }
+            if(s.equals("extend")){
+                startExt = true;
+            }
+            if(startExt){
+                extra.add(s);
+            }
+            address.put(i, s);
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+    }
 }

@@ -159,7 +159,9 @@ api:
     xdCode: 07brdyy001
     bxCode: 3360001
   marketing:
-    transferUrl: http://marketing-api/marketingTransferData/receiveTransferDataSync
+    baseUrl: http://marketing-api
+    transferUrl: ${api.marketing.baseUrl}/marketingTransferData/receiveTransferDataSync
+    uploadUrl: ${api.marketing.baseUrl}/marketingUserPre/receiveMarketingPreUser
   halo:
     openUrl: https://open.hellobike.com/openapi
     appKey: brgroup-pnPnzgxf

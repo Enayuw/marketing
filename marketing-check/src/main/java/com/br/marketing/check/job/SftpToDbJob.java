@@ -1,39 +1,58 @@
 package com.br.marketing.check.job;
+import com.br.marketing.client.marketingapi.input.UploadDataDTO;
+import com.br.marketing.service.PushInfoService;
+import com.google.common.collect.Lists;
+
+import java.time.LocalDate;
+import java.util.Date;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
+import java.util.*;
 
+import IceInternal.Ex;
+import com.alibaba.fastjson.JSON;
+import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.enums.ErrorFileTypeEnum;
+import com.br.marketing.check.service.IFileToMarketingRuleService;
 import com.br.marketing.check.service.Impl.DeleteService;
 import com.br.marketing.check.service.Impl.FileCheckServiceImpl;
 import com.br.marketing.check.service.Impl.SftpToDbService;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.Constants;
-import com.br.marketing.entity.MarketingTask;
-import com.br.marketing.entity.MarketingTaskExtend;
-import com.br.marketing.entity.MerchantParam;
-import com.br.marketing.mapper.MarketingTaskExtendMapper;
-import com.br.marketing.mapper.MarketingTaskMapper;
-import com.br.marketing.mapper.MarketingUserMapper;
+import com.br.marketing.dto.MarketingPreUserDTO;
+import com.br.marketing.dto.MarketingPreUserDetailDTO;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.IApiToDbService;
+import com.br.marketing.service.IFileActionService;
 import com.br.marketing.service.Impl.ValidDataAlarmServiceImpl;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.vo.FileToMarketingDataFieldVO;
+import com.br.marketing.vo.FileToMarketingFieldVO;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.jcraft.jsch.JSchException;
+import com.sun.org.apache.xpath.internal.operations.Bool;
+import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.apache.curator.shaded.com.google.common.base.Splitter;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * //				    _ooOoo_
@@ -64,8 +83,7 @@ import java.util.Set;
 @Component
 @Slf4j
 public class SftpToDbJob extends AbstractSimpleElasticJob {
-    @Autowired
-    SyncConfigService syncConfigService;
+
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;
     @Value("${otherConfig.warning.sftpPort:00}")
@@ -74,162 +92,234 @@ public class SftpToDbJob extends AbstractSimpleElasticJob {
     private String sftpUsername;
     @Value("${otherConfig.warning.sftpPwd:00}")
     private String sftpPwd;
+
     @Resource
-    SftpToDbService sftpToDbService;
-    @Resource
-    MarketingTaskMapper marketingTaskMapper;
+    SyncConfigMapper syncConfigMapper;
+
     @Autowired
-    MarketingTaskExtendMapper marketingTaskExtendMapper;
-    @Resource
-    RedisChgService redisChgService;
-    @Resource
-    MarketingUserMapper marketingUserMapper;
-    @Resource
-    ValidDataAlarmServiceImpl validDataAlarmService;
-    @Resource
-    FileCheckServiceImpl fileCheckService;
-    @Resource
-    DeleteService deleteService;
+    SyncConfigService syncConfigService;
+
     @Autowired
-    IApiToDbService iApiToDbService;
+    IFileActionService iFileActionService;
+
+    @Resource
+    MarketingDataFileConfigMapper marketingDataFileConfigMapper;
+
+    @Resource
+    LocalFileMapper localFileMapper;
+
+    @Autowired
+    PushInfoService pushInfoService;
+
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        Map<String, Set<String>> map = new HashMap<>();
-        SftpClient sftpClient = new SftpClient(sftpHost, sftpPort, sftpUsername, sftpPwd);
-        try {
-            sftpClient.connect();
-            SftpToDbUtils.listStpFile("/UploadFiles/marketing/", map, sftpClient);
-            if (!map.isEmpty()) {
-                log.info("----------SftpToDb开始处理新上传的数据文件-------------");
-                long start = System.currentTimeMillis();
-                dealDataFile(map, sftpClient);
-                long end = System.currentTimeMillis();
-                if (log.isWarnEnabled()) {
-                    log.warn(String.format("数据入库时间:%d", end - start));
-                }
-            }
-        } catch (JSchException e) {
-            log.error("SftpToDbJob,sftp连接失败", e);
-        } catch (Exception e) {
-            log.error("获取sftp上的数据文件列表出错", e);
-        } finally {
-            try {
-                sftpClient.disconnect();
-            } catch (Exception e) {
-                log.error("断开sftp连接出错", e);
-            }
-        }
-    }
 
-    /**
-     * 开始处理新上传的文件
-     *
-     * @param map        key ftp上的路径loanwarn/4200333/input
-     *                   value 对应目录下新上传的文件
-     * @param sftpClient
-     */
-    private void dealDataFile(Map<String, Set<String>> map, SftpClient sftpClient) {
-        for (Map.Entry<String, Set<String>> entry : map.entrySet()) {
-            String sftpzipFilePash = entry.getKey();
-            Set<String> zipFileNameSet = entry.getValue();
-            MerchantParam merchantParam = SftpToDbUtils.vaildApicode(sftpzipFilePash);
-            if (merchantParam == null) {
-                log.error("vaildApicode error {}", sftpzipFilePash);
-                continue;
-            }
-            int monitorType = Integer.parseInt(merchantParam.getCallMethod());
-            String apiCode = merchantParam.getApiCode();
-            String tableName = "b_marketing_user_" + apiCode;
-            marketingUserMapper.createUserTable(tableName);
-            //初始化参数对象
-            FileContext context = new FileContext();
-            context.setBaseFtpClient(sftpClient);
-            context.setMerchantParam(merchantParam);
-            context.setSftpZipFilePath(sftpzipFilePash);
-            context.setApiCode(apiCode);
-            for (String zipFileName : zipFileNameSet) {
-                if (zipFileName.endsWith(".zip")) {
-                    //设置zip文件名
-                    context.setZipFileName(zipFileName);
-                    String successFile = zipFileName + ".success";
-                    if (zipFileNameSet.contains(successFile)) {
-                        StringBuilder errorMessage = new StringBuilder("压缩文件异常,");
-                        if (zipFileName.contains("DeleteMonitor")) {
-                            context.setLocalZipFilePath(syncConfigService.getPath().concat("delete/").concat(apiCode).concat("/"));
-                            context.setType("delete");
-                            context.setCusBatch(Constants.MYREGEX.split(zipFileName)[0]);
-                            context.init();
-                            if (SftpToDbUtils.vaildFileName(zipFileName, apiCode, errorMessage)) {
-                                deleteService.execute(context);
-                            } else {
-                                fileCheckService.errorDetail(context, errorMessage.toString(), ErrorFileTypeEnum.ERROR_FILE);
-                            }
-                            validDataAlarmService.deleteMonitorFileUpload(apiCode, Constants.MYREGEX.split(context.getZipFileName())[0]);
-                        } else {
-                            context.setLocalZipFilePath(syncConfigService.getPath().concat("sftp_data/").concat(apiCode).concat("/"));
-                            String batchNumber = SftpToDbUtils.getBatchNumber(apiCode);
-                            context.setBatchNumber(batchNumber);
-                            context.setType("data");
-                            MarketingTask task = new MarketingTask();
-                            task.setApiCode(apiCode);
-                            task.setBatchNumber(batchNumber);
-                            task.setMonitorType(monitorType);
-                            task.setMonitorStatus(0);
-                            task.setStatus(2);
-                            task.setFileName(Constants.MYREGEX.split(zipFileName)[0]);
-                            task.setCusBatch(task.getFileName());
-                            task.setContextId(iApiToDbService.getTaskContextId());
-                            context.setCusBatch(task.getFileName());
-                            marketingTaskMapper.insertTask(task);
-                            MarketingTaskExtend taskExtend = new MarketingTaskExtend();
-                            taskExtend.setApiCode(apiCode);
-                            taskExtend.setTaskId(task.getId());
-                            taskExtend.setCusTaskId(task.getFileName());
-                            taskExtend.setCreateTime(new Date());
-                            taskExtend.setUploadTime(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
-                            marketingTaskExtendMapper.insertSelective(taskExtend);
-                            context.setTask(task);
-                            context.init();
-                            if (SftpToDbUtils.vaildFileName(zipFileName, apiCode, errorMessage)) {
-                                sftpToDbService.execute(context);
-                            } else {
-                                fileCheckService.errorDetail(context, errorMessage.toString(), ErrorFileTypeEnum.ERROR_FILE);
-                            }
-
-                            String taskNumber = redisChgService.get(Constants.UPLOAD_DATA_NUM + batchNumber);
-                            redisChgService.expire(Constants.UPLOAD_DATA_NUM + batchNumber, 60);
-                            String failNumber = redisChgService.get(Constants.UPLOAD_FAILDATA_NUM + batchNumber);
-                            task.setTableName("b_marketing_user_" + apiCode);
-                            Integer actualNumber = marketingUserMapper.queryCount(task);
-                            log.info("taskNumber:{},FailNumber:{}, actualNumber:{}", taskNumber, failNumber, actualNumber);
-                            task.setTaskNumber(StringUtils.isNotEmpty(taskNumber) ? Integer.parseInt(taskNumber) : 0);
-                            task.setActualNumber(actualNumber);
-                            log.info("LoanTask:{}", task);
-                            marketingTaskMapper.modifyTask(task);
-                            fileCheckService.volidatorDataVolume(task.getDataVolume(), task.getTaskNumber(),
-                                    context.getApiCode(), context.getTxtFileName());
-                            validDataAlarmService.fileUpload(apiCode, batchNumber);
-                        }
-
-                        String inputPath = Constants.SFTP_IN_INPUT_PATH.replace("apiCode", apiCode);
-                        try {
-                            sftpClient.rename(inputPath + successFile, inputPath + successFile + ".bak");
-                            sftpClient.rename(inputPath + zipFileName, inputPath + zipFileName + ".bak");
-                        } catch (Exception e) {
-                            log.warn("rename file error ", e);
-                            try {
-                                sftpClient.disconnect();
-                                sftpClient.connect();
-                                sftpClient.rename(inputPath + successFile, inputPath + successFile + ".bak");
-                                sftpClient.rename(inputPath + zipFileName, inputPath + zipFileName + ".bak");
-                            } catch (Exception ex) {
-                                log.error("rename file error ", ex);
-                            }
-                        }
+        SyncConfigExample syncConfigExample = new SyncConfigExample();
+        syncConfigExample.createCriteria()
+                .andStatusEqualTo(1)
+                .andDataTypeEqualTo(DataTypeEnum.MARKETINGDATA.getValue())
+                .andTypeEqualTo(1);
+        List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
+        for (SyncConfig syncConfig : syncConfigs) {
+            String targetPath = syncConfigService.getPath().concat("initPath/").concat(syncConfig.getApiCode()).concat("/");
+            SftpClient sftpClient = new SftpClient(sftpHost, sftpPort, sftpUsername, sftpPwd);
+            Result<List<String>> res = iFileActionService.downSyncFileBySftp(sftpClient, syncConfig, targetPath);
+            if (ResultCode.SUCCESS.getValue().equals(res.getCode())) {
+                List<String> fileNames = res.getData();
+                MarketingDataFileConfig dataFileConfig = getDataFileConfig(syncConfig.getApiCode());
+                IFileToMarketingRuleService fileToMarketingRuleService = getFileToMarketingRuleService(dataFileConfig);
+                for (String fileName : fileNames) {
+                    Result<Long> action = isAction(syncConfig.getApiCode(), fileName, targetPath, syncConfig.getTargetPath());
+                    if (ResultCode.SUCCESS.getValue().equals(action.getCode())) {
+                        fileAction(syncConfig.getApiCode(), dataFileConfig, targetPath, fileName, action.getData(), fileToMarketingRuleService);
                     }
                 }
             }
         }
+
     }
+
+    /**
+     * 处理文件
+     *
+     * @param apiCode
+     * @param fileConfig
+     * @param path
+     * @param fileNm
+     * @param localId
+     * @param iFileToMarketingRuleService
+     */
+    private void fileAction(String apiCode, MarketingDataFileConfig fileConfig, String path, String fileNm, Long localId, IFileToMarketingRuleService iFileToMarketingRuleService) {
+
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String tasId = apiCode.concat("_").concat(yyyyMMdd);
+        String requestIdPrefix = apiCode.concat("_").concat(fileNm).concat("_");
+        String fileStr = path.concat(fileNm);
+        List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(fileConfig.getFieldConfig(), FileToMarketingFieldVO.class);
+        Map<String, List<FileToMarketingFieldVO>> fieldVosMap = fieldVos.stream().collect(Collectors.groupingBy(FileToMarketingFieldVO::getHeadField));
+        List<String> mustHeads = fieldVos.stream().filter(t -> t.getIsMust()).map(t -> t.getHeadField()).collect(Collectors.toList());
+        File file = new File(fileStr);
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String row = "";
+            Integer line = 1;
+            Integer errorNum = 0;
+            Integer pushNum = 500;
+            Integer pushBatchNumber = 1;
+            HashMap<Integer, String> address = new HashMap<>();
+            HashSet<String> extra = new HashSet<>();
+            LocalFile updateFile = new LocalFile();
+            updateFile.setId(localId);
+            List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
+            Boolean isNotFinal = Boolean.TRUE;
+            while (isNotFinal) {
+                row = br.readLine();
+                if (row == null) {
+                    isNotFinal = Boolean.FALSE;
+                }
+                if(isNotFinal){
+                    if (line == 1) {
+                        Result result = SftpToDbUtils.statisticsHeadByCommon(row, address, extra, mustHeads);
+                        if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                            updateFile.setComplete("2");
+                            localFileMapper.updateByPrimaryKeySelective(updateFile);
+                            log.error(String.format("%s 文件：%s", fileNm, result.getMessage()));
+                            break;
+                        }
+                    } else {
+                        List<String> datas = Splitter.on(",").splitToList(row);
+                        StringBuilder errorMsg = new StringBuilder();
+                        List<FileToMarketingDataFieldVO> dataFieldVOS = new ArrayList<>();
+                        for (int i = 0; i < datas.size(); i++) {
+                            String value = datas.get(i);
+                            String headNm = address.get(i);
+                            FileToMarketingFieldVO fieldVO = null;
+                            List<FileToMarketingFieldVO> fileToMarketingFieldVOS = fieldVosMap.get(headNm);
+                            if (fileToMarketingFieldVOS != null && fileToMarketingFieldVOS.size() > 0) {
+                                fieldVO = fileToMarketingFieldVOS.get(0);
+                            }
+                            if (fieldVO == null&&!extra.contains(headNm)) {
+                                continue;
+                            }
+                            if (StringUtils.isBlank(value) && StringUtils.isNotBlank(fieldVO.getDefalutValue())) {
+                                value = fieldVO.getDefalutValue();
+                            }
+                            if (fieldVO.getIsMust() && StringUtils.isBlank(value)) {
+                                errorMsg.append(String.format("字段名:%s 未赋值;", fieldVO.getHeadField()));
+                                continue;
+                            }
+                            FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
+                            if(fieldVO !=null){
+                                BeanUtils.copyProperties(fieldVO,vo);
+                            }else{
+                                vo.setHeadField(headNm);
+                                vo.setInterfaceField(headNm);
+                            }
+                            vo.setDataValue(value);
+                            vo.setIsExtend(extra.contains(headNm)?Boolean.TRUE:Boolean.FALSE);
+                            dataFieldVOS.add(vo);
+                        }
+                        if(StringUtils.isNotBlank(errorMsg.toString())){
+                            errorNum++;
+                            log.warn("文件名:{};行数:{};错误:{};",fileNm,line,errorMsg.toString());
+                            continue;
+                        }
+                        Result vaild = iFileToMarketingRuleService.isVaild(dataFieldVOS);
+                        if(!ResultCode.SUCCESS.getValue().equals(vaild.getCode())){
+                            errorNum++;
+                            log.warn("文件名:{};行数:{};错误:{};",fileNm,line,vaild.getMessage());
+                            continue;
+                        }
+                        MarketingPreUserDetailDTO make = iFileToMarketingRuleService.make(dataFieldVOS);
+                        syncUsers.add(make);
+                    }
+                }
+                if (syncUsers.size() == pushNum||!isNotFinal) {
+                    MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
+                    marketingPreUserDTO.setTaskId(tasId);
+                    marketingPreUserDTO.setRequestId(requestIdPrefix.concat(pushBatchNumber.toString()));
+                    marketingPreUserDTO.setDataItems(syncUsers);
+                    UploadDataDTO uploadDataDTO = new UploadDataDTO();
+                    uploadDataDTO.setApiCode(apiCode);
+                    uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
+                    pushInfoService.pushUploadByRetry(uploadDataDTO,null);
+                    syncUsers = new ArrayList<>();
+                    pushBatchNumber++;
+                }
+                line++;
+            }
+        } catch (Exception ex) {
+
+        }
+    }
+
+    /**
+     * 判断当前文件是否处理
+     *
+     * @param apiCode
+     * @param fileNm
+     * @param targetPath
+     * @param srcPath
+     * @return
+     */
+    private Result<Long> isAction(String apiCode, String fileNm, String targetPath, String srcPath) {
+        String fileStr = targetPath.concat(fileNm);
+        LocalFileExample localFileExample = new LocalFileExample();
+        localFileExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andFileNameEqualTo(fileNm)
+                .andFileTypeEqualTo("marketingData")
+                .andLocalPathEqualTo(targetPath);
+        List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
+        if (localFiles.size() > 0) {
+            log.warn("该文件已经读取过：{}", fileStr);
+            return new Result().setCode(ResultCode.FAIL.getValue());
+        } else {
+            Date date = new Date();
+            LocalFile localFile = new LocalFile();
+            localFile.setApiCode(apiCode);
+            localFile.setFileType("marketingData");
+            localFile.setSrcPath(srcPath);
+            localFile.setFileName(fileNm);
+            localFile.setLocalPath(targetPath);
+            localFile.setStatus("1");
+            localFile.setCreateTime(date);
+            localFile.setUpdateTime(date);
+            localFileMapper.insertSelective(localFile);
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(localFile.getId());
+        }
+    }
+
+    /**
+     * 获取配置文件
+     * 如未配置获取默认配置
+     *
+     * @param apiCode
+     * @return
+     */
+    private MarketingDataFileConfig getDataFileConfig(String apiCode) {
+        MarketingDataFileConfigExample fileConfigExample = new MarketingDataFileConfigExample();
+        fileConfigExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andIsDelEqualTo(Constants.DATA_VALID);
+        List<MarketingDataFileConfig> marketingDataFileConfigs = marketingDataFileConfigMapper.selectByExample(fileConfigExample);
+        if (marketingDataFileConfigs.size() > 0) {
+            return marketingDataFileConfigs.get(0);
+        }
+        MarketingDataFileConfig defaultConfig = marketingDataFileConfigMapper.selectByPrimaryKey(1L);
+        return defaultConfig;
+    }
+
+    /**
+     * 获取执行的方法
+     *
+     * @param config
+     * @return
+     */
+    private IFileToMarketingRuleService getFileToMarketingRuleService(MarketingDataFileConfig config) {
+        Map<String, IFileToMarketingRuleService> beansOfRule = CkeckApplication.ac.getBeansOfType(IFileToMarketingRuleService.class);
+        IFileToMarketingRuleService iFileToMarketingRuleService = beansOfRule.get(config.getServiceName());
+        return iFileToMarketingRuleService;
+    }
+
 }

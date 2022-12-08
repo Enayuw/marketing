@@ -17,7 +17,8 @@ public enum DataTypeEnum {
     ,QIQI(4,"七七撞库")
     ,TRANSFER(5,"转化文件")
     ,FILETODB(6,"入库文件")
-    ,OFFLINESCORE(7,"离线跑分文件");
+    ,OFFLINESCORE(7,"离线跑分文件")
+    ,MARKETINGDATA(8,"原始数据文件");
     private Integer value;
     private String desc;
 

@@ -153,7 +153,9 @@ api:
     xdCode: 07brdyy01
     bxCode: 3360001
   marketing:
-    transferUrl: http://marketing-api/marketingTransferData/receiveTransferDataSync
+    baseUrl: http://marketing-api
+    transferUrl: ${api.marketing.baseUrl}/marketingTransferData/receiveTransferDataSync
+    uploadUrl: ${api.marketing.baseUrl}/marketingUserPre/receiveMarketingPreUser
   halo:
     openUrl: https://fat-hello-openapi.hellobike.com/openapi
     appKey: hellobikefinance-bwYuIVvO
