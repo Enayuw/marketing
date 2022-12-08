@@ -66,7 +66,8 @@
                  select mobile_md5, local_id
                  from b_zhongan_roster_locking_data
                  WHERE api_code = '${apiCode}'
-                   and <![CDATA[ create_time >= '${dateStr}' ]]>
+                   and <![CDATA[ update_time >= '${dateStr}' ]]>
+                   and <![CDATA[ biz_date <= '${dateStr}' ]]>
                    and push_status = 2
                    and status = 1
                    and data_source = 1
@@ -78,7 +79,9 @@
         select local_id
         from b_zhongan_roster_locking_data
         WHERE api_code = '${apiCode}'
-          and <![CDATA[ create_time >= '${dateStr}' ]]>
+          and <![CDATA[ biz_date <= '${dateStr}' ]]>
+          and push_status = 1
+          and status = 1
           and data_source = 1
         group by local_id
     </select>
