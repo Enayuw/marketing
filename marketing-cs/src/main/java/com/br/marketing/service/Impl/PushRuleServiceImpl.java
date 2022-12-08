@@ -497,7 +497,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         try {
             yhTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(scoreFileYhTime);
         } catch (ParseException e) {
-            log.error(e.getMessage(),e);
+            log.error(e.getMessage(), e);
         }
         Date yh = yhTime;
         long beforeCount = straHisFiles.stream().filter(t -> t.getCreateTime().compareTo(yh) <= 0).count();
@@ -539,18 +539,18 @@ public class PushRuleServiceImpl implements PushRuleService {
 //            String s = marketingHistoryEsService.builderMarketingWithSearchAfter(queryBaseBean);
 //            searchAfterStr = s;
 //        }
-        Integer getEsNum = marketingCommonConfig.getScoreByEsThreadNum()!=null
-                && marketingCommonConfig.getScoreByEsThreadNum()>0
-        ? marketingCommonConfig.getScoreByEsThreadNum()
-        :10;
-        Integer getJcNum = marketingCommonConfig.getScoreToJcThreadNum()!=null
-                && marketingCommonConfig.getScoreToJcThreadNum()>0
+        Integer getEsNum = marketingCommonConfig.getScoreByEsThreadNum() != null
+                && marketingCommonConfig.getScoreByEsThreadNum() > 0
+                ? marketingCommonConfig.getScoreByEsThreadNum()
+                : 10;
+        Integer getJcNum = marketingCommonConfig.getScoreToJcThreadNum() != null
+                && marketingCommonConfig.getScoreToJcThreadNum() > 0
                 ? marketingCommonConfig.getScoreToJcThreadNum()
-                :2;
+                : 2;
         boolean isSigle = (customerInfoPushMain.getmPercentage() != null
                 && customerInfoPushMain.getmPercentage().compareTo(BigDecimal.ZERO) > 0)
                 || (customerInfoPushMain.getmPlanNum() != null && customerInfoPushMain.getmPlanNum() > 0)
-                || beforeCount>0;
+                || beforeCount > 0;
         if (isSigle) {
             parNum = 1;
             getEsNum = 1;
@@ -562,9 +562,30 @@ public class PushRuleServiceImpl implements PushRuleService {
         ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(getJcNum, getJcNum);
         List<Future<List<Future<Result<Integer>>>>> res = new ArrayList<>();
         long startTime = System.currentTimeMillis();
+        HashMap<Integer, Integer> partDataNum = new HashMap<>();
+        if (!isSigle) {
+            Integer nowSum = 0;
+            for (Integer i = 0; i < parNum; i++) {
+                QueryBaseBean queryBaseBean = new QueryBaseBean();
+                queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
+                queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
+                queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
+                queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
+                queryBaseBean.setPart(i.toString());
+                Integer nowNum = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+                partDataNum.put(i, nowNum);
+                nowSum += nowNum;
+            }
+            if (!customerInfoPushMain.getmRealyNum().equals(nowSum)) {
+                log.error("任务id：{}，分组查询和预览总数不一致，请手动处理！，分组查询的总数：{}，预览总数：{}"
+                        , customerInfoPushMain.getId(), nowSum.toString(), customerInfoPushMain.getmRealyNum().toString());
+                return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+            }
+        }
+
         for (Integer i = 0; i < parNum; i++) {
             res.add(actionEs.submit(new actionEs(pushJc, customerInfoPushMain
-                    , fileIds, numList, i.toString(), _3kEncrypt, isSigle)));
+                    , fileIds, numList, i.toString(), _3kEncrypt, isSigle, partDataNum.get(i))));
         }
         log.warn("推送决策 任务id：{}；获取所有分组数据耗时：{}", customerInfoPushMain.getId(), System.currentTimeMillis() - startTime);
         try {
@@ -580,19 +601,20 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
             }
         } catch (Exception ex) {
+            log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
             main.setmStatus(3);
         }
         try {
             actionEs.shutdown();
             pushJc.shutdown();
-            while (!pushJc.awaitTermination(5L,TimeUnit.SECONDS)){
+            while (!pushJc.awaitTermination(5L, TimeUnit.SECONDS)) {
 
             }
-            while (!actionEs.awaitTermination(5L,TimeUnit.SECONDS)){
+            while (!actionEs.awaitTermination(5L, TimeUnit.SECONDS)) {
 
             }
-        }catch (Exception ex){
-            log.error(ex.getMessage(),ex);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
         }
 
         log.warn("推送决策 任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}；实际数量：{}；"
@@ -628,10 +650,12 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         private Boolean isPerOrTop;
 
+        private Integer partDataNum;
+
         public actionEs(ThreadPoolExecutor pushJcPool
                 , CustomerInfoPushMain customerInfoPushMain
                 , List<Long> fileIds, List<String> numList
-                , String part, Integer _3kEncrypt, Boolean isPerOrTop) {
+                , String part, Integer _3kEncrypt, Boolean isPerOrTop, Integer partDataNum) {
             this.pushJcPool = pushJcPool;
             this.customerInfoPushMain = customerInfoPushMain;
             this.fileIds = fileIds;
@@ -639,6 +663,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             this.part = part;
             this._3kEncrypt = _3kEncrypt;
             this.isPerOrTop = isPerOrTop;
+            this.partDataNum = partDataNum;
         }
 
         @Override
@@ -653,76 +678,94 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             Integer pageSize = 2000;
             Integer total = isPerOrTop ? customerInfoPushMain.getmRealyNum()
-                    : marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+                    : partDataNum;
             int totalYuShu = total % pageSize;
             String searchAfterStr = "";
             int totalPage = total / pageSize + (totalYuShu > 0 ? 1 : 0);
+            log.warn("任务id：{}，当前片：{}，总数：{}，页数：{}"
+                    ,customerInfoPushMain.getId()
+                    ,StringUtils.isBlank(part)?"":part
+                    ,total
+                    ,totalPage);
             List<Future<Result<Integer>>> resList = new ArrayList<>();
             for (int i = 1; i <= totalPage; i++) {
-                String sn = String.valueOf(i);
-                if (i == totalPage && totalYuShu > 0) {
-                    queryBaseBean.setPageSize(totalYuShu);
-                } else {
-                    queryBaseBean.setPageSize(pageSize);
-                }
-                queryBaseBean.setSearchAfter(searchAfterStr);
-                List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
-                Integer realNum = marketingHistories.size();
-                List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
-                for (int k = 0; k < marketingHistories.size(); k++) {
-                    MarketingHistory marketingHistory = marketingHistories.get(k);
-                    if (k == (marketingHistories.size() - 1)) {
-                        searchAfterStr = marketingHistory.getSearchAfter();
+                try {
+                    String sn = String.valueOf(i);
+                    if (i == totalPage && totalYuShu > 0) {
+                        queryBaseBean.setPageSize(totalYuShu);
+                    } else {
+                        queryBaseBean.setPageSize(pageSize);
                     }
-                    //人员信息
-                    PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
-//                dto1.setCaseNumber("test_202106020100".concat("_").concat(String.valueOf(System.currentTimeMillis())));
-                    if (log.isInfoEnabled()) {
-                        log.info("人员信息：cusnum:{};batchnumber:{}", marketingHistory.getCusNum(),
-                                (StringUtils.isNotBlank(marketingHistory.getBatchNumber()) ? marketingHistory.getBatchNumber() : ""));
-                    }
-                    dto1.setCaseNumber(marketingHistory.getCusNum());
-                    dto1.setPhone(encrypt3k(_3kEncrypt, marketingHistory.getCell()));
-                    JSONObject varObject = JSON.parseObject(marketingHistory.getReserveField());
-                    if (varObject == null) {
-                        varObject = new JSONObject();
-                    }
-                    for (MarketingCondition marketingCondition : marketingHistory.getCondition()) {
-                        if (StringUtils.isNotBlank(marketingCondition.getCode())) {
-                            varObject.put(marketingCondition.getFieldKey(), marketingCondition.getDValue());
-                        } else {
-                            varObject.put(marketingCondition.getFieldKey(), marketingCondition.getStrValue());
+                    queryBaseBean.setSearchAfter(searchAfterStr);
+                    List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+                    Integer realNum = marketingHistories.size();
+                    log.warn("任务id：{}，当前片：{}，获取的数量：{}，当前页码：{}"
+                            ,customerInfoPushMain.getId()
+                            ,StringUtils.isBlank(part)?"":part
+                            ,realNum
+                            ,i);
+                    List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
+                    for (int k = 0; k < marketingHistories.size(); k++) {
+                        MarketingHistory marketingHistory = marketingHistories.get(k);
+                        if (k == (marketingHistories.size() - 1)) {
+                            searchAfterStr = marketingHistory.getSearchAfter();
                         }
+                        //人员信息
+                        PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
+//                dto1.setCaseNumber("test_202106020100".concat("_").concat(String.valueOf(System.currentTimeMillis())));
+                        if (log.isInfoEnabled()) {
+                            log.info("人员信息：cusnum:{};batchnumber:{}", marketingHistory.getCusNum(),
+                                    (StringUtils.isNotBlank(marketingHistory.getBatchNumber()) ? marketingHistory.getBatchNumber() : ""));
+                        }
+                        dto1.setCaseNumber(marketingHistory.getCusNum());
+                        dto1.setPhone(encrypt3k(_3kEncrypt, marketingHistory.getCell()));
+                        JSONObject varObject = JSON.parseObject(marketingHistory.getReserveField());
+                        if (varObject == null) {
+                            varObject = new JSONObject();
+                        }
+                        for (MarketingCondition marketingCondition : marketingHistory.getCondition()) {
+                            if (StringUtils.isNotBlank(marketingCondition.getCode())) {
+                                varObject.put(marketingCondition.getFieldKey(), marketingCondition.getDValue());
+                            } else {
+                                varObject.put(marketingCondition.getFieldKey(), marketingCondition.getStrValue());
+                            }
+                        }
+                        varObject.put("custNum", marketingHistory.getCusNum());
+                        varObject.put("idCard", encrypt3k(_3kEncrypt, marketingHistory.getIdCard()));
+                        varObject.put("name", encrypt3k(_3kEncrypt, marketingHistory.getName()));
+                        varObject.put("batchNumber", marketingHistory.getBatchNumber());
+                        varObject.put("taskId", marketingHistory.getTaskId());
+                        varObject.put("userType", marketingHistory.getUserType());
+                        varObject.put("scoreDate", new SimpleDateFormat("yyyy-MM-dd").format(marketingHistory.getRequestTime()));
+                        dto1.setVariables(varObject);
+                        userDetailDTOS.add(dto1);
                     }
-                    varObject.put("custNum", marketingHistory.getCusNum());
-                    varObject.put("idCard", encrypt3k(_3kEncrypt, marketingHistory.getIdCard()));
-                    varObject.put("name", encrypt3k(_3kEncrypt, marketingHistory.getName()));
-                    varObject.put("batchNumber", marketingHistory.getBatchNumber());
-                    varObject.put("taskId", marketingHistory.getTaskId());
-                    varObject.put("userType", marketingHistory.getUserType());
-                    varObject.put("scoreDate", new SimpleDateFormat("yyyy-MM-dd").format(marketingHistory.getRequestTime()));
-                    dto1.setVariables(varObject);
-                    userDetailDTOS.add(dto1);
+
+                    //推送任务基础信息
+                    PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
+                    pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
+                    pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
+                    pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + (StringUtils.isBlank(part)?"0":part) + "_" + sn);
+                    pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
+
+                    //传输参数信息
+                    PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
+                    pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
+                    pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
+                    pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
+
+
+                    resList.add(pushJcPool.submit(new PushJcAction(pushMarketingUserDTO
+                            , pushMarketingUserTaskInfoDTO.getAccessNumber()
+                            , customerInfoPushMain.getId()
+                            , userDetailDTOS.size())));
+                }catch (Exception ex){
+                    String error = String.format("任务id：%s，当前片：%s，当前页码：%d，异常："
+                            ,customerInfoPushMain.getId().toString()
+                            ,StringUtils.isBlank(part)?"":part
+                            ,i);
+                    log.error(error+ex.getMessage(),ex);
                 }
-
-                //推送任务基础信息
-                PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
-                pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
-                pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
-                pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + part + "_" + sn);
-                pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
-
-                //传输参数信息
-                PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
-                pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
-                pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
-                pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
-
-
-                resList.add(pushJcPool.submit(new PushJcAction(pushMarketingUserDTO
-                        , pushMarketingUserTaskInfoDTO.getAccessNumber()
-                        , customerInfoPushMain.getId()
-                        , userDetailDTOS.size())));
             }
             return resList;
         }
@@ -752,6 +795,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
                 result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO, mainId,
                         accessNumber, size);
+            }
+            if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                log.error("推送决策重试失败 accessNumber:{}",accessNumber);
             }
             result.setDate(size);
             return result;
