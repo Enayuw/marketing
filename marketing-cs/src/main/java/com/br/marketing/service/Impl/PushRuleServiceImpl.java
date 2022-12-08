@@ -682,7 +682,11 @@ public class PushRuleServiceImpl implements PushRuleService {
             int totalYuShu = total % pageSize;
             String searchAfterStr = "";
             int totalPage = total / pageSize + (totalYuShu > 0 ? 1 : 0);
-            log.warn("任务id：{}，当前片：{}，总数：{}，页数：{}",customerInfoPushMain.getId(),part,total,totalPage);
+            log.warn("任务id：{}，当前片：{}，总数：{}，页数：{}"
+                    ,customerInfoPushMain.getId()
+                    ,StringUtils.isBlank(part)?"":part
+                    ,total
+                    ,totalPage);
             List<Future<Result<Integer>>> resList = new ArrayList<>();
             for (int i = 1; i <= totalPage; i++) {
                 try {
@@ -695,7 +699,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                     queryBaseBean.setSearchAfter(searchAfterStr);
                     List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
                     Integer realNum = marketingHistories.size();
-                    log.warn("任务id：{}，当前片：{}，获取的数量：{}，当前页码：{}",customerInfoPushMain.getId(),part,realNum,i);
+                    log.warn("任务id：{}，当前片：{}，获取的数量：{}，当前页码：{}"
+                            ,customerInfoPushMain.getId()
+                            ,StringUtils.isBlank(part)?"":part
+                            ,realNum
+                            ,i);
                     List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
                     for (int k = 0; k < marketingHistories.size(); k++) {
                         MarketingHistory marketingHistory = marketingHistories.get(k);
@@ -737,7 +745,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
                     pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
                     pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
-                    pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + part + "_" + sn);
+                    pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + (StringUtils.isBlank(part)?"0":part) + "_" + sn);
                     pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
 
                     //传输参数信息
@@ -753,7 +761,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                             , userDetailDTOS.size())));
                 }catch (Exception ex){
                     String error = String.format("任务id：%s，当前片：%s，当前页码：%d，异常："
-                            ,customerInfoPushMain.getId().toString(),part.toString(),i);
+                            ,customerInfoPushMain.getId().toString()
+                            ,StringUtils.isBlank(part)?"":part
+                            ,i);
                     log.error(error+ex.getMessage(),ex);
                 }
             }
