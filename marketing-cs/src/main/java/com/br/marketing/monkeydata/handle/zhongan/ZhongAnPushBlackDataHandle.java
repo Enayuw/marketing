@@ -16,7 +16,9 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.RetryMainLog;
+import com.br.marketing.entity.ZhonganMarketingBan;
 import com.br.marketing.mapper.RetryMainLogMapper;
+import com.br.marketing.mapper.ZhonganMarketingBanMapper;
 import com.br.marketing.monkeydata.entity.IterationResult;
 import com.br.marketing.monkeydata.entity.commonobj.MarketingSyncCondition;
 import com.br.marketing.monkeydata.handle.commonhandle.InputCommonHandle;
@@ -30,6 +32,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -44,7 +47,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncUser, String, MarketingSyncCondition> {
+public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncUser, MarketingSyncUser, MarketingSyncCondition> {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
@@ -61,6 +64,9 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
 
     @Autowired
     RedisChgService redisChgService;
+
+    @Resource
+    ZhonganMarketingBanMapper zhonganMarketingBanMapper;
 
     @Override
     public Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> getInputData(MarketingSyncCondition inputData) {
@@ -86,8 +92,10 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
             if (ResultCode.FAIL.getValue().equals(inputRes.getCode())) {
                 break;
             }
-            List<String> inputDataList = inputRes.getData().getInputDataList().stream().map(MarketingSyncUser::getCell).collect(Collectors.toList());
-            inputDataList.add(inputData.getApiCode());
+            List<MarketingSyncUser> inputDataList = inputRes.getData().getInputDataList();
+            inputDataList.add(null);
+//            List<String> inputDataList = inputRes.getData().getInputDataList().stream().map(MarketingSyncUser::getCell).collect(Collectors.toList());
+//            inputDataList.add(inputData.getApiCode());
             pool.submit(() -> {
                 Result result = resultAction(inputDataList);
                 if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -108,43 +116,59 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
 
 
     @Override
-    public Result<List<String>> processData(List<MarketingSyncUser> inList) {
+    public Result<List<MarketingSyncUser>> processData(List<MarketingSyncUser> inList) {
         return null;
     }
 
 
     @Override
-    public Result resultAction(List<String> dataList) {
+    public Result resultAction(List<MarketingSyncUser> dataList) {
         //获取到apiCode
         //重试参数apicode-1
-        String[] retryParam = dataList.get(dataList.size() - 1).split("-");
-        String apiCode = retryParam[0];
+        MarketingSyncUser retryMark = dataList.get(dataList.size() - 1);
+        String apiCode = dataList.get(0).getApiCode();
         dataList.remove(dataList.size() - 1);
-        List<String> retryDataList = new ArrayList<>();
+        List<MarketingSyncUser> retryDataList = new ArrayList<>();
         List<BlackDetailDTO> blackDetailDTOList = new ArrayList<>();
-        dataList.forEach(cell -> {
-            String decodeCell = BrCipherMaker.getInstance().decode(cell);
+        dataList.forEach(t -> {
+            String decodeCell = BrCipherMaker.getInstance().decode(t.getCell());
             ZkReqDTO xd = new ZkReqDTO();
             xd.setCustMobileMd5(Md5OfZanUtils.getMD5(decodeCell));
             xd.setChannelCode(ZhongAnClient.XdChannelCode);
             Result<ZkReponseVO> result = zhongAnClient.zkXd(xd);
             //需要重试加入重试表
             if (result.getCode().equals(ResultCode.INTERNAL_SERVER_ERROR.getValue())) {
-                retryDataList.add(cell);
+                retryDataList.add(t);
             }
-            if (result.getData() != null && Boolean.FALSE.equals(result.getData().getAccess()) && "SUCCESS".equals(result.getData().getStatus())) {
+            if (result.getData() != null
+                    && Boolean.FALSE.equals(result.getData().getAccess())
+                    && "SUCCESS".equals(result.getData().getStatus())) {
+                Date date = new Date();
                 BlackDetailDTO blackDetailDTO = new BlackDetailDTO();
                 blackDetailDTO.setExpireDate(LocalDate.now() + " 23:59:59");
                 blackDetailDTO.setPhone(decodeCell);
                 blackDetailDTOList.add(blackDetailDTO);
+                ZhonganMarketingBan zhonganMarketingBan = new ZhonganMarketingBan();
+                zhonganMarketingBan.setApiCode(t.getApiCode());
+                zhonganMarketingBan.setCustNum(t.getCustNum());
+                zhonganMarketingBan.setCell(t.getCell());
+                zhonganMarketingBan.setUserType(t.getUserType());
+                zhonganMarketingBan.setTaskId(t.getCusBatch());
+                zhonganMarketingBan.setRequestId(t.getRequestBatch());
+                zhonganMarketingBan.setAppletDate(t.getAppletDate());
+                zhonganMarketingBan.setZkDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                zhonganMarketingBan.setInitId(t.getId().toString());
+                zhonganMarketingBan.setCreateTime(date);
+                zhonganMarketingBan.setUpdateTime(date);
+                zhonganMarketingBanMapper.insertSelective(zhonganMarketingBan);
+                blackDetailDTO.setDataId(zhonganMarketingBan.getId().toString());
             }
         });
         if (!CollectionUtils.isEmpty(retryDataList)) {
             //重试调用，不在重复插入重试表
-            if (retryParam.length > 1) {
+            if (retryMark != null) {
                 return new Result().setCode(ResultCode.FAIL.getValue());
             }
-            retryDataList.add(apiCode + "-" + "1");
             RetryMainLog retryMainLog = new RetryMainLog();
             retryMainLog.setRetryType(1);
             retryMainLog.setRetryParam(JSON.toJSONString(retryDataList));
