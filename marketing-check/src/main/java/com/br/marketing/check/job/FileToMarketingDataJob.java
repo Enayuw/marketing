@@ -1,4 +1,5 @@
 package com.br.marketing.check.job;
+
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -170,7 +171,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
         Map<String, List<FileToMarketingFieldVO>> fieldVosMap = fieldVos.stream().collect(Collectors.groupingBy(FileToMarketingFieldVO::getHeadField));
         Map<String, List<FileToMarketingFieldVO>> _noMustDefaultFieldMap = fieldVos.stream().filter(t -> !t.getIsMust() && StringUtils.isNotBlank(t.getDefalutValue())).collect(Collectors.groupingBy(FileToMarketingFieldVO::getInterfaceField));
         Set<String> _noMustDefaultFieldSet = null;
-        if(_noMustDefaultFieldMap!=null){
+        if (_noMustDefaultFieldMap != null) {
             _noMustDefaultFieldSet = _noMustDefaultFieldMap.keySet();
         }
         List<String> mustHeads = fieldVos.stream().filter(t -> t.getIsMust()).map(t -> t.getHeadField()).collect(Collectors.toList());
@@ -182,7 +183,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
         Date startDate = new Date();
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String row = "";
-            Integer pushNum = 2;
+            Integer pushNum = 500;
             Integer pushBatchNumber = 1;
             HashMap<Integer, String> address = new HashMap<>();
             HashSet<String> extra = new HashSet<>();
@@ -193,14 +194,15 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                 row = br.readLine();
                 if (row == null) {
                     isNotFinal = Boolean.FALSE;
-                }else {
+                } else {
                     line++;
                 }
-                if(line==0&&!isNotFinal){
+                if (line == 0 && !isNotFinal) {
                     continue;
                 }
-                if(isNotFinal){
+                if (isNotFinal) {
                     if (line == 1) {
+                        //region 文件头处理
                         String[] split = row.split(",", -1);
                         headSum = split.length;
                         Result result = SftpToDbUtils.statisticsHeadByCommon(row, address, extra, mustHeads);
@@ -210,29 +212,46 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                             log.error(String.format("%s 文件：%s", fileNm, result.getMessage()));
                             return;
                         }
+                        //endregion
                     } else {
+                        //region文件数据处理
                         List<String> datas = Splitter.on(",").splitToList(row);
-                        if(!headSum.equals(datas.size())){
+                        if (!headSum.equals(datas.size())) {
                             errorNum++;
-                            log.warn("文件名:{};行数:{};错误:{};",fileNm,line,"该行与表头列数不一致");
+                            log.warn("文件名:{};行数:{};错误:{};", fileNm, line, "该行与表头列数不一致");
                             continue;
                         }
                         StringBuilder errorMsg = new StringBuilder();
                         List<FileToMarketingDataFieldVO> dataFieldVOS = new ArrayList<>();
-                        HashMap<String,FileToMarketingDataFieldVO> dataFieldMap = new HashMap<>();
+                        HashMap<String, FileToMarketingDataFieldVO> dataFieldMap = new HashMap<>();
                         HashSet hasSet = new HashSet();
                         String cell = "";
+
+                        //region 每列的字段处理逻辑
                         for (int i = 0; i < datas.size(); i++) {
                             String value = datas.get(i);
                             String headNm = address.get(i);
                             FileToMarketingFieldVO fieldVO = null;
+                            //根据当前表头名获取配置信息
                             List<FileToMarketingFieldVO> fileToMarketingFieldVOS = fieldVosMap.get(headNm);
                             if (fileToMarketingFieldVOS != null && fileToMarketingFieldVOS.size() > 0) {
                                 fieldVO = fileToMarketingFieldVOS.get(0);
                             }
-                            if (fieldVO == null&&!extra.contains(headNm)) {
-                                continue;
+
+                            //region 未获取到配置信息的处理
+                            if (fieldVO == null) {
+                                if (!extra.contains(headNm)) {
+                                    continue;
+                                } else {
+                                    fieldVO = new FileToMarketingFieldVO();
+                                    fieldVO.setHeadField(headNm);
+                                    fieldVO.setInterfaceField(headNm);
+                                    fieldVO.setIsMust(Boolean.FALSE);
+                                }
                             }
+                            //endregion
+
+                            //region 根据配置信息进行处理
                             if (StringUtils.isBlank(value) && StringUtils.isNotBlank(fieldVO.getDefalutValue())) {
                                 value = fieldVO.getDefalutValue();
                             }
@@ -241,59 +260,68 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                                 continue;
                             }
                             FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
-                            if(fieldVO !=null){
-                                BeanUtils.copyProperties(fieldVO,vo);
-                            }else{
+                            if (fieldVO != null) {
+                                BeanUtils.copyProperties(fieldVO, vo);
+                            } else {
                                 vo.setHeadField(headNm);
                                 vo.setInterfaceField(headNm);
                             }
                             vo.setDataValue(value);
-                            vo.setIsExtend(extra.contains(headNm)?Boolean.TRUE:Boolean.FALSE);
+                            vo.setIsExtend(extra.contains(headNm) ? Boolean.TRUE : Boolean.FALSE);
                             hasSet.add(vo.getInterfaceField());
                             dataFieldVOS.add(vo);
-                            dataFieldMap.put(vo.getHeadField(),vo);
-                            if("cell".equals(vo.getInterfaceField())){
+                            dataFieldMap.put(vo.getHeadField(), vo);
+                            if ("cell".equals(vo.getInterfaceField())) {
                                 cell = vo.getDataValue();
                             }
+                            //endregion
                         }
-                        if(StringUtils.isNotBlank(errorMsg.toString())){
+                        //endregion
+
+                        if (StringUtils.isNotBlank(errorMsg.toString())) {
                             errorNum++;
-                            log.warn("文件名:{};行数:{};错误:{};",fileNm,line,errorMsg.toString());
+                            log.warn("文件名:{};行数:{};错误:{};", fileNm, line, errorMsg.toString());
                             continue;
                         }
-                        if (_noMustDefaultFieldSet !=null) {
+                        //region 非必传并且配置默认值的字段处理
+                        if (_noMustDefaultFieldSet != null) {
                             HashSet<String> resSet = new HashSet<>();
                             resSet.addAll(_noMustDefaultFieldSet);
                             resSet.removeAll(hasSet);
                             for (String s : resSet) {
                                 List<FileToMarketingFieldVO> fileToMarketingFieldVOS = _noMustDefaultFieldMap.get(s);
-                                if (fileToMarketingFieldVOS !=null && fileToMarketingFieldVOS.size()>0) {
+                                if (fileToMarketingFieldVOS != null && fileToMarketingFieldVOS.size() > 0) {
                                     FileToMarketingFieldVO _defField = fileToMarketingFieldVOS.get(0);
 
                                     FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
-                                    BeanUtils.copyProperties(_defField,vo);
-                                    if("{cell}".equals(_defField.getDefalutValue())){
+                                    BeanUtils.copyProperties(_defField, vo);
+                                    if ("{cell}".equals(_defField.getDefalutValue())) {
                                         vo.setDataValue(cell);
-                                    }else{
+                                    } else {
                                         vo.setDataValue(_defField.getDefalutValue());
                                     }
                                     dataFieldVOS.add(vo);
-                                    dataFieldMap.put(vo.getHeadField(),vo);
+                                    dataFieldMap.put(vo.getHeadField(), vo);
                                 }
                             }
                         }
-                        Result vaild = iFileToMarketingRuleService.isVaild(dataFieldVOS,dataFieldMap);
-                        if(!ResultCode.SUCCESS.getValue().equals(vaild.getCode())){
+                        //endregion
+
+                        //region 抽象的剔除方法和组装逻辑的调用,如未实现走默认的service
+                        Result vaild = iFileToMarketingRuleService.isVaild(dataFieldVOS, dataFieldMap);
+                        if (!ResultCode.SUCCESS.getValue().equals(vaild.getCode())) {
                             errorNum++;
-                            log.warn("文件名:{};行数:{};错误:{};",fileNm,line,vaild.getMessage());
+                            log.warn("文件名:{};行数:{};错误:{};", fileNm, line, vaild.getMessage());
                             continue;
                         }
-
                         MarketingPreUserDetailDTO make = iFileToMarketingRuleService.make(dataFieldVOS);
+                        //endregion
                         syncUsers.add(make);
+                        //endregion
                     }
                 }
-                if (syncUsers.size() == pushNum||(!isNotFinal&&syncUsers.size()>0)) {
+                //region 调用营销上传接口处理
+                if (syncUsers.size() == pushNum || (!isNotFinal && syncUsers.size() > 0)) {
                     pushSum += syncUsers.size();
                     MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
                     marketingPreUserDTO.setTaskId(tasId);
@@ -302,36 +330,37 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                     UploadDataDTO uploadDataDTO = new UploadDataDTO();
                     uploadDataDTO.setApiCode(apiCode);
                     uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
-                    pushPool.submit(()->{
-                        pushInfoService.pushUploadByRetry(uploadDataDTO,null);
+                    pushPool.submit(() -> {
+                        pushInfoService.pushUploadByRetry(uploadDataDTO, null);
                     });
                     syncUsers = new ArrayList<>();
                     pushBatchNumber++;
                 }
+                //endregion
 
             }
             pushPool.shutdown();
-            while (!pushPool.awaitTermination(5L, TimeUnit.SECONDS)){
+            while (!pushPool.awaitTermination(5L, TimeUnit.SECONDS)) {
 
             }
         } catch (Exception ex) {
-            log.error(ex.getMessage(),ex);
+            log.error(ex.getMessage(), ex);
         }
 
         Date end = new Date();
-        updateFile.setActualNumber(line>0?line-1:line);
+        updateFile.setActualNumber(line > 0 ? line - 1 : line);
         updateFile.setPushNumber(pushSum);
         updateFile.setErrorActualNumber(errorNum);
         updateFile.setPushStartTime(startDate);
         updateFile.setPushEndTime(end);
-        updateFile.setComplete(errorNum>0?"3":"1");
+        updateFile.setComplete(errorNum > 0 ? "3" : "1");
         localFileMapper.updateByPrimaryKeySelective(updateFile);
         //region 提示
         try {
             StringBuilder content = new StringBuilder();
             content.append("导入文件名称：".concat(fileNm).concat("\r\n"))
                     .append("文件id：".concat(updateFile.getId().toString()).concat("\r\n"))
-                    .append("文件类型：".concat(updateFile.getFileType()).concat("\r\n"))
+                    .append("文件类型：".concat("marketingData").concat("\r\n"))
                     .append("导入文件状态：".concat(errorNum == 0 ? "正常" : "不正常").concat("\r\n"))
                     .append("导入数据行数：".concat(updateFile.getActualNumber().toString()).concat("\r\n"))
                     .append("其中有问题行数：".concat(String.valueOf(errorNum)).concat("\r\n"));

@@ -19,5 +19,12 @@ public interface IFileActionService {
      */
     Result downFileBySftp(SftpClient client, String sourcePath, String targetPath,String fileName);
 
+    /**
+     * 根据sftp配置下载文件，并且变更sftp上文件名称
+     * @param client
+     * @param syncConfig
+     * @param targetPath
+     * @return
+     */
     Result<List<String>> downSyncFileBySftp(SftpClient client, SyncConfig syncConfig, String targetPath);
 }
