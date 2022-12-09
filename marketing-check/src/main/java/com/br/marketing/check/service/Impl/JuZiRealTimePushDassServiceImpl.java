@@ -101,6 +101,11 @@ public class JuZiRealTimePushDassServiceImpl implements JuZiRealTimePushDassServ
             if (actionFrontList.size() > 0) {
                 return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务今日已经推送");
             }
+            //判断是否传输转化数据
+            String tcId = tableCreateService.getTcId(apiCode);
+            if (marketingTransferSyncUserMapper.getTransferDataCount(tcId, apiCode, recordDate) == 0) {
+                return new Result().setCode(ResultCode.FAIL.getValue()).setDate("今日未传输转化数据");
+            }
             Long frontId = yiXinTransferService.saveFrontData(apiCode, recordDate, 3);
             Map<String, Map<String, MarketingTransferSyncUser>> buildPushDaasMap = buildRealTimePushData(apiCode, recordDate);
             pushToDaas(apiCode, buildPushDaasMap);

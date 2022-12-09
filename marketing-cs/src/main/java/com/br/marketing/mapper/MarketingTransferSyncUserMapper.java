@@ -260,4 +260,11 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      */
     List<String> getJuZiBOrARuleLockData(@Param("tCid") String tcId, @Param("applyDt") String applyDt,@Param("custNums")Set<String> custNums);
 
+    /**
+     * 获取转化数据的数据量
+     * @param tcId
+     * @param requestDate
+     * @return
+     */
+    int getTransferDataCount(@Param("tcId") String tcId, @Param("apiCode") String apiCode, @Param("requestData") String requestDate);
 }
