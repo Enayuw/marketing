@@ -183,9 +183,7 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
             retryMainLog.setRetryMaxNum(3);
             retryMainLogMapper.insertSelective(retryMainLog);
         }
-        ProcessHandlerContext context = new ProcessHandlerContext();
-        context.setApiCode(apiCode);
-        customerBlackListHandler.call(blackDetailDTOList, context);
+        customerBlackListHandler.xieChengCall(blackDetailDTOList, apiCode);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue());
     }
 }
