@@ -145,7 +145,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
             List<ZhonganMarketingBan> data = transferData.getData();
             //cell,applet_date
             for (ZhonganMarketingBan transferFilterData : data) {
-                String cell = transferFilterData.getCustNum();
+                String cell = transferFilterData.getCell();
                 StringBuilder sb = new StringBuilder();
                 sb.append(cell.concat(","));
                 sb.append(transferFilterData.getAppletDate());
