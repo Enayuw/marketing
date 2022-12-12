@@ -45,7 +45,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
 
     final static String EXECUTE_TIME = " 10:00:00";
 
-    final static String ZHONGAN_FILE = "zhongan_zhuanhua_";
+    final static String ZHONGAN_FILE = "_zhonganzhuanhua_";
 
     final static DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
 
@@ -110,7 +110,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
             writeDic.mkdirs();
         }
         StringBuilder fileName = new StringBuilder();
-        fileName.append(ZHONGAN_FILE).append(recordDate).append(".txt");
+        fileName.append(apiCode).append(ZHONGAN_FILE).append(recordDate).append(".txt");
         String fileAllPath = descPath.concat(fileName.toString());
         transferFileTask.setFileName(fileName.toString());
         transferFileTask.setFilePath(descPath);
