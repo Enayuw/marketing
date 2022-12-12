@@ -127,7 +127,9 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
         //重试参数apicode-1
         MarketingSyncUser retryMark = dataList.get(dataList.size() - 1);
         String apiCode = dataList.get(0).getApiCode();
-        dataList.remove(dataList.size() - 1);
+        if (retryMark == null) {
+            dataList.remove(dataList.size() - 1);
+        }
         List<MarketingSyncUser> retryDataList = new ArrayList<>();
         List<BlackDetailDTO> blackDetailDTOList = new ArrayList<>();
         dataList.forEach(t -> {
