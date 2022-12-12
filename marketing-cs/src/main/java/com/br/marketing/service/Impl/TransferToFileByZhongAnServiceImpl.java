@@ -147,15 +147,16 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
             List<ZhonganMarketingBan> data = transferData.getData();
             //cell,applet_date
             for (ZhonganMarketingBan transferFilterData : data) {
-                String cell = transferFilterData.getCell();
-                String md5 = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(cell).getBytes());
-                StringBuilder sb = new StringBuilder();
-                sb.append(md5.concat(","));
-                sb.append(transferFilterData.getZkDate());
-                sb.append("\r\n");
-                fw.append(sb.toString());
+                if(StringUtils.isNotBlank(transferFilterData.getCell())){
+                    String md5 = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(transferFilterData.getCell()).getBytes());
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(md5.concat(","));
+                    sb.append(transferFilterData.getZkDate());
+                    sb.append("\r\n");
+                    fw.append(sb.toString());
+                    totalSize = totalSize + 1;
+                }
             }
-            totalSize = totalSize + data.size();
             data.clear();
         }
 
