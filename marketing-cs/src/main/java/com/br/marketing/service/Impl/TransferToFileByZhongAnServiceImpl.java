@@ -120,7 +120,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file), "UTF-8"));) {
-            fw.append("cell,request_date");
+            fw.append("cell,zk_date");
             fw.append("\r\n");
             writeZhongAnTransferToFile(fw, apiCode,transferFileTask);
         } catch (Exception ex) {
@@ -151,7 +151,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
                 String md5 = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(cell).getBytes());
                 StringBuilder sb = new StringBuilder();
                 sb.append(md5.concat(","));
-                sb.append(transferFilterData.getAppletDate());
+                sb.append(transferFilterData.getZkDate());
                 sb.append("\r\n");
                 fw.append(sb.toString());
             }
