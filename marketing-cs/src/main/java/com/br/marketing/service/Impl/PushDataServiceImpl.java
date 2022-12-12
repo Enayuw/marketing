@@ -2,8 +2,10 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
+import com.br.common.util.MD5Utils;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
@@ -37,6 +39,8 @@ import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.rpcclient.RpcClientProxy;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.github.pagehelper.Page;
@@ -903,6 +907,11 @@ public class PushDataServiceImpl implements PushDataService {
             dataList.forEach(pushList -> {
                 pool.submit(() -> {
                     SmsQuitReq smsQuitReq = new SmsQuitReq(pushList.getCipherMobile(), pushList.getBlackListType());
+                    //兼容Md5手机号
+                    String phone = smsQuitReq.getCipherMobile();
+                    if(DecodeClient.isMd5(phone)){
+                        smsQuitReq.setCipherMobile(Sha256Util.getSHA256Encrypt(RpcClientProxy.decode(phone, "cell", "md5", "")));
+                    }
                     Result result = xieChengService.sendSmsQuitData(smsQuitReq);
                     XiechengSmsQuitData xiechengSmsQuitData = new XiechengSmsQuitData();
                     xiechengSmsQuitData.setId(pushList.getId());
