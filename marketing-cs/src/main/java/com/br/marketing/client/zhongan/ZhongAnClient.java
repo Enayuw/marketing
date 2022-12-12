@@ -156,6 +156,14 @@ public class ZhongAnClient {
      * @return
      */
     public Result<ZkReponseVO> zkXd(ZkReqDTO zkReqDTO) {
+        if(Arrays.asList("954f87cfbc0d56da3e769fa8832f0c8f","260c508c54f8675829cf68afdbe3b4fb","0000077441f4b5494378cab63e5558fd").contains(zkReqDTO.getCustMobileMd5())){
+            ZkReponseVO zkReponseVO = new ZkReponseVO();
+            zkReponseVO.setAccess(false);
+            zkReponseVO.setRespNo("bbbe484f3bd94cb296fa3127be55d0c8");
+            zkReponseVO.setRespCode("1");
+            zkReponseVO.setStatus("SUCCESS");
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(zkReponseVO);
+        }
         return zk(zkReqDTO, xinDaiZKApiKey);
     }
 
