@@ -944,17 +944,14 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     private void pushXieChengData(XieChengData xieChengData) {
+        // 字段修改兼容
+        String sha256Tel = xieChengData.getClickTel()==null? xieChengData.getSha256Tel(): xieChengData.getClickTel();
         // 获取redis 锁
         String key = RedisKeyConstant.pushXieChengLock.concat(":")
                 .concat(xieChengData.getApiCode())
-                .concat(xieChengData.getClickTel());
+                .concat(sha256Tel);
         String value = UUID.randomUUID().toString();
         redisChgService.lock(key,value);
-        // 字段修改兼容
-        String sha256Tel = xieChengData.getClickTel()==null? xieChengData.getSha256Tel(): xieChengData.getClickTel();
-        log.warn("=======sha256:{}",sha256Tel);
-        log.warn("=======xieChengData:{}",xieChengData);
-        log.warn("======={}",xieChengData.getClickTel()==null? xieChengData.getSha256Tel(): xieChengData.getClickTel());
         // 查询到当前电话数据是否推送过。
         List<XieChengData> xieChengRepeatDatalist =   xieChengDataMapper.getByCellToday(sha256Tel);
         XieChengData resultData = new XieChengData();
