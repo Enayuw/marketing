@@ -136,7 +136,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         Boolean mark = Boolean.TRUE;
         int totalSize = 0;
         while (mark) {
-            Result<List<ZhonganMarketingBan>> transferData = getOrderTransferData(localDate.toString(), page);
+            Result<List<ZhonganMarketingBan>> transferData = getOrderTransferData(apiCode,localDate.toString(), page);
             if (!ResultCode.SUCCESS.getValue().equals(transferData.getCode())) {
                 mark = Boolean.FALSE;
                 continue;
@@ -181,9 +181,9 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
      * @param pageIndex
      * @return
      */
-    private Result<List<ZhonganMarketingBan>> getOrderTransferData(String date,Integer pageIndex) {
+    private Result<List<ZhonganMarketingBan>> getOrderTransferData(String apiCode,String date,Integer pageIndex) {
         Integer limitStart = pageIndex * 2000;
-        List<ZhonganMarketingBan> zhonganMarketingBans = zhonganMarketingBanMapper.getByZKData(date,limitStart);
+        List<ZhonganMarketingBan> zhonganMarketingBans = zhonganMarketingBanMapper.getByZKData(apiCode,date,limitStart);
         if (zhonganMarketingBans.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
