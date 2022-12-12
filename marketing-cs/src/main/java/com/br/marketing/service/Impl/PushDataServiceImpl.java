@@ -955,6 +955,7 @@ public class PushDataServiceImpl implements PushDataService {
         // 查询到当前电话数据是否推送过。
         List<XieChengData> xieChengRepeatDatalist =   xieChengDataMapper.getByCellToday(sha256Tel);
         XieChengData resultData = new XieChengData();
+        resultData.setId(xieChengData.getId());
         if(xieChengRepeatDatalist.isEmpty()){
             // 组装 clickId 13位时间戳+ 随机5位数字字母 + sha256tel
             String clickId = System.currentTimeMillis()+getCode(5)+sha256Tel;
@@ -967,7 +968,6 @@ public class PushDataServiceImpl implements PushDataService {
             }else {
                 resultData.setPushStatus(3);
             }
-            resultData.setId(xieChengData.getId());
             resultData.setClickId(clickId);
             resultData.setDataMessage(result.getMessage());
         }else {
