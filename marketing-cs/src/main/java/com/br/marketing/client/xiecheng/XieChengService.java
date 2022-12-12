@@ -99,7 +99,7 @@ public class XieChengService {
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, singKey));
         log.warn("携程发送参数 para={}", JSON.toJSONString(retMap));
 //        String result = httpProxyClient.send(JSON.toJSONString(retMap), openUrl, isProxy);
-//        String result = "{\"code\":200,\"msg\":\"测试成功\",\"data\":null}";
+//        String result = "{\"code\":0,\"msg\":\"测试成功\",\"data\":null}";
         String result = "{\"code\":500,\"msg\":\"测试重试成功\",\"data\":null}";
         JSONObject resultJson = JSONObject.parseObject(result);
         Integer code = resultJson.getInteger("code");
