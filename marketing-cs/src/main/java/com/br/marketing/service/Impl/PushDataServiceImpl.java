@@ -960,17 +960,16 @@ public class PushDataServiceImpl implements PushDataService {
             String clickId = System.currentTimeMillis()+getCode(5)+sha256Tel;
             xieChengData.setClickId(clickId);
             // 携程推送
-            String result = xieChengService.pushXieChengData(xieChengData);
-            JSONObject resultJson = JSONObject.parseObject(result);
-            Integer code = resultJson.getInteger("code");
-            resultData.setId(xieChengData.getId());
-            if (code == 0) {
+            Result result = xieChengService.pushXieChengData(xieChengData);
+            log.warn("返回信息：{}",result);
+            if (result.getCode().equals(ResultCode.SUCCESS.getValue())){
                 resultData.setPushStatus(2);
-            } else {
+            }else {
                 resultData.setPushStatus(3);
             }
+            resultData.setId(xieChengData.getId());
             resultData.setClickId(clickId);
-            resultData.setDataMessage(result);
+            resultData.setDataMessage(result.getMessage());
         }else {
             resultData.setId(xieChengData.getId());
             resultData.setStatus(2);

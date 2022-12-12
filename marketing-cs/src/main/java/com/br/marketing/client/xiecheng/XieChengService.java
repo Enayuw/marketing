@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.common.annoation.RetryMethod;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.ThirdAdOuterReq;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -75,11 +77,7 @@ public class XieChengService {
 
 
     @RetryMethod(retryNowNum = 3)
-    public String pushXieChengData(XieChengData xieChengData) {
-        return send(xieChengData);
-    }
-
-    private String send(XieChengData xieChengData) {
+    public Result pushXieChengData(XieChengData xieChengData) {
         /**
          * data 组装
          */
@@ -105,11 +103,17 @@ public class XieChengService {
         JSONObject resultJson = JSONObject.parseObject(result);
         Integer code = resultJson.getInteger("code");
         log.warn("携程数据返回信息：{}", result);
-        if (code == 500 || code == 704) {
-            throw new RuntimeException("携程数据推送重试：".concat(String.valueOf(code)));
+        if(code==0){
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(result);
         }
-        return result;
+        if (code == 500 || code == 704) {
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(result);
+        }else {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(result);
+        }
 
     }
+
+
 
 }
