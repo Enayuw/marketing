@@ -7,6 +7,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.entity.TransferFileTaskExample;
 import com.br.marketing.entity.ZhonganMarketingBan;
+import com.br.marketing.es.util.BrCipherMaker;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.mapper.ZhonganMarketingBanMapper;
 import com.br.marketing.service.ITransferToFileService;
@@ -16,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
@@ -45,7 +47,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
 
     final static String EXECUTE_TIME = " 10:00:00";
 
-    final static String ZHONGAN_FILE = "zhongan_zhuanhua_";
+    final static String ZHONGAN_FILE = "_zhonganzhuanhua_";
 
     final static DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
 
@@ -110,7 +112,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
             writeDic.mkdirs();
         }
         StringBuilder fileName = new StringBuilder();
-        fileName.append(ZHONGAN_FILE).append(recordDate).append(".txt");
+        fileName.append(apiCode).append(ZHONGAN_FILE).append(recordDate).append(".txt");
         String fileAllPath = descPath.concat(fileName.toString());
         transferFileTask.setFileName(fileName.toString());
         transferFileTask.setFilePath(descPath);
@@ -118,7 +120,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file), "UTF-8"));) {
-            fw.append("cell,request_date");
+            fw.append("cell,zk_date");
             fw.append("\r\n");
             writeZhongAnTransferToFile(fw, apiCode,transferFileTask);
         } catch (Exception ex) {
@@ -136,7 +138,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         Boolean mark = Boolean.TRUE;
         int totalSize = 0;
         while (mark) {
-            Result<List<ZhonganMarketingBan>> transferData = getOrderTransferData(localDate.toString(), page);
+            Result<List<ZhonganMarketingBan>> transferData = getOrderTransferData(apiCode,localDate.toString(), page);
             if (!ResultCode.SUCCESS.getValue().equals(transferData.getCode())) {
                 mark = Boolean.FALSE;
                 continue;
@@ -145,14 +147,16 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
             List<ZhonganMarketingBan> data = transferData.getData();
             //cell,applet_date
             for (ZhonganMarketingBan transferFilterData : data) {
-                String cell = transferFilterData.getCustNum();
-                StringBuilder sb = new StringBuilder();
-                sb.append(cell.concat(","));
-                sb.append(transferFilterData.getAppletDate());
-                sb.append("\r\n");
-                fw.append(sb.toString());
+                if(StringUtils.isNotBlank(transferFilterData.getCell())){
+                    String md5 = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(transferFilterData.getCell()).getBytes());
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(md5.concat(","));
+                    sb.append(transferFilterData.getZkDate());
+                    sb.append("\r\n");
+                    fw.append(sb.toString());
+                    totalSize = totalSize + 1;
+                }
             }
-            totalSize = totalSize + data.size();
             data.clear();
         }
 
@@ -181,9 +185,9 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
      * @param pageIndex
      * @return
      */
-    private Result<List<ZhonganMarketingBan>> getOrderTransferData(String date,Integer pageIndex) {
+    private Result<List<ZhonganMarketingBan>> getOrderTransferData(String apiCode,String date,Integer pageIndex) {
         Integer limitStart = pageIndex * 2000;
-        List<ZhonganMarketingBan> zhonganMarketingBans = zhonganMarketingBanMapper.getByZKData(date,limitStart);
+        List<ZhonganMarketingBan> zhonganMarketingBans = zhonganMarketingBanMapper.getByZKData(apiCode,date,limitStart);
         if (zhonganMarketingBans.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }

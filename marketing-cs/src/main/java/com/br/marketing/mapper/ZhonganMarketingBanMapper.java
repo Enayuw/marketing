@@ -9,5 +9,5 @@ import java.util.List;
 @Mapper
 public interface ZhonganMarketingBanMapper extends ZhonganMarketingBanMapperBase{
 
-    List<ZhonganMarketingBan> getByZKData(@Param("date")String date,@Param("limitStart") Integer limitStart);
+    List<ZhonganMarketingBan> getByZKData(@Param("apiCode")String apiCode,@Param("date")String date,@Param("limitStart") Integer limitStart);
 }

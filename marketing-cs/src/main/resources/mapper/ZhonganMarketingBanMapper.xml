@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.ZhonganMarketingBanMapper" >
 
     <select id="getByZKData" resultType="com.br.marketing.entity.ZhonganMarketingBan">
-        select * from b_zhongan_marketing_ban where
+        select * from b_zhongan_marketing_ban where api_code=#{apiCode} and
         <![CDATA[  zk_date = #{date} ]]>
         order by create_time desc,id desc limit #{limitStart},2000;
     </select>
