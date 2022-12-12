@@ -10,7 +10,7 @@
     <if test="minId != null and minId>0">
       and id > #{minId}
     </if>
-    order by id asc limit 10000;
+    order by id asc limit 50;
   </select>
   <select id="selectLocalIdByNotSend" resultType="java.lang.String">
     select
