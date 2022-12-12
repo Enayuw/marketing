@@ -7,6 +7,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.entity.TransferFileTaskExample;
 import com.br.marketing.entity.ZhonganMarketingBan;
+import com.br.marketing.es.util.BrCipherMaker;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.mapper.ZhonganMarketingBanMapper;
 import com.br.marketing.service.ITransferToFileService;
@@ -16,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
@@ -146,8 +148,9 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
             //cell,applet_date
             for (ZhonganMarketingBan transferFilterData : data) {
                 String cell = transferFilterData.getCell();
+                String md5 = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(cell).getBytes());
                 StringBuilder sb = new StringBuilder();
-                sb.append(cell.concat(","));
+                sb.append(md5.concat(","));
                 sb.append(transferFilterData.getAppletDate());
                 sb.append("\r\n");
                 fw.append(sb.toString());
