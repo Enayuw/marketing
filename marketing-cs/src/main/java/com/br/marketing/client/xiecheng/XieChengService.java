@@ -123,20 +123,25 @@ public class XieChengService {
         retMap.put("channel", channel);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(thirdAdOuterReq), key, iv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, singKey));
-        log.warn("携程发送参数:ThirdAdOuterReq={} para={}", thirdAdOuterReq,JSON.toJSONString(retMap));
-        String result = httpProxyClient.send(JSON.toJSONString(retMap), openUrl, isProxy);
-//        String result = "{\"code\":0,\"msg\":\"测试成功\",\"data\":null}";
-//        String result = "{\"code\":500,\"msg\":\"测试重试成功\",\"data\":null}";
-        JSONObject resultJson = JSONObject.parseObject(result);
+
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, openUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(thirdAdOuterReq),true,false);
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+            log.error("携程广告上报接口发送参数:ThirdAdOuterReq={} para={}", JSON.toJSONString(thirdAdOuterReq),JSON.toJSONString(retMap));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+//        String content = "{\"code\":0,\"msg\":\"测试成功\",\"data\":null}";
+//        String content = "{\"code\":500,\"msg\":\"测试重试成功\",\"data\":null}";
+        String content = resMap.get("content");
+        JSONObject resultJson = JSONObject.parseObject(content);
         Integer code = resultJson.getInteger("code");
-        log.warn("携程数据返回信息：{}", result);
+        log.warn("携程数据返回信息：{}", content);
         if(code==0){
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(result);
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
         }
         if (code == 500 || code == 704) {
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(result);
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(content);
         }else {
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(result);
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
         }
 
     }
