@@ -383,4 +383,15 @@ public class MarketingCommonConfig {
      * 携程转化数据入库特殊处理apicode集合
      */
     private List<String> xieChengTransferInsertApiCodes;
+
+    /**
+     * 众安异业撞库数据提取apiCode集合
+     */
+    private List<String> ZhongAnTransferApiCodes;
+
+    /**
+     * 玖众安异业撞库数据提取执行时间
+     */
+    private String ZhongAnTransferExecuteTime;
+
 }

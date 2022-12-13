@@ -50,6 +50,17 @@ public class CustomerBlackListHandler extends AbstractExternalInterfaceHandler<B
 
     @Override
     public JSONObject call(List<BlackDetailDTO> blackDetailDTOList, ProcessHandlerContext context) {
+        realAction(blackDetailDTOList,context,null);
+        return null;
+    }
+
+    public void xieChengCall(List<BlackDetailDTO> blackDetailDTOList,String apiCode){
+        ProcessHandlerContext context = new ProcessHandlerContext();
+        context.setApiCode(apiCode);
+        realAction(blackDetailDTOList,context,"1");
+    }
+
+    private void realAction(List<BlackDetailDTO> blackDetailDTOList, ProcessHandlerContext context,String type){
         /**
          * 客服黑名单接口 每500条数据一个批次
          */
@@ -73,13 +84,13 @@ public class CustomerBlackListHandler extends AbstractExternalInterfaceHandler<B
             parentDTO.setDto(dto);
             parentDTO.setBlackDetailDTOList(subList);
             parentDTO.setTransferInfoId(context.getTransferInfoId());
+            parentDTO.setExtendInfo(type);
             Result<String> callBalckResult = methodRetryHandlerService.callCustomerBlack(parentDTO,0);
             if (!ResultCode.SUCCESS.getValue().equals(callBalckResult.getCode())) {
                 log.error(String.format("推送黑名单报错：%s", callBalckResult.getData()));
             }
 
         }
-        return null;
     }
 
     @Override
