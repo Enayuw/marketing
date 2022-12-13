@@ -51,8 +51,8 @@ public class TestXiechengController {
     @Autowired
     PushDataService pushDataService;
     @GetMapping("/test")
-    public void transfersmyTest(){
-        pushDataService.pushXieChengToDbData(870030l);
+    public void transfersmyTest(long id){
+        pushDataService.pushXieChengToDbData(id);
     }
     @GetMapping("/resultVolumeCheck")
     public void process() {
