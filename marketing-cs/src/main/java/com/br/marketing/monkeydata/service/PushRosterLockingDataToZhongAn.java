@@ -146,29 +146,33 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         }
         Iterator<ZhonganRosterLockingData> iterator = inList.iterator();
         List<ZhonganRosterLockingDataBO> list = new ArrayList<>();
-        List<ZhonganRosterLockingData> hitBlackList = new ArrayList<>();
         List<ZhonganRosterLockingData> notValidity = new ArrayList<>();
         List<ZhonganRosterLockingData> notUploadData = new ArrayList<>();
         MarketingSyncUser syncUser;
         switch (tag) {
             case "CG":
                 // 对照组
-                Map<String, String> cellZkDateMap = getMarketingBanMap(apiCode, inList, cellMap);
+                Set<String> cellZkDateMap = getMarketingBanMap(apiCode, inList, cellMap);
+                List<ZhonganRosterLockingData> notMarketingList = new ArrayList<>();
                 while (iterator.hasNext()) {
                     ZhonganRosterLockingData next = iterator.next();
                     if ((syncUser = periodOfValidity(syncUserMapNew, day, next, notValidity, notUploadData)) != null) {
                         String cell = cellMap.getOrDefault(next.getMobileMd5(), "");
-                        if (cellZkDateMap.containsKey(cell) && next.getBizDate().equals(cellZkDateMap.get(cell))) {
+                        if (cellZkDateMap.contains(cell + next.getBizDate())) {
+                            // 不营销
+                            notMarketingList.add(next);
                             continue;
                         }
                         list.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
                     }
                 }
+                updatePushStatus(notMarketingList, 7, apiCode, tag, dateStr);
                 break;
             case "MG":
                 // 营销组
                 Set<String> custNumBlackListSet = mgFilterCgPush(inList, syncUserMapNew, apiCode, tag, dateStr, day);
                 iterator = inList.iterator();
+                List<ZhonganRosterLockingData> hitBlackList = new ArrayList<>();
                 while (iterator.hasNext()) {
                     ZhonganRosterLockingData next = iterator.next();
                     if ((syncUser = periodOfValidity(syncUserMapNew, day, next, notValidity, notUploadData)) != null) {
@@ -181,9 +185,9 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                         list.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
                     }
                 }
+                updatePushStatus(hitBlackList, 5, apiCode, tag, dateStr);
             default:
         }
-        updatePushStatus(hitBlackList, 5, apiCode, tag, dateStr);
         updatePushStatus(notValidity, 4, apiCode, tag, dateStr);
         updatePushStatus(notUploadData, 3, apiCode, tag, dateStr);
         if (CollectionUtils.isEmpty(list)) {
@@ -278,14 +282,14 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
      * 2022-12-12 17:54
      * 获取撞库手机号
      */
-    private Map<String, String> getMarketingBanMap(String apiCode, List<ZhonganRosterLockingData> inList
+    private Set<String> getMarketingBanMap(String apiCode, List<ZhonganRosterLockingData> inList
             , Map<String, String> cellMap) {
         List<ZhongAnCellZkDateQuery> queries = inList.parallelStream().map(l
                 -> new ZhongAnCellZkDateQuery(cellMap.getOrDefault(l.getMobileMd5(), "")
                 , l.getBizDate())).collect(Collectors.toList());
         return Optional.ofNullable(zhonganMarketingBanMapper.getNotMarketingCell(
-                apiCode, queries)).orElse(new ArrayList<>()).parallelStream().collect(
-                Collectors.toMap(ZhongAnCellZkDateQuery::getCell, ZhongAnCellZkDateQuery::getZkDate));
+                apiCode, queries)).orElse(new ArrayList<>()).parallelStream().map(
+                b -> b.getCell() + b.getZkDate()).collect(Collectors.toSet());
     }
 
     /**
