@@ -143,6 +143,7 @@ public class XieChengService {
      */
     @RetryMethod(retryNowNum = 3)
     public Result sendSmsQuitData(SmsQuitReq smsQuitReq) {
+        log.warn("携程短信退订接口明文参数 para={}", JSON.toJSONString(smsQuitReq));
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         Map<String, Object> retMap = Maps.newHashMap();
         retMap.put("appId", smsQuitAppId);
@@ -150,7 +151,6 @@ public class XieChengService {
         retMap.put("channel", smsQuitChannel);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(smsQuitReq), smsQuitKey, smsQuitIv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsQuitSingKey));
-        log.warn("携程短信退订接口发送参数 para={}", JSON.toJSONString(retMap));
         HashMap<String, String> resMap = httpProxyClient.sendByCode(retMap, smsQuitOpenUrl, smsQuitIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.error("携程短信退订接口-请求参数:{};返回:{}",JSON.toJSONString(resMap),JSON.toJSONString(resMap));
