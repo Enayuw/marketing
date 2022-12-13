@@ -946,6 +946,7 @@ public class PushDataServiceImpl implements PushDataService {
     private void pushXieChengData(XieChengData xieChengData) {
         // 字段修改兼容
         String sha256Tel = xieChengData.getClickTel()==null? xieChengData.getSha256Tel(): xieChengData.getClickTel();
+        xieChengData.setSha256Tel(sha256Tel);
         // 获取redis 锁
         String key = RedisKeyConstant.pushXieChengLock.concat(":")
                 .concat(xieChengData.getApiCode())
