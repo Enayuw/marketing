@@ -21,5 +21,5 @@ public interface ZhonganMarketingBanMapper extends ZhonganMarketingBanMapperBase
      * @return list
      */
     List<ZhongAnCellZkDateQuery> getNotMarketingCell(@Param("apiCode") String apiCode
-            , @Param("list") List<ZhongAnCellZkDateQuery> queries);
+            , @Param("queries") List<ZhongAnCellZkDateQuery> queries);
 }
