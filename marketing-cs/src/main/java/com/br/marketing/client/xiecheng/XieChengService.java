@@ -99,6 +99,8 @@ public class XieChengService {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
+    private static final  String XIECHENGSMSQUIT= "xieChengSmsQuit";
+
 
     @RetryMethod(retryNowNum = 3)
     public String pushXieChengData(XieChengData xieChengData) {
@@ -151,7 +153,7 @@ public class XieChengService {
         retMap.put("channel", smsQuitChannel);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(smsQuitReq), smsQuitKey, smsQuitIv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsQuitSingKey));
-        HashMap<String, String> resMap = httpProxyClient.sendByCode(retMap, smsQuitOpenUrl, smsQuitIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsQuitOpenUrl, smsQuitIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,"", httpProxyClient.isLogStore(XIECHENGSMSQUIT).get(0), httpProxyClient.isLogStore(XIECHENGSMSQUIT).get(1));
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.error("携程短信退订接口-请求参数:{};返回:{}",JSON.toJSONString(resMap),JSON.toJSONString(resMap));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
