@@ -2,6 +2,7 @@ package com.br.marketing.mapper;
 
 
 
+import com.br.marketing.entity.LocalFile;
 import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import com.br.marketing.vo.LocalFileVo;
 import org.apache.ibatis.annotations.Param;
@@ -28,4 +29,6 @@ public interface LocalFileMapper extends LocalFileMapperBase {
                      @Param("fileType") String fileType);
 
     void updateUploadStartTimeById(@Param("ids") List<Long> ids, @Param("date") Date date);
+
+    LocalFile getByPrimaryKey(@Param("id") Long id);
 }

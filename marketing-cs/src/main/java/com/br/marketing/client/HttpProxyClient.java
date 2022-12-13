@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -35,10 +36,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 
 
@@ -64,6 +62,8 @@ public class HttpProxyClient {
 		HTTP_CLIENT_POOL.setDefaultMaxPerRoute(500);
 	}
 
+	@Autowired
+	MarketingCommonConfig marketingCommonConfig;
 
 	public Map<String ,Object> request(String url, String data,Boolean isProxy){
 		Map<String,Object> resultMap = new HashMap<>();
@@ -415,5 +415,25 @@ public class HttpProxyClient {
 					.setConnectionRequestTimeout(1000)
 					.build();
 		}
+	}
+
+
+	/**
+	 * 日志存储配置
+	 * @param callMethod 调用方法名
+	 * @return List : list(0)为是否db存储，list(1)为是否elk存储
+	 * 默认elk存储
+	 */
+	public List<Boolean> isLogStore(String callMethod) {
+		HashMap<String, List<Boolean>> apiLogMark = marketingCommonConfig.getApiLogMark();
+		ArrayList<Boolean> mark = new ArrayList<>();
+		if (apiLogMark == null || !apiLogMark.containsKey(callMethod)) {
+			mark.add(false);
+			mark.add(true);
+		} else {
+			mark.add(apiLogMark.get(callMethod).get(0));
+			mark.add(apiLogMark.get(callMethod).get(1));
+		}
+		return mark;
 	}
 }

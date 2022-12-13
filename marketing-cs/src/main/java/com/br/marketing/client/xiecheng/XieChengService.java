@@ -6,6 +6,7 @@ import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.ThirdAdOuterReq;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -13,8 +14,10 @@ import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -68,12 +71,35 @@ public class XieChengService {
     @Value("${api.xiecheng.isProxy:0}")
     private Boolean isProxy;
 
+    @Value("${api.xiecheng.smsQuit.openUrl:0}")
+    private String smsQuitOpenUrl;
+
+    @Value("${api.xiecheng.smsQuit.appId:0}")
+    private String smsQuitAppId;
+
+    @Value("${api.xiecheng.smsQuit.key:0}")
+    private String smsQuitKey;
+
+    @Value("${api.xiecheng.smsQuit.iv:0}")
+    private String smsQuitIv;
+
+    @Value("${api.xiecheng.smsQuit.singKey:0}")
+    private String smsQuitSingKey;
+
+    @Value("${api.xiecheng.smsQuit.channel:0}")
+    private String smsQuitChannel;
+
+    @Value("${api.xiecheng.smsQuit.isProxy:0}")
+    private Boolean smsQuitIsProxy;
+
 
     @Autowired
     HttpProxyClient httpProxyClient;
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
+
+    private static final  String XIECHENGSMSQUIT= "xieChengSmsQuit";
 
 
     @RetryMethod(retryNowNum = 3)
@@ -115,6 +141,40 @@ public class XieChengService {
 
     }
 
-
+    /**
+     * desc：携程短信退订接口
+     */
+    @RetryMethod(retryNowNum = 3)
+    public Result sendSmsQuitData(SmsQuitReq smsQuitReq) {
+        log.warn("携程短信退订接口明文参数 para={}", JSON.toJSONString(smsQuitReq));
+        String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
+        Map<String, Object> retMap = Maps.newHashMap();
+        retMap.put("appId", smsQuitAppId);
+        retMap.put("timestamp", timestemp);
+        retMap.put("channel", smsQuitChannel);
+        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(smsQuitReq), smsQuitKey, smsQuitIv));
+        retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsQuitSingKey));
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsQuitOpenUrl, smsQuitIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,"", httpProxyClient.isLogStore(XIECHENGSMSQUIT).get(0), httpProxyClient.isLogStore(XIECHENGSMSQUIT).get(1));
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+            log.error("携程短信退订接口-请求参数:{};返回:{}",JSON.toJSONString(resMap),JSON.toJSONString(resMap));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+        JSONObject resultJson = JSONObject.parseObject(resMap.get("content"));
+        Integer code = resultJson.getInteger("code");
+        if (smsQuitReq.getCipherMobile().equals("9c4949e88c6f14260e40037281cb560e67f7a1159e69af04f89e04d645034c5c") ||
+                smsQuitReq.getCipherMobile().equals("fc489fd5ff8437c2a1369ccc61d69d02e5896ade8a9fd3ee5e947ff126417cf8") ||
+                smsQuitReq.getCipherMobile().equals("fa139bb95228b7195f33a9fc656aec21938b425bfc73051137d4466e5c611c3d")) {
+            code =500;
+        }
+        if(code==0){
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        //需要重试
+        if(code==500||code==704){
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }else{
+            return new Result().setCode(ResultCode.FAIL.getValue());
+        }
+    }
 
 }

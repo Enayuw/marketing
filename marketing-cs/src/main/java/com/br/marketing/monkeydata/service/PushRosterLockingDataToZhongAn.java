@@ -37,6 +37,8 @@ import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
@@ -76,7 +78,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
     @Resource
     private LocalFileMapper localFileMapper;
 
-    private static final ThreadPoolExecutor POOL = BrExecutors.getThreadPool(25, 50);
+    private static final ThreadPoolExecutor POOL = BrExecutors.getThreadPool(15, 20);
 
     @Override
     public Result<IterationResult<ZhonganRosterLockingData, Page2Condition<ZhonganRosterLockingData>>> getInputData(
@@ -403,11 +405,21 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                 apiCode, bizDate);
         for (SftpFilePushSuccessDTO dto : successSum) {
             LocalFile localFile = new LocalFile();
-            LocalFile localFileOld = localFileMapper.selectByPrimaryKey(dto.getLocalId());
+            LocalFile localFileOld = localFileMapper.getByPrimaryKey(dto.getLocalId());
             if (ObjectUtils.isEmpty(localFileOld)) {
                 continue;
             }
-            localFile.setPushNumber(dto.getNumber());
+            boolean pushEndTimeBool = localFileOld.getPushEndTime() != null && bizDate.equals(LocalDateTime.ofInstant(
+                    localFileOld.getPushEndTime().toInstant(), ZoneId.systemDefault())
+                    .toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE));
+            boolean isNotNull = localFileOld.getPushNumber() != null;
+            boolean numberBool = isNotNull && (localFileOld.getPushNumber().equals(dto.getNumber())
+                    || dto.getNumber() < localFileOld.getPushNumber());
+            if (pushEndTimeBool && numberBool) {
+                continue;
+            }
+            localFile.setPushNumber(localFileOld.getPushNumber() == null || pushEndTimeBool
+                    ? dto.getNumber() : (localFileOld.getPushNumber() + dto.getNumber()));
             localFile.setId(dto.getLocalId());
             localFile.setPushEndTime(new Date());
             localFileMapper.updateByPrimaryKeySelective(localFile);

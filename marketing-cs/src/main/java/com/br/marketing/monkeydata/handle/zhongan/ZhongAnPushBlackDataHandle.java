@@ -77,10 +77,10 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
         Result res = new Result();
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(200, 200, 200);
         for (; ; ) {
-            if(StringUtils.isNotEmpty(marketingCommonConfig.getZhongAnPushBlackThreadNum())){
+            if (StringUtils.isNotEmpty(marketingCommonConfig.getZhongAnPushBlackThreadNum())) {
                 pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum()));
                 pool.setMaximumPoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum()));
-                log.warn("众安推送黑名单线程调整，corePoolSize={},maxPoolSize={}",pool.getCorePoolSize(),pool.getMaximumPoolSize());
+                log.warn("众安推送黑名单线程调整，corePoolSize={},maxPoolSize={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
             }
             Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> inputRes = getInputData(inputData);
             if (ResultCode.FAIL.getValue().equals(inputRes.getCode())) {
@@ -116,7 +116,9 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
     @Override
     public Result resultAction(List<String> dataList) {
         //获取到apiCode
-        String apiCode = dataList.get(dataList.size() - 1);
+        //重试参数apicode-1
+        String[] retryParam = dataList.get(dataList.size() - 1).split("-");
+        String apiCode = retryParam[0];
         dataList.remove(dataList.size() - 1);
         List<String> retryDataList = new ArrayList<>();
         List<BlackDetailDTO> blackDetailDTOList = new ArrayList<>();
@@ -138,7 +140,11 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
             }
         });
         if (!CollectionUtils.isEmpty(retryDataList)) {
-            retryDataList.add(apiCode);
+            //重试调用，不在重复插入重试表
+            if (retryParam.length > 1) {
+                return new Result().setCode(ResultCode.FAIL.getValue());
+            }
+            retryDataList.add(apiCode + "-" + "1");
             RetryMainLog retryMainLog = new RetryMainLog();
             retryMainLog.setRetryType(1);
             retryMainLog.setRetryParam(JSON.toJSONString(retryDataList));
