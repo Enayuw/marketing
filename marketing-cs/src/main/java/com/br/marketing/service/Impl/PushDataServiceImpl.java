@@ -955,13 +955,7 @@ public class PushDataServiceImpl implements PushDataService {
         Long i = xiechengSmsQuitDataMapper.countByExample(xiechengSmsQuitDataExample);
         localFile.setPushNumber(i.intValue());
         localFileMapper.updateByPrimaryKeySelective(localFile);
-        if (failNum.get() > 0) {
-            try {
-                alarmClient.sendAlarm("推送失败条数=" + failNum.get(), "携程短信退订接口推送失败，请检查", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
-            } catch (Exception ex) {
-                log.error(ex.getMessage(), ex);
-            }
-        }
+        xieChengSendAlarm(failNum,"携程短信退订接口推送异常，请检查");
     }
 
     @Override
@@ -986,6 +980,7 @@ public class PushDataServiceImpl implements PushDataService {
             }
             Boolean actionMark = true;
             Long minId = null;
+            AtomicInteger failNum = new AtomicInteger(0);
             while (actionMark) {
                 List<XieChengData> xieChengDatalist = xieChengDataMapper.selectByLocalId(id, minId);
                 if (xieChengDatalist.size() == 0) {
@@ -995,7 +990,7 @@ public class PushDataServiceImpl implements PushDataService {
                 for (int i = 0; i < xieChengDatalist.size(); i++) {
                     XieChengData xieChengData = xieChengDatalist.get(i);
                     minId = xieChengData.getId();
-                    threadPool.submit(() -> pushXieChengData(xieChengData));
+                    threadPool.submit(() -> pushXieChengData(xieChengData,failNum));
                 }
             }
             threadPool.shutdown();
@@ -1008,6 +1003,7 @@ public class PushDataServiceImpl implements PushDataService {
             if(!isJson(data)){
                 updateLocalFile(localFile);
             }
+            xieChengSendAlarm(failNum,"携程广告上报接口推送异常，请检查");
 
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -1015,6 +1011,15 @@ public class PushDataServiceImpl implements PushDataService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
+    private void xieChengSendAlarm(AtomicInteger failNum,String title){
+        if (failNum.get() > 0) {
+            try {
+                alarmClient.sendAlarm("推送失败条数=" + failNum.get(), title, AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
+        }
+    }
     private boolean isJson(String str){
         try {
             JSONObject jsonStr= JSONObject.parseObject(str);
@@ -1036,8 +1041,14 @@ public class PushDataServiceImpl implements PushDataService {
             localFileMapper.updateByPrimaryKeySelective(localFile);
         }
     }
-
-    private void pushXieChengData(XieChengData xieChengData) {
+    private int getSuccessCount(LocalFile localFile){
+        XieChengDataExample xieChengDataExample = new XieChengDataExample();
+        xieChengDataExample.createCriteria().andLocalIdEqualTo(localFile.getId())
+                .andPushStatusEqualTo(2)
+                .andStatusEqualTo(1);
+        return xieChengDataMapper.countByExample(xieChengDataExample);
+    }
+    private void pushXieChengData(XieChengData xieChengData,AtomicInteger failNum) {
         // 字段修改兼容
         String sha256Tel = xieChengData.getClickTel() == null ? xieChengData.getSha256Tel() : xieChengData.getClickTel();
         xieChengData.setSha256Tel(sha256Tel);
@@ -1062,6 +1073,7 @@ public class PushDataServiceImpl implements PushDataService {
                 resultData.setPushStatus(2);
             } else {
                 resultData.setPushStatus(3);
+                failNum.getAndIncrement();
             }
             resultData.setClickId(clickId);
             resultData.setDataMessage(result.getMessage());
