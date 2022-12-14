@@ -41,8 +41,11 @@ public class XieChengPushHandler extends AbstractExternalInterfaceHandler<XieChe
             xieChengData.setType("1");
             int i = xieChengDataMapper.insertSelective(xieChengData);
             if (i > 0) {
+                JSONObject msg = new JSONObject();
+                msg.put("localId", dto.getInitId());
+                msg.put("type", 2);
                 producter.send("Marketing.Universal.SftpToDb.XieChengReceive"
-                        , "api-" + dto.getInitId());
+                        , msg.toJSONString());
             }
         }
         return null;
