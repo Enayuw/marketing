@@ -941,13 +941,7 @@ public class PushDataServiceImpl implements PushDataService {
         Long i = xiechengSmsQuitDataMapper.countByExample(xiechengSmsQuitDataExample);
         localFile.setPushNumber(i.intValue());
         localFileMapper.updateByPrimaryKeySelective(localFile);
-        if (failNum.get() > 0) {
-            try {
-                alarmClient.sendAlarm("推送失败条数=" + failNum.get(), "携程短信退订接口推送失败，请检查", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
-            } catch (Exception ex) {
-                log.error(ex.getMessage(), ex);
-            }
-        }
+        xieChengSendAlarm(failNum,"携程短信退订接口推送异常，请检查");
     }
 
     @Override
@@ -1058,6 +1052,16 @@ public class PushDataServiceImpl implements PushDataService {
         String s = redisChgService.get(key);
         if (status.equals(s)) {
             redisChgService.del(key);
+        }
+    }
+
+    private void xieChengSendAlarm(AtomicInteger failNum,String title){
+        if (failNum.get() > 0) {
+            try {
+                alarmClient.sendAlarm("推送失败条数=" + failNum.get(), title, AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
         }
     }
 }
