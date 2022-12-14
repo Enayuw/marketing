@@ -8,7 +8,7 @@
         *
         from b_xiecheng_sms_quit_data
         where local_id = #{localId}
-        and status =1
+        and status =1 and push_status =1
         <if test="dataId != null and dataId>0">
             and id > #{dataId}
         </if>
