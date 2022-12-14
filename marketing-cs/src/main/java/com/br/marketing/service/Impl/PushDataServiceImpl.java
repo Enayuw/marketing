@@ -968,7 +968,8 @@ public class PushDataServiceImpl implements PushDataService {
             Long id;
             if(isJson(data)){
                 JSONObject jsonObject = JSONObject.parseObject(data);
-                id = jsonObject.getLong("localId");
+                log.warn("jsonObject:{}",jsonObject);
+                id = Long.valueOf(jsonObject.getInteger("localId"));
             }else {
                 id = Long.valueOf(data);
                 localFile = localFileMapper.selectByPrimaryKey(id);
