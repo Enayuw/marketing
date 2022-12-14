@@ -48,7 +48,7 @@ public class ConsumerApp {
     public void consumerPushDass(Channel channel, Message message) {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(channel, message, pushDataService::pushDassData, o,"");
+        consumerService.consumerRun(channel, message, pushDataService::pushDassData, o, "");
     }
 
     /**
@@ -94,6 +94,7 @@ public class ConsumerApp {
 //        }.getType());
 //        consumerService.consumerRun(channel, message, pushDataService::pushHaierTransferData, o, "");
 //    }。
+
     /**
      * 消费sftpToDb数据
      *
@@ -115,9 +116,8 @@ public class ConsumerApp {
      */
     @RabbitListener(queues = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, containerFactory = "containerFactory")
     public void xiechengTodb(Channel channel, Message message) {
-        String o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
-        }.getType());
+        String mes  = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
-        consumerService.consumerRun(channel, message, pushDataService::pushXieChengToDbData, o, null);
+        consumerService.consumerRun(channel, message, pushDataService::pushXieChengToDbData, mes, null);
     }
 }
