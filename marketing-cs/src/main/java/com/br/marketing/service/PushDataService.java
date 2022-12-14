@@ -44,10 +44,10 @@ public interface PushDataService {
 
     /**
      * 推送携程营销数据
-     * @param localid
+     * @param data
      * @return
      */
-    Result<Boolean> pushXieChengToDbData(Long localid);
+    Result<Boolean> pushXieChengToDbData(String data);
 
     String getHaierRequestId(String type);
 }

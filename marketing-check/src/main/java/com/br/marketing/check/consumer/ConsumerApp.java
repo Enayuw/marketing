@@ -115,7 +115,7 @@ public class ConsumerApp {
      */
     @RabbitListener(queues = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, containerFactory = "containerFactory")
     public void xiechengTodb(Channel channel, Message message) {
-        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        String o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         /*消费逻辑*/
         consumerService.consumerRun(channel, message, pushDataService::pushXieChengToDbData, o, null);

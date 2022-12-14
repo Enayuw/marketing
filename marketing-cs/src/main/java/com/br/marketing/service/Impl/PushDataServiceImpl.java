@@ -156,8 +156,6 @@ public class PushDataServiceImpl implements PushDataService {
     MarketingCommonConfig marketingCommonConfig;
 
 
-
-
     final static DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     @Override
@@ -735,7 +733,7 @@ public class PushDataServiceImpl implements PushDataService {
 
     private void sendAlarm(String msg) {
         log.warn(msg);
-        alarmClient.sendAlarm(msg, "海尔消金转电销(转化数据)警告",AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
+        alarmClient.sendAlarm(msg, "海尔消金转电销(转化数据)警告", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
     }
 
     /**
@@ -883,22 +881,23 @@ public class PushDataServiceImpl implements PushDataService {
             localFileMapper.updateByPrimaryKeySelective(localFile);
         }
         //携程短信退订推送
-        if("xiechengsms".equals(localFile.getFileType())){
+        if ("xiechengsms".equals(localFile.getFileType())) {
             pushSmsQuitData(localFile);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
     /**
-     *         // TODO: 2022/12/6
-     *         // 1. 通过循环，根据localId 和当前最小id 查询数据，第一个id 为 null，分页为每页1w条 type =0 为 sftp 上传数据，1 为 api上传数据。
-     *         // 2. 启动线程池。将每条数据放入到线程池里。
-     *         // 3. 新建redis锁key  public static final String pushXieCheng = prefix.concat("xieCheng:pushXieCheng");
-     *         // 4. 判断当前数据是否已推送过，如果推送过 直接剔除 ，sftp 不会计算推送条数。
-     *         // 5. 执行推送逻辑，根据返回值 进行重试。
-     *         // 7. 成功后释放锁
-     *         // 8. 全部推送结束  关闭线程池。
-     *         // 9. 若 type 为 0 ，则需要统计上传推送数量 和重复数据
+     * // TODO: 2022/12/6
+     * // 1. 通过循环，根据localId 和当前最小id 查询数据，第一个id 为 null，分页为每页1w条 type =0 为 sftp 上传数据，1 为 api上传数据。
+     * // 2. 启动线程池。将每条数据放入到线程池里。
+     * // 3. 新建redis锁key  public static final String pushXieCheng = prefix.concat("xieCheng:pushXieCheng");
+     * // 4. 判断当前数据是否已推送过，如果推送过 直接剔除 ，sftp 不会计算推送条数。
+     * // 5. 执行推送逻辑，根据返回值 进行重试。
+     * // 7. 成功后释放锁
+     * // 8. 全部推送结束  关闭线程池。
+     * // 9. 若 type 为 0 ，则需要统计上传推送数量 和重复数据
+     *
      * @param id
      * @return
      */
@@ -924,7 +923,7 @@ public class PushDataServiceImpl implements PushDataService {
                     SmsQuitReq smsQuitReq = new SmsQuitReq(pushList.getCipherMobile(), pushList.getBlackListType());
                     //兼容Md5手机号
                     String phone = smsQuitReq.getCipherMobile();
-                    if(DecodeClient.isMd5(phone)){
+                    if (DecodeClient.isMd5(phone)) {
                         smsQuitReq.setCipherMobile(Sha256Util.getSHA256Encrypt(RpcClientProxy.decode(phone, "cell", "md5", "")));
                     }
                     Result result = xieChengService.sendSmsQuitData(smsQuitReq);
@@ -957,18 +956,29 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     @Override
-    public Result pushXieChengToDbData(Long id) {
+    public Result pushXieChengToDbData(String data) {
+
         Integer xieChengDateSendThread = marketingCommonConfig.getXiechengDateSendThread();
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(xieChengDateSendThread, xieChengDateSendThread);
         try {
-            LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
-            if (localFile != null) {
-                localFile.setPushStartTime(localFile.getPushStartTime() == null ? new Date() : localFile.getPushStartTime());
+            LocalFile localFile = new LocalFile();
+            Long id;
+            if(isJson(data)){
+                JSONObject jsonObject = JSONObject.parseObject(data);
+                id = jsonObject.getLong("localId");
+            }else {
+                id = Long.valueOf(data);
+                localFile = localFileMapper.selectByPrimaryKey(id);
+                if (localFile != null) {
+                    localFile.setPushStartTime(localFile.getPushStartTime() == null ? new Date() : localFile.getPushStartTime());
+                }else {
+                    return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(false);
+                }
             }
             Boolean actionMark = true;
             Long minId = null;
             while (actionMark) {
-                List<XieChengData> xieChengDatalist = xieChengDataMapper.selectByLocalId(id,minId);
+                List<XieChengData> xieChengDatalist = xieChengDataMapper.selectByLocalId(id, minId);
                 if (xieChengDatalist.size() == 0) {
                     actionMark = false;
                     continue;
@@ -980,20 +990,29 @@ public class PushDataServiceImpl implements PushDataService {
                 }
             }
             threadPool.shutdown();
-            while (true) {
-                if (threadPool.isTerminated()) {
-                    break;
+            try {
+                while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
                 }
-                try {
-                    Thread.sleep(1000);
-                } catch (Exception e) {
-                }
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
             }
-            updateLocalFile(localFile);
+            if(!isJson(data)){
+                updateLocalFile(localFile);
+            }
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+    }
+
+    private boolean isJson(String str){
+        try {
+            JSONObject jsonStr= JSONObject.parseObject(str);
+            return  true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void updateLocalFile(LocalFile localFile) {
@@ -1011,39 +1030,39 @@ public class PushDataServiceImpl implements PushDataService {
 
     private void pushXieChengData(XieChengData xieChengData) {
         // 字段修改兼容
-        String sha256Tel = xieChengData.getClickTel()==null? xieChengData.getSha256Tel(): xieChengData.getClickTel();
+        String sha256Tel = xieChengData.getClickTel() == null ? xieChengData.getSha256Tel() : xieChengData.getClickTel();
         xieChengData.setSha256Tel(sha256Tel);
         // 获取redis 锁
         String key = RedisKeyConstant.pushXieChengLock.concat(":")
                 .concat(xieChengData.getApiCode())
                 .concat(sha256Tel);
         String value = UUID.randomUUID().toString();
-        redisChgService.lock(key,value);
+        redisChgService.lock(key, value);
         // 查询到当前电话数据是否推送过。
-        List<XieChengData> xieChengRepeatDatalist =   xieChengDataMapper.getByCellToday(sha256Tel);
+        List<XieChengData> xieChengRepeatDatalist = xieChengDataMapper.getByCellToday(sha256Tel);
         XieChengData resultData = new XieChengData();
         resultData.setId(xieChengData.getId());
-        if(xieChengRepeatDatalist.isEmpty()){
+        if (xieChengRepeatDatalist.isEmpty()) {
             // 组装 clickId 13位时间戳+ 随机5位数字字母 + sha256tel
-            String clickId = System.currentTimeMillis()+getCode(5)+sha256Tel;
+            String clickId = System.currentTimeMillis() + getCode(5) + sha256Tel;
             xieChengData.setClickId(clickId);
             // 携程推送
             Result result = xieChengService.pushXieChengData(xieChengData);
-            log.warn("返回信息：{}",result);
-            if (result.getCode().equals(ResultCode.SUCCESS.getValue())){
+            log.warn("返回信息：{}", result);
+            if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
                 resultData.setPushStatus(2);
-            }else {
+            } else {
                 resultData.setPushStatus(3);
             }
             resultData.setClickId(clickId);
             resultData.setDataMessage(result.getMessage());
-        }else {
+        } else {
             resultData.setId(xieChengData.getId());
             resultData.setStatus(2);
             resultData.setDataMessage("数据重复未推送");
         }
         xieChengDataMapper.updateByPrimaryKeySelective(resultData);
-        redisChgService.unlock(key,value);
+        redisChgService.unlock(key, value);
     }
 
     /**
@@ -1063,6 +1082,7 @@ public class PushDataServiceImpl implements PushDataService {
         //将数组转为字符串
         return new String(arr);
     }
+
     private YqbDetailVo getRequestTransfer(List<YiqianbaoData> pushList) {
         YqbDetailVo yqbDetailVo = new YqbDetailVo();
         List<YqbDetailVo.UserInfo> userInfoList = new ArrayList<>();
