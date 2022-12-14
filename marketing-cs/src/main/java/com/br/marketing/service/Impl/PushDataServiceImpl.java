@@ -906,6 +906,7 @@ public class PushDataServiceImpl implements PushDataService {
         localFile.setPushStartTime(new Date());
         Boolean actionMark = true;
         Long minId = null;
+        AtomicInteger failNum = new AtomicInteger(0);
         while (actionMark) {
             if (StringUtils.isNotEmpty(marketingCommonConfig.getXieChengSmsQuitThreadNum())) {
                 pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getXieChengSmsQuitThreadNum()));
@@ -933,6 +934,7 @@ public class PushDataServiceImpl implements PushDataService {
                         xiechengSmsQuitData.setPushStatus(2);
                     } else {
                         xiechengSmsQuitData.setPushStatus(3);
+                        failNum.getAndIncrement();
                     }
                     xiechengSmsQuitDataMapper.updateByPrimaryKeySelective(xiechengSmsQuitData);
                 });
@@ -953,6 +955,13 @@ public class PushDataServiceImpl implements PushDataService {
         Long i = xiechengSmsQuitDataMapper.countByExample(xiechengSmsQuitDataExample);
         localFile.setPushNumber(i.intValue());
         localFileMapper.updateByPrimaryKeySelective(localFile);
+        if (failNum.get() > 0) {
+            try {
+                alarmClient.sendAlarm("推送失败条数=" + failNum.get(), "携程短信退订接口推送失败，请检查", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
+        }
     }
 
     @Override
