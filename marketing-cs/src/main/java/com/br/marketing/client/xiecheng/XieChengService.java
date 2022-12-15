@@ -145,7 +145,6 @@ public class XieChengService {
      */
     @RetryMethod(retryNowNum = 3)
     public Result sendSmsQuitData(SmsQuitReq smsQuitReq) {
-        log.warn("携程短信退订接口明文参数 para={}", JSON.toJSONString(smsQuitReq));
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         Map<String, Object> retMap = Maps.newHashMap();
         retMap.put("appId", smsQuitAppId);
@@ -160,11 +159,6 @@ public class XieChengService {
         }
         JSONObject resultJson = JSONObject.parseObject(resMap.get("content"));
         Integer code = resultJson.getInteger("code");
-        if (smsQuitReq.getCipherMobile().equals("9c4949e88c6f14260e40037281cb560e67f7a1159e69af04f89e04d645034c5c") ||
-                smsQuitReq.getCipherMobile().equals("fc489fd5ff8437c2a1369ccc61d69d02e5896ade8a9fd3ee5e947ff126417cf8") ||
-                smsQuitReq.getCipherMobile().equals("fa139bb95228b7195f33a9fc656aec21938b425bfc73051137d4466e5c611c3d")) {
-            code =500;
-        }
         if(code==0){
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
