@@ -70,8 +70,7 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
             if (CollectionUtils.isEmpty(transferFileTasks)) {
                 log.warn("携程转化数据提取-开始执行,apiCode ={}", apiCode);
-//                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
-                Long transferFileContextId = 999L;
+                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
                 String batchNumber = createBatchNumber(apiCode, transferFileContextId);
                 TransferFileTask transferFileTask = new TransferFileTask();
                 transferFileTask.setApiCode(apiCode);
