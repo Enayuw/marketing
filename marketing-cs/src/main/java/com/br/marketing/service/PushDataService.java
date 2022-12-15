@@ -36,7 +36,7 @@ public interface PushDataService {
     Boolean pushShDXSingleMutex(String apiCode, String custNum, String status, String userType);
 
     /**
-     * 推送壹钱包营销数据
+     * 推送SftpToDb数据
      * @param localid
      * @return
      */
