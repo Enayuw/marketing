@@ -27,9 +27,7 @@ import com.br.marketing.client.zhongan.ZhongAnClient;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.entity.DataCompare;
-import com.br.marketing.entity.PhoneSaleExtendHaluo;
-import com.br.marketing.entity.PhoneSaleExtendHaluoExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.monkeydata.service.PushRosterLockingDataToZhongAn;
 import com.google.common.base.Joiner;
@@ -109,6 +107,9 @@ public class MethodRetryHandlerService {
     @Resource
     private PushRosterLockingDataToZhongAn rosterLockingDataToZhongAn;
 
+    @Resource
+    ZhonganMarketingBanMapper zhonganMarketingBanMapper;
+
     /**
      * 全局重试任务执行类
      *
@@ -169,8 +170,18 @@ public class MethodRetryHandlerService {
     public Result<String> callCustomerBlack(ReqBlackPhoneParentDTO parentDTO, Integer retry) {
         ReqBlackPhoneVO reqBlackPhoneVO = robotaiApiServiceClient.pushBlack(parentDTO);
         if ("00".equals(reqBlackPhoneVO.getCode()) && CollectionUtils.isEmpty(reqBlackPhoneVO.getData())) {
-            Set<String> set = parentDTO.getBlackDetailDTOList().stream().map(BlackDetailDTO::getDataId).collect(Collectors.toSet());
-            saveBizLog(String.join(",", set), InterfaceHandlerEnum.CUSTOMER_BLACK_LIST.getCode(), parentDTO.getTransferInfoId());
+            if("1".equals(parentDTO.getExtendInfo())){
+                List<Long> ids = parentDTO.getBlackDetailDTOList().stream().map(t->Long.valueOf(t.getDataId())).collect(Collectors.toList());
+                ZhonganMarketingBanExample example = new ZhonganMarketingBanExample();
+                example.createCriteria().andIdIn(ids);
+                ZhonganMarketingBan update = new ZhonganMarketingBan();
+                update.setPushTime(new Date());
+                update.setPushStatus(2);
+                zhonganMarketingBanMapper.updateByExampleSelective(update,example);
+            }else{
+                Set<String> set = parentDTO.getBlackDetailDTOList().stream().map(BlackDetailDTO::getDataId).collect(Collectors.toSet());
+                saveBizLog(String.join(",", set), InterfaceHandlerEnum.CUSTOMER_BLACK_LIST.getCode(), parentDTO.getTransferInfoId());
+            }
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         if (("00".equals(reqBlackPhoneVO.getCode()) && (!CollectionUtils.isEmpty(reqBlackPhoneVO.getData())))

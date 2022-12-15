@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ZhonganMarketingBanMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.ZhonganMarketingBan" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="cust_num" property="custNum" jdbcType="VARCHAR" />
+    <result column="cell" property="cell" jdbcType="VARCHAR" />
+    <result column="user_type" property="userType" jdbcType="VARCHAR" />
+    <result column="task_id" property="taskId" jdbcType="VARCHAR" />
+    <result column="request_id" property="requestId" jdbcType="VARCHAR" />
+    <result column="applet_date" property="appletDate" jdbcType="VARCHAR" />
+    <result column="zk_date" property="zkDate" jdbcType="VARCHAR" />
+    <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
+    <result column="push_time" property="pushTime" jdbcType="TIMESTAMP" />
+    <result column="init_id" property="initId" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, cust_num, cell, user_type, task_id, request_id, applet_date, zk_date, 
+    push_status, push_time, init_id, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ZhonganMarketingBanExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_zhongan_marketing_ban
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_zhongan_marketing_ban
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_zhongan_marketing_ban
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.ZhonganMarketingBanExample" >
+    delete from b_zhongan_marketing_ban
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.ZhonganMarketingBan" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_zhongan_marketing_ban (api_code, cust_num, cell, 
+      user_type, task_id, request_id, 
+      applet_date, zk_date, push_status, 
+      push_time, init_id, create_time, 
+      update_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, 
+      #{userType,jdbcType=VARCHAR}, #{taskId,jdbcType=VARCHAR}, #{requestId,jdbcType=VARCHAR}, 
+      #{appletDate,jdbcType=VARCHAR}, #{zkDate,jdbcType=VARCHAR}, #{pushStatus,jdbcType=INTEGER}, 
+      #{pushTime,jdbcType=TIMESTAMP}, #{initId,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.ZhonganMarketingBan" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_zhongan_marketing_ban
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="custNum != null" >
+        cust_num,
+      </if>
+      <if test="cell != null" >
+        cell,
+      </if>
+      <if test="userType != null" >
+        user_type,
+      </if>
+      <if test="taskId != null" >
+        task_id,
+      </if>
+      <if test="requestId != null" >
+        request_id,
+      </if>
+      <if test="appletDate != null" >
+        applet_date,
+      </if>
+      <if test="zkDate != null" >
+        zk_date,
+      </if>
+      <if test="pushStatus != null" >
+        push_status,
+      </if>
+      <if test="pushTime != null" >
+        push_time,
+      </if>
+      <if test="initId != null" >
+        init_id,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="custNum != null" >
+        #{custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="cell != null" >
+        #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="userType != null" >
+        #{userType,jdbcType=VARCHAR},
+      </if>
+      <if test="taskId != null" >
+        #{taskId,jdbcType=VARCHAR},
+      </if>
+      <if test="requestId != null" >
+        #{requestId,jdbcType=VARCHAR},
+      </if>
+      <if test="appletDate != null" >
+        #{appletDate,jdbcType=VARCHAR},
+      </if>
+      <if test="zkDate != null" >
+        #{zkDate,jdbcType=VARCHAR},
+      </if>
+      <if test="pushStatus != null" >
+        #{pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="pushTime != null" >
+        #{pushTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="initId != null" >
+        #{initId,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.ZhonganMarketingBanExample" resultType="java.lang.Integer" >
+    select count(*) from b_zhongan_marketing_ban
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_zhongan_marketing_ban
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.custNum != null" >
+        cust_num = #{record.custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cell != null" >
+        cell = #{record.cell,jdbcType=VARCHAR},
+      </if>
+      <if test="record.userType != null" >
+        user_type = #{record.userType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.taskId != null" >
+        task_id = #{record.taskId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.requestId != null" >
+        request_id = #{record.requestId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.appletDate != null" >
+        applet_date = #{record.appletDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.zkDate != null" >
+        zk_date = #{record.zkDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pushStatus != null" >
+        push_status = #{record.pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.pushTime != null" >
+        push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.initId != null" >
+        init_id = #{record.initId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_zhongan_marketing_ban
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      cust_num = #{record.custNum,jdbcType=VARCHAR},
+      cell = #{record.cell,jdbcType=VARCHAR},
+      user_type = #{record.userType,jdbcType=VARCHAR},
+      task_id = #{record.taskId,jdbcType=VARCHAR},
+      request_id = #{record.requestId,jdbcType=VARCHAR},
+      applet_date = #{record.appletDate,jdbcType=VARCHAR},
+      zk_date = #{record.zkDate,jdbcType=VARCHAR},
+      push_status = #{record.pushStatus,jdbcType=INTEGER},
+      push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+      init_id = #{record.initId,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ZhonganMarketingBan" >
+    update b_zhongan_marketing_ban
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="custNum != null" >
+        cust_num = #{custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="cell != null" >
+        cell = #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="userType != null" >
+        user_type = #{userType,jdbcType=VARCHAR},
+      </if>
+      <if test="taskId != null" >
+        task_id = #{taskId,jdbcType=VARCHAR},
+      </if>
+      <if test="requestId != null" >
+        request_id = #{requestId,jdbcType=VARCHAR},
+      </if>
+      <if test="appletDate != null" >
+        applet_date = #{appletDate,jdbcType=VARCHAR},
+      </if>
+      <if test="zkDate != null" >
+        zk_date = #{zkDate,jdbcType=VARCHAR},
+      </if>
+      <if test="pushStatus != null" >
+        push_status = #{pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="pushTime != null" >
+        push_time = #{pushTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="initId != null" >
+        init_id = #{initId,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ZhonganMarketingBan" >
+    update b_zhongan_marketing_ban
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      cust_num = #{custNum,jdbcType=VARCHAR},
+      cell = #{cell,jdbcType=VARCHAR},
+      user_type = #{userType,jdbcType=VARCHAR},
+      task_id = #{taskId,jdbcType=VARCHAR},
+      request_id = #{requestId,jdbcType=VARCHAR},
+      applet_date = #{appletDate,jdbcType=VARCHAR},
+      zk_date = #{zkDate,jdbcType=VARCHAR},
+      push_status = #{pushStatus,jdbcType=INTEGER},
+      push_time = #{pushTime,jdbcType=TIMESTAMP},
+      init_id = #{initId,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

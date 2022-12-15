@@ -6,10 +6,7 @@ import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.service.EmailService;
-import com.br.marketing.service.Impl.TransferToFileByJiuFuServiceImpl;
-import com.br.marketing.service.Impl.TransferToFileByPPDServiceImpl;
-import com.br.marketing.service.Impl.TransferToFileByShuHeServiceImpl;
-import com.br.marketing.service.Impl.TransferToFileByYiXinRealTimeServiceImpl;
+import com.br.marketing.service.Impl.*;
 import com.br.marketing.service.TransferToFileByTongChengServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -117,13 +114,13 @@ public class AlarmAndNoticeTest {
     }
 
     @Resource
-    private TransferToFileByYiXinRealTimeServiceImpl transferToFileService;
+    private TransferToFileByZhongAnServiceImpl transferToFileService;
 
     @Test
     public void transferFileTest(){
         String jobParameter = "7410787#2022-05-21;7492632#true";
-        String myParam = transferToFileService.isMyParam("7410787", jobParameter);
-        Result<List<TransferFileTask>> listResult = transferToFileService.buildTransferTask("7410787",myParam);
+        String myParam = transferToFileService.isMyParam("7410906", jobParameter);
+        Result<List<TransferFileTask>> listResult = transferToFileService.buildTransferTask("7410906",myParam);
         if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0){
             List<TransferFileTask> data = listResult.getData();
             for (TransferFileTask datum : data){

@@ -76,6 +76,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     private TransferToFileByXiaoYingRealTimeServiceImpl xiaoYingRealTimeService;
     @Resource
     private TransferToFileByPPDServiceImpl transferToFileByPPDService;
+    @Resource
+    private TransferToFileByZhongAnServiceImpl transferToFileByZhongAnService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
@@ -158,6 +160,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
         }
         if (marketingCommonConfig.getXiaoYingTransferExtractApiCodes().contains(customer.getApiCode())) {
             return xiaoYingRealTimeService;
+        }
+        if (marketingCommonConfig.getZhongAnTransferApiCodes().contains(customer.getApiCode())) {
+            return transferToFileByZhongAnService;
         } else {
             return null;
         }
