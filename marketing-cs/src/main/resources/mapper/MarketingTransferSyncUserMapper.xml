@@ -40,6 +40,14 @@
         order by create_time desc,id desc limit #{limitStart},2000;
     </select>
 
+    <select id="getTransferData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from
+        b_marketing_transfer_sync_${cid}
+        where
+        <![CDATA[  request_data < #{endDate} ]]>
+        order by create_time desc,id desc limit #{limitStart},2000;
+    </select>
+
     <select id="getTransferByApplyDt" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select * from
             b_marketing_transfer_sync_${cid}
