@@ -125,6 +125,16 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
     public Result resultAction(List<MarketingSyncUser> dataList) {
         //获取到apiCode
         //重试参数apicode-1
+        //重试方法 这里反序列化过来的不是 MarketingSyncUser类型
+        if (!(dataList.get(0) instanceof MarketingSyncUser)) {
+            List<MarketingSyncUser> list = new ArrayList<>();
+            for (int i = 0; i < dataList.size(); i++) {
+                if(dataList.get(i) !=null){
+                    list.add(JSON.parseObject(JSON.toJSONString(dataList.get(i)),MarketingSyncUser.class));
+                }
+            }
+            dataList = list;
+        }
         MarketingSyncUser retryMark = dataList.get(dataList.size() - 1);
         String apiCode = dataList.get(0).getApiCode();
         if (retryMark == null) {
