@@ -1051,7 +1051,7 @@ public class PushDataServiceImpl implements PushDataService {
     }
     private void pushXieChengData(XieChengData xieChengData,AtomicInteger failNum) {
         // 字段修改兼容
-        String sha256Tel = xieChengData.getClickTel() == null ? xieChengData.getSha256Tel() : xieChengData.getClickTel();
+        String sha256Tel = xieChengData.getSha256Tel();
         xieChengData.setSha256Tel(sha256Tel);
         // 获取redis 锁
         String key = RedisKeyConstant.pushXieChengLock.concat(":")
