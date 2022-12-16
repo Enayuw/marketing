@@ -988,7 +988,12 @@ public class PushDataServiceImpl implements PushDataService {
                     actionMark = false;
                     continue;
                 }
+                log.warn("当前排队线程数：{}",threadPool.getQueue().size());
+                log.warn("当前活动线程数：{}",threadPool.getActiveCount());
+                log.warn("总线程数：{}",threadPool.getTaskCount());
                 for (int i = 0; i < xieChengDatalist.size(); i++) {
+                    log.warn("线程数：{}",xieChengDateSendThread);
+
                     XieChengData xieChengData = xieChengDatalist.get(i);
                     minId = xieChengData.getId();
                     threadPool.submit(() -> pushXieChengData(xieChengData,failNum));
