@@ -26,7 +26,7 @@
       *
     from b_xiecheng_data
     where  status =1 and push_status =2 and sha256_tel = #{cell}
-      and TO_DAYS(create_time) = TO_DAYS(NOW())
+      and create_time > str_to_date(now(), '%Y-%m-%d')
 
   </select>
 
