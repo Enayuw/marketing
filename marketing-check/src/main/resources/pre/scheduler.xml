@@ -426,7 +426,7 @@
     />
     <job:simple id="XiechengToSendJob"
                 class="com.br.marketing.check.job.XiechengToSendJob"
-                cron="0 0 9 * * ?"
+                cron="0 0 2 1 * ?"
                 description="携程数据发送定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

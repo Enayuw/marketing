@@ -31,7 +31,6 @@ public class XiechengToSendJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         List<String> strings = xieChengDataMapper.selectLocalIdByNotSend();
         strings.forEach(str->{
-            log.warn("测试发送携程数据日志id{}",str);
             producter.send("Marketing.Universal.SftpToDb.XieChengReceive", str);
         });
     }
