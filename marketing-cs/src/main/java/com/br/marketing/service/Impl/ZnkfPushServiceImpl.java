@@ -97,7 +97,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         try {
             String paramOfValidity = paramOfValidity(dto);
             if (!"true".equals(paramOfValidity)) {
-                log.error("客服数据落库失败，" + paramOfValidity);
+                log.warn("客服拨打数据缺失必填参数，" + paramOfValidity);
                 return paramOfValidity;
             }
             //参数校验通过，客服拨打记录落库
@@ -311,7 +311,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
     private String paramOfValidity(CallRecordDTO dto) {
         //taskid、caseNum、CID、apicode，sessionId；
-        if (StringUtils.isEmpty(dto.getDetail().getSessionId())) {
+        if (StringUtils.isEmpty(dto.getDetail()) || StringUtils.isEmpty(dto.getDetail().getSessionId())) {
             log.warn("taskId={},caseNum={},sessionId={}的数据sessionId缺失！", dto.getTaskId(), dto.getCaseNum(), dto.getDetail().getSessionId());
             return "no param sessionId!";
         }
