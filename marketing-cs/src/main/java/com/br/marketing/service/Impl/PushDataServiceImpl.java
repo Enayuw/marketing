@@ -1012,15 +1012,6 @@ public class PushDataServiceImpl implements PushDataService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
-    private void xieChengSendAlarm(AtomicInteger failNum,String title){
-        if (failNum.get() > 0) {
-            try {
-                alarmClient.sendAlarm("推送失败条数=" + failNum.get(), title, AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
-            } catch (Exception ex) {
-                log.error(ex.getMessage(), ex);
-            }
-        }
-    }
     private boolean isJson(String str){
         try {
             JSONObject jsonStr= JSONObject.parseObject(str);
