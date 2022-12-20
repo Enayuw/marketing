@@ -399,5 +399,14 @@ public class MarketingCommonConfig {
     private String ZhongAnTransferExecuteTime;
 
 
+    /**
+     * 携程转化数据提取apiCode集合
+     */
+    private List<String> XieChengTransferApiCodes;
+
+    /**
+     * 携程转化数据提取执行时间
+     */
+    private String XieChengTransferExecuteTime;
 }
 
