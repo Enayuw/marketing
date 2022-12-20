@@ -97,7 +97,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         try {
             String paramOfValidity = paramOfValidity(dto);
             if (!"true".equals(paramOfValidity)) {
-                log.warn("客服拨打数据缺失必填参数，" + paramOfValidity);
+                log.error("客服拨打数据缺失必填参数，" + paramOfValidity);
                 return paramOfValidity;
             }
             //参数校验通过，客服拨打记录落库
