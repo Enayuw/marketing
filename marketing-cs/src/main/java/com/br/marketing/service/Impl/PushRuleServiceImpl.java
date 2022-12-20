@@ -1339,12 +1339,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                     }
                 }
                 //携程特殊处理
-                if (marketingCommonConfig.getXieChengTransferInsertApiCodes().contains(transferSyncUser.getApiCode())){
-                    try {
-                        transferSyncUser.setCustNum(transferDataItemDTO.getCustNum().substring(18));
-                    }catch (Exception e){
-                        transferSyncUser.setCustNum("");
-                    }
+                if (marketingCommonConfig.getXieChengTransferInsertApiCodes().contains(transferSyncUser.getApiCode())
+                        && StringUtils.isNotBlank(transferDataItemDTO.getCustNum()) && transferDataItemDTO.getCustNum().length() > 18){
+                    transferSyncUser.setCustNum(transferDataItemDTO.getCustNum().substring(18));
                     String reserveField1 = transferDataItemDTO.getReserveField1();
                     if (StringUtils.isNotBlank(reserveField1)) {
                         try {
