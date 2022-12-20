@@ -558,8 +558,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         Integer realTotalNum = 0;
         CustomerInfoPushMain main = new CustomerInfoPushMain();
         main.setmStatus(2);
-        ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum);
-        ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(getJcNum, getJcNum);
+        ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum,50);
+        ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(getJcNum, getJcNum,50);
         List<Future<List<Future<Result<Integer>>>>> res = new ArrayList<>();
         long startTime = System.currentTimeMillis();
         HashMap<Integer, Integer> partDataNum = new HashMap<>();

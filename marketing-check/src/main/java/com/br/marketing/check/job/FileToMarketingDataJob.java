@@ -1,0 +1,444 @@
+package com.br.marketing.check.job;
+
+import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.client.marketingapi.input.UploadDataDTO;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.service.PushInfoService;
+import com.google.common.collect.Lists;
+
+import java.time.LocalDate;
+import java.util.Date;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+
+import IceInternal.Ex;
+import com.alibaba.fastjson.JSON;
+import com.br.marketing.check.CkeckApplication;
+import com.br.marketing.check.dto.FileContext;
+import com.br.marketing.check.enums.ErrorFileTypeEnum;
+import com.br.marketing.check.service.IFileToMarketingRuleService;
+import com.br.marketing.check.service.Impl.DeleteService;
+import com.br.marketing.check.service.Impl.FileCheckServiceImpl;
+import com.br.marketing.check.service.Impl.SftpToDbService;
+import com.br.marketing.check.utils.SftpToDbUtils;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.SftpClient;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.DataTypeEnum;
+import com.br.marketing.common.utils.Constants;
+import com.br.marketing.dto.MarketingPreUserDTO;
+import com.br.marketing.dto.MarketingPreUserDetailDTO;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.*;
+import com.br.marketing.service.IApiToDbService;
+import com.br.marketing.service.IFileActionService;
+import com.br.marketing.service.Impl.ValidDataAlarmServiceImpl;
+import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.vo.FileToMarketingDataFieldVO;
+import com.br.marketing.vo.FileToMarketingFieldVO;
+import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
+import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.jcraft.jsch.JSchException;
+import com.sun.org.apache.xpath.internal.operations.Bool;
+import io.swagger.models.auth.In;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
+import org.apache.curator.shaded.com.google.common.base.Splitter;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+/**
+ * //				    _ooOoo_
+ * //				   o8888888o
+ * //				   88" . "88
+ * //				   (| -_- |)
+ * //				   O\  =  /O
+ * //			    ____/`---'\____
+ * //			  .'  \\|     |//  `.
+ * //		     /  \\|||  :  |||//  \
+ * //		    /  _|||||--:--|||||_  \
+ * //		    | / | \\\  -  /// | \ |
+ * //		    | \_|  ''\-:-/''  |_/ |
+ * //		    \  .-\__  `-`  ___/-. /
+ * //		  ___`...'  /--.--\  '...`___
+ * //	   ."" '< `.___\_<|>_/___.'  >' "".
+ * //	   | | : `- \`.;`\ _ /`;.`/ -` : | |
+ * //	    \ \ `-.  \_ __\ /__ _/  .-` / /
+ * // ======`-.____`-.____\____/.-`____.-`======
+ * //				    `=---='
+ * //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ * //			  Buddha Bless, No Bug !
+ *
+ * @Author xiaoxin.pang
+ * @Date 2021/4/27 15:46
+ * @Description:
+ **/
+@Component
+@Slf4j
+public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
+
+    @Autowired
+    private AlarmApiClient alarmClient;
+
+    @Value("${otherConfig.warning.sftpHost:00}")
+    private String sftpHost;
+    @Value("${otherConfig.warning.sftpPort:00}")
+    private Integer sftpPort;
+    @Value("${otherConfig.warning.sftpUser:00}")
+    private String sftpUsername;
+    @Value("${otherConfig.warning.sftpPwd:00}")
+    private String sftpPwd;
+
+    @Resource
+    SyncConfigMapper syncConfigMapper;
+
+    @Autowired
+    SyncConfigService syncConfigService;
+
+    @Autowired
+    IFileActionService iFileActionService;
+
+    @Resource
+    MarketingDataFileConfigMapper marketingDataFileConfigMapper;
+
+    @Resource
+    LocalFileMapper localFileMapper;
+
+    @Autowired
+    PushInfoService pushInfoService;
+
+
+    @Override
+    public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
+
+        SyncConfigExample syncConfigExample = new SyncConfigExample();
+        syncConfigExample.createCriteria()
+                .andStatusEqualTo(1)
+                .andDataTypeEqualTo(DataTypeEnum.MARKETINGDATA.getValue())
+                .andTypeEqualTo(1);
+        List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
+        for (SyncConfig syncConfig : syncConfigs) {
+            String targetPath = syncConfigService.getPath().concat("initPath/").concat(syncConfig.getApiCode()).concat("/");
+            SftpClient sftpClient = new SftpClient(sftpHost, sftpPort, sftpUsername, sftpPwd);
+            Result<List<String>> res = iFileActionService.downSyncFileBySftp(sftpClient, syncConfig, targetPath);
+            if (ResultCode.SUCCESS.getValue().equals(res.getCode())) {
+                List<String> fileNames = res.getData();
+                MarketingDataFileConfig dataFileConfig = getDataFileConfig(syncConfig.getApiCode());
+                IFileToMarketingRuleService fileToMarketingRuleService = getFileToMarketingRuleService(dataFileConfig);
+                for (String fileName : fileNames) {
+                    Result<Long> action = isAction(syncConfig.getApiCode(), fileName, targetPath, syncConfig.getTargetPath());
+                    if (ResultCode.SUCCESS.getValue().equals(action.getCode())) {
+                        fileAction(syncConfig.getApiCode(), dataFileConfig, targetPath, fileName, action.getData(), fileToMarketingRuleService);
+                    }
+                }
+            }
+        }
+
+    }
+
+    /**
+     * 处理文件
+     *
+     * @param apiCode
+     * @param fileConfig
+     * @param path
+     * @param fileNm
+     * @param localId
+     * @param iFileToMarketingRuleService
+     */
+    private void fileAction(String apiCode, MarketingDataFileConfig fileConfig, String path, String fileNm, Long localId, IFileToMarketingRuleService iFileToMarketingRuleService) {
+
+        LocalFile updateFile = new LocalFile();
+        updateFile.setId(localId);
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String tasId = apiCode.concat("_").concat(yyyyMMdd);
+        String requestIdPrefix = apiCode.concat("_").concat(fileNm).concat("_");
+        String fileStr = path.concat(fileNm);
+        List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(fileConfig.getFieldConfig(), FileToMarketingFieldVO.class);
+        Map<String, List<FileToMarketingFieldVO>> fieldVosMap = fieldVos.stream().collect(Collectors.groupingBy(FileToMarketingFieldVO::getHeadField));
+        Map<String, List<FileToMarketingFieldVO>> _noMustDefaultFieldMap = fieldVos.stream().filter(t -> !t.getIsMust() && StringUtils.isNotBlank(t.getDefalutValue())).collect(Collectors.groupingBy(FileToMarketingFieldVO::getInterfaceField));
+        Set<String> _noMustDefaultFieldSet = null;
+        if (_noMustDefaultFieldMap != null) {
+            _noMustDefaultFieldSet = _noMustDefaultFieldMap.keySet();
+        }
+        List<String> mustHeads = fieldVos.stream().filter(t -> t.getIsMust()).map(t -> t.getHeadField()).collect(Collectors.toList());
+        File file = new File(fileStr);
+        Integer line = 0;
+        Integer errorNum = 0;
+        Integer pushSum = 0;
+        ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(5, 5);
+        Date startDate = new Date();
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String row = "";
+            Integer pushNum = 500;
+            Integer pushBatchNumber = 1;
+            HashMap<Integer, String> address = new HashMap<>();
+            HashSet<String> extra = new HashSet<>();
+            List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
+            Integer headSum = 0;
+            Boolean isNotFinal = Boolean.TRUE;
+            while (isNotFinal) {
+                row = br.readLine();
+                if (row == null) {
+                    isNotFinal = Boolean.FALSE;
+                } else {
+                    line++;
+                }
+                if (line == 0 && !isNotFinal) {
+                    continue;
+                }
+                if (isNotFinal) {
+                    if (line == 1) {
+                        //region 文件头处理
+                        String[] split = row.split(",", -1);
+                        headSum = split.length;
+                        Result result = SftpToDbUtils.statisticsHeadByCommon(row, address, extra, mustHeads);
+                        if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                            updateFile.setComplete("2");
+                            localFileMapper.updateByPrimaryKeySelective(updateFile);
+                            log.error(String.format("%s 文件：%s", fileNm, result.getMessage()));
+                            return;
+                        }
+                        //endregion
+                    } else {
+                        //region文件数据处理
+                        List<String> datas = Splitter.on(",").splitToList(row);
+                        if (!headSum.equals(datas.size())) {
+                            errorNum++;
+                            log.warn("文件名:{};行数:{};错误:{};", fileNm, line, "该行与表头列数不一致");
+                            continue;
+                        }
+                        StringBuilder errorMsg = new StringBuilder();
+                        List<FileToMarketingDataFieldVO> dataFieldVOS = new ArrayList<>();
+                        HashMap<String, FileToMarketingDataFieldVO> dataFieldMap = new HashMap<>();
+                        HashSet hasSet = new HashSet();
+                        String cell = "";
+
+                        //region 每列的字段处理逻辑
+                        for (int i = 0; i < datas.size(); i++) {
+                            String value = datas.get(i);
+                            String headNm = address.get(i);
+                            FileToMarketingFieldVO fieldVO = null;
+                            //根据当前表头名获取配置信息
+                            List<FileToMarketingFieldVO> fileToMarketingFieldVOS = fieldVosMap.get(headNm);
+                            if (fileToMarketingFieldVOS != null && fileToMarketingFieldVOS.size() > 0) {
+                                fieldVO = fileToMarketingFieldVOS.get(0);
+                            }
+
+                            //region 未获取到配置信息的处理
+                            if (fieldVO == null) {
+                                if (!extra.contains(headNm)) {
+                                    continue;
+                                } else {
+                                    fieldVO = new FileToMarketingFieldVO();
+                                    fieldVO.setHeadField(headNm);
+                                    fieldVO.setInterfaceField(headNm);
+                                    fieldVO.setIsMust(Boolean.FALSE);
+                                }
+                            }
+                            //endregion
+
+                            //region 根据配置信息进行处理
+                            if (StringUtils.isBlank(value) && StringUtils.isNotBlank(fieldVO.getDefalutValue())) {
+                                value = fieldVO.getDefalutValue();
+                            }
+                            if (fieldVO.getIsMust() && StringUtils.isBlank(value)) {
+                                errorMsg.append(String.format("字段名:%s 未赋值;", fieldVO.getHeadField()));
+                                continue;
+                            }
+                            FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
+                            if (fieldVO != null) {
+                                BeanUtils.copyProperties(fieldVO, vo);
+                            } else {
+                                vo.setHeadField(headNm);
+                                vo.setInterfaceField(headNm);
+                            }
+                            vo.setDataValue(value);
+                            vo.setIsExtend(extra.contains(headNm) ? Boolean.TRUE : Boolean.FALSE);
+                            hasSet.add(vo.getInterfaceField());
+                            dataFieldVOS.add(vo);
+                            dataFieldMap.put(vo.getHeadField(), vo);
+                            if ("cell".equals(vo.getInterfaceField())) {
+                                cell = vo.getDataValue();
+                            }
+                            //endregion
+                        }
+                        //endregion
+
+                        if (StringUtils.isNotBlank(errorMsg.toString())) {
+                            errorNum++;
+                            log.warn("文件名:{};行数:{};错误:{};", fileNm, line, errorMsg.toString());
+                            continue;
+                        }
+                        //region 非必传并且配置默认值的字段处理
+                        if (_noMustDefaultFieldSet != null) {
+                            HashSet<String> resSet = new HashSet<>();
+                            resSet.addAll(_noMustDefaultFieldSet);
+                            resSet.removeAll(hasSet);
+                            for (String s : resSet) {
+                                List<FileToMarketingFieldVO> fileToMarketingFieldVOS = _noMustDefaultFieldMap.get(s);
+                                if (fileToMarketingFieldVOS != null && fileToMarketingFieldVOS.size() > 0) {
+                                    FileToMarketingFieldVO _defField = fileToMarketingFieldVOS.get(0);
+
+                                    FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
+                                    BeanUtils.copyProperties(_defField, vo);
+                                    if ("{cell}".equals(_defField.getDefalutValue())) {
+                                        vo.setDataValue(cell);
+                                    } else {
+                                        vo.setDataValue(_defField.getDefalutValue());
+                                    }
+                                    dataFieldVOS.add(vo);
+                                    dataFieldMap.put(vo.getHeadField(), vo);
+                                }
+                            }
+                        }
+                        //endregion
+
+                        //region 抽象的剔除方法和组装逻辑的调用,如未实现走默认的service
+                        Result vaild = iFileToMarketingRuleService.isVaild(dataFieldVOS, dataFieldMap);
+                        if (!ResultCode.SUCCESS.getValue().equals(vaild.getCode())) {
+                            errorNum++;
+                            log.warn("文件名:{};行数:{};错误:{};", fileNm, line, vaild.getMessage());
+                            continue;
+                        }
+                        MarketingPreUserDetailDTO make = iFileToMarketingRuleService.make(dataFieldVOS);
+                        //endregion
+                        syncUsers.add(make);
+                        //endregion
+                    }
+                }
+                //region 调用营销上传接口处理
+                if (syncUsers.size() == pushNum || (!isNotFinal && syncUsers.size() > 0)) {
+                    pushSum += syncUsers.size();
+                    MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
+                    marketingPreUserDTO.setTaskId(tasId);
+                    marketingPreUserDTO.setRequestId(requestIdPrefix.concat(pushBatchNumber.toString()));
+                    marketingPreUserDTO.setDataItems(syncUsers);
+                    UploadDataDTO uploadDataDTO = new UploadDataDTO();
+                    uploadDataDTO.setApiCode(apiCode);
+                    uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
+                    pushPool.submit(() -> {
+                        pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+                    });
+                    syncUsers = new ArrayList<>();
+                    pushBatchNumber++;
+                }
+                //endregion
+
+            }
+            pushPool.shutdown();
+            while (!pushPool.awaitTermination(5L, TimeUnit.SECONDS)) {
+
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+
+        Date end = new Date();
+        updateFile.setActualNumber(line > 0 ? line - 1 : line);
+        updateFile.setPushNumber(pushSum);
+        updateFile.setErrorActualNumber(errorNum);
+        updateFile.setPushStartTime(startDate);
+        updateFile.setPushEndTime(end);
+        updateFile.setComplete(errorNum > 0 ? "3" : "1");
+        localFileMapper.updateByPrimaryKeySelective(updateFile);
+        //region 提示
+        try {
+            StringBuilder content = new StringBuilder();
+            content.append("导入文件名称：".concat(fileNm).concat("\r\n"))
+                    .append("文件id：".concat(updateFile.getId().toString()).concat("\r\n"))
+                    .append("文件类型：".concat("marketingData").concat("\r\n"))
+                    .append("导入文件状态：".concat(errorNum == 0 ? "正常" : "不正常").concat("\r\n"))
+                    .append("导入数据行数：".concat(updateFile.getActualNumber().toString()).concat("\r\n"))
+                    .append("其中有问题行数：".concat(String.valueOf(errorNum)).concat("\r\n"));
+            alarmClient.sendAlarm(content.toString(), "sftp数据上传", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+        //endregion
+
+    }
+
+    /**
+     * 判断当前文件是否处理
+     *
+     * @param apiCode
+     * @param fileNm
+     * @param targetPath
+     * @param srcPath
+     * @return
+     */
+    private Result<Long> isAction(String apiCode, String fileNm, String targetPath, String srcPath) {
+        String fileStr = targetPath.concat(fileNm);
+        LocalFileExample localFileExample = new LocalFileExample();
+        localFileExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andFileNameEqualTo(fileNm)
+                .andFileTypeEqualTo("marketingData")
+                .andLocalPathEqualTo(targetPath);
+        List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
+        if (localFiles.size() > 0) {
+            log.warn("该文件已经读取过：{}", fileStr);
+            return new Result().setCode(ResultCode.FAIL.getValue());
+        } else {
+            Date date = new Date();
+            LocalFile localFile = new LocalFile();
+            localFile.setApiCode(apiCode);
+            localFile.setFileType("marketingData");
+            localFile.setSrcPath(srcPath);
+            localFile.setFileName(fileNm);
+            localFile.setLocalPath(targetPath);
+            localFile.setStatus("1");
+            localFile.setCreateTime(date);
+            localFile.setUpdateTime(date);
+            localFileMapper.insertSelective(localFile);
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(localFile.getId());
+        }
+    }
+
+    /**
+     * 获取配置文件
+     * 如未配置获取默认配置
+     *
+     * @param apiCode
+     * @return
+     */
+    private MarketingDataFileConfig getDataFileConfig(String apiCode) {
+        MarketingDataFileConfigExample fileConfigExample = new MarketingDataFileConfigExample();
+        fileConfigExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andIsDelEqualTo(Constants.DATA_VALID);
+        List<MarketingDataFileConfig> marketingDataFileConfigs = marketingDataFileConfigMapper.selectByExample(fileConfigExample);
+        if (marketingDataFileConfigs.size() > 0) {
+            return marketingDataFileConfigs.get(0);
+        }
+        MarketingDataFileConfig defaultConfig = marketingDataFileConfigMapper.selectByPrimaryKey(1L);
+        return defaultConfig;
+    }
+
+    /**
+     * 获取执行的方法
+     *
+     * @param config
+     * @return
+     */
+    private IFileToMarketingRuleService getFileToMarketingRuleService(MarketingDataFileConfig config) {
+        Map<String, IFileToMarketingRuleService> beansOfRule = CkeckApplication.ac.getBeansOfType(IFileToMarketingRuleService.class);
+        IFileToMarketingRuleService iFileToMarketingRuleService = beansOfRule.get(config.getServiceName());
+        return iFileToMarketingRuleService;
+    }
+
+}

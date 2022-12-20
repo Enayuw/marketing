@@ -12,9 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
+/**
+ * 常用文件操作方法
+ */
 @Slf4j
-@RestController
 @RequestMapping("/file")
+@RestController
 public class FileController {
 
     @GetMapping("/splitFile")

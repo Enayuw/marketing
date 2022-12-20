@@ -39,6 +39,11 @@ public class XieChengData {
     private String clickTel;
 
     /**
+     * 加密手机号（与撞库时的加密方法一致）
+     */
+    private String sha256Tel;
+
+    /**
      * 状态 1-未推送；2-推送
      */
     private Integer pushStatus;
@@ -127,6 +132,14 @@ public class XieChengData {
 
     public void setClickTel(String clickTel) {
         this.clickTel = clickTel == null ? null : clickTel.trim();
+    }
+
+    public String getSha256Tel() {
+        return sha256Tel;
+    }
+
+    public void setSha256Tel(String sha256Tel) {
+        this.sha256Tel = sha256Tel;
     }
 
     public Integer getPushStatus() {

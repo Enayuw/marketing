@@ -146,7 +146,9 @@ api:
         info:
           url: ${api.haier.custData.receive.url}/info
   marketing:
-    transferUrl: http://marketing-api/marketingTransferData/receiveTransferDataSync
+    baseUrl: http://marketing-api
+    transferUrl: ${api.marketing.baseUrl}/marketingTransferData/receiveTransferDataSync
+    uploadUrl: ${api.marketing.baseUrl}/marketingUserPre/receiveMarketingPreUser
   halo:
     openUrl: https://fat-hello-openapi.hellobike.com/openapi
     appKey: hellobikefinance-bwYuIVvO

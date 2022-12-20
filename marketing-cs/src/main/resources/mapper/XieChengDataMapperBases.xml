@@ -9,6 +9,7 @@
     <result column="action_type" property="actionType" jdbcType="VARCHAR" />
     <result column="click_id" property="clickId" jdbcType="VARCHAR" />
     <result column="click_tel" property="clickTel" jdbcType="VARCHAR" />
+    <result column="sha256_tel" property="sha256Tel" jdbcType="VARCHAR" />
     <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
@@ -78,7 +79,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, local_id, type, action_type, click_id, click_tel, push_status, status,
+    id, api_code, local_id, type, action_type, click_id, click_tel,sha256_tel, push_status, status,
     data_message, create_date, create_time, update_time
   </sql>
   <sql id="Blob_Column_List" >
@@ -137,12 +138,12 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_xiecheng_data (api_code, local_id, type,
-      action_type, click_id, click_tel,
+      action_type, click_id, click_tel,sha256_tel,
       push_status, status, data_message,
       create_date, create_time, update_time,
       extend)
     values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR},
-      #{actionType,jdbcType=VARCHAR}, #{clickId,jdbcType=VARCHAR}, #{clickTel,jdbcType=VARCHAR},
+      #{actionType,jdbcType=VARCHAR}, #{clickId,jdbcType=VARCHAR}, #{clickTel,jdbcType=VARCHAR},#{sha256Tel,jdbcType=VARCHAR},
       #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR},
       #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
       #{extend,jdbcType=LONGVARCHAR})
@@ -170,6 +171,9 @@
       </if>
       <if test="clickTel != null" >
         click_tel,
+      </if>
+      <if test="sha256Tel != null" >
+        sha256_tel,
       </if>
       <if test="pushStatus != null" >
         push_status,
@@ -211,6 +215,9 @@
       </if>
       <if test="clickTel != null" >
         #{clickTel,jdbcType=VARCHAR},
+      </if>
+      <if test="sha256Tel != null" >
+        #{sha256Tel,jdbcType=VARCHAR},
       </if>
       <if test="pushStatus != null" >
         #{pushStatus,jdbcType=INTEGER},
@@ -265,6 +272,9 @@
       <if test="record.clickTel != null" >
         click_tel = #{record.clickTel,jdbcType=VARCHAR},
       </if>
+      <if test="record.sha256Tel != null" >
+        sha256_tel = #{record.sha256Tel,jdbcType=VARCHAR},
+      </if>
       <if test="record.pushStatus != null" >
         push_status = #{record.pushStatus,jdbcType=INTEGER},
       </if>
@@ -300,6 +310,7 @@
       action_type = #{record.actionType,jdbcType=VARCHAR},
       click_id = #{record.clickId,jdbcType=VARCHAR},
       click_tel = #{record.clickTel,jdbcType=VARCHAR},
+      sha256_tel = #{record.sha256Tel,jdbcType=VARCHAR},
       push_status = #{record.pushStatus,jdbcType=INTEGER},
       status = #{record.status,jdbcType=INTEGER},
       data_message = #{record.dataMessage,jdbcType=VARCHAR},
@@ -320,6 +331,7 @@
       action_type = #{record.actionType,jdbcType=VARCHAR},
       click_id = #{record.clickId,jdbcType=VARCHAR},
       click_tel = #{record.clickTel,jdbcType=VARCHAR},
+      sha256_tel = #{record.sha256Tel,jdbcType=VARCHAR},
       push_status = #{record.pushStatus,jdbcType=INTEGER},
       status = #{record.status,jdbcType=INTEGER},
       data_message = #{record.dataMessage,jdbcType=VARCHAR},
@@ -350,6 +362,9 @@
       </if>
       <if test="clickTel != null" >
         click_tel = #{clickTel,jdbcType=VARCHAR},
+      </if>
+      <if test="sha256Tel != null" >
+        sha256_tel = #{sha256Tel,jdbcType=VARCHAR},
       </if>
       <if test="pushStatus != null" >
         push_status = #{pushStatus,jdbcType=INTEGER},
@@ -383,6 +398,7 @@
       action_type = #{actionType,jdbcType=VARCHAR},
       click_id = #{clickId,jdbcType=VARCHAR},
       click_tel = #{clickTel,jdbcType=VARCHAR},
+      sha256_tel = #{sha256Tel,jdbcType=VARCHAR},
       push_status = #{pushStatus,jdbcType=INTEGER},
       status = #{status,jdbcType=INTEGER},
       data_message = #{dataMessage,jdbcType=VARCHAR},
@@ -400,6 +416,7 @@
       action_type = #{actionType,jdbcType=VARCHAR},
       click_id = #{clickId,jdbcType=VARCHAR},
       click_tel = #{clickTel,jdbcType=VARCHAR},
+      sha256_tel = #{sha256Tel,jdbcType=VARCHAR},
       push_status = #{pushStatus,jdbcType=INTEGER},
       status = #{status,jdbcType=INTEGER},
       data_message = #{dataMessage,jdbcType=VARCHAR},

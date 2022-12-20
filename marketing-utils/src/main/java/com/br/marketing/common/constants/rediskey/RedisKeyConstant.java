@@ -69,5 +69,10 @@ public class RedisKeyConstant {
      */
     public static final String zhongAnblackCusNumToday = prefix.concat("zhongan:black:custnum");
 
+    /**
+     * 携程拨打数据推送缓存锁  key
+     */
+    public static final String pushXieChengLock = prefix.concat("xieCheng:pushXieCheng");
+
 
 }

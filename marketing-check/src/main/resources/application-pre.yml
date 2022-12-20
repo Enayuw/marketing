@@ -149,7 +149,9 @@ api:
     xdCode: 07brdyy01
     bxCode: 3360001
   marketing:
-    transferUrl: http://k8s.brapp.com/compass-api/api/marketing-api/marketingTransferData/receiveTransferDataSync
+    baseUrl: http://k8s.brapp.com/compass-api/api/marketing-api
+    transferUrl: ${api.marketing.baseUrl}/marketingTransferData/receiveTransferDataSync
+    uploadUrl: ${api.marketing.baseUrl}/marketingUserPre/receiveMarketingPreUser
   halo:
     openUrl: https://fat-hello-openapi.hellobike.com/openapi
     appKey: hellobikefinance-bwYuIVvO

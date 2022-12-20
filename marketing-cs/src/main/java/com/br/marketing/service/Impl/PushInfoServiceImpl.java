@@ -1,5 +1,9 @@
 package com.br.marketing.service.Impl;
 
+import com.br.marketing.client.marketingapi.MarketingApiService;
+import com.br.marketing.client.marketingapi.input.UploadDataDTO;
+import com.br.marketing.common.annoation.RetryMethod;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.ApiReturnEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.PushInfoFilterDTO;
@@ -73,5 +77,12 @@ public class PushInfoServiceImpl implements PushInfoService {
         return PageResultReturn.setPageResult(list, dto.getCurrent(), dto.getSize());
     }
 
+    @Autowired
+    MarketingApiService marketingApiService;
 
+    @Override
+    @RetryMethod(retryNowNum = 2,isOrNoDbRetry = true)
+    public Result pushUploadByRetry(UploadDataDTO dto, Integer retry) {
+        return marketingApiService.pushUpload(dto);
+    }
 }

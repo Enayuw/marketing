@@ -3,6 +3,8 @@ package com.br.marketing.client.marketingapi;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDTO;
+import com.br.marketing.client.marketingapi.input.UploadDataDTO;
+import com.br.marketing.client.net.ApiCallerUtil;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.net.ApiCaller;
@@ -43,6 +45,9 @@ public class MarketingApiService {
 
     @Value("${api.marketing.transferUrl:00}")
     String transferUrl;
+
+    @Value("${api.marketing.uploadUrl:00}")
+    String uploadUrl;
 
     public Result<Boolean> pushTransfer(PushTransferDataDTO pushTransferDataDTO) {
         InterfaceLog interfaceLog = new InterfaceLog();
@@ -101,5 +106,28 @@ public class MarketingApiService {
         });
 
         return new Result().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.TRUE);
+    }
+
+    public Result<Boolean> pushUpload(UploadDataDTO dto) {
+        try{
+            ThirdApiResultTransfer res = new ApiCallerUtil(restTemplate,interfaceLogMapper,interfaceLogDbpool)
+                    .setUrl(uploadUrl)
+                    .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .setRequestParam(dto)
+                    .postTransferStr();
+            if (Integer.valueOf(200).equals(res.getHttpCode())) {
+                JSONObject jsonObject = JSON.parseObject(res.getResult());
+                String code = jsonObject.getString("code");
+                if (!"00".equals(code)) {
+                    return new Result().setCode(ResultCode.FAIL.getValue());
+                }
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
+            }else{
+                return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            }
+        }catch (Exception ex){
+            log.error("调用营销上传接口报错："+ex.getMessage(),ex);
+            return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
     }
 }
