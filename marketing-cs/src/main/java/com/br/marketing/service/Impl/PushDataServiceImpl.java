@@ -2,8 +2,10 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
+import com.br.common.util.MD5Utils;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
@@ -21,6 +23,7 @@ import com.br.marketing.client.twosevenservice.TwoSevenService;
 import com.br.marketing.client.twosevenservice.intput.RequestSevenDTO;
 import com.br.marketing.client.twosevenservice.output.ResponseSevenZDTO;
 import com.br.marketing.client.twosevenservice.output.SevenDetailVO;
+import com.br.marketing.client.xiecheng.SmsQuitReq;
 import com.br.marketing.client.xiecheng.XieChengService;
 import com.br.marketing.client.yiqianbao.YiQianBaoService;
 import com.br.marketing.client.yiqianbao.input.YqbDetailVo;
@@ -36,6 +39,8 @@ import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.rpcclient.RpcClientProxy;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.github.pagehelper.Page;
@@ -57,6 +62,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -102,6 +108,8 @@ public class PushDataServiceImpl implements PushDataService {
     @Resource
     private XieChengDataMapper xieChengDataMapper;
 
+    @Resource
+    private XiechengSmsQuitDataMapper xiechengSmsQuitDataMapper;
     @Resource
     private AlarmApiClient alarmClient;
     @Value("${otherConfig.alarm.outsideSecretKey:00}")
@@ -872,7 +880,68 @@ public class PushDataServiceImpl implements PushDataService {
             localFile.setPushNumber(pushCount);
             localFileMapper.updateByPrimaryKeySelective(localFile);
         }
+        //携程短信退订推送
+        if("xiechengsms".equals(localFile.getFileType())){
+            pushSmsQuitData(localFile);
+        }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+    }
+
+    public void pushSmsQuitData(LocalFile localFile) {
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5);
+        localFile.setPushStartTime(new Date());
+        Boolean actionMark = true;
+        Long minId = null;
+        AtomicInteger failNum = new AtomicInteger(0);
+        while (actionMark) {
+            if (StringUtils.isNotEmpty(marketingCommonConfig.getXieChengSmsQuitThreadNum())) {
+                pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getXieChengSmsQuitThreadNum()));
+                pool.setMaximumPoolSize(Integer.valueOf(marketingCommonConfig.getXieChengSmsQuitThreadNum()));
+                log.warn("携程推送短信退订接口线程调整，corePoolSize={},maxPoolSize={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
+            }
+            List<XiechengSmsQuitData> dataList = xiechengSmsQuitDataMapper.getSmsQuitData(localFile.getId(), minId);
+            if (dataList.size() <= 0) {
+                actionMark = false;
+                continue;
+            }
+            minId = dataList.get(dataList.size() - 1).getId();
+            dataList.forEach(pushList -> {
+                pool.submit(() -> {
+                    SmsQuitReq smsQuitReq = new SmsQuitReq(pushList.getCipherMobile(), pushList.getBlackListType());
+                    //兼容Md5手机号
+                    String phone = smsQuitReq.getCipherMobile();
+                    if(DecodeClient.isMd5(phone)){
+                        smsQuitReq.setCipherMobile(Sha256Util.getSHA256Encrypt(RpcClientProxy.decode(phone, "cell", "md5", "")));
+                    }
+                    Result result = xieChengService.sendSmsQuitData(smsQuitReq);
+                    XiechengSmsQuitData xiechengSmsQuitData = new XiechengSmsQuitData();
+                    xiechengSmsQuitData.setId(pushList.getId());
+                    if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
+                        xiechengSmsQuitData.setPushStatus(2);
+                    } else {
+                        xiechengSmsQuitData.setPushStatus(3);
+                        failNum.getAndIncrement();
+                    }
+                    xiechengSmsQuitDataMapper.updateByPrimaryKeySelective(xiechengSmsQuitData);
+                });
+            });
+        }
+        pool.shutdown();
+        try {
+            while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+        localFile.setPushEndTime(new Date());
+        XiechengSmsQuitDataExample xiechengSmsQuitDataExample = new XiechengSmsQuitDataExample();
+        xiechengSmsQuitDataExample.createCriteria().andLocalIdEqualTo(localFile.getId())
+                .andPushStatusEqualTo(2)
+                .andStatusEqualTo(1);
+        Long i = xiechengSmsQuitDataMapper.countByExample(xiechengSmsQuitDataExample);
+        localFile.setPushNumber(i.intValue());
+        localFileMapper.updateByPrimaryKeySelective(localFile);
+        xieChengSendAlarm(failNum,"携程短信退订接口推送异常，请检查");
     }
 
     @Override
@@ -983,6 +1052,16 @@ public class PushDataServiceImpl implements PushDataService {
         String s = redisChgService.get(key);
         if (status.equals(s)) {
             redisChgService.del(key);
+        }
+    }
+
+    private void xieChengSendAlarm(AtomicInteger failNum,String title){
+        if (failNum.get() > 0) {
+            try {
+                alarmClient.sendAlarm("推送失败条数=" + failNum.get(), title, AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
         }
     }
 }

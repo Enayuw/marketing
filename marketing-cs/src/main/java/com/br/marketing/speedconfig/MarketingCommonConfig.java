@@ -380,6 +380,10 @@ public class MarketingCommonConfig {
     private Integer scoreToJcThreadNum;
 
     /**
+     * 携程推送短信退订接口线程数设置
+     */
+    private String xieChengSmsQuitThreadNum;
+    /**
      * 携程转化数据入库特殊处理apicode集合
      */
     private List<String> xieChengTransferInsertApiCodes;
@@ -394,6 +398,7 @@ public class MarketingCommonConfig {
      */
     private String ZhongAnTransferExecuteTime;
 
+
     /**
      * 携程转化数据提取apiCode集合
      */
@@ -404,3 +409,4 @@ public class MarketingCommonConfig {
      */
     private String XieChengTransferExecuteTime;
 }
+

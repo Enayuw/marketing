@@ -169,6 +169,14 @@ api:
     source: BaiRong_C01
     channel: commonOutAdMonitor
     isProxy: true
+    smsQuit:
+      openUrl: https://cgcallback-fat.ctripqa.com/nemoweb/ad/common/saveAdMobileBlack.do
+      appId: test001
+      key: 6b219b9e71fdb2d2
+      iv: 5e7b6c07d3edbc01
+      singKey: b8845b4cb1f16471
+      channel: saveAdMobileBlack
+      isProxy: true
 spring:
   rabbitmq:
     addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
