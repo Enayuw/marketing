@@ -129,12 +129,9 @@ public class XieChengService {
             log.error("携程广告上报接口发送参数:ThirdAdOuterReq={} para={}", JSON.toJSONString(thirdAdOuterReq),JSON.toJSONString(retMap));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
-//        String content = "{\"code\":0,\"msg\":\"测试成功\",\"data\":null}";
-//        String content = "{\"code\":500,\"msg\":\"测试重试成功\",\"data\":null}";
         String content = resMap.get("content");
         JSONObject resultJson = JSONObject.parseObject(content);
         Integer code = resultJson.getInteger("code");
-        log.warn("携程数据返回信息：{}", content);
         if(code==0){
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
         }
