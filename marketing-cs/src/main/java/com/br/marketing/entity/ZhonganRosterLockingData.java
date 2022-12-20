@@ -39,12 +39,12 @@ public class ZhonganRosterLockingData {
     private String tag;
 
     /**
-     * 状态 1-未推送；2-推送
+     * 状态 1-未推送；2-推送成功；3-已推送,未成功,需要重试；4-已推送,未成功,无需重试
      */
     private Integer pushStatus;
 
     /**
-     * 状态 1-正常2-非正常
+     * 状态 1-正常；2-非正常；3-未获取到上传数据；4-不在有效期内；5-命中黑名单；6-重复数据；7-不营销
      */
     private Integer status;
 

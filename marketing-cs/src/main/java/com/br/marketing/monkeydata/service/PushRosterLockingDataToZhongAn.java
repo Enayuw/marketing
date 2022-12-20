@@ -19,10 +19,12 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.ZhonganRosterLockingData;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.ZhonganMarketingBanMapper;
 import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
 import com.br.marketing.monkeydata.entity.IterationResult;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
+import com.br.marketing.monkeydata.query.ZhongAnCellZkDateQuery;
 import com.br.marketing.monkeydata.query.ZhongAnMobileMd5BizDateQuery;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.rpcclient.RpcClientProxy;
@@ -77,6 +79,9 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
 
     @Resource
     private LocalFileMapper localFileMapper;
+
+    @Resource
+    private ZhonganMarketingBanMapper zhonganMarketingBanMapper;
 
     private static final ThreadPoolExecutor POOL = BrExecutors.getThreadPool(15, 20);
 
@@ -141,24 +146,33 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         }
         Iterator<ZhonganRosterLockingData> iterator = inList.iterator();
         List<ZhonganRosterLockingDataBO> list = new ArrayList<>();
-        List<ZhonganRosterLockingData> hitBlackList = new ArrayList<>();
         List<ZhonganRosterLockingData> notValidity = new ArrayList<>();
         List<ZhonganRosterLockingData> notUploadData = new ArrayList<>();
         MarketingSyncUser syncUser;
         switch (tag) {
             case "CG":
                 // 对照组
+                Set<String> cellZkDateMap = getMarketingBanMap(apiCode, inList, cellMap);
+                List<ZhonganRosterLockingData> notMarketingList = new ArrayList<>();
                 while (iterator.hasNext()) {
                     ZhonganRosterLockingData next = iterator.next();
                     if ((syncUser = periodOfValidity(syncUserMapNew, day, next, notValidity, notUploadData)) != null) {
+                        String cell = cellMap.getOrDefault(next.getMobileMd5(), "");
+                        if (cellZkDateMap.contains(cell + next.getBizDate())) {
+                            // 不营销
+                            notMarketingList.add(next);
+                            continue;
+                        }
                         list.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
                     }
                 }
+                updatePushStatus(notMarketingList, 7, apiCode, tag, dateStr);
                 break;
             case "MG":
                 // 营销组
                 Set<String> custNumBlackListSet = mgFilterCgPush(inList, syncUserMapNew, apiCode, tag, dateStr, day);
                 iterator = inList.iterator();
+                List<ZhonganRosterLockingData> hitBlackList = new ArrayList<>();
                 while (iterator.hasNext()) {
                     ZhonganRosterLockingData next = iterator.next();
                     if ((syncUser = periodOfValidity(syncUserMapNew, day, next, notValidity, notUploadData)) != null) {
@@ -171,9 +185,9 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                         list.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
                     }
                 }
+                updatePushStatus(hitBlackList, 5, apiCode, tag, dateStr);
             default:
         }
-        updatePushStatus(hitBlackList, 5, apiCode, tag, dateStr);
         updatePushStatus(notValidity, 4, apiCode, tag, dateStr);
         updatePushStatus(notUploadData, 3, apiCode, tag, dateStr);
         if (CollectionUtils.isEmpty(list)) {
@@ -262,6 +276,20 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         }
         custNumBlackListSet.addAll(callRecordMapper.getBlackListSettikv_(custNumMap, apiCode));
         return custNumBlackListSet;
+    }
+
+    /**
+     * 2022-12-12 17:54
+     * 获取撞库手机号
+     */
+    private Set<String> getMarketingBanMap(String apiCode, List<ZhonganRosterLockingData> inList
+            , Map<String, String> cellMap) {
+        List<ZhongAnCellZkDateQuery> queries = inList.parallelStream().map(l
+                -> new ZhongAnCellZkDateQuery(cellMap.getOrDefault(l.getMobileMd5(), "")
+                , l.getBizDate())).collect(Collectors.toList());
+        return Optional.ofNullable(zhonganMarketingBanMapper.getNotMarketingCell(
+                apiCode, queries)).orElse(new ArrayList<>()).parallelStream().map(
+                b -> b.getCell() + b.getZkDate()).collect(Collectors.toSet());
     }
 
     /**
