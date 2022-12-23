@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -82,11 +83,14 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     private TransferToFileByXieChengServiceImpl transferToFileByXieChengService;
 
     @Override
-    public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
+    public void process(JobExecutionMultipleShardingContext context) {
+        String jobParameter = context.getJobParameter();
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"));
-        List<MarketingCustomer> marketingCustomers = customerMapper.selectByExample(customerExample);
+        List<MarketingCustomer> marketingCustomers = customerMapper.selectByExampleAndShard(customerExample
+                , context.getShardingTotalCount()
+                , context.getShardingItems());
+        log.warn("###分片：{},分片获取的数据量：{}", Arrays.toString(context.getShardingItems().toArray()), marketingCustomers.size());
         for (MarketingCustomer marketingCustomer : marketingCustomers) {
             try {
                 ITransferToFileService serviceImpl = getServiceImpl(marketingCustomer);
@@ -95,8 +99,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 }
                 //自定义参数传入格式举例 7410785#20220711,true;7412003#123;.....
                 String myParam = serviceImpl.isMyParam(marketingCustomer.getApiCode(), jobParameter);
-                log.warn("apicode={}获取的自定义参数为{}",marketingCustomer.getApiCode(),myParam);
-                Result<List<TransferFileTask>> listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(),myParam);
+                log.warn("apicode={}获取的自定义参数为{}", marketingCustomer.getApiCode(), myParam);
+                Result<List<TransferFileTask>> listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(), myParam);
                 if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
                     List<TransferFileTask> data = listResult.getData();
                     for (TransferFileTask datum : data) {
