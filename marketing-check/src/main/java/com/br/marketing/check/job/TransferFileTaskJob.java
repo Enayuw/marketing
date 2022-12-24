@@ -175,7 +175,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
 
     /**
      * 2022-12-24 17:15
-     * 已弃用，最好不要用，用了也不会起作用，如果非要用，需要修改主业务逻辑（👆84行）的内容
+     * 已弃用，最好不要用，用了也不会起作用
+     * ，如果非要用，需要修改主业务逻辑（👆process(JobExecutionMultipleShardingContext)）的内容
      */
     @Deprecated
     ITransferToFileService getServiceImpl(MarketingCustomer customer) {
