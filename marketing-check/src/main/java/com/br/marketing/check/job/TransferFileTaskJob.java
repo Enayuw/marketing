@@ -29,7 +29,7 @@ import java.util.*;
 @Component
 @Slf4j
 public class TransferFileTaskJob extends AbstractSimpleElasticJob {
-
+    private static int initCollectionSize = 64;
 
     @Autowired
     MarketingCustomerMapper customerMapper;
@@ -249,7 +249,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                     this.apiCodesLinkedList = new LinkedList<>();
                 }
                 int size = apiCodesLinkedList.size();
-                Map<String, Set<ITransferToFileService>> bind = new HashMap<>();
+                Map<String, Set<ITransferToFileService>> bind = new HashMap<>(initCollectionSize);
                 for (int i = 0; i < size; i++) {
                     Collection<String> apiCodes = apiCodesLinkedList.get(i);
                     ITransferToFileService iTransferToFileService = serviceLinkedList.get(i);
@@ -258,7 +258,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                             Set<ITransferToFileService> serviceSet = bind.get(apiCode);
                             serviceSet.add(iTransferToFileService);
                         } else {
-                            HashSet<ITransferToFileService> serviceSet = new HashSet<>();
+                            HashSet<ITransferToFileService> serviceSet = new HashSet<>(initCollectionSize);
                             serviceSet.add(iTransferToFileService);
                             bind.put(apiCode, serviceSet);
                         }
