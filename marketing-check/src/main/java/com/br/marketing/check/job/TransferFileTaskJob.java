@@ -141,6 +141,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 }
             }
         }
+        bind.clear();
     }
 
     /**
