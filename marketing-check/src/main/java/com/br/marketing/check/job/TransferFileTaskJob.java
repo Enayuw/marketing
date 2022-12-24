@@ -146,7 +146,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
 
     /**
      * 2022-12-24 15:09
-     * apicCode 绑定 业务实现
+     * apiCode 绑定 业务实现
      */
     private BindApiCodeServiceImplBean bindApiCode() {
         return BindApiCodeServiceImplBean.BindApiCodeServiceImplBeanBuilder.create()
