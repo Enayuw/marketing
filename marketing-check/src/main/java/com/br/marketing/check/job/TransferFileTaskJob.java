@@ -160,15 +160,15 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByYiXinRealTimeService, marketingCommonConfig.getYinXinTransferRealTimeApiCodes())
                 // 玖富转化数据提取
                 .addBind(transferToFileByJiuFuService, marketingCommonConfig.getJiuFuTransferApiCodes())
-                //拍拍贷新客实时转化数据提取
+                // 拍拍贷新客实时转化数据提取
                 .addBind(transferToFileByPPDService, marketingCommonConfig.getPPDTransferFileApiCodes())
-                //同程转化数据提取
+                // 同程转化数据提取
                 .addBind(transferToFileByTongChengService, marketingCommonConfig.getTongChengTransferFileApiCodes())
                 // 小赢转化数据提取
                 .addBind(xiaoYingRealTimeService, marketingCommonConfig.getXiaoYingTransferExtractApiCodes())
                 // 众安异业撞库数据提取
                 .addBind(transferToFileByZhongAnService, marketingCommonConfig.getZhongAnTransferApiCodes())
-                //携程转化数据提取
+                // 携程转化数据提取
                 .addBind(transferToFileByXieChengService, marketingCommonConfig.getXieChengTransferApiCodes())
                 .build();
     }
