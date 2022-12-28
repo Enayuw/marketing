@@ -6,7 +6,7 @@
         *
         from b_phone_sale_transfer
         where local_id = #{localId}
-        and status =1
+        and m_status =1
         <if test="dataId != null and dataId>0">
             and id > #{dataId}
         </if>

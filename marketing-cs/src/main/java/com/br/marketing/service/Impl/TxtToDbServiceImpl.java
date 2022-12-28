@@ -606,7 +606,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
             phoneSaleTransfer.setDataMessage(String.format("行号：%d;报错信息：%s", line, "手机号解密失败"));
             phoneSaleTransferMapper.insertSelective(phoneSaleTransfer);
         }
-        return new Result().setCode(new Integer("1").equals(phoneSaleTransfer.getStatus())
+        return new Result().setCode(new Integer("1").equals(phoneSaleTransfer.getmStatus())
                 ?ResultCode.SUCCESS.getValue()
                 :ResultCode.FAIL.getValue());
     }
