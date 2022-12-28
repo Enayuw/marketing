@@ -474,6 +474,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                 phoneSaleTransferMapper.insertSelective(phoneSaleTransfer);
                 return new Result().setCode(ResultCode.FAIL.getValue());
             }
+            Integer nullMark = 0;
             for (int i = 0; i < datas.size(); i++) {
                 String sureaddress = address.get(i);
                 switch (sureaddress) {
@@ -585,9 +586,16 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                     case "transformStatus":
                         phoneSaleTransfer.setTransformStatus(datas.get(i));
                         break;
+                    default:
+                        nullMark++;
+                        break;
                 }
             }
 
+            if(nullMark.equals(datas.size())){
+                phoneSaleTransfer.setmStatus(2);
+                phoneSaleTransfer.setDataMessage(String.format("行号：%d;报错信息：%s", line, "该行数据不包含有效字段数据"));
+            }
 //            if (!StringUtils.isEmpty(error)) {
 //                phoneSaleTransfer.setmStatus(2);
 //                phoneSaleTransfer.setDataMessage(String.format("行号：%d;报错信息：%s", line, error));
