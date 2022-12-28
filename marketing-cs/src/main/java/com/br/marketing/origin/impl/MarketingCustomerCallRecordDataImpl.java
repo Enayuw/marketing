@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.customer.CallRecordBO;
-import com.br.marketing.dto.customer.CallRecordDetailDTO;
+import com.br.marketing.dto.customer.CallRecordDetailBO;
 import com.br.marketing.entity.CallRecord;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.origin.MqFact;
@@ -37,10 +37,10 @@ public class MarketingCustomerCallRecordDataImpl implements OriginDataService {
         CallRecord callRecord = callRecordMapper.selectByPrimaryKey(mqFact.getSourceId());
 
         CallRecordBO bo = new CallRecordBO();
-        CallRecordDetailDTO callRecordDetailDTO = new CallRecordDetailDTO();
+        CallRecordDetailBO callRecordDetailBO = new CallRecordDetailBO();
         BeanUtils.copyProperties(callRecord,bo);
-        BeanUtils.copyProperties(callRecord,callRecordDetailDTO);
-        bo.setDetail(callRecordDetailDTO);
+        BeanUtils.copyProperties(callRecord,callRecordDetailBO);
+        bo.setDetail(callRecordDetailBO);
 
         Map map = (Map) JSONObject.parse(bo.getDetail().getUserProperties());
         if(StringUtils.isNotEmpty(map) && StringUtils.isNotEmpty(map.get("groupType"))){

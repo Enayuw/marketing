@@ -36,6 +36,8 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     List<MarketingTransferSyncUser> getTransferByRequestData(@Param("cid") String cid, @Param("endDate") String endDate,@Param("limitStart") Integer limitStart);
 
+    List<MarketingTransferSyncUser> getTransferData(@Param("cid") String cid, @Param("endDate") String endDate,@Param("limitStart") Integer limitStart);
+
     /**
      *  根据ApplyDt数据统计
      * @param cid
@@ -43,7 +45,8 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param limitStart
      * @return
      */
-    List<MarketingTransferSyncUser> getTransferByApplyDt(@Param("cid") String cid,@Param("apiCode") String apiCode,@Param("limitStart") Integer limitStart);
+    List<MarketingTransferSyncUser> getTransferByApplyDt(@Param("cid") String cid,@Param("apiCode") String apiCode,@Param("limitStart") Integer limitStart,
+                                                         @Param("startDay") String startDay,@Param("endDay") String endDay);
     /**
      * 获取指定日期，指定custNum的非延时数据
      * @param cid
@@ -127,9 +130,143 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param eliminateDate
      * @return
      */
-    List<MarketingTransferSyncUser> getCustNumByApplyLoan(@Param("tcId") String tcId, @Param("apiCode") String apiCode,@Param("eliminateDate") LocalDate eliminateDate);
+    List<MarketingTransferSyncUser> getCustNumByApplyLoan(@Param("tcId") String tcId, @Param("apiCode") String apiCode, @Param("eliminateDate") LocalDate eliminateDate);
 
     List<MarketingTransferSyncUser> getTransferUserByCreateTimeOrder(@Param("tcId") String tcId, @Param("apiCode") String apiCode
-            ,@Param("startTime") String startTime,@Param("endTime") String endTime
-            ,@Param("pageIndex") Integer pageIndex,@Param("pageSize") Integer pageSize);
+            , @Param("startTime") String startTime, @Param("endTime") String endTime
+            , @Param("pageIndex") Integer pageIndex, @Param("pageSize") Integer pageSize);
+
+    /**
+     * 根据
+     * apiCode
+     * applyResult
+     * requestData
+     * applyDt
+     * 获取分页数据
+     *
+     * @param tcId        cid
+     * @param apiCode     code
+     * @param applyResult 审批结果
+     * @param requestDate 客户请求日期
+     * @param applyDt     进件时间yyyy-mm-dd hh:mm:ss:SSS
+     * @param rowCount    行数
+     * @param offset      步长
+     * @return List
+     * @author Guo Zeqiang
+     * @dateTime 2022/9/21 13:43
+     */
+    List<MarketingTransferSyncUser> findByApplyResultAndRequestDataAndApplyDtPage(
+            @Param("tcId") String tcId
+            , @Param("apiCode") String apiCode
+            , @Param("applyResult") String applyResult
+            , @Param("requestDate") String requestDate
+            , @Param("applyDt") String applyDt
+            , @Param("rowCount") int rowCount
+            , @Param("offset") int offset);
+
+    /**
+     * 根据
+     * apiCode
+     * requestData
+     * applyDt
+     * caseEffective
+     * custNumSet
+     * 获取案件集合数据
+     *
+     * @param tcId          cid
+     * @param apiCode       code
+     * @param requestDate   客户请求日期
+     * @param applyDt       进件时间yyyy-mm-dd hh:mm:ss:SSS
+     * @param caseEffective 进件时间yyyy-mm-dd hh:mm:ss:SSS
+     * @param custNumSet    案件集合
+     * @return List
+     * @author Guo Zeqiang
+     * @dateTime 2022/9/21 13:43
+     */
+    Set<String> getCustNumSet(
+            @Param("tcId") String tcId
+            , @Param("apiCode") String apiCode
+            , @Param("requestDate") String requestDate
+            , @Param("applyDt") String applyDt
+            , @Param("caseEffective") String caseEffective
+            , @Param("custNumSet") Set<String> custNumSet
+    );
+
+
+    /**
+     * 获取桔子D规则的转化数据
+     *
+     * @param tcId
+     * @param requestData
+     * @param minId
+     * @return
+     */
+    List<MarketingTransferSyncUser> getJuZiDRuleTransferData(@Param("tCid") String tcId, @Param("requestData") String requestData, @Param("minId") Long minId);
+
+
+    /**
+     * 获取桔子C规则的转化数据
+     *
+     * @param tcId
+     * @param requestData
+     * @param minId
+     * @return
+     */
+    List<MarketingTransferSyncUser> getJuZiCRuleTransferData(@Param("tCid") String tcId, @Param("requestData") String requestData, @Param("minId") Long minId);
+    /**
+     * 获取桔子B规则的转化数据
+     *
+     * @param tcId
+     * @param registerTime
+     * @param minId
+     * @return
+     */
+    List<MarketingTransferSyncUser> getJuZiBRuleTransferData(@Param("tCid") String tcId,@Param("requestData") String requestData, @Param("registerTime") String registerTime, @Param("minId") Long minId);
+    /**
+     * 获取桔子A规则的转化数据
+     *
+     * @param tcId
+     * @param loginTime
+     * @param minId
+     * @return
+     */
+    List<MarketingTransferSyncUser> getJuZiARuleTransferData(@Param("tCid") String tcId,@Param("requestData") String requestData, @Param("loginTime") String loginTime, @Param("minId") Long minId);
+
+    /**
+     * 获取桔子D规则的锁定期数据
+     *
+     * @param tcId
+     * @param lentTime
+     * @param custNums
+     * @return
+     */
+    List<String> getJuZiDRuleLockData(@Param("tCid") String tcId, @Param("lentTime") String lentTime,@Param("custNums")Set<String> custNums);
+
+    /**
+     * 获取桔子C规则的锁定期数据
+     *
+     * @param tcId
+     * @param applyLoanTime
+     * @param custNums
+     * @return
+     */
+    List<String> getJuZiCRuleLockData(@Param("tCid") String tcId, @Param("applyLoanTime") String applyLoanTime,@Param("custNums")Set<String> custNums);
+
+    /**
+     * 获取桔子B规则或A规则的锁定期数据
+     *
+     * @param tcId
+     * @param applyDt
+     * @param custNums
+     * @return
+     */
+    List<String> getJuZiBOrARuleLockData(@Param("tCid") String tcId, @Param("applyDt") String applyDt,@Param("custNums")Set<String> custNums);
+
+    /**
+     * 获取转化数据的数据量
+     * @param tcId
+     * @param requestDate
+     * @return
+     */
+    int getTransferDataCount(@Param("tcId") String tcId, @Param("apiCode") String apiCode, @Param("requestData") String requestDate);
 }

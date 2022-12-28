@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ZhonganRosterLockingDataMapper">
+
+
+    <select id="findGroupMobileMd5ListPage" resultType="com.br.marketing.entity.ZhonganRosterLockingData">
+        select mobile_md5,biz_date,tag,data_source,local_id,api_code from b_zhongan_roster_locking_data
+        <where>
+            <if test="data.apiCode!=null and data.apiCode!=''">
+                api_code='${data.apiCode}'
+            </if>
+            <if test="data.bizDate!=null and data.bizDate!=''">
+                and <![CDATA[ biz_date <= '${data.bizDate}' ]]>
+            </if>
+            <if test="data.tag!=null and data.tag!=''">
+                and tag='${data.tag}'
+            </if>
+            <if test="data.pushStatus!=null and data.pushStatus!=''">
+                and push_status=${data.pushStatus}
+            </if>
+            and status=1
+            group by mobile_md5,biz_date order by mobile_md5,biz_date limit ${pageNo * pageSize},${pageSize}
+        </where>
+    </select>
+
+    <select id="getMobileMd5ByBeforePushSettikv_" resultType="java.lang.String">
+        select mobile_md5 from b_zhongan_roster_locking_data
+        <where>
+            <if test="apiCode!=null and apiCode!=''">
+                api_code='${apiCode}'
+            </if>
+            <if test="tag!=null and tag!=''">
+                and tag='${tag}'
+            </if>
+            and
+            <foreach collection="queries" item="q" separator=" or " open="(" close=")">
+                (mobile_md5='${q.mobileMd5}' and <![CDATA[ create_time>='${q.periodOfValidityBO.beginDateStr}' ]]>
+                and <![CDATA[ create_time <= '${q.periodOfValidityBO.enDateStr}' ]]>)
+            </foreach>
+            group by mobile_md5 having count(*)>0
+        </where>
+    </select>
+
+    <update id="updatePushStatusOrStatus">
+        update b_zhongan_roster_locking_data set
+        <if test="updatePushStatus != null and updatePushStatus != ''">
+            push_status=${updatePushStatus},
+        </if>
+        <if test="updateStatus != null and updateStatus != ''">
+            status=${updateStatus},
+        </if>
+        update_time=#{date}
+        where tag='${tag}' and api_code='${apiCode}' and
+        <foreach collection="dataList" item="data" separator=" or " open="(" close=")">
+            (mobile_md5='${data.mobileMd5}' and biz_date='${data.bizDate}')
+        </foreach>
+        and status=1
+        <if test="pushStatus != null and pushStatus != ''">
+            and push_status=${pushStatus}
+        </if>
+    </update>
+
+    <select id="getSftpFilePushSuccessSum" resultType="com.br.marketing.dto.SftpFilePushSuccessDTO">
+        select count(*) as number, t.local_id as localId
+        from (
+                 select mobile_md5, local_id
+                 from b_zhongan_roster_locking_data
+                 WHERE api_code = '${apiCode}'
+                   and <![CDATA[ update_time >= '${dateStr}' ]]>
+                   and <![CDATA[ biz_date <= '${dateStr}' ]]>
+                   and push_status = 2
+                   and status = 1
+                   and data_source = 1
+                 group by mobile_md5, local_id) as t
+        group by t.local_id
+    </select>
+
+    <select id="getSftpFileIdList" resultType="java.lang.Long">
+        select local_id
+        from b_zhongan_roster_locking_data
+        WHERE api_code = '${apiCode}'
+          and <![CDATA[ biz_date <= '${dateStr}' ]]>
+          and push_status = 1
+          and status = 1
+          and data_source = 1
+        group by local_id
+    </select>
+</mapper>

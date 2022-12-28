@@ -9,9 +9,11 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
@@ -22,21 +24,26 @@ import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.ScoreStatusEnum;
+import com.br.marketing.enums.ZkScoreStatusEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.*;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.MarketingTaskVO;
 import com.br.marketing.vo.ResultPreviewVO;
 import com.br.marketing.vo.StatisticsDataDayVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.zookeeper.data.Stat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -122,6 +129,12 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Resource
     StraHisFileMapper straHisFileMapper;
+
+    @Autowired
+    EntityOptServiceImpl entityOptService;
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd,
@@ -297,7 +310,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 .andIsUploadEqualTo(1);
         int isUploadCount = syncInfoMapper.countByExample(syncInfoIngExample);
         if (isUploadCount > 0) {
-            String errorMsg = String.format("自动规则生成任务 上传数据还未解析完成" + warnTemp, vo.getApiCode(), vo.getId(),"");
+            String errorMsg = String.format("自动规则生成任务 上传数据还未解析完成" + warnTemp, vo.getApiCode(), vo.getId(), "");
             log.warn(errorMsg);
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
         }
@@ -311,7 +324,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                     , vo.getId().toString(), vo.getRuleNameShort()
                     , time, null);
             if (!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())) {
-                String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId(),"");
+                String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId(), "");
                 log.warn(errorMsg);
                 return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
             }
@@ -559,8 +572,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 .append("time：".concat(task.getStartDate().concat(" ").concat(task.getStartTime())).concat("\r\n"))
                 .append("batchNumber：".concat(batchNumber).concat("\r\n"))
                 .append(String.format("预计数量: %d", preNum));
-        alarmClient.sendAlarm(content.toString(), "任务创建", appName, secretKey,
-                Constants.sendCodeMap.get("uploadSuccess"));
+        alarmClient.sendAlarm(content.toString(), "任务创建", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         //endregion
 
         return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(task.getId());
@@ -692,5 +704,63 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         if (value.equals(s)) {
             redisChgService.del(key);
         }
+    }
+
+    @Override
+    public Result delTask(Long id) {
+        MarketingTask task = marketingTaskMapper.selectByPrimaryKey(id);
+        if (task == null) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该跑分不存在");
+        }
+        StraHisFileExample fileExample = new StraHisFileExample();
+        fileExample.createCriteria().andBatchNumberEqualTo(task.getBatchNumber());
+        List<StraHisFile> files = straHisFileMapper.selectByExample(fileExample);
+        Boolean isFinish = Boolean.FALSE;
+        if (files.size() > 0) {
+            long count = files.stream().filter(t -> !ScoreStatusEnum.FINISH.getValue().equals(t.getStatus())).count();
+            isFinish = task.getStatus().equals(1) && count <= 0;
+        }
+        if (task.getStatus().equals(2) || isFinish) {
+            MarketingTask update = new MarketingTask();
+            update.setId(id);
+            update.setStatus(0);
+            marketingTaskMapper.updateByPrimaryKeySelective(update);
+            entityOptService.writeOptLog(id, update, task);
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("删除成功");
+        }
+        return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("禁用或者已跑分结束的才能删除");
+    }
+
+    private static Integer mo = 10;
+
+    @Override
+    public Integer getPart(Integer sum, Integer index) {
+        if(sum==null||sum==0||index==null||index==0){
+            throw new RuntimeException("参数不能为空或者0");
+        }
+        Integer zu = 1;
+        Integer zuNum = marketingCommonConfig.getQuantileValue() == null ? 50000000:marketingCommonConfig.getQuantileValue();
+        while (sum>zuNum*zu){
+            zu++;
+        }
+        return ((zu-1)*mo)+(index%mo);
+    }
+
+    @Override
+    public Integer getPart(Integer index) {
+        if(index==null||index==0){
+            throw new RuntimeException("参数不能为空或者0");
+        }
+         return index%mo;
+    }
+
+    @Override
+    public Integer getPartNum(Integer sum) {
+        Integer zu = 1;
+        Integer zuNum = marketingCommonConfig.getQuantileValue() == null ? 50000000:marketingCommonConfig.getQuantileValue();
+        while (sum>zuNum*zu){
+            zu++;
+        }
+        return zu*mo;
     }
 }

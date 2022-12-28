@@ -2,8 +2,11 @@ package com.br.marketing.task.job;
 
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.common.TaskExecCommonField;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.StraHisFile;
@@ -12,6 +15,7 @@ import com.br.marketing.entity.TaskStatusExample;
 import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.TaskStatusMapper;
+import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.task.service.Impl.ObservedScoreThreadServiceImpl;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -27,6 +31,7 @@ import java.util.UUID;
 /**
  * 暂停跑分任务
  */
+@Deprecated
 @Component
 @Slf4j
 public class TaskActionJob extends AbstractSimpleElasticJob {
@@ -42,6 +47,9 @@ public class TaskActionJob extends AbstractSimpleElasticJob {
 
     @Resource
     StraHisFileMapper straHisFileMapper;
+
+    @Autowired
+    MarketingTaskService marketingTaskService;
 
     @Resource
     private AlarmApiClient alarmClient;
@@ -62,8 +70,7 @@ public class TaskActionJob extends AbstractSimpleElasticJob {
         if (actionType.equals("1")) {
             StringBuilder content = new StringBuilder();
             content.append("当前跑分程序 分片："+context.getShardingItems().toString()+"【恢复】");
-            alarmClient.sendAlarm(content.toString(), "跑分程序【恢复】", appName, secretKey,
-                    Constants.sendCodeMap.get("uploadSuccess"));
+            alarmClient.sendAlarm(content.toString(), "跑分程序【恢复】", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
             observedScoreThreadService.setInterrupt(1);
             return;
         }
@@ -72,9 +79,8 @@ public class TaskActionJob extends AbstractSimpleElasticJob {
         if (actionType.equals("0")) {
             StringBuilder content = new StringBuilder();
             content.append("当前跑分程序 分片："+context.getShardingItems().toString()+"【暂停】");
-            alarmClient.sendAlarm(content.toString(), "跑分程序【暂停】", appName, secretKey,
-                    Constants.sendCodeMap.get("uploadSuccess"));
-            observedScoreThreadService.stopThread();
+            alarmClient.sendAlarm(content.toString(), "跑分程序【暂停】", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
+            observedScoreThreadService.stopThreadAll();
             return;
         }
 
@@ -86,40 +92,21 @@ public class TaskActionJob extends AbstractSimpleElasticJob {
             if(!b){
                 return;
             }
-
-            StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(Long.valueOf(fileIdStr));
+            Long fileId = Long.valueOf(fileIdStr);
+            StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(fileId);
             if(straHisFile ==null){
                 return;
             }
-            TaskStatusExample statusExample = new TaskStatusExample();
-            statusExample.createCriteria().andFileIdEqualTo(Integer.valueOf(fileIdStr));
-            List<TaskStatus> taskStatuses = taskStatusMapper.selectByExample(statusExample);
-            if (taskStatuses.size() <= 0) {
-                return;
-            }
-            TaskStatus taskStatus = taskStatuses.get(0);
-            TaskStatus updateStatus = new TaskStatus();
-            updateStatus.setId(taskStatus.getId());
-
-            if (!new Integer(4).equals(taskStatus.getOnceStatus())
-                    && !new Integer(4).equals(taskStatus.getAllStatus())) {
-                return;
-            }
-            if (new Integer(4).equals(taskStatus.getOnceStatus())) {
-                updateStatus.setOnceStatus(3);
-            }
-
-            if (new Integer(4).equals(taskStatus.getAllStatus())) {
-                updateStatus.setAllStatus(3);
-            }
-            taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
+//            Result result = marketingTaskService.pauseTask(fileId, 0);
+//            if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
+//                StringBuilder content = new StringBuilder();
+//                content.append("当前跑分程序 分片："+context.getShardingItems().toString()).append("\r\n");
+//                content.append(String.format("跑分任务：【%s】",straHisFile.getBatchNumber())).append("\r\n");
+//                content.append(String.format("跑分记录id：【%s】",straHisFile.getId().toString()));
+//                alarmClient.sendAlarm(content.toString(), "跑分任务【恢复】", appName, secretKey,
+//                        Constants.sendCodeMap.get("uploadSuccess"));
+//            }
             removeActionLock(fileIdStr,s);
-            StringBuilder content = new StringBuilder();
-            content.append("当前跑分程序 分片："+context.getShardingItems().toString()).append("\r\n");
-            content.append(String.format("跑分任务：【%s】",straHisFile.getBatchNumber())).append("\r\n");
-            content.append(String.format("跑分记录id：【%s】",straHisFile.getId().toString()));
-            alarmClient.sendAlarm(content.toString(), "跑分任务【恢复】", appName, secretKey,
-                    Constants.sendCodeMap.get("uploadSuccess"));
         }
     }
 

@@ -6,6 +6,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.mapper.*;
+import com.br.marketing.strategy.UserCenterHandler;
 import com.google.common.collect.Lists;
 import java.text.DecimalFormat;
 
@@ -57,6 +58,8 @@ public class redis {
 
     @Resource
     MarketingSyncInfoMapper syncInfoMapper;
+
+
 
     @Test
     public void testHaluo(){

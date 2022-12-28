@@ -11,21 +11,21 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class ServiceConfig {
 
-    @Bean("apipool")
+    @Bean(name = "apipool")
     public ThreadPoolExecutor getApiPool(){
         return new ThreadPoolExecutor(50,200,10L, TimeUnit.SECONDS
                 , new ArrayBlockingQueue(50),new ThreadFactoryBuilder().setNameFormat("requestApi-pool-%d").build()
                 ,new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
-    @Bean("currentDbpool")
+    @Bean(name = "currentDbpool")
     public ThreadPoolExecutor getcurrentDbpool(){
         return new ThreadPoolExecutor(5,5,10L, TimeUnit.SECONDS
                 , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("currentDb-pool-%d").build()
                 ,new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
-    @Bean("logDbpool")
+    @Bean(name = "logDbpool")
     public ThreadPoolExecutor getSaveLogDbpool(){
         return new ThreadPoolExecutor(10,20,10L, TimeUnit.SECONDS
                 , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("logDb-pool-%d").build()
@@ -33,7 +33,7 @@ public class ServiceConfig {
     }
 
 
-    @Bean("interfaceLogDbpool")
+    @Bean(name = "interfaceLogDbpool")
     public ThreadPoolExecutor getInterfaceLogDbpool(){
         return new ThreadPoolExecutor(10,20,10L, TimeUnit.SECONDS
                 , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("interfaceLogDb-pool-%d").build()

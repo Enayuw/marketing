@@ -2,8 +2,10 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
+import com.br.common.util.MD5Utils;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
@@ -21,12 +23,14 @@ import com.br.marketing.client.twosevenservice.TwoSevenService;
 import com.br.marketing.client.twosevenservice.intput.RequestSevenDTO;
 import com.br.marketing.client.twosevenservice.output.ResponseSevenZDTO;
 import com.br.marketing.client.twosevenservice.output.SevenDetailVO;
+import com.br.marketing.client.xiecheng.SmsQuitReq;
 import com.br.marketing.client.xiecheng.XieChengService;
 import com.br.marketing.client.yiqianbao.YiQianBaoService;
 import com.br.marketing.client.yiqianbao.input.YqbDetailVo;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.dto.PushShDXDTO;
@@ -35,7 +39,10 @@ import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.rpcclient.RpcClientProxy;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.service.PushDataService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
@@ -48,14 +55,18 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+import static com.br.marketing.util.TimeUtils.isEffectiveDate;
 
 @Slf4j
 @Service
@@ -98,6 +109,8 @@ public class PushDataServiceImpl implements PushDataService {
     private XieChengDataMapper xieChengDataMapper;
 
     @Resource
+    private XiechengSmsQuitDataMapper xiechengSmsQuitDataMapper;
+    @Resource
     private AlarmApiClient alarmClient;
     @Value("${otherConfig.alarm.outsideSecretKey:00}")
     private String secretKey;
@@ -139,6 +152,9 @@ public class PushDataServiceImpl implements PushDataService {
     @Autowired
     XieChengService xieChengService;
 
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
 
     final static DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
 
@@ -160,6 +176,7 @@ public class PushDataServiceImpl implements PushDataService {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(isContiue);
         }
 
+        localFile.setPushStartTime(new Date());
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
         Integer number = 0;
         while (actionMark) {
@@ -203,14 +220,17 @@ public class PushDataServiceImpl implements PushDataService {
             } catch (Exception e) {
             }
         }
+
+        localFile.setPushEndTime(new Date());
+        localFile.setPushNumber(number);
+        localFileMapper.updateByPrimaryKeySelective(localFile);
         if (SftpFileTypeEnum.DX.getValue().equals(localFile.getFileType())) {
             StringBuilder content = new StringBuilder();
             content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
                     .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
                     .append("数量：".concat(number.toString()).concat("\r\n"))
                     .append("文件推送dass结束".concat("\r\n"));
-            alarmClient.sendAlarm(content.toString(), "Dass结果文件推送", appName, secretKey,
-                    Constants.sendCodeMap.get("uploadSuccess"));
+            alarmClient.sendAlarm(content.toString(), "Dass结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
     }
@@ -254,6 +274,7 @@ public class PushDataServiceImpl implements PushDataService {
         if (localFile == null) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
         }
+        localFile.setPushStartTime(new Date());
         AtomicInteger errorMark = new AtomicInteger();
         Integer number = 0;
         String yyyyMMddHHmmss = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
@@ -357,6 +378,10 @@ public class PushDataServiceImpl implements PushDataService {
             //endregion
             number++;
         }
+        localFile.setPushNumber(number);
+
+        localFile.setPushEndTime(new Date());
+        localFileMapper.updateByPrimaryKeySelective(localFile);
         /** 调用撞库接口有网络失败的 需要重试 */
         if (errorMark.get() > 0) {
             return new Result().setCode(ResultCode.FAIL.getValue());
@@ -370,15 +395,20 @@ public class PushDataServiceImpl implements PushDataService {
         Integer day = Integer.valueOf(LocalDate.now().format(yyyyMMddDF));
         Boolean mark = Boolean.TRUE;
         Long minId = null;
+        LocalFile localFile = new LocalFile();
+        localFile.setPushStartTime(new Date());
+        List<Long> countIds = new ArrayList<>();
         while (mark) {
             List<HaierData> haierData = haierDataMapper.selectDataLimitId(day, minId);
-            if (haierData.size() <= 0) {
+            if (haierData.size() == 0) {
                 mark = Boolean.FALSE;
                 continue;
             }
             String apiCode = haierData.get(0).getApiCode();
+            localFile.setId(haierData.get(0).getLocalId());
             minId = haierData.get(haierData.size() - 1).getId() + 1;
             Map<String, List<HaierData>> types = haierData.stream().collect(Collectors.groupingBy(HaierData::getType));
+
             for (String s : types.keySet()) {
                 String type = s;
                 List<HaierData> haierList = types.get(s);
@@ -427,6 +457,9 @@ public class PushDataServiceImpl implements PushDataService {
                     if (datas.size() > 0) {
                         try {
                             Result<Response2Entity> response2EntityResult = haierServiceClient.pushToTeleSalesWithIds(haierReqDTO, 0);
+                            if (response2EntityResult.getCode() == 1) {
+                                countIds.addAll(ids);
+                            }
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -434,6 +467,11 @@ public class PushDataServiceImpl implements PushDataService {
                 }
             }
         }
+
+
+        localFile.setPushEndTime(new Date());
+        localFile.setPushNumber(countIds.size());
+        localFileMapper.updateByPrimaryKeySelective(localFile);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
@@ -463,9 +501,9 @@ public class PushDataServiceImpl implements PushDataService {
                                 record.setStatus(data.getBody().getSts());
                                 haierReqMapper.updateByPrimaryKeySelective(record);
                                 if ("fail".equals(data.getBody().getSts())) {
-                                    alarmClient.sendAlarm(String.format("海尔查询结果 reqId:%s 推送失败", reqData.getReqId())
+                                    alarmClient.sendAlarm(String.format("海尔查询结果-reqId:%s-推送失败", reqData.getReqId())
                                             , "海尔推送结果查询"
-                                            , app2Name, secret2Key, Constants.sendCodeMap.get("pushToHaier"));
+                                            , AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
                                 }
                             }
                         }
@@ -695,8 +733,7 @@ public class PushDataServiceImpl implements PushDataService {
 
     private void sendAlarm(String msg) {
         log.warn(msg);
-        alarmClient.sendAlarm(msg, "海尔消金转电销(转化数据)警告", app2Name, secret2Key,
-                Constants.sendCodeMap.get("pushToHaier"));
+        alarmClient.sendAlarm(msg, "海尔消金转电销(转化数据)警告", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
     }
 
     /**
@@ -819,10 +856,13 @@ public class PushDataServiceImpl implements PushDataService {
         }
         //壹钱包推送营销数据
         if ("yiqianbao".equals(localFile.getFileType())) {
+            localFile.setPushStartTime(new Date());
             Boolean actionMark = true;
             Long minId = null;
+            Integer pushCount = 0;
             while (actionMark) {
                 List<YiqianbaoData> dataList = yiqianbaoDataMapper.getPushData(id, minId);
+                pushCount = pushCount + dataList.size();
                 if (dataList.size() <= 0) {
                     actionMark = false;
                     continue;
@@ -835,49 +875,224 @@ public class PushDataServiceImpl implements PushDataService {
                     updatePushStatus(pushList);
                 });
             }
+
+            localFile.setPushEndTime(new Date());
+            localFile.setPushNumber(pushCount);
+            localFileMapper.updateByPrimaryKeySelective(localFile);
+        }
+        //携程短信退订推送
+        if ("xiechengsms".equals(localFile.getFileType())) {
+            pushSmsQuitData(localFile);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
-    @Override
-    public Result pushXieChengToDbData(Long id) {
-        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
-        if (localFile == null) {
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
+    /**
+     * // TODO: 2022/12/6
+     * // 1. 通过循环，根据localId 和当前最小id 查询数据，第一个id 为 null，分页为每页1w条 type =0 为 sftp 上传数据，1 为 api上传数据。
+     * // 2. 启动线程池。将每条数据放入到线程池里。
+     * // 3. 新建redis锁key  public static final String pushXieCheng = prefix.concat("xieCheng:pushXieCheng");
+     * // 4. 判断当前数据是否已推送过，如果推送过 直接剔除 ，sftp 不会计算推送条数。
+     * // 5. 执行推送逻辑，根据返回值 进行重试。
+     * // 7. 成功后释放锁
+     * // 8. 全部推送结束  关闭线程池。
+     * // 9. 若 type 为 0 ，则需要统计上传推送数量 和重复数据
+     *
+     * @param id
+     * @return
+     */
+    public void pushSmsQuitData(LocalFile localFile) {
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5);
+        localFile.setPushStartTime(new Date());
+        Boolean actionMark = true;
+        Long minId = null;
+        AtomicInteger failNum = new AtomicInteger(0);
+        while (actionMark) {
+            if (StringUtils.isNotEmpty(marketingCommonConfig.getXieChengSmsQuitThreadNum())) {
+                pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getXieChengSmsQuitThreadNum()));
+                pool.setMaximumPoolSize(Integer.valueOf(marketingCommonConfig.getXieChengSmsQuitThreadNum()));
+                log.warn("携程推送短信退订接口线程调整，corePoolSize={},maxPoolSize={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
+            }
+            List<XiechengSmsQuitData> dataList = xiechengSmsQuitDataMapper.getSmsQuitData(localFile.getId(), minId);
+            if (dataList.size() <= 0) {
+                actionMark = false;
+                continue;
+            }
+            minId = dataList.get(dataList.size() - 1).getId();
+            dataList.forEach(pushList -> {
+                pool.submit(() -> {
+                    SmsQuitReq smsQuitReq = new SmsQuitReq(pushList.getCipherMobile(), pushList.getBlackListType());
+                    //兼容Md5手机号
+                    String phone = smsQuitReq.getCipherMobile();
+                    if (DecodeClient.isMd5(phone)) {
+                        smsQuitReq.setCipherMobile(Sha256Util.getSHA256Encrypt(RpcClientProxy.decode(phone, "cell", "md5", "")));
+                    }
+                    Result result = xieChengService.sendSmsQuitData(smsQuitReq);
+                    XiechengSmsQuitData xiechengSmsQuitData = new XiechengSmsQuitData();
+                    xiechengSmsQuitData.setId(pushList.getId());
+                    if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
+                        xiechengSmsQuitData.setPushStatus(2);
+                    } else {
+                        xiechengSmsQuitData.setPushStatus(3);
+                        failNum.getAndIncrement();
+                    }
+                    xiechengSmsQuitDataMapper.updateByPrimaryKeySelective(xiechengSmsQuitData);
+                });
+            });
         }
-        //携程推送营销数据
-        if ("xiecheng".equals(localFile.getFileType())) {
-            Boolean actionMark = true;
-            while (actionMark) {
+        pool.shutdown();
+        try {
+            while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+        localFile.setPushEndTime(new Date());
+        XiechengSmsQuitDataExample xiechengSmsQuitDataExample = new XiechengSmsQuitDataExample();
+        xiechengSmsQuitDataExample.createCriteria().andLocalIdEqualTo(localFile.getId())
+                .andPushStatusEqualTo(2)
+                .andStatusEqualTo(1);
+        Long i = xiechengSmsQuitDataMapper.countByExample(xiechengSmsQuitDataExample);
+        localFile.setPushNumber(i.intValue());
+        localFileMapper.updateByPrimaryKeySelective(localFile);
+        xieChengSendAlarm(failNum,"携程短信退订接口推送异常，请检查");
+    }
 
-                List<XieChengData> xieChengDatalist = xieChengDataMapper.selectByLocalId(id);
-                if (xieChengDatalist.size() <= 0) {
+    @Override
+    public Result pushXieChengToDbData(String data) {
+
+        Integer xieChengDateSendThread = marketingCommonConfig.getXiechengDateSendThread();
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(xieChengDateSendThread, xieChengDateSendThread);
+        try {
+            LocalFile localFile = new LocalFile();
+            Long id;
+            if(isJson(data)){
+                JSONObject jsonObject = JSONObject.parseObject(data);
+                log.warn("jsonObject:{}",jsonObject);
+                id = Long.valueOf(jsonObject.getInteger("localId"));
+            }else {
+                id = Long.valueOf(data);
+                localFile = localFileMapper.selectByPrimaryKey(id);
+                if (localFile != null) {
+                    localFile.setPushStartTime(localFile.getPushStartTime() == null ? new Date() : localFile.getPushStartTime());
+                }else {
+                    return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(false);
+                }
+            }
+            Boolean actionMark = true;
+            Long minId = null;
+            AtomicInteger failNum = new AtomicInteger(0);
+            while (actionMark) {
+                List<XieChengData> xieChengDatalist = xieChengDataMapper.selectByLocalId(id, minId);
+                if (xieChengDatalist.size() == 0) {
                     actionMark = false;
                     continue;
                 }
                 for (int i = 0; i < xieChengDatalist.size(); i++) {
-                    try {
-                        Thread.sleep(500L);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
                     XieChengData xieChengData = xieChengDatalist.get(i);
-                    String result = xieChengService.pushXieChengData(xieChengData);
-                    JSONObject resultJson = JSONObject.parseObject(result);
-                    Integer code = resultJson.getInteger("code");
-                    XieChengData resultData = new XieChengData();
-                    resultData.setId(xieChengData.getId());
-                    if (code == 0) {
-                        resultData.setPushStatus(2);
-                    }else {
-                        resultData.setPushStatus(3);
-                    }
-                    resultData.setDataMessage(result);
-                    xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                    minId = xieChengData.getId();
+                    threadPool.submit(() -> pushXieChengData(xieChengData,failNum));
                 }
             }
+            threadPool.shutdown();
+            try {
+                while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                }
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
+            if(!isJson(data)){
+                updateLocalFile(localFile);
+            }
+            xieChengSendAlarm(failNum,"携程广告上报接口推送异常，请检查");
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+    }
+
+    private boolean isJson(String str){
+        try {
+            JSONObject jsonStr= JSONObject.parseObject(str);
+            return  true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void updateLocalFile(LocalFile localFile) {
+        if (localFile != null) {
+            localFile.setPushEndTime(new Date());
+            XieChengDataExample xieChengDataExample = new XieChengDataExample();
+            xieChengDataExample.createCriteria().andLocalIdEqualTo(localFile.getId())
+                    .andPushStatusEqualTo(2)
+                    .andStatusEqualTo(1);
+            int i = xieChengDataMapper.countByExample(xieChengDataExample);
+            localFile.setPushNumber(i);
+            localFileMapper.updateByPrimaryKeySelective(localFile);
+        }
+    }
+    private int getSuccessCount(LocalFile localFile){
+        XieChengDataExample xieChengDataExample = new XieChengDataExample();
+        xieChengDataExample.createCriteria().andLocalIdEqualTo(localFile.getId())
+                .andPushStatusEqualTo(2)
+                .andStatusEqualTo(1);
+        return xieChengDataMapper.countByExample(xieChengDataExample);
+    }
+    private void pushXieChengData(XieChengData xieChengData,AtomicInteger failNum) {
+        // 字段修改兼容
+        String sha256Tel = xieChengData.getSha256Tel();
+        xieChengData.setSha256Tel(sha256Tel);
+        // 获取redis 锁
+        String key = RedisKeyConstant.pushXieChengLock.concat(":")
+                .concat(xieChengData.getApiCode())
+                .concat(sha256Tel);
+        String value = UUID.randomUUID().toString();
+        redisChgService.lock(key, value);
+        // 查询到当前电话数据是否推送过。
+        List<XieChengData> xieChengRepeatDatalist = xieChengDataMapper.getByCellToday(sha256Tel);
+        XieChengData resultData = new XieChengData();
+        resultData.setId(xieChengData.getId());
+        if (xieChengRepeatDatalist.isEmpty()) {
+            // 组装 clickId 13位时间戳+ 随机5位数字字母 + sha256tel
+            String clickId = System.currentTimeMillis() + getCode(5) + sha256Tel;
+            xieChengData.setClickId(clickId);
+            // 携程推送
+            Result result = xieChengService.pushXieChengData(xieChengData);
+            if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
+                resultData.setPushStatus(2);
+            } else {
+                resultData.setPushStatus(3);
+                failNum.getAndIncrement();
+            }
+            resultData.setClickId(clickId);
+            resultData.setDataMessage(result.getMessage());
+        } else {
+            resultData.setId(xieChengData.getId());
+            resultData.setStatus(2);
+            resultData.setDataMessage("数据重复未推送");
+        }
+        xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+        redisChgService.unlock(key, value);
+    }
+
+    /**
+     * 随机生成由数字、字母组成的N位验证码
+     *
+     * @return 返回一个字符串
+     */
+    public static String getCode(int n) {
+        char arr[] = new char[n];
+        int i = 0;
+        while (i < n) {
+            char ch = (char) (int) (Math.random() * 124);
+            if (ch >= 'a' && ch <= 'z' || ch >= '0' && ch <= '9') {
+                arr[i++] = ch;
+            }
+        }
+        //将数组转为字符串
+        return new String(arr);
     }
 
     private YqbDetailVo getRequestTransfer(List<YiqianbaoData> pushList) {
@@ -925,6 +1140,16 @@ public class PushDataServiceImpl implements PushDataService {
         String s = redisChgService.get(key);
         if (status.equals(s)) {
             redisChgService.del(key);
+        }
+    }
+
+    private void xieChengSendAlarm(AtomicInteger failNum,String title){
+        if (failNum.get() > 0) {
+            try {
+                alarmClient.sendAlarm("推送失败条数=" + failNum.get(), title, AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
         }
     }
 }

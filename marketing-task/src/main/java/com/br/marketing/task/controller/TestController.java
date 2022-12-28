@@ -8,7 +8,6 @@ import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.CheckServicePackageImpl;
 import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.task.service.Impl.LoanWarningServiceImpl;
 import com.br.marketing.task.utils.HxUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,8 +38,7 @@ public class TestController {
         return "hello word".concat(myenv).concat("=====").concat(s);
     }
 
-    @Autowired
-    LoanWarningServiceImpl loanWarningService;
+
 
     @Resource
     CustomerMapper customerMapper;
@@ -48,12 +46,6 @@ public class TestController {
     @Autowired
     IProductResultSimpleService productResultSimpleService;
 
-    @GetMapping("/task")
-    public String task(){
-        Customer customerByApiCode = customerMapper.getCustomerByApiCode("7410571");
-        loanWarningService.process(customerByApiCode,null);
-        return "";
-    }
 
     @GetMapping("/testSpeed")
     public String testSpeed(){

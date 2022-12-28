@@ -3,11 +3,12 @@ package com.br.marketing.check.service.Impl;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.client.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
@@ -15,7 +16,6 @@ import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.dto.TxtToDbDTO;
 import com.br.marketing.entity.FileDbConfig;
 import com.br.marketing.entity.LocalFile;
-import com.br.marketing.entity.PhoneSaleExample;
 import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.PhoneSaleMapper;
@@ -37,7 +37,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
 /**
  * @Author: Bairong
@@ -211,7 +210,7 @@ public class SftpToDbByCommonService {
             if (errorMark.get() > 0) {
                 updateFile.setComplete("3");
             }
-            localFileMapper.updateByPrimaryKeySelective(updateFile);
+
             if (datafuc != null) {
                 Result apply = datafuc.apply(localFile);
                 if(ResultCode.SUCCESS.getValue().equals(apply.getCode())){
@@ -220,6 +219,9 @@ public class SftpToDbByCommonService {
                     }
                 }
             }
+
+            updateFile.setErrorActualNumber(errorMark.get());
+            localFileMapper.updateByPrimaryKeySelective(updateFile);
             producter.send(routKey, localFile.getId().toString());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -236,8 +238,7 @@ public class SftpToDbByCommonService {
                     .append("导入文件状态：".concat(errorMark.get() == 0 ? "正常" : "不正常").concat("\r\n"))
                     .append("导入数据行数：".concat(localFile.getActualNumber().toString()).concat("\r\n"))
                     .append("其中有问题行数：".concat(String.valueOf(errorMark.get())).concat("\r\n"));
-            alarmClient.sendAlarm(content.toString(), "sftp数据上传", appName, secretKey,
-                    Constants.sendCodeMap.get("uploadSuccess"));
+            alarmClient.sendAlarm(content.toString(), "sftp数据上传", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
@@ -356,6 +357,7 @@ public class SftpToDbByCommonService {
             if (errorMark.get() > 0) {
                 updateFile.setComplete("3");
             }
+            updateFile.setErrorActualNumber(errorMark.get());
             localFileMapper.updateByPrimaryKeySelective(updateFile);
             if (StringUtils.isNotBlank(fileDbConfig.getRouteKey())) {
                 producter.send(fileDbConfig.getRouteKey(), localFile.getId().toString());
@@ -376,9 +378,8 @@ public class SftpToDbByCommonService {
                     .append("文件类型：".concat(localFile.getFileType()).concat("\r\n"))
                     .append("导入文件状态：".concat(errorMark.get() == 0 ? "正常" : "不正常").concat("\r\n"))
                     .append("导入数据行数：".concat(localFile.getActualNumber().toString()).concat("\r\n"))
-                    .append("其中有问题行数：".concat(errorMark.toString()).concat("\r\n"));
-            alarmClient.sendAlarm(content.toString(), "sftp数据上传", appName, secretKey,
-                    Constants.sendCodeMap.get("uploadSuccess"));
+                    .append("其中有问题行数：".concat(String.valueOf(errorMark.get())).concat("\r\n"));
+            alarmClient.sendAlarm(content.toString(), "sftp数据上传",AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }

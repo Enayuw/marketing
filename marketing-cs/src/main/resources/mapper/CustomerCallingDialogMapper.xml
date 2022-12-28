@@ -160,7 +160,7 @@
         <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
-        insert into b_marketing_customer_calling_dialog (api_code, cid, user_type,
+        insert into b_marketing_customer_calling_dialog (api_code,local_id, cid, user_type,
         group_type, swift_number, task_id,
         task_name, task_type, case_num,
         dialog_id, case_status, is_send_msg,
@@ -170,7 +170,7 @@
         recording_path, intention_grade, dialog_status,
         status, create_time, update_time,
         tag_list)
-        values (#{apiCode,jdbcType=VARCHAR}, #{cid,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR},
+        values (#{apiCode,jdbcType=VARCHAR},#{localId,jdbcType=BIGINT}, #{cid,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR},
         #{groupType,jdbcType=VARCHAR}, #{swiftNumber,jdbcType=VARCHAR}, #{taskId,jdbcType=VARCHAR},
         #{taskName,jdbcType=VARCHAR}, #{taskType,jdbcType=INTEGER}, #{caseNum,jdbcType=VARCHAR},
         #{dialogId,jdbcType=VARCHAR}, #{caseStatus,jdbcType=INTEGER}, #{isSendMsg,jdbcType=INTEGER},
@@ -723,5 +723,15 @@
         group by b.request_id, a.api_code
         order by b.id asc;
 
+    </select>
+
+
+    <select id="getNewOne" resultType="com.br.marketing.vo.HaloCallingLocalFileDataVo">
+        select local_id
+        from b_marketing_customer_calling_dialog
+        where
+         send_status = 0
+          and status = '1'
+        order by id desc limit 1;
     </select>
 </mapper>

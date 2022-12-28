@@ -1,16 +1,13 @@
 package com.br.marketing.innerapi.rabbitmq.consumer;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.br.marketing.client.IceClient;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.strategy.HaloCleanHistoryHandler;
 import com.br.marketing.strategy.InterfaceHandlerService;
 import com.br.marketing.strategy.UserCenterHandler;
-import com.br.usernew.ResponseDto;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**

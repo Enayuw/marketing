@@ -54,6 +54,26 @@ public class LocalFile {
     private Integer actualNumber;
 
     /**
+     *推送数量
+     */
+    private Integer pushNumber;
+
+    /**
+     *错误数量
+     */
+    private Integer errorActualNumber;
+
+    /**
+     * 推送开始时间
+     */
+    private Date pushStartTime;
+
+    /**
+     * 推送结束时间
+     */
+    private Date pushEndTime;
+
+    /**
      * 创建时间
      */
     private Date createTime;
@@ -141,6 +161,38 @@ public class LocalFile {
 
     public void setActualNumber(Integer actualNumber) {
         this.actualNumber = actualNumber;
+    }
+
+    public Integer getPushNumber() {
+        return pushNumber;
+    }
+
+    public void setPushNumber(Integer pushNumber) {
+        this.pushNumber = pushNumber;
+    }
+
+    public Integer getErrorActualNumber() {
+        return errorActualNumber;
+    }
+
+    public void setErrorActualNumber(Integer errorActualNumber) {
+        this.errorActualNumber = errorActualNumber;
+    }
+
+    public Date getPushStartTime() {
+        return pushStartTime;
+    }
+
+    public void setPushStartTime(Date pushStartTime) {
+        this.pushStartTime = pushStartTime;
+    }
+
+    public Date getPushEndTime() {
+        return pushEndTime;
+    }
+
+    public void setPushEndTime(Date pushEndTime) {
+        this.pushEndTime = pushEndTime;
     }
 
     public Date getCreateTime() {

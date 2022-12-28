@@ -2,6 +2,7 @@ package com.br.marketing.check.consumer;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.PushDataService;
@@ -14,6 +15,7 @@ import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -46,7 +48,7 @@ public class ConsumerApp {
     public void consumerPushDass(Channel channel, Message message) {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(channel, message, pushDataService::pushDassData, o,"");
+        consumerService.consumerRun(channel, message, pushDataService::pushDassData, o, "");
     }
 
     /**
@@ -92,6 +94,7 @@ public class ConsumerApp {
 //        }.getType());
 //        consumerService.consumerRun(channel, message, pushDataService::pushHaierTransferData, o, "");
 //    }。
+
     /**
      * 消费sftpToDb数据
      *
@@ -113,9 +116,8 @@ public class ConsumerApp {
      */
     @RabbitListener(queues = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, containerFactory = "containerFactory")
     public void xiechengTodb(Channel channel, Message message) {
-        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
-        }.getType());
+        String mes  = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
-        consumerService.consumerRun(channel, message, pushDataService::pushXieChengToDbData, o, null);
+        consumerService.consumerRun(channel, message, pushDataService::pushXieChengToDbData, mes, null);
     }
 }

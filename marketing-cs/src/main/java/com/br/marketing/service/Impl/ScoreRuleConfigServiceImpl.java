@@ -113,7 +113,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setPushType(0);
         rule.setCycleEndDay(scoreRuleVO.getCycleEndDay());
         rule.setStrategyProductJson(scoreRuleVO.getStrategyProductJson());
-        rule.setTaskType(scoreRuleVO.getTaskType()!=null?scoreRuleVO.getTaskType():Integer.valueOf(0));
+        rule.setTaskType(scoreRuleVO.getTaskType() != null ? scoreRuleVO.getTaskType() : Integer.valueOf(0));
         rule.setProductInfo(scoreRuleVO.getProductInfo());
         rule.setThreekEncryptType(scoreRuleVO.getThreekEncryptType());
         rule.setIsOnline(scoreRuleVO.getIsOnline());
@@ -142,7 +142,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     }
 
     @Override
-    public boolean setStatus(Long rid, Long crId, Integer status,  MarketingUserDetail userDetail) {
+    public boolean setStatus(Long rid, Long crId, Integer status, MarketingUserDetail userDetail) {
         ScoreRuleConfig rule = scoreRuleConfigMapper.selectByPrimaryKey(rid);
         if (ObjectUtils.isEmpty(rule) || rule.getIsDel() != 1) {
             throw new BusinessException("抱歉小主，规则无效或不存在");
@@ -261,7 +261,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setCycleDay(scoreRuleVO.getCycleDay());
         rule.setCycleEndDay(scoreRuleVO.getCycleEndDay());
         rule.setStrategyProductJson(scoreRuleVO.getStrategyProductJson());
-        rule.setTaskType(scoreRuleVO.getTaskType()!=null?scoreRuleVO.getTaskType():0);
+        rule.setTaskType(scoreRuleVO.getTaskType() != null ? scoreRuleVO.getTaskType() : 0);
         rule.setProductInfo(scoreRuleVO.getProductInfo());
         rule.setThreekEncryptType(scoreRuleVO.getThreekEncryptType());
         rule.setIsOnline(scoreRuleVO.getIsOnline());
@@ -440,10 +440,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     }
 
 
-
-
     @Override
-    public Result<List<String>> getDataCondition(MarketingTaskExtend taskExtend,MarketingTask task,String date) {
+    public Result<List<String>> getDataCondition(MarketingTaskExtend taskExtend, MarketingTask task, String date) {
         Result<List<String>> listResult = soleStrategyService.analysisConditions(taskExtend.getDataCondition());
         return listResult;
 //        Result<Boolean> dataType = isSelectRuleByTask(taskExtend.getTaskId());
@@ -464,5 +462,10 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 //                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(stringResult.getMessage());
 //            }
 //        }
+    }
+
+    @Override
+    public Integer getPart(Integer count, Integer index) {
+        return null;
     }
 }

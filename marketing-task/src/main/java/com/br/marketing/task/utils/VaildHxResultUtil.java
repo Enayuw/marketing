@@ -1,18 +1,14 @@
 package com.br.marketing.task.utils;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingUser;
 import com.br.marketing.exception.HxResultRuntimeException;
-import com.br.marketing.service.IProductResultSimpleService;
-import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
-import com.br.marketing.task.Scheduler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -96,9 +92,14 @@ public class VaildHxResultUtil {
                 result=false;
             }
             HxResultRuntimeException hxResultRuntimeException = new HxResultRuntimeException(
-                    String.format("【紧急报警】【%s】智能营销平台- 数据产品flag异常  \001 您好:  【%s】数据产品异常 %s- %s，请及时跟进"
+                    String.format("【紧急报警】【%s】智能营销平台--数据产品flag异常-\001您好:【%s】数据产品异常-%s--%s，请及时跟进"
                             ,apiCode,apiCode,flag,string));
-            log.error("hxResult product flag error",hxResultRuntimeException);
+            log.warn("hxResult product flag error",hxResultRuntimeException);
+            String title = String.format("【紧急报警】【%s】智能营销平台--数据产品flag异常", apiCode);
+            log.warn(AlertLog.buildWarnMessage(("99".equals(string)||"98".equals(string))
+                            ?AlarmSendCodeEnum.EXCEPTION_HUAX.getCode()
+                            :AlarmSendCodeEnum.ERROR_UNKNOWN.getCode()
+                    , hxResultRuntimeException.getMessage(), title));
         break;
             }
         }
@@ -177,9 +178,14 @@ public class VaildHxResultUtil {
                     result=false;
                 }
                 HxResultRuntimeException hxResultRuntimeException = new HxResultRuntimeException(
-                        String.format("【紧急报警】【%s】智能营销平台- 数据产品flag异常  \001 您好:  【%s】数据产品异常 %s- %s，请及时跟进"
+                        String.format("【紧急报警】【%s】智能营销平台-数据产品flag异常\001 您好:【%s】数据产品异常-%s--%s，请及时跟进"
                                 ,apiCode,apiCode,flag,string));
-                log.error("hxResult product flag error",hxResultRuntimeException);
+                log.warn("hxResult product flag error",hxResultRuntimeException);
+                String title = String.format("【紧急报警】【%s】智能营销平台-数据产品flag异常", apiCode);
+                log.warn(AlertLog.buildWarnMessage(("99".equals(string)||"98".equals(string))
+                                ?AlarmSendCodeEnum.EXCEPTION_HUAX.getCode()
+                                :AlarmSendCodeEnum.ERROR_UNKNOWN.getCode()
+                        , hxResultRuntimeException.getMessage(), title));
                 break;
             }
         }

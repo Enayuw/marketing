@@ -28,6 +28,7 @@ public interface MarketingTaskService {
 
     /**
      * 跑分记录列表
+     *
      * @param current
      * @param size
      * @param search
@@ -47,11 +48,11 @@ public interface MarketingTaskService {
 
     MarketingTaskVO getTask(String id);
 
-    Long getTaskPercent(String hisFileId,String id);
+    Long getTaskPercent(String hisFileId, String id);
 
     List<ScoreRuleConfig> getScoreRules(String apiCode);
 
-    void addTaskPercent(Long fileId,Long number);
+    void addTaskPercent(Long fileId, Long number);
 
     Result<Long> buildScoreTaskOfAuto(CustomerScoreRuleVO vo);
 
@@ -66,4 +67,12 @@ public interface MarketingTaskService {
     void saveScoreResult(MarketingTaskResultPreview preview);
 
     Result offLineCallBack(@Valid OffLineCallBackDTO dto);
+
+    Result delTask(Long id);
+
+    Integer getPart(Integer sum,Integer index);
+
+    Integer getPart(Integer index);
+
+    Integer getPartNum(Integer sum);
 }

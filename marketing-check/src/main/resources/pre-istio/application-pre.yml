@@ -114,7 +114,7 @@ api:
     baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
     pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
   robotAiApiService:
-    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service-pred
+    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
   yiQianBao:
     baseUrl: https://teststable4-www-pmgw.stg.1qianbao.com
@@ -145,8 +145,17 @@ api:
         url: ${api.haier.baseUlr}app/marketControl/custData/receive
         info:
           url: ${api.haier.custData.receive.url}/info
+  zhongAn:
+    baseUrl: https://finance-gateway-test.diandian.com.cn
+    api: ${api.zhongAn.baseUrl}/fcpGateway
+    isProxy: true
+    rsapKey: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCVuaxc7ZznPdvsH0nhd2eQ/uhu/LewJqUVMvdYUKwXPxzGBUz8cVKyltwpMJ03uMPx+RStWnkWcmCSeQdqiw27FtaPELOxxQQc06OGBXfp5R86MKp2+bkdPRSkpUKK2X8vCyiopQojBXbaVzRUwjPPsQAsDinCGkSUirWETxfCxwIDAQAB
+    xdCode: 07brdyy01
+    bxCode: 3360001
   marketing:
-    transferUrl: http://marketing-api/marketingTransferData/receiveTransferDataSync
+    baseUrl: http://marketing-api
+    transferUrl: ${api.marketing.baseUrl}/marketingTransferData/receiveTransferDataSync
+    uploadUrl: ${api.marketing.baseUrl}/marketingUserPre/receiveMarketingPreUser
   halo:
     openUrl: https://fat-hello-openapi.hellobike.com/openapi
     appKey: hellobikefinance-bwYuIVvO
@@ -162,6 +171,14 @@ api:
     source: BaiRong_C01
     channel: commonOutAdMonitor
     isProxy: true
+    smsQuit:
+      openUrl: https://cgcallback-fat.ctripqa.com/nemoweb/ad/common/saveAdMobileBlack.do
+      appId: test001
+      key: 6b219b9e71fdb2d2
+      iv: 5e7b6c07d3edbc01
+      singKey: b8845b4cb1f16471
+      channel: saveAdMobileBlack
+      isProxy: true
 spring:
   rabbitmq:
     addresses: delivery-rabbitmq-cluster-01.brapp.com:5672

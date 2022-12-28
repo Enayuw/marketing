@@ -104,6 +104,7 @@ public class ApiCaller {
         return exchange.getBody();
     }
 
+    @Deprecated
     public ThirdApiResultTransfer postTransferStr() {
         if (momCommonUtil != null) {
             if (StringUtils.isBlank(interfaceLog.getApiCode())) {

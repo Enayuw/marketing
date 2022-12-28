@@ -1,5 +1,7 @@
 package com.br.marketing.service;
 
+import com.br.marketing.bo.PeriodOfValidityBO;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
 
 import java.util.Date;
@@ -31,7 +33,7 @@ public interface IMarketingSyncUserService {
      * @param apiCode  apiCode
      * @param custNum  案件编号
      * @param userType 场景
-     * @param date     比较的日期
+     * @param date     判断是否在有效期内的日期
      * @param day      天的范围，+day 为T+day；-day 为T-day；null为T月底
      * @return true or false ,在有效期间为true，否则为false
      * @author Guo Zeqiang
@@ -45,10 +47,10 @@ public interface IMarketingSyncUserService {
      * @param apiCode      apiCode
      * @param custNum      案件编号
      * @param userType     场景
-     * @param date         比较的日期
+     * @param date         判断是否在有效期内的日期
      * @param day          天的范围，+day 为{@code validityDate+day}；-day 为{@code validityDate-day}；
      *                     0为{@code validityDate}月底
-     * @param validityDate 有效日期
+     * @param validityDate 计算有效期范围的日期，eg：(validityDate +|- day)
      * @return true or false ,在有效期间为true，否则为false
      * @author Guo Zeqiang
      * @dateTime 2022/2/14 9:58
@@ -59,16 +61,29 @@ public interface IMarketingSyncUserService {
     /**
      * 是否在有效期内
      *
-     * @param date         比较的日期
+     * @param date         判断是否在有效期内的日期
      * @param day          天的范围，+day 为{@code validityDate+day}；-day 为{@code validityDate-day}；
      *                     null为{@code validityDate}月底
      *                     0为{@code validityDate}当天
-     * @param validityDate 有效日期
+     * @param validityDate 计算有效期范围的日期，eg：(validityDate +|- day)
      * @return true or false ,在有效期间为true，否则为false
      * @author Guo Zeqiang
      * @dateTime 2022/2/14 9:58
      */
     Boolean isPeriodOfValidity(Date date, Integer day, Date validityDate);
+
+    /**
+     * 获取有效期构造器
+     *
+     * @param day          天的范围，+day 为{@code validityDate+day}；-day 为{@code validityDate-day}；
+     *                     null为{@code validityDate}月底
+     *                     0为{@code validityDate}当天
+     * @param validityDate 计算有效期范围的日期，eg：(validityDate +|- day)
+     * @return 有效期范围
+     * @author Guo Zeqiang
+     * @dateTime 2022/2/14 9:58
+     */
+    PeriodOfValidityBO.Builder getPeriodOfValidityRange(Integer day, Date validityDate);
 
     /**
      * 根据案件编号获取客户最新的场景
@@ -143,4 +158,83 @@ public interface IMarketingSyncUserService {
      */
     Map<String, Date> getSyncUserTimeMaxByCustNumsMap(String apiCode, Set<String> custNums, String userType
             , String dateTimeEnd);
+
+    /**
+     * 2022/9/22 11:20
+     * 获取自定义日期与场景下的上传信息
+     *
+     * @param freeUserTypeAndDateMap 自由定义的时间与userType，key userType；value dateSet
+     * @return list
+     */
+    List<MarketingSyncUser> getFreeUserTypeAndDateAllFieldList(String apiCode
+            , Set<String> custNumSet, Map<String, Set<String>> freeUserTypeAndDateMap);
+
+    /**
+     * 2022/9/22 11:20
+     * 获取自定义日期与场景下的上传信息
+     *
+     * @param freeUserTypeAndDateMap 自由定义的时间与userType，key userType；value dateSet
+     * @return Map key custNum; value MarketingSyncUser
+     */
+    Map<String, List<MarketingSyncUser>> getFreeUserTypeAndDateAllFieldMap(String apiCode
+            , Set<String> custNumSet, Map<String, Set<String>> freeUserTypeAndDateMap);
+
+    /**
+     * 2022/9/22 11:20
+     * 获取自定义日期与场景下的上传信息
+     *
+     * @param freeUserTypeAndDateMap 自由定义的时间与userType，key userType；value dateSet
+     * @return Map key custNum; value MarketingSyncUser
+     */
+    Map<String, MarketingSyncUser> getFreeUserTypeAndDateAllFieldMapValueOne(String apiCode
+            , Set<String> custNumSet, Map<String, Set<String>> freeUserTypeAndDateMap);
+
+    /**
+     * 2022/9/22 11:20
+     * 获取自定义日期与场景下的上传信息
+     *
+     * @param freeUserTypeAndDateMap 自由定义的时间与userType，key userType；value dateSet
+     * @return list
+     */
+    List<MarketingSyncUser> getFreeUserTypeAndDateList(String apiCode
+            , Set<String> custNumSet, Map<String, Set<String>> freeUserTypeAndDateMap);
+
+    /**
+     * 2022/9/22 11:20
+     * 获取自定义日期与场景下的上传信息
+     *
+     * @param freeUserTypeAndDateMap 自由定义的时间与userType，key userType；value dateSet
+     * @return list
+     */
+    Map<String, List<MarketingSyncUser>> getFreeUserTypeAndDateMap(String apiCode
+            , Set<String> custNumSet, Map<String, Set<String>> freeUserTypeAndDateMap);
+
+    /**
+     * 2022/9/22 11:20
+     * 获取自定义日期与场景下的上传信息
+     *
+     * @param freeUserTypeAndDateMap 自由定义的时间与userType，key userType；value dateSet
+     * @return list
+     */
+    Map<String, MarketingSyncUser> getFreeUserTypeAndDateMapValueOne(String apiCode
+            , Set<String> custNumSet, Map<String, Set<String>> freeUserTypeAndDateMap);
+
+    /**
+     * 2022/9/22 11:20
+     * 获取自定义日期与场景下的上传信息
+     *
+     * @return list
+     */
+    Map<String, MarketingSyncUser> getFreeUserTypeAndDateMapValueOne(String apiCode
+            , Set<String> custNumSet);
+
+    /**
+     * 2022/11/14 19:37
+     * 根据手机号 批量获取最新时间上传数据信息
+     *
+     * @param apiCode apiCode
+     * @param cellSet 手机号集合
+     * @return Map key cell; value MarketingTransferSyncUser
+     */
+    Map<String, MarketingSyncUser> getCellByCellAndMaxAppletTimeMap(String apiCode, Set<String> cellSet);
 }

@@ -2,23 +2,23 @@ package com.br.marketing.check.utils;
 
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.enums.ErrorFileTypeEnum;
-import com.br.marketing.check.service.FileCheckService;
-import com.br.marketing.client.IceClient;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.entity.LoadResult;
 import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.entity.SyncConfig;
-import com.br.marketing.mapper.LoadResultMapper;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.google.common.base.Splitter;
 import com.jcraft.jsch.SftpATTRS;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -134,7 +134,7 @@ public class SftpToDbUtils {
             return null;
         }
         String apiCode = split[3];
-        MerchantParam merchantParam = IceClient.getMerchantParam(apiCode);
+        MerchantParam merchantParam = RpcClientProxy.getMerchantParam(apiCode);
         if (merchantParam == null) {
             log.error("merchantParam is null,{}", apiCode);
             return null;
@@ -368,6 +368,31 @@ public class SftpToDbUtils {
             }else{
                 address.put(i, s);
             }
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    public static Result statisticsHeadByCommon(String head,HashMap<Integer, String> address,HashSet extra,List<String> baseHeads){
+        List<String> heads = Splitter.on(",").splitToList(head);
+        if(heads.size()<=0){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("head信息不存在");
+        }
+        Boolean startExt = false;
+        if(!heads.containsAll(baseHeads)){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("表头缺少必填字段");
+        }
+        for (int i = 0; i < heads.size(); i++) {
+            String s = heads.get(i);
+            if(StringUtils.isBlank(s)){
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("head信息不能有空字段");
+            }
+            if(s.equals("extend")){
+                startExt = true;
+            }
+            if(startExt){
+                extra.add(s);
+            }
+            address.put(i, s);
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue());
     }

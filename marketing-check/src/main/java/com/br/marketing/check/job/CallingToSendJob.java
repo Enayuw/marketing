@@ -7,17 +7,13 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.halo.HaluoApiServiceClient;
 import com.br.marketing.client.halo.input.ReqHaluoApiDTO;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
-import com.br.marketing.entity.CustomerCalling;
-import com.br.marketing.entity.CustomerCallingDialog;
-import com.br.marketing.entity.CustomerCallingDialogExample;
-import com.br.marketing.entity.CustomerCallingExample;
-import com.br.marketing.mapper.CustomerCallingDataStatusMapper;
-import com.br.marketing.mapper.CustomerCallingDialogMapper;
-import com.br.marketing.mapper.CustomerCallingMapper;
-import com.br.marketing.mapper.CustomerCallingPushLogMapper;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.*;
 import com.br.marketing.vo.HaloCallingDataVo;
+import com.br.marketing.vo.HaloCallingLocalFileDataVo;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.google.common.base.CaseFormat;
@@ -68,6 +64,9 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
     @Resource
     HaluoApiServiceClient haluoApiServiceClient;
 
+    @Resource
+    LocalFileMapper localFileMapper;
+
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
@@ -102,6 +101,13 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
         if (haloCallingCount <= 0) {
             return;
         }
+        // 更新文件记录推送开始时间
+        HaloCallingLocalFileDataVo haloCallingLocalFileDataVo = customerCallingDialogMapper.getNewOne();
+        Long localId = haloCallingLocalFileDataVo.getLocalId();
+        LocalFile localFile = new LocalFile();
+        localFile.setId(localId);
+        localFile.setPushStartTime(new Date());
+        localFileMapper.updateByPrimaryKeySelective(localFile);
         CountDownLatch countDownLatch = new CountDownLatch(haloCallingCount);
         boolean index = true;
         String taskId = null;
@@ -135,10 +141,10 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
             log.error("countDownLatch 线程执行异常", e);
         }
 
-        callbackEnd(haloCallingCount, customerCalling.getApiCode(), taskId);
+        callbackEnd(haloCallingCount, customerCalling.getApiCode(), taskId,localId);
     }
 
-    public void callbackEnd(int haloCallingCount, String apiCode, String taskId) {
+    public void callbackEnd(int haloCallingCount, String apiCode, String taskId,Long localId) {
         Map<String, Object> cusMap = new HashMap<>(16);
         cusMap.put("sendStatus", 2);
         cusMap.put("apiCode", apiCode);
@@ -155,13 +161,19 @@ public class CallingToSendJob extends AbstractSimpleElasticJob {
             Result<String> stringResult = haluoApiServiceClient.postHaluoOpenApi(reqHaluoApiDTO);
             log.warn("哈罗数据 批次:{}, 总量: {}, 处理成功: {}，处理结果: {}", taskId, haloCallingCount, haloCallingDealCount, JSON.toJSON(stringResult));
         }
+        //
+        LocalFile localFile = new LocalFile();
+        localFile.setId(localId);
+        localFile.setPushEndTime(new Date());
+        localFile.setPushNumber(haloCallingCount);
+        localFileMapper.updateByPrimaryKeySelective(localFile);
         try {
             StringBuilder content = new StringBuilder();
             content.append("apiCode：".concat(apiCode).concat("\r\n"))
                     .append("taskId：".concat(taskId).concat("\r\n"))
                     .append(String.format("数据总量: %d,回调成功数量：%d", haloCallingCount, haloCallingDealCount));
-            alarmClient.sendAlarm(content.toString(), "哈罗用户接收数据结束通知接口任务", appName, secretKey,
-                    Constants.sendCodeMap.get("uploadSuccess"));
+            alarmClient.sendAlarm(content.toString(), "哈罗用户接收数据结束通知接口任务",
+                    AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }

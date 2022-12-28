@@ -14,6 +14,7 @@ import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
+import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,8 +43,8 @@ import java.util.stream.Collectors;
 @Service
 public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService {
 
-    @Value("${otherConfig.warning.path:00}")
-    private String path;
+    @Autowired
+    SyncConfigService syncConfigService;
     @Autowired
     private TransferFileTaskMapper transferFileTaskMapper;
     @Autowired
@@ -78,7 +79,7 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
     }
 
     @Override
-    public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
+    public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam) {
         List<TransferFileTask> resultList = new ArrayList<>();
         Date now = new Date();
         //可配置
@@ -118,7 +119,7 @@ public class TransferToFileByJiuFuServiceImpl implements ITransferToFileService 
         log.warn("玖富转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();//yyyyMMdd
-        String descPath = path.concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
             writeDic.mkdirs();

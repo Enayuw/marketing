@@ -1,15 +1,16 @@
 package com.br.marketing.push.service.impl;
 
 import com.br.common.util.BrCipherMaker;
-import com.br.marketing.client.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.common.constants.RegexConstants;
 import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.service.MarketingHistoryEsService;
 import com.br.marketing.es.util.UuidUtils;
+import com.br.marketing.rpcclient.RpcClientProxy;
+import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.google.common.collect.Lists;
 
 import java.text.ParseException;
 import java.util.*;
@@ -19,7 +20,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import com.br.marketing.client.FtpClient;
-import com.br.marketing.client.SftpClient;
 import com.br.marketing.client.bi.BiApiClient;
 import com.br.marketing.client.bi.input.OffLineScoreDTO;
 import com.br.marketing.common.commondto.Result;
@@ -32,14 +32,12 @@ import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.mapper.*;
-import com.br.marketing.push.util.FileUtil;
 import com.br.marketing.service.IProductResultSimpleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
@@ -48,11 +46,8 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.zip.ZipFile;
 
 @Service
 @Slf4j
@@ -101,6 +96,9 @@ public class MergeWithMessageServiceImpl {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
+
+    @Autowired
+    MarketingTaskService marketingTaskService;
 
     /**
      * 消费文件合并信息
@@ -315,6 +313,8 @@ public class MergeWithMessageServiceImpl {
         Integer offLineInserEsThreadNum = marketingCommonConfig.getOffLineInserEsThreadNum();
         Integer threadNum = offLineInserEsThreadNum != null && offLineInserEsThreadNum > 0 ? offLineInserEsThreadNum : 50;
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
+        Integer sumNum = 0;
+        Integer index = 0;
         for (File f : files) {
             try {
                 FileReader read = new FileReader(f);
@@ -324,12 +324,15 @@ public class MergeWithMessageServiceImpl {
                 List<String> heads = new ArrayList<>();
                 while ((ss = br.readLine()) != null) {
                     number++;
+                    sumNum++;
+                    index++;
                     if (number == 1) {
                         heads = Arrays.stream(ss.split(",")).collect(Collectors.toList());
                     } else {
                         final String content = ss;
                         final List<String> titles = heads;
-                        threadPool.submit(new EsRun(ss, heads, file, hxFields, baseFields, enc, JSON.parseArray(task.getProductInfo())));
+                        String part = marketingTaskService.getPart(sumNum, index).toString();
+                        threadPool.submit(new EsRun(ss, heads, file, hxFields, baseFields, enc, JSON.parseArray(task.getProductInfo()), part));
                     }
                 }
                 br.close();
@@ -376,7 +379,12 @@ public class MergeWithMessageServiceImpl {
 
         private JSONArray products;
 
-        public EsRun(String content, List<String> heads, StraHisFile file, List<String> hxFields, List<String> baseFields, Integer encryptionType, JSONArray products) {
+        private String part;
+
+        public EsRun(String content, List<String> heads, StraHisFile file
+                , List<String> hxFields, List<String> baseFields
+                , Integer encryptionType, JSONArray products
+                , String part) {
             this.content = content;
             this.heads = heads;
             this.file = file;
@@ -384,6 +392,7 @@ public class MergeWithMessageServiceImpl {
             this.baseFields = baseFields;
             this.encryptionType = encryptionType;
             this.products = products;
+            this.part = part;
         }
 
         @Override
@@ -402,6 +411,8 @@ public class MergeWithMessageServiceImpl {
                     : row.get("id"), "id", encryptionType));
             history.setCell(threeKdec(row.get("cell"), "cell", encryptionType));
             history.setName(threeKdec(row.get("name"), "name", encryptionType));
+            history.setPart(part);
+            history.setScoreTime(System.currentTimeMillis());
             try {
                 history.setRequestTime(new SimpleDateFormat("yyyy-MM-dd").parse(row.get("request_time")));
             } catch (ParseException e) {
@@ -469,10 +480,10 @@ public class MergeWithMessageServiceImpl {
     private String threeKdec(String str, String type, Integer encryptionType) {
         if (StringUtils.isNotBlank(str)) {
             if (encryptionType.equals(1)) {
-                String s = decodeClient.query(str, type, "md5", "");
+                String s = RpcClientProxy.decode(str, type, "md5", "");
                 return StringUtils.isNotBlank(s) ? BrCipherMaker.getInstance().encode(s) : "";
             } else if (encryptionType.equals(2)) {
-                String s = decodeClient.query(str, type, "sha", "");
+                String s = RpcClientProxy.decode(str, type, "sha", "");
                 return StringUtils.isNotBlank(s) ? BrCipherMaker.getInstance().encode(s) : "";
             } else {
                 return str;

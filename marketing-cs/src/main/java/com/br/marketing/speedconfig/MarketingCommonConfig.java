@@ -5,10 +5,7 @@ import com.br.speed.client.common.annotations.SpeedFile;
 import lombok.Data;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Configuration
 @SpeedFile(filename = "marketingcommon.properties",topic = "marketing")
@@ -69,9 +66,27 @@ public class MarketingCommonConfig {
      */
     private List<String> universalProcessApiCode;
 
+    /**
+     * 众安推送黑名单定时任务执行时间
+     */
+    private String zhongAnPushBlackDataExecuteTime;
 
     /**
-     * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day天
+     * 众安推送黑名单定时任务开关
+     * true 打开，false 关闭执行
+     */
+    private Boolean zhongAnPushBlackDataSwitch;
+    /**
+     * 众安推送黑名单数据有效期
+     */
+    private String zhongAnPushBlackDataPeriod;
+    /**
+     * 众安推送黑名单线程数设置
+     */
+    private String zhongAnPushBlackThreadNum;
+
+    /**
+     * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
      */
     private Map<String, String> shuHeTransferExtractDayMap;
 
@@ -91,7 +106,7 @@ public class MarketingCommonConfig {
     private Boolean shuHeTransferExtractIfUseQuasiTotalQuantity;
 
     /**
-     * 数禾有效期, T 代表当前天到月底； T+/-day 代表当前天到day天
+     * 数禾有效期, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
      */
     private Map<String, String> shuHePeriodOfValidityDayMap;
 
@@ -256,7 +271,7 @@ public class MarketingCommonConfig {
      */
     private Integer OffLineInserEsThreadNum;
     /**
-     * 同程金融转化有效期, T 代表当前天到月底； T+/-day 代表当前天到day天
+     * 同程金融转化有效期, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
      */
     private String tongChengPeriodOfValidityDay;
 
@@ -273,7 +288,14 @@ public class MarketingCommonConfig {
      * 原始上传数据推送决策 手机号加密类型{"7410437":1}
      * 1-md5;2-sha256;
      */
-    private HashMap<String,Integer> pushCellEncPolicy;
+    private HashMap<String, Integer> pushCellEncPolicy;
+
+    /**
+     * 2022/9/22 17:52
+     * 自由定义场景与上传日期
+     * key userType；value dateSet
+     */
+    private Map<String, Set<String>> freeUserTypeAndDateMap;
 
     /**
      * 同程转化数据提取apicode集合
@@ -285,4 +307,106 @@ public class MarketingCommonConfig {
      */
     private String tongChengTransferExecuteTime;
 
+    /**
+     * 携程数据推送线程数
+     */
+    private Integer xiechengDateSendThread;
+
+    /**
+     * nfs路径
+     */
+    private String nfsPath;
+
+    /**
+     * 桔子转化数据入库特殊处理apicode集合
+     */
+    private List<String> juZiTransferInsertApiCodes;
+    /**
+     * 桔子实时转化定时任务执行时间
+     */
+    private String juZiRealTimeTransferExecuteTime;
+
+    /**
+     * 桔子实时转化锁定期配置
+     */
+    private Map<String, String> juZiRealTimeLockConfig;
+
+    /**
+     * 桔子周期性推送dass,查询实时推送数据日期;eg:{"a":[2],"b":[2],"c":[2,6,13,27],"d":[6]}
+     */
+    private Map<String, List<Integer>> orangeTransferCyclicalPushDassDay;
+    /**
+     * 哈啰转化数据提取apicode集合
+     */
+    private List<String> haLuoTransferFileApiCodes;
+    /**
+     * 萨摩耶转化数据提取apicode集合
+     */
+    private List<String> saMoYeTransferFileApiCodes;
+
+    /**
+     * 接口日志记录判断标识key为接口名称，第一个为db记录判断，第二为file记录判断{"zanPushDetail":[false,true],"zanZk":[false,true]}
+     */
+    private HashMap<String, List<Boolean>> apiLogMark;
+
+    /**
+     * 众安名单锁定推送数据线有效期, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
+     */
+    private Map<String, String> zhongAnPeriodOfValidityDay;
+
+    /**
+     * 众安名单锁定推送数据线程池配置,eg：[25,50],25为核心线程数，50为最大线程数
+     */
+    private List<Integer> zhongAnPushTreadPoolSize;
+
+    /**
+     * 跑分分组分位值
+     */
+    private Integer quantileValue;
+
+    /**
+     * 推送决策优化跑分记录时间节点
+     */
+    private String scoreFileYhTime;
+
+    /**
+     *规则筛选从es获取的最大线程数
+     */
+    private Integer scoreByEsThreadNum;
+
+    /**
+     * 规则筛选调用决策接口的线程数
+     */
+    private Integer scoreToJcThreadNum;
+
+    /**
+     * 携程推送短信退订接口线程数设置
+     */
+    private String xieChengSmsQuitThreadNum;
+    /**
+     * 携程转化数据入库特殊处理apicode集合
+     */
+    private List<String> xieChengTransferInsertApiCodes;
+
+    /**
+     * 众安异业撞库数据提取apiCode集合
+     */
+    private List<String> ZhongAnTransferApiCodes;
+
+    /**
+     * 玖众安异业撞库数据提取执行时间
+     */
+    private String ZhongAnTransferExecuteTime;
+
+
+    /**
+     * 携程转化数据提取apiCode集合
+     */
+    private List<String> XieChengTransferApiCodes;
+
+    /**
+     * 携程转化数据提取执行时间
+     */
+    private String XieChengTransferExecuteTime;
 }
+

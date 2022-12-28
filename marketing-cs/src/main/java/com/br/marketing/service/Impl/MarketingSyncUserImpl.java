@@ -1,23 +1,30 @@
 package com.br.marketing.service.Impl;
 
+import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.service.IMarketingSyncUserService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +34,8 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     MarketingSyncInfoMapper marketingSyncInfoMapper;
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public Long countRepeat(String execSql) {
@@ -104,6 +113,30 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     }
 
     @Override
+    public PeriodOfValidityBO.Builder getPeriodOfValidityRange(Integer day, Date validityDate) {
+        if (ObjectUtils.isEmpty(validityDate)) {
+            return null;
+        }
+        ZonedDateTime creatDate = validityDate.toInstant().atZone(ZoneId.systemDefault());
+        Instant firstInstant;
+        Instant lastInstant;
+        if (day == null) {
+            firstInstant = creatDate.toInstant();
+            lastInstant = creatDate.with(TemporalAdjusters.lastDayOfMonth()).toInstant();
+        } else if (day == 0) {
+            firstInstant = creatDate.toInstant();
+            lastInstant = firstInstant;
+        } else if (day > 0) {
+            firstInstant = creatDate.toInstant();
+            lastInstant = creatDate.plusDays(day).toInstant();
+        } else {
+            lastInstant = creatDate.toInstant();
+            firstInstant = creatDate.plusDays(day).toInstant();
+        }
+        return new PeriodOfValidityBO.Builder(Date.from(firstInstant), Date.from(lastInstant));
+    }
+
+    @Override
     public String getUserTypeLatestByCustNum(String apiCode, String custNum) {
         return marketingSyncInfoMapper.getUserTypeLatestByCustNum(apiCode, custNum);
     }
@@ -139,5 +172,86 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
                 apiCode, custNums, userType, dateTimeEnd);
         return syncUserList.parallelStream().collect(Collectors.toMap(
                 MarketingSyncUser::getCustNum, MarketingSyncUser::getCreateTime, (k1, k2) -> k2));
+    }
+
+    @Override
+    public List<MarketingSyncUser> getFreeUserTypeAndDateAllFieldList(String apiCode, Set<String> custNumSet
+            , Map<String, Set<String>> freeUserTypeAndDateMap) {
+        return marketingSyncUserMapper.getFreeUserTypeAndDateAllFieldList(apiCode, custNumSet, freeUserTypeAndDateMap);
+    }
+
+    @Override
+    public Map<String, List<MarketingSyncUser>> getFreeUserTypeAndDateAllFieldMap(String apiCode
+            , Set<String> custNumSet, Map<String, Set<String>> freeUserTypeAndDateMap) {
+        List<MarketingSyncUser> list = getFreeUserTypeAndDateAllFieldList(apiCode, custNumSet, freeUserTypeAndDateMap);
+        return getGroupByCustNumMap(list);
+    }
+
+    @Override
+    public List<MarketingSyncUser> getFreeUserTypeAndDateList(String apiCode, Set<String> custNumSet
+            , Map<String, Set<String>> freeUserTypeAndDateMap) {
+        return marketingSyncUserMapper.getFreeUserTypeAndDateList(apiCode, custNumSet, freeUserTypeAndDateMap);
+    }
+
+    @Override
+    public Map<String, List<MarketingSyncUser>> getFreeUserTypeAndDateMap(String apiCode, Set<String> custNumSet, Map<String, Set<String>> freeUserTypeAndDateMap) {
+        List<MarketingSyncUser> list = getFreeUserTypeAndDateList(apiCode, custNumSet, freeUserTypeAndDateMap);
+        return getGroupByCustNumMap(list);
+    }
+
+    @Override
+    public Map<String, MarketingSyncUser> getFreeUserTypeAndDateAllFieldMapValueOne(String apiCode
+            , Set<String> custNumSet, Map<String, Set<String>> freeUserTypeAndDateMap) {
+        List<MarketingSyncUser> list = getFreeUserTypeAndDateAllFieldList(apiCode, custNumSet, freeUserTypeAndDateMap);
+        return getGroupByCustNumMapValueOne(list);
+    }
+
+    @Override
+    public Map<String, MarketingSyncUser> getFreeUserTypeAndDateMapValueOne(String apiCode, Set<String> custNumSet
+            , Map<String, Set<String>> freeUserTypeAndDateMap) {
+        List<MarketingSyncUser> list = getFreeUserTypeAndDateList(apiCode, custNumSet, freeUserTypeAndDateMap);
+        return getGroupByCustNumMapValueOne(list);
+    }
+
+    @Override
+    public Map<String, MarketingSyncUser> getFreeUserTypeAndDateMapValueOne(String apiCode, Set<String> custNumSet) {
+        return getFreeUserTypeAndDateMapValueOne(apiCode, custNumSet, marketingCommonConfig.getFreeUserTypeAndDateMap());
+    }
+
+    /**
+     * 2022/9/22 17:40
+     * 根据CustNum分组并且获取AppletDate与CreateTime取最新的一条记录
+     */
+    private Map<String, MarketingSyncUser> getGroupByCustNumMapValueOne(List<MarketingSyncUser> list) {
+        return CollectionUtils.isEmpty(list) ? null :
+                list.parallelStream().collect(Collectors.toMap(MarketingSyncUser::getCustNum, Function.identity()
+                        , (v1, v2) -> (StringUtils.isNotBlank(v1.getAppletDate())
+                                && StringUtils.isNotBlank(v2.getAppletDate())
+                                && LocalDate.parse(v1.getAppletDate(), DateTimeFormatter.ISO_LOCAL_DATE)
+                                .isBefore(LocalDate.parse(v2.getAppletDate(), DateTimeFormatter.ISO_LOCAL_DATE)))
+                                && (!ObjectUtils.isEmpty(v1.getCreateTime())
+                                && !ObjectUtils.isEmpty(v2.getCreateTime())
+                                && v1.getCreateTime().before(v2.getCreateTime())) ? v2 : v1));
+    }
+
+    /**
+     * 2022/9/22 17:40
+     * 根据 CustNum分组
+     */
+    private Map<String, List<MarketingSyncUser>> getGroupByCustNumMap(List<MarketingSyncUser> list) {
+        return CollectionUtils.isEmpty(list) ? null : list.stream().collect(
+                Collectors.groupingBy(MarketingSyncUser::getCustNum));
+    }
+
+    @Override
+    public Map<String, MarketingSyncUser> getCellByCellAndMaxAppletTimeMap(String apiCode
+            , Set<String> cellSet) {
+        List<MarketingSyncUser> cellByCellAndMaxAppletTime = marketingSyncUserMapper.getCellByCellAndMaxAppletTime(
+                apiCode, cellSet);
+        if (CollectionUtils.isEmpty(cellByCellAndMaxAppletTime)) {
+            return null;
+        }
+        return cellByCellAndMaxAppletTime.parallelStream().collect(Collectors.toMap(MarketingSyncUser::getCell
+                , Function.identity()));
     }
 }

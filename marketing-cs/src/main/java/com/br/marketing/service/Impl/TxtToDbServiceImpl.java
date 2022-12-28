@@ -4,16 +4,18 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.validator.CellUtils;
-import com.br.marketing.client.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.commonmethod.YiXinUtils;
 import com.br.marketing.dto.TxtToDbDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.IDxService;
 import com.br.marketing.service.ITxtToDbService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -277,10 +279,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                             error = error.replace("name不能为空;", "");
                             String s = datas.get(i);
                             phoneSale.setNameAes(s);
-                            if(DecodeClient.isMd5(s)){
-                                String content = decodeClient.query(s, "name", "md5", "");
-                                phoneSale.setName(StringUtils.isBlank(content) ? "1" : content);
-                            }
+                            phoneSale.setName(decryptName(s));
                         }
                         break;
                     case "gender":
@@ -502,7 +501,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                             String s = datas.get(i);
                             phoneSale.setNameAes(s);
                             if(DecodeClient.isMd5(s)){
-                                String content = decodeClient.query(s, "name", "md5", "");
+                                String content = RpcClientProxy.decode(s, "name", "md5", "");
                                 phoneSale.setName(StringUtils.isNotBlank(content) ? content : "1");
                             }
                         }
@@ -705,10 +704,10 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         String res = "";
         if (DecodeClient.isMd5(phone)) {
             //cell md5
-            res = decodeClient.query(phone, "cell", "md5", "");
+            res = RpcClientProxy.decode(phone, "cell", "md5", "");
         } else {
             //cell sha256
-            res = decodeClient.query(phone, "cell", "sha", "");
+            res = RpcClientProxy.decode(phone, "cell", "sha", "");
         }
         if(StringUtils.isBlank(res)){
             objectResult.setCode(ResultCode.FAIL.getValue());
@@ -730,7 +729,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
             objectResult.setCode(ResultCode.SUCCESS.getValue());
             return objectResult;
         }
-        String res = decodeClient.query(phone, "cell", "md5", "");
+        String res = RpcClientProxy.decode(phone, "cell", "md5", "");
 
         if(StringUtils.isBlank(res)){
             objectResult.setCode(ResultCode.FAIL.getValue());
@@ -745,6 +744,24 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         return objectResult;
     }
 
+    String decryptName(String name){
+        UserValidator userValidator = new UserValidator(2);
+        if (userValidator.validateName(name)) {
+            return name;
+        }
+        String res = "";
+        if (DecodeClient.isMd5(name)) {
+            //cell md5
+            res = RpcClientProxy.decode(name, "name", "md5", "");
+        } else if(name.length() == 64) {
+            //cell sha256
+            res = RpcClientProxy.decode(name, "name", "sha", "");
+        }
+        if(StringUtils.isEmpty(res)){
+            return "1";
+        }
+        return res;
+    }
     @Override
     public Result phoneTodbByJuZi(TxtToDbDTO dto) {
         PhoneSale phoneSale = new PhoneSale();

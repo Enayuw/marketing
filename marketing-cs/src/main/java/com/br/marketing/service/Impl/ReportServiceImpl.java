@@ -7,8 +7,8 @@ import com.alibaba.excel.support.ExcelTypeEnum;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.client.IceClient;
 import com.br.marketing.client.SendMailClint;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -17,9 +17,12 @@ import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.EmailService;
+import com.br.marketing.service.SyncConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.map.HashedMap;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -43,8 +46,8 @@ public  class ReportServiceImpl implements EmailService {
     LoanFileMapper loanFileMapper;
     @Resource
     MarketingTaskMapper marketingTaskMapper;
-    @Value("${otherConfig.warning.path:00}")
-    private String path;
+    @Autowired
+    SyncConfigService syncConfigService;
     private final static Integer SIZE=2000;
 
     @Resource
@@ -63,7 +66,7 @@ public  class ReportServiceImpl implements EmailService {
             .append( "<table border=\"5\"  width=\"650\" style=\"border:solid 1px #E8F2F9;font-size=14px;;font-size:12px;\">")
             .append("<tr style=\"background-color: #428BCA; color:#ffffff\"><th>客户名称</th><th>批次号</th><th>上传时间</th><th>上传数据量</th><th>入库数据量</th></tr>");
             for (MarketingTask blt:list){
-                String companyMsg = IceClient.getCompanyMsg(blt.getApiCode());
+                String companyMsg = RpcClientProxy.getCompanyMsg(blt.getApiCode());
                 if(StringUtils.isNotEmpty(companyMsg)){
                     JSONObject companyJSONObj = JSON.parseObject(companyMsg);
                     compShortName=companyJSONObj.getString("COMP_SHORT_NAME");
@@ -90,7 +93,7 @@ public  class ReportServiceImpl implements EmailService {
         .append("<tr style=\"background-color: #428BCA; color:#ffffff\"><th>客户名称</th><th>任务状态</th><th>任务进度</th></tr>");
         List<String> strings = marketingTaskMapper.queryApiCode();
         for(String apiCode :strings){
-            String companyMsg = IceClient.getCompanyMsg(apiCode);
+            String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
             if(StringUtils.isNotEmpty(companyMsg)){
                 JSONObject companyJSONObj = JSON.parseObject(companyMsg);
                 compShortName=companyJSONObj.getString("COMP_SHORT_NAME");
@@ -134,7 +137,7 @@ public  class ReportServiceImpl implements EmailService {
 
         content.append("</body></html>");
         String title="智能营销平台昨日上传任务统计&当日任务进度统计";
-        alarmClient.sendAlarm(content.toString(),title,appName,secretKey,Constants.sendCodeMap.get("sysError"));
+        alarmClient.sendAlarm(content.toString(),title, AlarmSendCodeEnum.SUCCESS_INTERNAL.getCode());
     }
 
     @Override
@@ -212,7 +215,7 @@ public  class ReportServiceImpl implements EmailService {
             String compShortName = "";
             String companyMsg = "";
             try {
-                companyMsg = IceClient.getCompanyMsg(apiCode);
+                companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
             } catch (Exception e) {
                 log.error("getCompanyMsg error",e);
             }
@@ -239,7 +242,7 @@ public  class ReportServiceImpl implements EmailService {
         }
         String today=new SimpleDateFormat("yyyyMMdd").format(new Date());
         String fileName="result_file_list"+today+".xlsx";
-        String s = path + "/result/";
+        String s = syncConfigService.getPath() + "result/";
         export(map,fileName,s);
 
         String receive="xiaoxin.pang@brgroup.com,song.wang@brgroup.com,penghui.cheng@brgroup.com,xiangru.meng@brgroup.com,yanping.fu@brgroup.com";

@@ -4,4 +4,79 @@
     <insert id="insertFileData">
         ${insertSql}
     </insert>
+
+    <select id="selectList" resultType="com.br.marketing.vo.LocalFileVo">
+        select bf.id,
+        bf.api_code,
+        bf.file_type,
+        bf.file_name,
+        bf.status,
+        bf.complete,
+        bf.actual_number,
+        bf.create_time,
+        bf.error_actual_number,
+        bf.push_start_time,
+        bf.push_end_time,
+        bf.push_number,
+        bc.short_name,
+        bc.cid from b_local_file bf inner join b_marketing_customer bc on bc.api_code = bf.api_code where bf.file_type in ('qiqi','xiecheng','yiqianbao','dianxiao','halo','haier','zhongan','xiechengsms','marketingData')
+        <if test="search !=null and search!=''">
+            and (
+            bc.cid like concat("%", #{search},"%")
+            or bc.short_name like concat("%", #{search},"%"))
+        </if>
+        <if test="apiCode !=null and apiCode!=''">
+            <![CDATA[  and bc.api_code =#{apiCode} ]]>
+        </if>
+        <if test="uploadStartTime !=null and uploadStartTime!=''">
+            <![CDATA[  and bf.create_time >=#{uploadStartTime} ]]>
+        </if>
+        <if test="uploadEndTime !=null and uploadEndTime!=''">
+            <![CDATA[  and bf.create_time <#{uploadEndTime} ]]>
+        </if>
+
+        <if test="fileType!=null and fileType !='' ">
+            and bf.file_type = #{fileType}
+        </if>
+
+        order by bf.create_time desc
+    </select>
+    <select id="allCount" resultType="java.lang.Integer">
+        select sum(bf.actual_number),bf.api_code from b_local_file bf left join b_marketing_customer bc on bc.api_code = bf.api_code where bf.file_type in ('qiqi','xiecheng','yiqianbao','dianxiao','halo','haier')
+        <if test="search !=null and search!=''">
+            and (
+            bc.cid like concat("%", #{search},"%")
+            or bc.short_name like concat("%", #{search},"%"))
+        </if>
+        <if test="apiCode !=null and apiCode!=''">
+            <![CDATA[  and bc.api_code =#{apiCode} ]]>
+        </if>
+        <if test="uploadStartTime !=null and uploadStartTime!=''">
+            <![CDATA[  and bf.create_time >=#{uploadStartTime} ]]>
+        </if>
+        <if test="uploadEndTime !=null and uploadEndTime!=''">
+            <![CDATA[  and bf.create_time <#{uploadEndTime} ]]>
+        </if>
+
+        <if test="fileType!=null and fileType !='' ">
+            and bf.file_type = #{fileType}
+        </if>
+    </select>
+
+    <update id="updateUploadStartTimeById">
+        update b_local_file set push_start_time = #{date,jdbcType=TIMESTAMP}
+        where id in
+        <foreach collection="ids" item="id" separator="," close=")" open="(">
+            #{id}
+        </foreach>
+        and push_start_time is null
+    </update>
+
+    <select id="getByPrimaryKey" resultType="com.br.marketing.entity.LocalFile">
+        select *
+        from b_local_file
+        where id = #{id}
+    </select>
+
+
 </mapper>

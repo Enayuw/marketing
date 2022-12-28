@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.RedisChgService;
@@ -13,8 +14,10 @@ import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.ITransferToFileService;
+import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -92,21 +95,21 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
 
     private final static Map<String, String> FILE_NAME_PART;
 
-    @Value("${otherConfig.warning.path:/tmp/data_shuhe}")
-    private String path;
+    @Autowired
+    SyncConfigService syncConfigService;
 
     private final static String EXTENSION = ".txt";
     private final static String TABLE_HEADER = "apicode,taskid,usertype,custNum,cell,is_turn,is_black" +
             ",loginTime,clc_usr_lst_app_sta_tim,clc_usr_iso_pho_tim,clc_usr_iso_idt_tim,clc_usr_iso_crd_tim" +
-            ",clc_usr_iso_inf_tim,applyTime,auditTime,auditAmount,applyLoanTime,lentTime,insertime";
+            ",clc_usr_iso_inf_tim,applyTime,auditTime,auditAmount,applyLoanTime,lentTime,clc_usr_adt_tim_rcn_lon_wo_asset_label,insertime";
 
     private final static String TABLE_HEADER_CUFUJIE = "apicode,taskid,groupType,cust_num,cell,is_turn,is_black" +
             ",clc_usr_lst_app_sta_tim,clc_usr_lst_non_dcp_trs_tim,off_usr_lst_ord_tim_all,clc_usr_avl_lmt_lv0" +
-            ",clc_usr_adt_lmt_lv0,createtime";
+            ",clc_usr_adt_lmt_lv0,clc_usr_adt_tim_rcn_lon_wo_asset_label,createtime";
 
     private final static String TABLE_HEADER_CHONGSHEN = "apicode,taskid,usertype,custNum,cell,is_turn,is_black," +
             "clc_usr_max_dx_rrt_end,clc_usr_lst_app_sta_tim,clc_usr_iso_pho_tim,clc_usr_iso_idt_tim" +
-            ",clc_usr_iso_crd_tim,clc_usr_iso_inf_tim,auditTime,clc_usr_lst_reaudit_apply_time,createtime";
+            ",clc_usr_iso_crd_tim,clc_usr_iso_inf_tim,auditTime,clc_usr_lst_reaudit_apply_time,clc_usr_adt_tim_rcn_lon_wo_asset_label,createtime";
 
     static {
         FILE_NAME_PART = new HashMap<>(8);
@@ -125,7 +128,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
     }
 
     @Override
-    public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
+    public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam) {
         List<TransferFileTask> transferFileTaskList = new ArrayList<>();
         Result<List<TransferFileTask>> result = new Result<>();
         result.setDate(transferFileTaskList);
@@ -318,7 +321,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                         " LIMIT %s, %s", apiCode, userType, DateUtils.format(firstDateTime, pattern)
                 , DateUtils.format(lastDateTime, pattern), "%s", pageSize);
         List<MarketingTransferSyncUser> list = null;
-        String fileDirectory = path.concat("transferToFile").concat(File.separator).concat(apiCode)
+        String fileDirectory = syncConfigService.getPath().concat("transferToFile").concat(File.separator).concat(apiCode)
                 .concat(File.separator).concat(dateYyyyMmDdStr).concat(File.separator);
         final File filePath = new File(fileDirectory);
         if (!filePath.exists()) {
@@ -425,8 +428,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 transfer.getCustNum()
                 + separator +
-                DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(
-                        String.valueOf(getOrDefault(json, "cell"))).getBytes(StandardCharsets.UTF_8))
+                Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(
+                        String.valueOf(getOrDefault(json, "cell"))))
                 + separator +
                 getOrDefault(json, "is_turn")
                 + separator +
@@ -441,6 +444,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 getOrDefault(json, "clc_usr_avl_lmt_lv0")
                 + separator +
                 getOrDefault(json, "clc_usr_adt_lmt_lv0")
+                + separator +
+                getOrDefault(json, "clc_usr_adt_tim_rcn_lon_wo_asset_label")
                 + separator +
                 (ObjectUtils.isEmpty(transfer.getCreateTime()) ? defaultValue
                         : DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"))
@@ -461,8 +466,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 transfer.getCustNum()
                 + separator +
-                DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(
-                        String.valueOf(getOrDefault(json, "cell"))).getBytes(StandardCharsets.UTF_8))
+                Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(
+                        String.valueOf(getOrDefault(json, "cell"))))
                 + separator +
                 getOrDefault(json, "is_turn")
                 + separator +
@@ -484,6 +489,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 getOrDefault(json, "clc_usr_lst_reaudit_apply_time")
                 + separator +
+                getOrDefault(json, "clc_usr_adt_tim_rcn_lon_wo_asset_label")
+                + separator +
                 (ObjectUtils.isEmpty(transfer.getCreateTime()) ? defaultValue
                         : DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"))
                 + "\r\n";
@@ -503,8 +510,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 transfer.getCustNum()
                 + separator +
-                DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(
-                        String.valueOf(getOrDefault(json, "cell"))).getBytes(StandardCharsets.UTF_8))
+                Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(
+                        String.valueOf(getOrDefault(json, "cell"))))
                 + separator +
                 getOrDefault(json, "is_turn")
                 + separator +
@@ -530,6 +537,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 getOrDefault(json, "applyLoanTime") + separator +
                 (StringUtils.isEmpty(transfer.getLentTime()) ? defaultValue : transfer.getLentTime())
+                + separator +
+                getOrDefault(json, "clc_usr_adt_tim_rcn_lon_wo_asset_label")
                 + separator +
                 (ObjectUtils.isEmpty(transfer.getCreateTime()) ? defaultValue
                         : DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"))

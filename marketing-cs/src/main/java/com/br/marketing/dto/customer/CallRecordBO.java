@@ -66,7 +66,7 @@ public class CallRecordBO{
     /**
      * 拨打明细详情
      */
-    private CallRecordDetailDTO detail;
+    private CallRecordDetailBO detail;
 
     /**
      * 入库时间

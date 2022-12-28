@@ -151,8 +151,17 @@ api:
         url: ${api.haier.baseUlr}app/marketControl/custData/receive
         info:
           url: ${api.haier.custData.receive.url}/info
+  zhongAn:
+    baseUrl: https://finance-gateway-pop.diandian.com.cn
+    api: ${api.zhongAn.baseUrl}/fcpGateway
+    isProxy: true
+    rsapKey: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCG0Brdms00ECe0Qo/Fljo1S/ZAjGe9BvhLAH9zCGpeQLI9opkvyZFSnBhdP+Nb1pFPQkls8Dpsr0J17M8uEcoglIK1ADVxnqOf9qbzwgDE44/6Bca28gid+b1aL2KpWc0B1U/Q/TFn7ez93/jGcDXN5wxErR2+sIUE1oRUuZQC9wIDAQAB
+    xdCode: 07brdyy001
+    bxCode: 3360001
   marketing:
-    transferUrl: http://marketing-api/marketingTransferData/receiveTransferDataSync
+    baseUrl: http://marketing-api
+    transferUrl: ${api.marketing.baseUrl}/marketingTransferData/receiveTransferDataSync
+    uploadUrl: ${api.marketing.baseUrl}/marketingUserPre/receiveMarketingPreUser
   halo:
     openUrl: https://open.hellobike.com/openapi
     appKey: brgroup-pnPnzgxf
@@ -168,6 +177,14 @@ api:
     source: BaiRong_C01
     channel: commonOutAdMonitor
     isProxy: true
+    smsQuit:
+      openUrl: https://jr.ctrip.com/nemoweb/ad/common/saveAdMobileBlack.do
+      appId: bairong001
+      key: f3df6f62f0527bf0
+      iv: 3b2dac323465b024
+      singKey: 95cc01ec07387a44
+      channel: saveAdMobileBlack
+      isProxy: true
 spring:
   rabbitmq:
     addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672

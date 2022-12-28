@@ -4,6 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.common.annoation.RetryMethod;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.ThirdAdOuterReq;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -11,8 +14,10 @@ import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -66,6 +71,27 @@ public class XieChengService {
     @Value("${api.xiecheng.isProxy:0}")
     private Boolean isProxy;
 
+    @Value("${api.xiecheng.smsQuit.openUrl:0}")
+    private String smsQuitOpenUrl;
+
+    @Value("${api.xiecheng.smsQuit.appId:0}")
+    private String smsQuitAppId;
+
+    @Value("${api.xiecheng.smsQuit.key:0}")
+    private String smsQuitKey;
+
+    @Value("${api.xiecheng.smsQuit.iv:0}")
+    private String smsQuitIv;
+
+    @Value("${api.xiecheng.smsQuit.singKey:0}")
+    private String smsQuitSingKey;
+
+    @Value("${api.xiecheng.smsQuit.channel:0}")
+    private String smsQuitChannel;
+
+    @Value("${api.xiecheng.smsQuit.isProxy:0}")
+    private Boolean smsQuitIsProxy;
+
 
     @Autowired
     HttpProxyClient httpProxyClient;
@@ -73,23 +99,16 @@ public class XieChengService {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
+    private static final  String XIECHENGSMSQUIT= "xieChengSmsQuit";
+
 
     @RetryMethod(retryNowNum = 3)
-    public String pushXieChengData(XieChengData xieChengData) {
-        log.warn("携程明文参数 para={}", xieChengData);
-        try {
-            return send(xieChengData);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private String send(XieChengData xieChengData) throws Exception {
+    public Result pushXieChengData(XieChengData xieChengData) {
         /**
          * data 组装
          */
         JSONObject deviceInfo = new JSONObject();
-        deviceInfo.put("sha256Tel", xieChengData.getClickTel());
+        deviceInfo.put("sha256Tel", xieChengData.getSha256Tel());
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         ThirdAdOuterReq thirdAdOuterReq = new ThirdAdOuterReq(
                 timestemp,
@@ -104,11 +123,54 @@ public class XieChengService {
         retMap.put("channel", channel);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(thirdAdOuterReq), key, iv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, singKey));
-        log.warn("携程发送参数 para={}", JSON.toJSONString(retMap));
-        String send = httpProxyClient.send(JSON.toJSONString(retMap), openUrl, isProxy);
-        log.warn("携程数据返回信息：{}", send);
-        return send;
 
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, openUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(thirdAdOuterReq),true,false);
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+            log.error("携程广告上报接口发送参数:ThirdAdOuterReq={} para={}", JSON.toJSONString(thirdAdOuterReq),JSON.toJSONString(retMap));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+        String content = resMap.get("content");
+        JSONObject resultJson = JSONObject.parseObject(content);
+        Integer code = resultJson.getInteger("code");
+        if(code==0){
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
+        }
+        if (code == 500 || code == 704) {
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(content);
+        }else {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
+        }
+
+    }
+
+    /**
+     * desc：携程短信退订接口
+     */
+    @RetryMethod(retryNowNum = 3)
+    public Result sendSmsQuitData(SmsQuitReq smsQuitReq) {
+        String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
+        Map<String, Object> retMap = Maps.newHashMap();
+        retMap.put("appId", smsQuitAppId);
+        retMap.put("timestamp", timestemp);
+        retMap.put("channel", smsQuitChannel);
+        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(smsQuitReq), smsQuitKey, smsQuitIv));
+        retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsQuitSingKey));
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsQuitOpenUrl, smsQuitIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,"", httpProxyClient.isLogStore(XIECHENGSMSQUIT).get(0), httpProxyClient.isLogStore(XIECHENGSMSQUIT).get(1));
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+            log.error("携程短信退订接口-请求参数:{};返回:{}",JSON.toJSONString(resMap),JSON.toJSONString(resMap));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+        JSONObject resultJson = JSONObject.parseObject(resMap.get("content"));
+        Integer code = resultJson.getInteger("code");
+        if(code==0){
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        //需要重试
+        if(code==500||code==704){
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }else{
+            return new Result().setCode(ResultCode.FAIL.getValue());
+        }
     }
 
 }

@@ -24,8 +24,8 @@ public class AlarmAppender<E> extends RollingFileAppender<E>  {
                 content.append("-----").append(throwable.getMessage());
             }
             try {
-                EmailService emailService=PushApplication.ac.getBean(SystemExceptionServiceImpl.class);
-                emailService.sendAlarm(loggerName+":</br>"+content.toString(), "LOAN-PUSH-TASK");
+                SystemExceptionServiceImpl emailService=PushApplication.ac.getBean(SystemExceptionServiceImpl.class);
+                emailService.sendAlarmPrintStack(loggerName+":</br>"+content.toString(), "LOAN-PUSH-TASK",throwableProxy);
             } catch (Exception e) {
                 log.warn("Exception",e);
             }

@@ -59,5 +59,20 @@ public class RedisKeyConstant {
      */
     public static final String shuHeUploadDataFieldKey = prefix.concat("shuhe:uploaddata:field");
 
+    /**
+     * 桔子推电销custNum缓存key
+     */
+    public static final String juZiPushDaasCustNumKey = prefix.concat("juzi:pushdaas:custnum");
+
+    /**
+     * 众安客服拨打明细 custnum今日黑名单实时缓存
+     */
+    public static final String zhongAnblackCusNumToday = prefix.concat("zhongan:black:custnum");
+
+    /**
+     * 携程拨打数据推送缓存锁  key
+     */
+    public static final String pushXieChengLock = prefix.concat("xieCheng:pushXieCheng");
+
 
 }

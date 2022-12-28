@@ -13,6 +13,7 @@ import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
+import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.vo.TransferUserVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,8 +61,8 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
 
     final static String TRANSFER_TIME = " 18:00:00";
 
-    @Value("${otherConfig.warning.path:00}")
-    private String path;
+    @Autowired
+    SyncConfigService syncConfigService;
 
     @Override
     public String isMyParam(String apiCode, String jobParameter) {
@@ -69,7 +70,7 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
     }
 
     @Override
-    public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
+    public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam) {
 
         List<TransferFileTask> resultList = new ArrayList<>();
         String yyyyMMdd = LocalDate.now().format(yyyyMMddDF);
@@ -178,7 +179,7 @@ public class TransferToFileBySamoyeServiveImpl implements ITransferToFileService
         String recordDate = transferFileTask.getStartDate();
         String startDate = LocalDate.parse(recordDate, yyyyMMddDF).minusDays(1L).format(ymdDfBy_);
         String endDate = LocalDate.parse(recordDate, yyyyMMddDF).format(ymdDfBy_);
-        String descPath = path.concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
             writeDic.mkdirs();

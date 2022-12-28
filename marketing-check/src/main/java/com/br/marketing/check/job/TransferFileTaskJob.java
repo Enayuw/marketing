@@ -76,6 +76,10 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     private TransferToFileByXiaoYingRealTimeServiceImpl xiaoYingRealTimeService;
     @Resource
     private TransferToFileByPPDServiceImpl transferToFileByPPDService;
+    @Resource
+    private TransferToFileByZhongAnServiceImpl transferToFileByZhongAnService;
+    @Resource
+    private TransferToFileByXieChengServiceImpl transferToFileByXieChengService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
@@ -89,13 +93,13 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 if (serviceImpl == null) {
                     continue;
                 }
-                Result<List<TransferFileTask>> listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode());
+                //自定义参数传入格式举例 7410785#20220711,true;7412003#123;.....
+                String myParam = serviceImpl.isMyParam(marketingCustomer.getApiCode(), jobParameter);
+                log.warn("apicode={}获取的自定义参数为{}",marketingCustomer.getApiCode(),myParam);
+                Result<List<TransferFileTask>> listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(),myParam);
                 if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
                     List<TransferFileTask> data = listResult.getData();
                     for (TransferFileTask datum : data) {
-                        //自定义参数传入格式举例 7410785#20220711,true;7412003#123;.....
-                        String myParam = serviceImpl.isMyParam(datum.getApiCode(), jobParameter);
-                        log.warn("apicode={}获取的自定义参数为{}",datum.getApiCode(),myParam);
                         Result result = serviceImpl.actionTransferToFile(datum, myParam);
                         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                             Result res = sftpInnerService.pushInnerSftp(datum);
@@ -138,9 +142,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
 
 
     ITransferToFileService getServiceImpl(MarketingCustomer customer) {
-        if (customer.getShortName().contains("萨摩耶")) {
+        if (marketingCommonConfig.getSaMoYeTransferFileApiCodes().contains(customer.getApiCode())) {
             return transferToFileBySamoyeServiveImpl;
-        } else if (customer.getShortName().contains("哈罗")) {
+        } else if (marketingCommonConfig.getHaLuoTransferFileApiCodes().contains(customer.getApiCode())) {
             return transferToFileByHaluoServiceImpl;
         } else if (marketingCommonConfig.getShuHeTransferExtractApiCodes().containsKey(customer.getApiCode())) {
             return transferToFileByShuHeService;
@@ -158,7 +162,13 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
         }
         if (marketingCommonConfig.getXiaoYingTransferExtractApiCodes().contains(customer.getApiCode())) {
             return xiaoYingRealTimeService;
-        } else {
+        }
+        if (marketingCommonConfig.getZhongAnTransferApiCodes().contains(customer.getApiCode())) {
+            return transferToFileByZhongAnService;
+        }
+        if (marketingCommonConfig.getXieChengTransferApiCodes().contains(customer.getApiCode())) {
+            return transferToFileByXieChengService;
+        }else {
             return null;
         }
     }

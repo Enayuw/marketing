@@ -8,7 +8,9 @@ import com.br.marketing.entity.LoanFile;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.push.service.ZipFileCheckService;
 import com.br.marketing.service.EmailService;
+import com.br.marketing.service.SyncConfigService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -34,8 +36,8 @@ import java.util.zip.ZipFile;
 @Slf4j
 @Service
 public class ZipFileCheckServiceImpl implements ZipFileCheckService {
-    @Value("${otherConfig.warning.path:00}")
-    private String path;
+    @Autowired
+    SyncConfigService syncConfigService;
     @Resource
     LoanFileMapper loanFileMapper;
     @Resource
@@ -55,7 +57,7 @@ public class ZipFileCheckServiceImpl implements ZipFileCheckService {
             if(zipTrueSize!=txtFileLength){
                 businessAlarmServiceImpl.zipFileErrorAlarm(zipFilePathAndName,file.getApiCode());
                 log.error("压缩包中文件大小与源文件大小不一致。zipFile：{}，压缩包中文件大小：{},源文件：{}，大小：{}",zipFilePathAndName,
-                        zipTrueSize,path + "/" + file.getApiCode() + "/" + file.getBatchNumber() + "/" + replace,txtFileLength);
+                        zipTrueSize,syncConfigService.getPath() + file.getApiCode() + "/" + file.getBatchNumber() + "/" + replace,txtFileLength);
             }else {
                 String md5="";
                 if(zipFile.length()>1){
@@ -72,7 +74,7 @@ public class ZipFileCheckServiceImpl implements ZipFileCheckService {
                 param.put("md5",md5);
                 log.warn("param:{}",param);
                 loanFileMapper.updateZipFileStatus(param);
-                log.info("压缩包中文件大小{}:源文件大小{}:{}",path + "/" + file.getApiCode() + "/" + file.getBatchNumber() + "/" + replace,zipTrueSize,txtFileLength);
+                log.info("压缩包中文件大小{}:源文件大小{}:{}",syncConfigService.getPath() + file.getApiCode() + "/" + file.getBatchNumber() + "/" + replace,zipTrueSize,txtFileLength);
             }
         }catch (Exception e){
             log.error("校验压缩包文件出错",e);

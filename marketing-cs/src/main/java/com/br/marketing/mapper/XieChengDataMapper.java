@@ -11,6 +11,10 @@ public interface XieChengDataMapper extends XieChengDataMapperBase{
 
 
 
-    List<XieChengData> selectByLocalId(@Param("localId") Long localId);
+    List<XieChengData> selectByLocalId(@Param("localId") Long localId,@Param("minId") Long minId);
+
+    List<String> selectLocalIdByNotSend();
+
+    List<XieChengData> getByCellToday(@Param("cell") String cell);
 
 }

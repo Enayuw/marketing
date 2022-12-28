@@ -17,8 +17,10 @@ import com.br.marketing.push.service.PushFinishService;
 import com.br.marketing.push.task.FtpToSftpCheckTask;
 import com.br.marketing.push.task.SftpSignFileCheckTask;
 import com.br.marketing.service.EmailService;
+import com.br.marketing.service.SyncConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -35,8 +37,8 @@ import java.util.concurrent.TimeUnit;
 public class PushFinishServiceImpl implements PushFinishService {
     @Resource
     LoanFileMapper loanFileMapper;
-    @Value("${otherConfig.warning.path:00}")
-    private String path;
+    @Autowired
+    SyncConfigService syncConfigService;
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;
     @Value("${otherConfig.warning.sftpPort:00}")
@@ -134,7 +136,7 @@ public class PushFinishServiceImpl implements PushFinishService {
 
     private void pushFinish(String apiCode, SftpClient sftpClient) {
         String dateAddYyMmDd = DateHelper.getDateAddYyMmDd(0);
-        String finishPath = path + "/result/" + apiCode + "/";
+        String finishPath = syncConfigService.getPath() + "result/" + apiCode + "/";
         File dir = new File(finishPath);
         if (!dir.exists()) {
             boolean mkdirs = dir.mkdirs();
@@ -186,14 +188,14 @@ public class PushFinishServiceImpl implements PushFinishService {
                 File file = new File(filePath + "/" + zipFileName);
                 if (file.exists()) {
                     String successFileName = zipFileName + ".success";
-                    File successFile = new File(path + "/sftp_data/" + apiCode + "/" + successFileName);
+                    File successFile = new File(syncConfigService.getPath() + "sftp_data/" + apiCode + "/" + successFileName);
                     boolean newFile = true;
                     if (!successFile.exists()) {
                         newFile = successFile.createNewFile();
                     }
                     if (newFile) {
                         log.warn("push success to sftp :{}", successFileName);
-                        sftpClient.uploadFile(remotePath, successFileName, path + "/sftp_data/" + apiCode + "/" + successFileName);
+                        sftpClient.uploadFile(remotePath, successFileName, syncConfigService.getPath() + "sftp_data/" + apiCode + "/" + successFileName);
                     }
                 }
             }
@@ -220,7 +222,7 @@ public class PushFinishServiceImpl implements PushFinishService {
             File file = new File(filePath + "/" + zipFileName);
             if (file.exists()) {
                 String successFileName = zipFileName + ".success";
-                File successFile = new File(path + "/sftp_data/" + apiCode + "/" + successFileName);
+                File successFile = new File(syncConfigService.getPath() + "sftp_data/" + apiCode + "/" + successFileName);
                 boolean newFile = true;
                 if (!successFile.exists()) {
                     try {
@@ -231,7 +233,7 @@ public class PushFinishServiceImpl implements PushFinishService {
                 }
                 if (newFile) {
                     log.warn("push success to sftp :{}", successFileName);
-                    sftpClient.uploadFile(remotePath, successFileName, path + "/sftp_data/" + apiCode + "/" + successFileName);
+                    sftpClient.uploadFile(remotePath, successFileName, syncConfigService.getPath() + "sftp_data/" + apiCode + "/" + successFileName);
                 }
             }
             sftpClient.disconnect();

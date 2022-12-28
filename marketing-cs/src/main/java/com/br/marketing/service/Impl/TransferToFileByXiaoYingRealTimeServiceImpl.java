@@ -13,8 +13,10 @@ import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
+import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -43,8 +45,8 @@ import java.util.stream.Collectors;
 @Service
 public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToFileService {
 
-    @Value("${otherConfig.warning.path:/tmp/data_xiaoying}")
-    private String path;
+    @Autowired
+    SyncConfigService syncConfigService;
     @Resource
     private TransferFileTaskMapper transferFileTaskMapper;
     @Resource
@@ -80,7 +82,7 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
     }
 
     @Override
-    public Result<List<TransferFileTask>> buildTransferTask(String apiCode) {
+    public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam) {
         List<TransferFileTask> list = new ArrayList<>();
         //1.登录未申请授信（断点）
         List<TransferFileTask> duanDian = buildTransferTaskDengLuDuanDian(apiCode);
@@ -247,7 +249,7 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
     private File createMkdirFile(TransferFileTask transferFileTask) {
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();
-        String descPath = path.concat("transferToFile").concat(File.separator).concat(apiCode).concat(File.separator)
+        String descPath = syncConfigService.getPath().concat("transferToFile").concat(File.separator).concat(apiCode).concat(File.separator)
                 .concat(recordDate).concat(File.separator);
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {

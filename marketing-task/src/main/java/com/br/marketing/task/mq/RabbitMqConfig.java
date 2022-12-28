@@ -46,7 +46,7 @@ public class RabbitMqConfig {
         return new RabbitAdmin(connectionFactory);
     }
 
-    @Bean("containerFactory")
+    @Bean(name = "containerFactory")
     public SimpleRabbitListenerContainerFactory containerFactory(SimpleRabbitListenerContainerFactoryConfigurer configurer,
                                                                          ConnectionFactory connectionFactory) {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();

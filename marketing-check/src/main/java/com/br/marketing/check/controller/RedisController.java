@@ -2,6 +2,8 @@ package com.br.marketing.check.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.br.common.util.DateUtils;
+import com.br.marketing.check.CkeckApplication;
+import com.br.marketing.check.service.IFileToMarketingRuleService;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.haier.HaierServiceClient;
 import com.br.marketing.client.haier.output.PushDTO;
@@ -92,5 +94,11 @@ public class RedisController {
     @GetMapping("/getSpeedInfo")
     public String getSpeedInfo(){
         return marketingCommonConfig.toString();
+    }
+
+    @GetMapping("/getRuleFile")
+    public String getRuleFile(){
+        Map<String, IFileToMarketingRuleService> beansOfType = CkeckApplication.ac.getBeansOfType(IFileToMarketingRuleService.class);
+        return "123";
     }
 }
