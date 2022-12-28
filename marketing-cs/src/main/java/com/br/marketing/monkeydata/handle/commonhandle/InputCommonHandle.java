@@ -24,7 +24,7 @@ public class InputCommonHandle {
 
     public Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> getMarketingSyncUserByPage(MarketingSyncCondition inputData) {
         Long minId = null;
-        List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByAppletDate(inputData.getApiCode(), inputData.getAppletDateStart(), inputData.getAppletDateEnd(), inputData.getMinId());
+        List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByAppletDateRange(inputData.getApiCode(), inputData.getAppletDateStart(), inputData.getAppletDateEnd(), inputData.getMinId());
         if (marketingSyncUserList.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }

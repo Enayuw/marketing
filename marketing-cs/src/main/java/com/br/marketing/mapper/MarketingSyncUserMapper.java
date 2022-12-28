@@ -95,6 +95,24 @@ public interface MarketingSyncUserMapper {
      * @param minId
      * @return
      */
-    List<MarketingSyncUser> getSyncUserByAppletDate(@Param("apiCode") String apiCode, @Param("startDate") String startDate, @Param("endDate") String endDate, @Param("minId") Long minId);
+    List<MarketingSyncUser> getSyncUserByAppletDateRange(@Param("apiCode") String apiCode, @Param("startDate") String startDate, @Param("endDate") String endDate, @Param("minId") Long minId);
 
+
+    /**
+     * 分页获取上传数据，appletdate精确到天
+     * @param apiCode
+     * @param executeDate
+     * @param minId
+     * @return
+     */
+    List<MarketingSyncUser> getSyncUserByAppletDate(@Param("apiCode") String apiCode, @Param("executeDate") String executeDate, @Param("minId") Long minId);
+
+    /**
+     * 获取appletDate日期集合
+     * @param apiCode
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    List<String> getAppletDate(@Param("apiCode") String apiCode, @Param("startDate") String startDate, @Param("endDate") String endDate);
 }
