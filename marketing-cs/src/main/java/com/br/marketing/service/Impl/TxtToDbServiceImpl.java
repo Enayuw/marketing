@@ -462,7 +462,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         Integer line = dto.getLine();
         List<String> datas = Splitter.on(",").splitToList(row);
         JSONObject jo = null;
-        String error = "uid不能为空;phone不能为空;orgName不能为空;user_type不能为空;name不能为空;";
+//        String error = "uid不能为空;phone不能为空;orgName不能为空;user_type不能为空;name不能为空;";
         phoneSaleTransfer.setApiCode(dto.getApiCode());
         phoneSaleTransfer.setLocalId(dto.getLocalId().toString());
         phoneSaleTransfer.setmStatus(1);
@@ -587,10 +587,12 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         break;
                 }
             }
-            if (!StringUtils.isEmpty(error)) {
-                phoneSaleTransfer.setmStatus(2);
-                phoneSaleTransfer.setDataMessage(String.format("行号：%d;报错信息：%s", line, error));
-            } else if (!phoneMark) {
+
+//            if (!StringUtils.isEmpty(error)) {
+//                phoneSaleTransfer.setmStatus(2);
+//                phoneSaleTransfer.setDataMessage(String.format("行号：%d;报错信息：%s", line, error));
+//            } else
+            if (!phoneMark) {
                 phoneSaleTransfer.setmStatus(2);
                 phoneSaleTransfer.setDataMessage(String.format("行号：%d;报错信息：%s", line, "手机号解密失败"));
             }
