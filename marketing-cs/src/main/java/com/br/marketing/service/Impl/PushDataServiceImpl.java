@@ -11,6 +11,8 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
+import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.haier.HaierServiceClient;
 import com.br.marketing.client.haier.input.HaierReqDTO;
 import com.br.marketing.client.haier.output.PushDTO;
@@ -43,6 +45,7 @@ import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
@@ -77,6 +80,9 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Resource
     PhoneSaleMapper phoneSaleMapper;
+
+    @Resource
+    PhoneSaleTransferMapper phoneSaleTransferMapper;
 
     @Resource
     TwosevenFileMapper twosevenFileMapper;
@@ -155,6 +161,9 @@ public class PushDataServiceImpl implements PushDataService {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
+    @Autowired
+    MethodRetryHandlerService methodRetryHandlerService;
+
 
     final static DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
 
@@ -231,6 +240,66 @@ public class PushDataServiceImpl implements PushDataService {
                     .append("数量：".concat(number.toString()).concat("\r\n"))
                     .append("文件推送dass结束".concat("\r\n"));
             alarmClient.sendAlarm(content.toString(), "Dass结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
+    }
+
+    @Override
+    public Result pushDassTransferData(Long id) {
+
+        Boolean isContiue = false;
+        Boolean actionMark = true;
+        Long minId = null;
+        String key = "dass:push:threadnum";
+        Integer threadNum = 5;
+        if (redisChgService.exists(key) && StringUtils.isNotBlank(redisChgService.get(key))) {
+            threadNum = Integer.valueOf(redisChgService.get(key));
+        }
+
+        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
+        if (localFile == null) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(isContiue);
+        }
+
+        localFile.setPushStartTime(new Date());
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
+        Integer number = 0;
+        while (actionMark) {
+            List<DassTransferDataDTO> transferDataDTOS =  phoneSaleTransferMapper.getPushDassTransferData(id, minId);
+            number += transferDataDTOS.size();
+            if (transferDataDTOS.size() > 0) {
+                DassTransferDataDTO transferDataDTO = transferDataDTOS.get(transferDataDTOS.size() - 1);
+                DassTransferDataAdapDTO dto = new DassTransferDataAdapDTO();
+                dto.setDassTransferDataDTOList(transferDataDTOS);
+                minId = transferDataDTO.getId();
+                threadPool.submit(() -> {
+                    methodRetryHandlerService.dassTransferWithFile(dto, null);
+                });
+            } else {
+                actionMark = false;
+            }
+        }
+        threadPool.shutdown();
+        while (true) {
+            if (threadPool.isTerminated()) {
+                break;
+            }
+            try {
+                Thread.sleep(3000);
+            } catch (Exception e) {
+            }
+        }
+
+        localFile.setPushEndTime(new Date());
+        localFile.setPushNumber(number);
+        localFileMapper.updateByPrimaryKeySelective(localFile);
+        if (SftpFileTypeEnum.DXTRANSFORM.getValue().equals(localFile.getFileType())) {
+            StringBuilder content = new StringBuilder();
+            content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
+                    .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
+                    .append("数量：".concat(number.toString()).concat("\r\n"))
+                    .append("文件推送dass转化结束".concat("\r\n"));
+            alarmClient.sendAlarm(content.toString(), "Dass转化结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
     }

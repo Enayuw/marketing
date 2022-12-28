@@ -50,6 +50,9 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
     PhoneSaleMapper phoneSaleMapper;
 
     @Resource
+    PhoneSaleTransferMapper phoneSaleTransferMapper;
+
+    @Resource
     MarketingTransferSyncUserMapper transferSyncUserMapper;
 
     @Autowired
@@ -446,6 +449,162 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
             phoneSaleMapper.insertSelective(phoneSale);
         }
         return new Result().setCode(new Integer("1").equals(phoneSale.getStatus())
+                ?ResultCode.SUCCESS.getValue()
+                :ResultCode.FAIL.getValue());
+    }
+
+    @Override
+    public Result phoneTodbByTransfer(TxtToDbDTO dto) {
+        PhoneSaleTransfer phoneSaleTransfer = new PhoneSaleTransfer();
+        String row = dto.getContent();
+        HashMap<Integer, String> address = dto.getAddress();
+        HashMap<Integer, String> extSetFields = dto.getExtSetField();
+        Integer line = dto.getLine();
+        List<String> datas = Splitter.on(",").splitToList(row);
+        JSONObject jo = null;
+        String error = "uid不能为空;phone不能为空;orgName不能为空;user_type不能为空;name不能为空;";
+        phoneSaleTransfer.setApiCode(dto.getApiCode());
+        phoneSaleTransfer.setLocalId(dto.getLocalId().toString());
+        phoneSaleTransfer.setmStatus(1);
+        try {
+            Boolean phoneMark = Boolean.TRUE;
+            if (datas.size() != address.size()) {
+                phoneSaleTransfer.setmStatus(2);
+                phoneSaleTransfer.setDataMessage(String.format("行号：%d;报错信息：%s", line, "表头和该行数据不一致"));
+                phoneSaleTransferMapper.insertSelective(phoneSaleTransfer);
+                return new Result().setCode(ResultCode.FAIL.getValue());
+            }
+            for (int i = 0; i < datas.size(); i++) {
+                String sureaddress = address.get(i);
+                switch (sureaddress) {
+                    case "uid":
+//                        if (StringUtils.isNotBlank(datas.get(i))) {
+//                            error = error.replace("uid不能为空;", "");
+//                        }
+                        phoneSaleTransfer.setUid(datas.get(i));
+                        break;
+                    case "phone":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            Result<String> stringResult = decryptPhone(datas.get(i));
+                            phoneSaleTransfer.setPhoneAes(datas.get(i));
+                            if (ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
+                                phoneSaleTransfer.setPhone(AESUtil.aesEncrypty(stringResult.getData(), aesKey));
+                            } else {
+                                phoneMark = Boolean.FALSE;
+                            }
+                        }
+                        break;
+                    case "orgName":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            phoneSaleTransfer.setOrgName(datas.get(i));
+                        }
+                        break;
+                    case "source":
+                        phoneSaleTransfer.setSource(datas.get(i));
+                        break;
+                    case "userType":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            phoneSaleTransfer.setUserType(datas.get(i));
+                        }
+                        break;
+                    case "type":
+                        phoneSaleTransfer.setType(datas.get(i));
+                        break;
+                    case "ifRegister":
+                        phoneSaleTransfer.setIfRegister(datas.get(i));
+                        break;
+                    case "registerTime":
+                        phoneSaleTransfer.setRegisterTime(datas.get(i));
+                        break;
+                    case "ifLogin":
+                        phoneSaleTransfer.setIfLogin(datas.get(i));
+                        break;
+                    case "loginTime":
+                        phoneSaleTransfer.setLoginTime(datas.get(i));
+                        break;
+                    case "ifApply":
+                        phoneSaleTransfer.setIfApply(datas.get(i));
+                        break;
+                    case "applyDt":
+                        phoneSaleTransfer.setApplyDt(datas.get(i));
+                        break;
+                    case "applyTime":
+                        phoneSaleTransfer.setApplyTime(datas.get(i));
+                        break;
+                    case "applyResult":
+                        phoneSaleTransfer.setApplyResult(datas.get(i));
+                        break;
+                    case "refuseTime":
+                        phoneSaleTransfer.setRefuseTime(datas.get(i));
+                        break;
+                    case "auditTime":
+                        phoneSaleTransfer.setAuditTime(datas.get(i));
+                        break;
+                    case "auditAmount":
+                        phoneSaleTransfer.setAuditAmount(datas.get(i));
+                        break;
+                    case "ifLent":
+                        phoneSaleTransfer.setIfLent(datas.get(i));
+                        break;
+                    case "lentTime":
+                        phoneSaleTransfer.setLentTime(datas.get(i));
+                        break;
+                    case "lentAmount":
+                        phoneSaleTransfer.setLentAmount(datas.get(i));
+                        break;
+                    case "unlentAmount":
+                        phoneSaleTransfer.setUnlentAmount(datas.get(i));
+                        break;
+                    case "ifSettle":
+                        phoneSaleTransfer.setIfSettle(datas.get(i));
+                        break;
+                    case "settleTime":
+                        phoneSaleTransfer.setSettleTime(datas.get(i));
+                        break;
+                    case "activity":
+                        phoneSaleTransfer.setActivity(datas.get(i));
+                        break;
+                    case "caseStatus":
+                        phoneSaleTransfer.setCaseStatus(datas.get(i));
+                        break;
+                    case "caseEffective":
+                        phoneSaleTransfer.setCaseEffective(datas.get(i));
+                        break;
+                    case "ifTransform":
+                        phoneSaleTransfer.setIfTransform(datas.get(i));
+                        break;
+                    case "transformTime":
+                        phoneSaleTransfer.setTransformTime(datas.get(i));
+                        break;
+                    case "status":
+                        phoneSaleTransfer.setStatus(datas.get(i));
+                        break;
+                    case "insertTime":
+                        phoneSaleTransfer.setInsertTime(datas.get(i));
+                        break;
+                    case "transformStatus":
+                        phoneSaleTransfer.setTransformStatus(datas.get(i));
+                        break;
+                }
+            }
+            if (!StringUtils.isEmpty(error)) {
+                phoneSaleTransfer.setmStatus(2);
+                phoneSaleTransfer.setDataMessage(String.format("行号：%d;报错信息：%s", line, error));
+            } else if (!phoneMark) {
+                phoneSaleTransfer.setmStatus(2);
+                phoneSaleTransfer.setDataMessage(String.format("行号：%d;报错信息：%s", line, "手机号解密失败"));
+            }
+            Date date = new Date();
+            phoneSaleTransfer.setCreateTime(date);
+            phoneSaleTransfer.setUpdateTime(date);
+            phoneSaleTransferMapper.insertSelective(phoneSaleTransfer);
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+            phoneSaleTransfer.setmStatus(2);
+            phoneSaleTransfer.setDataMessage(String.format("行号：%d;报错信息：%s", line, "手机号解密失败"));
+            phoneSaleTransferMapper.insertSelective(phoneSaleTransfer);
+        }
+        return new Result().setCode(new Integer("1").equals(phoneSaleTransfer.getStatus())
                 ?ResultCode.SUCCESS.getValue()
                 :ResultCode.FAIL.getValue());
     }

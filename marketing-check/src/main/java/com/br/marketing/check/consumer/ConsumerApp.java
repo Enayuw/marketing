@@ -120,4 +120,19 @@ public class ConsumerApp {
         /*消费逻辑*/
         consumerService.consumerRun(channel, message, pushDataService::pushXieChengToDbData, mes, null);
     }
+
+    /**
+     * 推送dass转化
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_PUSH_DASS_TRANSFER, durable = "true")
+            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_TRANSFER)}, containerFactory = "containerFactory")
+    public void consumerPushDassTransfer(Channel channel, Message message) {
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        consumerService.consumerRun(channel, message, pushDataService::pushDassTransferData, o, "");
+    }
 }

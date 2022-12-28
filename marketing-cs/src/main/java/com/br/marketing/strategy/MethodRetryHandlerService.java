@@ -110,6 +110,9 @@ public class MethodRetryHandlerService {
     @Resource
     ZhonganMarketingBanMapper zhonganMarketingBanMapper;
 
+    @Resource
+    PhoneSaleTransferMapper phoneSaleTransferMapper;
+
     /**
      * 全局重试任务执行类
      *
@@ -326,6 +329,21 @@ public class MethodRetryHandlerService {
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         log.error("萨摩耶调用电销转化接口失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
+
+    @RetryMethod(retryNowNum = 1,isOrNoDbRetry = true)
+    public Result dassTransferWithFile(DassTransferDataAdapDTO dassTransferDataAdapDTO, Integer retry){
+        Result result = dassServiceClient.postTransferData(dassTransferDataAdapDTO);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            List<Long> ids = dassTransferDataAdapDTO.getDassTransferDataDTOList().stream().map(t -> t.getId()).collect(Collectors.toList());
+            PhoneSaleTransfer updateEntity = new PhoneSaleTransfer();
+            updateEntity.setmStatus(3);
+            PhoneSaleTransferExample transferExample = new PhoneSaleTransferExample();
+            transferExample.createCriteria().andIdIn(ids);
+            phoneSaleTransferMapper.updateByExampleSelective(updateEntity,transferExample);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
     /**

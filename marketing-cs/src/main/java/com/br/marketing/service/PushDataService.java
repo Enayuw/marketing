@@ -6,6 +6,8 @@ import com.br.marketing.dto.PushShDXDTO;
 public interface PushDataService {
     Result pushDassData(Long id);
 
+    Result pushDassTransferData(Long id);
+
     Result pushSevenTransferData(Long id);
 
     Result pushHaierData();
