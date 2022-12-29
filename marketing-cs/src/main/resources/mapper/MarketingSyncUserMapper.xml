@@ -338,6 +338,7 @@
             <![CDATA[ AND applet_date >= #{startDate} and applet_date < #{endDate} ]]>
             AND status=1
             group by applet_date
+            order by applet_date asc
         </where>
     </select>
 
