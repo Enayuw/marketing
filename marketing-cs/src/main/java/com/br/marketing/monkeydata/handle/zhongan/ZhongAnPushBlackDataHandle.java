@@ -17,6 +17,7 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.RetryMainLog;
 import com.br.marketing.entity.ZhonganMarketingBan;
+import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.mapper.ZhonganMarketingBanMapper;
 import com.br.marketing.monkeydata.entity.IterationResult;
@@ -35,6 +36,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -68,6 +70,9 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
     @Resource
     ZhonganMarketingBanMapper zhonganMarketingBanMapper;
 
+    @Resource
+    private MarketingSyncUserMapper marketingSyncUserMapper;
+
     @Override
     public Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> getInputData(MarketingSyncCondition inputData) {
         //暂停开关
@@ -75,13 +80,33 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
             log.warn("众安推送黑名单任务暂停");
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
-        return inputCommonHandle.getMarketingSyncUserByPage(inputData);
+        List<String> executeDateList = inputData.getExecuteDateList();
+        for (Iterator<String> iterator = executeDateList.iterator(); iterator.hasNext(); ) {
+            String executeDate = iterator.next();
+            Long minId = inputData.getMinId();
+            List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByAppletDate(inputData.getApiCode(), executeDate, minId);
+            if (marketingSyncUserList.size() <= 0) {
+                //该日期执行完成，开始执行下一个日期
+                iterator.remove();
+                inputData.setMinId(null);
+                continue;
+            }
+            minId = marketingSyncUserList.get(marketingSyncUserList.size() - 1).getId() + 1;
+            IterationResult<MarketingSyncUser, MarketingSyncCondition> content = new IterationResult<>();
+            inputData.setMinId(minId);
+            content.setInDatacondition(inputData);
+            content.setInputDataList(marketingSyncUserList);
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(content);
+        }
+        return new Result<>().setCode(ResultCode.FAIL.getValue());
     }
 
     @Override
     public Result customizedAction(MarketingSyncCondition inputData) {
         Result res = new Result();
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(200, 200, 200);
+        List<String> appletDateList = marketingSyncUserMapper.getAppletDate(inputData.getApiCode(), inputData.getAppletDateStart(), inputData.getAppletDateEnd());
+        inputData.setExecuteDateList(appletDateList);
         for (; ; ) {
             if (StringUtils.isNotEmpty(marketingCommonConfig.getZhongAnPushBlackThreadNum())) {
                 pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum()));
