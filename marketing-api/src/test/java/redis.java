@@ -625,7 +625,8 @@ public class redis {
     @Test
     public void testaesde(){
         try {
-            String ovksl39fcl13m9dF = AESUtil.decrypt("63dfcbc706b801a9f59c76474bafa661", "ovksl39fcl13m9dF");
+            String s = AESUtil.decrypt("LBAo6LBNxPIcnfEWpaAE3mswF9YJc0WV4DYlRyrPtzI=", "ovksl39fcl13m9dF");
+            System.out.println(s);
         }catch (Exception ex){
 
         }

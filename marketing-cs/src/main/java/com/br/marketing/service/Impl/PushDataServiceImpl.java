@@ -268,6 +268,11 @@ public class PushDataServiceImpl implements PushDataService {
             List<DassTransferDataDTO> transferDataDTOS =  phoneSaleTransferMapper.getPushDassTransferData(id, minId);
             number += transferDataDTOS.size();
             if (transferDataDTOS.size() > 0) {
+                for (DassTransferDataDTO transferDataDTO : transferDataDTOS) {
+                    if (StringUtils.isNotBlank(transferDataDTO.getPhone())) {
+                        transferDataDTO.setPhone(AESUtil.decrypt(transferDataDTO.getPhone(),aesKey));
+                    }
+                }
                 DassTransferDataDTO transferDataDTO = transferDataDTOS.get(transferDataDTOS.size() - 1);
                 DassTransferDataAdapDTO dto = new DassTransferDataAdapDTO();
                 dto.setDassTransferDataDTOList(transferDataDTOS);
