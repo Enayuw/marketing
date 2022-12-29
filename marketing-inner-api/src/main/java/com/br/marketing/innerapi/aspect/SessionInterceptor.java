@@ -37,18 +37,13 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
         if (!StringUtils.hasText(sessionId)) {
             sessionId = request.getHeader("sessionId");
         }
-
-        HttpSession session = request.getSession();
         if (sessionId != null) {
-            session.setAttribute("sessionId", sessionId);
             MarketingUserDetail userDetail = this.getCacheAuthUser(sessionId, request);
             if (userDetail == null) {
-                session.invalidate();
                 throw new AppException(CodeEnum.USER_INVALID_SESSION_ERROR);
             } else {
                 ThreadContextInfo.setUser(userDetail);
                 optUser.setUserDetail(userDetail);
-                session.setAttribute("userDetail", userDetail);
                 return super.preHandle(request, response, handler);
             }
         } else {
@@ -59,11 +54,7 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object arg2, Exception arg3) throws Exception {
-            HttpSession session = request.getSession();
-            response.setHeader("sessionId", (String) session.getAttribute("sessionId"));
             ThreadContextInfo.removeUser();
-            session.invalidate();
-            session = null;
     }
 
     private MarketingUserDetail getCacheAuthUser(String sessionId, HttpServletRequest request) {
@@ -74,7 +65,6 @@ public class SessionInterceptor  extends HandlerInterceptorAdapter {
 
         String result = this.redisService.get(sessionId, "app_session_prefix");
         if (!StringUtils.hasText(result)) {
-            request.getSession().invalidate();
             log.warn("【session校验失败】获取到用户信息为空");
             throw new AppException(CodeEnum.USER_INVALID_SESSION_ERROR);
         } else {

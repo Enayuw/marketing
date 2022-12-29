@@ -71,8 +71,8 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
             MarketingUserDetail marketingUserDetail = new MarketingUserDetail(marketingUserInfo, marketingRoles, marketingResources, new HashMap<>(16));
             marketingUserDetail.setSessionId(reqObj.getSessionId());
             marketingUserDetail.setPassword(null);
-            request.getSession().setAttribute(AuthConstants.SESSION_USER, marketingUserDetail);
             redisAuthService.set(reqObj.getSessionId(), JSON.toJSONString(marketingUserDetail), "app_session_prefix");
+            redisAuthService.expire(reqObj.getSessionId(),"app_session_prefix", 1800);
             //过期时间
             return new ApiResult<MarketingUserDetail>().success(marketingUserDetail);
         }
@@ -83,8 +83,6 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
     @Override
     public ApiResult<Boolean> logOut(HttpServletRequest request) {
         String sessionId = request.getHeader("sessionId");
-        //清除session的所有信息
-        request.getSession().invalidate();
         if (StringUtils.isNotBlank(sessionId)) {
             redisAuthService.del(sessionId);
         }
