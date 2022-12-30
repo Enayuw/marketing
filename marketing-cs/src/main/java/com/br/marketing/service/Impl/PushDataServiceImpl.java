@@ -264,6 +264,9 @@ public class PushDataServiceImpl implements PushDataService {
         localFile.setPushStartTime(new Date());
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
         Integer number = 0;
+        AtomicInteger success = new AtomicInteger(0);
+        AtomicInteger fail = new AtomicInteger(0);
+        AtomicInteger retry = new AtomicInteger(0);
         while (actionMark) {
             List<DassTransferDataDTO> transferDataDTOS =  phoneSaleTransferMapper.getPushDassTransferData(id, minId);
             number += transferDataDTOS.size();
@@ -278,7 +281,15 @@ public class PushDataServiceImpl implements PushDataService {
                 dto.setDassTransferDataDTOList(transferDataDTOS);
                 minId = transferDataDTO.getId();
                 threadPool.submit(() -> {
-                    methodRetryHandlerService.dassTransferWithFile(dto, null);
+                    Result result = methodRetryHandlerService.dassTransferWithFile(dto, null);
+                    int size = dto.getDassTransferDataDTOList().size();
+                    if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                        success.addAndGet(size);
+                    }else if(ResultCode.FAIL.getValue().equals(result.getCode())){
+                        fail.addAndGet(size);
+                    }else{
+                        retry.addAndGet(size);
+                    }
                 });
             } else {
                 actionMark = false;
@@ -296,13 +307,17 @@ public class PushDataServiceImpl implements PushDataService {
         }
 
         localFile.setPushEndTime(new Date());
-        localFile.setPushNumber(number);
+        localFile.setPushNumber(success.get());
+        localFile.setErrorActualNumber(fail.get());
         localFileMapper.updateByPrimaryKeySelective(localFile);
         if (SftpFileTypeEnum.DXTRANSFORM.getValue().equals(localFile.getFileType())) {
             StringBuilder content = new StringBuilder();
             content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
                     .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
                     .append("数量：".concat(number.toString()).concat("\r\n"))
+                    .append("成功数量：".concat(success.get()+"").concat("\r\n"))
+                    .append("失败数量：".concat(fail.get()+"").concat("\r\n"))
+                    .append("需重试数量：".concat(retry.get()+"").concat("\r\n"))
                     .append("文件推送dass转化结束".concat("\r\n"));
             alarmClient.sendAlarm(content.toString(), "Dass转化结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         }

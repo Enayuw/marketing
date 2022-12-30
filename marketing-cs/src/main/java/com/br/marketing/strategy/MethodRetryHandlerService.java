@@ -1,6 +1,7 @@
 package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.ZaMarketDataBO;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.PushBlackListResponse;
@@ -27,6 +28,7 @@ import com.br.marketing.client.zhongan.ZhongAnClient;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.monkeydata.service.PushRosterLockingDataToZhongAn;
@@ -112,6 +114,9 @@ public class MethodRetryHandlerService {
 
     @Resource
     PhoneSaleTransferMapper phoneSaleTransferMapper;
+
+    @Resource
+    LocalFileMapper localFileMapper;
 
     /**
      * 全局重试任务执行类
@@ -332,20 +337,46 @@ public class MethodRetryHandlerService {
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
-    @RetryMethod(retryNowNum = 1,isOrNoDbRetry = true)
+    @RetryMethod(isOrNoDbRetry = true)
     public Result dassTransferWithFile(DassTransferDataAdapDTO dassTransferDataAdapDTO, Integer retry){
         Result result = dassServiceClient.postTransferData(dassTransferDataAdapDTO);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             List<Long> ids = dassTransferDataAdapDTO.getDassTransferDataDTOList().stream().map(t -> t.getId()).collect(Collectors.toList());
             PhoneSaleTransfer updateEntity = new PhoneSaleTransfer();
-            updateEntity.setmStatus(3);
+            JSONObject jsonObject = JSON.parseObject(result.getData().toString());
+            boolean code = "0".equals(jsonObject.getString("code"));
+            if(new Integer(1).equals(retry)){
+                Long id = ids.get(0);
+                PhoneSaleTransfer phoneSaleTransfer = phoneSaleTransferMapper.selectByPrimaryKey(id);
+                LocalFile localFile = localFileMapper.selectByPrimaryKey(Long.valueOf(phoneSaleTransfer.getLocalId()));
+                LocalFile updateFile = new LocalFile();
+                updateFile.setId(localFile.getId());
+                if(code){
+                    updateFile.setPushNumber(localFile.getPushNumber()+ids.size());
+                }else{
+                    updateFile.setErrorActualNumber(localFile.getErrorActualNumber()+ids.size());
+                }
+                localFileMapper.updateByPrimaryKeySelective(updateFile);
+            }
+            if(code){
+                updateEntity.setmStatus(3);
+            }else{
+                updateEntity.setmStatus(4);
+            }
             PhoneSaleTransferExample transferExample = new PhoneSaleTransferExample();
             transferExample.createCriteria().andIdIn(ids);
             phoneSaleTransferMapper.updateByExampleSelective(updateEntity,transferExample);
-            return new Result().setCode(ResultCode.SUCCESS.getValue());
+            if(code){
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
+            }else{
+                return new Result().setCode(ResultCode.FAIL.getValue());
+            }
+
         }
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
+
+
     /**
      * 推送决策接口
      *
