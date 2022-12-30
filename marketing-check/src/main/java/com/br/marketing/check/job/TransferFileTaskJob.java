@@ -1,5 +1,6 @@
 package com.br.marketing.check.job;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
@@ -155,7 +156,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 // 哈啰转化数据提取
                 .addBind(transferToFileByHaluoServiceImpl, marketingCommonConfig.getHaLuoTransferFileApiCodes())
                 // 数禾转化数据提取
-                .addBind(transferToFileByShuHeService, marketingCommonConfig.getShuHeTransferExtractApiCodes().keySet())
+                .addBind(transferToFileByShuHeService, ObjectUtil.isEmpty(
+                        marketingCommonConfig.getShuHeTransferExtractApiCodes())
+                        ? null : marketingCommonConfig.getShuHeTransferExtractApiCodes().keySet())
                 // 宜信实时转化数据提取
                 .addBind(transferToFileByYiXinRealTimeService, marketingCommonConfig.getYinXinTransferRealTimeApiCodes())
                 // 玖富转化数据提取
