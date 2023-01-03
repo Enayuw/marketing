@@ -1,6 +1,5 @@
 package com.br.marketing.client.dassservice.input.transfer;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 /**

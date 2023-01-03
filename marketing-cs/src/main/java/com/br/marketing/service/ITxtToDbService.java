@@ -10,6 +10,8 @@ public interface ITxtToDbService {
 
     Result phoneTodb(TxtToDbDTO content);
 
+    Result phoneTodbByTransfer(TxtToDbDTO content);
+
     Result phoneTodbByXW(TxtToDbDTO content);
 
     /**

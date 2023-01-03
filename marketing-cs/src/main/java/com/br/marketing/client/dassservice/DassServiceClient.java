@@ -366,7 +366,7 @@ public class DassServiceClient {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage("无应答消息");
                 return result;
             }
-            result.setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.parseObject(respStr, Response2Entity.class));
+            result.setCode(ResultCode.SUCCESS.getValue()).setDate(respStr);
         } else {
             result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
         }
