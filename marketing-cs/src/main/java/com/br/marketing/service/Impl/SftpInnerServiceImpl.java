@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.util.Date;
 
 @Service
 @Slf4j
@@ -56,6 +57,7 @@ public class SftpInnerServiceImpl {
                 TransferFileTask update = new TransferFileTask();
                 update.setId(transferFileTask.getId());
                 update.setStatus(3);
+                update.setUpdateTime(new Date());
                 transferFileTaskMapper.updateByPrimaryKeySelective(update);
             }
         } catch (Exception e) {
