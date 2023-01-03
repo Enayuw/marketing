@@ -108,7 +108,7 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file), "UTF-8"));) {
-            fw.append("cell,convType");
+            fw.append("cell,convType,requestTime");
             fw.append("\r\n");
             writeXieChengTransferToFile(fw, apiCode,transferFileTask);
         } catch (Exception ex) {
@@ -146,7 +146,8 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
                 }
                 StringBuilder sb = new StringBuilder();
                 sb.append(cell.concat(","));
-                sb.append(convType);
+                sb.append(convType.concat(","));
+                sb.append(transferFilterData.getRequestTime());
                 sb.append("\r\n");
                 fw.append(sb.toString());
             }
