@@ -99,7 +99,7 @@
     />
     <job:simple id="SftpToDbByDxTransferDataJob"
                 class="com.br.marketing.check.job.SftpToDbByDxTransferDataJob"
-                cron="0 2/30 * * * ? "
+                cron="0 4/30 * * * ? "
                 description="sftpDass转化文件数据入库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
