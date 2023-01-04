@@ -186,7 +186,7 @@ public class TransferToFileByTongChengServiceImpl implements ITransferToFileServ
                             effectiveTime = JSON.parseObject(preUserMap.get(custNum).getReserveField1()).getString("effectiveTime");
                         }
                         if(StringUtils.isNotEmpty(transferFilterData.getReserveField1())) {
-                            applyLoan= JSON.parseObject(transferFilterData.getReserveField1()).getString(applyLoan);
+                            applyLoan= JSON.parseObject(transferFilterData.getReserveField1()).getString("applyLoan");
                         }
                         //custNum、cell、userType、applyDt、applyResult、auditTime、ifLent、lentTime、lentAmount、effectiveTime、applyLoan
                         StringBuilder sb = new StringBuilder();
