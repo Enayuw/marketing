@@ -347,6 +347,14 @@
     </if>
   </select>
 
+  <select id="getAppletDatetiflash_" resultType="java.util.List">
+    select applet_date
+    from b_marketing_sync_${apiCode}
+    where user_type = #{userType}
+    and  <![CDATA[ create_time >= #{startDate} and create_time < #{endDate} ]]>
+    group by applet_date order by applet_date asc
+  </select>
+
   <select id="uploadSyncMinAppletTime" resultType="java.lang.String">
     select DATE_FORMAT(min(create_time),"%Y-%m-%d %H:%i:%s") from b_marketing_sync_${apiCode}
     where
