@@ -22,6 +22,7 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -58,7 +59,7 @@ public class ZhongAnCallRecordImpl implements AssembleData<ZaRosterLockingDataDT
             cell = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(syncUser.getCell()).getBytes());
         }
         //callStartTime 取 yyyy-MM-dd
-        String bizDate = "";
+        String bizDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         if(bo.getDetail() != null && bo.getDetail().getCallEndTime() != null){
             try {
                 bizDate = df.format(bo.getDetail().getCallStartTime());
