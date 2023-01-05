@@ -1,4 +1,4 @@
-package com.br.marketing.check.thread;
+package com.br.marketing.config;
 
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import org.springframework.beans.factory.annotation.Autowired;

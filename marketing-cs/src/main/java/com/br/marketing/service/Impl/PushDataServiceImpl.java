@@ -1090,7 +1090,6 @@ public class PushDataServiceImpl implements PushDataService {
                 updateLocalFile(localFile);
             }
             xieChengSendAlarm(failNum,"携程广告上报接口推送异常，请检查");
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -1126,6 +1125,7 @@ public class PushDataServiceImpl implements PushDataService {
         return xieChengDataMapper.countByExample(xieChengDataExample);
     }
     private void pushXieChengData(XieChengData xieChengData,AtomicInteger failNum) {
+        log.warn("xiechengThread begin");
         // 字段修改兼容
         String sha256Tel = xieChengData.getSha256Tel();
         xieChengData.setSha256Tel(sha256Tel);
