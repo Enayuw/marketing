@@ -48,7 +48,7 @@ public class ServiceConfig {
     public ThreadPoolExecutor xieChengThreadPool() {
         Integer xiechengDataSendThread = marketingCommonConfig.getXiechengDataSendThread();
         return new ThreadPoolExecutor(xiechengDataSendThread,xiechengDataSendThread,10L, TimeUnit.SECONDS
-                , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("xieCheng-pool-%d").build()
+                , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("xieCheng-pushData-pool-%d").build()
                 ,new ThreadPoolExecutor.CallerRunsPolicy());
     }
 }
