@@ -22,12 +22,12 @@ public class ThreadPoolConfig {
     MarketingCommonConfig marketingCommonConfig;
     @Bean(name = "xieChengThreadPool")
     public ThreadPoolTaskExecutor xieChengThreadPool() {
-        Integer xieChengDateSendThread = marketingCommonConfig.getXiechengDateSendThread();
+        Integer xiechengDataSendThread = marketingCommonConfig.getXiechengDataSendThread();
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         // 设置核心线程数,它是可以同时被执行的线程数量
-        executor.setCorePoolSize(xieChengDateSendThread);
+        executor.setCorePoolSize(xiechengDataSendThread);
         // 设置最大线程数,缓冲队列满了之后会申请超过核心线程数的线程
-        executor.setMaxPoolSize(xieChengDateSendThread);
+        executor.setMaxPoolSize(xiechengDataSendThread);
         // 设置缓冲队列容量,在执行任务之前用于保存任务
         executor.setQueueCapacity(200);
         // 设置线程生存时间（秒）,当超过了核心线程出之外的线程在生存时间到达之后会被销毁
