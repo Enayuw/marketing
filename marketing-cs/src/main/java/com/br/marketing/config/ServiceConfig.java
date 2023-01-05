@@ -1,6 +1,8 @@
 package com.br.marketing.config;
 
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
@@ -37,6 +39,16 @@ public class ServiceConfig {
     public ThreadPoolExecutor getInterfaceLogDbpool(){
         return new ThreadPoolExecutor(10,20,10L, TimeUnit.SECONDS
                 , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("interfaceLogDb-pool-%d").build()
+                ,new ThreadPoolExecutor.CallerRunsPolicy());
+    }
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+    @Bean(name = "xieChengThreadPool")
+    public ThreadPoolExecutor xieChengThreadPool() {
+        Integer xiechengDataSendThread = marketingCommonConfig.getXiechengDataSendThread();
+        return new ThreadPoolExecutor(xiechengDataSendThread,xiechengDataSendThread,10L, TimeUnit.SECONDS
+                , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("xieCheng-pool-%d").build()
                 ,new ThreadPoolExecutor.CallerRunsPolicy());
     }
 }
