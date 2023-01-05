@@ -118,6 +118,13 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Resource
     private XiechengSmsQuitDataMapper xiechengSmsQuitDataMapper;
+
+
+    @Resource
+    @Qualifier("xieChengThreadPool")
+    ThreadPoolExecutor xieChengThreadPool;
+
+
     @Resource
     private AlarmApiClient alarmClient;
     @Value("${otherConfig.alarm.outsideSecretKey:00}")
@@ -1051,9 +1058,6 @@ public class PushDataServiceImpl implements PushDataService {
 
 
 
-    @Resource
-    @Qualifier("xieChengThreadPool")
-    ThreadPoolExecutor xieChengThreadPool;
 
     @Override
     public Result pushXieChengToDbData(String data) {
