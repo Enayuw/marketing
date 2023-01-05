@@ -1131,7 +1131,6 @@ public class PushDataServiceImpl implements PushDataService {
         return xieChengDataMapper.countByExample(xieChengDataExample);
     }
     private void pushXieChengData(XieChengData xieChengData,AtomicInteger failNum) {
-        log.warn("xiechengThread begin");
         // 字段修改兼容
         String sha256Tel = xieChengData.getSha256Tel();
         xieChengData.setSha256Tel(sha256Tel);
