@@ -347,7 +347,7 @@
     </if>
   </select>
 
-  <select id="getAppletDatetiflash_" resultType="java.util.List">
+  <select id="getAppletDatetiflash_" resultType="java.lang.String">
     select applet_date
     from b_marketing_sync_${apiCode}
     where user_type = #{userType}
