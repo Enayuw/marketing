@@ -21,7 +21,7 @@ public interface MarketingSyncReportMapper {
                                    @Param("uploadDate") String uploadDate);
 
     List<String> getAppletDatetiflash_(@Param("apiCode") String apiCode, @Param("userType") String userType,
-                                   @Param("startData") String startDate,@Param("endData") String endDate);
+                                   @Param("startDate") String startDate,@Param("endDate") String endDate);
 
     @AddDataAuth
     List<MarketingSyncReportVO> selectList(Map<String, Object> params);
