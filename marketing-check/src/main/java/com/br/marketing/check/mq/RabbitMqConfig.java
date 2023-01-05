@@ -2,11 +2,13 @@ package com.br.marketing.check.mq;
 
 
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
@@ -42,6 +44,9 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 public class RabbitMqConfig {
     public static final int MQ_LISTENER = 1;
+    public static final int MQ_CONCURRENT_LISTENER = 5;
+
+
 
     /**
      * marketing 通用交换机
@@ -128,4 +133,21 @@ public class RabbitMqConfig {
         configurer.configure(factory, connectionFactory);
         return factory;
     }
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+    @Bean(name = "concurrentContainerFactory")
+    public SimpleRabbitListenerContainerFactory concurrentContainerFactory(SimpleRabbitListenerContainerFactoryConfigurer configurer,
+                                                                 ConnectionFactory connectionFactory) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        //设置线程数
+        factory.setConcurrentConsumers(marketingCommonConfig.getXiechengMqThread());
+        //最大线程数
+        factory.setMaxConcurrentConsumers(marketingCommonConfig.getXiechengMqThread());
+        factory.setPrefetchCount(0);
+        factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+        configurer.configure(factory, connectionFactory);
+        return factory;
+    }
+
 }

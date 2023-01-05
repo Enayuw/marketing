@@ -53,6 +53,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -1047,11 +1048,13 @@ public class PushDataServiceImpl implements PushDataService {
         xieChengSendAlarm(failNum,"携程短信退订接口推送异常，请检查");
     }
 
+
+
+    @Resource
+    ThreadPoolTaskExecutor xieChengThreadPool;
+
     @Override
     public Result pushXieChengToDbData(String data) {
-
-        Integer xieChengDateSendThread = marketingCommonConfig.getXiechengDateSendThread();
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(xieChengDateSendThread, xieChengDateSendThread);
         try {
             LocalFile localFile = new LocalFile();
             Long id;
@@ -1080,15 +1083,8 @@ public class PushDataServiceImpl implements PushDataService {
                 for (int i = 0; i < xieChengDatalist.size(); i++) {
                     XieChengData xieChengData = xieChengDatalist.get(i);
                     minId = xieChengData.getId();
-                    threadPool.submit(() -> pushXieChengData(xieChengData,failNum));
+                    xieChengThreadPool.submit(() -> pushXieChengData(xieChengData,failNum));
                 }
-            }
-            threadPool.shutdown();
-            try {
-                while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                }
-            } catch (Exception ex) {
-                log.error(ex.getMessage(), ex);
             }
             if(!isJson(data)){
                 updateLocalFile(localFile);
