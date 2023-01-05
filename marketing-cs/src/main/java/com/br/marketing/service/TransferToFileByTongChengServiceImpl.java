@@ -121,7 +121,7 @@ public class TransferToFileByTongChengServiceImpl implements ITransferToFileServ
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file), "UTF-8"));) {
-            fw.append("custNum,cell,userType,applyDt,applyResult,auditTime,ifLent,lentTime,lentAmount,effectiveTime");
+            fw.append("custNum,cell,userType,applyDt,applyResult,auditTime,ifLent,lentTime,lentAmount,effectiveTime,applyLoan");
             fw.append("\r\n");
             LocalDate localDate = LocalDate.parse(recordDate, YYYYMMDDSHORTDF);
             LocalDate startDate = localDate.minusDays(31);
@@ -175,6 +175,7 @@ public class TransferToFileByTongChengServiceImpl implements ITransferToFileServ
                     if (preUserMap.containsKey(custNum)) {
                         String appletDate = preUserMap.get(custNum).getAppletDate();
                         String effectiveTime = "";
+                        String applyLoan ="";
                         LocalDate appletDateLocal = LocalDate.parse(appletDate, YYYYMMDDSHORTLINE);
                         if(appletDateLocal.isBefore(startDate) || appletDateLocal.isEqual(startDate)|| appletDateLocal.isAfter(endDate)){
                             continue;
@@ -184,7 +185,10 @@ public class TransferToFileByTongChengServiceImpl implements ITransferToFileServ
                         if(StringUtils.isNotEmpty(preUserMap.get(custNum).getReserveField1())){
                             effectiveTime = JSON.parseObject(preUserMap.get(custNum).getReserveField1()).getString("effectiveTime");
                         }
-                        //custNum、cell、userType、applyDt、applyResult、auditTime、ifLent、lentTime、lentAmount、effectiveTime
+                        if(StringUtils.isNotEmpty(transferFilterData.getReserveField1())) {
+                            applyLoan= JSON.parseObject(transferFilterData.getReserveField1()).getString("applyLoan");
+                        }
+                        //custNum、cell、userType、applyDt、applyResult、auditTime、ifLent、lentTime、lentAmount、effectiveTime、applyLoan
                         StringBuilder sb = new StringBuilder();
                         sb.append((StringUtils.isNotEmpty(transferFilterData.getCustNum())?transferFilterData.getCustNum():"").concat(","));
                         sb.append(cell.concat(","));
@@ -195,7 +199,8 @@ public class TransferToFileByTongChengServiceImpl implements ITransferToFileServ
                         sb.append((StringUtils.isNotEmpty(transferFilterData.getIfLent())?transferFilterData.getIfLent():"").concat(","));
                         sb.append((StringUtils.isNotEmpty(transferFilterData.getLentTime())?transferFilterData.getLentTime().replace(":000",""):"").concat(","));
                         sb.append((StringUtils.isNotEmpty(transferFilterData.getLentAmount())?transferFilterData.getLentAmount():"").concat(","));
-                        sb.append(StringUtils.isNotEmpty(effectiveTime)?effectiveTime.replace(":000",""):"");
+                        sb.append((StringUtils.isNotEmpty(effectiveTime)?effectiveTime.replace(":000",""):"").concat(","));
+                        sb.append(StringUtils.isNotEmpty(applyLoan) ? applyLoan : "");
                         sb.append("\r\n");
                         fw.append(sb.toString());
                         totalSize = totalSize + 1;
