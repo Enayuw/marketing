@@ -144,7 +144,7 @@ public class RabbitMqConfig {
         factory.setConcurrentConsumers(marketingCommonConfig.getXiechengMqThread());
         //最大线程数
         factory.setMaxConcurrentConsumers(marketingCommonConfig.getXiechengMqThread());
-        factory.setPrefetchCount(0);
+        factory.setPrefetchCount(10);
         factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
         configurer.configure(factory, connectionFactory);
         return factory;
