@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -69,7 +70,12 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                     String startDate = dateStr;
                     String endDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                             .plusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                    List<String> requestDateList = transferSyncReportMapper.requestDatetiflash_(tCid, apiCode, startDate, endDate, userType);
+                    List<String> requestDateList = new ArrayList<>();
+                    try {
+                        requestDateList = transferSyncReportMapper.requestDatetiflash_(tCid, apiCode, startDate, endDate, userType);
+                    }catch (Exception ex){
+                        log.error("查询转化表的上传时间错误 apiCode：{},错误：{}",apiCode,ex.getMessage());
+                    }
                     for (String requestDate : requestDateList) {
                         threadPool.submit(()->{
                             TransferSyncReport report;
