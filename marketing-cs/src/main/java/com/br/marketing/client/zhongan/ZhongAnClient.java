@@ -123,7 +123,7 @@ public class ZhongAnClient {
                     || "9999".equals(marketDetailVO.getRespCode())) {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
-            log.warn("无需重试 推送明细结果判断：{}",JSON.toJSONString(resVo));
+            log.error("无需重试 众安推送明细结果：{}",JSON.toJSONString(resVo));
             return new Result().setCode(ResultCode.FAIL.getValue());
         } catch (Exception ex) {
             log.error("众安推送明细异常"+ex.getMessage(),ex);
@@ -213,6 +213,7 @@ public class ZhongAnClient {
             if (bXZKApiKey.equals(apiKey) && "9998".equals(zkVo.getRespCode())) {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
+            log.error("无需重试 众安撞库结果：{}",JSON.toJSONString(resVo));
             return new Result().setCode(ResultCode.FAIL.getValue());
         } catch (Exception ex) {
             log.error("众安撞库异常"+ex.getMessage(),ex);

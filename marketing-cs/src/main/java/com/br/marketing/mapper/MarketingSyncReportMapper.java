@@ -20,6 +20,9 @@ public interface MarketingSyncReportMapper {
     String uploadSyncMaxAppletTime(@Param("apiCode") String apiCode, @Param("userType") String userType,
                                    @Param("uploadDate") String uploadDate);
 
+    List<String> getAppletDatetiflash_(@Param("apiCode") String apiCode, @Param("userType") String userType,
+                                   @Param("startDate") String startDate,@Param("endDate") String endDate);
+
     @AddDataAuth
     List<MarketingSyncReportVO> selectList(Map<String, Object> params);
 

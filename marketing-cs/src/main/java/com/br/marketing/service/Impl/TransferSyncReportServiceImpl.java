@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -66,62 +67,73 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                 // 获取场景
                 Set<String> userTypeSet = userTypeMapByApiCode.getOrDefault(apiCode, Collections.emptySet());
                 for (String userType : userTypeSet) {
-                    threadPool.submit(()->{
-                        TransferSyncReport report;
-                        try {
-                            report = transferSyncReportMapper.dateTimeMinMaxCounttiflash_(tCid, apiCode, dateStr, userType);
-                        } catch (Exception e) {
+                    String startDate = dateStr;
+                    String endDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                            .plusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                    List<String> requestDateList = new ArrayList<>();
+                    try {
+                        requestDateList = transferSyncReportMapper.requestDatetiflash_(tCid, apiCode, startDate, endDate, userType);
+                    }catch (Exception ex){
+                        log.warn("查询转化表的上传时间错误 apiCode：{},错误：{}",apiCode,ex.getMessage());
+                    }
+                    for (String requestDate : requestDateList) {
+                        threadPool.submit(()->{
+                            TransferSyncReport report;
                             try {
-                                report = transferSyncReportMapper.dateTimeMinMaxCountSMYtiflash_(apiCode, dateStr, userType);
-                            } catch (Exception ignored) {
-                                return;
+                                report = transferSyncReportMapper.dateTimeMinMaxCounttiflash_(tCid, apiCode, requestDate, userType);
+                            } catch (Exception e) {
+                                try {
+                                    report = transferSyncReportMapper.dateTimeMinMaxCountSMYtiflash_(apiCode, requestDate, userType);
+                                } catch (Exception ignored) {
+                                    return;
+                                }
                             }
-                        }
-                        try {
-                            Date appletBeginTime = report.getAppletBeginTime();
-                            Date appletEndTime = report.getAppletEndTime();
-                            Integer dataCount = report.getDataCount();
-                            if (appletBeginTime == null || appletEndTime == null || dataCount == null || dataCount < 1) {
-                                return;
-                            }
-                            // 检索历史记录
-                            TransferSyncReportExample example = new TransferSyncReportExample();
-                            example.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
-                                    .andAppletDateEqualTo(dateStr);
-                            List<TransferSyncReport> list = findTransferSyncReportList(example);
-                            if (CollectionUtils.isEmpty(list)) {
-                                // 添加新记录
-                                report.setUserType(userType);
-                                report.setAppletDate(dateStr);
-                                report.setCid(customer.getCid());
-                                report.setApiCode(apiCode);
-                                report.setShortName(customer.getShortName());
-                                report.setCreateTime(new Date());
-                                report.setUpdateTime(new Date());
-                                transferSyncReportMapper.insertSelective(report);
-                            } else {
-                                // 更新历史记录
-                                TransferSyncReport transferSyncReport = list.get(0);
-                                if (appletBeginTime.equals(transferSyncReport.getAppletBeginTime())) {
-                                    report.setAppletBeginTime(null);
+                            try {
+                                Date appletBeginTime = report.getAppletBeginTime();
+                                Date appletEndTime = report.getAppletEndTime();
+                                Integer dataCount = report.getDataCount();
+                                if (appletBeginTime == null || appletEndTime == null || dataCount == null || dataCount < 1) {
+                                    return;
                                 }
-                                if (appletEndTime.equals(transferSyncReport.getAppletEndTime())) {
-                                    report.setAppletEndTime(null);
-                                }
-                                if (dataCount.equals(transferSyncReport.getDataCount())) {
-                                    report.setDataCount(null);
-                                }
-                                if (report.getAppletBeginTime() != null || report.getAppletEndTime() != null
-                                        || report.getDataCount() != null) {
-                                    report.setId(transferSyncReport.getId());
+                                // 检索历史记录
+                                TransferSyncReportExample example = new TransferSyncReportExample();
+                                example.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
+                                        .andAppletDateEqualTo(requestDate);
+                                List<TransferSyncReport> list = findTransferSyncReportList(example);
+                                if (CollectionUtils.isEmpty(list)) {
+                                    // 添加新记录
+                                    report.setUserType(userType);
+                                    report.setAppletDate(requestDate);
+                                    report.setCid(customer.getCid());
+                                    report.setApiCode(apiCode);
+                                    report.setShortName(customer.getShortName());
+                                    report.setCreateTime(new Date());
                                     report.setUpdateTime(new Date());
-                                    transferSyncReportMapper.updateByPrimaryKeySelective(report);
+                                    transferSyncReportMapper.insertSelective(report);
+                                } else {
+                                    // 更新历史记录
+                                    TransferSyncReport transferSyncReport = list.get(0);
+                                    if (appletBeginTime.equals(transferSyncReport.getAppletBeginTime())) {
+                                        report.setAppletBeginTime(null);
+                                    }
+                                    if (appletEndTime.equals(transferSyncReport.getAppletEndTime())) {
+                                        report.setAppletEndTime(null);
+                                    }
+                                    if (dataCount.equals(transferSyncReport.getDataCount())) {
+                                        report.setDataCount(null);
+                                    }
+                                    if (report.getAppletBeginTime() != null || report.getAppletEndTime() != null
+                                            || report.getDataCount() != null) {
+                                        report.setId(transferSyncReport.getId());
+                                        report.setUpdateTime(new Date());
+                                        transferSyncReportMapper.updateByPrimaryKeySelective(report);
+                                    }
                                 }
+                            } catch (Exception e) {
+                                log.error(e.getMessage(), e);
                             }
-                        } catch (Exception e) {
-                            log.error(e.getMessage(), e);
-                        }
-                    });
+                        });
+                    }
                 }
             }
         }
