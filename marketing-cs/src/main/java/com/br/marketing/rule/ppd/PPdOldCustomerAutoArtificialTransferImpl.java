@@ -3,21 +3,24 @@ package com.br.marketing.rule.ppd;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.PPDCollectDataImpl;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IScoreResultService;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,13 +29,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 
 @Service
-public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<MqFact> {
+public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<BatchRealTimeUserDataDTO> {
 
     @Autowired
     IScoreResultService iScoreResultService;
@@ -43,27 +46,41 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Mq
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+
+    @Autowired
+    TableCreateServiceImpl tableCreateService;
+
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
 
+    @Autowired
+    RedisChgService redisChgService;
+
     @Override
-    public MqFact assemble(Object transmitFact, ProcessHandlerContext context) {
+    public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        MqFact mqFact = new MqFact();
-        mqFact.setSourceId(transfer.getId());
-        return mqFact;
+        BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
+
+        PPDCollectDataImpl.PPDRuleNecessaryData ruleNecessaryData =
+                (PPDCollectDataImpl.PPDRuleNecessaryData) context.getRuleNecessaryData();
+        Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
+        MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, transfer.getCustNum());
+        batchRealTimeUserDataDTO.setDassImportDataDTO(packageDassImportData(transfer, marketingSyncUser));
+        return batchRealTimeUserDataDTO;
     }
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
-        if(transmitFact instanceof MarketingTransferSyncUser){
+        if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-            if(StringUtils.isBlank(transfer.getReserveField1())){
+            if (StringUtils.isBlank(transfer.getReserveField1())) {
                 return false;
             }
             JSONObject jsonObject = JSON.parseObject(transfer.getReserveField1());
             String ifLogin = jsonObject.getString("ifLogin");
-            if(!"1".equals(ifLogin)){
+            if (!"1".equals(ifLogin)) {
                 return false;
             }
             if (StringUtils.isNotBlank(transfer.getIfLent())) {
@@ -78,13 +95,59 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Mq
                 return false;
             }
 
+            Integer ppdValidityDay = marketingCommonConfig.getPpdValidityDay() != null ? marketingCommonConfig.getPpdValidityDay() : null;
+            if (ppdValidityDay!=null) {
+                LocalDate startDate = LocalDate.now().minusDays(ppdValidityDay);
+                LocalDate dataDate = LocalDate.parse(marketingSyncUser.getAppletDate());
+                if(dataDate.compareTo(startDate)<0){
+                 return false;
+                }
+            }
+
+            String tcId = tableCreateService.getTcId(context.getApiCode());
+            MarketingTransferSyncUserExample transferSyncUserExample = new MarketingTransferSyncUserExample();
+            transferSyncUserExample.setOrderByClause(" id limit 1");
+            transferSyncUserExample.createCriteria()
+                    .andTCidEqualTo(tcId)
+                    .andApiCodeEqualTo(context.getApiCode())
+                    .andCustNumEqualTo(transfer.getCustNum())
+                    .andIfLentEqualTo("Y");
+            List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(transferSyncUserExample);
+            if(marketingTransferSyncUsers.size()>0){
+                return false;
+            }
 
             Result<String> conditionRes = iScoreResultService.isFilterScoreByTransfer(context.getApiCode(), this.label());
-            if(!ResultCode.SUCCESS.getValue().equals(conditionRes.getCode())){
+            if (!ResultCode.SUCCESS.getValue().equals(conditionRes.getCode())) {
                 return false;
             }
             Result<String> stringResult = iScoreResultService.filterScoreResByTransfer(context.getApiCode(), transfer.getCustNum(), conditionRes.getData());
-            return ResultCode.SUCCESS.getValue().equals(stringResult.getCode());
+            if(!ResultCode.SUCCESS.getValue().equals(stringResult.getCode())){
+                return false;
+            }
+
+            String _7Day = LocalDate.now().minusDays(7L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+            //分布式锁，控制推电销判断逻辑顺序执行
+            String key = RedisKeyConstant.ppdOldPushDx.concat(":")
+                    .concat(transfer.getApiCode()).concat(":")
+                    .concat(transfer.getCustNum());
+            String value = UUID.randomUUID().toString();
+
+            redisChgService.lock(key,value);
+            PhoneSaleExtendInfoExample extendInfoExample = new PhoneSaleExtendInfoExample();
+            extendInfoExample.createCriteria().andApiCodeEqualTo(transfer.getApiCode()).
+                    andCustNumEqualTo(transfer.getCustNum()).
+                    andAppletDateBetween(_7Day,transfer.getRequestData());
+            int count = phoneSaleExtendInfoMapper.countByExample(extendInfoExample);
+            if (count > 0){
+                redisChgService.unlock(key,value);
+                return false;
+            }else{
+                savePhoneSaleExtendInfo(transfer,marketingSyncUser.getCusBatch());
+                redisChgService.unlock(key,value);
+                return true;
+            }
         }
         return false;
 
@@ -92,7 +155,7 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Mq
 
     @Override
     public String label() {
-        return "PPD_TransferData_ArtificialBatch_Delay";
+        return "PPDOld_TransferData_ArtificialBatch";
     }
 
     @Override
@@ -105,7 +168,7 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Mq
         return RuleDataCollectionEnum.PPD_DATA_COLLECTION.getCode();
     }
 
-    private void savePhoneSaleExtendInfo(MarketingTransferSyncUser transfer,String cusBatch) {
+    private void savePhoneSaleExtendInfo(MarketingTransferSyncUser transfer, String cusBatch) {
         PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
         phoneSaleExtendInfo.setApiCode(transfer.getApiCode());
         phoneSaleExtendInfo.setCustNum(transfer.getCustNum());

@@ -410,8 +410,8 @@ public class MarketingCommonConfig {
     private String XieChengTransferExecuteTime;
 
     /**
-     * 拍拍贷有效期T+33；目前仅老客使用
+     * 拍拍贷有效期34；目前仅老客使用
      */
-    private String ppdValidityDay;
+    private Integer ppdValidityDay;
 }
 

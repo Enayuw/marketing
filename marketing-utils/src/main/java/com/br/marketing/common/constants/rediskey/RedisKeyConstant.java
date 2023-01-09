@@ -36,6 +36,8 @@ public class RedisKeyConstant {
 
     public static final String ppdPushDx = prefix.concat("ppd:pushdx");
 
+    public static final String ppdOldPushDx = prefix.concat("ppdOld:pushdx");
+
     public static final String shuhePushDxSingleMutex = prefix.concat("shuhe:pushdx:singleMutex");
 
     public static final String taskGetLock = prefix.concat("tasklock");
