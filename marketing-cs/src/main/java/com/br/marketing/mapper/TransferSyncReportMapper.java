@@ -41,6 +41,10 @@ public interface TransferSyncReportMapper extends TransferSyncReportMapperBase {
     TransferSyncReport dateTimeMinMaxCounttiflash_(@Param("tCid") String tCid, @Param("apiCode") String apiCode
             , @Param("dateStr") String dateStr, @Param("userType") String userType);
 
+
+    List<String> requestDatetiflash_(@Param("tCid") String tCid, @Param("apiCode") String apiCode
+            , @Param("startDate") String startDate,@Param("endDate") String endDate, @Param("userType") String userType);
+
     /**
      * 转化数据统计报表列表
      * 2022/6/29 19:26
