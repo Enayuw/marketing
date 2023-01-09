@@ -74,7 +74,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                     try {
                         requestDateList = transferSyncReportMapper.requestDatetiflash_(tCid, apiCode, startDate, endDate, userType);
                     }catch (Exception ex){
-                        log.error("查询转化表的上传时间错误 apiCode：{},错误：{}",apiCode,ex.getMessage());
+                        log.warn("查询转化表的上传时间错误 apiCode：{},错误：{}",apiCode,ex.getMessage());
                     }
                     for (String requestDate : requestDateList) {
                         threadPool.submit(()->{
