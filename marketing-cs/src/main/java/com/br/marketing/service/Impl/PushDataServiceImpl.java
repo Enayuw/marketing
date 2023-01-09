@@ -52,7 +52,9 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -64,6 +66,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -116,6 +119,13 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Resource
     private XiechengSmsQuitDataMapper xiechengSmsQuitDataMapper;
+
+
+    @Resource
+    @Qualifier("xieChengThreadPool")
+    ThreadPoolExecutor xieChengThreadPool;
+
+
     @Resource
     private AlarmApiClient alarmClient;
     @Value("${otherConfig.alarm.outsideSecretKey:00}")
@@ -1047,22 +1057,23 @@ public class PushDataServiceImpl implements PushDataService {
         xieChengSendAlarm(failNum,"携程短信退订接口推送异常，请检查");
     }
 
+
+
+
     @Override
     public Result pushXieChengToDbData(String data) {
-
-        Integer xieChengDateSendThread = marketingCommonConfig.getXiechengDateSendThread();
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(xieChengDateSendThread, xieChengDateSendThread);
         try {
             LocalFile localFile = new LocalFile();
             Long id;
+            int  xieChengCount = 1;
             if(isJson(data)){
                 JSONObject jsonObject = JSONObject.parseObject(data);
-                log.warn("jsonObject:{}",jsonObject);
                 id = Long.valueOf(jsonObject.getInteger("localId"));
             }else {
                 id = Long.valueOf(data);
                 localFile = localFileMapper.selectByPrimaryKey(id);
                 if (localFile != null) {
+                    xieChengCount = localFile.getActualNumber();
                     localFile.setPushStartTime(localFile.getPushStartTime() == null ? new Date() : localFile.getPushStartTime());
                 }else {
                     return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(false);
@@ -1071,6 +1082,7 @@ public class PushDataServiceImpl implements PushDataService {
             Boolean actionMark = true;
             Long minId = null;
             AtomicInteger failNum = new AtomicInteger(0);
+            CountDownLatch countDownLatch = new CountDownLatch(xieChengCount);
             while (actionMark) {
                 List<XieChengData> xieChengDatalist = xieChengDataMapper.selectByLocalId(id, minId);
                 if (xieChengDatalist.size() == 0) {
@@ -1080,21 +1092,19 @@ public class PushDataServiceImpl implements PushDataService {
                 for (int i = 0; i < xieChengDatalist.size(); i++) {
                     XieChengData xieChengData = xieChengDatalist.get(i);
                     minId = xieChengData.getId();
-                    threadPool.submit(() -> pushXieChengData(xieChengData,failNum));
+                    xieChengThreadPool.submit(() -> pushXieChengData(xieChengData,failNum, countDownLatch));
                 }
             }
-            threadPool.shutdown();
             try {
-                while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                }
-            } catch (Exception ex) {
-                log.error(ex.getMessage(), ex);
+                countDownLatch.await();
+                log.warn("线程执行完毕");
+            } catch (InterruptedException e) {
+                log.error("countDownLatch 线程执行异常", e);
             }
             if(!isJson(data)){
                 updateLocalFile(localFile);
             }
             xieChengSendAlarm(failNum,"携程广告上报接口推送异常，请检查");
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -1129,7 +1139,8 @@ public class PushDataServiceImpl implements PushDataService {
                 .andStatusEqualTo(1);
         return xieChengDataMapper.countByExample(xieChengDataExample);
     }
-    private void pushXieChengData(XieChengData xieChengData,AtomicInteger failNum) {
+    private void pushXieChengData(XieChengData xieChengData,AtomicInteger failNum,CountDownLatch countDownLatch) {
+        countDownLatch.countDown();
         // 字段修改兼容
         String sha256Tel = xieChengData.getSha256Tel();
         xieChengData.setSha256Tel(sha256Tel);

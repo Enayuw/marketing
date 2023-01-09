@@ -310,7 +310,13 @@ public class MarketingCommonConfig {
     /**
      * 携程数据推送线程数
      */
-    private Integer xiechengDateSendThread;
+    private Integer xiechengDataSendThread;
+
+
+    /**
+     * 携程数据mq消费线程数
+     */
+    private Integer xiechengMqThread;
 
     /**
      * nfs路径

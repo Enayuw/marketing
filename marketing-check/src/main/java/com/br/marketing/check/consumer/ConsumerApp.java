@@ -114,7 +114,9 @@ public class ConsumerApp {
      * @param channel 通道
      * @param message 消息体
      */
-    @RabbitListener(queues = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, containerFactory = "containerFactory")
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, durable = "true")
+            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
+            , key = MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)}, containerFactory = "concurrentContainerFactory")
     public void xiechengTodb(Channel channel, Message message) {
         String mes  = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
