@@ -1066,7 +1066,6 @@ public class PushDataServiceImpl implements PushDataService {
             Long id;
             if(isJson(data)){
                 JSONObject jsonObject = JSONObject.parseObject(data);
-                log.warn("jsonObject:{}",jsonObject);
                 id = Long.valueOf(jsonObject.getInteger("localId"));
             }else {
                 id = Long.valueOf(data);
