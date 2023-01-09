@@ -18,6 +18,7 @@ import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IScoreResultService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +40,9 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Mq
     @Resource
     PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
 
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
 
@@ -54,7 +58,6 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Mq
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         if(transmitFact instanceof MarketingTransferSyncUser){
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-            // ifTransform=0 userType=1,2,3 转化数据静置
             if(StringUtils.isBlank(transfer.getReserveField1())){
                 return false;
             }
@@ -74,6 +77,7 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Mq
             if (marketingSyncUser == null) {
                 return false;
             }
+
 
             Result<String> conditionRes = iScoreResultService.isFilterScoreByTransfer(context.getApiCode(), this.label());
             if(!ResultCode.SUCCESS.getValue().equals(conditionRes.getCode())){

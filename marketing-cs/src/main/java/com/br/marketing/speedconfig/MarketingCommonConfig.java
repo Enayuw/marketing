@@ -408,5 +408,10 @@ public class MarketingCommonConfig {
      * 携程转化数据提取执行时间
      */
     private String XieChengTransferExecuteTime;
+
+    /**
+     * 拍拍贷有效期T+33；目前仅老客使用
+     */
+    private String ppdValidityDay;
 }
 
