@@ -1065,7 +1065,7 @@ public class PushDataServiceImpl implements PushDataService {
         try {
             LocalFile localFile = new LocalFile();
             Long id;
-
+            int  xieChengCount = 1;
             if(isJson(data)){
                 JSONObject jsonObject = JSONObject.parseObject(data);
                 id = Long.valueOf(jsonObject.getInteger("localId"));
@@ -1073,6 +1073,7 @@ public class PushDataServiceImpl implements PushDataService {
                 id = Long.valueOf(data);
                 localFile = localFileMapper.selectByPrimaryKey(id);
                 if (localFile != null) {
+                    xieChengCount = localFile.getActualNumber();
                     localFile.setPushStartTime(localFile.getPushStartTime() == null ? new Date() : localFile.getPushStartTime());
                 }else {
                     return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(false);
@@ -1081,9 +1082,6 @@ public class PushDataServiceImpl implements PushDataService {
             Boolean actionMark = true;
             Long minId = null;
             AtomicInteger failNum = new AtomicInteger(0);
-            XieChengDataExample xieChengDataExample = new XieChengDataExample();
-            xieChengDataExample.createCriteria().andLocalIdEqualTo(id);
-            int xieChengCount = xieChengDataMapper.countByExample(xieChengDataExample);
             CountDownLatch countDownLatch = new CountDownLatch(xieChengCount);
             while (actionMark) {
                 List<XieChengData> xieChengDatalist = xieChengDataMapper.selectByLocalId(id, minId);
