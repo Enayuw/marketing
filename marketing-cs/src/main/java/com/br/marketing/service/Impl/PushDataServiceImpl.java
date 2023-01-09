@@ -66,6 +66,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1079,6 +1080,7 @@ public class PushDataServiceImpl implements PushDataService {
             Boolean actionMark = true;
             Long minId = null;
             AtomicInteger failNum = new AtomicInteger(0);
+            CountDownLatch countDownLatch = new CountDownLatch(localFile.getActualNumber());
             while (actionMark) {
                 List<XieChengData> xieChengDatalist = xieChengDataMapper.selectByLocalId(id, minId);
                 if (xieChengDatalist.size() == 0) {
@@ -1088,8 +1090,14 @@ public class PushDataServiceImpl implements PushDataService {
                 for (int i = 0; i < xieChengDatalist.size(); i++) {
                     XieChengData xieChengData = xieChengDatalist.get(i);
                     minId = xieChengData.getId();
-                    xieChengThreadPool.submit(() -> pushXieChengData(xieChengData,failNum));
+                    xieChengThreadPool.submit(() -> pushXieChengData(xieChengData,failNum,countDownLatch));
                 }
+            }
+            try {
+                countDownLatch.await();
+                log.warn("线程执行完毕");
+            } catch (InterruptedException e) {
+                log.error("countDownLatch 线程执行异常", e);
             }
             if(!isJson(data)){
                 updateLocalFile(localFile);
@@ -1129,7 +1137,8 @@ public class PushDataServiceImpl implements PushDataService {
                 .andStatusEqualTo(1);
         return xieChengDataMapper.countByExample(xieChengDataExample);
     }
-    private void pushXieChengData(XieChengData xieChengData,AtomicInteger failNum) {
+    private void pushXieChengData(XieChengData xieChengData,AtomicInteger failNum,CountDownLatch countDownLatch) {
+        countDownLatch.countDown();
         // 字段修改兼容
         String sha256Tel = xieChengData.getSha256Tel();
         xieChengData.setSha256Tel(sha256Tel);
