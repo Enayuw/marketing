@@ -96,12 +96,14 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
             }
 
             Integer ppdValidityDay = marketingCommonConfig.getPpdValidityDay() != null ? marketingCommonConfig.getPpdValidityDay() : null;
-            if (ppdValidityDay!=null) {
+            if (ppdValidityDay != null) {
                 LocalDate startDate = LocalDate.now().minusDays(ppdValidityDay);
                 LocalDate dataDate = LocalDate.parse(marketingSyncUser.getAppletDate());
-                if(dataDate.compareTo(startDate)<0){
-                 return false;
+                if (dataDate.compareTo(startDate) < 0) {
+                    return false;
                 }
+            } else {
+                return false;
             }
 
             String tcId = tableCreateService.getTcId(context.getApiCode());
@@ -113,7 +115,7 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
                     .andCustNumEqualTo(transfer.getCustNum())
                     .andIfLentEqualTo("Y");
             List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(transferSyncUserExample);
-            if(marketingTransferSyncUsers.size()>0){
+            if (marketingTransferSyncUsers.size() > 0) {
                 return false;
             }
 
@@ -122,7 +124,7 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
                 return false;
             }
             Result<String> stringResult = iScoreResultService.filterScoreResByTransfer(context.getApiCode(), transfer.getCustNum(), conditionRes.getData());
-            if(!ResultCode.SUCCESS.getValue().equals(stringResult.getCode())){
+            if (!ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
                 return false;
             }
 
@@ -134,18 +136,18 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
                     .concat(transfer.getCustNum());
             String value = UUID.randomUUID().toString();
 
-            redisChgService.lock(key,value);
+            redisChgService.lock(key, value);
             PhoneSaleExtendInfoExample extendInfoExample = new PhoneSaleExtendInfoExample();
             extendInfoExample.createCriteria().andApiCodeEqualTo(transfer.getApiCode()).
                     andCustNumEqualTo(transfer.getCustNum()).
-                    andAppletDateBetween(_7Day,transfer.getRequestData());
+                    andAppletDateBetween(_7Day, transfer.getRequestData());
             int count = phoneSaleExtendInfoMapper.countByExample(extendInfoExample);
-            if (count > 0){
-                redisChgService.unlock(key,value);
+            if (count > 0) {
+                redisChgService.unlock(key, value);
                 return false;
-            }else{
-                savePhoneSaleExtendInfo(transfer,marketingSyncUser.getCusBatch());
-                redisChgService.unlock(key,value);
+            } else {
+                savePhoneSaleExtendInfo(transfer, marketingSyncUser.getCusBatch());
+                redisChgService.unlock(key, value);
                 return true;
             }
         }
