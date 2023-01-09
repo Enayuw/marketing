@@ -1065,6 +1065,7 @@ public class PushDataServiceImpl implements PushDataService {
         try {
             LocalFile localFile = new LocalFile();
             Long id;
+
             if(isJson(data)){
                 JSONObject jsonObject = JSONObject.parseObject(data);
                 id = Long.valueOf(jsonObject.getInteger("localId"));
@@ -1080,7 +1081,10 @@ public class PushDataServiceImpl implements PushDataService {
             Boolean actionMark = true;
             Long minId = null;
             AtomicInteger failNum = new AtomicInteger(0);
-            CountDownLatch countDownLatch = new CountDownLatch(localFile.getActualNumber());
+            XieChengDataExample xieChengDataExample = new XieChengDataExample();
+            xieChengDataExample.createCriteria().andLocalIdEqualTo(id);
+            int xieChengCount = xieChengDataMapper.countByExample(xieChengDataExample);
+            CountDownLatch countDownLatch = new CountDownLatch(xieChengCount);
             while (actionMark) {
                 List<XieChengData> xieChengDatalist = xieChengDataMapper.selectByLocalId(id, minId);
                 if (xieChengDatalist.size() == 0) {
@@ -1090,7 +1094,7 @@ public class PushDataServiceImpl implements PushDataService {
                 for (int i = 0; i < xieChengDatalist.size(); i++) {
                     XieChengData xieChengData = xieChengDatalist.get(i);
                     minId = xieChengData.getId();
-                    xieChengThreadPool.submit(() -> pushXieChengData(xieChengData,failNum,countDownLatch));
+                    xieChengThreadPool.submit(() -> pushXieChengData(xieChengData,failNum, countDownLatch));
                 }
             }
             try {
