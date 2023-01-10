@@ -109,6 +109,7 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
             String tcId = tableCreateService.getTcId(context.getApiCode());
             MarketingTransferSyncUserExample transferSyncUserExample = new MarketingTransferSyncUserExample();
             transferSyncUserExample.setOrderByClause(" id limit 1");
+            transferSyncUserExample.settCid(tcId);
             transferSyncUserExample.createCriteria()
                     .andTCidEqualTo(tcId)
                     .andApiCodeEqualTo(context.getApiCode())
@@ -162,7 +163,7 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.BATCH_MESSAGE_DELAY.getCode();
+        return InterfaceHandlerEnum.ARTIFICIAL_BATCH_REALTIME_DATA.getCode();
     }
 
     @Override
