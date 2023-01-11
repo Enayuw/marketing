@@ -3,12 +3,16 @@ package com.br.marketing.check.controller;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.xiecheng.FinanceAESUtils;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
+import com.br.marketing.mapper.XieChengSmsCollidingDataMapper;
 import com.br.marketing.service.MarketingSmyPushService;
 import com.br.marketing.service.PushDataService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
@@ -23,6 +27,9 @@ import javax.annotation.Resource;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -56,6 +63,10 @@ public class TestXiechengController {
     @Autowired
     PushDataService pushDataService;
 
+    @Autowired
+    XieChengSmsCollidingDataMapper xieChengSmsCollidingDataMapper;
+
+
     @GetMapping("/test")
     public void transfersmyTest(String id) {
         pushDataService.pushXieChengSmsCollidingToDbData(id);
@@ -75,6 +86,58 @@ public class TestXiechengController {
 //            }
 //        });
     }
+    @GetMapping("/test1")
+    public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
+        // 创建线程池
+//        ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingThread(), marketingCommonConfig.getXieChengSmsCollidingThread());
+        ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(5,5);
+
+        Boolean actionMark = true;
+        Date endTime = getTimeDay(15);
+        long startTime = endTime.getTime() - (60 * 60 * 1000);
+        // 根据id 进行数据查询 每批次查询 1.5w
+        Long minId = null;
+        AtomicInteger failNum = new AtomicInteger(0);
+        while (actionMark) {
+            List<XieChengSmsCollidingData> xieChengSmsCollidingDataList = xieChengSmsCollidingDataMapper.selectById(minId,new Date(startTime),endTime);
+            if (xieChengSmsCollidingDataList.size() == 0) {
+                actionMark = false;
+                continue;
+            }
+            // 更新minId 为当前集合最大的id
+            minId = xieChengSmsCollidingDataList.get(xieChengSmsCollidingDataList.size() - 1).getId();
+            // 将查询出来的明细数据进行分组，每组50个数据
+            List<List<XieChengSmsCollidingData>> xieChengSmsCollidingDataPartitions = Lists.partition(xieChengSmsCollidingDataList, 50);
+            for (int i = 0; i < xieChengSmsCollidingDataPartitions.size(); i++) {
+                List<XieChengSmsCollidingData> xieChengSmsCollidingDataListPartition = xieChengSmsCollidingDataPartitions.get(i);
+                xieChengSmsCollidingThread.submit(() -> pushDataService.pushXieChengSmsCollidingData(xieChengSmsCollidingDataListPartition, failNum));
+            }
+        }
+        xieChengSmsCollidingThread.shutdown();
+        try {
+            while (!xieChengSmsCollidingThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+    }
+
+    public static Date getTimeDay(int index) {
+        TimeZone tz = TimeZone.getTimeZone("Asia/Shanghai");
+        TimeZone.setDefault(tz);
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        calendar.add(Calendar.DAY_OF_MONTH, -index);
+        return  calendar.getTime();
+    }
+    /**
+     * 通过时间秒毫秒数判断两个时间的间隔
+     *
+     * @param date1
+     * @param date2
+     * @return
+     */
+
     public static boolean differentDaysByMillisecond(Date date1, Date date2, int hours) {
         int days = ((int) ((date2.getTime() - date1.getTime()) / (1000 * 3600)));
         return days / hours > 0 && days % hours == 0;

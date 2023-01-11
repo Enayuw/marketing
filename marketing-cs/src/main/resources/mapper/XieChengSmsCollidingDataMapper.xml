@@ -11,6 +11,16 @@
         <if test="minId != null and minId>0">
             and id > #{minId}
         </if>
-        order by id asc limit 15000;
+        order by id asc limit 100;
+    </select>
+    <select id="selectById" resultType="com.br.marketing.entity.XieChengSmsCollidingData">
+        select
+        *
+        from b_xiecheng_sms_colliding_data
+        where  status =1 and push_status =1 and next_push_time between #{startTime} and #{endTime}
+        <if test="minId != null and minId>0">
+            and id > #{minId}
+        </if>
+        order by id asc limit 100;
     </select>
 </mapper>
