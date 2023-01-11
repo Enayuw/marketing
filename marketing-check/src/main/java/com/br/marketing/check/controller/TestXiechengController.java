@@ -3,10 +3,8 @@ package com.br.marketing.check.controller;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.xiecheng.FinanceAESUtils;
-import com.br.marketing.entity.PhoneSaleExtendInfo;
-import com.br.marketing.entity.PhoneSaleExtendInfoExample;
-import com.br.marketing.entity.ThirdAdOuterReq;
-import com.br.marketing.entity.XieChengSmsCollidingReq;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.service.MarketingSmyPushService;
 import com.br.marketing.service.PushDataService;
@@ -22,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,7 +47,10 @@ public class TestXiechengController {
     @Resource
     MarketingSmyPushService marketingSmyPushService;
 
+    private final static String XIECHENGSMSCOLLIDING = "xiechengsmscolliding";
 
+    @Resource
+    private LocalFileMapper localFileMapper;
     @Autowired
     private HttpProxyClient httpProxyClient;
     @Autowired
@@ -57,8 +59,26 @@ public class TestXiechengController {
     @GetMapping("/test")
     public void transfersmyTest(String id) {
         pushDataService.pushXieChengSmsCollidingToDbData(id);
+//        LocalFileExample localFileExample = new LocalFileExample();
+//        localFileExample.createCriteria()
+//                .andFileTypeEqualTo(XIECHENGSMSCOLLIDING)
+//                .andStatusEqualTo("1")
+//                .andPushStatusNotEqualTo("1");
+//        List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
+//
+//
+//        localFileList.stream().forEach((localFile) -> {
+//            Date createTime = localFile.getCreateTime();
+//            if (differentDaysByMillisecond(createTime, new Date(), 15 * 24)) {
+////                producter.send("Marketing.Universal.SftpToDb.XieChengSmsCollidingReceive", String.valueOf(localFile.getId()));
+//                System.out.println(localFile);
+//            }
+//        });
     }
-
+    public static boolean differentDaysByMillisecond(Date date1, Date date2, int hours) {
+        int days = ((int) ((date2.getTime() - date1.getTime()) / (1000 * 3600)));
+        return days / hours > 0 && days % hours == 0;
+    }
     @GetMapping("/resultVolumeCheck")
     public void process() {
         PhoneSaleExtendInfoExample updateExample = new PhoneSaleExtendInfoExample();
@@ -118,21 +138,21 @@ public class TestXiechengController {
         System.out.println(JSON.toJSONString(send));
     }
 
-    public static String getTimeDay(String simpleDateFormat, int index) {
-        TimeZone tz = TimeZone.getTimeZone("Asia/Shanghai");
-        TimeZone.setDefault(tz);
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat fmt = new SimpleDateFormat(simpleDateFormat);
-        calendar.add(Calendar.DAY_OF_MONTH, index);
-        String date = fmt.format(calendar.getTime());
-        return date;
-    }
 
-    public static void main(String[] args) {
-        String timeDay = getTimeDay("yyyy-MM-dd hh:mm:ss", -1);
+
+    public static void main(String[] args) throws ParseException {
+        String timeDay = getTimeDay("yyyy-MM-dd HH:mm:ss", 2);
         System.out.println(timeDay);
     }
-
+    public static String getTimeDay(String simpleDateFormat, int index) throws ParseException {
+        Calendar calendar = Calendar.getInstance (); // 创建 Calendar 的实例
+        calendar.add (Calendar.DAY_OF_MONTH,-1); // 当前时间减去一天，即一天前的时间
+        calendar.getTimeInMillis ();// 返回当前时间的毫秒数
+        SimpleDateFormat fmt = new SimpleDateFormat(simpleDateFormat);
+        calendar.add(Calendar.DAY_OF_MONTH, index);
+        String date = fmt.format(calendar.getTimeInMillis());
+        return date;
+    }
     //public static void main(String[] args) throws JSONException {
     //    /**
     //     * data 组装
