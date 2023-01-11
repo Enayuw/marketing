@@ -102,6 +102,27 @@ public class XieChengService {
     @Value("${api.xiecheng.smsQuit.isProxy:0}")
     private Boolean smsQuitIsProxy;
 
+    @Value("${api.xiecheng.smsColliding.openUrl:0}")
+    private String smsCollidingOpenUrl;
+
+    @Value("${api.xiecheng.smsColliding.appId:0}")
+    private String smsCollidingAppId;
+
+    @Value("${api.xiecheng.smsColliding.key:0}")
+    private String smsCollidingKey;
+
+    @Value("${api.xiecheng.smsColliding.iv:0}")
+    private String smsCollidingIv;
+
+    @Value("${api.xiecheng.smsColliding.singKey:0}")
+    private String smsCollidingSingKey;
+
+    @Value("${api.xiecheng.smsColliding.channel:0}")
+    private String smsCollidingChannel;
+
+    @Value("${api.xiecheng.smsQuit.isProxy:0}")
+    private Boolean smsCollidingIsProxy;
+
 
     @Autowired
     HttpProxyClient httpProxyClient;
@@ -193,17 +214,17 @@ public class XieChengService {
          * data 组装
          */
         XieChengSmsCollidingReq xieChengSmsCollidingReq = new XieChengSmsCollidingReq(
-                appId,sha256CodeList,CODETYPE,MARKETTYPE,MARKETFINANCEUSER
+                smsCollidingAppId,sha256CodeList,CODETYPE,MARKETTYPE,MARKETFINANCEUSER
         );
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         Map<String, Object> retMap = Maps.newHashMap();
-        retMap.put("appId", appId);
+        retMap.put("appId", smsCollidingAppId);
         retMap.put("timestamp", timestemp);
-        retMap.put("channel", channel);
+        retMap.put("channel", smsCollidingChannel);
         String s = JSON.toJSONString(xieChengSmsCollidingReq);
-        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), key, iv));
-        retMap.put("sign", FinanceAESUtils.signLocal(retMap, singKey));
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, openUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
+        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingKey, smsCollidingIv));
+        retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingSingKey));
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.error("携程广告上报接口发送参数:ThirdAdOuterReq={} para={}", JSON.toJSONString(xieChengSmsCollidingReq),JSON.toJSONString(retMap));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
