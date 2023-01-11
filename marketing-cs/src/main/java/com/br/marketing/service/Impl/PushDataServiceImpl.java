@@ -1309,6 +1309,7 @@ public class PushDataServiceImpl implements PushDataService {
                 xieChengSmsCollidingDataLog.setSha256CodeList(sha256CodeList.toLowerCase());
                 xieChengSmsCollidingDataLog.setSmsCollidingDataId(xieChengSmsCollidingData.getId());
                 xieChengSmsCollidingDataLog.setStatus(1);
+                xieChengSmsCollidingDataLog.setType("1");
                 xieChengSmsCollidingDataLogMapper.insertSelective(xieChengSmsCollidingDataLog);
             }
             redisChgService.unlock(key, value);
