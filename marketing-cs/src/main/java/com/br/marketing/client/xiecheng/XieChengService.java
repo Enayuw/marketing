@@ -1,6 +1,7 @@
 package com.br.marketing.client.xiecheng;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.common.annoation.RetryMethod;
@@ -9,6 +10,8 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.ThirdAdOuterReq;
 import com.br.marketing.entity.XieChengData;
+import com.br.marketing.entity.XieChengSmsCollidingData;
+import com.br.marketing.entity.XieChengSmsCollidingReq;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +21,9 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 携程处理
@@ -46,6 +51,11 @@ public class XieChengService {
     //singKey: 95cc01ec07387a44
     //source: BaiRong_C01
     //channel: commonOutAdMonitor
+    private final static String  CODETYPE = "MOBILE";
+    private final static String  MARKETTYPE = "SMS";
+    private final static Boolean  MARKETFINANCEUSER = false;
+
+
 
     @Value("${api.xiecheng.openUrl:0}")
     private String openUrl;
@@ -172,4 +182,42 @@ public class XieChengService {
         }
     }
 
+    /**
+     * 短信碰撞接口
+     * @param sha256CodeList
+     * @return
+     */
+    @RetryMethod(retryNowNum = 3)
+    public Result pushXieChengSmsCollidingData(List<String> sha256CodeList) {
+        /**
+         * data 组装
+         */
+        XieChengSmsCollidingReq xieChengSmsCollidingReq = new XieChengSmsCollidingReq(
+                appId,sha256CodeList,CODETYPE,MARKETTYPE,MARKETFINANCEUSER
+        );
+        String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
+        Map<String, Object> retMap = Maps.newHashMap();
+        retMap.put("appId", appId);
+        retMap.put("timestamp", timestemp);
+        retMap.put("channel", channel);
+        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), key, iv));
+        retMap.put("sign", FinanceAESUtils.signLocal(retMap, singKey));
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, openUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+            log.error("携程广告上报接口发送参数:ThirdAdOuterReq={} para={}", JSON.toJSONString(xieChengSmsCollidingReq),JSON.toJSONString(retMap));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+        String content = resMap.get("content");
+        JSONObject resultJson = JSONObject.parseObject(content);
+        Integer code = resultJson.getInteger("code");
+        if(code==0){
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
+        }
+        if (code == 500) {
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(content);
+        }else {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
+        }
+
+    }
 }

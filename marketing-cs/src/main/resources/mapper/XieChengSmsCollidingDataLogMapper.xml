@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XieChengSmsCollidingDataLogMapper" >
+
+
+    <select id="selectByCodeAndTime" resultType="java.lang.Integer" parameterType="java.lang.String">
+        select count(*) from b_xiecheng_sms_colliding_data_log where local_id = #{localId} and sha256_code_list = #{sha256CodeList}
+        <![CDATA[ and update_time > #{lastTimeDay} ]]>
+
+    </select>
+</mapper>

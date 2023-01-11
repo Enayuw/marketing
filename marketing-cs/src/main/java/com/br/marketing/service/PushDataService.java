@@ -51,5 +51,12 @@ public interface PushDataService {
      */
     Result<Boolean> pushXieChengToDbData(String data);
 
+    /**
+     * 推送携程短信撞库数据
+     * @param data
+     * @return
+     */
+    Result<Boolean> pushXieChengSmsCollidingToDbData(String data);
+
     String getHaierRequestId(String type);
 }

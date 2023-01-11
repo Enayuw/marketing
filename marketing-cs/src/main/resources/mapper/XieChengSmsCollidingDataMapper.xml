@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XieChengSmsCollidingDataMapper" >
+
+
+    <select id="selectByLocalId" resultType="com.br.marketing.entity.XieChengSmsCollidingData">
+        select
+        *
+        from b_xiecheng_sms_colliding_data
+        where  status =1 and push_status =1 and local_id = #{localId}
+        <if test="minId != null and minId>0">
+            and id > #{minId}
+        </if>
+        order by id asc limit 15000;
+    </select>
+</mapper>
