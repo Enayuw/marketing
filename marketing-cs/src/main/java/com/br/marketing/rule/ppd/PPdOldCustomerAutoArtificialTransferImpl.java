@@ -97,7 +97,7 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
 
             Integer ppdValidityDay = marketingCommonConfig.getPpdValidityDay() != null ? marketingCommonConfig.getPpdValidityDay() : null;
             if (ppdValidityDay != null) {
-                LocalDate startDate = LocalDate.now().minusDays(ppdValidityDay);
+                LocalDate startDate = LocalDate.now().minusDays(ppdValidityDay <= 0 ? ppdValidityDay : ppdValidityDay - 1);
                 LocalDate dataDate = LocalDate.parse(marketingSyncUser.getAppletDate());
                 if (dataDate.compareTo(startDate) < 0) {
                     return false;
@@ -129,7 +129,7 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
                 return false;
             }
 
-            String _7Day = LocalDate.now().minusDays(7L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String _7Day = LocalDate.now().minusDays(6L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
             //分布式锁，控制推电销判断逻辑顺序执行
             String key = RedisKeyConstant.ppdOldPushDx.concat(":")
@@ -155,6 +155,7 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
         return false;
 
     }
+
 
     @Override
     public String label() {
