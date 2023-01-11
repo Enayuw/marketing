@@ -414,5 +414,15 @@ public class MarketingCommonConfig {
      * 携程转化数据提取执行时间
      */
     private String XieChengTransferExecuteTime;
+
+    /**
+     * 携程短信撞库轮询时间间隔
+     */
+    private Integer xieChengSmsCollidingDays;
+
+    /**
+     * 携程短信撞库线程数
+     */
+    private Integer xieChengSmsCollidingThread;
 }
 

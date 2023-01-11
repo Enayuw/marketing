@@ -1121,7 +1121,7 @@ public class PushDataServiceImpl implements PushDataService {
         log.warn("携程短信撞库mq消息={}",data);
         try {
             // 创建线程池
-            ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(5, 5);
+            ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingThread(), marketingCommonConfig.getXieChengSmsCollidingThread());
             // 获取localId;
             Long localId = Long.valueOf(data);
             LocalFile localFile = localFileMapper.selectByPrimaryKey(localId);
@@ -1276,7 +1276,7 @@ public class PushDataServiceImpl implements PushDataService {
         TimeZone.setDefault(tz);
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat fmt = new SimpleDateFormat(simpleDateFormat);
-        calendar.add(Calendar.DAY_OF_MONTH, index);
+        calendar.add(Calendar.DAY_OF_MONTH, -index);
         String date = fmt.format(calendar.getTime());
         return date;
     }
@@ -1298,7 +1298,9 @@ public class PushDataServiceImpl implements PushDataService {
                     .concat(sha256CodeList);
             String value = UUID.randomUUID().toString();
             redisChgService.lock(key, value);
-            String lastTimeDay = getTimeDay("yyyy-MM-dd HH:mm:ss", -15);
+            int days = marketingCommonConfig.getXieChengSmsCollidingDays();
+            log.warn("携程轮询日期={}",days);
+            String lastTimeDay = getTimeDay("yyyy-MM-dd HH:mm:ss", marketingCommonConfig.getXieChengSmsCollidingDays());
             // 查询到当前数据距离当前时间 15*24 小时的范围内是否推送过
             int count = xieChengSmsCollidingDataLogMapper.selectByCodeAndTime(localId, sha256CodeList, lastTimeDay);
             if (count == 0) {
@@ -1342,7 +1344,8 @@ public class PushDataServiceImpl implements PushDataService {
                     xieChengSmsCollidingDataLogExample
                             .createCriteria()
                             .andLocalIdEqualTo(localId)
-                            .andSha256CodeListEqualTo(sha256Code);
+                            .andSha256CodeListEqualTo(sha256Code)
+                            .andTypeEqualTo("1");
 
                     xieChengSmsCollidingDataLogMapper.updateByExampleSelective(xieChengSmsCollidingDataLog, xieChengSmsCollidingDataLogExample);
                 }
@@ -1356,7 +1359,10 @@ public class PushDataServiceImpl implements PushDataService {
                     xieChengSmsCollidingDataLog.setStatus(3);
                     xieChengSmsCollidingDataLog.setDataMessage(msg);
                     XieChengSmsCollidingDataLogExample xieChengSmsCollidingDataLogExample = new XieChengSmsCollidingDataLogExample();
-                    xieChengSmsCollidingDataLogExample.createCriteria().andSha256CodeListEqualTo(sha256Code).andLocalIdEqualTo(localId);
+                    xieChengSmsCollidingDataLogExample.createCriteria()
+                            .andSha256CodeListEqualTo(sha256Code)
+                            .andLocalIdEqualTo(localId)
+                            .andTypeEqualTo("1");
                     xieChengSmsCollidingDataLogMapper.updateByExampleSelective(xieChengSmsCollidingDataLog,xieChengSmsCollidingDataLogExample);
                 }
             }

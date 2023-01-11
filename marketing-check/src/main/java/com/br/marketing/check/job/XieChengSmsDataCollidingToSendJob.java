@@ -5,6 +5,7 @@ import com.br.marketing.entity.LocalFileExample;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,8 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
     RabbitMqProducter producter;
     @Resource
     private LocalFileMapper localFileMapper;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
@@ -43,10 +46,10 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
                 .andPushStatusNotEqualTo("1");
         List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
 
-
+        int days = marketingCommonConfig.getXieChengSmsCollidingDays();
         localFileList.stream().forEach((localFile) -> {
             Date createTime = localFile.getCreateTime();
-            if (differentDaysByMillisecond(createTime, new Date(), 15 * 24)) {
+            if (differentDaysByMillisecond(createTime, new Date(), days * 24)) {
                 producter.send("Marketing.Universal.SftpToDb.XieChengSmsCollidingReceive", String.valueOf(localFile.getId()));
             }
         });
