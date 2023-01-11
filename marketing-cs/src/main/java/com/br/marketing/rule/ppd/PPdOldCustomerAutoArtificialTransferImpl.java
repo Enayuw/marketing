@@ -121,13 +121,13 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
             }
 
             Result<String> conditionRes = iScoreResultService.isFilterScoreByTransfer(context.getApiCode(), this.label());
-            if (!ResultCode.SUCCESS.getValue().equals(conditionRes.getCode())) {
-                return false;
+            if (ResultCode.SUCCESS.getValue().equals(conditionRes.getCode())) {
+                Result<String> stringResult = iScoreResultService.filterScoreResByTransfer(context.getApiCode(), transfer.getCustNum(), conditionRes.getData());
+                if (!ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
+                    return false;
+                }
             }
-            Result<String> stringResult = iScoreResultService.filterScoreResByTransfer(context.getApiCode(), transfer.getCustNum(), conditionRes.getData());
-            if (!ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
-                return false;
-            }
+
 
             String _7Day = LocalDate.now().minusDays(6L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
