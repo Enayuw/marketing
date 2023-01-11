@@ -1319,8 +1319,13 @@ public class PushDataServiceImpl implements PushDataService {
                 // 更新推送时间
                 XieChengSmsCollidingData xieChengSmsCollidingDataNew = new XieChengSmsCollidingData();
                 xieChengSmsCollidingDataNew.setNextPushTime(xieChengSmsCollidingDataLogRe.getUpdateTime());
-                xieChengSmsCollidingDataNew.setId(xieChengSmsCollidingDataLogRe.getSmsCollidingDataId());
-                xieChengSmsCollidingDataMapper.updateByPrimaryKeySelective(xieChengSmsCollidingDataNew);
+
+                XieChengSmsCollidingDataExample xieChengSmsCollidingDataExample = new XieChengSmsCollidingDataExample();
+                List<String> sha256List = new ArrayList<>();
+                sha256List.add(xieChengSmsCollidingDataLogRe.getSha256CodeList());
+                sha256List.add(xieChengSmsCollidingDataLogRe.getSha256CodeList().toUpperCase());
+                xieChengSmsCollidingDataExample.createCriteria().andSha256CodeListIn(sha256List);
+                xieChengSmsCollidingDataMapper.updateByExampleSelective(xieChengSmsCollidingDataNew,xieChengSmsCollidingDataExample);
             }
             redisChgService.unlock(key, value);
         }
