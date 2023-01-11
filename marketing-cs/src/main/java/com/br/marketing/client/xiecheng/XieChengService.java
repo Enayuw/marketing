@@ -200,6 +200,7 @@ public class XieChengService {
         retMap.put("appId", appId);
         retMap.put("timestamp", timestemp);
         retMap.put("channel", channel);
+        String s = JSON.toJSONString(xieChengSmsCollidingReq);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), key, iv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, singKey));
         HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, openUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);

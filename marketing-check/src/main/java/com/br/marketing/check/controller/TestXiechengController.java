@@ -94,7 +94,10 @@ public class TestXiechengController {
         String marketType = "SMS";
         Boolean marketFinanceUser = false;
         List<String> sha256CodeLists = new ArrayList<>();
-        sha256CodeLists.add("aeaa638c17d05884717153c3c898a41598e87209ac42e4cfcd844f6e724c33d7");
+//        e92920aec3c7eac4d8b74f3a46f5fd06eef6a193ceebd4826d2674fd3a9b271e
+//EA0AA5AA5CB418AE71F87AF3D28390002EDD53BCD87EB3EF482EE80D6A75BE79
+        sha256CodeLists.add("e92920aec3c7eac4d8b74f3a46f5fd06eef6a193ceebd4826d2674fd3a9b271e");
+        sha256CodeLists.add("EA0AA5AA5CB418AE71F87AF3D28390002EDD53BCD87EB3EF482EE80D6A75BE79".toLowerCase());
 
         String channel = "commonUnionCheckUser";
 
@@ -106,11 +109,11 @@ public class TestXiechengController {
         retMap.put("appId", appId);
         retMap.put("timestamp", timestemp);
         retMap.put("channel", channel);
+        String s = JSON.toJSONString(xieChengSmsCollidingReq);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), key, iv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, singKey));
         System.out.println(retMap);
-        String send = "{\"code\":0,\"msg\":\"成功\",\"data\":[{\"md5Code\":null,\"sha256Code\":\"aeaa638c17d05884717153c3c898a41598e87209ac42e4cfcd844f6e724c33d7\",\"result\":false,\"orgChannel\":null,\"mktLevel\":null,\"info\":null}]}";
-
+        String send = httpProxyClient.send(JSON.toJSONString(retMap), url, false);
         //https://cgcallback-fat.ctripqa.com/nemoweb/ad/common/outAdMonitor.do
         System.out.println(JSON.toJSONString(send));
     }

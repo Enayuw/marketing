@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.XieChengSmsCollidingDataLogMapper" >
 
 
-    <select id="selectByCodeAndTime" resultType="java.lang.Integer" parameterType="java.lang.String">
+    <select id="selectByCodeAndTime" resultType="java.lang.Integer">
         select count(*) from b_xiecheng_sms_colliding_data_log where local_id = #{localId} and sha256_code_list = #{sha256CodeList}
         <![CDATA[ and update_time > #{lastTimeDay} ]]>
 

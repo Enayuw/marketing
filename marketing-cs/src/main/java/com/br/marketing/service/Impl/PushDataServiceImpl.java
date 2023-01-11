@@ -1125,7 +1125,7 @@ public class PushDataServiceImpl implements PushDataService {
             // 获取localId;
             Long localId = Long.valueOf(data);
             LocalFile localFile = localFileMapper.selectByPrimaryKey(localId);
-            if (localFile != null) {
+            if (localFile != null && localFile.getFileType().equals("xiechengsmscolliding")) {
                 localFile.setPushStartTime(localFile.getPushStartTime() == null ? new Date() : localFile.getPushStartTime());
                 localFile.setPushStatus("1");
                 // 修改当前上传的文件状态为推送中。。。。
@@ -1287,7 +1287,7 @@ public class PushDataServiceImpl implements PushDataService {
         // 如果有推送过 ，不新增推送记录，并将collect 集合中这个sha256Code 删除掉
 
 
-        List<String> collect = xieChengSmsCollidingDataPartition.stream().map(XieChengSmsCollidingData::getSha256CodeList).collect(Collectors.toList());
+        List<String> collect = new ArrayList<>();
         for (int i = 0; i < xieChengSmsCollidingDataPartition.size(); i++) {
             XieChengSmsCollidingData xieChengSmsCollidingData = xieChengSmsCollidingDataPartition.get(i);
             String sha256CodeList = xieChengSmsCollidingData.getSha256CodeList();
@@ -1301,13 +1301,12 @@ public class PushDataServiceImpl implements PushDataService {
             String lastTimeDay = getTimeDay("yyyy-MM-dd HH:mm:ss", -15);
             // 查询到当前数据距离当前时间 15*24 小时的范围内是否推送过
             int count = xieChengSmsCollidingDataLogMapper.selectByCodeAndTime(localId, sha256CodeList, lastTimeDay);
-            if (count > 0) {
-                collect.remove(sha256CodeList);
-            } else {
+            if (count == 0) {
+                collect.add(sha256CodeList.toLowerCase());
                 XieChengSmsCollidingDataLog xieChengSmsCollidingDataLog = new XieChengSmsCollidingDataLog();
                 xieChengSmsCollidingDataLog.setApiCode(xieChengSmsCollidingData.getApiCode());
                 xieChengSmsCollidingDataLog.setLocalId(xieChengSmsCollidingData.getLocalId());
-                xieChengSmsCollidingDataLog.setSha256CodeList(sha256CodeList);
+                xieChengSmsCollidingDataLog.setSha256CodeList(sha256CodeList.toLowerCase());
                 xieChengSmsCollidingDataLog.setSmsCollidingDataId(xieChengSmsCollidingData.getId());
                 xieChengSmsCollidingDataLog.setStatus(1);
                 xieChengSmsCollidingDataLogMapper.insertSelective(xieChengSmsCollidingDataLog);
