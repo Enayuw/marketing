@@ -1310,6 +1310,7 @@ public class PushDataServiceImpl implements PushDataService {
                 xieChengSmsCollidingDataLog.setSmsCollidingDataId(xieChengSmsCollidingData.getId());
                 xieChengSmsCollidingDataLog.setStatus(1);
                 xieChengSmsCollidingDataLog.setType("1");
+                xieChengSmsCollidingDataLog.setCreateTime(new Date());
                 xieChengSmsCollidingDataLogMapper.insertSelective(xieChengSmsCollidingDataLog);
             }
             redisChgService.unlock(key, value);
