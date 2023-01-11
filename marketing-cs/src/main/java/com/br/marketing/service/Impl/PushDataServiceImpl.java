@@ -1316,7 +1316,7 @@ public class PushDataServiceImpl implements PushDataService {
                 xieChengSmsCollidingDataLog.setCreateTime(new Date());
                 xieChengSmsCollidingDataLogMapper.insertSelective(xieChengSmsCollidingDataLog);
             }else {
-                // 更新推送时间
+                // 更新推送时间 如果时间为空说明数据还未推送
                 if(xieChengSmsCollidingDataLogRe.getUpdateTime()!=null){
                     XieChengSmsCollidingData xieChengSmsCollidingDataNew = new XieChengSmsCollidingData();
                     xieChengSmsCollidingDataNew.setNextPushTime(xieChengSmsCollidingDataLogRe.getUpdateTime());
