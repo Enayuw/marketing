@@ -56,7 +56,7 @@ public class TestXiechengController {
 
     @GetMapping("/test")
     public void transfersmyTest(String id) {
-        pushDataService.pushXieChengToDbData(id);
+        pushDataService.pushXieChengSmsCollidingToDbData(id);
     }
 
     @GetMapping("/resultVolumeCheck")

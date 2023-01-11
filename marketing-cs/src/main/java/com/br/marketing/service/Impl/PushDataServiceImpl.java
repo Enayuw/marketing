@@ -1118,6 +1118,7 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Override
     public Result pushXieChengSmsCollidingToDbData(String data) {
+        log.warn("携程短信撞库mq消息={}",data);
         try {
             // 创建线程池
             ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(5, 5);
