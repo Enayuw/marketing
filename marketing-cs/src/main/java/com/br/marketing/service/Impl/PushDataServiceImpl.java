@@ -1317,15 +1317,18 @@ public class PushDataServiceImpl implements PushDataService {
                 xieChengSmsCollidingDataLogMapper.insertSelective(xieChengSmsCollidingDataLog);
             }else {
                 // 更新推送时间
-                XieChengSmsCollidingData xieChengSmsCollidingDataNew = new XieChengSmsCollidingData();
-                xieChengSmsCollidingDataNew.setNextPushTime(xieChengSmsCollidingDataLogRe.getUpdateTime());
+                if(xieChengSmsCollidingDataLogRe.getUpdateTime()!=null){
+                    XieChengSmsCollidingData xieChengSmsCollidingDataNew = new XieChengSmsCollidingData();
+                    xieChengSmsCollidingDataNew.setNextPushTime(xieChengSmsCollidingDataLogRe.getUpdateTime());
 
-                XieChengSmsCollidingDataExample xieChengSmsCollidingDataExample = new XieChengSmsCollidingDataExample();
-                List<String> sha256List = new ArrayList<>();
-                sha256List.add(xieChengSmsCollidingDataLogRe.getSha256CodeList());
-                sha256List.add(xieChengSmsCollidingDataLogRe.getSha256CodeList().toUpperCase());
-                xieChengSmsCollidingDataExample.createCriteria().andSha256CodeListIn(sha256List);
-                xieChengSmsCollidingDataMapper.updateByExampleSelective(xieChengSmsCollidingDataNew,xieChengSmsCollidingDataExample);
+                    XieChengSmsCollidingDataExample xieChengSmsCollidingDataExample = new XieChengSmsCollidingDataExample();
+                    List<String> sha256List = new ArrayList<>();
+                    sha256List.add(xieChengSmsCollidingDataLogRe.getSha256CodeList());
+                    sha256List.add(xieChengSmsCollidingDataLogRe.getSha256CodeList().toUpperCase());
+                    xieChengSmsCollidingDataExample.createCriteria().andSha256CodeListIn(sha256List);
+                    xieChengSmsCollidingDataMapper.updateByExampleSelective(xieChengSmsCollidingDataNew,xieChengSmsCollidingDataExample);
+                }
+
             }
             redisChgService.unlock(key, value);
         }
