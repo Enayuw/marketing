@@ -1117,7 +1117,7 @@ public class PushDataServiceImpl implements PushDataService {
         log.warn("携程短信撞库mq消息={}",data);
         try {
             // 创建线程池
-            ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(5,5);
+            ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingThread(),marketingCommonConfig.getXieChengSmsCollidingThread());
             // 获取localId;
             Long localId = Long.valueOf(data);
             LocalFile localFile = localFileMapper.selectByPrimaryKey(localId);
@@ -1296,7 +1296,7 @@ public class PushDataServiceImpl implements PushDataService {
 //            int days = marketingCommonConfig.getXieChengSmsCollidingDays();
 
 //            log.warn("携程轮询日期={}",days);
-            String lastTimeDay = getTimeDay("yyyy-MM-dd HH:mm:ss", 15);
+            String lastTimeDay = getTimeDay("yyyy-MM-dd HH:mm:ss", marketingCommonConfig.getXieChengSmsCollidingDays());
 
 
             // 查询到当前数据距离当前时间 15*24 小时的范围内是否推送过
