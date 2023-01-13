@@ -7,7 +7,7 @@
         select
         *
         from b_xiecheng_sms_colliding_data
-        where  status =1 and push_status =1 and local_id = #{localId}
+        where  status =1  and local_id = #{localId}
         <if test="endTime != null and endTime!=''">
             <![CDATA[   and next_push_time <= #{endTime}  ]]>
         </if>
@@ -15,6 +15,6 @@
         <if test="minId != null and minId>0">
             and id > #{minId}
         </if>
-        order by id asc limit 10000;
+        order by id asc limit 5000;
     </select>
 </mapper>
