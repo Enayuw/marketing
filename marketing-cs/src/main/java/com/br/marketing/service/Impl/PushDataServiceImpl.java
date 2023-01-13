@@ -1397,10 +1397,10 @@ public class PushDataServiceImpl implements PushDataService {
         XieChengSmsCollidingData xieChengSmsCollidingData = new XieChengSmsCollidingData();
         xieChengSmsCollidingData.setNextPushTime(new Date());
         XieChengSmsCollidingDataExample xieChengSmsCollidingDataExample = new XieChengSmsCollidingDataExample();
-        List<String> sha256CodeList = new ArrayList<>();
-        sha256CodeList.add(sha256Code);
-        sha256CodeList.add(sha256Code.toUpperCase());
-        xieChengSmsCollidingDataExample.createCriteria().andSha256CodeListIn(sha256CodeList);
+//        List<String> sha256CodeList = new ArrayList<>();
+//        sha256CodeList.add(sha256Code);
+//        sha256CodeList.add(sha256Code.toUpperCase());
+        xieChengSmsCollidingDataExample.createCriteria().andSha256CodeListEqualTo(sha256Code);
         xieChengSmsCollidingDataMapper.updateByExampleSelective(xieChengSmsCollidingData,xieChengSmsCollidingDataExample);
     }
 
