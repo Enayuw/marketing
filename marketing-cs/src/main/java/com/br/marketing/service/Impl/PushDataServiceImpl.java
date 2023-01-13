@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -1291,7 +1292,7 @@ public class PushDataServiceImpl implements PushDataService {
         // 循环xieChengSmsCollidingDataPartition 集合 判断集合里的电话在15天内是否推送过，如果没有推送过 新增推送记录 状态为待推送状态。防止高并发下 数据重复推送
         // 如果有推送过 ，不新增推送记录，并将collect 集合中这个sha256Code 删除掉
 
-
+    try {
         List<String> collect = new ArrayList<>();
         for (int i = 0; i < xieChengSmsCollidingDataPartition.size(); i++) {
             XieChengSmsCollidingData xieChengSmsCollidingData = xieChengSmsCollidingDataPartition.get(i);
@@ -1342,7 +1343,7 @@ public class PushDataServiceImpl implements PushDataService {
         }
         if (!collect.isEmpty()) {
             // 携程短信撞库接口
-//            Result postResult = xieChengService.pushXieChengSmsCollidingData(collect);
+    //            Result postResult = xieChengService.pushXieChengSmsCollidingData(collect);
             Result postResult = new Result();
             postResult.setCode(703);
             String message = postResult.getMessage();
@@ -1375,14 +1376,14 @@ public class PushDataServiceImpl implements PushDataService {
 
                 }
             } else {
-                String msg = resultJson.getString("msg");
+    //                String msg = resultJson.getString("msg");
                 // 请求异常
                 for(int i=0;i<collect.size();i++){
                     failNum.getAndIncrement();
                     String sha256Code = collect.get(i);
                     XieChengSmsCollidingDataLog xieChengSmsCollidingDataLog = new XieChengSmsCollidingDataLog();
                     xieChengSmsCollidingDataLog.setStatus(3);
-                    xieChengSmsCollidingDataLog.setDataMessage(msg);
+                    xieChengSmsCollidingDataLog.setDataMessage("");
                     XieChengSmsCollidingDataLogExample xieChengSmsCollidingDataLogExample = new XieChengSmsCollidingDataLogExample();
                     xieChengSmsCollidingDataLogExample.createCriteria()
                             .andSha256CodeListEqualTo(sha256Code)
@@ -1392,6 +1393,10 @@ public class PushDataServiceImpl implements PushDataService {
                 }
             }
         }
+    }catch (Exception e){
+        throw new RuntimeException(e);
+    }
+
 
     }
 
