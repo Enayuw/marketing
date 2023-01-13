@@ -1342,8 +1342,11 @@ public class PushDataServiceImpl implements PushDataService {
         }
         if (!collect.isEmpty()) {
             // 携程短信撞库接口
-            Result postResult = xieChengService.pushXieChengSmsCollidingData(collect);
+//            Result postResult = xieChengService.pushXieChengSmsCollidingData(collect);
+            Result postResult = new Result();
+            postResult.setCode(703);
             String message = postResult.getMessage();
+
             JSONObject resultJson = JSONObject.parseObject(message);
             // 请求正常
             if (postResult.getCode().equals(ResultCode.SUCCESS.getValue())) {
