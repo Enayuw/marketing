@@ -998,7 +998,7 @@ public class PushDataServiceImpl implements PushDataService {
      * // 8. 全部推送结束  关闭线程池。
      * // 9. 若 type 为 0 ，则需要统计上传推送数量 和重复数据
      *
-     * @param id
+     * @param
      * @return
      */
     public void pushSmsQuitData(LocalFile localFile) {
@@ -1116,23 +1116,35 @@ public class PushDataServiceImpl implements PushDataService {
     public Result pushXieChengSmsCollidingToDbData(String data) {
         log.warn("携程短信撞库mq消息={}",data);
         try {
-            // 创建线程池
-            ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingThread(),marketingCommonConfig.getXieChengSmsCollidingThread());
             // 获取localId;
-            Long localId = Long.valueOf(data);
-            LocalFile localFile = localFileMapper.selectByPrimaryKey(localId);
-            if (localFile != null && localFile.getFileType().equals("xiechengsmscolliding")) {
+            Long localId;
+            Boolean isNewFile = false;
+            if(isJson(data)){
+                JSONObject jsonObject = JSONObject.parseObject(data);
+                localId = Long.valueOf(jsonObject.getInteger("localId"));
+            }else {
+                isNewFile = true;
+                localId = Long.valueOf(data);
+            }
+            LocalFile   localFile = localFileMapper.selectByPrimaryKey(localId);
+            if (localFile != null) {
                 localFile.setPushStartTime(localFile.getPushStartTime() == null ? new Date() : localFile.getPushStartTime());
-            } else {
+            }else {
                 return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(false);
             }
-            Boolean actionMark = true;
+            // 创建线程池
+            ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingThread(),marketingCommonConfig.getXieChengSmsCollidingThread());
 
+            Boolean actionMark = true;
             // 根据id 进行数据查询 每批次查询 1.5w
             Long minId = null;
             AtomicInteger failNum = new AtomicInteger(0);
             while (actionMark) {
-                List<XieChengSmsCollidingData> xieChengSmsCollidingDataList = xieChengSmsCollidingDataMapper.selectByLocalId(localId, minId);
+                String lastTimeDay = getTimeDay("yyyy-MM-dd HH:mm:ss", marketingCommonConfig.getXieChengSmsCollidingDays());
+                if(isNewFile){
+                    lastTimeDay = null;
+                }
+                List<XieChengSmsCollidingData> xieChengSmsCollidingDataList = xieChengSmsCollidingDataMapper.selectByLocalId(localId, minId,lastTimeDay);
                 if (xieChengSmsCollidingDataList.size() == 0) {
                     actionMark = false;
                     continue;
@@ -1294,7 +1306,6 @@ public class PushDataServiceImpl implements PushDataService {
             String value = UUID.randomUUID().toString();
             redisChgService.lock(key, value);
             String lastTimeDay = getTimeDay("yyyy-MM-dd HH:mm:ss", marketingCommonConfig.getXieChengSmsCollidingDays());
-
 
             // 查询到当前数据距离当前时间 15*24 小时的范围内是否推送过
             XieChengSmsCollidingDataLog xieChengSmsCollidingDataLogRe = xieChengSmsCollidingDataLogMapper.selectByCodeAndTime(sha256CodeList, lastTimeDay);
