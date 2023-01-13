@@ -17,7 +17,9 @@
         select
         *
         from b_xiecheng_sms_colliding_data
-        where  status =1 and push_status =1 and next_push_time > #{endTime}
+        where status =1 and push_status =1
+        <![CDATA[   and next_push_time <= #{endTime} ]]>
+        and local_id = #{localId}
         <if test="minId != null and minId>0">
             and id > #{minId}
         </if>

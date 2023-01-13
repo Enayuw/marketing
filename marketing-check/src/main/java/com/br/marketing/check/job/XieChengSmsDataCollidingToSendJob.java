@@ -63,35 +63,41 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         // 创建线程池
         ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingThread(), marketingCommonConfig.getXieChengSmsCollidingThread());
+        LocalFileExample localFileExample = new LocalFileExample();
+        localFileExample.createCriteria().andFileTypeEqualTo("xiechengsmscolliding").andStatusEqualTo("1");
+        List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
+        for(int n=0;n<localFileList.size();n++){
+            LocalFile localFile = localFileList.get(n);
+            Boolean actionMark = true;
+            Date endTime = getTimeDay(marketingCommonConfig.getXieChengSmsCollidingDays());
+            // 根据id 进行数据查询 每批次查询 1.5w
+            Long minId = null;
+            AtomicInteger failNum = new AtomicInteger(0);
+            while (actionMark) {
+                List<XieChengSmsCollidingData> xieChengSmsCollidingDataList = xieChengSmsCollidingDataMapper.selectById(minId,endTime,localFile.getId());
+                if (xieChengSmsCollidingDataList.size() == 0) {
+                    actionMark = false;
+                    continue;
+                }
+                // 更新minId 为当前集合最大的id
+                minId = xieChengSmsCollidingDataList.get(xieChengSmsCollidingDataList.size() - 1).getId();
+                // 将查询出来的明细数据进行分组，每组50个数据
+                List<List<XieChengSmsCollidingData>> xieChengSmsCollidingDataPartitions = Lists.partition(xieChengSmsCollidingDataList, 50);
+                for (int i = 0; i < xieChengSmsCollidingDataPartitions.size(); i++) {
+                    List<XieChengSmsCollidingData> xieChengSmsCollidingDataListPartition = xieChengSmsCollidingDataPartitions.get(i);
+                    xieChengSmsCollidingThread.submit(() -> pushDataService.pushXieChengSmsCollidingData(xieChengSmsCollidingDataListPartition, failNum));
+                }
+            }
+            xieChengSmsCollidingThread.shutdown();
+            try {
+                while (!xieChengSmsCollidingThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                }
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
+            xieChengSendAlarm(failNum, "携程短信轮询撞库接口推送异常，请检查");
+        }
 
-        Boolean actionMark = true;
-        Date endTime = getTimeDay(marketingCommonConfig.getXieChengSmsCollidingDays());
-        // 根据id 进行数据查询 每批次查询 1.5w
-        Long minId = null;
-        AtomicInteger failNum = new AtomicInteger(0);
-        while (actionMark) {
-            List<XieChengSmsCollidingData> xieChengSmsCollidingDataList = xieChengSmsCollidingDataMapper.selectById(minId,endTime);
-            if (xieChengSmsCollidingDataList.size() == 0) {
-                actionMark = false;
-                continue;
-            }
-            // 更新minId 为当前集合最大的id
-            minId = xieChengSmsCollidingDataList.get(xieChengSmsCollidingDataList.size() - 1).getId();
-            // 将查询出来的明细数据进行分组，每组50个数据
-            List<List<XieChengSmsCollidingData>> xieChengSmsCollidingDataPartitions = Lists.partition(xieChengSmsCollidingDataList, 50);
-            for (int i = 0; i < xieChengSmsCollidingDataPartitions.size(); i++) {
-                List<XieChengSmsCollidingData> xieChengSmsCollidingDataListPartition = xieChengSmsCollidingDataPartitions.get(i);
-                xieChengSmsCollidingThread.submit(() -> pushDataService.pushXieChengSmsCollidingData(xieChengSmsCollidingDataListPartition, failNum));
-            }
-        }
-        xieChengSmsCollidingThread.shutdown();
-        try {
-            while (!xieChengSmsCollidingThread.awaitTermination(10L, TimeUnit.SECONDS)) {
-            }
-        } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
-        }
-        xieChengSendAlarm(failNum, "携程短信轮询撞库接口推送异常，请检查");
     }
     private void xieChengSendAlarm(AtomicInteger failNum,String title){
         if (failNum.get() > 0) {
