@@ -1388,7 +1388,7 @@ public class PushDataServiceImpl implements PushDataService {
                             .andSha256CodeListEqualTo(sha256Code)
                             .andTypeEqualTo("1");
                     xieChengSmsCollidingDataLogMapper.updateByExampleSelective(xieChengSmsCollidingDataLog,xieChengSmsCollidingDataLogExample);
-//                    updateSmsCollidingDataPushTime(sha256Code);
+                    updateSmsCollidingDataPushTime(sha256Code);
                 }
             }
         }
