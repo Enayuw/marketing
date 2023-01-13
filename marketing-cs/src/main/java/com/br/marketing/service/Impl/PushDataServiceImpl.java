@@ -1293,9 +1293,6 @@ public class PushDataServiceImpl implements PushDataService {
                     .concat(sha256CodeList);
             String value = UUID.randomUUID().toString();
             redisChgService.lock(key, value);
-//            int days = marketingCommonConfig.getXieChengSmsCollidingDays();
-
-//            log.warn("携程轮询日期={}",days);
             String lastTimeDay = getTimeDay("yyyy-MM-dd HH:mm:ss", marketingCommonConfig.getXieChengSmsCollidingDays());
 
 

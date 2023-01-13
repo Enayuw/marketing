@@ -17,7 +17,7 @@
         select
         *
         from b_xiecheng_sms_colliding_data
-        where  status =1 and push_status =1 and next_push_time between #{startTime} and #{endTime}
+        where  status =1 and push_status =1 and next_push_time > #{endTime}
         <if test="minId != null and minId>0">
             and id > #{minId}
         </if>

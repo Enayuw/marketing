@@ -63,16 +63,14 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         // 创建线程池
         ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingThread(), marketingCommonConfig.getXieChengSmsCollidingThread());
-//        ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(5,5);
 
         Boolean actionMark = true;
         Date endTime = getTimeDay(marketingCommonConfig.getXieChengSmsCollidingDays());
-        long startTime = endTime.getTime() - (60 * 60 * 1000);
         // 根据id 进行数据查询 每批次查询 1.5w
         Long minId = null;
         AtomicInteger failNum = new AtomicInteger(0);
         while (actionMark) {
-            List<XieChengSmsCollidingData> xieChengSmsCollidingDataList = xieChengSmsCollidingDataMapper.selectById(minId,new Date(startTime),endTime);
+            List<XieChengSmsCollidingData> xieChengSmsCollidingDataList = xieChengSmsCollidingDataMapper.selectById(minId,endTime);
             if (xieChengSmsCollidingDataList.size() == 0) {
                 actionMark = false;
                 continue;
