@@ -1378,19 +1378,19 @@ public class PushDataServiceImpl implements PushDataService {
             } else {
     //                String msg = resultJson.getString("msg");
                 // 请求异常
-                for(int i=0;i<collect.size();i++){
-                    failNum.getAndIncrement();
-                    String sha256Code = collect.get(i);
-                    XieChengSmsCollidingDataLog xieChengSmsCollidingDataLog = new XieChengSmsCollidingDataLog();
-                    xieChengSmsCollidingDataLog.setStatus(3);
-                    xieChengSmsCollidingDataLog.setDataMessage("");
-                    XieChengSmsCollidingDataLogExample xieChengSmsCollidingDataLogExample = new XieChengSmsCollidingDataLogExample();
-                    xieChengSmsCollidingDataLogExample.createCriteria()
-                            .andSha256CodeListEqualTo(sha256Code)
-                            .andTypeEqualTo("1");
-                    xieChengSmsCollidingDataLogMapper.updateByExampleSelective(xieChengSmsCollidingDataLog,xieChengSmsCollidingDataLogExample);
-                    updateSmsCollidingDataPushTime(sha256Code);
-                }
+//                for(int i=0;i<collect.size();i++){
+//                    failNum.getAndIncrement();
+//                    String sha256Code = collect.get(i);
+//                    XieChengSmsCollidingDataLog xieChengSmsCollidingDataLog = new XieChengSmsCollidingDataLog();
+//                    xieChengSmsCollidingDataLog.setStatus(3);
+//                    xieChengSmsCollidingDataLog.setDataMessage("");
+//                    XieChengSmsCollidingDataLogExample xieChengSmsCollidingDataLogExample = new XieChengSmsCollidingDataLogExample();
+//                    xieChengSmsCollidingDataLogExample.createCriteria()
+//                            .andSha256CodeListEqualTo(sha256Code)
+//                            .andTypeEqualTo("1");
+//                    xieChengSmsCollidingDataLogMapper.updateByExampleSelective(xieChengSmsCollidingDataLog,xieChengSmsCollidingDataLogExample);
+//                    updateSmsCollidingDataPushTime(sha256Code);
+//                }
             }
         }
     }catch (Exception e){
