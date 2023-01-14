@@ -1386,7 +1386,12 @@ public class PushDataServiceImpl implements PushDataService {
                     xieChengSmsCollidingDataLogMapper.updateBatch(xieChengSmsCollidingDataLogList);
                 }
                 // 更新 next_push_time
-                xieChengSmsCollidingDataMapper.updateBatch(collect);
+                List<String> dataList = new ArrayList<>();
+                dataList.addAll(collect);
+                for(int m =0;m<collect.size();m++){
+                    dataList.add( collect.get(m).toUpperCase());
+                }
+                xieChengSmsCollidingDataMapper.updateBatch(dataList);
             }
         }catch (Exception e){
             throw new RuntimeException(e);
