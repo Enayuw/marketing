@@ -69,26 +69,27 @@ public class TestXiechengController {
 
     @GetMapping("/test")
     public void transfersmyTest(String id) {
-        LocalFileExample localFileExample = new LocalFileExample();
-        localFileExample.createCriteria()
-                .andFileTypeEqualTo(XIECHENGSMSCOLLIDING)
-                .andStatusEqualTo("1");
-        List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
-
-        for(int i=0;i<localFileList.size();i++){
-            LocalFile localFile = localFileList.get(i);
-            if(localFile.getId()==942437){
-                com.alibaba.fastjson.JSONObject msg = new JSONObject();
-                msg.put("localId", localFile.getId());
-                msg.put("type", 2);
-//            producter.send("Marketing.Universal.SftpToDb.XieChengSmsCollidingReceive", msg.toJSONString());
-                pushDataService.pushXieChengSmsCollidingToDbData(msg.toJSONString());
-            }
-        }
-        localFileList.stream().forEach((localFile) -> {
-
-
-        });
+        pushDataService.pushXieChengSmsCollidingToDbData(id);
+//        LocalFileExample localFileExample = new LocalFileExample();
+//        localFileExample.createCriteria()
+//                .andFileTypeEqualTo(XIECHENGSMSCOLLIDING)
+//                .andStatusEqualTo("1");
+//        List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
+//
+//        for(int i=0;i<localFileList.size();i++){
+//            LocalFile localFile = localFileList.get(i);
+//            if(localFile.getId()==942437){
+//                com.alibaba.fastjson.JSONObject msg = new JSONObject();
+//                msg.put("localId", localFile.getId());
+//                msg.put("type", 2);
+////            producter.send("Marketing.Universal.SftpToDb.XieChengSmsCollidingReceive", msg.toJSONString());
+//                pushDataService.pushXieChengSmsCollidingToDbData(msg.toJSONString());
+//            }
+//        }
+//        localFileList.stream().forEach((localFile) -> {
+//
+//
+//        });
 
 //        LocalFileExample localFileExample = new LocalFileExample();
 //        localFileExample.createCriteria()

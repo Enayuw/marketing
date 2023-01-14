@@ -1352,6 +1352,7 @@ public class PushDataServiceImpl implements PushDataService {
             // 请求正常
             if (postResult.getCode().equals(ResultCode.SUCCESS.getValue())) {
                 JSONArray returnDataList = resultJson.getJSONArray("data");
+                List<XieChengSmsCollidingDataLog> xieChengSmsCollidingDataLogList = new ArrayList<>();
                 for (int i = 0; i < returnDataList.size(); i++) {
                     JSONObject returnData = returnDataList.getJSONObject(i);
                     String sha256Code = returnData.getString("sha256Code");
@@ -1366,6 +1367,7 @@ public class PushDataServiceImpl implements PushDataService {
                     xieChengSmsCollidingDataLog.setResult(result);
                     xieChengSmsCollidingDataLog.setOrgChannel(String.valueOf(orgChannel));
                     xieChengSmsCollidingDataLog.setStatus(2);
+                    xieChengSmsCollidingDataLogList.add(xieChengSmsCollidingDataLog);
                     XieChengSmsCollidingDataLogExample xieChengSmsCollidingDataLogExample = new XieChengSmsCollidingDataLogExample();
                     xieChengSmsCollidingDataLogExample
                             .createCriteria()
@@ -1373,24 +1375,24 @@ public class PushDataServiceImpl implements PushDataService {
                             .andTypeEqualTo("1");
                     xieChengSmsCollidingDataLogMapper.updateByExampleSelective(xieChengSmsCollidingDataLog, xieChengSmsCollidingDataLogExample);
                     updateSmsCollidingDataPushTime(sha256Code);
-
                 }
+
             } else {
-    //                String msg = resultJson.getString("msg");
-                // 请求异常
-//                for(int i=0;i<collect.size();i++){
-//                    failNum.getAndIncrement();
-//                    String sha256Code = collect.get(i);
-//                    XieChengSmsCollidingDataLog xieChengSmsCollidingDataLog = new XieChengSmsCollidingDataLog();
-//                    xieChengSmsCollidingDataLog.setStatus(3);
-//                    xieChengSmsCollidingDataLog.setDataMessage("");
-//                    XieChengSmsCollidingDataLogExample xieChengSmsCollidingDataLogExample = new XieChengSmsCollidingDataLogExample();
-//                    xieChengSmsCollidingDataLogExample.createCriteria()
-//                            .andSha256CodeListEqualTo(sha256Code)
-//                            .andTypeEqualTo("1");
-//                    xieChengSmsCollidingDataLogMapper.updateByExampleSelective(xieChengSmsCollidingDataLog,xieChengSmsCollidingDataLogExample);
-//                    updateSmsCollidingDataPushTime(sha256Code);
-//                }
+//                    String msg = resultJson.getString("msg");
+//                 请求异常
+                for(int i=0;i<collect.size();i++){
+                    failNum.getAndIncrement();
+                    String sha256Code = collect.get(i);
+                    XieChengSmsCollidingDataLog xieChengSmsCollidingDataLog = new XieChengSmsCollidingDataLog();
+                    xieChengSmsCollidingDataLog.setStatus(3);
+                    xieChengSmsCollidingDataLog.setDataMessage("ceshi");
+                    XieChengSmsCollidingDataLogExample xieChengSmsCollidingDataLogExample = new XieChengSmsCollidingDataLogExample();
+                    xieChengSmsCollidingDataLogExample.createCriteria()
+                            .andSha256CodeListEqualTo(sha256Code)
+                            .andTypeEqualTo("1");
+                    xieChengSmsCollidingDataLogMapper.updateByExampleSelective(xieChengSmsCollidingDataLog,xieChengSmsCollidingDataLogExample);
+                    updateSmsCollidingDataPushTime(sha256Code);
+                }
             }
         }
     }catch (Exception e){

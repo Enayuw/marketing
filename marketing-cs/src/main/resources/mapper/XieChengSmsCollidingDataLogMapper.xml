@@ -10,4 +10,21 @@
         <![CDATA[ and create_time >= #{lastTimeDay} and  status = 1 ]]>
         order by create_time desc limit 1;
     </select>
+
+    <insert id="saveBatch" parameterType="list">
+        insert into b_phone_sale_extend_info (api_code, cust_num, task_id,
+        user_type, applet_date, applet_time,
+        status, p_status, create_time,
+        update_time, type, dx_type,
+        push_dx_time, transform_type, source_id
+        )values
+        <foreach collection="list" item="data" separator=",">
+            (#{data.apiCode,jdbcType=VARCHAR}, #{data.custNum,jdbcType=VARCHAR}, #{data.taskId,jdbcType=VARCHAR},
+            #{data.userType,jdbcType=VARCHAR}, #{data.appletDate,jdbcType=VARCHAR}, #{data.appletTime,jdbcType=VARCHAR},
+            #{data.status,jdbcType=VARCHAR}, #{data.pStatus,jdbcType=INTEGER}, #{data.createTime,jdbcType=TIMESTAMP},
+            #{data.updateTime,jdbcType=TIMESTAMP}, #{data.type,jdbcType=VARCHAR}, #{data.dxType,jdbcType=VARCHAR},
+            #{data.pushDxTime,jdbcType=TIMESTAMP}, #{data.transformType,jdbcType=VARCHAR}, #{data.sourceId,jdbcType=BIGINT}
+            )
+        </foreach>
+    </insert>
 </mapper>
