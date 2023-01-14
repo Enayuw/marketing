@@ -64,5 +64,4 @@ public interface PushDataService {
 
     String getHaierRequestId(String type);
 
-    void pushXieChengSmsCollidingData(List<XieChengSmsCollidingData> xieChengSmsCollidingDataPartition, AtomicInteger failNum);
 }
