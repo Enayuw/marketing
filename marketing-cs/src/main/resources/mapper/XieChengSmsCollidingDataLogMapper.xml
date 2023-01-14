@@ -40,8 +40,8 @@
             </trim>
             <trim prefix="result=case" suffix="end,">
                 <foreach collection="list" item="i" index="index">
-                    <if test="i.result != null and i.result != ''">
-                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}  then #{i.result}
+                    <if test="i.result != null">
+                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}  then #{i.result, jdbcType=BIT}
                     </if>
                 </foreach>
             </trim>

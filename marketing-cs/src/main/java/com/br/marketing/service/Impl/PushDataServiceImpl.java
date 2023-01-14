@@ -1324,8 +1324,8 @@ public class PushDataServiceImpl implements PushDataService {
                     xieChengSmsCollidingDataLog.setCreateTime(new Date());
                     xieChengSmsCollidingDataLogMapper.insertSelective(xieChengSmsCollidingDataLog);
                 }else {
-                    // 更新推送时间 如果时间为空说明数据还未推送
-                    if(!xieChengSmsCollidingDataLogRe.getStatus().equals("1")){
+                    // 更新推送时间 如果状态是1说明数据还未推送
+                    if(xieChengSmsCollidingDataLogRe.getStatus()!=1){
                         XieChengSmsCollidingData xieChengSmsCollidingDataNew = new XieChengSmsCollidingData();
                         xieChengSmsCollidingDataNew.setNextPushTime(xieChengSmsCollidingDataLogRe.getUpdateTime());
 
@@ -1354,16 +1354,16 @@ public class PushDataServiceImpl implements PushDataService {
                         JSONObject returnData = returnDataList.getJSONObject(i);
                         String sha256Code = returnData.getString("sha256Code");
                         Boolean result = returnData.getBoolean("result");
-                        Object orgChannel = returnData.get("orgChannel");
-                        Object mktLevel = returnData.get("mktLevel");
-                        Object info = returnData.get("info");
+                        String orgChannel = returnData.getString("orgChannel");
+                        String mktLevel = returnData.getString("mktLevel");
+                        String info = returnData.getString("info");
 
                         XieChengSmsCollidingDataLog xieChengSmsCollidingDataLog = new XieChengSmsCollidingDataLog();
                         xieChengSmsCollidingDataLog.setSha256CodeList(sha256Code);
-                        xieChengSmsCollidingDataLog.setInfo(String.valueOf(info));
-                        xieChengSmsCollidingDataLog.setMktLevel(String.valueOf(mktLevel));
+                        xieChengSmsCollidingDataLog.setInfo(info);
+                        xieChengSmsCollidingDataLog.setMktLevel(mktLevel);
                         xieChengSmsCollidingDataLog.setResult(result);
-                        xieChengSmsCollidingDataLog.setOrgChannel(String.valueOf(orgChannel));
+                        xieChengSmsCollidingDataLog.setOrgChannel(orgChannel);
                         xieChengSmsCollidingDataLog.setStatus(2);
                         xieChengSmsCollidingDataLog.setLocalId(localId);
                         xieChengSmsCollidingDataLogList.add(xieChengSmsCollidingDataLog);
