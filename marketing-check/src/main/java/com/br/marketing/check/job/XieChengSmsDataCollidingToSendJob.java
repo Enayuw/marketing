@@ -1,37 +1,20 @@
 package com.br.marketing.check.job;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
-import com.br.marketing.entity.XieChengSmsCollidingData;
-import com.br.marketing.entity.XieChengSmsCollidingDataExample;
 import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.mapper.XieChengDataMapper;
-import com.br.marketing.mapper.XieChengSmsCollidingDataMapper;
-import com.br.marketing.mapper.XiechengSmsQuitDataMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
-import com.br.marketing.service.PushDataService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
-import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.br.marketing.common.utils.MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGSMSCOLLIDINGRECEIVE;
 
 /**
  * @author guangchao.zhang
@@ -63,7 +46,7 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
             JSONObject msg = new JSONObject();
             msg.put("localId", localFile.getId());
             msg.put("type", 2);
-            producter.send("Marketing.Universal.SftpToDb.XieChengSmsCollidingReceive", msg.toJSONString());
+            producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGSMSCOLLIDINGRECEIVE, msg.toJSONString());
         });
     }
 
