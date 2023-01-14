@@ -224,7 +224,7 @@ public class XieChengService {
         String s = JSON.toJSONString(xieChengSmsCollidingReq);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingKey, smsCollidingIv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingSingKey));
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
+//        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
 //        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
 //            log.error("携程广告上报接口发送参数:ThirdAdOuterReq={} para={}", JSON.toJSONString(xieChengSmsCollidingReq),JSON.toJSONString(retMap));
 //            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
