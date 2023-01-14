@@ -1362,23 +1362,18 @@ public class PushDataServiceImpl implements PushDataService {
                     Object info = returnData.get("info");
 
                     XieChengSmsCollidingDataLog xieChengSmsCollidingDataLog = new XieChengSmsCollidingDataLog();
+                    xieChengSmsCollidingDataLog.setSha256CodeList(sha256Code);
                     xieChengSmsCollidingDataLog.setInfo(String.valueOf(info));
                     xieChengSmsCollidingDataLog.setMktLevel(String.valueOf(mktLevel));
                     xieChengSmsCollidingDataLog.setResult(result);
                     xieChengSmsCollidingDataLog.setOrgChannel(String.valueOf(orgChannel));
                     xieChengSmsCollidingDataLog.setStatus(2);
                     xieChengSmsCollidingDataLogList.add(xieChengSmsCollidingDataLog);
-                    XieChengSmsCollidingDataLogExample xieChengSmsCollidingDataLogExample = new XieChengSmsCollidingDataLogExample();
-                    xieChengSmsCollidingDataLogExample
-                            .createCriteria()
-                            .andSha256CodeListEqualTo(sha256Code)
-                            .andTypeEqualTo("1");
-                    xieChengSmsCollidingDataLogMapper.updateByExampleSelective(xieChengSmsCollidingDataLog, xieChengSmsCollidingDataLogExample);
-                    updateSmsCollidingDataPushTime(sha256Code);
                 }
-
+                xieChengSmsCollidingDataLogMapper.updateBatch(xieChengSmsCollidingDataLogList);
             } else {
 //                    String msg = resultJson.getString("msg");
+                List<XieChengSmsCollidingDataLog> xieChengSmsCollidingDataLogList = new ArrayList<>();
 //                 请求异常
                 for(int i=0;i<collect.size();i++){
                     failNum.getAndIncrement();
@@ -1386,14 +1381,14 @@ public class PushDataServiceImpl implements PushDataService {
                     XieChengSmsCollidingDataLog xieChengSmsCollidingDataLog = new XieChengSmsCollidingDataLog();
                     xieChengSmsCollidingDataLog.setStatus(3);
                     xieChengSmsCollidingDataLog.setDataMessage("ceshi");
-                    XieChengSmsCollidingDataLogExample xieChengSmsCollidingDataLogExample = new XieChengSmsCollidingDataLogExample();
-                    xieChengSmsCollidingDataLogExample.createCriteria()
-                            .andSha256CodeListEqualTo(sha256Code)
-                            .andTypeEqualTo("1");
-                    xieChengSmsCollidingDataLogMapper.updateByExampleSelective(xieChengSmsCollidingDataLog,xieChengSmsCollidingDataLogExample);
-                    updateSmsCollidingDataPushTime(sha256Code);
+                    xieChengSmsCollidingDataLog.setSha256CodeList(sha256Code);
+                    xieChengSmsCollidingDataLog.setType("1");
+                    xieChengSmsCollidingDataLogList.add(xieChengSmsCollidingDataLog);
                 }
+                xieChengSmsCollidingDataLogMapper.updateBatch(xieChengSmsCollidingDataLogList);
             }
+            // 更新 next_push_time
+            xieChengSmsCollidingDataMapper.updateBatch(collect);
         }
     }catch (Exception e){
         throw new RuntimeException(e);
@@ -1402,17 +1397,7 @@ public class PushDataServiceImpl implements PushDataService {
 
     }
 
-    private void updateSmsCollidingDataPushTime(String sha256Code) {
-        // 更新data 表推送日期
-        XieChengSmsCollidingData xieChengSmsCollidingData = new XieChengSmsCollidingData();
-        xieChengSmsCollidingData.setNextPushTime(new Date());
-        XieChengSmsCollidingDataExample xieChengSmsCollidingDataExample = new XieChengSmsCollidingDataExample();
-//        List<String> sha256CodeList = new ArrayList<>();
-//        sha256CodeList.add(sha256Code);
-//        sha256CodeList.add(sha256Code.toUpperCase());
-        xieChengSmsCollidingDataExample.createCriteria().andSha256CodeListEqualTo(sha256Code);
-        xieChengSmsCollidingDataMapper.updateByExampleSelective(xieChengSmsCollidingData,xieChengSmsCollidingDataExample);
-    }
+
 
     private YqbDetailVo getRequestTransfer(List<YiqianbaoData> pushList) {
         YqbDetailVo yqbDetailVo = new YqbDetailVo();

@@ -17,4 +17,12 @@
         </if>
         order by id asc limit 5000;
     </select>
+    <update id="updateBatch">
+        update b_xiecheng_sms_colliding_data set next_push_time = now() where sha256_code_list in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+
 </mapper>

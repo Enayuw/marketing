@@ -7,6 +7,7 @@ import com.br.marketing.entity.XieChengSmsCollidingDataLog;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Set;
 
 public interface XieChengSmsCollidingDataLogMapper extends XieChengSmsCollidingDataLogMapperBase {
 
@@ -19,4 +20,15 @@ public interface XieChengSmsCollidingDataLogMapper extends XieChengSmsCollidingD
     * @param list
     */
    void saveBatch(@Param("list") List<XieChengSmsCollidingDataLog> list);
+
+
+
+
+   /**
+    * 批量更新
+    * @param list
+    */
+   void updateBatch(@Param("list") List<XieChengSmsCollidingDataLog> list);
+
+
 }
