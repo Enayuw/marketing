@@ -1404,7 +1404,7 @@ public class PushDataServiceImpl implements PushDataService {
                 xieChengSmsCollidingDataMapper.updateBatch(dataList);
             }
         }catch (Exception e){
-            throw new RuntimeException(e);
+            log.error("携程短信撞库接口推送异常", e);
         }
     }
 
