@@ -1140,7 +1140,11 @@ public class PushDataServiceImpl implements PushDataService {
             // 根据id 进行数据查询 每批次查询 1.5w
             Long minId = null;
             AtomicInteger failNum = new AtomicInteger(0);
-            int selectByLocalIdCount = xieChengSmsCollidingDataMapper.selectByLocalIdCount(localId, getTimeDay("yyyy-MM-dd HH:mm:ss", marketingCommonConfig.getXieChengSmsCollidingDays()));
+            String endTime = getTimeDay("yyyy-MM-dd HH:mm:ss", marketingCommonConfig.getXieChengSmsCollidingDays());
+            if(isNewFile){
+                endTime = null;
+            }
+            int selectByLocalIdCount = xieChengSmsCollidingDataMapper.selectByLocalIdCount(localId, endTime);
             if(selectByLocalIdCount==0){
                 actionMark = false;
             }

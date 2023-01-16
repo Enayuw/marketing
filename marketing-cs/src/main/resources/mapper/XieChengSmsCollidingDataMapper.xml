@@ -8,10 +8,14 @@
         *
         from b_xiecheng_sms_colliding_data
         where  status =1  and local_id = #{localId}
-        <if test="endTime != null and endTime!=''">
-            <![CDATA[   and next_push_time <= #{endTime}  ]]>
-        </if>
-
+        <choose>
+            <when test="endTime != null and endTime!=''">
+                <![CDATA[   and next_push_time <= #{endTime}  ]]>
+            </when>
+            <otherwise>
+                <![CDATA[   and next_push_time is null  ]]>
+            </otherwise>
+        </choose>
         <if test="minId != null and minId>0">
             and id > #{minId}
         </if>
@@ -22,7 +26,14 @@
         count(*)
         from b_xiecheng_sms_colliding_data
         where  status =1  and local_id = #{localId}
-        <![CDATA[   and next_push_time <= #{endTime}  ]]>
+        <choose>
+            <when test="endTime != null and endTime!=''">
+                <![CDATA[   and next_push_time <= #{endTime}  ]]>
+            </when>
+            <otherwise>
+                <![CDATA[   and next_push_time is null  ]]>
+            </otherwise>
+        </choose>
     </select>
 
     <update id="updateBatch">
