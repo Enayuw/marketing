@@ -13,6 +13,7 @@ public interface XieChengSmsCollidingDataMapper extends XieChengSmsCollidingData
 
 
     List<XieChengSmsCollidingData> selectByLocalId(@Param("localId") Long localId, @Param("minId") Long minId,@Param("endTime") String endTime);
+    int selectByLocalIdCount(@Param("localId") Long localId,@Param("endTime") String endTime);
 
 
 
