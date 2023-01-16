@@ -1140,6 +1140,10 @@ public class PushDataServiceImpl implements PushDataService {
             // 根据id 进行数据查询 每批次查询 1.5w
             Long minId = null;
             AtomicInteger failNum = new AtomicInteger(0);
+            int selectByLocalIdCount = xieChengSmsCollidingDataMapper.selectByLocalIdCount(localId, getTimeDay("yyyy-MM-dd HH:mm:ss", marketingCommonConfig.getXieChengSmsCollidingDays()));
+            if(selectByLocalIdCount==0){
+                actionMark = false;
+            }
             while (actionMark) {
                 String lastTimeDay = getTimeDay("yyyy-MM-dd HH:mm:ss", marketingCommonConfig.getXieChengSmsCollidingDays());
                 if(isNewFile){
@@ -1166,7 +1170,9 @@ public class PushDataServiceImpl implements PushDataService {
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
-            updateXieChengSmsCollidingLocalFile(localFile);
+            if(selectByLocalIdCount>0 && !isJson(data)){
+                updateXieChengSmsCollidingLocalFile(localFile);
+            }
             xieChengSendAlarm(failNum, "携程短信撞库接口推送异常，请检查");
         } catch (Exception e) {
             throw new RuntimeException(e);

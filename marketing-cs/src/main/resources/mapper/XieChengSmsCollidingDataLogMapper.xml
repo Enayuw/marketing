@@ -6,7 +6,7 @@
     <select id="selectByCodeAndTime" resultType="com.br.marketing.entity.XieChengSmsCollidingDataLog">
         select *
         from b_xiecheng_sms_colliding_data_log
-        where sha256_code_list = #{sha256CodeList}
+        where  sha256_code_list = #{sha256CodeList}
         <![CDATA[ and create_time >= #{lastTimeDay} ]]>
         order by create_time desc limit 1;
     </select>
