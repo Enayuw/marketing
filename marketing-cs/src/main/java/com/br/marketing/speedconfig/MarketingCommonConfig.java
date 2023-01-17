@@ -424,5 +424,10 @@ public class MarketingCommonConfig {
      * 携程短信撞库线程数
      */
     private Integer xieChengSmsCollidingThread;
+
+    /**
+     * 通用文件入库
+     */
+    private Integer threadNumSftpToDbByCommon;
 }
 

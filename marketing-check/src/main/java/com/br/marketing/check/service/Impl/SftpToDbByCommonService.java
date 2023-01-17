@@ -20,6 +20,7 @@ import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.PhoneSaleMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.base.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
@@ -86,6 +87,9 @@ public class SftpToDbByCommonService {
     @Autowired
     DecodeClient decodeClient;
 
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
     private static String phoneReg = "^([\\+]*[0-9]+)$";
 
     private final static Integer SPLITSIZE = 5000;
@@ -132,7 +136,7 @@ public class SftpToDbByCommonService {
      * @param fuc
      * @return
      */
-    public Boolean actionTxtFile(FileContext context, LocalFile localFile, List<String> baseHeads, String routKey, Function<TxtToDbDTO, Result> fuc, Function<LocalFile,Result> datafuc) {
+    public Boolean actionTxtFile(FileContext context, LocalFile localFile, List<String> baseHeads, String routKey, Function<TxtToDbDTO, Result> fuc, Function<LocalFile, Result> datafuc) {
         String txtFilePathAndName = context.getLocalTxtFilePath().concat(context.getTxtFileName());
         StringBuilder head;
         int totalLines = MyFileUtil.getTotalLines(new File(txtFilePathAndName));
@@ -213,8 +217,8 @@ public class SftpToDbByCommonService {
 
             if (datafuc != null) {
                 Result apply = datafuc.apply(localFile);
-                if(ResultCode.SUCCESS.getValue().equals(apply.getCode())){
-                    if(apply.getData() instanceof Integer){
+                if (ResultCode.SUCCESS.getValue().equals(apply.getCode())) {
+                    if (apply.getData() instanceof Integer) {
                         errorMark.getAndAdd((Integer) apply.getData());
                     }
                 }
@@ -309,7 +313,12 @@ public class SftpToDbByCommonService {
                 BufferedReader br = new BufferedReader(read);) {
             String row;
             Integer line = 1;
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(20, 20);
+            Integer threadNum = 20;
+            if (marketingCommonConfig.getThreadNumSftpToDbByCommon() != null && marketingCommonConfig.getThreadNumSftpToDbByCommon() > 0) {
+                threadNum = marketingCommonConfig.getThreadNumSftpToDbByCommon();
+            }
+            log.warn("SftpToDbByCommonJob入库线程数：" + threadNum);
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
             while ((row = br.readLine()) != null) {
                 String trim = row.trim();
                 TxtToDbDTO txtToDbDTO = new TxtToDbDTO();
@@ -379,7 +388,7 @@ public class SftpToDbByCommonService {
                     .append("导入文件状态：".concat(errorMark.get() == 0 ? "正常" : "不正常").concat("\r\n"))
                     .append("导入数据行数：".concat(localFile.getActualNumber().toString()).concat("\r\n"))
                     .append("其中有问题行数：".concat(String.valueOf(errorMark.get())).concat("\r\n"));
-            alarmClient.sendAlarm(content.toString(), "sftp数据上传",AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
+            alarmClient.sendAlarm(content.toString(), "sftp数据上传", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
