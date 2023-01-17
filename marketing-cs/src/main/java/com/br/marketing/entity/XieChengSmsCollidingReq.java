@@ -11,11 +11,7 @@ import java.util.List;
  */
 @Data
 public class XieChengSmsCollidingReq {
-//     jsonMap.put("appId", appId);
-//        jsonMap.put("sha256CodeList", sha256CodeLists);
-//        jsonMap.put("codeType", codeType);
-//        jsonMap.put("marketType", marketType);
-//        jsonMap.put("marketFinanceUser", marketFinanceUser);
+
     private String appId;
 
     private List<String> sha256CodeList;

@@ -223,7 +223,7 @@ public class XieChengService {
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingSingKey));
         HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.error("携程广告上报接口发送参数:ThirdAdOuterReq={} para={}", JSON.toJSONString(xieChengSmsCollidingReq),JSON.toJSONString(retMap));
+            log.error("携程广告上报接口发送参数:XieChengSmsCollidingReq={} para={}", JSON.toJSONString(xieChengSmsCollidingReq),JSON.toJSONString(retMap));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
         String content = resMap.get("content");
@@ -233,6 +233,7 @@ public class XieChengService {
         if(code==0){
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
         }
+        log.error("携程短信撞库接口请求异常：{}", JSON.toJSONString(xieChengSmsCollidingReq));
         if (code == 500) {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(content);
         }else {
