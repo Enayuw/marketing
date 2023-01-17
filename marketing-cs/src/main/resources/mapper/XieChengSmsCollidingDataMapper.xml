@@ -13,13 +13,13 @@
                 <![CDATA[   and next_push_time <= #{endTime}  ]]>
             </when>
             <otherwise>
-                <![CDATA[   and next_push_time is null  ]]>
+                <![CDATA[   and next_push_time <=> null  ]]>
             </otherwise>
         </choose>
         <if test="minId != null and minId>0">
             and id > #{minId}
         </if>
-        order by id asc limit 5000;
+        order by id asc limit 15000;
     </select>
     <select id="selectByLocalIdCount" resultType="java.lang.Integer">
         select
@@ -31,7 +31,7 @@
                 <![CDATA[   and next_push_time <= #{endTime}  ]]>
             </when>
             <otherwise>
-                <![CDATA[   and next_push_time is null  ]]>
+                <![CDATA[   and next_push_time <=> null    ]]>
             </otherwise>
         </choose>
     </select>
