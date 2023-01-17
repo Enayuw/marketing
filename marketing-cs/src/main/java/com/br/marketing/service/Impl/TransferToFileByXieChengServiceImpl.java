@@ -266,6 +266,7 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
             dataExample.setOrderByClause(" id asc limit 2000");
             XieChengSmsCollidingDataLogExample.Criteria criteria = dataExample.createCriteria();
             criteria.andApiCodeEqualTo(apiCode)
+                    .andStatusEqualTo(2)
                     .andCreateTimeGreaterThanOrEqualTo(sDate)
                     .andCreateTimeLessThan(eDate);
             if (minId != null) {
