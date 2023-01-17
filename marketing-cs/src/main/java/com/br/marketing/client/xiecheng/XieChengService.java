@@ -205,7 +205,7 @@ public class XieChengService {
      * @param sha256CodeList
      * @return
      */
-    @RetryMethod(retryNowNum = 3)
+//    @RetryMethod(retryNowNum = 3)
     public Result pushXieChengSmsCollidingData(List<String> sha256CodeList) {
         /**
          * data 组装
@@ -232,11 +232,8 @@ public class XieChengService {
         Integer code = resultJson.getInteger("code");
         if(code==0){
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
-        }
-        log.error("携程短信撞库接口请求异常：{}", JSON.toJSONString(xieChengSmsCollidingReq));
-        if (code == 500) {
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(content);
         }else {
+            log.error("携程短信撞库接口请求异常：{}", JSON.toJSONString(xieChengSmsCollidingReq));
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
         }
 
