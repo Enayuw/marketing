@@ -233,7 +233,7 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
             writeDic.mkdirs();
         }
         StringBuilder fileName = new StringBuilder();
-        fileName.append(apiCode).append(XIECHENG_ZK_FILE).append(recordDate).append(".txt");
+        fileName.append(XIECHENG_ZK_FILE).append(recordDate).append(".txt");
         String fileAllPath = descPath.concat(fileName.toString());
         transferFileTask.setFileName(fileName.toString());
         transferFileTask.setFilePath(descPath);
