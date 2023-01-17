@@ -60,7 +60,7 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
 
     final static String XIECHENG_TRANSFER_FILE = "_zhuanhua_";
 
-    final static String XIECHENG_ZK_FILE = "_callbackresult_";
+    final static String XIECHENG_ZK_FILE = "callbackresult_";
 
     final static DateTimeFormatter ymd = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
