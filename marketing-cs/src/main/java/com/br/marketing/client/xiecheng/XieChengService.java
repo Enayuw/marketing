@@ -205,7 +205,7 @@ public class XieChengService {
      * @param sha256CodeList
      * @return
      */
-//    @RetryMethod(retryNowNum = 3)
+    @RetryMethod(retryNowNum = 3)
     public Result pushXieChengSmsCollidingData(List<String> sha256CodeList) {
         /**
          * data 组装
