@@ -9,6 +9,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.ThirdAdOuterReq;
 import com.br.marketing.entity.XieChengData;
+import com.br.marketing.entity.XieChengSmsCollidingReq;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -46,6 +48,11 @@ public class XieChengService {
     //singKey: 95cc01ec07387a44
     //source: BaiRong_C01
     //channel: commonOutAdMonitor
+    private final static String  CODETYPE = "MOBILE";
+    private final static String  MARKETTYPE = "SMS";
+    private final static Boolean  MARKETFINANCEUSER = false;
+
+
 
     @Value("${api.xiecheng.openUrl:0}")
     private String openUrl;
@@ -91,6 +98,27 @@ public class XieChengService {
 
     @Value("${api.xiecheng.smsQuit.isProxy:0}")
     private Boolean smsQuitIsProxy;
+
+    @Value("${api.xiecheng.smsColliding.openUrl:0}")
+    private String smsCollidingOpenUrl;
+
+    @Value("${api.xiecheng.smsColliding.appId:0}")
+    private String smsCollidingAppId;
+
+    @Value("${api.xiecheng.smsColliding.key:0}")
+    private String smsCollidingKey;
+
+    @Value("${api.xiecheng.smsColliding.iv:0}")
+    private String smsCollidingIv;
+
+    @Value("${api.xiecheng.smsColliding.singKey:0}")
+    private String smsCollidingSingKey;
+
+    @Value("${api.xiecheng.smsColliding.channel:0}")
+    private String smsCollidingChannel;
+
+    @Value("${api.xiecheng.smsQuit.isProxy:0}")
+    private Boolean smsCollidingIsProxy;
 
 
     @Autowired
@@ -172,4 +200,42 @@ public class XieChengService {
         }
     }
 
+    /**
+     * 短信碰撞接口
+     * @param sha256CodeList
+     * @return
+     */
+    @RetryMethod(retryNowNum = 3)
+    public Result pushXieChengSmsCollidingData(List<String> sha256CodeList) {
+        /**
+         * data 组装
+         */
+        XieChengSmsCollidingReq xieChengSmsCollidingReq = new XieChengSmsCollidingReq(
+                smsCollidingAppId,sha256CodeList,CODETYPE,MARKETTYPE,MARKETFINANCEUSER
+        );
+        String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
+        Map<String, Object> retMap = Maps.newHashMap();
+        retMap.put("appId", smsCollidingAppId);
+        retMap.put("timestamp", timestemp);
+        retMap.put("channel", smsCollidingChannel);
+        String s = JSON.toJSONString(xieChengSmsCollidingReq);
+        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingKey, smsCollidingIv));
+        retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingSingKey));
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+            log.error("携程广告上报接口发送参数:XieChengSmsCollidingReq={} para={}", JSON.toJSONString(xieChengSmsCollidingReq),JSON.toJSONString(retMap));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+        String content = resMap.get("content");
+//        String content = "{\"code\":702,\"msg\":\"测试效率\",\"data\":[{\"md5Code\":null,\"sha256Code\":\"760a06d2bc9b150d1d5b162e95bed32ed306cd1c2f7417c5e10397715ea165c1\",\"result\":false,\"orgChannel\":null,\"mktLevel\":null,\"info\":null}]}";
+        JSONObject resultJson = JSONObject.parseObject(content);
+        Integer code = resultJson.getInteger("code");
+        if(code==0){
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
+        }else {
+            log.error("携程短信撞库接口请求异常：{}", JSON.toJSONString(xieChengSmsCollidingReq));
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
+        }
+
+    }
 }

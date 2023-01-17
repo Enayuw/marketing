@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XieChengSmsCollidingDataLogMapper">
+
+
+    <select id="selectByCodeAndTime" resultType="com.br.marketing.entity.XieChengSmsCollidingDataLog">
+        select *
+        from b_xiecheng_sms_colliding_data_log
+        where  sha256_code_list = #{sha256CodeList} and status in (1,2)
+        <![CDATA[ and create_time > #{lastTimeDay} ]]>
+        order by create_time desc limit 1;
+    </select>
+
+    <insert id="saveBatch" parameterType="list">
+        insert into b_xiecheng_sms_colliding_data_log (api_code, local_id,
+        type, sha256_code_list,status, create_time,update_time)values
+        <foreach collection="list" item="data" separator=",">
+            (#{data.apiCode,jdbcType=VARCHAR}, #{data.localId,jdbcType=BIGINT},
+            #{data.type,jdbcType=VARCHAR}, #{data.sha256CodeList,jdbcType=VARCHAR},
+            #{data.status,jdbcType=INTEGER},  now(),now()
+            )
+        </foreach>
+    </insert>
+    <update id="updateBatch" parameterType="java.util.List" >
+        update b_xiecheng_sms_colliding_data_log
+        <trim prefix="set" suffixOverrides=",">
+            <trim prefix="info=case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.info != null and i.info != ''">
+                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{localId} then #{i.info}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="mkt_level=case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.mktLevel != null and i.mktLevel != ''">
+                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} then #{i.mktLevel}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="result=case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.result != null">
+                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}  then #{i.result, jdbcType=BIT}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="org_channel=case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.orgChannel != null and i.orgChannel != ''">
+                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} then #{i.orgChannel}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="status=case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.status != null and i.status != ''">
+                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} then #{i.status}
+                    </if>
+                </foreach>
+            </trim>
+            <trim prefix="data_message=case" suffix="end,">
+                <foreach collection="list" item="i" index="index">
+                    <if test="i.dataMessage != null and i.dataMessage != ''">
+                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} then #{i.dataMessage}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where
+        <foreach collection="list" item="i" open="( " separator=") or (" close=" )" >
+            sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}
+        </foreach>
+    </update>
+
+</mapper>

@@ -904,6 +904,316 @@ public class LocalFileExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andErrorActualNumberIsNull() {
+            addCriterion("error_actual_number is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorActualNumberIsNotNull() {
+            addCriterion("error_actual_number is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorActualNumberEqualTo(Integer value) {
+            addCriterion("error_actual_number =", value, "errorActualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorActualNumberNotEqualTo(Integer value) {
+            addCriterion("error_actual_number <>", value, "errorActualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorActualNumberGreaterThan(Integer value) {
+            addCriterion("error_actual_number >", value, "errorActualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorActualNumberGreaterThanOrEqualTo(Integer value) {
+            addCriterion("error_actual_number >=", value, "errorActualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorActualNumberLessThan(Integer value) {
+            addCriterion("error_actual_number <", value, "errorActualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorActualNumberLessThanOrEqualTo(Integer value) {
+            addCriterion("error_actual_number <=", value, "errorActualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorActualNumberIn(List<Integer> values) {
+            addCriterion("error_actual_number in", values, "errorActualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorActualNumberNotIn(List<Integer> values) {
+            addCriterion("error_actual_number not in", values, "errorActualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorActualNumberBetween(Integer value1, Integer value2) {
+            addCriterion("error_actual_number between", value1, value2, "errorActualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andErrorActualNumberNotBetween(Integer value1, Integer value2) {
+            addCriterion("error_actual_number not between", value1, value2, "errorActualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumberIsNull() {
+            addCriterion("push_number is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumberIsNotNull() {
+            addCriterion("push_number is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumberEqualTo(Integer value) {
+            addCriterion("push_number =", value, "pushNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumberNotEqualTo(Integer value) {
+            addCriterion("push_number <>", value, "pushNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumberGreaterThan(Integer value) {
+            addCriterion("push_number >", value, "pushNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumberGreaterThanOrEqualTo(Integer value) {
+            addCriterion("push_number >=", value, "pushNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumberLessThan(Integer value) {
+            addCriterion("push_number <", value, "pushNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumberLessThanOrEqualTo(Integer value) {
+            addCriterion("push_number <=", value, "pushNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumberIn(List<Integer> values) {
+            addCriterion("push_number in", values, "pushNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumberNotIn(List<Integer> values) {
+            addCriterion("push_number not in", values, "pushNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumberBetween(Integer value1, Integer value2) {
+            addCriterion("push_number between", value1, value2, "pushNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumberNotBetween(Integer value1, Integer value2) {
+            addCriterion("push_number not between", value1, value2, "pushNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStartTimeIsNull() {
+            addCriterion("push_start_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStartTimeIsNotNull() {
+            addCriterion("push_start_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStartTimeEqualTo(Date value) {
+            addCriterion("push_start_time =", value, "pushStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStartTimeNotEqualTo(Date value) {
+            addCriterion("push_start_time <>", value, "pushStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStartTimeGreaterThan(Date value) {
+            addCriterion("push_start_time >", value, "pushStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStartTimeGreaterThanOrEqualTo(Date value) {
+            addCriterion("push_start_time >=", value, "pushStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStartTimeLessThan(Date value) {
+            addCriterion("push_start_time <", value, "pushStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStartTimeLessThanOrEqualTo(Date value) {
+            addCriterion("push_start_time <=", value, "pushStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStartTimeIn(List<Date> values) {
+            addCriterion("push_start_time in", values, "pushStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStartTimeNotIn(List<Date> values) {
+            addCriterion("push_start_time not in", values, "pushStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStartTimeBetween(Date value1, Date value2) {
+            addCriterion("push_start_time between", value1, value2, "pushStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStartTimeNotBetween(Date value1, Date value2) {
+            addCriterion("push_start_time not between", value1, value2, "pushStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushEndTimeIsNull() {
+            addCriterion("push_end_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushEndTimeIsNotNull() {
+            addCriterion("push_end_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushEndTimeEqualTo(Date value) {
+            addCriterion("push_end_time =", value, "pushEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushEndTimeNotEqualTo(Date value) {
+            addCriterion("push_end_time <>", value, "pushEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushEndTimeGreaterThan(Date value) {
+            addCriterion("push_end_time >", value, "pushEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushEndTimeGreaterThanOrEqualTo(Date value) {
+            addCriterion("push_end_time >=", value, "pushEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushEndTimeLessThan(Date value) {
+            addCriterion("push_end_time <", value, "pushEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushEndTimeLessThanOrEqualTo(Date value) {
+            addCriterion("push_end_time <=", value, "pushEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushEndTimeIn(List<Date> values) {
+            addCriterion("push_end_time in", values, "pushEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushEndTimeNotIn(List<Date> values) {
+            addCriterion("push_end_time not in", values, "pushEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushEndTimeBetween(Date value1, Date value2) {
+            addCriterion("push_end_time between", value1, value2, "pushEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushEndTimeNotBetween(Date value1, Date value2) {
+            addCriterion("push_end_time not between", value1, value2, "pushEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusIsNull() {
+            addCriterion("push_status is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusIsNotNull() {
+            addCriterion("push_status is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusEqualTo(String value) {
+            addCriterion("push_status =", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusNotEqualTo(String value) {
+            addCriterion("push_status <>", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusGreaterThan(String value) {
+            addCriterion("push_status >", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusGreaterThanOrEqualTo(String value) {
+            addCriterion("push_status >=", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusLessThan(String value) {
+            addCriterion("push_status <", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusLessThanOrEqualTo(String value) {
+            addCriterion("push_status <=", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusLike(String value) {
+            addCriterion("push_status like", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusNotLike(String value) {
+            addCriterion("push_status not like", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusIn(List<String> values) {
+            addCriterion("push_status in", values, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusNotIn(List<String> values) {
+            addCriterion("push_status not in", values, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusBetween(String value1, String value2) {
+            addCriterion("push_status between", value1, value2, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusNotBetween(String value1, String value2) {
+            addCriterion("push_status not between", value1, value2, "pushStatus");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

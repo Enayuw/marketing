@@ -1,11 +1,12 @@
 package com.br.marketing.service.Impl;
 
+import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
-import com.br.common.util.MD5Utils;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
@@ -54,7 +55,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -71,8 +71,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
-import static com.br.marketing.util.TimeUtils.isEffectiveDate;
 
 @Slf4j
 @Service
@@ -120,7 +118,11 @@ public class PushDataServiceImpl implements PushDataService {
     @Resource
     private XiechengSmsQuitDataMapper xiechengSmsQuitDataMapper;
 
+    @Resource
+    private XieChengSmsCollidingDataMapper xieChengSmsCollidingDataMapper;
 
+    @Resource
+    private XieChengSmsCollidingDataLogMapper xieChengSmsCollidingDataLogMapper;
     @Resource
     @Qualifier("xieChengThreadPool")
     ThreadPoolExecutor xieChengThreadPool;
@@ -176,6 +178,10 @@ public class PushDataServiceImpl implements PushDataService {
 
 
     final static DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+    private final  static int XIECHENGSMSCOLLIDINGPARTATIONNUM = 50;
+
+    private final static String XIECHENGSMSCOLLIDINGFORMATTER="yyyy-MM-dd HH:mm:ss";
 
     @Override
     public Result pushDassData(Long id) {
@@ -997,7 +1003,7 @@ public class PushDataServiceImpl implements PushDataService {
      * // 8. 全部推送结束  关闭线程池。
      * // 9. 若 type 为 0 ，则需要统计上传推送数量 和重复数据
      *
-     * @param id
+     * @param
      * @return
      */
     public void pushSmsQuitData(LocalFile localFile) {
@@ -1111,6 +1117,79 @@ public class PushDataServiceImpl implements PushDataService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
+    @Override
+    public Result pushXieChengSmsCollidingToDbData(String data) {
+        log.warn("携程短信撞库mq消息={}",data);
+        try {
+            // 获取localId;
+            Long localId;
+            // 新文件标识，走sftp 逻辑的为新文件  ，定时任务触发的 为旧文件，新文件查询查询当前localId所对应的所有数据，旧文件查询当前localId下，push_next_time < 当前时间-14*24 小时的数据
+            Boolean isNewFile = false;
+            if(isJson(data)){
+                JSONObject jsonObject = JSONObject.parseObject(data);
+                localId = Long.valueOf(jsonObject.getInteger("localId"));
+            }else {
+                isNewFile = true;
+                localId = Long.valueOf(data);
+            }
+            LocalFile   localFile = localFileMapper.selectByPrimaryKey(localId);
+            if (localFile != null) {
+                localFile.setPushStartTime(localFile.getPushStartTime() == null ? new Date() : localFile.getPushStartTime());
+            }else {
+                return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(false);
+            }
+            // 创建线程池
+            ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingThread(),marketingCommonConfig.getXieChengSmsCollidingThread());
+
+            Boolean actionMark = true;
+            // 根据id匹配 进行数据查询 每批次查询 5000
+            Long minId = null;
+            AtomicInteger failNum = new AtomicInteger(0);
+            int selectByLocalIdCount = xieChengSmsCollidingDataMapper.selectByLocalIdCount(localId, getEndTime(isNewFile));
+            if(selectByLocalIdCount==0){
+                actionMark = false;
+            }
+            while (actionMark) {
+                List<XieChengSmsCollidingData> xieChengSmsCollidingDataList = xieChengSmsCollidingDataMapper.selectByLocalId(localId, minId,getEndTime(isNewFile));
+                if (xieChengSmsCollidingDataList.size() == 0) {
+                    actionMark = false;
+                    continue;
+                }
+                // 更新minId 为当前集合最大的id
+                minId = xieChengSmsCollidingDataList.get(xieChengSmsCollidingDataList.size() - 1).getId();
+                // 将查询出来的明细数据进行分组，每组50个数据
+                List<List<XieChengSmsCollidingData>> xieChengSmsCollidingDataPartitions = Lists.partition(xieChengSmsCollidingDataList, XIECHENGSMSCOLLIDINGPARTATIONNUM);
+                for (int i = 0; i < xieChengSmsCollidingDataPartitions.size(); i++) {
+                    List<XieChengSmsCollidingData> xieChengSmsCollidingDataListPartition = xieChengSmsCollidingDataPartitions.get(i);
+                    xieChengSmsCollidingThread.submit(() -> pushXieChengSmsCollidingData(xieChengSmsCollidingDataListPartition, failNum,localFile.getId()));
+                }
+            }
+            xieChengSmsCollidingThread.shutdown();
+            try {
+                while (!xieChengSmsCollidingThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                }
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
+            if(selectByLocalIdCount>0 && !isJson(data)){
+                updateXieChengSmsCollidingLocalFile(localFile);
+            }
+            xieChengSendAlarm(failNum, "携程短信撞库接口推送异常，请检查");
+        } catch (Exception e) {
+            log.error("携程短信撞库接口推送异常:{}",e);
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+    }
+
+    private String getEndTime(Boolean isNewFile) {
+        String endTime = getTimeDay( marketingCommonConfig.getXieChengSmsCollidingDays());
+        // 新增件 next_push_time 是空的
+        if(isNewFile){
+            endTime = null;
+        }
+        return endTime;
+    }
+
     private boolean isJson(String str){
         try {
             JSONObject jsonStr= JSONObject.parseObject(str);
@@ -1129,6 +1208,18 @@ public class PushDataServiceImpl implements PushDataService {
                     .andStatusEqualTo(1);
             int i = xieChengDataMapper.countByExample(xieChengDataExample);
             localFile.setPushNumber(i);
+            localFileMapper.updateByPrimaryKeySelective(localFile);
+        }
+    }
+    private void updateXieChengSmsCollidingLocalFile(LocalFile localFile) {
+        if (localFile != null) {
+            localFile.setPushEndTime(new Date());
+            XieChengSmsCollidingDataLogExample xieChengSmsCollidingDataLogExample = new XieChengSmsCollidingDataLogExample();
+            xieChengSmsCollidingDataLogExample.createCriteria().andLocalIdEqualTo(localFile.getId())
+                    .andStatusEqualTo(2);
+            int i = xieChengSmsCollidingDataLogMapper.countByExample(xieChengSmsCollidingDataLogExample);
+            localFile.setPushNumber(i);
+            localFile.setPushStatus("0");
             localFileMapper.updateByPrimaryKeySelective(localFile);
         }
     }
@@ -1194,6 +1285,134 @@ public class PushDataServiceImpl implements PushDataService {
         //将数组转为字符串
         return new String(arr);
     }
+
+    /**
+     * 获取某天的时间,支持自定义时间格式
+     *
+     * @param
+     * @param index            为正表示当前时间加天数，为负表示当前时间减天数
+     * @return String
+     */
+    public static String getTimeDay(int index) {
+        TimeZone tz = TimeZone.getTimeZone("Asia/Shanghai");
+        TimeZone.setDefault(tz);
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat fmt = new SimpleDateFormat(XIECHENGSMSCOLLIDINGFORMATTER);
+        calendar.add(Calendar.DAY_OF_MONTH, -index);
+        String date = fmt.format(calendar.getTime());
+        return date;
+    }
+    public void pushXieChengSmsCollidingData(List<XieChengSmsCollidingData> xieChengSmsCollidingDataPartition, AtomicInteger failNum,long localId) {
+        // 在拆分后50个一组的集合里xieChengSmsCollidingDataPartition 将sha256Code电话组装成 集合collect
+        // 循环xieChengSmsCollidingDataPartition 集合 判断集合里的电话在15天内是否推送过，如果没有推送过 新增推送记录 状态为待推送状态。防止高并发下 数据重复推送
+        // 如果有推送过 ，不新增推送记录，并将collect 集合中这个sha256Code 删除掉
+
+        try {
+            List<String> collect = new ArrayList<>();
+            for (int i = 0; i < xieChengSmsCollidingDataPartition.size(); i++) {
+                XieChengSmsCollidingData xieChengSmsCollidingData = xieChengSmsCollidingDataPartition.get(i);
+
+                // 小写加密数据
+                String sha256CodeList = xieChengSmsCollidingData.getSha256CodeList().toLowerCase();
+
+                // 获取redis 锁
+                String key = RedisKeyConstant.pushXieChengSmsCollidingLock.concat(":")
+                        .concat(xieChengSmsCollidingData.getApiCode())
+                        .concat(sha256CodeList);
+                String value = UUID.randomUUID().toString();
+                redisChgService.lock(key, value);
+                String lastTimeDay = getTimeDay( marketingCommonConfig.getXieChengSmsCollidingDays());
+
+                // 查询到当前数据距离当前时间 14*24 小时的范围内是否推送过
+                XieChengSmsCollidingDataLog xieChengSmsCollidingDataLogRe = xieChengSmsCollidingDataLogMapper.selectByCodeAndTime(sha256CodeList, lastTimeDay);
+                if (xieChengSmsCollidingDataLogRe==null) {
+                    // 添加集合数据
+                    collect.add(sha256CodeList);
+
+                    // 构造待推送数据
+                    XieChengSmsCollidingDataLog xieChengSmsCollidingDataLog = new XieChengSmsCollidingDataLog();
+                    xieChengSmsCollidingDataLog.setApiCode(xieChengSmsCollidingData.getApiCode());
+                    xieChengSmsCollidingDataLog.setLocalId(xieChengSmsCollidingData.getLocalId());
+                    xieChengSmsCollidingDataLog.setSha256CodeList(sha256CodeList);
+                    xieChengSmsCollidingDataLog.setSmsCollidingDataId(xieChengSmsCollidingData.getId());
+                    xieChengSmsCollidingDataLog.setStatus(1);
+                    xieChengSmsCollidingDataLog.setType("1");
+                    xieChengSmsCollidingDataLog.setCreateTime(new Date());
+                    xieChengSmsCollidingDataLogMapper.insertSelective(xieChengSmsCollidingDataLog);
+                }else {
+                    // 更新推送时间 如果状态是2 说明当前数据推送过
+                    if(xieChengSmsCollidingDataLogRe.getStatus()==2){
+                        XieChengSmsCollidingData xieChengSmsCollidingDataNew = new XieChengSmsCollidingData();
+                        xieChengSmsCollidingDataNew.setNextPushTime(xieChengSmsCollidingDataLogRe.getUpdateTime());
+
+                        XieChengSmsCollidingDataExample xieChengSmsCollidingDataExample = new XieChengSmsCollidingDataExample();
+                        List<String> sha256List = new ArrayList<>();
+                        sha256List.add(xieChengSmsCollidingDataLogRe.getSha256CodeList());
+                        sha256List.add(xieChengSmsCollidingDataLogRe.getSha256CodeList().toUpperCase());
+                        xieChengSmsCollidingDataExample.createCriteria().andSha256CodeListIn(sha256List);
+                        xieChengSmsCollidingDataMapper.updateByExampleSelective(xieChengSmsCollidingDataNew,xieChengSmsCollidingDataExample);
+                    }
+
+                }
+                redisChgService.unlock(key, value);
+            }
+            if (!collect.isEmpty()) {
+                // 携程短信撞库接口
+                Result postResult = xieChengService.pushXieChengSmsCollidingData(collect);
+                JSONObject resultJson = JSONObject.parseObject(postResult.getMessage());
+                // 请求正常
+                if (postResult.getCode().equals(ResultCode.SUCCESS.getValue())) {
+                    JSONArray returnDataList = resultJson.getJSONArray("data");
+                    List<XieChengSmsCollidingDataLog> xieChengSmsCollidingDataLogList = new ArrayList<>();
+                    for (int i = 0; i < returnDataList.size(); i++) {
+                        JSONObject returnData = returnDataList.getJSONObject(i);
+                        String sha256Code = returnData.getString("sha256Code");
+                        Boolean result = returnData.getBoolean("result");
+                        String orgChannel = returnData.getString("orgChannel");
+                        String mktLevel = returnData.getString("mktLevel");
+                        String info = returnData.getString("info");
+
+                        XieChengSmsCollidingDataLog xieChengSmsCollidingDataLog = new XieChengSmsCollidingDataLog();
+                        xieChengSmsCollidingDataLog.setSha256CodeList(sha256Code);
+                        xieChengSmsCollidingDataLog.setInfo(info);
+                        xieChengSmsCollidingDataLog.setMktLevel(mktLevel);
+                        xieChengSmsCollidingDataLog.setResult(result);
+                        xieChengSmsCollidingDataLog.setOrgChannel(orgChannel);
+                        xieChengSmsCollidingDataLog.setStatus(2);
+                        xieChengSmsCollidingDataLog.setLocalId(localId);
+                        xieChengSmsCollidingDataLogList.add(xieChengSmsCollidingDataLog);
+                    }
+                    xieChengSmsCollidingDataLogMapper.updateBatch(xieChengSmsCollidingDataLogList);
+                    // 更新 next_push_time
+                    List<String> dataList = new ArrayList<>();
+                    dataList.addAll(collect);
+                    for(int m =0;m<collect.size();m++){
+                        dataList.add( collect.get(m).toUpperCase());
+                    }
+                    xieChengSmsCollidingDataMapper.updateBatch(dataList);
+                } else {
+                    // 异常请求 只更新日志表状态3  不更新 next_push_time
+                    String msg = resultJson.getString("msg");
+                    List<XieChengSmsCollidingDataLog> xieChengSmsCollidingDataLogList = new ArrayList<>();
+                    for(int i=0;i<collect.size();i++){
+                        failNum.getAndIncrement();
+                        String sha256Code = collect.get(i);
+                        XieChengSmsCollidingDataLog xieChengSmsCollidingDataLog = new XieChengSmsCollidingDataLog();
+                        xieChengSmsCollidingDataLog.setStatus(3);
+                        xieChengSmsCollidingDataLog.setDataMessage(msg);
+                        xieChengSmsCollidingDataLog.setSha256CodeList(sha256Code);
+                        xieChengSmsCollidingDataLog.setLocalId(localId);
+                        xieChengSmsCollidingDataLogList.add(xieChengSmsCollidingDataLog);
+                    }
+                    xieChengSmsCollidingDataLogMapper.updateBatch(xieChengSmsCollidingDataLogList);
+                }
+            }
+        }catch (Exception e){
+            log.error("携程短信撞库接口推送异常", e);
+        }
+    }
+
+
 
     private YqbDetailVo getRequestTransfer(List<YiqianbaoData> pushList) {
         YqbDetailVo yqbDetailVo = new YqbDetailVo();

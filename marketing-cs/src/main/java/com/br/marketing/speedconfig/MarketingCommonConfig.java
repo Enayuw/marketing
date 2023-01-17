@@ -411,13 +411,28 @@ public class MarketingCommonConfig {
     private List<String> XieChengTransferApiCodes;
 
     /**
-     * 携程转化数据提取执行时间
+     * 携程转化数据提取执行时间,携程撞库提取时间
      */
-    private String XieChengTransferExecuteTime;
+    private List<String> XieChengTransferExecuteTime;
 
     /**
      * 拍拍贷有效期34；目前仅老客使用
      */
     private Integer ppdValidityDay;
+
+    /**
+     * 携程短信撞库轮询时间间隔
+     */
+    private Integer xieChengSmsCollidingDays;
+
+    /**
+     * 携程短信撞库线程数
+     */
+    private Integer xieChengSmsCollidingThread;
+
+    /**
+     * 通用文件入库
+     */
+    private Integer threadNumSftpToDbByCommon;
 }
 

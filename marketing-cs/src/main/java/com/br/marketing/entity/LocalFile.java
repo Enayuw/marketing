@@ -54,26 +54,6 @@ public class LocalFile {
     private Integer actualNumber;
 
     /**
-     *推送数量
-     */
-    private Integer pushNumber;
-
-    /**
-     *错误数量
-     */
-    private Integer errorActualNumber;
-
-    /**
-     * 推送开始时间
-     */
-    private Date pushStartTime;
-
-    /**
-     * 推送结束时间
-     */
-    private Date pushEndTime;
-
-    /**
      * 创建时间
      */
     private Date createTime;
@@ -82,6 +62,31 @@ public class LocalFile {
      * 修改时间
      */
     private Date updateTime;
+
+    /**
+     * 上传错误数据数量
+     */
+    private Integer errorActualNumber;
+
+    /**
+     * 推送数据数量
+     */
+    private Integer pushNumber;
+
+    /**
+     * 推送数据开始是时间
+     */
+    private Date pushStartTime;
+
+    /**
+     * 推送数据结束时间
+     */
+    private Date pushEndTime;
+
+    /**
+     * 推送状态 1 推送中  2 非推送中
+     */
+    private String pushStatus;
 
     public Long getId() {
         return id;
@@ -163,12 +168,20 @@ public class LocalFile {
         this.actualNumber = actualNumber;
     }
 
-    public Integer getPushNumber() {
-        return pushNumber;
+    public Date getCreateTime() {
+        return createTime;
     }
 
-    public void setPushNumber(Integer pushNumber) {
-        this.pushNumber = pushNumber;
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getErrorActualNumber() {
@@ -177,6 +190,14 @@ public class LocalFile {
 
     public void setErrorActualNumber(Integer errorActualNumber) {
         this.errorActualNumber = errorActualNumber;
+    }
+
+    public Integer getPushNumber() {
+        return pushNumber;
+    }
+
+    public void setPushNumber(Integer pushNumber) {
+        this.pushNumber = pushNumber;
     }
 
     public Date getPushStartTime() {
@@ -195,19 +216,11 @@ public class LocalFile {
         this.pushEndTime = pushEndTime;
     }
 
-    public Date getCreateTime() {
-        return createTime;
+    public String getPushStatus() {
+        return pushStatus;
     }
 
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
+    public void setPushStatus(String pushStatus) {
+        this.pushStatus = pushStatus == null ? null : pushStatus.trim();
     }
 }

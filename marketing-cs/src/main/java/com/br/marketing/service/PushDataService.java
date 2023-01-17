@@ -2,6 +2,10 @@ package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.PushShDXDTO;
+import com.br.marketing.entity.XieChengSmsCollidingData;
+
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public interface PushDataService {
     Result pushDassData(Long id);
@@ -51,5 +55,13 @@ public interface PushDataService {
      */
     Result<Boolean> pushXieChengToDbData(String data);
 
+    /**
+     * 推送携程短信撞库数据
+     * @param data
+     * @return
+     */
+    Result<Boolean> pushXieChengSmsCollidingToDbData(String data);
+
     String getHaierRequestId(String type);
+
 }

@@ -14,6 +14,11 @@
     <result column="actual_number" property="actualNumber" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="error_actual_number" property="errorActualNumber" jdbcType="INTEGER" />
+    <result column="push_number" property="pushNumber" jdbcType="INTEGER" />
+    <result column="push_start_time" property="pushStartTime" jdbcType="TIMESTAMP" />
+    <result column="push_end_time" property="pushEndTime" jdbcType="TIMESTAMP" />
+    <result column="push_status" property="pushStatus" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -74,8 +79,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, cid, api_code, file_type, src_path, file_name, local_path, status, complete, 
-    actual_number, create_time, update_time
+    id, cid, api_code, file_type, src_path, file_name, local_path, status, complete,
+    actual_number, create_time, update_time, error_actual_number, push_number, push_start_time,
+    push_end_time, push_status
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.LocalFileExample" >
     select
@@ -111,14 +117,18 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_local_file (cid, api_code, file_type, 
-      src_path, file_name, local_path, 
-      status, complete, actual_number, 
-      create_time, update_time)
-    values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{fileType,jdbcType=VARCHAR}, 
-      #{srcPath,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, #{localPath,jdbcType=VARCHAR}, 
-      #{status,jdbcType=VARCHAR}, #{complete,jdbcType=VARCHAR}, #{actualNumber,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_local_file (cid, api_code, file_type,
+    src_path, file_name, local_path,
+    status, complete, actual_number,
+    create_time, update_time, error_actual_number,
+    push_number, push_start_time, push_end_time,
+    push_status)
+    values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{fileType,jdbcType=VARCHAR},
+    #{srcPath,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, #{localPath,jdbcType=VARCHAR},
+    #{status,jdbcType=VARCHAR}, #{complete,jdbcType=VARCHAR}, #{actualNumber,jdbcType=INTEGER},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{errorActualNumber,jdbcType=INTEGER},
+    #{pushNumber,jdbcType=INTEGER}, #{pushStartTime,jdbcType=TIMESTAMP}, #{pushEndTime,jdbcType=TIMESTAMP},
+    #{pushStatus,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.LocalFile" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -159,6 +169,21 @@
       <if test="updateTime != null" >
         update_time,
       </if>
+      <if test="errorActualNumber != null" >
+        error_actual_number,
+      </if>
+      <if test="pushNumber != null" >
+        push_number,
+      </if>
+      <if test="pushStartTime != null" >
+        push_start_time,
+      </if>
+      <if test="pushEndTime != null" >
+        push_end_time,
+      </if>
+      <if test="pushStatus != null" >
+        push_status,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="cid != null" >
@@ -193,6 +218,21 @@
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="errorActualNumber != null" >
+        #{errorActualNumber,jdbcType=INTEGER},
+      </if>
+      <if test="pushNumber != null" >
+        #{pushNumber,jdbcType=INTEGER},
+      </if>
+      <if test="pushStartTime != null" >
+        #{pushStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="pushEndTime != null" >
+        #{pushEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="pushStatus != null" >
+        #{pushStatus,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -241,6 +281,21 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.errorActualNumber != null" >
+        error_actual_number = #{record.errorActualNumber,jdbcType=INTEGER},
+      </if>
+      <if test="record.pushNumber != null" >
+        push_number = #{record.pushNumber,jdbcType=INTEGER},
+      </if>
+      <if test="record.pushStartTime != null" >
+        push_start_time = #{record.pushStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.pushEndTime != null" >
+        push_end_time = #{record.pushEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.pushStatus != null" >
+        push_status = #{record.pushStatus,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -249,17 +304,22 @@
   <update id="updateByExample" parameterType="map" >
     update b_local_file
     set id = #{record.id,jdbcType=BIGINT},
-      cid = #{record.cid,jdbcType=VARCHAR},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      file_type = #{record.fileType,jdbcType=VARCHAR},
-      src_path = #{record.srcPath,jdbcType=VARCHAR},
-      file_name = #{record.fileName,jdbcType=VARCHAR},
-      local_path = #{record.localPath,jdbcType=VARCHAR},
-      status = #{record.status,jdbcType=VARCHAR},
-      complete = #{record.complete,jdbcType=VARCHAR},
-      actual_number = #{record.actualNumber,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    cid = #{record.cid,jdbcType=VARCHAR},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    file_type = #{record.fileType,jdbcType=VARCHAR},
+    src_path = #{record.srcPath,jdbcType=VARCHAR},
+    file_name = #{record.fileName,jdbcType=VARCHAR},
+    local_path = #{record.localPath,jdbcType=VARCHAR},
+    status = #{record.status,jdbcType=VARCHAR},
+    complete = #{record.complete,jdbcType=VARCHAR},
+    actual_number = #{record.actualNumber,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    error_actual_number = #{record.errorActualNumber,jdbcType=INTEGER},
+    push_number = #{record.pushNumber,jdbcType=INTEGER},
+    push_start_time = #{record.pushStartTime,jdbcType=TIMESTAMP},
+    push_end_time = #{record.pushEndTime,jdbcType=TIMESTAMP},
+    push_status = #{record.pushStatus,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -294,6 +354,12 @@
       <if test="actualNumber != null" >
         actual_number = #{actualNumber,jdbcType=INTEGER},
       </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
       <if test="errorActualNumber != null" >
         error_actual_number = #{errorActualNumber,jdbcType=INTEGER},
       </if>
@@ -306,11 +372,8 @@
       <if test="pushEndTime != null" >
         push_end_time = #{pushEndTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="createTime != null" >
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updateTime != null" >
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      <if test="pushStatus != null" >
+        push_status = #{pushStatus,jdbcType=VARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
@@ -318,16 +381,21 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.LocalFile" >
     update b_local_file
     set cid = #{cid,jdbcType=VARCHAR},
-      api_code = #{apiCode,jdbcType=VARCHAR},
-      file_type = #{fileType,jdbcType=VARCHAR},
-      src_path = #{srcPath,jdbcType=VARCHAR},
-      file_name = #{fileName,jdbcType=VARCHAR},
-      local_path = #{localPath,jdbcType=VARCHAR},
-      status = #{status,jdbcType=VARCHAR},
-      complete = #{complete,jdbcType=VARCHAR},
-      actual_number = #{actualNumber,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        api_code = #{apiCode,jdbcType=VARCHAR},
+        file_type = #{fileType,jdbcType=VARCHAR},
+        src_path = #{srcPath,jdbcType=VARCHAR},
+        file_name = #{fileName,jdbcType=VARCHAR},
+        local_path = #{localPath,jdbcType=VARCHAR},
+        status = #{status,jdbcType=VARCHAR},
+        complete = #{complete,jdbcType=VARCHAR},
+        actual_number = #{actualNumber,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        error_actual_number = #{errorActualNumber,jdbcType=INTEGER},
+        push_number = #{pushNumber,jdbcType=INTEGER},
+        push_start_time = #{pushStartTime,jdbcType=TIMESTAMP},
+        push_end_time = #{pushEndTime,jdbcType=TIMESTAMP},
+        push_status = #{pushStatus,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
