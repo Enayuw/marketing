@@ -434,5 +434,11 @@ public class MarketingCommonConfig {
      * 通用文件入库
      */
     private Integer threadNumSftpToDbByCommon;
+
+
+    /**
+     * 拍拍贷老客推电销去重时间天数
+     */
+    private Integer ppdOldPhoneValidityDay;
 }
 
