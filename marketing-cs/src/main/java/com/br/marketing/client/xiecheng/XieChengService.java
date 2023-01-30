@@ -226,8 +226,8 @@ public class XieChengService {
             log.error("携程广告上报接口发送参数:XieChengSmsCollidingReq={} para={}", JSON.toJSONString(xieChengSmsCollidingReq),JSON.toJSONString(retMap));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
-//        String content = resMap.get("content");
-        String content = "{\"code\":702,\"msg\":\"测试效率\",\"data\":[{\"md5Code\":null,\"sha256Code\":\"760a06d2bc9b150d1d5b162e95bed32ed306cd1c2f7417c5e10397715ea165c1\",\"result\":false,\"orgChannel\":\"测试orgChannel\",\"mktLevel\":\"测试orgmktLevel\",\"info\":\"测试info\"}]}";
+        String content = resMap.get("content");
+//        String content = "{\"code\":702,\"msg\":\"测试效率\",\"data\":[{\"md5Code\":null,\"sha256Code\":\"760a06d2bc9b150d1d5b162e95bed32ed306cd1c2f7417c5e10397715ea165c1\",\"result\":false,\"orgChannel\":\"测试orgChannel\",\"mktLevel\":\"测试orgmktLevel\",\"info\":\"测试info\"}]}";
         JSONObject resultJson = JSONObject.parseObject(content);
         Integer code = resultJson.getInteger("code");
         if(code==0){
