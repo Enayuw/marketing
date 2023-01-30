@@ -27,7 +27,7 @@
             <trim prefix="info=case" suffix="end,">
                 <foreach collection="list" item="i" index="index">
                     <if test="i.info != null and i.info != ''">
-                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{localId} then #{i.info}
+                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} then #{i.info}
                     </if>
                 </foreach>
             </trim>
