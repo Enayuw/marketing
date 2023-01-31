@@ -13,12 +13,15 @@ import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.TransferSyncReportMapper;
 import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.service.TransferSyncReportService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.MarketingSyncReportNumVO;
 import com.br.marketing.vo.TransferSyncReportNumVO;
 import com.br.marketing.vo.TransferSyncReportVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -49,6 +52,9 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
     @Resource
     private VariableDicMapper variableDicMapper;
 
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
     @Override
     public void reportProcess(Set<String> dateStrSet, int shardingTotalCount, List<Integer> shardingItems) {
         long l = System.currentTimeMillis();
@@ -60,10 +66,15 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
         Map<String, Set<String>> userTypeMapByApiCode = getUserTypeMapByApiCode("");
         String other = "";
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
+        List<String> smyApiCodes = (marketingCommonConfig.getSaMoYeTransferFileApiCodes() == null
+                || marketingCommonConfig.getSaMoYeTransferFileApiCodes().size() <= 0)
+                ? Arrays.asList("3710013")
+                : marketingCommonConfig.getSaMoYeTransferFileApiCodes();
         for (String dateStr : dateStrSet) {
             for (MarketingCustomer customer : customers) {
                 String apiCode = customer.getApiCode();
                 String tCid = Optional.ofNullable(customer.getCid()).orElse(other).replace("-", other);
+                boolean smy = smyApiCodes.contains(customer);
                 // 获取场景
                 Set<String> userTypeSet = userTypeMapByApiCode.getOrDefault(apiCode, Collections.emptySet());
                 for (String userType : userTypeSet) {
@@ -72,22 +83,14 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                             .plusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                     List<String> requestDateList = new ArrayList<>();
                     try {
-                        requestDateList = transferSyncReportMapper.requestDatetiflash_(tCid, apiCode, startDate, endDate, userType);
-                    }catch (Exception ex){
-                        log.warn("查询转化表的上传时间错误 apiCode：{},错误：{}",apiCode,ex.getMessage());
+                        requestDateList = smy ? Arrays.asList(startDate) : transferSyncReportMapper.requestDatetiflash_(tCid, apiCode, startDate, endDate, userType);
+                    } catch (Exception ex) {
+                        continue;
                     }
                     for (String requestDate : requestDateList) {
-                        threadPool.submit(()->{
-                            TransferSyncReport report;
-                            try {
-                                report = transferSyncReportMapper.dateTimeMinMaxCounttiflash_(tCid, apiCode, requestDate, userType);
-                            } catch (Exception e) {
-                                try {
-                                    report = transferSyncReportMapper.dateTimeMinMaxCountSMYtiflash_(apiCode, requestDate, userType);
-                                } catch (Exception ignored) {
-                                    return;
-                                }
-                            }
+                        threadPool.submit(() -> {
+                            TransferSyncReport report = smy ? transferSyncReportMapper.dateTimeMinMaxCountSMYtiflash_(apiCode, requestDate, userType)
+                                    : transferSyncReportMapper.dateTimeMinMaxCounttiflash_(tCid, apiCode, requestDate, userType);
                             try {
                                 Date appletBeginTime = report.getAppletBeginTime();
                                 Date appletEndTime = report.getAppletEndTime();
@@ -134,6 +137,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                             }
                         });
                     }
+
                 }
             }
         }
@@ -148,7 +152,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
 
             }
         }
-        log.warn("转化记录-同步记录操作执行完成，耗时{}s", (System.currentTimeMillis() - l)/1000);
+        log.warn("转化记录-同步记录操作执行完成，耗时{}s", (System.currentTimeMillis() - l) / 1000);
     }
 
     /**
