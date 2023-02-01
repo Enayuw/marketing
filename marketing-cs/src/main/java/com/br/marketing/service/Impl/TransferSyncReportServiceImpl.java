@@ -74,7 +74,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
             for (MarketingCustomer customer : customers) {
                 String apiCode = customer.getApiCode();
                 String tCid = Optional.ofNullable(customer.getCid()).orElse(other).replace("-", other);
-                boolean smy = smyApiCodes.contains(customer);
+                boolean smy = smyApiCodes.contains(apiCode);
                 // 获取场景
                 Set<String> userTypeSet = userTypeMapByApiCode.getOrDefault(apiCode, Collections.emptySet());
                 for (String userType : userTypeSet) {
