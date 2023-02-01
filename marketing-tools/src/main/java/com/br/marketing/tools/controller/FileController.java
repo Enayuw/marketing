@@ -1,9 +1,11 @@
 package com.br.marketing.tools.controller;
 
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.utils.BrExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.*;
@@ -118,6 +120,94 @@ public class FileController {
             }
         }
         log.warn("合并文件结束--耗时：{}", System.currentTimeMillis() - l);
+        return "123";
+    }
+
+
+    @GetMapping("/cellDecByFile")
+    public String cellDecByFile(@RequestParam(value = "path") String path){
+        long l = System.currentTimeMillis();
+        FileReader read = null;
+        BufferedReader br = null;
+        File file1 = new File(path);
+        File[] files = file1.listFiles();
+        for (File file : files) {
+            ExecutorService mergeExecutor = BrExecutors.getThreadPool(100, 100);
+            String[] fileSplit = file.getPath().split("\\.");
+            String wFilePath = fileSplit[0] + "action." + fileSplit[1];
+            File wFile = new File(wFilePath);
+            try {
+                BufferedWriter writer = new BufferedWriter(
+                        new OutputStreamWriter(
+                                new FileOutputStream(wFile), StandardCharsets.UTF_8));
+                int rownum = 1;
+                read = new FileReader(file.getPath());
+                br = new BufferedReader(read);
+                String row;
+                while ((row = br.readLine()) != null) {
+                    String content = row;
+                    Integer threaNum = rownum;
+                    mergeExecutor.submit(()->{
+                        try {
+                            if(new Integer(1).equals(threaNum)){
+                                writer.append(content);
+                            }else{
+                                String[] split = content.split(",");
+                                StringBuilder sb = new StringBuilder();
+                                sb.append(split[0]);
+                                sb.append(",");
+                                sb.append(BrCipherMaker.getInstance().decode(split[1]));
+                                writer.append(sb.toString());
+                            }
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                    rownum++;
+                }
+                br.close();
+                read.close();
+                /**
+                 * 等待所有任务都执行完成
+                 **/
+                mergeExecutor.shutdown();
+                while (true) {
+                    if (mergeExecutor.isTerminated()) {
+                        log.warn("所有合并线程都执行结束");
+                        break;
+                    }
+                    try {
+                        Thread.sleep(3000);
+                    } catch (Exception e) {
+                        log.error("sleep ", e);
+                    }
+                }
+                writer.close();
+                log.warn("rownum=" + rownum);
+            } catch (FileNotFoundException e) {
+                log.error("FileNotFoundException ", e);
+            } catch (Exception e) {
+                log.error("合并文件出错", e);
+            } finally {
+                if (br != null) {
+                    try {
+                        br.close();
+                    } catch (IOException e) {
+                        log.error("IOException ", e);
+                    }
+                }
+                if (read != null) {
+                    try {
+                        read.close();
+                    } catch (IOException e) {
+                        log.error("IOException ", e);
+                    }
+                }
+            }
+            log.warn("合并文件结束--耗时：{}", System.currentTimeMillis() - l);
+        }
+
         return "123";
     }
 }
