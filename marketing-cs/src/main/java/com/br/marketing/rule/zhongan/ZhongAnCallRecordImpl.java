@@ -51,7 +51,7 @@ public class ZhongAnCallRecordImpl implements AssembleData<ZaRosterLockingDataDT
     @Override
     public ZaRosterLockingDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         CallRecordBO bo = (CallRecordBO) transmitFact;
-        log.warn("众安拨打明细符合落库规则，id={}", bo.getId());
+//        log.warn("众安拨打明细符合落库规则，id={}", bo.getId());
         //上传表获取手机号，转为md5加密
         String cell = "";
         MarketingSyncUser syncUser = marketingSyncInfoMapper.getNewestByCusnumAndStatus(bo.getApiCode(), bo.getCaseNum());

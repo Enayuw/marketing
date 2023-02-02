@@ -52,7 +52,7 @@ public class MarketingCustomerCallRecordDataImpl implements OriginDataService {
         }else {
             bo.setDataSource(0);
         }
-        log.warn("collect()拨打记录数据，id={}",mqFact.getSourceId());
+//        log.warn("collect()拨打记录数据，id={}",mqFact.getSourceId());
         list.add(bo);
         /**
          * 将查询信息放入全局上下文中
