@@ -71,7 +71,6 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
         String endDay = LocalDate.now().plusDays(1L).format(yyyyMMddDF);
         String endDay_ = LocalDate.now().format(yyyy_MM_ddDF);
         String StartDay = LocalDate.parse(endDay, yyyyMMddDF).minusDays(30L).format(yyyyMMddDF);
-        List<ShuheBlackPhoneTransferDataDTO> shuheBlackPhoneTransferDataDTOList = new ArrayList<>();
         List<CaseShuheUser> blackPhoneDataList = new ArrayList<>();
         //is_black为Y
         //获取时间范围 大于等于29天前 小于明天
@@ -81,38 +80,35 @@ public class ShuHeTransferServiceImpl implements ShuHeTransferService {
         Set<String> rrtEndMap = new HashSet<>();
         //clc_usr_max_dx_rrt_end>当前日期
         Boolean mark = Boolean.TRUE;
-        Integer page = 0;
+        Long minId = null;
+        Integer pushNum = 0;
         while (mark) {
-            List<CaseShuheUser> rrtOrderCaseUserList = caseShuheUserMapper.selectOrderRrtEndData(page * 2000,endDay_);
+            List<CaseShuheUser> rrtOrderCaseUserList = caseShuheUserMapper.selectOrderRrtEndData(minId, endDay_);
             if (CollectionUtils.isEmpty(rrtOrderCaseUserList)) {
                 mark = Boolean.FALSE;
                 continue;
             }
-            page++;
-            rrtOrderCaseUserList.forEach(t->{
+            minId = rrtOrderCaseUserList.get(rrtOrderCaseUserList.size() - 1).getId() + 1;
+            List<ShuheBlackPhoneTransferDataDTO> shuheBlackPhoneTransferDataDTOList = new ArrayList<>();
+            rrtOrderCaseUserList.forEach(t -> {
                 if (rrtEndMap.add(t.getMobile()) && blackMap.add(t.getMobile())) {
-                    blackPhoneDataList.add(t);
+                    //根据数禾黑名单推电销记录表去重
+                    if (!iShuheBlackPhoneRecordService.isRepeatPhone(t.getCell(), endDay_)) {
+                        //封装调用Daas接口参数
+                        ShuheBlackPhoneTransferDataDTO shuheBlackPhoneTransferDataDTO = new ShuheBlackPhoneTransferDataDTO();
+                        shuheBlackPhoneTransferDataDTO.setPhone(t.getMobile());
+                        shuheBlackPhoneTransferDataDTO.setApiCode(t.getApiCode());
+                        shuheBlackPhoneTransferDataDTO.setPushDate(endDay_);
+                        shuheBlackPhoneTransferDataDTO.setCustNum(t.getCustNum());
+                        shuheBlackPhoneTransferDataDTOList.add(shuheBlackPhoneTransferDataDTO);
+                    }
                 }
             });
+            pushNum += shuheBlackPhoneTransferDataDTOList.size();
+            //调用电销接口
+            artificialShuHeBlackPushTransferHandler.call(shuheBlackPhoneTransferDataDTOList, null);
         }
-        LocalDate todayDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toLocalDate();
-        //根据数禾黑名单推电销记录表去重
-        //封装调用Daas接口参数
-        blackPhoneDataList.forEach(blackCaseUser -> {
-            ShuheBlackPhoneTransferDataDTO shuheBlackPhoneTransferDataDTO = new ShuheBlackPhoneTransferDataDTO();
-            if (!iShuheBlackPhoneRecordService.isRepeatPhone(blackCaseUser.getCell(), todayDate.toString())) {
-                shuheBlackPhoneTransferDataDTO.setPhone(blackCaseUser.getMobile());
-                shuheBlackPhoneTransferDataDTO.setApiCode(blackCaseUser.getApiCode());
-                shuheBlackPhoneTransferDataDTO.setPushDate(todayDate.toString());
-                shuheBlackPhoneTransferDataDTO.setCustNum(blackCaseUser.getCustNum());
-                shuheBlackPhoneTransferDataDTOList.add(shuheBlackPhoneTransferDataDTO);
-            }
-            ;
-        });
-        log.warn("数禾黑名单数据推电销转化接口,pushNum ={}", shuheBlackPhoneTransferDataDTOList.size());
-        //调用电销接口
-        artificialShuHeBlackPushTransferHandler.call(shuheBlackPhoneTransferDataDTOList, null);
-
+        log.warn("数禾黑名单数据推电销转化接口,pushNum ={}", pushNum);
     }
 
     @Override
