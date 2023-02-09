@@ -134,7 +134,7 @@ public class FileController {
         for (File file : files) {
             ExecutorService mergeExecutor = BrExecutors.getThreadPool(100, 100);
             String[] fileSplit = file.getPath().split("\\.");
-            String wFilePath = fileSplit[0] + "action." + fileSplit[1];
+            String wFilePath = fileSplit[0] + "_phoneAction." + fileSplit[1];
             File wFile = new File(wFilePath);
             try {
                 BufferedWriter writer = new BufferedWriter(
@@ -150,13 +150,16 @@ public class FileController {
                     mergeExecutor.submit(()->{
                         try {
                             if(new Integer(1).equals(threaNum)){
-                                writer.append(content);
+                                writer.append(content).append("\r\n");
                             }else{
                                 String[] split = content.split(",");
                                 StringBuilder sb = new StringBuilder();
                                 sb.append(split[0]);
                                 sb.append(",");
                                 sb.append(BrCipherMaker.getInstance().decode(split[1]));
+                                sb.append(",");
+                                sb.append(split[2]);
+                                sb.append("\r\n");
                                 writer.append(sb.toString());
                             }
 

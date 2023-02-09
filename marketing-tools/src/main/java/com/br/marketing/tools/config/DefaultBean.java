@@ -23,6 +23,7 @@ public class DefaultBean {
         httpRequestFactory.setConnectTimeout(1000);
         httpRequestFactory.setReadTimeout(10000);
         RestTemplate restTemplate = new RestTemplate(httpRequestFactory);
+//        RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters()
                 .set(1, new StringHttpMessageConverter());
         return restTemplate;
