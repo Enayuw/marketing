@@ -1,0 +1,169 @@
+package com.br.marketing.service.Impl;
+
+import com.br.marketing.bo.PeriodOfValidityBO;
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.mapper.MarketingSyncUserMapper;
+import com.br.marketing.service.IPeriodOfValidityService;
+import com.br.marketing.util.PeriodOfValidityHelper;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+
+import javax.annotation.Resource;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.TemporalAdjusters;
+import java.util.Date;
+
+/**
+ * 实现具体有效期的计算
+ *
+ * @author Guo Zeqiang
+ * @dateTime 2023-02-09 9:30
+ */
+@Service
+@Slf4j
+public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
+
+    @Resource
+    private MarketingSyncUserMapper marketingSyncUserMapper;
+
+
+    @Override
+    public boolean isExpire(Date date, String validityDayStr, Date validityDate) throws IllegalAccessException {
+        return !isNotExpire(date, validityDayStr, validityDate);
+    }
+
+    @Override
+    public boolean isNotExpire(Date date, String validityDayStr, Date validityDate) throws IllegalAccessException {
+        Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr);
+        return isNotExpire(date, day, validityDate);
+    }
+
+    @Override
+    public boolean isExpire(Date date, Integer day, Date validityDate) {
+        return !isNotExpire(date, day, validityDate);
+    }
+
+    @Override
+    public boolean isNotExpire(Date date, Integer day, Date validityDate) {
+        if (ObjectUtils.isEmpty(validityDate)) {
+            return false;
+        }
+        final LocalDate localDate = (date == null
+                ? LocalDate.now() : date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+        final LocalDate localValidityDate = validityDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        final LocalDate firstDate;
+        final LocalDate lastDate;
+        if (day == null) {
+            firstDate = localValidityDate;
+            lastDate = localValidityDate.with(TemporalAdjusters.lastDayOfMonth());
+        } else if (day > 0) {
+            firstDate = localValidityDate;
+            lastDate = localValidityDate.plusDays(day);
+        } else if (day == 0) {
+            firstDate = localValidityDate;
+            lastDate = localValidityDate;
+        } else {
+            firstDate = localValidityDate.plusDays(day);
+            lastDate = localValidityDate;
+        }
+        return (localDate.isAfter(firstDate) || localDate.isEqual(firstDate))
+                && (localDate.isBefore(lastDate) || localDate.isEqual(lastDate));
+    }
+
+
+    @Override
+    public boolean isExpire(String apiCode, String custNum, Date date, String validityDayStr)
+            throws IllegalAccessException {
+        return !isNotExpire(apiCode, custNum, date, validityDayStr);
+    }
+
+    @Override
+    public boolean isNotExpire(String apiCode, String custNum, Date date, String validityDayStr)
+            throws IllegalAccessException {
+        MarketingSyncUser syncUser = new MarketingSyncUser();
+        syncUser.setApiCode(apiCode);
+        syncUser.setCustNum(custNum);
+        Date validityDate = getAppletTimeBySyncUser(syncUser);
+        Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr);
+        return isNotExpire(date, day, validityDate);
+    }
+
+    @Override
+    public boolean isExpire(String apiCode, String custNum, Date date, Integer day) throws IllegalAccessException {
+        return !isNotExpire(apiCode, custNum, date, day);
+    }
+
+    @Override
+    public boolean isNotExpire(String apiCode, String custNum, Date date, Integer day) throws IllegalAccessException {
+        MarketingSyncUser syncUser = new MarketingSyncUser();
+        syncUser.setApiCode(apiCode);
+        syncUser.setCustNum(custNum);
+        return isNotExpire(syncUser, date, day);
+    }
+
+    @Override
+    public boolean isExpire(MarketingSyncUser syncUser, Date date, String validityDayStr)
+            throws IllegalAccessException {
+        return !isNotExpire(syncUser, date, validityDayStr);
+    }
+
+    @Override
+    public boolean isNotExpire(MarketingSyncUser syncUser, Date date, String validityDayStr)
+            throws IllegalAccessException {
+        Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr);
+        return isNotExpire(syncUser, date, day);
+    }
+
+    @Override
+    public boolean isExpire(MarketingSyncUser syncUser, Date date, Integer day) {
+        return !isNotExpire(syncUser, date, day);
+    }
+
+    @Override
+    public boolean isNotExpire(MarketingSyncUser syncUser, Date date, Integer day) {
+        Date validityDate = getAppletTimeBySyncUser(syncUser);
+        return isNotExpire(date, day, validityDate);
+    }
+
+    @Override
+    public PeriodOfValidityBO.Builder getPeriodOfValidityRange(String validityDayStr, Date validityDate)
+            throws IllegalAccessException {
+        Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr);
+        return getPeriodOfValidityRange(day, validityDate);
+    }
+
+    @Override
+    public PeriodOfValidityBO.Builder getPeriodOfValidityRange(Integer day, Date validityDate) {
+        if (ObjectUtils.isEmpty(validityDate)) {
+            return null;
+        }
+        final ZonedDateTime creatDate = validityDate.toInstant().atZone(ZoneId.systemDefault());
+        final Instant firstInstant;
+        final Instant lastInstant;
+        if (day == null) {
+            firstInstant = creatDate.toInstant();
+            lastInstant = creatDate.with(TemporalAdjusters.lastDayOfMonth()).toInstant();
+        } else if (day > 0) {
+            firstInstant = creatDate.toInstant();
+            lastInstant = creatDate.plusDays(day).toInstant();
+        } else if (day == 0) {
+            firstInstant = creatDate.toInstant();
+            lastInstant = firstInstant;
+        } else {
+            firstInstant = creatDate.plusDays(day).toInstant();
+            lastInstant = creatDate.toInstant();
+        }
+        return new PeriodOfValidityBO.Builder(Date.from(firstInstant), Date.from(lastInstant));
+    }
+
+    private Date getAppletTimeBySyncUser(MarketingSyncUser syncUser) {
+        MarketingSyncUser user = marketingSyncUserMapper.getAppletTimeBySyncUser(syncUser);
+        return ObjectUtils.isEmpty(user) ? null : (user.getAppletTime() == null
+                ? (user.getCreateTime() == null
+                ? null : user.getCreateTime()) : user.getAppletTime());
+    }
+}
