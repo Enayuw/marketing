@@ -15,6 +15,9 @@ public interface IPeriodOfValidityService {
 
     /**
      * 已过期，有效期计算依据参数中{@code validityDate}的值
+     * <p>
+     * 批量数据判断有效期时建议使用该方法，因为提前计算出{@code day}可提升效率，避免重复计算{@code day}的值；
+     * 计算{@code day}的工具{@link com.br.marketing.util.PeriodOfValidityHelper}
      *
      * @param date         查是否在有效期内的日期,为null时默认为当前日期
      * @param day          天的范围，也就是有效期表达式中[T+N]中的N
@@ -27,6 +30,9 @@ public interface IPeriodOfValidityService {
 
     /**
      * 未过期，有效期计算依据参数中{@code validityDate}的值
+     * <p>
+     * 批量数据判断有效期时建议使用该方法，因为提前计算出{@code day}可提升效率，避免重复计算{@code day}的值
+     * 计算{@code day}的工具{@link com.br.marketing.util.PeriodOfValidityHelper}
      *
      * @param date         查是否在有效期内的日期,为null时默认为当前日期
      * @param day          天的范围，也就是有效期表达式中[T+N]中的N
@@ -42,9 +48,10 @@ public interface IPeriodOfValidityService {
      * 已过期，有效期计算依据参数中{@code validityDate}的值
      *
      * @param date           查是否在有效期内的日期,为null时默认为当前日期
-     * @param validityDayStr 格式 [T+N]、[T+0]、 [M]
+     * @param validityDayStr 格式 [T+N]、[T+0]、[M]
      * @param validityDate   计算有效期范围的日期，也就是有效期表达式中[T+N]中的T
      * @return 如果是{@code true}表示{@code date}超过效期范围
+     * @throws IllegalAccessException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2022/2/14 9:58
      */
@@ -54,9 +61,10 @@ public interface IPeriodOfValidityService {
      * 未过期，有效期计算依据参数中{@code validityDate}的值
      *
      * @param date           查是否在有效期内的日期,为null时默认为当前日期
-     * @param validityDayStr 格式 [T+N]、[T+0]、 [M]
+     * @param validityDayStr 格式 [T+N]、[T+0]、[M]
      * @param validityDate   计算有效期范围的日期，也就是有效期表达式中[T+N]中的T
      * @return 如果是{@code true}表示{@code date}未超过效期范围
+     * @throws IllegalAccessException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2022/2/14 9:58
      */
@@ -69,8 +77,9 @@ public interface IPeriodOfValidityService {
      * @param apiCode        apiCode
      * @param custNum        案件编号
      * @param date           查是否在有效期内的日期
-     * @param validityDayStr 格式 [T+N]、[T+0]、 [M]
+     * @param validityDayStr 格式 [T+N]、[T+0]、[M]
      * @return 如果是{@code true}表示{@code date}未超过有效期范围
+     * @throws IllegalAccessException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:08
      */
@@ -82,8 +91,9 @@ public interface IPeriodOfValidityService {
      * @param apiCode        apiCode
      * @param custNum        案件编号
      * @param date           查是否在有效期内的日期
-     * @param validityDayStr 格式 [T+N]、[T+0]、 [M]
+     * @param validityDayStr 格式 [T+N]、[T+0]、[M]
      * @return 如果是{@code true}表示{@code date}未超过有效期范围
+     * @throws IllegalAccessException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:08
      */
@@ -92,12 +102,16 @@ public interface IPeriodOfValidityService {
 
     /**
      * 已过期,有效期计算依据为上传表中AppletTime或CreateTime，优先使用AppletTime，都为null时默认为当前日期
+     * <p>
+     * 批量数据判断有效期时建议使用该方法，因为提前计算出{@code day}可提升效率，避免重复计算{@code day}的值
+     * 计算{@code day}的工具{@link com.br.marketing.util.PeriodOfValidityHelper}
      *
      * @param apiCode apiCode
      * @param custNum 案件编号
      * @param date    查是否在有效期内的日期
      * @param day     天的范围，也就是有效期表达式中[T+N]中的N
      * @return 如果是{@code true}表示{@code date}未超过有效期范围
+     * @throws IllegalAccessException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:08
      */
@@ -105,12 +119,16 @@ public interface IPeriodOfValidityService {
 
     /**
      * 未过期,有效期计算依据为上传表中AppletTime或CreateTime，优先使用AppletTime，都为null时默认为当前日期
+     * <p>
+     * 批量数据判断有效期时建议使用该方法，因为提前计算出{@code day}可提升效率，避免重复计算{@code day}的值
+     * 计算{@code day}的工具{@link com.br.marketing.util.PeriodOfValidityHelper}
      *
      * @param apiCode apiCode
      * @param custNum 案件编号
      * @param date    查是否在有效期内的日期
      * @param day     天的范围，也就是有效期表达式中[T+N]中的N
      * @return 如果是{@code true}表示{@code date}未超过有效期范围
+     * @throws IllegalAccessException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:08
      */
@@ -122,8 +140,9 @@ public interface IPeriodOfValidityService {
      *
      * @param syncUser       上传表过滤条件，支持 apiCode、custNum、userType
      * @param date           查是否在有效期内的日期
-     * @param validityDayStr 格式 [T+N]、[T+0]、 [M]
+     * @param validityDayStr 格式 [T+N]、[T+0]、[M]
      * @return 如果是{@code true}表示{@code date}未超过有效期范围
+     * @throws IllegalAccessException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:08
      */
@@ -134,8 +153,9 @@ public interface IPeriodOfValidityService {
      *
      * @param syncUser       上传表过滤条件，支持 apiCode、custNum、userType
      * @param date           查是否在有效期内的日期
-     * @param validityDayStr 格式 [T+N]、[T+0]、 [M]
+     * @param validityDayStr 格式 [T+N]、[T+0]、[M]
      * @return 如果是{@code true}表示{@code date}未超过有效期范围
+     * @throws IllegalAccessException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:08
      */
@@ -143,6 +163,9 @@ public interface IPeriodOfValidityService {
 
     /**
      * 已过期,有效期计算依据为上传表中AppletTime或CreateTime，优先使用AppletTime，都为null时默认为当前日期
+     * <p>
+     * 批量数据判断有效期时建议使用该方法，因为提前计算出{@code day}可提升效率，避免重复计算{@code day}的值
+     * 计算{@code day}的工具{@link com.br.marketing.util.PeriodOfValidityHelper}
      *
      * @param syncUser 上传表过滤条件，支持 apiCode、custNum、userType
      * @param date     判断是否在有效期内的日期
@@ -155,6 +178,9 @@ public interface IPeriodOfValidityService {
 
     /**
      * 未过期,有效期计算依据为上传表中AppletTime或CreateTime，优先使用AppletTime，都为null时默认为当前日期
+     * <p>
+     * 批量数据判断有效期时建议使用该方法，因为提前计算出{@code day}可提升效率，避免重复计算{@code day}的值
+     * 计算{@code day}的工具{@link com.br.marketing.util.PeriodOfValidityHelper}
      *
      * @param syncUser 上传表过滤条件，支持 apiCode、custNum、userType
      * @param date     判断是否在有效期内的日期
@@ -169,9 +195,10 @@ public interface IPeriodOfValidityService {
     /**
      * 获取有效期构造器
      *
-     * @param validityDayStr 格式 [T+N]、[T+0]、 [M]
+     * @param validityDayStr 格式 [T+N]、[T+0]、[M]
      * @param validityDate   计算有效期范围的日期，也就是有效期表达式中[T+N]中的T
      * @return 有效期范围
+     * @throws IllegalAccessException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:18
      */
