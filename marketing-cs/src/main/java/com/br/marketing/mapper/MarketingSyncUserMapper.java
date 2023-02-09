@@ -109,10 +109,21 @@ public interface MarketingSyncUserMapper {
 
     /**
      * 获取appletDate日期集合
+     *
      * @param apiCode
      * @param startDate
      * @param endDate
      * @return
      */
     List<String> getAppletDate(@Param("apiCode") String apiCode, @Param("startDate") String startDate, @Param("endDate") String endDate);
+
+    /**
+     * 获取案件的上传时间
+     *
+     * @param syncUser 上传信息
+     * @return AppletTime 、createTime
+     * @author Guo Zeqiang
+     * @dateTime 2023/2/09 10:52
+     */
+    MarketingSyncUser getAppletTimeBySyncUser(@Param("syncUser") MarketingSyncUser syncUser);
 }

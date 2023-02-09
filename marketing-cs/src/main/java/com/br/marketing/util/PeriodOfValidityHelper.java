@@ -33,10 +33,10 @@ public class PeriodOfValidityHelper {
      * @param key                    配置有效期key eg:test
      * @return null时为当前月底
      */
-    public Integer getPeriodOfValidityDay(Map<Object, String> periodOfValidityDayMap, Object key)
+    public static Integer getPeriodOfValidityDay(Map<Object, String> periodOfValidityDayMap, Object key)
             throws IllegalAccessException {
         if (periodOfValidityDayMap.containsKey(key)) {
-            return periodOfValidityDay(periodOfValidityDayMap.get(key));
+            return getPeriodOfValidityDay(periodOfValidityDayMap.get(key));
         }
         throw new IllegalAccessException("未知的配置有效期key:" + key);
     }
@@ -54,7 +54,7 @@ public class PeriodOfValidityHelper {
      * @param periodOfValidityStr 有效期配置,T+N代表当天+N天，共1+N天；T+0 代表当天；M代表到自然月月底
      * @return 返回null时为自然月末日期
      */
-    public Integer periodOfValidityDay(String periodOfValidityStr) throws IllegalAccessException {
+    public static Integer getPeriodOfValidityDay(String periodOfValidityStr) throws IllegalAccessException {
         Matcher matcher = PATTERN_DAY.matcher(periodOfValidityStr);
         if (matcher.find()) {
             String dayStr = matcher.group();
