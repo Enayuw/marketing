@@ -93,12 +93,12 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
     }
 
     @Override
-    public boolean isExpire(String apiCode, String custNum, Date date, Integer day) throws IllegalAccessException {
+    public boolean isExpire(String apiCode, String custNum, Date date, Integer day) {
         return !isNotExpire(apiCode, custNum, date, day);
     }
 
     @Override
-    public boolean isNotExpire(String apiCode, String custNum, Date date, Integer day) throws IllegalAccessException {
+    public boolean isNotExpire(String apiCode, String custNum, Date date, Integer day) {
         MarketingSyncUser syncUser = new MarketingSyncUser();
         syncUser.setApiCode(apiCode);
         syncUser.setCustNum(custNum);
