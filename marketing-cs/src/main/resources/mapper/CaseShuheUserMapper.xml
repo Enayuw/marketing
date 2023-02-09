@@ -14,8 +14,15 @@
     <select id="selectOrderRrtEndData" resultType="com.br.marketing.entity.CaseShuheUser">
         select *
         from b_case_shuhe_user
-        where clc_usr_max_dx_rrt_end <![CDATA[ >= ]]> #{nowDay} or usr_forbid_call_end_tim <![CDATA[ >= ]]> #{nowDay}
-        order by id desc limit #{limitStart}, 2000;
+        <where>
+            <if test="minId != null and minId >0">
+                AND id >=#{minId}
+            </if>
+            <if test="nowDay != null">
+                AND  (clc_usr_max_dx_rrt_end <![CDATA[ >= ]]> #{nowDay} or usr_forbid_call_end_tim <![CDATA[ >= ]]> #{nowDay})
+            </if>
+            order by id asc limit 2000;
+        </where>
     </select>
 
     <select id="getByCellOrClcUsrMaxDxRrtEndOrUsrForbidCallEndTim" resultType="java.lang.Long">
