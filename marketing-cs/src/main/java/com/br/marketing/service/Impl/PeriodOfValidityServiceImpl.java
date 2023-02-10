@@ -6,6 +6,7 @@ import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.util.PeriodOfValidityHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -72,6 +73,9 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
 
     @Override
     public boolean isNotExpire(Date date, String validityDayStr, Date validityDate) throws IllegalAccessException {
+        if (StringUtils.isBlank(validityDayStr)) {
+            return false;
+        }
         Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr);
         return isNotExpire(date, day, validityDate);
     }
@@ -104,6 +108,9 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
     @Override
     public boolean isNotExpire(String apiCode, String custNum, Date date, String validityDayStr)
             throws IllegalAccessException {
+        if (StringUtils.isBlank(validityDayStr)) {
+            return false;
+        }
         MarketingSyncUser syncUser = new MarketingSyncUser();
         syncUser.setApiCode(apiCode);
         syncUser.setCustNum(custNum);
@@ -134,6 +141,9 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
     @Override
     public boolean isNotExpire(MarketingSyncUser syncUser, Date date, String validityDayStr)
             throws IllegalAccessException {
+        if (StringUtils.isBlank(validityDayStr)) {
+            return false;
+        }
         Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr);
         return isNotExpire(syncUser, date, day);
     }
@@ -152,6 +162,9 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
     @Override
     public PeriodOfValidityBO.Builder getPeriodOfValidityRange(String validityDayStr, Date validityDate)
             throws IllegalAccessException {
+        if (StringUtils.isBlank(validityDayStr)) {
+            return null;
+        }
         Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr);
         return getPeriodOfValidityRange(day, validityDate);
     }
