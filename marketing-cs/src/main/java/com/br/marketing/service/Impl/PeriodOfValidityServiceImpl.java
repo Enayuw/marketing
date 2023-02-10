@@ -16,6 +16,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
+import java.util.function.Supplier;
 
 /**
  * 实现具体有效期的计算
@@ -30,17 +31,6 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
 
-
-    @Override
-    public boolean isExpire(Date date, String validityDayStr, Date validityDate) throws IllegalAccessException {
-        return !isNotExpire(date, validityDayStr, validityDate);
-    }
-
-    @Override
-    public boolean isNotExpire(Date date, String validityDayStr, Date validityDate) throws IllegalAccessException {
-        Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr);
-        return isNotExpire(date, day, validityDate);
-    }
 
     @Override
     public boolean isExpire(Date date, Integer day, Date validityDate) {
@@ -74,6 +64,36 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
                 && (localDate.isBefore(lastDate) || localDate.isEqual(lastDate));
     }
 
+
+    @Override
+    public boolean isExpire(Date date, String validityDayStr, Date validityDate) throws IllegalAccessException {
+        return !isNotExpire(date, validityDayStr, validityDate);
+    }
+
+    @Override
+    public boolean isNotExpire(Date date, String validityDayStr, Date validityDate) throws IllegalAccessException {
+        Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr);
+        return isNotExpire(date, day, validityDate);
+    }
+
+    @Override
+    public boolean isExpire(Date date, Supplier<Object> validityDayStrSupplier, Supplier<Date> validityDateSupplier)
+            throws IllegalAccessException {
+        return !isNotExpire(date, validityDayStrSupplier, validityDateSupplier);
+    }
+
+    @Override
+    public boolean isNotExpire(Date date, Supplier<Object> validityDayStrSupplier, Supplier<Date> validityDateSupplier)
+            throws IllegalAccessException {
+        final Object o = validityDayStrSupplier.get();
+        if (o instanceof String) {
+            return isNotExpire(date, (String) o, validityDateSupplier.get());
+        } else if (o instanceof Integer) {
+            return isNotExpire(date, (Integer) o, validityDateSupplier.get());
+        } else {
+            throw new IllegalAccessException("暂时只接受“String”或“Integer”数据类型的结果");
+        }
+    }
 
     @Override
     public boolean isExpire(String apiCode, String custNum, Date date, String validityDayStr)
@@ -186,6 +206,19 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
     public PeriodOfValidityBO.Builder getPeriodOfValidityRange(MarketingSyncUser syncUser, Integer day) {
         Date validityDate = getAppletTimeBySyncUser(syncUser);
         return getPeriodOfValidityRange(day, validityDate);
+    }
+
+    @Override
+    public PeriodOfValidityBO.Builder getPeriodOfValidityRange(Supplier<Object> validityDayStrSupplier
+            , Supplier<Date> validityDateSupplier) throws IllegalAccessException {
+        final Object o = validityDayStrSupplier.get();
+        if (o instanceof String) {
+            return getPeriodOfValidityRange((String) o, validityDateSupplier.get());
+        } else if (o instanceof Integer) {
+            return getPeriodOfValidityRange((Integer) o, validityDateSupplier.get());
+        } else {
+            throw new IllegalAccessException("暂时只接受“String”或“Integer”数据类型的结果");
+        }
     }
 
     private Date getAppletTimeBySyncUser(MarketingSyncUser syncUser) {

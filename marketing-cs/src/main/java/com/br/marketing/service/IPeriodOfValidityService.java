@@ -4,6 +4,7 @@ import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.entity.MarketingSyncUser;
 
 import java.util.Date;
+import java.util.function.Supplier;
 
 /**
  * 有效期计算
@@ -69,6 +70,34 @@ public interface IPeriodOfValidityService {
      * @dateTime 2022/2/14 9:58
      */
     boolean isNotExpire(Date date, String validityDayStr, Date validityDate) throws IllegalAccessException;
+
+    /**
+     * 已过期，有效期计算依据参数中{@code validityDateSupplier}的值
+     *
+     * @param date                   查是否在有效期内的日期,为null时默认为当前日期
+     * @param validityDayStrSupplier 返回格式： [T+N]、[T+0]、[M]的字符串或整形数字，只接受“String”或“Integer”数据类型
+     * @param validityDateSupplier   返回计算有效期范围的日期，也就是有效期表达式中[T+N]中的T，通过自定义函数提供
+     * @return 如果是{@code true}表示{@code date}超过效期范围
+     * @throws IllegalAccessException 有效期格式无法解析
+     * @author Guo Zeqiang
+     * @dateTime 2022/2/14 9:58
+     */
+    boolean isExpire(Date date, Supplier<Object> validityDayStrSupplier
+            , Supplier<Date> validityDateSupplier) throws IllegalAccessException;
+
+    /**
+     * 未过期，有效期计算依据参数中{@code validityDateSupplier}的值
+     *
+     * @param date                   查是否在有效期内的日期,为null时默认为当前日期
+     * @param validityDayStrSupplier 返回格式： [T+N]、[T+0]、[M]的字符串或整形数字，只接受“String”或“Integer”数据类型
+     * @param validityDateSupplier   返回计算有效期范围的日期，也就是有效期表达式中[T+N]中的T，通过自定义函数提供
+     * @return 如果是{@code true}表示{@code date}未超过效期范围
+     * @throws IllegalAccessException 有效期格式无法解析
+     * @author Guo Zeqiang
+     * @dateTime 2022/2/14 9:58
+     */
+    boolean isNotExpire(Date date, Supplier<Object> validityDayStrSupplier
+            , Supplier<Date> validityDateSupplier) throws IllegalAccessException;
 
 
     /**
@@ -273,4 +302,19 @@ public interface IPeriodOfValidityService {
      * @dateTime 2023/2/9 9:18
      */
     PeriodOfValidityBO.Builder getPeriodOfValidityRange(MarketingSyncUser syncUser, Integer day);
+
+    /**
+     * 有效期构造器
+     * <p>
+     * 有效期计算通过自定义函数{@code validityDayStrSupplier}提供
+     *
+     * @param validityDayStrSupplier 返回格式： [T+N]、[T+0]、[M]的字符串或整形数字，只接受“String”或“Integer”数据类型
+     * @param validityDateSupplier   返回计算有效期范围的日期，也就是有效期表达式中[T+N]中的T，通过自定义函数提供
+     * @return 有效期范围
+     * @throws IllegalAccessException 非法参数
+     * @author Guo Zeqiang
+     * @dateTime 2023/2/9 9:18
+     */
+    PeriodOfValidityBO.Builder getPeriodOfValidityRange(Supplier<Object> validityDayStrSupplier
+            , Supplier<Date> validityDateSupplier) throws IllegalAccessException;
 }
