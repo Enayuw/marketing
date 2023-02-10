@@ -193,7 +193,7 @@ public interface IPeriodOfValidityService {
 
 
     /**
-     * 获取有效期构造器
+     * 有效期构造器
      *
      * @param validityDayStr 格式 [T+N]、[T+0]、[M]
      * @param validityDate   计算有效期范围的日期，也就是有效期表达式中[T+N]中的T
@@ -202,10 +202,11 @@ public interface IPeriodOfValidityService {
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:18
      */
-    PeriodOfValidityBO.Builder getPeriodOfValidityRange(String validityDayStr, Date validityDate) throws IllegalAccessException;
+    PeriodOfValidityBO.Builder getPeriodOfValidityRange(String validityDayStr, Date validityDate)
+            throws IllegalAccessException;
 
     /**
-     * 获取有效期构造器
+     * 有效期构造器
      *
      * @param day          天的范围，也就是有效期表达式中[T+N]中的N
      * @param validityDate 计算有效期范围的日期，也就是有效期表达式中[T+N]中的T
@@ -214,4 +215,62 @@ public interface IPeriodOfValidityService {
      * @dateTime 2023/2/9 9:18
      */
     PeriodOfValidityBO.Builder getPeriodOfValidityRange(Integer day, Date validityDate);
+
+    /**
+     * 有效期构造器
+     * <p>
+     * 有效期计算依据为上传表中AppletTime或CreateTime，优先使用AppletTime，都为null时默认为当前日期
+     *
+     * @param apiCode        apiCode
+     * @param custNum        案件编号
+     * @param validityDayStr 格式 [T+N]、[T+0]、[M]
+     * @return 有效期范围
+     * @throws IllegalAccessException 有效期格式无法解析
+     * @author Guo Zeqiang
+     * @dateTime 2023/2/9 9:18
+     */
+    PeriodOfValidityBO.Builder getPeriodOfValidityRange(String apiCode, String custNum, String validityDayStr)
+            throws IllegalAccessException;
+
+    /**
+     * 有效期构造器
+     * <p>
+     * 有效期计算依据为上传表中AppletTime或CreateTime，优先使用AppletTime，都为null时默认为当前日期
+     *
+     * @param apiCode apiCode
+     * @param custNum 案件编号
+     * @param day     天的范围，也就是有效期表达式中[T+N]中的N
+     * @return 有效期范围
+     * @author Guo Zeqiang
+     * @dateTime 2023/2/9 9:18
+     */
+    PeriodOfValidityBO.Builder getPeriodOfValidityRange(String apiCode, String custNum, Integer day);
+
+    /**
+     * 有效期构造器
+     * <p>
+     * 有效期计算依据为上传表中AppletTime或CreateTime，优先使用AppletTime，都为null时默认为当前日期
+     *
+     * @param syncUser       上传表过滤条件，支持 apiCode、custNum、userType
+     * @param validityDayStr 格式 [T+N]、[T+0]、[M]
+     * @return 有效期范围
+     * @throws IllegalAccessException 有效期格式无法解析
+     * @author Guo Zeqiang
+     * @dateTime 2023/2/9 9:18
+     */
+    PeriodOfValidityBO.Builder getPeriodOfValidityRange(MarketingSyncUser syncUser, String validityDayStr)
+            throws IllegalAccessException;
+
+    /**
+     * 有效期构造器
+     * <p>
+     * 有效期计算依据为上传表中AppletTime或CreateTime，优先使用AppletTime，都为null时默认为当前日期
+     *
+     * @param syncUser 上传表过滤条件，支持 apiCode、custNum、userType
+     * @param day      天的范围，也就是有效期表达式中[T+N]中的N
+     * @return 有效期范围
+     * @author Guo Zeqiang
+     * @dateTime 2023/2/9 9:18
+     */
+    PeriodOfValidityBO.Builder getPeriodOfValidityRange(MarketingSyncUser syncUser, Integer day);
 }

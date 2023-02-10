@@ -138,10 +138,8 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
 
     @Override
     public PeriodOfValidityBO.Builder getPeriodOfValidityRange(Integer day, Date validityDate) {
-        if (ObjectUtils.isEmpty(validityDate)) {
-            return null;
-        }
-        final ZonedDateTime creatDate = validityDate.toInstant().atZone(ZoneId.systemDefault());
+        final ZonedDateTime creatDate = ObjectUtils.isEmpty(validityDate)
+                ? ZonedDateTime.now() : validityDate.toInstant().atZone(ZoneId.systemDefault());
         final Instant firstInstant;
         final Instant lastInstant;
         if (day == null) {
@@ -157,13 +155,43 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
             firstInstant = creatDate.plusDays(day).toInstant();
             lastInstant = creatDate.toInstant();
         }
-        return new PeriodOfValidityBO.Builder(Date.from(firstInstant), Date.from(lastInstant));
+        return PeriodOfValidityBO.custom(Date.from(firstInstant), Date.from(lastInstant));
+    }
+
+    @Override
+    public PeriodOfValidityBO.Builder getPeriodOfValidityRange(String apiCode, String custNum, String validityDayStr)
+            throws IllegalAccessException {
+        MarketingSyncUser syncUser = new MarketingSyncUser();
+        syncUser.setApiCode(apiCode);
+        syncUser.setCustNum(custNum);
+        return getPeriodOfValidityRange(syncUser, validityDayStr);
+    }
+
+    @Override
+    public PeriodOfValidityBO.Builder getPeriodOfValidityRange(String apiCode, String custNum, Integer day) {
+        MarketingSyncUser syncUser = new MarketingSyncUser();
+        syncUser.setApiCode(apiCode);
+        syncUser.setCustNum(custNum);
+        return getPeriodOfValidityRange(syncUser, day);
+    }
+
+    @Override
+    public PeriodOfValidityBO.Builder getPeriodOfValidityRange(MarketingSyncUser syncUser, String validityDayStr)
+            throws IllegalAccessException {
+        Date validityDate = getAppletTimeBySyncUser(syncUser);
+        return getPeriodOfValidityRange(validityDayStr, validityDate);
+    }
+
+    @Override
+    public PeriodOfValidityBO.Builder getPeriodOfValidityRange(MarketingSyncUser syncUser, Integer day) {
+        Date validityDate = getAppletTimeBySyncUser(syncUser);
+        return getPeriodOfValidityRange(day, validityDate);
     }
 
     private Date getAppletTimeBySyncUser(MarketingSyncUser syncUser) {
         MarketingSyncUser user = marketingSyncUserMapper.getAppletTimeBySyncUser(syncUser);
-        return ObjectUtils.isEmpty(user) ? null : (user.getAppletTime() == null
+        return ObjectUtils.isEmpty(user) ? new Date() : (user.getAppletTime() == null
                 ? (user.getCreateTime() == null
-                ? null : user.getCreateTime()) : user.getAppletTime());
+                ? new Date() : user.getCreateTime()) : user.getAppletTime());
     }
 }
