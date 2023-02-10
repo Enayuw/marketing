@@ -133,7 +133,7 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
             lastInstant = creatDate.toInstant();
             firstInstant = creatDate.plusDays(day).toInstant();
         }
-        return new PeriodOfValidityBO.Builder(Date.from(firstInstant), Date.from(lastInstant));
+        return PeriodOfValidityBO.custom(Date.from(firstInstant), Date.from(lastInstant));
     }
 
     @Override
