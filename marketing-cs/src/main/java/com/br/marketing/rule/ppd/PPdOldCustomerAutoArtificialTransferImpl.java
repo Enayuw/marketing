@@ -104,8 +104,7 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
             String ppdValidityDay = marketingCommonConfig.getPpdValidityDay();
             Date appletTime = marketingSyncUser.getAppletTime();
             // 2023-02-10 调整为统一有效期判断
-            boolean expire = iPeriodOfValidityService.isExpire(new Date(), ppdValidityDay
-                    , appletTime);
+            boolean expire = iPeriodOfValidityService.isExpire(new Date(), ppdValidityDay, appletTime);
             if (expire) {
                 return false;
             }
