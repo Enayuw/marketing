@@ -3,6 +3,7 @@ package com.br.marketing.rule.ppd;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
@@ -17,8 +18,8 @@ import com.br.marketing.context.impl.PPDCollectDataImpl;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
-import com.br.marketing.origin.MqFact;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.IScoreResultService;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -26,12 +27,14 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 
 @Service
@@ -57,6 +60,9 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
 
     @Autowired
     RedisChgService redisChgService;
+
+    @Resource
+    private IPeriodOfValidityService iPeriodOfValidityService;
 
     @Override
     public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -95,17 +101,16 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
                 return false;
             }
 
-            Integer ppdValidityDay = marketingCommonConfig.getPpdValidityDay() != null ? marketingCommonConfig.getPpdValidityDay() : null;
-            if (ppdValidityDay != null) {
-                LocalDate startDate = LocalDate.now().minusDays(ppdValidityDay <= 0 ? ppdValidityDay : ppdValidityDay - 1);
-                LocalDate dataDate = LocalDate.parse(marketingSyncUser.getAppletDate());
-                if (dataDate.compareTo(startDate) < 0) {
-                    return false;
-                }
-            } else {
+            String ppdValidityDay = marketingCommonConfig.getPpdValidityDay();
+            Date appletTime = marketingSyncUser.getAppletTime();
+            // 2023-02-10 调整为统一有效期判断
+            boolean expire = iPeriodOfValidityService.isExpire(new Date(), ppdValidityDay
+                    , appletTime);
+            if (expire) {
                 return false;
             }
-
+            PeriodOfValidityBO builder = iPeriodOfValidityService.getPeriodOfValidityRange(ppdValidityDay
+                    , appletTime).addDateString().builder();
             String tcId = tableCreateService.getTcId(context.getApiCode());
             MarketingTransferSyncUserExample transferSyncUserExample = new MarketingTransferSyncUserExample();
             transferSyncUserExample.setOrderByClause(" id limit 1");
@@ -114,7 +119,8 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
                     .andTCidEqualTo(tcId)
                     .andApiCodeEqualTo(context.getApiCode())
                     .andCustNumEqualTo(transfer.getCustNum())
-                    .andIfLentEqualTo("Y");
+                    .andIfLentEqualTo("Y")
+                    .andRequestDataBetween(builder.getBeginDateStr(), builder.getEnDateStr());
             List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(transferSyncUserExample);
             if (marketingTransferSyncUsers.size() > 0) {
                 return false;

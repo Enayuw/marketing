@@ -418,7 +418,7 @@ public class MarketingCommonConfig {
     /**
      * 拍拍贷有效期34；目前仅老客使用
      */
-    private Integer ppdValidityDay;
+    private String ppdValidityDay;
 
     /**
      * 携程短信撞库轮询时间间隔
