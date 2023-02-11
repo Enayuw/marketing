@@ -67,12 +67,12 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
 
 
     @Override
-    public boolean isExpire(Date date, String validityDayStr, Date validityDate) throws IllegalAccessException {
+    public boolean isExpire(Date date, String validityDayStr, Date validityDate) throws IllegalArgumentException {
         return !isNotExpire(date, validityDayStr, validityDate);
     }
 
     @Override
-    public boolean isNotExpire(Date date, String validityDayStr, Date validityDate) throws IllegalAccessException {
+    public boolean isNotExpire(Date date, String validityDayStr, Date validityDate) throws IllegalArgumentException {
         if (StringUtils.isBlank(validityDayStr)) {
             return false;
         }
@@ -82,32 +82,32 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
 
     @Override
     public boolean isExpire(Date date, Supplier<Object> validityDayStrSupplier, Supplier<Date> validityDateSupplier)
-            throws IllegalAccessException {
+            throws IllegalArgumentException {
         return !isNotExpire(date, validityDayStrSupplier, validityDateSupplier);
     }
 
     @Override
     public boolean isNotExpire(Date date, Supplier<Object> validityDayStrSupplier, Supplier<Date> validityDateSupplier)
-            throws IllegalAccessException {
+            throws IllegalArgumentException {
         final Object o = validityDayStrSupplier.get();
         if (o instanceof String) {
             return isNotExpire(date, (String) o, validityDateSupplier.get());
         } else if (o instanceof Integer) {
             return isNotExpire(date, (Integer) o, validityDateSupplier.get());
         } else {
-            throw new IllegalAccessException("暂时只接受“String”或“Integer”数据类型的结果");
+            throw new IllegalArgumentException("暂时只接受“String”或“Integer”数据类型的结果");
         }
     }
 
     @Override
     public boolean isExpire(String apiCode, String custNum, Date date, String validityDayStr)
-            throws IllegalAccessException {
+            throws IllegalArgumentException {
         return !isNotExpire(apiCode, custNum, date, validityDayStr);
     }
 
     @Override
     public boolean isNotExpire(String apiCode, String custNum, Date date, String validityDayStr)
-            throws IllegalAccessException {
+            throws IllegalArgumentException {
         if (StringUtils.isBlank(validityDayStr)) {
             return false;
         }
@@ -134,13 +134,13 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
 
     @Override
     public boolean isExpire(MarketingSyncUser syncUser, Date date, String validityDayStr)
-            throws IllegalAccessException {
+            throws IllegalArgumentException {
         return !isNotExpire(syncUser, date, validityDayStr);
     }
 
     @Override
     public boolean isNotExpire(MarketingSyncUser syncUser, Date date, String validityDayStr)
-            throws IllegalAccessException {
+            throws IllegalArgumentException {
         if (StringUtils.isBlank(validityDayStr)) {
             return false;
         }
@@ -161,10 +161,7 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
 
     @Override
     public PeriodOfValidityBO.Builder getPeriodOfValidityRange(String validityDayStr, Date validityDate)
-            throws IllegalAccessException {
-        if (StringUtils.isBlank(validityDayStr)) {
-            return null;
-        }
+            throws IllegalArgumentException {
         Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr);
         return getPeriodOfValidityRange(day, validityDate);
     }
@@ -193,7 +190,7 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
 
     @Override
     public PeriodOfValidityBO.Builder getPeriodOfValidityRange(String apiCode, String custNum, String validityDayStr)
-            throws IllegalAccessException {
+            throws IllegalArgumentException {
         MarketingSyncUser syncUser = new MarketingSyncUser();
         syncUser.setApiCode(apiCode);
         syncUser.setCustNum(custNum);
@@ -210,7 +207,7 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
 
     @Override
     public PeriodOfValidityBO.Builder getPeriodOfValidityRange(MarketingSyncUser syncUser, String validityDayStr)
-            throws IllegalAccessException {
+            throws IllegalArgumentException {
         Date validityDate = getAppletTimeBySyncUser(syncUser);
         return getPeriodOfValidityRange(validityDayStr, validityDate);
     }
@@ -223,14 +220,14 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
 
     @Override
     public PeriodOfValidityBO.Builder getPeriodOfValidityRange(Supplier<Object> validityDayStrSupplier
-            , Supplier<Date> validityDateSupplier) throws IllegalAccessException {
+            , Supplier<Date> validityDateSupplier) throws IllegalArgumentException {
         final Object o = validityDayStrSupplier.get();
         if (o instanceof String) {
             return getPeriodOfValidityRange((String) o, validityDateSupplier.get());
         } else if (o instanceof Integer) {
             return getPeriodOfValidityRange((Integer) o, validityDateSupplier.get());
         } else {
-            throw new IllegalAccessException("暂时只接受“String”或“Integer”数据类型的结果");
+            throw new IllegalArgumentException("暂时只接受“String”或“Integer”数据类型的结果");
         }
     }
 

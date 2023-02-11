@@ -1,5 +1,7 @@
 package com.br.marketing.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -34,11 +36,11 @@ public class PeriodOfValidityHelper {
      * @return null时为当前月底
      */
     public static Integer getPeriodOfValidityDay(Map<Object, String> periodOfValidityDayMap, Object key)
-            throws IllegalAccessException {
+            throws IllegalArgumentException {
         if (periodOfValidityDayMap.containsKey(key)) {
             return getPeriodOfValidityDay(periodOfValidityDayMap.get(key));
         }
-        throw new IllegalAccessException("未知的配置有效期key:" + key);
+        throw new IllegalArgumentException("未知的配置有效期key:" + key);
     }
 
     /**
@@ -54,7 +56,10 @@ public class PeriodOfValidityHelper {
      * @param periodOfValidityStr 有效期配置,T+N代表当天+N天，共1+N天；T+0 代表当天；M代表到自然月月底
      * @return 返回null时为自然月末日期
      */
-    public static Integer getPeriodOfValidityDay(String periodOfValidityStr) throws IllegalAccessException {
+    public static Integer getPeriodOfValidityDay(String periodOfValidityStr) throws IllegalArgumentException {
+        if (StringUtils.isBlank(periodOfValidityStr)) {
+            throw new IllegalArgumentException("未配置有效期！");
+        }
         Matcher matcher = PATTERN_DAY.matcher(periodOfValidityStr);
         if (matcher.find()) {
             String dayStr = matcher.group();
@@ -62,7 +67,7 @@ public class PeriodOfValidityHelper {
         } else if (periodOfValidityStr.contains(END_OF_MONTH)) {
             return null;
         } else {
-            throw new IllegalAccessException("有效期格式错误，无法解析配置内容：" + periodOfValidityStr);
+            throw new IllegalArgumentException("有效期格式错误，无法解析配置内容为:" + periodOfValidityStr);
         }
     }
 }
