@@ -61,12 +61,12 @@ public class PeriodOfValidityBO {
      */
     private String enDateOtherStr;
 
-    private PeriodOfValidityBO(Date beginDate, Date enDate) {
+    PeriodOfValidityBO(Date beginDate, Date enDate) {
         this.beginDate = beginDate;
         this.enDate = enDate;
     }
 
-    private PeriodOfValidityBO() {
+    protected PeriodOfValidityBO() {
     }
 
     public void setBeginDate(Date beginDate) {
@@ -109,18 +109,37 @@ public class PeriodOfValidityBO {
         return enDateOtherStr;
     }
 
-    public static class Builder {
-        private PeriodOfValidityBO periodOfValidityBO;
+    @Override
+    public String toString() {
+        return "PeriodOfValidityBO{" +
+                "beginDate=" + beginDate +
+                ", enDate=" + enDate +
+                ", beginDateTimeStr='" + beginDateTimeStr + '\'' +
+                ", enDateTimeStr='" + enDateTimeStr + '\'' +
+                ", beginDateStr='" + beginDateStr + '\'' +
+                ", enDateStr='" + enDateStr + '\'' +
+                ", beginDateOtherStr='" + beginDateOtherStr + '\'' +
+                ", enDateOtherStr='" + enDateOtherStr + '\'' +
+                '}';
+    }
 
-        public Builder(Date beginDate, Date enDate) {
+    public static PeriodOfValidityBO.Builder custom(Date beginDate, Date enDate) {
+        return new PeriodOfValidityBO.Builder(beginDate, enDate);
+    }
+
+    public static PeriodOfValidityBO.Builder custom(Date date) {
+        return new PeriodOfValidityBO.Builder(date);
+    }
+
+    public static class Builder {
+        private final PeriodOfValidityBO periodOfValidityBO;
+
+        Builder(Date beginDate, Date enDate) {
             this.periodOfValidityBO = new PeriodOfValidityBO(beginDate, enDate);
         }
 
-        public Builder(Date date) {
+        Builder(Date date) {
             this.periodOfValidityBO = new PeriodOfValidityBO(date, date);
-        }
-
-        public Builder() {
         }
 
         public Builder addDateString() {
