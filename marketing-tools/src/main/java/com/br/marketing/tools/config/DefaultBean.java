@@ -18,7 +18,20 @@ public class DefaultBean {
 //    @ConditionalOnExpression("#{'ISTIO_ETCD'.equals('${rpc.mode}')}")
     RestTemplate restTemplate() {
         HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory(
-                HttpClientBuilder.create().setMaxConnPerRoute(500).setMaxConnTotal(1000).build());
+                HttpClientBuilder.create().setMaxConnPerRoute(500).setMaxConnTotal(1000)
+                        //                        .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy() {
+//                            @Override
+//                            public long getKeepAliveDuration(final HttpResponse response, final HttpContext context) {
+//                                long keepAlive = super.getKeepAliveDuration(response, context);
+//                                if (keepAlive == -1) {
+//                                    keepAlive = 5000;
+//                                }
+//                                return keepAlive;
+//                                  return -1;
+//                            }
+//                        })
+//                        .evictIdleConnections(10, TimeUnit.SECONDS)
+                        .build());
         httpRequestFactory.setConnectionRequestTimeout(3000);
         httpRequestFactory.setConnectTimeout(1000);
         httpRequestFactory.setReadTimeout(10000);

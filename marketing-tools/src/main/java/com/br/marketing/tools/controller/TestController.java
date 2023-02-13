@@ -36,9 +36,16 @@ public class TestController {
     @Autowired
     RestTemplate restTemplate;
 
+    @GetMapping("/testCon")
+    public String testCon(){
+        String url = "http://101.42.10.86:18704/connectPool/acceptReq";
+        String s = new ApiCaller(restTemplate).setUrl(url).get();
+        return s;
+    }
+
     @GetMapping("/testConPool")
     public String testConPool(){
-        String url = "http://101.42.10.86:18704/connectPool/acceptReq";
+        String url = "http://101.42.10.86:18704/connectPool/acceptSlowReq";
         String s = new ApiCaller(restTemplate).setUrl(url).get();
         return s;
     }
