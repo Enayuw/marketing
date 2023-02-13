@@ -133,10 +133,11 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
                 }
             }
 
-            Integer ppdOldPhoneValidityDay = marketingCommonConfig.getPpdOldPhoneValidityDay() != null ? marketingCommonConfig.getPpdOldPhoneValidityDay() : 6;
-
-            String _7Day = LocalDate.now().minusDays(Long.valueOf(ppdOldPhoneValidityDay)).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
+            int ppdOldPhoneValidityDay = marketingCommonConfig.getPpdOldPhoneValidityDay() != null
+                    ? marketingCommonConfig.getPpdOldPhoneValidityDay() : 7;
+            // 计算时包括当天，所以需要在ppdOldPhoneValidityDay配置的中减少一天
+            String _7Day = LocalDate.now().minusDays(ppdOldPhoneValidityDay > 0 ? ppdOldPhoneValidityDay - 1
+                    : ppdOldPhoneValidityDay).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             //分布式锁，控制推电销判断逻辑顺序执行
             String key = RedisKeyConstant.ppdOldPushDx.concat(":")
                     .concat(transfer.getApiCode()).concat(":")
