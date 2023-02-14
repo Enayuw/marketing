@@ -186,8 +186,7 @@ public class TransferToFileByPPDOldServiceImpl implements ITransferToFileService
                     String custNum = data.getCustNum();
                     String cell = "";
                     if (preUserMap.containsKey(custNum)) {
-                        String decode = BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell());
-                        cell = StringUtils.isBlank(decode) ? preUserMap.get(custNum).getCell() : DigestUtils.md5DigestAsHex(decode.getBytes());
+                        cell = preUserMap.get(custNum).getCell();
                     }
                     String status = data.getStatus();
                     String push_dx_time =  sdf2.format(data.getPushDxTime());
