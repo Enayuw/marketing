@@ -3,6 +3,8 @@ package com.br.marketing.service;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.entity.MarketingSyncUser;
 
+import java.text.ParseException;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.function.Supplier;
 
@@ -163,6 +165,15 @@ public interface IPeriodOfValidityService {
      */
     boolean isNotExpire(String apiCode, String custNum, Date date, Integer day) throws IllegalArgumentException;
 
+    /**
+     * 过期 返回true；过期返回false
+     * @param dataDateStr 数据上传日期
+     * @param validityDayStr 有效期配置
+     * @param dtf  对dataDate参数日期格式 （不传默认是yyyy-MM-dd格式）
+     * @return
+     * @throws IllegalArgumentException
+     */
+    boolean isExpire(String dataDateStr, String validityDayStr,DateTimeFormatter dtf) throws IllegalArgumentException, ParseException;
 
     /**
      * 已过期,有效期计算依据为上传表中AppletTime或CreateTime，优先使用AppletTime，都为null时默认为当前日期

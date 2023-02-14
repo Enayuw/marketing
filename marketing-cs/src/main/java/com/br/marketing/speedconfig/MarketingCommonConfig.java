@@ -440,5 +440,15 @@ public class MarketingCommonConfig {
      * 拍拍贷老客推电销去重时间天数
      */
     private Integer ppdOldPhoneValidityDay;
+
+    /**
+     * 榕树为提取金额
+     */
+    private Integer rsUnlentAmount;
+
+    /**
+     * 榕树有效期
+     */
+    private String rsValidityDay;
 }
 

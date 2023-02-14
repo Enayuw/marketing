@@ -1,4 +1,5 @@
 
+import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
@@ -59,7 +60,13 @@ public class redis {
     @Resource
     MarketingSyncInfoMapper syncInfoMapper;
 
+    @Autowired
+    DassServiceClient dassServiceClient;
 
+    @Test
+    public void testIbuInterface(){
+//        Result result = dassServiceClient.pushIbuArtificial();
+    }
 
     @Test
     public void testHaluo(){
