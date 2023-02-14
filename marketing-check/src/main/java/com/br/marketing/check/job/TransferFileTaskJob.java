@@ -80,6 +80,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     private TransferToFileByZhongAnServiceImpl transferToFileByZhongAnService;
     @Resource
     private TransferToFileByXieChengServiceImpl transferToFileByXieChengService;
+    @Resource
+    private TransferToFileByPPDOldServiceImpl transferToFileByPPDOldService;
+
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
@@ -173,6 +176,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByZhongAnService, marketingCommonConfig.getZhongAnTransferApiCodes())
                 // 携程转化数据提取
                 .addBind(transferToFileByXieChengService, marketingCommonConfig.getXieChengTransferApiCodes())
+                // 拍拍贷老客转人工数据提取
+                .addBind(transferToFileByPPDOldService, marketingCommonConfig.getPPDOldTransferFileApiCodes())
                 .build();
     }
 
