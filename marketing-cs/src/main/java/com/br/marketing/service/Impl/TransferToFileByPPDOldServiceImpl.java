@@ -85,8 +85,7 @@ public class TransferToFileByPPDOldServiceImpl implements ITransferToFileService
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
             if (CollectionUtils.isEmpty(transferFileTasks)) {
                 log.warn("拍拍贷老客转人工数据提取-开始执行,apiCode ={}", apiCode);
-//                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
-                Long transferFileContextId = 888L;
+                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
                 String batchNumber = createBatchNumber(apiCode, transferFileContextId);
                 TransferFileTask transferFileTask = new TransferFileTask();
                 transferFileTask.setApiCode(apiCode);
