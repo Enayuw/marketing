@@ -52,11 +52,11 @@ public interface IPeriodOfValidityService {
      * @param validityDayStr 格式 [T+N]、[T+0]、[M]
      * @param validityDate   计算有效期范围的日期，也就是有效期表达式中[T+N]中的T
      * @return 如果是{@code true}表示{@code date}超过效期范围
-     * @throws IllegalAccessException 有效期格式无法解析
+     * @throws IllegalArgumentException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2022/2/14 9:58
      */
-    boolean isExpire(Date date, String validityDayStr, Date validityDate) throws IllegalAccessException;
+    boolean isExpire(Date date, String validityDayStr, Date validityDate) throws IllegalArgumentException;
 
     /**
      * 未过期，有效期计算依据参数中{@code validityDate}的值
@@ -65,11 +65,11 @@ public interface IPeriodOfValidityService {
      * @param validityDayStr 格式 [T+N]、[T+0]、[M]
      * @param validityDate   计算有效期范围的日期，也就是有效期表达式中[T+N]中的T
      * @return 如果是{@code true}表示{@code date}未超过效期范围
-     * @throws IllegalAccessException 有效期格式无法解析
+     * @throws IllegalArgumentException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2022/2/14 9:58
      */
-    boolean isNotExpire(Date date, String validityDayStr, Date validityDate) throws IllegalAccessException;
+    boolean isNotExpire(Date date, String validityDayStr, Date validityDate) throws IllegalArgumentException;
 
     /**
      * 已过期，有效期计算依据参数中{@code validityDateSupplier}的值
@@ -78,12 +78,12 @@ public interface IPeriodOfValidityService {
      * @param validityDayStrSupplier 返回格式： [T+N]、[T+0]、[M]的字符串或整形数字，只接受“String”或“Integer”数据类型
      * @param validityDateSupplier   返回计算有效期范围的日期，也就是有效期表达式中[T+N]中的T，通过自定义函数提供
      * @return 如果是{@code true}表示{@code date}超过效期范围
-     * @throws IllegalAccessException 有效期格式无法解析
+     * @throws IllegalArgumentException 非法参数类型或无法解析有效期格式
      * @author Guo Zeqiang
      * @dateTime 2022/2/14 9:58
      */
     boolean isExpire(Date date, Supplier<Object> validityDayStrSupplier
-            , Supplier<Date> validityDateSupplier) throws IllegalAccessException;
+            , Supplier<Date> validityDateSupplier) throws IllegalArgumentException;
 
     /**
      * 未过期，有效期计算依据参数中{@code validityDateSupplier}的值
@@ -92,12 +92,12 @@ public interface IPeriodOfValidityService {
      * @param validityDayStrSupplier 返回格式： [T+N]、[T+0]、[M]的字符串或整形数字，只接受“String”或“Integer”数据类型
      * @param validityDateSupplier   返回计算有效期范围的日期，也就是有效期表达式中[T+N]中的T，通过自定义函数提供
      * @return 如果是{@code true}表示{@code date}未超过效期范围
-     * @throws IllegalAccessException 有效期格式无法解析
+     * @throws IllegalArgumentException 非法参数类型或无法解析有效期格式
      * @author Guo Zeqiang
      * @dateTime 2022/2/14 9:58
      */
     boolean isNotExpire(Date date, Supplier<Object> validityDayStrSupplier
-            , Supplier<Date> validityDateSupplier) throws IllegalAccessException;
+            , Supplier<Date> validityDateSupplier) throws IllegalArgumentException;
 
 
     /**
@@ -108,11 +108,11 @@ public interface IPeriodOfValidityService {
      * @param date           查是否在有效期内的日期
      * @param validityDayStr 格式 [T+N]、[T+0]、[M]
      * @return 如果是{@code true}表示{@code date}未超过有效期范围
-     * @throws IllegalAccessException 有效期格式无法解析
+     * @throws IllegalArgumentException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:08
      */
-    boolean isExpire(String apiCode, String custNum, Date date, String validityDayStr) throws IllegalAccessException;
+    boolean isExpire(String apiCode, String custNum, Date date, String validityDayStr) throws IllegalArgumentException;
 
     /**
      * 未过期,有效期计算依据为上传表中AppletTime或CreateTime，优先使用AppletTime，都为null时默认为当前日期
@@ -122,11 +122,11 @@ public interface IPeriodOfValidityService {
      * @param date           查是否在有效期内的日期
      * @param validityDayStr 格式 [T+N]、[T+0]、[M]
      * @return 如果是{@code true}表示{@code date}未超过有效期范围
-     * @throws IllegalAccessException 有效期格式无法解析
+     * @throws IllegalArgumentException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:08
      */
-    boolean isNotExpire(String apiCode, String custNum, Date date, String validityDayStr) throws IllegalAccessException;
+    boolean isNotExpire(String apiCode, String custNum, Date date, String validityDayStr) throws IllegalArgumentException;
 
 
     /**
@@ -140,11 +140,11 @@ public interface IPeriodOfValidityService {
      * @param date    查是否在有效期内的日期
      * @param day     天的范围，也就是有效期表达式中[T+N]中的N
      * @return 如果是{@code true}表示{@code date}未超过有效期范围
-     * @throws IllegalAccessException 有效期格式无法解析
+     * @throws IllegalArgumentException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:08
      */
-    boolean isExpire(String apiCode, String custNum, Date date, Integer day) throws IllegalAccessException;
+    boolean isExpire(String apiCode, String custNum, Date date, Integer day) throws IllegalArgumentException;
 
     /**
      * 未过期,有效期计算依据为上传表中AppletTime或CreateTime，优先使用AppletTime，都为null时默认为当前日期
@@ -157,11 +157,11 @@ public interface IPeriodOfValidityService {
      * @param date    查是否在有效期内的日期
      * @param day     天的范围，也就是有效期表达式中[T+N]中的N
      * @return 如果是{@code true}表示{@code date}未超过有效期范围
-     * @throws IllegalAccessException 有效期格式无法解析
+     * @throws IllegalArgumentException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:08
      */
-    boolean isNotExpire(String apiCode, String custNum, Date date, Integer day) throws IllegalAccessException;
+    boolean isNotExpire(String apiCode, String custNum, Date date, Integer day) throws IllegalArgumentException;
 
 
     /**
@@ -171,11 +171,11 @@ public interface IPeriodOfValidityService {
      * @param date           查是否在有效期内的日期
      * @param validityDayStr 格式 [T+N]、[T+0]、[M]
      * @return 如果是{@code true}表示{@code date}未超过有效期范围
-     * @throws IllegalAccessException 有效期格式无法解析
+     * @throws IllegalArgumentException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:08
      */
-    boolean isExpire(MarketingSyncUser syncUser, Date date, String validityDayStr) throws IllegalAccessException;
+    boolean isExpire(MarketingSyncUser syncUser, Date date, String validityDayStr) throws IllegalArgumentException;
 
     /**
      * 未过期,有效期计算依据为上传表中AppletTime或CreateTime，优先使用AppletTime，都为null时默认为当前日期
@@ -184,11 +184,11 @@ public interface IPeriodOfValidityService {
      * @param date           查是否在有效期内的日期
      * @param validityDayStr 格式 [T+N]、[T+0]、[M]
      * @return 如果是{@code true}表示{@code date}未超过有效期范围
-     * @throws IllegalAccessException 有效期格式无法解析
+     * @throws IllegalArgumentException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:08
      */
-    boolean isNotExpire(MarketingSyncUser syncUser, Date date, String validityDayStr) throws IllegalAccessException;
+    boolean isNotExpire(MarketingSyncUser syncUser, Date date, String validityDayStr) throws IllegalArgumentException;
 
     /**
      * 已过期,有效期计算依据为上传表中AppletTime或CreateTime，优先使用AppletTime，都为null时默认为当前日期
@@ -227,15 +227,16 @@ public interface IPeriodOfValidityService {
      * @param validityDayStr 格式 [T+N]、[T+0]、[M]
      * @param validityDate   计算有效期范围的日期，也就是有效期表达式中[T+N]中的T
      * @return 有效期范围
-     * @throws IllegalAccessException 有效期格式无法解析
+     * @throws IllegalArgumentException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:18
      */
     PeriodOfValidityBO.Builder getPeriodOfValidityRange(String validityDayStr, Date validityDate)
-            throws IllegalAccessException;
+            throws IllegalArgumentException;
 
     /**
      * 有效期构造器
+     * 计算{@code day}的工具{@link com.br.marketing.util.PeriodOfValidityHelper}
      *
      * @param day          天的范围，也就是有效期表达式中[T+N]中的N
      * @param validityDate 计算有效期范围的日期，也就是有效期表达式中[T+N]中的T
@@ -254,17 +255,18 @@ public interface IPeriodOfValidityService {
      * @param custNum        案件编号
      * @param validityDayStr 格式 [T+N]、[T+0]、[M]
      * @return 有效期范围
-     * @throws IllegalAccessException 有效期格式无法解析
+     * @throws IllegalArgumentException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:18
      */
     PeriodOfValidityBO.Builder getPeriodOfValidityRange(String apiCode, String custNum, String validityDayStr)
-            throws IllegalAccessException;
+            throws IllegalArgumentException;
 
     /**
      * 有效期构造器
      * <p>
      * 有效期计算依据为上传表中AppletTime或CreateTime，优先使用AppletTime，都为null时默认为当前日期
+     * 计算{@code day}的工具{@link com.br.marketing.util.PeriodOfValidityHelper}
      *
      * @param apiCode apiCode
      * @param custNum 案件编号
@@ -283,17 +285,18 @@ public interface IPeriodOfValidityService {
      * @param syncUser       上传表过滤条件，支持 apiCode、custNum、userType
      * @param validityDayStr 格式 [T+N]、[T+0]、[M]
      * @return 有效期范围
-     * @throws IllegalAccessException 有效期格式无法解析
+     * @throws IllegalArgumentException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:18
      */
     PeriodOfValidityBO.Builder getPeriodOfValidityRange(MarketingSyncUser syncUser, String validityDayStr)
-            throws IllegalAccessException;
+            throws IllegalArgumentException;
 
     /**
      * 有效期构造器
      * <p>
      * 有效期计算依据为上传表中AppletTime或CreateTime，优先使用AppletTime，都为null时默认为当前日期
+     * 计算{@code day}的工具{@link com.br.marketing.util.PeriodOfValidityHelper}
      *
      * @param syncUser 上传表过滤条件，支持 apiCode、custNum、userType
      * @param day      天的范围，也就是有效期表达式中[T+N]中的N
@@ -311,10 +314,10 @@ public interface IPeriodOfValidityService {
      * @param validityDayStrSupplier 返回格式： [T+N]、[T+0]、[M]的字符串或整形数字，只接受“String”或“Integer”数据类型
      * @param validityDateSupplier   返回计算有效期范围的日期，也就是有效期表达式中[T+N]中的T，通过自定义函数提供
      * @return 有效期范围
-     * @throws IllegalAccessException 非法参数
+     * @throws IllegalArgumentException 非法参数类型或无法解析有效期格式
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:18
      */
     PeriodOfValidityBO.Builder getPeriodOfValidityRange(Supplier<Object> validityDayStrSupplier
-            , Supplier<Date> validityDateSupplier) throws IllegalAccessException;
+            , Supplier<Date> validityDateSupplier) throws IllegalArgumentException;
 }
