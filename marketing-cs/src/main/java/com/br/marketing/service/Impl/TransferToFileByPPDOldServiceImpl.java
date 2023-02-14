@@ -180,7 +180,7 @@ public class TransferToFileByPPDOldServiceImpl implements ITransferToFileService
             }
             //判断是否再有效期内
             for (PhoneSaleExtendInfo data : phoneSaleExtendInfos){
-                boolean notExpire = periodOfValidityService.isNotExpire(data.getApiCode(), data.getCustNum(), data.getPushDxTime(), ppdOldValidityDayStr);
+                boolean notExpire = periodOfValidityService.isNotExpire(data.getApiCode(), data.getCustNum(), new Date(), ppdOldValidityDayStr);
                 if(notExpire){
                     //custNum,cell,push_dx_time,status
                     String custNum = data.getCustNum();
