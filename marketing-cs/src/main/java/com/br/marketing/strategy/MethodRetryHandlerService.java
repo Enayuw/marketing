@@ -17,10 +17,7 @@ import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerSer
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
-import com.br.marketing.client.robotaiapi.input.BlackDetailDTO;
-import com.br.marketing.client.robotaiapi.input.ConversionData;
-import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
-import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
+import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
@@ -220,6 +217,30 @@ public class MethodRetryHandlerService {
         //调用客户转化接口失败，记录数据入库，定时任务重试
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
     }
+
+    /**
+     * 转化去重方法
+     * @param robotOutboundDTO
+     * @param retry
+     * @return
+     */
+    @RetryMethod(isOrNoDbRetry = true)
+    public Result<TransferRobotOutboundVO<UnsuccessfulData>> callCustomerTransfer(TransferRobotOutboundSoleDTO robotOutboundDTO, Integer retry) {
+        if(new Integer(1).equals(robotOutboundDTO.getSoleType())){
+
+        }
+        TransferRobotOutboundVO<UnsuccessfulData> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
+        if (!"9999".equals(transferRobotOutboundVO.getCode())) {
+            List<ConversionData> conversionData = robotOutboundDTO.getJsonData().getConversionData();
+            Set<String> set = conversionData.stream().map(ConversionData::getDataId).collect(Collectors.toSet());
+            saveBizLog(String.join(",", set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), robotOutboundDTO.getTransferInfoId());
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(transferRobotOutboundVO);
+        }
+        log.error("调用客服接口失败 -- {}", JSON.toJSONString(transferRobotOutboundVO));
+        //调用客户转化接口失败，记录数据入库，定时任务重试
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
+    }
+
 
     void saveBizLog(String data, Integer handlerEnum, Long infoId) {
         DataCompare dataCompare = new DataCompare(data, handlerEnum, infoId);

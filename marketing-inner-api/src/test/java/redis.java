@@ -1,4 +1,5 @@
 
+import java.util.Date;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
@@ -6,8 +7,11 @@ import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.dto.DataDetailTestDTO;
+import com.br.marketing.dto.DataDistrubuteTestDTO;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.mapper.*;
+import com.br.marketing.service.Impl.CheckServicePackageImpl;
 import com.br.marketing.strategy.UserCenterHandler;
 import com.google.common.collect.Lists;
 import java.text.DecimalFormat;
@@ -63,6 +67,54 @@ public class redis {
 
     @Autowired
     DassServiceClient dassServiceClient;
+
+    @Autowired
+    CheckServicePackageImpl checkServicePackage;
+
+    @Test
+    public void testAop(){
+        DataDistrubuteTestDTO req = new DataDistrubuteTestDTO();
+        ArrayList<DataDetailTestDTO> dataDetailTestDTOS = new ArrayList<>();
+        ArrayList<DataDistributeDetailLog> dataDistributeDetailLogs = new ArrayList<>();
+        DataDetailTestDTO a = new DataDetailTestDTO();
+        a.setId(1L);
+        a.setName("丽丽");
+        dataDetailTestDTOS.add(a);
+        DataDistributeDetailLog log = new DataDistributeDetailLog();
+        log.setApiCode("7410437");
+        log.setCustNum("123");
+        log.setCell("123");
+        log.setDistributeDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        log.setDistributeType(1);
+        log.setCreateTime(new Date());
+        log.setUpdateTime(new Date());
+        log.setSourceId(a.getId());
+        log.setSourceType("123");
+        dataDistributeDetailLogs.add(log);
+
+
+        DataDetailTestDTO b = new DataDetailTestDTO();
+        b.setId(2L);
+        b.setName("美美");
+        dataDetailTestDTOS.add(b);
+        DataDistributeDetailLog log1 = new DataDistributeDetailLog();
+        log1.setApiCode("7410437");
+        log1.setCustNum("111");
+        log1.setCell("111");
+        log1.setDistributeDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        log1.setDistributeType(1);
+        log1.setCreateTime(new Date());
+        log1.setUpdateTime(new Date());
+        log1.setSourceId(b.getId());
+        log1.setSourceType("123");
+        dataDistributeDetailLogs.add(log1);
+        req.setData(dataDetailTestDTOS);
+        req.setDetailLogList(dataDistributeDetailLogs);
+        req.setIsSole(true);
+        req.setSoleField(1);
+        req.setSoleDay(1);
+        checkServicePackage.getTestRes(req,null);
+    }
 
     @Test
     public void testIbuInterface(){
