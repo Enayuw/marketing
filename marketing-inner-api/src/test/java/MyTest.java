@@ -1,17 +1,35 @@
 
+import cn.hutool.http.HttpUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Sm3Util;
+import com.br.marketing.client.dassservice.input.IbuReqDTO;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.internal.xml.ClassType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.cglib.beans.BeanMap;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.DigestUtils;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -21,22 +39,273 @@ public class MyTest {
     final static SimpleDateFormat yyyyMMddHMS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @Test
-    public void testThreadSafe(){
+    public void testThreadSafe() {
         String abc = "2021-08-11 11:00:00";
-        for(int i = 0;i<20;i++){
+        for (int i = 0; i < 20; i++) {
 
-            new Thread(()->{
-                    try {
-                        System.out.println(yyyyMMddHMS.format(yyyyMMddHMS.parse(abc)));
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
+            new Thread(() -> {
+                try {
+                    System.out.println(yyyyMMddHMS.format(yyyyMMddHMS.parse(abc)));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
             }).start();
         }
     }
 
     @Test
-    public void testStr(){
+    public void testIbuInterface() {
+        List<IbuReqDTO.Datum> list = new ArrayList<>();
+        IbuReqDTO.Datum datum = new IbuReqDTO.Datum();
+        datum.setUid("ab123");
+        datum.setUserType("D");
+        datum.setUserCode("ab123");
+        datum.setUserName("1");
+        datum.setPhone("15520342033");
+        datum.setSource("101");
+        datum.setPlanId(123);
+
+        IbuReqDTO.Datum datum1 = new IbuReqDTO.Datum();
+        datum1.setUid("123");
+        datum1.setUserType("D");
+        datum1.setUserCode("ab123");
+        datum1.setUserName("1");
+        datum1.setPhone("15520342034");
+        datum1.setSource("101");
+        datum1.setPlanId(123);
+        list.add(datum);
+        list.add(datum1);
+
+        pushIbuArtificial(list, true);
+    }
+
+    @Test
+    public void testDay(){
+        long l = LocalDate.now().toEpochDay() - LocalDate.parse("2021-04-26").toEpochDay();
+        System.out.println(l);
+    }
+
+    public Result pushIbuArtificial(List<IbuReqDTO.Datum> datumList, Boolean mock) {
+        UUID reqId = UUID.randomUUID();
+        try {
+            Result<String> res = new Result<>();
+            IbuReqDTO ibuReqDTO = new IbuReqDTO();
+            ibuReqDTO.setData(JSON.toJSONString(datumList));
+            ibuReqDTO.setAccessKey("d87a6e0ab4dc2903");
+            ibuReqDTO.setTs(System.currentTimeMillis());
+            StringBuilder mText = new StringBuilder();
+            mText.append("fbd1478a51d88954");
+            mText.append(ibuReqDTO.getData());
+            mText.append(ibuReqDTO.getTs());
+            System.out.println("待加密:"+mText);
+            String s = DigestUtils.md5DigestAsHex(mText.toString().getBytes()).toUpperCase();
+            ibuReqDTO.setSign(s);
+            StringBuilder paramStr = new StringBuilder();
+            BeanMap beanMap = BeanMap.create(ibuReqDTO);
+            String urlencode = urlencode(beanMap, "");
+            System.out.println("请求" + urlencode);
+//            for (Object o : beanMap.keySet()) {
+//                if(beanMap.get(o) instanceof List){
+//                    List<Object> _params = (List<Object>) beanMap.get(o);
+//                    for(Integer i = 0; i < _params.size(); i++) {
+//                        String k = key.isEmpty() ? i.toString() : (key +"["+ i.toString() +"]");
+//                        String encodeValue = urlencode(_params.get(i), k);
+//                        if(!encodeValue.isEmpty()) {
+//                            res += '&'+ encodeValue;
+//                        }
+//                    }
+//                }else{
+//                    paramStr.append(String.format("%s=%s&",o.toString(), URLEncoder.encode(beanMap.get(o).toString(),"utf-8")));
+//                }
+//
+//            }
+            System.out.println(paramStr.toString());
+            if (mock) {
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
+            }
+            return res;
+        } catch (Exception ex) {
+            log.error("ibu定制接口错误(" + reqId.toString() + ")" + ex.getMessage(), ex);
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
+        }
+
+    }
+
+    public static String urlencode(Object params, String key) {
+        String res = "";
+        if (params == null) {
+            return "";
+        } else if (params instanceof Map) {
+            Map<String, Object> _params = (Map<String, Object>) params;
+            for (String i : _params.keySet()) {
+                String k = key.isEmpty() ? i : (key + "[" + i + "]");
+                String encodeValue = urlencode(_params.get(i), k);
+                if (!encodeValue.isEmpty()) {
+                    res += '&' + encodeValue;
+                }
+            }
+        } else if (params instanceof List) {
+            List<Object> _params = (List<Object>) params;
+            for (Integer i = 0; i < _params.size(); i++) {
+                String k = key.isEmpty() ? i.toString() : (key + "[" + i.toString() + "]");
+                boolean typeBoolean = params.getClass().isArray()
+                        || params instanceof String || params instanceof Map || params instanceof Number;
+                String encodeValue = urlencode(typeBoolean ? _params.get(i) : BeanMap.create(_params.get(i)), k);
+                if (!encodeValue.isEmpty()) {
+                    res += '&' + encodeValue;
+                }
+            }
+        } else if (params.getClass().isArray()) {
+            Object[] _params;
+            if (params instanceof Object[]) {
+                _params = (Object[]) params;
+            } else if (params instanceof String[]) {
+                _params = (String[]) params;
+            } else if (params instanceof int[]) {
+                _params = ArrayUtils.toObject((int[]) params);
+            } else if (params instanceof double[]) {
+                _params = ArrayUtils.toObject((double[]) params);
+            } else {
+                _params = new Object[]{};
+            }
+            for (Integer i = 0; i < _params.length; i++) {
+                String k = key.isEmpty() ? i.toString() : (key + "[" + i.toString() + "]");
+                String encodeValue = urlencode(_params[i], k);
+                if (!encodeValue.isEmpty()) {
+                    res += '&' + encodeValue;
+                }
+            }
+        } else if (params instanceof String) {
+            String _params = (String) params;
+            try {
+                res += '&' + URLEncoder.encode(key, "UTF-8") + '=' + URLEncoder.encode(_params, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        } else if (params instanceof Number) {
+            Number _params = (Number) params;
+            try {
+                res += '&' + URLEncoder.encode(key, "UTF-8") + '=' + URLEncoder.encode(_params.toString(), "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        } else {
+            return "";
+        }
+        return res.substring(1);
+    }
+
+
+    public static Map<String, Object> urldecode(String param) {
+        if (param == null || param.isEmpty()) {
+            return null;
+        }
+        //解码
+        String[] params = param.split("&");
+        Map<String, String> key2value = new TreeMap<String, String>();
+        for (int i = 0; i < params.length; i++) {
+            String[] p = params[i].split("=");
+            if (p.length == 0) {
+                continue;
+            }
+            try {
+                String keyStr = URLDecoder.decode(p[0], "UTF-8");
+                if (StringUtils.isBlank(keyStr)) {
+                    continue;
+                }
+                String valueStr;
+                if (p.length == 2) {
+                    valueStr = URLDecoder.decode(p[1], "UTF-8");
+                } else {
+                    valueStr = "";
+                }
+                key2value.put(keyStr, valueStr);
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+        //遍历每一行传参
+        Map<String, Object> map = new HashMap<String, Object>();
+        for (Map.Entry<String, String> entry : key2value.entrySet()) {
+            String keyStr = entry.getKey();
+            String value = entry.getValue();
+            //根目录的key
+            Matcher keyMatcher = Pattern.compile("^[a-zA-Z\\_]{1}[\\w]*").matcher(keyStr);
+            if (!keyMatcher.find()) {
+                continue;
+            }
+            String key = keyMatcher.group(0);
+            if (!map.containsKey(key)) {
+                map.put(key, new HashMap<String, Object>());
+            }
+
+            //二级以及二级目录以上的key
+            String pattern = "\\[([\\w]+?)\\]";
+            Matcher filterMatcher = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(keyStr);
+            //获取所有的patternKey
+            List<String> patternKeyList = new ArrayList<String>();
+            while (filterMatcher.find()) {
+                String patternKey = filterMatcher.group(1);
+                patternKeyList.add(patternKey);
+            }
+            //有子元素
+            if (!patternKeyList.isEmpty()) {
+                //遍历并写入
+                Object childMap = map.get(key);
+                int patternKeyListSize = patternKeyList.size();
+                for (int j = 0; j < patternKeyListSize; j++) {
+                    String patternKey = patternKeyList.get(j);
+                    Map<String, Object> _childMap = (HashMap<String, Object>) childMap;
+                    if (!_childMap.containsKey(patternKey)) {
+                        //是否是最后一个节点，是的话直接赋值
+                        if (j == patternKeyListSize - 1) {
+                            _childMap.put(patternKey, value);
+                            break;
+                        }
+                        _childMap.put(patternKey, new HashMap<String, Object>());
+                    }
+                    childMap = _childMap.get(patternKey);
+                }
+            }
+            //只有一级元素
+            else {
+                map.put(key, value);
+            }
+        }
+        map = (Map<String, Object>) map2list(map);
+        return map;
+    }
+
+    private static Object map2list(Map<String, Object> map) {
+        Set<String> keySet = map.keySet();
+        boolean all_is_number = true;
+        for (String key : keySet) {
+            //不是数字
+            if (!Pattern.matches("^[0-9]+$", key)) {
+                all_is_number = false;
+            }
+            Object childNode = map.get(key);
+            if (childNode instanceof Map) {
+                childNode = map2list((Map<String, Object>) childNode);
+                map.put(key, childNode);
+            }
+        }
+        Object res;
+        if (all_is_number) {
+            res = new ArrayList<Object>();
+            for (String key : keySet) {
+                Object value = map.get(key);
+                ((List<Object>) res).add(value);
+            }
+        } else {
+            res = map;
+        }
+        return res;
+    }
+
+
+    @Test
+    public void testStr() {
 
         Date yyyyMMdd1 = null;
         try {
@@ -46,24 +315,24 @@ public class MyTest {
         }
         String yyyyMMdd = new SimpleDateFormat("yyyyMMdd").format(yyyyMMdd1);
         System.out.println(yyyyMMdd);
-        HashMap<String,String> hs = new HashMap();
-        hs.put("checkBlackList",new String("1"));
-        if(hs.get("checkBlackList")=="1"){
+        HashMap<String, String> hs = new HashMap();
+        hs.put("checkBlackList", new String("1"));
+        if (hs.get("checkBlackList") == "1") {
             System.out.println("====");
-        }else{
+        } else {
             System.out.println("////");
         }
     }
 
     @Test
-    public void testThread(){
-        ExecutorService threadPoolExecutor = new ThreadPoolExecutor(30, 30,60L,TimeUnit.SECONDS
-                ,new ArrayBlockingQueue(200),new ThreadFactoryBuilder().setNameFormat("br-test-pool-%d").build()
+    public void testThread() {
+        ExecutorService threadPoolExecutor = new ThreadPoolExecutor(30, 30, 60L, TimeUnit.SECONDS
+                , new ArrayBlockingQueue(200), new ThreadFactoryBuilder().setNameFormat("br-test-pool-%d").build()
                 , new ThreadPoolExecutor.CallerRunsPolicy());
         long start = System.currentTimeMillis();
         for (int i = 0; i < 100000; i++) {
             final int a = i;
-            threadPoolExecutor.submit(()->{
+            threadPoolExecutor.submit(() -> {
                 try {
                     Thread.sleep(200L);
                 } catch (InterruptedException e) {
@@ -75,11 +344,11 @@ public class MyTest {
         }
         threadPoolExecutor.shutdown();
         Boolean b = true;
-        while (b){
-            if(threadPoolExecutor.isTerminated()){
+        while (b) {
+            if (threadPoolExecutor.isTerminated()) {
                 System.out.println("结束");
-                b=false;
-            }else{
+                b = false;
+            } else {
                 System.out.println("休息");
                 try {
                     Thread.sleep(3000L);
@@ -89,31 +358,31 @@ public class MyTest {
             }
         }
         long end = System.currentTimeMillis();
-        System.out.println("结束:".concat(String.valueOf(end-start)));
+        System.out.println("结束:".concat(String.valueOf(end - start)));
 
     }
 
     @Test
-    public void testInt(){
-        ExecutorService threadPoolExecutor = new ThreadPoolExecutor(30, 30,60L,TimeUnit.SECONDS
-                ,new ArrayBlockingQueue(200),new ThreadFactoryBuilder().setNameFormat("br-test-pool-%d").build()
+    public void testInt() {
+        ExecutorService threadPoolExecutor = new ThreadPoolExecutor(30, 30, 60L, TimeUnit.SECONDS
+                , new ArrayBlockingQueue(200), new ThreadFactoryBuilder().setNameFormat("br-test-pool-%d").build()
                 , new ThreadPoolExecutor.CallerRunsPolicy());
         AtomicLong l = new AtomicLong();
         Integer b = 0;
         for (int i = 0; i < 10000; i++) {
             final int a = i;
-            threadPoolExecutor.submit(()->{
+            threadPoolExecutor.submit(() -> {
                 l.getAndAdd(a);
             });
-            b+=i;
+            b += i;
         }
         threadPoolExecutor.shutdown();
         Boolean c = true;
-        while (c){
-            if(threadPoolExecutor.isTerminated()){
+        while (c) {
+            if (threadPoolExecutor.isTerminated()) {
                 System.out.println("结束");
-                c=false;
-            }else{
+                c = false;
+            } else {
                 System.out.println("休息");
                 try {
                     Thread.sleep(3000L);
@@ -123,38 +392,39 @@ public class MyTest {
             }
         }
 
-        System.out.println("耗时l:"+l.get());
-        System.out.println("耗时b:"+b);
+        System.out.println("耗时l:" + l.get());
+        System.out.println("耗时b:" + b);
     }
 
     @Test
-    public void testLog(){
+    public void testLog() {
         HashMap<Object, Object> objectObjectHashMap = new HashMap<>();
-        objectObjectHashMap.put("a",123);
-        objectObjectHashMap.put("b", Arrays.asList(1,2,3,4));
-        log.warn("【跑批任务】调度结束，耗时：{},分片：{}",1,objectObjectHashMap);
+        objectObjectHashMap.put("a", 123);
+        objectObjectHashMap.put("b", Arrays.asList(1, 2, 3, 4));
+        log.warn("【跑批任务】调度结束，耗时：{},分片：{}", 1, objectObjectHashMap);
     }
 
     @Test
-    public void testLong(){
+    public void testLong() {
         Long a = 2L;
         Integer b = 2;
         ArrayList<Integer> objects = new ArrayList<>();
         objects.add(0);
         objects.add(1);
         boolean contains = Arrays.asList(0, 1).contains(a % 2);
-        System.out.println("输出："+contains+"ceshi:"+a % 2);
+        System.out.println("输出：" + contains + "ceshi:" + a % 2);
         boolean containsb = objects.contains(a % 2);
-        System.out.println("输出2："+containsb+"ceshi:"+a % 2);
+        System.out.println("输出2：" + containsb + "ceshi:" + a % 2);
         boolean containsc = objects.contains(b % 2);
-        System.out.println("输出3："+containsc+"ceshi:"+a % 2);
+        System.out.println("输出3：" + containsc + "ceshi:" + a % 2);
     }
+
     @Test
     public void testSm3() throws IOException {
         String nn = Sm3Util.getSM3Value("wzq" + "9a3a4beb9508b71114ac8346122067250d205c5b123b6be277e72245ac39738b");
         System.out.println(nn.toLowerCase());
         String mm = nn.toLowerCase() + "dyih";
-       String sm3Value =  Sm3Util.getSM3Value(mm).toLowerCase();
+        String sm3Value = Sm3Util.getSM3Value(mm).toLowerCase();
         //String sm3Value =  Sm3Util.getSM3Value("b42b692a53777f13a894a881b24492fe86e06838ae23e91ac9f2ba43050bc448dyih");
         System.out.println(sm3Value);
     }

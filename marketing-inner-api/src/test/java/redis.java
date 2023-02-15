@@ -1,5 +1,6 @@
 
 import com.br.marketing.client.dassservice.DassServiceClient;
+import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
@@ -65,7 +66,28 @@ public class redis {
 
     @Test
     public void testIbuInterface(){
-//        Result result = dassServiceClient.pushIbuArtificial();
+        List<IbuReqDTO.Datum> list = new ArrayList<>();
+        IbuReqDTO.Datum datum = new IbuReqDTO.Datum();
+        datum.setUid("ab123");
+        datum.setUserType("D");
+        datum.setUserCode("ab123");
+        datum.setUserName("1");
+        datum.setPhone("15520342033");
+        datum.setSource("101");
+        datum.setPlanId(123);
+
+        IbuReqDTO.Datum datum1 = new IbuReqDTO.Datum();
+        datum1.setUid("123");
+        datum1.setUserType("D");
+        datum1.setUserCode("ab123");
+        datum1.setUserName("1");
+        datum1.setPhone("15520342034");
+        datum1.setSource("101");
+        datum1.setPlanId(123);
+        list.add(datum);
+        list.add(datum1);
+
+        Result result = dassServiceClient.pushIbuArtificial(list);
     }
 
     @Test

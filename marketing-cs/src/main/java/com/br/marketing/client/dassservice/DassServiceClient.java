@@ -36,6 +36,7 @@ import org.springframework.util.DigestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
+import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -389,19 +390,19 @@ public class DassServiceClient {
         try {
             Result<String> res = new Result<>();
             IbuReqDTO ibuReqDTO = new IbuReqDTO();
-            ibuReqDTO.setData(datumList);
+            ibuReqDTO.setData(JSON.toJSONString(datumList));
             ibuReqDTO.setAccessKey(ibuAk);
-            ibuReqDTO.setSign(ibuSk);
             ibuReqDTO.setTs(System.currentTimeMillis());
             StringBuilder mText = new StringBuilder();
             mText.append(ibuSk);
+            mText.append(ibuReqDTO.getData());
             mText.append(ibuReqDTO.getTs());
-            mText.append(JSON.toJSONString(datumList));
-            String s = DigestUtils.md5DigestAsHex(mText.toString().getBytes());
+            String s = DigestUtils.md5DigestAsHex(mText.toString().getBytes()).toUpperCase();
             ibuReqDTO.setSign(s);
+            StringBuilder paramStr = new StringBuilder();
             HashMap<String, String> resContent = httpProxyClient.sendByCodeWithLog(ibuReqDTO, batchHermesUserData
                     , isProxy.equals("0") ? false : true
-                    , MediaType.APPLICATION_JSON_UTF8_VALUE, reqId.toString()
+                    , MediaType.APPLICATION_FORM_URLENCODED_VALUE, reqId.toString()
                     , httpProxyClient.isLogStore(ibuBatchToDass).get(0)
                     , httpProxyClient.isLogStore(ibuBatchToDass).get(1));
             String httpcode = resContent.get("httpcode");

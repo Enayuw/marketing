@@ -9,13 +9,14 @@ import java.util.List;
 
 @Data
 public class IbuReqDTO {
-    private List<Datum> data;
+    private String data;
     private String accessKey;
     private String sign;
     private long ts;
 
+
     @Data
-    public class Datum {
+    public static class Datum {
         private String uid;
         private String userType;
         private String purpose;
