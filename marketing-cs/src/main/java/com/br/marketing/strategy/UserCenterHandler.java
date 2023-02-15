@@ -39,7 +39,7 @@ public class UserCenterHandler {
             JSONObject jsonObject = JSON.parseObject(mes);
             String apiCode = jsonObject.getString("apiCode");
             String operateType = jsonObject.getString("operateType");
-            String apiType = jsonObject.getString("operateType");
+            String apiType = jsonObject.getString("apiType");
             if(apiType.equals("智能运营")){
                 MerchantParam merchantParam = RpcClientProxy.getMerchantParam(apiCode);
                 String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
