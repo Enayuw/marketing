@@ -40,7 +40,7 @@ public class UserCenterHandler {
             String apiCode = jsonObject.getString("apiCode");
             String operateType = jsonObject.getString("operateType");
             String apiType = jsonObject.getString("apiType");
-            if(apiType.equals("智能运营")){
+            if (apiType.equals("智能运营")) {
                 MerchantParam merchantParam = RpcClientProxy.getMerchantParam(apiCode);
                 String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
                 if (StringUtils.isNotEmpty(companyMsg) && merchantParam != null) {
@@ -72,17 +72,18 @@ public class UserCenterHandler {
                     marketingCustomer.setFileEncryptionKey(merchantParam.getFileEncryptionKey());
                     marketingCustomer.setIsOutputDataProduct(merchantParam.getIsOutputDataProduct());
                     marketingCustomer.setMessage(merchantParam.getRemarks());
-                        MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
-                        marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(marketingCustomer.getCid());
-                        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
-                        if(marketingCustomers.size()==0){
-                            marketingCustomer.setCreateTime(new Date());
-                            marketingCustomerMapper.insertSelective(marketingCustomer);
-                        }else {
-                            marketingCustomerMapper.updateByExampleSelective(marketingCustomer, marketingCustomerExample);
+                    MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
+                    marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(marketingCustomer.getCid());
+                    List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
+                    if (marketingCustomers.size() == 0) {
+                        marketingCustomer.setCreateTime(new Date());
+                        marketingCustomerMapper.insertSelective(marketingCustomer);
+                    } else {
+                        marketingCustomer.setUpdateTime(new Date());
+                        marketingCustomerMapper.updateByExampleSelective(marketingCustomer, marketingCustomerExample);
                     }
-                }else {
-                    log.warn("商户信息查询失败:merchantParam：{}-----，companyMsg：{}------ ", merchantParam,companyMsg );
+                } else {
+                    log.warn("商户信息查询失败:merchantParam：{}-----，companyMsg：{}------ ", merchantParam, companyMsg);
                 }
             }
 
