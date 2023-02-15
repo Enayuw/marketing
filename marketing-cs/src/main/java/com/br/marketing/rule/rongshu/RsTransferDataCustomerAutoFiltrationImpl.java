@@ -29,7 +29,7 @@ import java.util.Map;
 @Service
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class RsTransferDataAutoCustomerFiltrationImpl implements AssembleData<ConversionData> {
+public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<ConversionData> {
 
 
     private final static String MD5 = "md5";
