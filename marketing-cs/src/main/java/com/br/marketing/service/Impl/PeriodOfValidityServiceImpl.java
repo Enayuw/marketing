@@ -76,7 +76,7 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         if (StringUtils.isBlank(validityDayStr)) {
             return false;
         }
-        Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr);
+        Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr, validityDate);
         return isNotExpire(date, day, validityDate);
     }
 
@@ -115,7 +115,7 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         syncUser.setApiCode(apiCode);
         syncUser.setCustNum(custNum);
         Date validityDate = getAppletTimeBySyncUser(syncUser);
-        Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr);
+        Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr, validityDate);
         return isNotExpire(date, day, validityDate);
     }
 
@@ -144,8 +144,9 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         if (StringUtils.isBlank(validityDayStr)) {
             return false;
         }
-        Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr);
-        return isNotExpire(syncUser, date, day);
+        Date validityDate = getAppletTimeBySyncUser(syncUser);
+        Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr, validityDate);
+        return isNotExpire(date, day, validityDate);
     }
 
     @Override
@@ -162,7 +163,7 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
     @Override
     public PeriodOfValidityBO.Builder getPeriodOfValidityRange(String validityDayStr, Date validityDate)
             throws IllegalArgumentException {
-        Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr);
+        Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr, validityDate);
         return getPeriodOfValidityRange(day, validityDate);
     }
 
