@@ -4,6 +4,8 @@ import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.entity.MarketingSyncUser;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -165,6 +167,36 @@ public interface IPeriodOfValidityService {
 
 
     /**
+     * 已过期案件编号,有效期计算依据为上传表中AppletTime或CreateTime，优先使用AppletTime
+     *
+     * @param apiCode        apiCode
+     * @param custNumSet     案件编号集合
+     * @param date           查是否在有效期内的日期
+     * @param validityDayStr 格式 [T+N]、[T+0]、[M]
+     * @return 超过有效期范围案件编号
+     * @throws IllegalArgumentException 有效期格式无法解析
+     * @author Guo Zeqiang
+     * @dateTime 2023/2/9 9:08
+     */
+    List<String> isExpire(String apiCode, Set<String> custNumSet, Date date, String validityDayStr)
+            throws IllegalArgumentException;
+
+    /**
+     * 未过期案件编号,有效期计算依据为上传表中AppletTime或CreateTime，优先使用AppletTime
+     *
+     * @param apiCode        apiCode
+     * @param custNumSet     案件编号集合
+     * @param date           查是否在有效期内的日期
+     * @param validityDayStr 格式 [T+N]、[T+0]、[M]
+     * @return 未超过有效期范围案件编号
+     * @throws IllegalArgumentException 有效期格式无法解析
+     * @author Guo Zeqiang
+     * @dateTime 2023/2/9 9:08
+     */
+    List<String> isNotExpire(String apiCode, Set<String> custNumSet, Date date, String validityDayStr)
+            throws IllegalArgumentException;
+
+    /**
      * 已过期,有效期计算依据为上传表中AppletTime或CreateTime，优先使用AppletTime，都为null时默认为当前日期
      *
      * @param syncUser       上传表过滤条件，支持 apiCode、custNum、userType
@@ -226,7 +258,7 @@ public interface IPeriodOfValidityService {
      *
      * @param validityDayStr 格式 [T+N]、[T+0]、[M]
      * @param validityDate   计算有效期范围的日期，也就是有效期表达式中[T+N]中的T
-     * @return 有效期范围
+     * @return 有效期范围, {@code validityDate} 为null时，返回null
      * @throws IllegalArgumentException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:18
@@ -240,7 +272,7 @@ public interface IPeriodOfValidityService {
      *
      * @param day          天的范围，也就是有效期表达式中[T+N]中的N
      * @param validityDate 计算有效期范围的日期，也就是有效期表达式中[T+N]中的T
-     * @return 有效期范围
+     * @return 有效期范围, {@code validityDate} 为null时，返回null
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:18
      */
@@ -254,7 +286,7 @@ public interface IPeriodOfValidityService {
      * @param apiCode        apiCode
      * @param custNum        案件编号
      * @param validityDayStr 格式 [T+N]、[T+0]、[M]
-     * @return 有效期范围
+     * @return 有效期范围, 上传数据为获取到时，返回null
      * @throws IllegalArgumentException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:18
@@ -271,7 +303,7 @@ public interface IPeriodOfValidityService {
      * @param apiCode apiCode
      * @param custNum 案件编号
      * @param day     天的范围，也就是有效期表达式中[T+N]中的N
-     * @return 有效期范围
+     * @return 有效期范围, 上传数据为获取到时，返回null
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:18
      */
@@ -284,7 +316,7 @@ public interface IPeriodOfValidityService {
      *
      * @param syncUser       上传表过滤条件，支持 apiCode、custNum、userType
      * @param validityDayStr 格式 [T+N]、[T+0]、[M]
-     * @return 有效期范围
+     * @return 有效期范围, 上传数据为获取到时，返回null
      * @throws IllegalArgumentException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:18
@@ -300,7 +332,7 @@ public interface IPeriodOfValidityService {
      *
      * @param syncUser 上传表过滤条件，支持 apiCode、custNum、userType
      * @param day      天的范围，也就是有效期表达式中[T+N]中的N
-     * @return 有效期范围
+     * @return 有效期范围, 上传数据为获取到时，返回null
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:18
      */
@@ -313,7 +345,7 @@ public interface IPeriodOfValidityService {
      *
      * @param validityDayStrSupplier 返回格式： [T+N]、[T+0]、[M]的字符串或整形数字，只接受“String”或“Integer”数据类型
      * @param validityDateSupplier   返回计算有效期范围的日期，也就是有效期表达式中[T+N]中的T，通过自定义函数提供
-     * @return 有效期范围
+     * @return 有效期范围, {@code validityDateSupplier}结果为null时，返回null
      * @throws IllegalArgumentException 非法参数类型或无法解析有效期格式
      * @author Guo Zeqiang
      * @dateTime 2023/2/9 9:18
