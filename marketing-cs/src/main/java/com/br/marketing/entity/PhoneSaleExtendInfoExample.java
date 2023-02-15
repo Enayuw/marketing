@@ -12,7 +12,7 @@ public class PhoneSaleExtendInfoExample {
     protected List<Criteria> oredCriteria;
 
     public PhoneSaleExtendInfoExample() {
-        oredCriteria = new ArrayList<>();
+        oredCriteria = new ArrayList<Criteria>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class PhoneSaleExtendInfoExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<>();
+            criteria = new ArrayList<Criterion>();
         }
 
         public boolean isValid() {
@@ -302,6 +302,76 @@ public class PhoneSaleExtendInfoExample {
 
         public Criteria andCustNumNotBetween(String value1, String value2) {
             addCriterion("cust_num not between", value1, value2, "custNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellIsNull() {
+            addCriterion("cell is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellIsNotNull() {
+            addCriterion("cell is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellEqualTo(String value) {
+            addCriterion("cell =", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellNotEqualTo(String value) {
+            addCriterion("cell <>", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellGreaterThan(String value) {
+            addCriterion("cell >", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellGreaterThanOrEqualTo(String value) {
+            addCriterion("cell >=", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellLessThan(String value) {
+            addCriterion("cell <", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellLessThanOrEqualTo(String value) {
+            addCriterion("cell <=", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellLike(String value) {
+            addCriterion("cell like", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellNotLike(String value) {
+            addCriterion("cell not like", value, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellIn(List<String> values) {
+            addCriterion("cell in", values, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellNotIn(List<String> values) {
+            addCriterion("cell not in", values, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellBetween(String value1, String value2) {
+            addCriterion("cell between", value1, value2, "cell");
+            return (Criteria) this;
+        }
+
+        public Criteria andCellNotBetween(String value1, String value2) {
+            addCriterion("cell not between", value1, value2, "cell");
             return (Criteria) this;
         }
 
@@ -586,72 +656,72 @@ public class PhoneSaleExtendInfoExample {
         }
 
         public Criteria andStatusIsNull() {
-            addCriterion("`status` is null");
+            addCriterion("status is null");
             return (Criteria) this;
         }
 
         public Criteria andStatusIsNotNull() {
-            addCriterion("`status` is not null");
+            addCriterion("status is not null");
             return (Criteria) this;
         }
 
         public Criteria andStatusEqualTo(String value) {
-            addCriterion("`status` =", value, "status");
+            addCriterion("status =", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotEqualTo(String value) {
-            addCriterion("`status` <>", value, "status");
+            addCriterion("status <>", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusGreaterThan(String value) {
-            addCriterion("`status` >", value, "status");
+            addCriterion("status >", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusGreaterThanOrEqualTo(String value) {
-            addCriterion("`status` >=", value, "status");
+            addCriterion("status >=", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLessThan(String value) {
-            addCriterion("`status` <", value, "status");
+            addCriterion("status <", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLessThanOrEqualTo(String value) {
-            addCriterion("`status` <=", value, "status");
+            addCriterion("status <=", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLike(String value) {
-            addCriterion("`status` like", value, "status");
+            addCriterion("status like", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotLike(String value) {
-            addCriterion("`status` not like", value, "status");
+            addCriterion("status not like", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusIn(List<String> values) {
-            addCriterion("`status` in", values, "status");
+            addCriterion("status in", values, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotIn(List<String> values) {
-            addCriterion("`status` not in", values, "status");
+            addCriterion("status not in", values, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusBetween(String value1, String value2) {
-            addCriterion("`status` between", value1, value2, "status");
+            addCriterion("status between", value1, value2, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotBetween(String value1, String value2) {
-            addCriterion("`status` not between", value1, value2, "status");
+            addCriterion("status not between", value1, value2, "status");
             return (Criteria) this;
         }
 
@@ -836,72 +906,72 @@ public class PhoneSaleExtendInfoExample {
         }
 
         public Criteria andTypeIsNull() {
-            addCriterion("`type` is null");
+            addCriterion("type is null");
             return (Criteria) this;
         }
 
         public Criteria andTypeIsNotNull() {
-            addCriterion("`type` is not null");
+            addCriterion("type is not null");
             return (Criteria) this;
         }
 
         public Criteria andTypeEqualTo(String value) {
-            addCriterion("`type` =", value, "type");
+            addCriterion("type =", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeNotEqualTo(String value) {
-            addCriterion("`type` <>", value, "type");
+            addCriterion("type <>", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeGreaterThan(String value) {
-            addCriterion("`type` >", value, "type");
+            addCriterion("type >", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeGreaterThanOrEqualTo(String value) {
-            addCriterion("`type` >=", value, "type");
+            addCriterion("type >=", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeLessThan(String value) {
-            addCriterion("`type` <", value, "type");
+            addCriterion("type <", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeLessThanOrEqualTo(String value) {
-            addCriterion("`type` <=", value, "type");
+            addCriterion("type <=", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeLike(String value) {
-            addCriterion("`type` like", value, "type");
+            addCriterion("type like", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeNotLike(String value) {
-            addCriterion("`type` not like", value, "type");
+            addCriterion("type not like", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeIn(List<String> values) {
-            addCriterion("`type` in", values, "type");
+            addCriterion("type in", values, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeNotIn(List<String> values) {
-            addCriterion("`type` not in", values, "type");
+            addCriterion("type not in", values, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeBetween(String value1, String value2) {
-            addCriterion("`type` between", value1, value2, "type");
+            addCriterion("type between", value1, value2, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeNotBetween(String value1, String value2) {
-            addCriterion("`type` not between", value1, value2, "type");
+            addCriterion("type not between", value1, value2, "type");
             return (Criteria) this;
         }
 
@@ -1164,11 +1234,140 @@ public class PhoneSaleExtendInfoExample {
             addCriterion("push_dx_time not between", value1, value2, "pushDxTime");
             return (Criteria) this;
         }
+
+        public Criteria andRedundancyFieldIsNull() {
+            addCriterion("redundancy_field is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedundancyFieldIsNotNull() {
+            addCriterion("redundancy_field is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedundancyFieldEqualTo(String value) {
+            addCriterion("redundancy_field =", value, "redundancyField");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedundancyFieldNotEqualTo(String value) {
+            addCriterion("redundancy_field <>", value, "redundancyField");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedundancyFieldGreaterThan(String value) {
+            addCriterion("redundancy_field >", value, "redundancyField");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedundancyFieldGreaterThanOrEqualTo(String value) {
+            addCriterion("redundancy_field >=", value, "redundancyField");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedundancyFieldLessThan(String value) {
+            addCriterion("redundancy_field <", value, "redundancyField");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedundancyFieldLessThanOrEqualTo(String value) {
+            addCriterion("redundancy_field <=", value, "redundancyField");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedundancyFieldLike(String value) {
+            addCriterion("redundancy_field like", value, "redundancyField");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedundancyFieldNotLike(String value) {
+            addCriterion("redundancy_field not like", value, "redundancyField");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedundancyFieldIn(List<String> values) {
+            addCriterion("redundancy_field in", values, "redundancyField");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedundancyFieldNotIn(List<String> values) {
+            addCriterion("redundancy_field not in", values, "redundancyField");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedundancyFieldBetween(String value1, String value2) {
+            addCriterion("redundancy_field between", value1, value2, "redundancyField");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedundancyFieldNotBetween(String value1, String value2) {
+            addCriterion("redundancy_field not between", value1, value2, "redundancyField");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTypeIsNull() {
+            addCriterion("interface_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTypeIsNotNull() {
+            addCriterion("interface_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTypeEqualTo(Integer value) {
+            addCriterion("interface_type =", value, "interfaceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTypeNotEqualTo(Integer value) {
+            addCriterion("interface_type <>", value, "interfaceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTypeGreaterThan(Integer value) {
+            addCriterion("interface_type >", value, "interfaceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("interface_type >=", value, "interfaceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTypeLessThan(Integer value) {
+            addCriterion("interface_type <", value, "interfaceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("interface_type <=", value, "interfaceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTypeIn(List<Integer> values) {
+            addCriterion("interface_type in", values, "interfaceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTypeNotIn(List<Integer> values) {
+            addCriterion("interface_type not in", values, "interfaceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTypeBetween(Integer value1, Integer value2) {
+            addCriterion("interface_type between", value1, value2, "interfaceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("interface_type not between", value1, value2, "interfaceType");
+            return (Criteria) this;
+        }
     }
 
-    /**
-     */
     public static class Criteria extends GeneratedCriteria {
+
         protected Criteria() {
             super();
         }

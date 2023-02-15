@@ -1,17 +1,12 @@
 package com.br.marketing.rule.rongshu;
 
-import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.dassservice.input.DassImportDataDTO;
-import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.RsCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.PhoneSaleExtendInfo;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.rule.AssembleData;
@@ -26,12 +21,11 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.Map;
 
 
 @Service
-public class RsAutoArtificialAndCustomerTransferDelayImpl implements AssembleData<MqFact> {
+public class RsAutoArtificialAndCustomerTransferFromDelayImpl implements AssembleData<MqFact> {
 
 
     @Resource
@@ -64,24 +58,6 @@ public class RsAutoArtificialAndCustomerTransferDelayImpl implements AssembleDat
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-            String userType = transfer.getUserType();
-            String auditTime = transfer.getAuditTime();
-            Double unlentAmount = StringUtils.isNotBlank(transfer.getUnlentAmount())
-                    ? Double.valueOf(transfer.getUnlentAmount())
-                    : new Double(0);
-            int rsUnlentAmount = marketingCommonConfig.getRsUnlentAmount() == null ? 1000 : marketingCommonConfig.getRsUnlentAmount();
-            if (!"3".equals(userType)) {
-                return false;
-            }
-
-            String nowDay = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            if (!auditTime.contains(nowDay)) {
-                return false;
-            }
-
-            if (unlentAmount < rsUnlentAmount) {
-                return false;
-            }
 
             RsCollectDataImpl.RsRuleNecessaryData ruleNecessaryData =
                     (RsCollectDataImpl.RsRuleNecessaryData) context.getRuleNecessaryData();
@@ -91,10 +67,7 @@ public class RsAutoArtificialAndCustomerTransferDelayImpl implements AssembleDat
                 return false;
             }
             String appletDate = marketingSyncUser.getAppletDate();
-            if (iPeriodOfValidityService.isExpire(appletDate,marketingCommonConfig.getRsValidityDay(),null)) {
-                return false;
-            }
-
+            //todo 判断剔除
             return true;
 
         }
