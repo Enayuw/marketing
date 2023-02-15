@@ -442,6 +442,11 @@ public class MarketingCommonConfig {
     private Integer ppdOldPhoneValidityDay;
 
     /**
+     * 榕树转化数据生效截止时间
+     */
+    private String rsTransferDataToCustomerExpireDate;
+
+    /**
      * 榕树为提取金额
      */
     private Integer rsUnlentAmount;
