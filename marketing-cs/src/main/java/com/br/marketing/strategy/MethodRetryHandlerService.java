@@ -8,6 +8,7 @@ import com.br.marketing.client.dassservice.PushBlackListResponse;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportAdapHaluoDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
@@ -447,6 +448,27 @@ public class MethodRetryHandlerService {
                     , LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
         }
         return result;
+    }
+
+
+    /**
+     * 调用电销Ibu批量接口
+     * 调用成功，将该批数据记录到数据库中以便数据对比
+     * @param datumList
+     * @return
+     */
+    @RetryMethod(isOrNoDbRetry = true)
+    public Result callDassIbuBatchData(List<IbuReqDTO.Datum> datumList, Integer retry) {
+        Result result = dassServiceClient.pushIbuArtificial(datumList);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            Set<String> set = datumList.stream().map(IbuReqDTO.Datum::getId).map(String::valueOf).collect(Collectors.toSet());
+            saveBizLog(String.join(",", set), InterfaceHandlerEnum.ARTIFICIAL_IBU_BATCH_DATA.getCode(),
+                    null);
+            phoneSaleExtendInfoMapper.updateBatch(set);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("调用人工IBU批量接口失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
     private void updatePushStatus(ZaMarketDataBO bo, Integer updatePushStatus, Integer updateStatus) {

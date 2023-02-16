@@ -1,6 +1,7 @@
 package com.br.marketing.client.dassservice.input;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -17,6 +18,8 @@ public class IbuReqDTO {
 
     @Data
     public static class Datum {
+        @JsonIgnore
+        private Long id;
         private String uid;
         private String userType;
         private String purpose;

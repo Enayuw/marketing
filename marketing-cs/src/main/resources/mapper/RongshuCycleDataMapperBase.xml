@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.RongshuCycleDataMapperBase">
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.RongshuCycleData">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="phone_extend_id" jdbcType="BIGINT" property="phoneExtendId" />
+    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
+    <result column="cust_num" jdbcType="VARCHAR" property="custNum" />
+    <result column="cell" jdbcType="VARCHAR" property="cell" />
+    <result column="push_daas_date" jdbcType="VARCHAR" property="pushDaasDate" />
+    <result column="push_daas_time" jdbcType="VARCHAR" property="pushDaasTime" />
+    <result column="p_status" jdbcType="INTEGER" property="pStatus" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, phone_extend_id, api_code, cust_num, cell, push_daas_date, push_daas_time, p_status, 
+    create_time, update_time
+  </sql>
+  <select id="selectByExample" parameterType="com.br.marketing.entity.RongshuCycleDataExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_rongshu_cycle_data
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from b_rongshu_cycle_data
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from b_rongshu_cycle_data
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.RongshuCycleDataExample">
+    delete from b_rongshu_cycle_data
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.RongshuCycleData" useGeneratedKeys="true">
+    insert into b_rongshu_cycle_data (phone_extend_id, api_code, cust_num, 
+      cell, push_daas_date, push_daas_time, 
+      p_status, create_time, update_time
+      )
+    values (#{phoneExtendId,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, 
+      #{cell,jdbcType=VARCHAR}, #{pushDaasDate,jdbcType=VARCHAR}, #{pushDaasTime,jdbcType=VARCHAR}, 
+      #{pStatus,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.RongshuCycleData" useGeneratedKeys="true">
+    insert into b_rongshu_cycle_data
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="phoneExtendId != null">
+        phone_extend_id,
+      </if>
+      <if test="apiCode != null">
+        api_code,
+      </if>
+      <if test="custNum != null">
+        cust_num,
+      </if>
+      <if test="cell != null">
+        cell,
+      </if>
+      <if test="pushDaasDate != null">
+        push_daas_date,
+      </if>
+      <if test="pushDaasTime != null">
+        push_daas_time,
+      </if>
+      <if test="pStatus != null">
+        p_status,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="phoneExtendId != null">
+        #{phoneExtendId,jdbcType=BIGINT},
+      </if>
+      <if test="apiCode != null">
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="custNum != null">
+        #{custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="cell != null">
+        #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="pushDaasDate != null">
+        #{pushDaasDate,jdbcType=VARCHAR},
+      </if>
+      <if test="pushDaasTime != null">
+        #{pushDaasTime,jdbcType=VARCHAR},
+      </if>
+      <if test="pStatus != null">
+        #{pStatus,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.RongshuCycleDataExample" resultType="java.lang.Long">
+    select count(*) from b_rongshu_cycle_data
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update b_rongshu_cycle_data
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.phoneExtendId != null">
+        phone_extend_id = #{record.phoneExtendId,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null">
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.custNum != null">
+        cust_num = #{record.custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cell != null">
+        cell = #{record.cell,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pushDaasDate != null">
+        push_daas_date = #{record.pushDaasDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pushDaasTime != null">
+        push_daas_time = #{record.pushDaasTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pStatus != null">
+        p_status = #{record.pStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update b_rongshu_cycle_data
+    set id = #{record.id,jdbcType=BIGINT},
+      phone_extend_id = #{record.phoneExtendId,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      cust_num = #{record.custNum,jdbcType=VARCHAR},
+      cell = #{record.cell,jdbcType=VARCHAR},
+      push_daas_date = #{record.pushDaasDate,jdbcType=VARCHAR},
+      push_daas_time = #{record.pushDaasTime,jdbcType=VARCHAR},
+      p_status = #{record.pStatus,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.RongshuCycleData">
+    update b_rongshu_cycle_data
+    <set>
+      <if test="phoneExtendId != null">
+        phone_extend_id = #{phoneExtendId,jdbcType=BIGINT},
+      </if>
+      <if test="apiCode != null">
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="custNum != null">
+        cust_num = #{custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="cell != null">
+        cell = #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="pushDaasDate != null">
+        push_daas_date = #{pushDaasDate,jdbcType=VARCHAR},
+      </if>
+      <if test="pushDaasTime != null">
+        push_daas_time = #{pushDaasTime,jdbcType=VARCHAR},
+      </if>
+      <if test="pStatus != null">
+        p_status = #{pStatus,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.RongshuCycleData">
+    update b_rongshu_cycle_data
+    set phone_extend_id = #{phoneExtendId,jdbcType=BIGINT},
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      cust_num = #{custNum,jdbcType=VARCHAR},
+      cell = #{cell,jdbcType=VARCHAR},
+      push_daas_date = #{pushDaasDate,jdbcType=VARCHAR},
+      push_daas_time = #{pushDaasTime,jdbcType=VARCHAR},
+      p_status = #{pStatus,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
