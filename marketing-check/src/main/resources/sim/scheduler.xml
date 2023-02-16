@@ -452,7 +452,7 @@
                 description="拍拍贷老客周期性推送电销"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
-                sharding-item-parameters="0=A"
+                sharding-item-parameters=""
                 monitor-execution="true"
                 failover="false"
                 misfire="false"
