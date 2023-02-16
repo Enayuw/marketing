@@ -31,8 +31,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -112,7 +112,6 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
                     , appletTime).addDateString().builder();
             String tcId = tableCreateService.getTcId(context.getApiCode());
             MarketingTransferSyncUserExample transferSyncUserExample = new MarketingTransferSyncUserExample();
-            transferSyncUserExample.setOrderByClause(" id limit 1");
             transferSyncUserExample.settCid(tcId);
             transferSyncUserExample.createCriteria()
                     .andTCidEqualTo(tcId)
@@ -120,8 +119,8 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
                     .andCustNumEqualTo(transfer.getCustNum())
                     .andIfLentEqualTo("Y")
                     .andRequestDataBetween(builder.getBeginDateStr(), builder.getEnDateStr());
-            List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(transferSyncUserExample);
-            if (marketingTransferSyncUsers.size() > 0) {
+            int countTransferSyncUser = marketingTransferSyncUserMapper.countByExample(transferSyncUserExample);
+            if (countTransferSyncUser > 0) {
                 return false;
             }
 
@@ -146,9 +145,9 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
 
             redisChgService.lock(key, value);
             PhoneSaleExtendInfoExample extendInfoExample = new PhoneSaleExtendInfoExample();
-            extendInfoExample.createCriteria().andApiCodeEqualTo(transfer.getApiCode()).
-                    andCustNumEqualTo(transfer.getCustNum()).
-                    andAppletDateBetween(_7Day, transfer.getRequestData());
+            extendInfoExample.createCriteria().andApiCodeEqualTo(transfer.getApiCode())
+                    .andCustNumEqualTo(transfer.getCustNum()).andStatusIn(Arrays.asList("a", "b"))
+                    .andAppletDateBetween(_7Day, transfer.getRequestData());
             int count = phoneSaleExtendInfoMapper.countByExample(extendInfoExample);
             if (count > 0) {
                 redisChgService.unlock(key, value);
