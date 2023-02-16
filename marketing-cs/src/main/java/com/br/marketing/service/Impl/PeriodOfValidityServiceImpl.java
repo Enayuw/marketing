@@ -16,7 +16,10 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -133,6 +136,36 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
     }
 
     @Override
+    public List<String> isExpire(String apiCode, Set<String> custNumSet, Date date, String validityDayStr)
+            throws IllegalArgumentException {
+        List<String> custNums = new ArrayList<>();
+        List<MarketingSyncUser> list = marketingSyncUserMapper.getSyncUserLastByCustNums(apiCode
+                , new ArrayList<>(custNumSet));
+        for (MarketingSyncUser syncUser : list) {
+            if (isExpire(date, validityDayStr
+                    , (syncUser.getAppletTime() == null ? syncUser.getCreateTime() : syncUser.getAppletTime()))) {
+                custNums.add(syncUser.getCustNum());
+            }
+        }
+        return custNums;
+    }
+
+    @Override
+    public List<String> isNotExpire(String apiCode, Set<String> custNumSet, Date date, String validityDayStr)
+            throws IllegalArgumentException {
+        List<String> custNums = new ArrayList<>();
+        List<MarketingSyncUser> list = marketingSyncUserMapper.getSyncUserLastByCustNums(apiCode
+                , new ArrayList<>(custNumSet));
+        for (MarketingSyncUser syncUser : list) {
+            if (isNotExpire(date, validityDayStr
+                    , (syncUser.getAppletTime() == null ? syncUser.getCreateTime() : syncUser.getAppletTime()))) {
+                custNums.add(syncUser.getCustNum());
+            }
+        }
+        return custNums;
+    }
+
+    @Override
     public boolean isExpire(MarketingSyncUser syncUser, Date date, String validityDayStr)
             throws IllegalArgumentException {
         return !isNotExpire(syncUser, date, validityDayStr);
@@ -169,8 +202,10 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
 
     @Override
     public PeriodOfValidityBO.Builder getPeriodOfValidityRange(Integer day, Date validityDate) {
-        final ZonedDateTime creatDate = ObjectUtils.isEmpty(validityDate)
-                ? ZonedDateTime.now() : validityDate.toInstant().atZone(ZoneId.systemDefault());
+        if (ObjectUtils.isEmpty(validityDate)) {
+            return null;
+        }
+        final ZonedDateTime creatDate = validityDate.toInstant().atZone(ZoneId.systemDefault());
         final Instant firstInstant;
         final Instant lastInstant;
         if (day == null) {
@@ -234,8 +269,8 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
 
     private Date getAppletTimeBySyncUser(MarketingSyncUser syncUser) {
         MarketingSyncUser user = marketingSyncUserMapper.getAppletTimeBySyncUser(syncUser);
-        return ObjectUtils.isEmpty(user) ? new Date() : (user.getAppletTime() == null
+        return ObjectUtils.isEmpty(user) ? null : (user.getAppletTime() == null
                 ? (user.getCreateTime() == null
-                ? new Date() : user.getCreateTime()) : user.getAppletTime());
+                ? null : user.getCreateTime()) : user.getAppletTime());
     }
 }
