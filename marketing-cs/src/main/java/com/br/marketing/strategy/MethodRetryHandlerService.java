@@ -8,6 +8,7 @@ import com.br.marketing.client.dassservice.PushBlackListResponse;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportAdapHaluoDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
@@ -27,6 +28,9 @@ import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.DistributeSourceTypeEnum;
+import com.br.marketing.common.enums.DistributeTypeEnum;
+import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.monkeydata.service.PushRosterLockingDataToZhongAn;
@@ -35,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -115,6 +120,34 @@ public class MethodRetryHandlerService {
 
     @Resource
     LocalFileMapper localFileMapper;
+
+
+    /**
+     *
+     * @param data 数据
+     * @param distributeTypeEnum DistributeTypeEnum 数据流向枚举
+     * @param apiCode
+     * @param custNum 案件号
+     * @param cell 手机号
+     * @param sourceId 源数据id
+     * @param distributeSourceTypeEnum 数据源类型
+     * @return
+     */
+    public DataJoinLogDTO dataJoinLogFix(Object data, DistributeTypeEnum distributeTypeEnum, String apiCode
+            , String custNum, String cell, Long sourceId, DistributeSourceTypeEnum distributeSourceTypeEnum){
+        DataJoinLogDTO dataJoinLogDTO = new DataJoinLogDTO();
+        dataJoinLogDTO.setApiCode(apiCode);
+        dataJoinLogDTO.setCustNum(custNum);
+        dataJoinLogDTO.setCell(cell);
+        dataJoinLogDTO.setDistributeDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        dataJoinLogDTO.setDistributeType(distributeTypeEnum.getValue());
+        dataJoinLogDTO.setCreateTime(new Date());
+        dataJoinLogDTO.setSourceId(sourceId);
+        dataJoinLogDTO.setSourceType(distributeSourceTypeEnum.getValue());
+        dataJoinLogDTO.setDataCode(data.hashCode());
+        dataJoinLogDTO.setDataMd5(DigestUtils.md5DigestAsHex(data.toString().getBytes()));
+        return dataJoinLogDTO;
+    }
 
     /**
      * 全局重试任务执行类
@@ -449,6 +482,27 @@ public class MethodRetryHandlerService {
                     , LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
         }
         return result;
+    }
+
+
+    /**
+     * 调用电销Ibu批量接口
+     * 调用成功，将该批数据记录到数据库中以便数据对比
+     * @param datumList
+     * @return
+     */
+    @RetryMethod(isOrNoDbRetry = true)
+    public Result callDassIbuBatchData(List<IbuReqDTO.Datum> datumList, Integer retry) {
+        Result result = dassServiceClient.pushIbuArtificial(datumList);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            Set<String> set = datumList.stream().map(IbuReqDTO.Datum::getId).map(String::valueOf).collect(Collectors.toSet());
+            saveBizLog(String.join(",", set), InterfaceHandlerEnum.ARTIFICIAL_IBU_BATCH_DATA.getCode(),
+                    null);
+            phoneSaleExtendInfoMapper.updateBatch(set);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("调用人工IBU批量接口失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
     private void updatePushStatus(ZaMarketDataBO bo, Integer updatePushStatus, Integer updateStatus) {

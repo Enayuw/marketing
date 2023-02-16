@@ -1,6 +1,20 @@
 package com.br.marketing.rule.rongshu;
+import java.util.Date;
+import java.math.BigDecimal;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.BrCipherMaker;
+import com.br.marketing.context.impl.PPDCollectDataImpl;
+import com.br.marketing.service.IRongShuPushDaasService;
+import com.google.api.client.json.Json;
+import com.google.common.collect.Lists;
+import com.br.marketing.client.dassservice.input.IbuReqDTO.Datum;
+import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.entity.PhoneSaleExtendInfo;
 
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.dassservice.input.ibu.IbuAdapDTO;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
@@ -25,7 +39,7 @@ import java.util.Map;
 
 
 @Service
-public class RsAutoArtificialAndCustomerTransferFromDelayImpl implements AssembleData<MqFact> {
+public class RsAutoArtificialAndCustomerTransferFromDelayImpl implements AssembleData<IbuAdapDTO> {
 
 
     @Resource
@@ -46,12 +60,74 @@ public class RsAutoArtificialAndCustomerTransferFromDelayImpl implements Assembl
     @Autowired
     IPeriodOfValidityService iPeriodOfValidityService;
 
+    @Autowired
+    IRongShuPushDaasService iRongShuPushDaasService;
+
+
     @Override
-    public MqFact assemble(Object transmitFact, ProcessHandlerContext context) {
+    public IbuAdapDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        MqFact mqFact = new MqFact();
-        mqFact.setSourceId(transfer.getId());
-        return mqFact;
+
+        PPDCollectDataImpl.PPDRuleNecessaryData ruleNecessaryData =
+                (PPDCollectDataImpl.PPDRuleNecessaryData) context.getRuleNecessaryData();
+        Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
+        MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, transfer.getCustNum());
+        String cell = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
+        IbuAdapDTO ibuAdapDTO = new IbuAdapDTO();
+        Datum datum = new Datum();
+        PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
+        ConversionData conversionData = new ConversionData();
+        ibuAdapDTO.setDatum(datum);
+        ibuAdapDTO.setPhoneSaleExtendInfo(phoneSaleExtendInfo);
+        ibuAdapDTO.setConversionData(conversionData);
+        ibuAdapDTO.setPushType("a");
+
+        datum.setId(transfer.getId());
+        datum.setUid(transfer.getCustNum());
+        datum.setUserType("D");
+        datum.setUserCode(transfer.getCustNum());
+        datum.setUserName("1");
+        datum.setPhone(cell);
+        datum.setSource("100");
+        if(StringUtils.isNotBlank(marketingSyncUser.getReserveField1())){
+            JSONObject json = JSON.parseObject(marketingSyncUser.getReserveField1());
+            String tid = json.getString("tid");
+            String operateType = json.getString("operateType");
+            String planId = json.getString("planId");
+            JSONObject reserve = new JSONObject();
+            if(tid!=null){
+                reserve.put("tid",tid);
+            }
+            if(operateType!=null){
+                reserve.put("operateType",operateType);
+            }
+            if(StringUtils.isNotBlank(planId)){
+                datum.setPlanId(Integer.valueOf(planId));
+            }
+            datum.setReserveField1(reserve.toJSONString());
+        }
+
+        conversionData.setCaseNum(transfer.getCustNum());
+        conversionData.setInversionStatus("0");
+        conversionData.setPhone(cell);
+        conversionData.setDataId(transfer.getId().toString());
+        conversionData.setExpireDate(marketingCommonConfig.getRsTransferDataToCustomerExpireDate());
+
+        phoneSaleExtendInfo.setApiCode(context.getApiCode());
+        phoneSaleExtendInfo.setCustNum(transfer.getCustNum());
+        phoneSaleExtendInfo.setCell(marketingSyncUser.getCell());
+        phoneSaleExtendInfo.setTaskId(marketingSyncUser.getCusBatch());
+        phoneSaleExtendInfo.setUserType(transfer.getUserType());
+        phoneSaleExtendInfo.setAppletDate(transfer.getRequestData());
+        phoneSaleExtendInfo.setAppletTime(transfer.getApplyTime());
+        phoneSaleExtendInfo.setStatus("a");
+        phoneSaleExtendInfo.setPStatus(1);
+        phoneSaleExtendInfo.setCreateTime(new Date());
+        phoneSaleExtendInfo.setSourceId(transfer.getId());
+        phoneSaleExtendInfo.setRedundancyField(JSON.toJSONString(datum));
+        phoneSaleExtendInfo.setInterfaceType(2);
+
+        return ibuAdapDTO;
     }
 
     @Override
@@ -66,13 +142,9 @@ public class RsAutoArtificialAndCustomerTransferFromDelayImpl implements Assembl
             if (marketingSyncUser == null) {
                 return false;
             }
-            String appletDate = marketingSyncUser.getAppletDate();
-            //todo 判断剔除
-            return true;
-
+            return !iRongShuPushDaasService.isFilter(context.getApiCode(), transfer.getCustNum(), tableCreateService.getTcId(context.getApiCode()));
         }
         return false;
-
     }
 
 
@@ -83,7 +155,7 @@ public class RsAutoArtificialAndCustomerTransferFromDelayImpl implements Assembl
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.BATCH_MESSAGE_DELAY.getCode();
+        return InterfaceHandlerEnum.ARTIFICIAL_IBU_BATCH_DATA.getCode();
     }
 
     @Override

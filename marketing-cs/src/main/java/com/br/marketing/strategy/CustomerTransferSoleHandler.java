@@ -1,15 +1,22 @@
 package com.br.marketing.strategy;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundSoleDTO;
+import com.br.marketing.common.enums.DistributeSourceTypeEnum;
+import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.dto.DataJoinLogDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -28,26 +35,26 @@ public class CustomerTransferSoleHandler extends AbstractExternalInterfaceHandle
          */
         int pageSize = 500;
         int totalCount = transferList.size();
-        int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
         String last = context.getLast();
-        String lastRep;
-        for (int i = 1; i <= pageCount; i++) {
-            List<ConversionData> subList;
-            TransferRobotOutboundSoleDTO robotOutboundDTO = new TransferRobotOutboundSoleDTO();
-            if (i == pageCount) {
-                subList = transferList.subList((i - 1) * pageSize, totalCount);
-                lastRep = last;
-            } else {
-                subList = transferList.subList((i - 1) * pageSize, pageSize * (i));
-                lastRep = last != null ? "0" : null;
+        ArrayList<ConversionData> sendList = new ArrayList<>();
+        ArrayList<DataJoinLogDTO> logList = new ArrayList<>();
+        Integer sum = 0;
+        for (ConversionData conversionData : transferList) {
+            sum++;
+            sendList.add(conversionData);
+            logList.add(methodRetryHandlerService.dataJoinLogFix(conversionData,DistributeTypeEnum.CUSTOMERTRANSFER
+                    ,context.getApiCode(), conversionData.getCaseNum(), conversionData.getPhone()
+                    , Long.valueOf(conversionData.getDataId()), DistributeSourceTypeEnum.TRANSFER));
+            if(sendList.size()==pageSize||sum == totalCount){
+                TransferRobotOutboundSoleDTO robotOutboundDTO = new TransferRobotOutboundSoleDTO();
+                robotOutboundDTO.setApiCode(context.getApiCode());
+                robotOutboundDTO.setTransferInfoId(context.getTransferInfoId());
+                robotOutboundDTO.setData(sendList);
+                robotOutboundDTO.setLast(sum == totalCount?last:(last != null ? "0" : null));
+                methodRetryHandlerService.callCustomerTransfer(robotOutboundDTO, null);
+                sendList = new ArrayList<>();
+                logList = new ArrayList<>();
             }
-
-            robotOutboundDTO.setApiCode(context.getApiCode());
-            robotOutboundDTO.setTransferInfoId(context.getTransferInfoId());
-            robotOutboundDTO.setData(subList);
-            robotOutboundDTO.setLast(lastRep);
-
-            methodRetryHandlerService.callCustomerTransfer(robotOutboundDTO, null);
         }
         return null;
     }

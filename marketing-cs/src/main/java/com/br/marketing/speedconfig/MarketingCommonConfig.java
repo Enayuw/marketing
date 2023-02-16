@@ -455,5 +455,16 @@ public class MarketingCommonConfig {
      * 榕树有效期
      */
     private String rsValidityDay;
+
+    /**
+     * 榕树周期性推送时间集合
+     */
+    private List<Integer> rongShuCyclePushDays;
+
+    /**
+     * 榕树推送人工Ibu接口开关，true为可推送，false不能推送
+     */
+    private Boolean rongShuPushDaasSwitch;
+
 }
 
