@@ -180,25 +180,28 @@ public class TransferToFileByPPDOldServiceImpl implements ITransferToFileService
             }
             //判断是否再有效期内
             for (PhoneSaleExtendInfo data : phoneSaleExtendInfos){
-                boolean notExpire = periodOfValidityService.isNotExpire(data.getApiCode(), data.getCustNum(), new Date(), ppdOldValidityDayStr);
-                if(notExpire){
-                    //custNum,cell,push_dx_time,status
-                    String custNum = data.getCustNum();
-                    String cell = "";
-                    if (preUserMap.containsKey(custNum)) {
-                        String decode = BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell());
-                        cell = StringUtils.isBlank(decode) ? preUserMap.get(custNum).getCell() : DigestUtils.md5DigestAsHex(decode.getBytes());
+                String custNum = data.getCustNum();
+                if (preUserMap.containsKey(custNum)){
+                    Date validityDate = preUserMap.get(custNum).getAppletTime() != null ? preUserMap.get(custNum).getAppletTime() : preUserMap.get(custNum).getCreateTime();
+                    boolean notExpire = periodOfValidityService.isNotExpire(new Date(), ppdOldValidityDayStr, validityDate);
+                    if(notExpire){
+                        //custNum,cell,push_dx_time,status
+                        String cell = "";
+                        if (preUserMap.containsKey(custNum)) {
+                            String decode = BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell());
+                            cell = StringUtils.isBlank(decode) ? preUserMap.get(custNum).getCell() : DigestUtils.md5DigestAsHex(decode.getBytes());
+                        }
+                        String status = data.getStatus();
+                        String push_dx_time =  sdf2.format(data.getPushDxTime());
+                        StringBuilder sb = new StringBuilder();
+                        sb.append((StringUtils.isNotEmpty(custNum) ? custNum : "").concat(","));
+                        sb.append(cell.concat(","));
+                        sb.append(push_dx_time.concat(","));
+                        sb.append(status);
+                        sb.append("\r\n");
+                        fw.append(sb.toString());
+                        totalSize = totalSize + 1;
                     }
-                    String status = data.getStatus();
-                    String push_dx_time =  sdf2.format(data.getPushDxTime());
-                    StringBuilder sb = new StringBuilder();
-                    sb.append((StringUtils.isNotEmpty(custNum) ? custNum : "").concat(","));
-                    sb.append(cell.concat(","));
-                    sb.append(push_dx_time.concat(","));
-                    sb.append(status);
-                    sb.append("\r\n");
-                    fw.append(sb.toString());
-                    totalSize = totalSize + 1;
                 }
             }
             phoneSaleExtendInfos.clear();
