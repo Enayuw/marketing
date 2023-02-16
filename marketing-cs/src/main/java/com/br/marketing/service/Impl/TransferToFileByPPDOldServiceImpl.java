@@ -56,7 +56,7 @@ public class TransferToFileByPPDOldServiceImpl implements ITransferToFileService
     @Autowired
     private IPeriodOfValidityService periodOfValidityService;
 
-    final static String EXECUTE_TIME = " 10:30:00";
+    final static String EXECUTE_TIME = " 11:00:00";
 
     final static String VALIDITY_DATSTR = "T+33";
 
