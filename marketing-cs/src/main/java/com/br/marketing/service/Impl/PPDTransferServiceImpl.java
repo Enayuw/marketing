@@ -137,8 +137,8 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
         // 任务状态标记为4
         Long frontId = yiXinTransferService.saveFrontData(StringUtils.join(apiCode, ","), yyyymmdd, 4);
         String tcId = tableCreateService.getTcId(apiCode[0]);
-        String ppdValidityDay = marketingCommonConfig.getPpdValidityDay() == null
-                ? "[T+33]" : marketingCommonConfig.getPpdValidityDay();
+        String ppdValidityDay = marketingCommonConfig.getPpdOldValidityDayStr() == null
+                ? "[T+33]" : marketingCommonConfig.getPpdOldValidityDayStr();
         int ppdOldPhoneValidityDay = marketingCommonConfig.getPpdOldPhoneValidityDay() != null
                 ? marketingCommonConfig.getPpdOldPhoneValidityDay() : 5;
         // 获取周期日期
