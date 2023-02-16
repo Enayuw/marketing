@@ -9,8 +9,10 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.dto.DataDetailTestDTO;
 import com.br.marketing.dto.DataDistrubuteTestDTO;
+import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.mapper.*;
+import com.br.marketing.service.IScoreResultService;
 import com.br.marketing.service.Impl.CheckServicePackageImpl;
 import com.br.marketing.strategy.UserCenterHandler;
 import com.google.common.collect.Lists;
@@ -72,15 +74,30 @@ public class redis {
     CheckServicePackageImpl checkServicePackage;
 
     @Test
+    public void testhashcode(){
+        DataDetailTestDTO log = new DataDetailTestDTO();
+        log.setName("7410437");
+
+        DataDetailTestDTO log1 = new DataDetailTestDTO();
+        log1.setName("7410437");
+
+        String s = DigestUtils.md5DigestAsHex((log.toString() + log.hashCode()).getBytes());
+        System.out.println("s:"+s);
+        System.out.println("loghascode:"+log.hashCode());
+        System.out.println("log1hascode:"+log1.hashCode());
+        String s1 = DigestUtils.md5DigestAsHex((log.toString() + log.hashCode()).getBytes());
+        System.out.println("s1:"+s1);
+    }
+
+    @Test
     public void testAop(){
         DataDistrubuteTestDTO req = new DataDistrubuteTestDTO();
         ArrayList<DataDetailTestDTO> dataDetailTestDTOS = new ArrayList<>();
-        ArrayList<DataDistributeDetailLog> dataDistributeDetailLogs = new ArrayList<>();
+        ArrayList<DataJoinLogDTO> dataDistributeDetailLogs = new ArrayList<>();
         DataDetailTestDTO a = new DataDetailTestDTO();
-        a.setId(1L);
-        a.setName("丽丽");
+        a.setName("丽丽1");
         dataDetailTestDTOS.add(a);
-        DataDistributeDetailLog log = new DataDistributeDetailLog();
+        DataJoinLogDTO log = new DataJoinLogDTO();
         log.setApiCode("7410437");
         log.setCustNum("123");
         log.setCell("123");
@@ -88,16 +105,17 @@ public class redis {
         log.setDistributeType(1);
         log.setCreateTime(new Date());
         log.setUpdateTime(new Date());
-        log.setSourceId(a.getId());
+        log.setSourceId(1L);
         log.setSourceType("123");
+        log.setDataCode(a.hashCode());
+        log.setDataMd5(DigestUtils.md5DigestAsHex(a.toString().getBytes()));
         dataDistributeDetailLogs.add(log);
 
 
         DataDetailTestDTO b = new DataDetailTestDTO();
-        b.setId(2L);
-        b.setName("美美");
+        b.setName("丽丽1");
         dataDetailTestDTOS.add(b);
-        DataDistributeDetailLog log1 = new DataDistributeDetailLog();
+        DataJoinLogDTO log1 = new DataJoinLogDTO();
         log1.setApiCode("7410437");
         log1.setCustNum("111");
         log1.setCell("111");
@@ -105,8 +123,10 @@ public class redis {
         log1.setDistributeType(1);
         log1.setCreateTime(new Date());
         log1.setUpdateTime(new Date());
-        log1.setSourceId(b.getId());
+        log1.setSourceId(2l);
         log1.setSourceType("123");
+        log1.setDataCode(b.hashCode());
+        log1.setDataMd5(DigestUtils.md5DigestAsHex(b.toString().getBytes()));
         dataDistributeDetailLogs.add(log1);
         req.setData(dataDetailTestDTOS);
         req.setDetailLogList(dataDistributeDetailLogs);
@@ -114,6 +134,14 @@ public class redis {
         req.setSoleField(1);
         req.setSoleDay(1);
         checkServicePackage.getTestRes(req,null);
+    }
+
+    @Autowired
+    IScoreResultService iScoreResultService;
+
+    @Test
+    public void testScore(){
+        Result<String> conditionRes = iScoreResultService.isFilterScoreByTransfer("7492641","PPDOld_TransferData_ArtificialBatch");
     }
 
     @Test

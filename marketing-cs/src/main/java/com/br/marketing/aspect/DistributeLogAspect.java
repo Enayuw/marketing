@@ -1,38 +1,32 @@
 package com.br.marketing.aspect;
 
-import IceInternal.Ex;
-import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.annoation.DistributeLog;
-import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.DistributeTypeEnum;
-import com.br.marketing.common.exception.KnowException;
-import com.br.marketing.dto.DataDistributeBase;
 import com.br.marketing.dto.DataDistributeLogBase;
+import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.DataDistributeDetailLogMapper;
-import com.br.marketing.mapper.RetryMainLogMapper;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Aspect
@@ -49,10 +43,16 @@ public class DistributeLogAspect {
 
     private final static List soleTypes;
 
+    // 1-apiCode,custNum
+    private final static Integer soleTypeOne = new Integer(1);
+
+    // 2-apiCode,cell
+    private final static Integer soleTypeTwo = new Integer(2);
+
     static {
         soleTypes = new ArrayList();
-        soleTypes.add(1);
-        soleTypes.add(2);
+        soleTypes.add(soleTypeOne);
+        soleTypes.add(soleTypeTwo);
     }
 
     @Around("@annotation(com.br.marketing.common.annoation.DistributeLog)")
@@ -64,48 +64,54 @@ public class DistributeLogAspect {
             return jp.proceed();
         }
         DataDistributeLogBase logBase = (DataDistributeLogBase) arg;
-        List<DataDistributeDetailLog> detailLogList = logBase.getDetailLogList();
+        List<DataJoinLogDTO> detailLogList = logBase.getDetailLogList();
         if (detailLogList.size() <= 0) {
             return jp.proceed();
         }
-        List<? extends DataDistributeBase> data = logBase.getData();
-        Method sMethod = ((MethodSignature) jp.getSignature()).getMethod();
-        DistributeLog distributeLog = sMethod.getAnnotation(DistributeLog.class);
-        DistributeTypeEnum distributeTypeEnum = distributeLog.distributeType();
-        if(logBase.getIsSole() && !soleTypes.contains(logBase.getSoleField())){
+        List data = logBase.getData();
+        if (logBase.getIsSole() && !soleTypes.contains(logBase.getSoleField())) {
             return jp.proceed();
         }
         //endregion
-        DataDistributeDetailLog dataDistributeDetailLog = detailLogList.get(0);
-        boolean isRecord = dataDistributeDetailLog.getId() !=null&&dataDistributeDetailLog.getId()>0;
+        DataJoinLogDTO dataDistributeDetailLog = detailLogList.get(0);
+        boolean isRecord = dataDistributeDetailLog.getId() != null && dataDistributeDetailLog.getId() > 0;
         //去重数据
         ArrayList<Object> soleDatas = new ArrayList<>();
         //去重日志
         ArrayList<Object> soleDataLogs = new ArrayList<>();
-        if(!isRecord){
-            for (DataDistributeDetailLog log : detailLogList) {
-
-                if(logBase.getIsSole()) {
+        if (!isRecord) {
+            HashSet dataMd5Set = new HashSet();
+            for (DataJoinLogDTO log : detailLogList) {
+                if (logBase.getIsSole()) {
                     //region 去重处理
                     String key = RedisKeyConstant.dributeDataSloeLock;
-                    switch (logBase.getSoleField()) {
-                        // 1-apiCode,custNum
-                        case 1:
-                            key = key.concat(String.format(":%d:%d:%s:%s", log.getDistributeType()
-                                    , logBase.getSoleDay(), log.getApiCode(), log.getCustNum()));
-                            // 2-apiCode,cell
-                        case 2:
-                            key = key.concat(String.format(":%d:%d:%s:%s", log.getDistributeType()
-                                    , logBase.getSoleDay(), log.getApiCode(), log.getCell()));
+                    if (soleTypeOne.equals(logBase.getSoleField())) {
+                        key = key.concat(String.format(":%d:%d:%s:%s", log.getDistributeType()
+                                , logBase.getSoleDay(), log.getApiCode(), log.getCustNum()));
+                    } else if (soleTypeTwo.equals(logBase.getSoleField())) {
+                        key = key.concat(String.format(":%d:%d:%s:%s", log.getDistributeType()
+                                , logBase.getSoleDay(), log.getApiCode(), log.getCell()));
                     }
+
                     try {
                         UUID uuid = UUID.randomUUID();
                         redisChgService.lock(key, uuid.toString());
                         //region 去重判断
+                        // 数组内去重
+                        if (!dataMd5Set.add(log.getDataMd5())) {
+                            Optional first = data.stream().filter(t -> new Integer(t.hashCode()).equals(log.getDataCode())
+                                    && log.getDataMd5().equals(DigestUtils.md5DigestAsHex(t.toString().getBytes()))).findFirst();
+                            if (first.isPresent()) {
+                                soleDatas.add(first.get());
+                                soleDataLogs.add(log);
+                                redisChgService.unlock(key, uuid.toString());
+                                continue;
+                            }
+                        }
                         DataDistributeDetailLogExample logExample = new DataDistributeDetailLogExample();
                         logExample.setOrderByClause(" id limit 1 ");
                         DataDistributeDetailLogExample.Criteria criteria = logExample.createCriteria().andApiCodeEqualTo(log.getApiCode())
-                                .andDistributeTypeEqualTo(distributeLog.distributeType().getValue());
+                                .andDistributeTypeEqualTo(log.getDistributeType());
                         if (logBase.getSoleDay() != null && logBase.getSoleDay() > 0) {
                             if (logBase.getSoleDay() == 1) {
                                 String day = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -122,12 +128,19 @@ public class DistributeLogAspect {
                         }
                         List<DataDistributeDetailLog> dataDistributeDetailLogs = dataDistributeDetailLogMapper.selectByExample(logExample);
                         if (dataDistributeDetailLogs.size() > 0) {
-                            soleDatas.add(data.stream().filter(t -> t.getId().equals(log.getSourceId())).findFirst().get());
-                            soleDataLogs.add(log);
-                            redisChgService.unlock(key, uuid.toString());
-                            continue;
+                            Optional first = data.stream().filter(t -> new Integer(t.hashCode()).equals(log.getDataCode())
+                                    && log.getDataMd5().equals(DigestUtils.md5DigestAsHex(t.toString().getBytes()))).findFirst();
+                            if (first.isPresent()) {
+                                soleDatas.add(first.get());
+                                soleDataLogs.add(log);
+                                redisChgService.unlock(key, uuid.toString());
+                                continue;
+                            }
                         } else {
-                            dataDistributeDetailLogMapper.insertSelective(log);
+                            DataDistributeDetailLog newLog = new DataDistributeDetailLog();
+                            BeanUtils.copyProperties(log, newLog);
+                            dataDistributeDetailLogMapper.insertSelective(newLog);
+                            log.setId(newLog.getId());
                         }
                         redisChgService.unlock(key, uuid.toString());
                         //endregion
@@ -135,15 +148,18 @@ public class DistributeLogAspect {
                         continue;
                     }
                     //endregion
-                }else{
-                    dataDistributeDetailLogMapper.insertSelective(log);
+                } else {
+                    DataDistributeDetailLog newLog = new DataDistributeDetailLog();
+                    BeanUtils.copyProperties(log, newLog);
+                    dataDistributeDetailLogMapper.insertSelective(newLog);
+                    log.setId(newLog.getId());
                 }
             }
         }
-        if(logBase.getIsSole()){
-            ((DataDistributeLogBase)args[0]).getData().removeAll(soleDatas);
-            ((DataDistributeLogBase)args[0]).setDetailLogList(detailLogList);
-            ((DataDistributeLogBase)args[0]).getDetailLogList().removeAll(soleDataLogs);
+        if (logBase.getIsSole()) {
+            ((DataDistributeLogBase) args[0]).getData().removeAll(soleDatas);
+            ((DataDistributeLogBase) args[0]).setDetailLogList(detailLogList);
+            ((DataDistributeLogBase) args[0]).getDetailLogList().removeAll(soleDataLogs);
         }
         Object proceed = jp.proceed();
         //region 结果处理
@@ -156,13 +172,13 @@ public class DistributeLogAspect {
                 DataDistributeDetailLogExample upExample = new DataDistributeDetailLogExample();
                 upExample.createCriteria().andIdIn(logIds);
                 updateEntity.setpStatus(2);
-                dataDistributeDetailLogMapper.updateByExample(updateEntity,upExample);
-            }else if (ResultCode.FAIL.getValue().equals(res.getCode())){
+                dataDistributeDetailLogMapper.updateByExample(updateEntity, upExample);
+            } else if (ResultCode.FAIL.getValue().equals(res.getCode())) {
                 List<Long> logIds = detailLogList.stream().map(DataDistributeDetailLog::getId).collect(Collectors.toList());
                 DataDistributeDetailLogExample upExample = new DataDistributeDetailLogExample();
                 upExample.createCriteria().andIdIn(logIds);
                 updateEntity.setpStatus(3);
-                dataDistributeDetailLogMapper.updateByExample(updateEntity,upExample);
+                dataDistributeDetailLogMapper.updateByExample(updateEntity, upExample);
             }
             return res;
         }

@@ -1,8 +1,10 @@
 package com.br.marketing.dto;
 
-import lombok.Data;
+import lombok.*;
 
-@Data
-public class DataDetailTestDTO extends DataDistributeBase{
+@Getter
+@Setter
+@ToString
+public class DataDetailTestDTO {
     private String name;
 }

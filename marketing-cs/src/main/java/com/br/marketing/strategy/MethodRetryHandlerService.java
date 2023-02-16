@@ -22,6 +22,7 @@ import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.client.zhongan.ZhongAnClient;
+import com.br.marketing.common.annoation.DistributeLog;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -219,21 +220,22 @@ public class MethodRetryHandlerService {
     }
 
     /**
-     * 转化去重方法
+     * 客户转化去重方法
      * @param robotOutboundDTO
      * @param retry
      * @return
      */
     @RetryMethod(isOrNoDbRetry = true)
+    @DistributeLog
     public Result<TransferRobotOutboundVO<UnsuccessfulData>> callCustomerTransfer(TransferRobotOutboundSoleDTO robotOutboundDTO, Integer retry) {
-        if(new Integer(1).equals(robotOutboundDTO.getSoleType())){
-
-        }
-        TransferRobotOutboundVO<UnsuccessfulData> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
+        TransferRobotOutboundDTO transferRobotOutboundDTO = new TransferRobotOutboundDTO();
+        transferRobotOutboundDTO.setTransferInfoId(robotOutboundDTO.getTransferInfoId());
+        transferRobotOutboundDTO.setApiCode(robotOutboundDTO.getApiCode());
+        transferRobotOutboundDTO.setJsonData(new TransferJsonDataDTO(robotOutboundDTO.getData(),robotOutboundDTO.getLast()));
+        TransferRobotOutboundVO<UnsuccessfulData> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(transferRobotOutboundDTO);
         if (!"9999".equals(transferRobotOutboundVO.getCode())) {
-            List<ConversionData> conversionData = robotOutboundDTO.getJsonData().getConversionData();
-            Set<String> set = conversionData.stream().map(ConversionData::getDataId).collect(Collectors.toSet());
-            saveBizLog(String.join(",", set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), robotOutboundDTO.getTransferInfoId());
+            Set<Long> set = robotOutboundDTO.getDetailLogList().stream().map(DataDistributeDetailLog::getSourceId).collect(toSet());
+            saveBizLog(Joiner.on(",").join(set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), robotOutboundDTO.getTransferInfoId());
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(transferRobotOutboundVO);
         }
         log.error("调用客服接口失败 -- {}", JSON.toJSONString(transferRobotOutboundVO));

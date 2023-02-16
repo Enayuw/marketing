@@ -14,11 +14,4 @@ import java.lang.annotation.Target;
 @Target(value = ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DistributeLog {
-
-    /**
-     * 分发类型
-     */
-    DistributeTypeEnum distributeType();
-
-
 }

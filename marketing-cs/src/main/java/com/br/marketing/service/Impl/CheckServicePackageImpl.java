@@ -21,7 +21,7 @@ public class CheckServicePackageImpl {
     }
 
     @RetryMethod(retryNowNum = 2,isOrNoDbRetry = true)
-    @DistributeLog(distributeType = DistributeTypeEnum.CUSTOMERTRANSFER)
+    @DistributeLog
     public Result getTestRes(DataDistrubuteTestDTO testDTO, Integer retry){
         System.out.println(JSON.toJSONString(testDTO));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());

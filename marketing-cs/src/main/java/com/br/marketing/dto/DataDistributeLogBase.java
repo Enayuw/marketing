@@ -1,17 +1,16 @@
 package com.br.marketing.dto;
 
-import com.br.marketing.common.annoation.DistributeLog;
-import com.br.marketing.entity.DataDistributeDetailLog;
+
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class DataDistributeLogBase<T extends DataDistributeBase> {
+public class DataDistributeLogBase<T> {
 
     private List<T> data;
 
-    private List<DataDistributeDetailLog> detailLogList;
+    private List<DataJoinLogDTO> detailLogList;
 
     /**
      * 是否去重
