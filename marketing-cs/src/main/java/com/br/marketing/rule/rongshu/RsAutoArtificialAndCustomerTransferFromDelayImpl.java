@@ -68,8 +68,8 @@ public class RsAutoArtificialAndCustomerTransferFromDelayImpl implements Assembl
     public IbuAdapDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
 
-        PPDCollectDataImpl.PPDRuleNecessaryData ruleNecessaryData =
-                (PPDCollectDataImpl.PPDRuleNecessaryData) context.getRuleNecessaryData();
+        RsCollectDataImpl.RsRuleNecessaryData ruleNecessaryData =
+                (RsCollectDataImpl.RsRuleNecessaryData) context.getRuleNecessaryData();
         Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
         MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, transfer.getCustNum());
         String cell = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
@@ -132,6 +132,11 @@ public class RsAutoArtificialAndCustomerTransferFromDelayImpl implements Assembl
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+        MqFact mqFact = context.getMqFact();
+        Integer isDelay = mqFact.getIsDelay();
+        if (isDelay == null||isDelay!=1){
+            return false;
+        }
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
 

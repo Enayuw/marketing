@@ -409,7 +409,7 @@ public class DassServiceClient {
             if("200".equals(httpcode)){
                 JSONObject content = JSONObject.parseObject(resContent.get("content"));
                 Integer code = content.getInteger("code");
-                if(new Integer(1).equals(code)){
+                if(new Integer(0).equals(code)){
                     res.setCode(ResultCode.SUCCESS.getValue());
                 }else {
                     log.error("ibu定制接口非code成功("+reqId.toString()+")："+resContent.getOrDefault("content",""));

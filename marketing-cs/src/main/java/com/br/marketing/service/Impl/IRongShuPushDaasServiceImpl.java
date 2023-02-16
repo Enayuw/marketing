@@ -51,8 +51,8 @@ public class IRongShuPushDaasServiceImpl implements IRongShuPushDaasService {
         }
         //剔除有效期内 转化数据userType=4||userType=5||applyLoan=1
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
-        example.createCriteria().andApiCodeEqualTo(marketingSyncUser.getApiCode()).andCustNumEqualTo(marketingSyncUser.getCustNum())
-                .andCidEqualTo(tcId).andRequestDataGreaterThanOrEqualTo(marketingSyncUser.getAppletDate());
+        example.settCid(tcId);
+        example.createCriteria().andApiCodeEqualTo(marketingSyncUser.getApiCode()).andCustNumEqualTo(marketingSyncUser.getCustNum()).andRequestDataGreaterThanOrEqualTo(marketingSyncUser.getAppletDate());
         List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(example);
         for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
             if (StringUtils.isNotEmpty(marketingTransferSyncUser.getReserveField1())) {

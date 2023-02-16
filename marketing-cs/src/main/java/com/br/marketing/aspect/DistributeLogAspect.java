@@ -166,19 +166,22 @@ public class DistributeLogAspect {
         if (proceed instanceof Result) {
             Result res = (Result) proceed;
             DataDistributeDetailLog updateEntity = new DataDistributeDetailLog();
-
             if (ResultCode.SUCCESS.getValue().equals(res.getCode())) {
                 List<Long> logIds = detailLogList.stream().map(DataDistributeDetailLog::getId).collect(Collectors.toList());
                 DataDistributeDetailLogExample upExample = new DataDistributeDetailLogExample();
                 upExample.createCriteria().andIdIn(logIds);
                 updateEntity.setpStatus(2);
-                dataDistributeDetailLogMapper.updateByExample(updateEntity, upExample);
+                if(logIds !=null && logIds.size()>0) {
+                    dataDistributeDetailLogMapper.updateByExampleSelective(updateEntity, upExample);
+                }
             } else if (ResultCode.FAIL.getValue().equals(res.getCode())) {
                 List<Long> logIds = detailLogList.stream().map(DataDistributeDetailLog::getId).collect(Collectors.toList());
                 DataDistributeDetailLogExample upExample = new DataDistributeDetailLogExample();
                 upExample.createCriteria().andIdIn(logIds);
                 updateEntity.setpStatus(3);
-                dataDistributeDetailLogMapper.updateByExample(updateEntity, upExample);
+                if(logIds !=null && logIds.size()>0) {
+                    dataDistributeDetailLogMapper.updateByExampleSelective(updateEntity, upExample);
+                }
             }
             return res;
         }

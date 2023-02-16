@@ -50,7 +50,11 @@ public class CustomerTransferSoleHandler extends AbstractExternalInterfaceHandle
                 robotOutboundDTO.setApiCode(context.getApiCode());
                 robotOutboundDTO.setTransferInfoId(context.getTransferInfoId());
                 robotOutboundDTO.setData(sendList);
+                robotOutboundDTO.setDetailLogList(logList);
                 robotOutboundDTO.setLast(sum == totalCount?last:(last != null ? "0" : null));
+                robotOutboundDTO.setIsSole(true);
+                robotOutboundDTO.setSoleField(2);
+                robotOutboundDTO.setSoleDay(1);
                 methodRetryHandlerService.callCustomerTransfer(robotOutboundDTO, null);
                 sendList = new ArrayList<>();
                 logList = new ArrayList<>();

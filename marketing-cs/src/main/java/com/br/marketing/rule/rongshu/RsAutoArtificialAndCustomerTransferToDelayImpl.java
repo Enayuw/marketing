@@ -27,7 +27,9 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 
 @Service
@@ -57,6 +59,9 @@ public class RsAutoArtificialAndCustomerTransferToDelayImpl implements AssembleD
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         MqFact mqFact = new MqFact();
         mqFact.setSourceId(transfer.getId());
+        Set set = new HashSet<>();
+        set.add("RongShu_TransferData_ArtificialAndCustomerBatch");
+        mqFact.setIncludeRules(set);
         return mqFact;
     }
 
@@ -105,7 +110,7 @@ public class RsAutoArtificialAndCustomerTransferToDelayImpl implements AssembleD
 
     @Override
     public String label() {
-        return "RongShu_TransferData_ArtificialAndCustomerBatch";
+        return "RongShu_TransferData_ArtificialAndCustomerBatch_To_Delay";
     }
 
     @Override

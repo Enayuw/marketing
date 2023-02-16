@@ -261,6 +261,9 @@ public class MethodRetryHandlerService {
     @RetryMethod(isOrNoDbRetry = true)
     @DistributeLog
     public Result<TransferRobotOutboundVO<UnsuccessfulData>> callCustomerTransfer(TransferRobotOutboundSoleDTO robotOutboundDTO, Integer retry) {
+        if(robotOutboundDTO.getData().size()<=0){
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        }
         TransferRobotOutboundDTO transferRobotOutboundDTO = new TransferRobotOutboundDTO();
         transferRobotOutboundDTO.setTransferInfoId(robotOutboundDTO.getTransferInfoId());
         transferRobotOutboundDTO.setApiCode(robotOutboundDTO.getApiCode());

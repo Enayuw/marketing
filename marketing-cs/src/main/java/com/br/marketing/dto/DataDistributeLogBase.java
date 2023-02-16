@@ -17,7 +17,7 @@ public class DataDistributeLogBase<T> {
      * 0-不去重；1-去重
      * @return
      */
-    Boolean isSole;
+    Boolean isSole = false;
 
     /**
      * 1-apiCode,custNum
@@ -30,5 +30,5 @@ public class DataDistributeLogBase<T> {
      * 去重日期 0-全范围；1-当天
      * @return
      */
-    Integer soleDay;
+    Integer soleDay = 1;
 }
