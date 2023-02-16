@@ -130,10 +130,10 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
             return number;
         }
         TransferActionFront frontData = frontDataRes.getData();
-        if (frontData != null && new Integer(2).equals(frontData.getStatus())) {
-            log.warn("拍拍贷老客周期性推送电销任务今日已经推送!");
-            return number;
-        }
+//        if (frontData != null && new Integer(2).equals(frontData.getStatus())) {
+//            log.warn("拍拍贷老客周期性推送电销任务今日已经推送!");
+//            return number;
+//        }
         // 任务状态标记为4
         Long frontId = yiXinTransferService.saveFrontData(StringUtils.join(apiCode, ","), yyyymmdd, 4);
         String tcId = tableCreateService.getTcId(apiCode[0]);
@@ -162,7 +162,7 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
                 List<PhoneSaleExtendInfo> list = phoneSaleExtendInfoMapper.findListPageByExample(
                         example, pageNum, pageSize);
                 int size = list.size();
-                if (size == 0 || size < pageSize) {
+                if (size == 0) {
                     break;
                 }
                 pageNum++;
@@ -213,6 +213,9 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
                 artificialBatchRealTimeDataHandler.call(transferData, new ProcessHandlerContext());
                 number += transferData.size();
                 transferData.clear();
+                if (size < pageSize) {
+                    break;
+                }
             }
             log.warn("拍拍贷老客周期性推送电销任务: apiCode={},推送总量:{},a情况推送量:{},b情况推送量{}"
                     , code, number, numberA, numberB);
