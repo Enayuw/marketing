@@ -2,6 +2,7 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.entity.PhoneSaleExtendInfoExample;
 import com.br.marketing.vo.PhoneSaleInfoVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -116,4 +117,26 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
             @Param("status") String status,
             @Param("pageNum") int pageNum,
             @Param("pageSize") int pageSize);
+
+
+    /**
+     * 2023/02/14 10:36
+     * 获取分页数据
+     *
+     * @param example  检索条件
+     * @param pageNum  页号
+     * @param pageSize 页大小
+     * @return PhoneSaleExtendInfo list
+     */
+    List<PhoneSaleExtendInfo> findListPageByExample(@Param("example") PhoneSaleExtendInfoExample example, @Param("pageNum") int pageNum,
+                                                    @Param("pageSize") int pageSize);
+
+    /**
+     * 2023/02/14 10:36
+     * 获取分页数据
+     *
+     * @param example 检索条件
+     * @return set CustNum
+     */
+    Set<String> getCustNumSettikv_(@Param("example") PhoneSaleExtendInfoExample example);
 }

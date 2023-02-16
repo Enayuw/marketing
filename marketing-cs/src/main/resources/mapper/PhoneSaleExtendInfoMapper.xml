@@ -196,4 +196,71 @@
         order by id
         limit ${(pageNum - 1) * pageSize}, #{pageSize}
     </select>
+
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <select id="findListPageByExample" resultType="com.br.marketing.entity.PhoneSaleExtendInfo"
+            parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample">
+        select
+        <if test="example.distinct">
+            distinct
+        </if>
+        t1.*
+        from b_phone_sale_extend_info t1
+        , (select id
+        from b_phone_sale_extend_info
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="example.orderByClause != null">
+            order by ${example.orderByClause}
+        </if>
+        limit ${(pageNum - 1) * pageSize}, #{pageSize}) as t2
+        where t2.id = t1.id
+    </select>
+
+    <select id="getCustNumSettikv_" resultType="java.lang.String"
+            parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample">
+        select
+        <if test="example.distinct">
+            distinct
+        </if>
+        cust_num
+        from b_phone_sale_extend_info
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="example.orderByClause != null">
+            order by ${example.orderByClause}
+        </if>
+    </select>
+
 </mapper>
