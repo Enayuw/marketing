@@ -6,7 +6,6 @@ import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.rule.InterfaceParams;
 import lombok.Data;
 
-import java.util.List;
 
 /**
  * @Description : 调用ibu人工定制接口 入参
@@ -29,5 +28,11 @@ public class IbuAdapDTO extends InterfaceParams {
      * 调用客服转化接口 入参
      */
     private ConversionData conversionData;
+
+    /**
+     * 调用渠道
+     * @desc a:实时推送 b:周期性推送
+     */
+    private String pushType;
 
 }

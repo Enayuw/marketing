@@ -7,7 +7,7 @@ import java.util.List;
 public interface RongshuCycleDataMapper extends RongshuCycleDataMapperBase {
 
 
-    List<RongshuCycleData> getCycleData(List<String> pushDates);
+    List<RongshuCycleData> getCycleData(List<String> pushDates,Long mid);
 
 
 

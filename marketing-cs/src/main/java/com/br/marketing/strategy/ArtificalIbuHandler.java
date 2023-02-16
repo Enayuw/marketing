@@ -21,10 +21,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -58,7 +55,9 @@ public class ArtificalIbuHandler extends AbstractExternalInterfaceHandler<IbuAda
     @Override
     public JSONObject call(List<IbuAdapDTO> ibuAdapDTOS, ProcessHandlerContext context) {
         String nowDate = LocalDate.now().toString();
-        ibuAdapDTOS.forEach(ibuAdapDTO -> {
+        for (Iterator<IbuAdapDTO> iterator = ibuAdapDTOS.iterator(); iterator.hasNext(); ) {
+            IbuAdapDTO ibuAdapDTO = iterator.next();
+            //进行条件剔除
             PhoneSaleExtendInfo phoneSaleExtendInfo = ibuAdapDTO.getPhoneSaleExtendInfo();
             String cell = phoneSaleExtendInfo.getCell();
             String apiCode = phoneSaleExtendInfo.getApiCode();
@@ -71,55 +70,66 @@ public class ArtificalIbuHandler extends AbstractExternalInterfaceHandler<IbuAda
             PhoneSaleExtendInfoExample extendInfoExample = new PhoneSaleExtendInfoExample();
             extendInfoExample.createCriteria().andApiCodeEqualTo(apiCode).andCellEqualTo(cell).andAppletDateEqualTo(nowDate);
             if (phoneSaleExtendInfoMapper.countByExample(extendInfoExample) > 0) {
-                //今日已经推送
+                //今日已经推送,删除集合中数据
                 redisChgService.unlock(key, value);
+                iterator.remove();
             } else {
                 phoneSaleExtendInfoMapper.insertSelective(phoneSaleExtendInfo);
                 redisChgService.unlock(key, value);
-                RongshuCycleDataExample cycleDataExample = new RongshuCycleDataExample();
-                cycleDataExample.createCriteria().andApiCodeEqualTo(apiCode).andCellEqualTo(cell);
-                List<RongshuCycleData> rongshuCycleDataList = rongshuCycleDataMapper.selectByExample(cycleDataExample);
-                if (CollectionUtils.isEmpty(rongshuCycleDataList)) {
-                    //insert
-                    RongshuCycleData insert = new RongshuCycleData();
-                    insert.setPhoneExtendId(phoneSaleExtendInfo.getId());
-                    insert.setApiCode(phoneSaleExtendInfo.getApiCode());
-                    insert.setCell(phoneSaleExtendInfo.getCell());
-                    insert.setCustNum(phoneSaleExtendInfo.getCustNum());
-                    insert.setPushDaasDate(nowDate);
-                    if (marketingCommonConfig.getZhongAnPushBlackDataSwitch()) {
-                        insert.setPStatus(1);
-                    } else {
-                        insert.setPStatus(0);
-                    }
-                    insert.setCreateTime(new Date());
-                    insert.setUpdateTime(new Date());
-                    rongshuCycleDataMapper.insert(insert);
-                } else {
-                    //update
-                    RongshuCycleData update = new RongshuCycleData();
-                    update.setId(rongshuCycleDataList.get(0).getId());
-                    update.setPushDaasDate(nowDate);
-                    update.setPhoneExtendId(phoneSaleExtendInfo.getId());
-                    if (marketingCommonConfig.getZhongAnPushBlackDataSwitch()) {
-                        update.setPStatus(1);
-                    } else {
-                        update.setPStatus(0);
-                    }
-                    update.setUpdateTime(new Date());
-                    rongshuCycleDataMapper.updateByPrimaryKeySelective(update);
+                //a情况，需要insert or update 周期表
+                if ("a".equals(ibuAdapDTO.getPushType())) {
+                    insertOrUpdateCycleData(ibuAdapDTO, nowDate);
                 }
             }
-        });
-        //开关打开，进行推送
-        if (marketingCommonConfig.getZhongAnPushBlackDataSwitch()) {
-            //推客服
-            List<ConversionData> conversionDataList = ibuAdapDTOS.stream().map(IbuAdapDTO::getConversionData).collect(Collectors.toList());
-            customerTransferHandler.call(conversionDataList, context);
-            //推人工ibu
-            callDaasIbu(ibuAdapDTOS.stream().map(IbuAdapDTO::getDatum).collect(Collectors.toList()), context);
+        }
+        if (!CollectionUtils.isEmpty(ibuAdapDTOS)) {
+            //开关打开，进行推送
+            if (marketingCommonConfig.getRongShuPushDaasSwitch()) {
+                //推客服
+                List<ConversionData> conversionDataList = ibuAdapDTOS.stream().map(IbuAdapDTO::getConversionData).collect(Collectors.toList());
+                customerTransferHandler.call(conversionDataList, context);
+                //推人工ibu
+                callDaasIbu(ibuAdapDTOS.stream().map(IbuAdapDTO::getDatum).collect(Collectors.toList()), context);
+            }
         }
         return null;
+    }
+
+    private void insertOrUpdateCycleData(IbuAdapDTO ibuAdapDTO, String nowDate) {
+        PhoneSaleExtendInfo extendInfo = ibuAdapDTO.getPhoneSaleExtendInfo();
+        RongshuCycleDataExample cycleDataExample = new RongshuCycleDataExample();
+        cycleDataExample.createCriteria().andApiCodeEqualTo(extendInfo.getApiCode()).andCellEqualTo(extendInfo.getCell());
+        List<RongshuCycleData> rongshuCycleDataList = rongshuCycleDataMapper.selectByExample(cycleDataExample);
+        if (CollectionUtils.isEmpty(rongshuCycleDataList)) {
+            //insert
+            RongshuCycleData insert = new RongshuCycleData();
+            insert.setPhoneExtendId(extendInfo.getId());
+            insert.setApiCode(extendInfo.getApiCode());
+            insert.setCell(extendInfo.getCell());
+            insert.setCustNum(extendInfo.getCustNum());
+            insert.setPushDaasDate(nowDate);
+            if (marketingCommonConfig.getRongShuPushDaasSwitch()) {
+                insert.setPStatus(1);
+            } else {
+                insert.setPStatus(0);
+            }
+            insert.setCreateTime(new Date());
+            insert.setUpdateTime(new Date());
+            rongshuCycleDataMapper.insert(insert);
+        } else {
+            //update
+            RongshuCycleData update = new RongshuCycleData();
+            update.setId(rongshuCycleDataList.get(0).getId());
+            update.setPushDaasDate(nowDate);
+            update.setPhoneExtendId(extendInfo.getId());
+            if (marketingCommonConfig.getRongShuPushDaasSwitch()) {
+                update.setPStatus(1);
+            } else {
+                update.setPStatus(0);
+            }
+            update.setUpdateTime(new Date());
+            rongshuCycleDataMapper.updateByPrimaryKeySelective(update);
+        }
     }
 
     //推送人工ibu
