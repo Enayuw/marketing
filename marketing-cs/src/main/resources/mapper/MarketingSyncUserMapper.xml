@@ -342,5 +342,18 @@
         </where>
     </select>
 
+    <select id="getAppletTimeBySyncUser" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select applet_time, create_time
+        from b_marketing_sync_${syncUser.apiCode}
+        <where>
+            <if test="syncUser.custNum != null and syncUser.custNum != ''">
+                cust_num = #{syncUser.custNum}
+            </if>
+            <if test="syncUser.userType != null and syncUser.userType != ''">
+                and user_type = #{syncUser.userType}
+            </if>
+        </where>
+        order by applet_time desc, create_time desc limit 0,1
+    </select>
 
 </mapper>
