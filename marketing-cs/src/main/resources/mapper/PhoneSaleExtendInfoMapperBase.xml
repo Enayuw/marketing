@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.PhoneSaleExtendInfoMapper" >
+<mapper namespace="com.br.marketing.mapper.PhoneSaleExtendInfoMapperBase" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.PhoneSaleExtendInfo" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
@@ -81,8 +81,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, cust_num, cell, task_id, user_type, applet_date, applet_time, status, 
-    p_status, create_time, update_time, type, dx_type, transform_type, source_id, push_dx_time, 
+    id, api_code, cust_num, cell, task_id, user_type, applet_date, applet_time, `status`, 
+    p_status, create_time, update_time, `type`, dx_type, transform_type, source_id, push_dx_time, 
     redundancy_field, interface_type
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample" >
@@ -121,8 +121,8 @@
     </selectKey>
     insert into b_phone_sale_extend_info (api_code, cust_num, cell, 
       task_id, user_type, applet_date, 
-      applet_time, status, p_status, 
-      create_time, update_time, type, 
+      applet_time, `status`, p_status, 
+      create_time, update_time, `type`, 
       dx_type, transform_type, source_id, 
       push_dx_time, redundancy_field, interface_type
       )
@@ -162,7 +162,7 @@
         applet_time,
       </if>
       <if test="status != null" >
-        status,
+        `status`,
       </if>
       <if test="pStatus != null" >
         p_status,
@@ -174,7 +174,7 @@
         update_time,
       </if>
       <if test="type != null" >
-        type,
+        `type`,
       </if>
       <if test="dxType != null" >
         dx_type,
@@ -286,7 +286,7 @@
         applet_time = #{record.appletTime,jdbcType=VARCHAR},
       </if>
       <if test="record.status != null" >
-        status = #{record.status,jdbcType=VARCHAR},
+        `status` = #{record.status,jdbcType=VARCHAR},
       </if>
       <if test="record.pStatus != null" >
         p_status = #{record.pStatus,jdbcType=INTEGER},
@@ -298,7 +298,7 @@
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="record.type != null" >
-        type = #{record.type,jdbcType=VARCHAR},
+        `type` = #{record.type,jdbcType=VARCHAR},
       </if>
       <if test="record.dxType != null" >
         dx_type = #{record.dxType,jdbcType=VARCHAR},
@@ -333,11 +333,11 @@
       user_type = #{record.userType,jdbcType=VARCHAR},
       applet_date = #{record.appletDate,jdbcType=VARCHAR},
       applet_time = #{record.appletTime,jdbcType=VARCHAR},
-      status = #{record.status,jdbcType=VARCHAR},
+      `status` = #{record.status,jdbcType=VARCHAR},
       p_status = #{record.pStatus,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      type = #{record.type,jdbcType=VARCHAR},
+      `type` = #{record.type,jdbcType=VARCHAR},
       dx_type = #{record.dxType,jdbcType=VARCHAR},
       transform_type = #{record.transformType,jdbcType=VARCHAR},
       source_id = #{record.sourceId,jdbcType=BIGINT},
@@ -373,7 +373,7 @@
         applet_time = #{appletTime,jdbcType=VARCHAR},
       </if>
       <if test="status != null" >
-        status = #{status,jdbcType=VARCHAR},
+        `status` = #{status,jdbcType=VARCHAR},
       </if>
       <if test="pStatus != null" >
         p_status = #{pStatus,jdbcType=INTEGER},
@@ -385,7 +385,7 @@
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="type != null" >
-        type = #{type,jdbcType=VARCHAR},
+        `type` = #{type,jdbcType=VARCHAR},
       </if>
       <if test="dxType != null" >
         dx_type = #{dxType,jdbcType=VARCHAR},
@@ -417,11 +417,11 @@
       user_type = #{userType,jdbcType=VARCHAR},
       applet_date = #{appletDate,jdbcType=VARCHAR},
       applet_time = #{appletTime,jdbcType=VARCHAR},
-      status = #{status,jdbcType=VARCHAR},
+      `status` = #{status,jdbcType=VARCHAR},
       p_status = #{pStatus,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
-      type = #{type,jdbcType=VARCHAR},
+      `type` = #{type,jdbcType=VARCHAR},
       dx_type = #{dxType,jdbcType=VARCHAR},
       transform_type = #{transformType,jdbcType=VARCHAR},
       source_id = #{sourceId,jdbcType=BIGINT},
