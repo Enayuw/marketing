@@ -70,7 +70,7 @@ public class RsAutoArtificialAndCustomerTransferToDelayImpl implements AssembleD
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             String userType = transfer.getUserType();
-            String auditTime = transfer.getAuditTime();
+            String auditTime = StringUtils.isBlank(transfer.getAuditTime()) ? "" : transfer.getAuditTime();
             Double unlentAmount = StringUtils.isNotBlank(transfer.getUnlentAmount())
                     ? Double.valueOf(transfer.getUnlentAmount())
                     : new Double(0);
@@ -96,7 +96,7 @@ public class RsAutoArtificialAndCustomerTransferToDelayImpl implements AssembleD
                 return false;
             }
             String appletDate = marketingSyncUser.getAppletDate();
-            if (iPeriodOfValidityService.isExpire(appletDate,marketingCommonConfig.getRsValidityDay(),null)) {
+            if (iPeriodOfValidityService.isExpire(appletDate, marketingCommonConfig.getRsValidityDay(), null)) {
                 return false;
             }
 

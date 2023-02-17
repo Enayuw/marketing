@@ -56,7 +56,7 @@ public class DistributeLogAspect {
     }
 
     @Around("@annotation(com.br.marketing.common.annoation.DistributeLog)")
-    public Object retry(ProceedingJoinPoint jp) throws Throwable {
+    public Object distribute(ProceedingJoinPoint jp) throws Throwable {
         final Object[] args = jp.getArgs();
         Object arg = args[0];
         //region check
