@@ -15,11 +15,14 @@ import com.br.marketing.entity.RongshuCycleDataExample;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.mapper.RongshuCycleDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,6 +33,7 @@ import java.util.stream.Collectors;
  * @Author : lizhen
  * @Date : Create in 2023/02/15 17:09
  */
+@Slf4j
 @Service
 public class ArtificalIbuHandler extends AbstractExternalInterfaceHandler<IbuAdapDTO> {
 
@@ -55,6 +59,12 @@ public class ArtificalIbuHandler extends AbstractExternalInterfaceHandler<IbuAda
     @Override
     public JSONObject call(List<IbuAdapDTO> ibuAdapDTOS, ProcessHandlerContext context) {
         String nowDate = LocalDate.now().toString();
+        Date todayDate = null;
+        try {
+            todayDate = DateUtils.parseDate(nowDate.concat(" 00:00:00"), "yyyy-MM-dd HH:mm:ss");
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         for (Iterator<IbuAdapDTO> iterator = ibuAdapDTOS.iterator(); iterator.hasNext(); ) {
             IbuAdapDTO ibuAdapDTO = iterator.next();
             //进行条件剔除
@@ -68,7 +78,7 @@ public class ArtificalIbuHandler extends AbstractExternalInterfaceHandler<IbuAda
             String value = UUID.randomUUID().toString();
             redisChgService.lock(key, value);
             PhoneSaleExtendInfoExample extendInfoExample = new PhoneSaleExtendInfoExample();
-            extendInfoExample.createCriteria().andApiCodeEqualTo(apiCode).andCellEqualTo(cell).andAppletDateEqualTo(nowDate);
+            extendInfoExample.createCriteria().andApiCodeEqualTo(apiCode).andCellEqualTo(cell).andCreateTimeGreaterThanOrEqualTo(todayDate);
             if (phoneSaleExtendInfoMapper.countByExample(extendInfoExample) > 0) {
                 //今日已经推送,删除集合中数据
                 redisChgService.unlock(key, value);

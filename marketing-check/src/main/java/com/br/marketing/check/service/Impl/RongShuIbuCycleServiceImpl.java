@@ -1,8 +1,8 @@
 package com.br.marketing.check.service.Impl;
 
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.check.service.RongShuIbuCycleService;
 import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.dassservice.input.ibu.IbuAdapDTO;
@@ -82,21 +82,13 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
                 }
                 IbuAdapDTO ibuAdapDTO = new IbuAdapDTO();
                 PhoneSaleExtendInfo extendInfo = phoneSaleExtendInfoMapper.selectByPrimaryKey(rongshuCycleData.getPhoneExtendId());
-                JSONObject extendJson = JSON.parseObject(extendInfo.getRedundancyField());
+                String cell = BrCipherMaker.getInstance().decode(extendInfo.getCell());
                 //构造推人工IBU
-                IbuReqDTO.Datum datum = new IbuReqDTO.Datum();
-                datum.setUid(rongshuCycleData.getCustNum());
-                datum.setUserType("D");
-                datum.setUserCode(rongshuCycleData.getCustNum());
-                datum.setUserName("1");
-                datum.setPhone(extendInfo.getCell());
-                datum.setSource("100");
-                datum.setOperator(extendJson.getString("operateType"));
-                datum.setPlanId(extendJson.getInteger("planId"));
+                IbuReqDTO.Datum datum = JSONObject.parseObject(extendInfo.getRedundancyField(), IbuReqDTO.Datum.class);
                 //构造PhoneSaleExtendInfo
                 extendInfo.setAppletDate(nowDate);
                 //开关打开，状态为1
-                if (marketingCommonConfig.getZhongAnPushBlackDataSwitch()) {
+                if (marketingCommonConfig.getRongShuPushDaasSwitch()) {
                     extendInfo.setPStatus(1);
                 } else {
                     extendInfo.setPStatus(4);
@@ -110,7 +102,8 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
                 conversionData.setDataId(extendInfo.getSourceId().toString());
                 conversionData.setExpireDate(marketingCommonConfig.getRsTransferDataToCustomerExpireDate());
                 conversionData.setInversionStatus("0");
-                conversionData.setPhone(extendInfo.getCell());
+                conversionData.setPhone(cell);
+                conversionData.setCaseNum(extendInfo.getCustNum());
                 ibuAdapDTO.setDatum(datum);
                 ibuAdapDTO.setConversionData(conversionData);
                 ibuAdapDTO.setPhoneSaleExtendInfo(extendInfo);
