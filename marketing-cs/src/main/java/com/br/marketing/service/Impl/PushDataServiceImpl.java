@@ -1119,14 +1119,11 @@ public class PushDataServiceImpl implements PushDataService {
     public Result pushXieChengSmsCollidingToDbData(String data) {
         log.warn("携程短信撞库mq消息={}", data);
         try {
-
             JSONObject jsonObject = JSONObject.parseObject(data);
             Long localId = Long.valueOf(jsonObject.getInteger("localId"));
             Boolean isNewFile = jsonObject.getBooleanValue("isNewFile");
             LocalFile localFile = localFileMapper.selectByPrimaryKey(localId);
-            if (localFile != null) {
-                localFile.setPushStartTime(localFile.getPushStartTime() == null ? new Date() : localFile.getPushStartTime());
-            } else {
+            if (localFile == null) {
                 return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(false);
             }
             // 创建线程池
@@ -1162,9 +1159,9 @@ public class PushDataServiceImpl implements PushDataService {
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
-            if (selectByLocalIdCount > 0) {
-                updateXieChengSmsCollidingLocalFile(localFile);
-            }
+            //if (selectByLocalIdCount > 0) {
+            //    updateXieChengSmsCollidingLocalFile(localFile);
+            //}
             xieChengSendAlarm(failNum, "携程短信撞库接口推送异常，请检查");
         } catch (Exception e) {
             log.error("携程短信撞库接口推送异常:{}", e);

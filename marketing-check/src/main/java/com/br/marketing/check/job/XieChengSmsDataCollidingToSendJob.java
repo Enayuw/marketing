@@ -10,6 +10,7 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushDataService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -45,7 +46,7 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-
+        // 参数 0 是新文件（未推过的文件）  1 是 旧文件（推过的文件）
         // 注意：需要删除掉数据库里的mq 消息配置
         // sup_callback_yyyymmdd_01 callback_yyyymmdd_01
         // 1.判断是否为补偿定时任务，入参是否为空，如果为空则是正常定时任务 不为空则为补偿定时任务
@@ -61,9 +62,10 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
         String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
         System.out.println(jobParameter);
         if (StringUtils.isNotBlank(jobParameter)) {
+            List<String> params = Splitter.on(",").splitToList(jobParameter);
             LocalFile localFile = new LocalFile();
-            localFile.setId(Long.valueOf(jobParameter));
-            push(localFile, true);
+            localFile.setId(Long.valueOf(params.get(0)));
+            push(localFile, ("0").equals(params.get(0))?true:false);
         } else {
             LocalFileExample localFileExample = new LocalFileExample();
             localFileExample.createCriteria()
@@ -74,24 +76,16 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
             localFileList.stream().forEach((lf) -> {
                 LocalDate fileDate = isFileDate(lf);
                 // 新文件
-                if (LocalDate.now().isEqual(fileDate)) {
-                    if (lf.getFileName().contains("sup")) {
-                        // 立即推
-                        push(lf, true);
-                    } else {
-                        // 整点推 // 补偿推
-                        // 当期那时间是否符合推送时间 当前时间 >= 推送时间
-                        if (!LocalTime.now().isBefore(getSendTime())) {
-                            push(lf, true);
-                        }
-                    }
-                } else if (LocalDate.now().isAfter(fileDate)) {
+                if (LocalDate.now().isEqual(fileDate) &&!lf.getFileName().contains("sup") ) {
+                    // 整点推 // 补偿推
+                    // 当期那时间是否符合推送时间 当前时间 >= 推送时间
+                    push(lf, true);
+                }
+                if (LocalDate.now().isAfter(fileDate)) {
                     //周期推
                     // 当前时间大约文件推送时间 旧文件
-                    // 当期那时间是否符合推送时间 当前时间 >= 推送时间
-                    if (!LocalTime.now().isBefore(getSendTime())) {
-                        push(lf, false);
-                    }
+                    push(lf, false);
+
                 }
             });
         }
