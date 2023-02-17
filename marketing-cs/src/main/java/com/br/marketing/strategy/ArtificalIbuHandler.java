@@ -118,6 +118,7 @@ public class ArtificalIbuHandler extends AbstractExternalInterfaceHandler<IbuAda
             insert.setCell(extendInfo.getCell());
             insert.setCustNum(extendInfo.getCustNum());
             insert.setPushDaasDate(nowDate);
+            insert.setPushDaasTime(new Date().toString());
             if (marketingCommonConfig.getRongShuPushDaasSwitch()) {
                 insert.setPStatus(1);
             } else {
@@ -132,6 +133,7 @@ public class ArtificalIbuHandler extends AbstractExternalInterfaceHandler<IbuAda
             update.setId(rongshuCycleDataList.get(0).getId());
             update.setPushDaasDate(nowDate);
             update.setPhoneExtendId(extendInfo.getId());
+            update.setPushDaasTime(new Date().toString());
             if (marketingCommonConfig.getRongShuPushDaasSwitch()) {
                 update.setPStatus(1);
             } else {
