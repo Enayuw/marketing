@@ -12,6 +12,7 @@ import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.DataJoinLogDTO;
+import com.br.marketing.es.util.BrCipherMaker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +44,7 @@ public class CustomerTransferSoleHandler extends AbstractExternalInterfaceHandle
             sum++;
             sendList.add(conversionData);
             logList.add(methodRetryHandlerService.dataJoinLogFix(conversionData,DistributeTypeEnum.CUSTOMERTRANSFER
-                    ,context.getApiCode(), conversionData.getCaseNum(), conversionData.getPhone()
+                    ,context.getApiCode(), conversionData.getCaseNum(), BrCipherMaker.getInstance().encode(conversionData.getPhone())
                     , Long.valueOf(conversionData.getDataId()), DistributeSourceTypeEnum.TRANSFER));
             if(sendList.size()==pageSize||sum == totalCount){
                 TransferRobotOutboundSoleDTO robotOutboundDTO = new TransferRobotOutboundSoleDTO();
