@@ -2,6 +2,7 @@ package com.br.marketing.rule.rongshu;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -11,6 +12,7 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IPeriodOfValidityService;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.RequiredArgsConstructor;
@@ -44,12 +46,19 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
 
     private final IPeriodOfValidityService iPeriodOfValidityService;
 
+    @Autowired
+    TableCreateServiceImpl tableCreateService;
+
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         ConversionData conversionData = new ConversionData();
-        conversionData.setCid(transfer.getCid());
+        conversionData.setCid(tableCreateService.getCId(context.getApiCode()));
+        conversionData.setCaseNum(transfer.getCustNum());
         conversionData.setDataId(transfer.getId().toString());
+        if (!org.springframework.util.StringUtils.isEmpty(transfer.getCreateTime())){
+            conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+        }
         conversionData.setExpireDate(marketingCommonConfig.getRsTransferDataToCustomerExpireDate());
         conversionData.setInversionStatus(INVERSIONSTATUS);
         RsCollectDataImpl.RsRuleNecessaryData ruleNecessaryData =
@@ -81,6 +90,9 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
                 return false;
             }
             // unlenAmount 金额判断
+            if(StringUtils.isBlank(transfer.getUnlentAmount())){
+                return false;
+            }
             int rsUnlentAmount = marketingCommonConfig.getRsUnlentAmount() == null ? 1000 : marketingCommonConfig.getRsUnlentAmount();
             Double unlentAmount = StringUtils.isNotBlank(transfer.getUnlentAmount())
                     ? Double.valueOf(transfer.getUnlentAmount())
