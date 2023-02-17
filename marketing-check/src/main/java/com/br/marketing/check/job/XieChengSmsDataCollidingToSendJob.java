@@ -79,13 +79,20 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
                 if (LocalDate.now().isEqual(fileDate) &&!lf.getFileName().contains("sup") ) {
                     // 整点推 // 补偿推
                     // 当期那时间是否符合推送时间 当前时间 >= 推送时间
-                    push(lf, true);
+                    if (!LocalTime.now().isBefore(getSendTime())) {
+                        push(lf, true);
+                    }
                 }
                 if (LocalDate.now().isAfter(fileDate)) {
                     //周期推
                     // 当前时间大约文件推送时间 旧文件
-                    push(lf, false);
-
+                    if(lf.getFileName().contains("sup")){
+                        push(lf, false);
+                    }else {
+                        if (!LocalTime.now().isBefore(getSendTime())) {
+                            push(lf, false);
+                        }
+                    }
                 }
             });
         }
