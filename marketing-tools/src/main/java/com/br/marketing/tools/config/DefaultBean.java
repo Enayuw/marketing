@@ -1,6 +1,9 @@
 package com.br.marketing.tools.config;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -9,6 +12,7 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class DefaultBean {
@@ -19,18 +23,18 @@ public class DefaultBean {
     RestTemplate restTemplate() {
         HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory(
                 HttpClientBuilder.create().setMaxConnPerRoute(500).setMaxConnTotal(1000)
-                        //                        .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy() {
-//                            @Override
-//                            public long getKeepAliveDuration(final HttpResponse response, final HttpContext context) {
-//                                long keepAlive = super.getKeepAliveDuration(response, context);
-//                                if (keepAlive == -1) {
-//                                    keepAlive = 5000;
-//                                }
+                                                .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy() {
+                            @Override
+                            public long getKeepAliveDuration(final HttpResponse response, final HttpContext context) {
+                                long keepAlive = super.getKeepAliveDuration(response, context);
+                                if (keepAlive == -1) {
+                                    keepAlive = 5000;
+                                }
 //                                return keepAlive;
-//                                  return -1;
-//                            }
-//                        })
-//                        .evictIdleConnections(10, TimeUnit.SECONDS)
+                                  return -1;
+                            }
+                        })
+                        .evictIdleConnections(10, TimeUnit.SECONDS)
                         .build());
         httpRequestFactory.setConnectionRequestTimeout(3000);
         httpRequestFactory.setConnectTimeout(1000);
