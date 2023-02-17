@@ -37,24 +37,32 @@ public class CustomerTransferSoleHandler extends AbstractExternalInterfaceHandle
         int pageSize = 500;
         int totalCount = transferList.size();
         String last = context.getLast();
+        //数据数组
         ArrayList<ConversionData> sendList = new ArrayList<>();
+        //数据日志数组
         ArrayList<DataJoinLogDTO> logList = new ArrayList<>();
         Integer sum = 0;
+        // 遍历数据数组
         for (ConversionData conversionData : transferList) {
             sum++;
             sendList.add(conversionData);
+            // 把封装的日志插入到数组中
             logList.add(methodRetryHandlerService.dataJoinLogFix(conversionData,DistributeTypeEnum.CUSTOMERTRANSFER
                     ,context.getApiCode(), conversionData.getCaseNum(), BrCipherMaker.getInstance().encode(conversionData.getPhone())
                     , Long.valueOf(conversionData.getDataId()), DistributeSourceTypeEnum.TRANSFER));
             if(sendList.size()==pageSize||sum == totalCount){
+                // 对象继承 DataDistributeLogBase
                 TransferRobotOutboundSoleDTO robotOutboundDTO = new TransferRobotOutboundSoleDTO();
                 robotOutboundDTO.setApiCode(context.getApiCode());
                 robotOutboundDTO.setTransferInfoId(context.getTransferInfoId());
                 robotOutboundDTO.setData(sendList);
                 robotOutboundDTO.setDetailLogList(logList);
                 robotOutboundDTO.setLast(sum == totalCount?last:(last != null ? "0" : null));
+                //传参去重
                 robotOutboundDTO.setIsSole(true);
+                //2-根据apicode cell维度去重
                 robotOutboundDTO.setSoleField(2);
+                //去重数据范围1-是当天
                 robotOutboundDTO.setSoleDay(1);
                 methodRetryHandlerService.callCustomerTransfer(robotOutboundDTO, null);
                 sendList = new ArrayList<>();
