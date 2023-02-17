@@ -94,9 +94,7 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
                 return false;
             }
             int rsUnlentAmount = marketingCommonConfig.getRsUnlentAmount() == null ? 1000 : marketingCommonConfig.getRsUnlentAmount();
-            Double unlentAmount = StringUtils.isNotBlank(transfer.getUnlentAmount())
-                    ? Double.valueOf(transfer.getUnlentAmount())
-                    : new Double(0);
+            Double unlentAmount = Double.valueOf(transfer.getUnlentAmount());
             //userType =4 || userType =5 || unlentAmount < 10000
             return transfer.getUserType().equals("4") || transfer.getUserType().equals("5") || unlentAmount < rsUnlentAmount;
         }
