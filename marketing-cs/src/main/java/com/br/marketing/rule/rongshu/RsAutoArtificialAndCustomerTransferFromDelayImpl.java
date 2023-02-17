@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.common.util.DateUtils;
 import com.br.marketing.context.impl.PPDCollectDataImpl;
 import com.br.marketing.service.IRongShuPushDaasService;
 import com.google.api.client.json.Json;
@@ -111,7 +112,11 @@ public class RsAutoArtificialAndCustomerTransferFromDelayImpl implements Assembl
         conversionData.setInversionStatus("0");
         conversionData.setPhone(cell);
         conversionData.setDataId(transfer.getId().toString());
+        conversionData.setCid(tableCreateService.getCId(context.getApiCode()));
         conversionData.setExpireDate(marketingCommonConfig.getRsTransferDataToCustomerExpireDate());
+        if (!org.springframework.util.StringUtils.isEmpty(transfer.getCreateTime())){
+            conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+        }
 
         phoneSaleExtendInfo.setApiCode(context.getApiCode());
         phoneSaleExtendInfo.setCustNum(transfer.getCustNum());
