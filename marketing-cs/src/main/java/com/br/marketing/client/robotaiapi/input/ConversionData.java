@@ -3,12 +3,14 @@
   */
 package com.br.marketing.client.robotaiapi.input;
 import com.br.marketing.rule.InterfaceParams;
-import lombok.Data;
+import lombok.*;
 
 /**
  * Auto-generated: 2021-08-04 10:58:58
  */
-@Data
+@Getter
+@Setter
+@ToString
 public class ConversionData extends InterfaceParams {
 
     /**
