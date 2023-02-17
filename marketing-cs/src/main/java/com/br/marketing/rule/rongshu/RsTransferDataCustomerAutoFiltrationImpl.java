@@ -1,5 +1,6 @@
 package com.br.marketing.rule.rongshu;
 
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -32,8 +33,6 @@ import java.util.Map;
 public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<ConversionData> {
 
 
-    private final static String MD5 = "md5";
-    private final static String TYPE = "cell";
 
     private final static String INVERSIONSTATUS="0";
 
@@ -57,9 +56,8 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
         Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
         MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, transfer.getCustNum());
         if (marketingSyncUser != null) {
-            conversionData.setPhone( RpcClientProxy.decode(marketingSyncUser.getCell(),TYPE ,MD5,""));
+            conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
         }
-
         return conversionData;
     }
 
@@ -98,7 +96,7 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE.getCode();
     }
 
     @Override
