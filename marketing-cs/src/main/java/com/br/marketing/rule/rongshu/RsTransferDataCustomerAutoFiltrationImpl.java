@@ -98,7 +98,7 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE.getCode();
     }
 
     @Override
