@@ -1122,10 +1122,6 @@ public class PushDataServiceImpl implements PushDataService {
             JSONObject jsonObject = JSONObject.parseObject(data);
             Long localId = Long.valueOf(jsonObject.getInteger("localId"));
             Boolean isNewFile = jsonObject.getBooleanValue("isNewFile");
-            LocalFile localFile = localFileMapper.selectByPrimaryKey(localId);
-            if (localFile == null) {
-                return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(false);
-            }
             // 创建线程池
             ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingThread(), marketingCommonConfig.getXieChengSmsCollidingThread());
 
@@ -1133,10 +1129,6 @@ public class PushDataServiceImpl implements PushDataService {
             // 根据id匹配 进行数据查询 每批次查询 5000
             Long minId = null;
             AtomicInteger failNum = new AtomicInteger(0);
-            int selectByLocalIdCount = xieChengSmsCollidingDataMapper.selectByLocalIdCount(localId, getEndTime(isNewFile));
-            if (selectByLocalIdCount == 0) {
-                actionMark = false;
-            }
             while (actionMark) {
                 List<XieChengSmsCollidingData> xieChengSmsCollidingDataList = xieChengSmsCollidingDataMapper.selectByLocalId(localId, minId, getEndTime(isNewFile));
                 if (xieChengSmsCollidingDataList.size() == 0) {
@@ -1149,7 +1141,7 @@ public class PushDataServiceImpl implements PushDataService {
                 List<List<XieChengSmsCollidingData>> xieChengSmsCollidingDataPartitions = Lists.partition(xieChengSmsCollidingDataList, XIECHENGSMSCOLLIDINGPARTATIONNUM);
                 for (int i = 0; i < xieChengSmsCollidingDataPartitions.size(); i++) {
                     List<XieChengSmsCollidingData> xieChengSmsCollidingDataListPartition = xieChengSmsCollidingDataPartitions.get(i);
-                    xieChengSmsCollidingThread.submit(() -> pushXieChengSmsCollidingData(xieChengSmsCollidingDataListPartition, failNum, localFile.getId()));
+                    xieChengSmsCollidingThread.submit(() -> pushXieChengSmsCollidingData(xieChengSmsCollidingDataListPartition, failNum, localId));
                 }
             }
             xieChengSmsCollidingThread.shutdown();

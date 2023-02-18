@@ -440,5 +440,10 @@ public class MarketingCommonConfig {
      * 拍拍贷老客推电销去重时间天数
      */
     private Integer ppdOldPhoneValidityDay;
+
+    /**
+     * 携程拨打明细推送暂停开关
+     */
+    private Boolean xieChengCallingRecordSwitch;
 }
 

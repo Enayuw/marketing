@@ -21,21 +21,6 @@
         </if>
         order by id asc limit 15000;
     </select>
-    <select id="selectByLocalIdCount" resultType="java.lang.Integer">
-        select
-        count(*)
-        from b_xiecheng_sms_colliding_data
-        where  status =1  and local_id = #{localId}
-        <choose>
-            <when test="endTime != null and endTime!=''">
-                <![CDATA[   and next_push_time <= #{endTime}  ]]>
-            </when>
-            <otherwise>
-                <![CDATA[   and next_push_time <=> null    ]]>
-            </otherwise>
-        </choose>
-    </select>
-
     <update id="updateBatch">
         update b_xiecheng_sms_colliding_data set next_push_time = now() where sha256_code_list in
         <foreach collection="list" item="id" open="(" separator="," close=")">
