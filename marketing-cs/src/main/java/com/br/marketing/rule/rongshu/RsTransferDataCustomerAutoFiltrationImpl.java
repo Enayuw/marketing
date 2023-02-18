@@ -79,7 +79,6 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
                     (RsCollectDataImpl.RsRuleNecessaryData) context.getRuleNecessaryData();
             Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
             MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, transfer.getCustNum());
-            log.warn("转化数据推送客服：{}", JSONObject.toJSON(marketingSyncUser));
             //用户非空判断
             if (marketingSyncUser == null) {
                 return false;
