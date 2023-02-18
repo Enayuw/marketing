@@ -17,8 +17,7 @@
       local_id
     from b_xiecheng_data
     where  status =1 and push_status =1
-    group by local_id
-    order by id asc
+    order by id asc limit 50000
   </select>
   <select id="getByCellToday" resultType="com.br.marketing.entity.XieChengData"
           parameterType="java.lang.String">

@@ -442,8 +442,12 @@ public class MarketingCommonConfig {
     private Integer ppdOldPhoneValidityDay;
 
     /**
-     * 携程拨打明细推送暂停开关
+     * 携程拨打明细推送暂停开关 true：暂停开关打开，false 暂停开关关闭
      */
     private Boolean xieChengCallingRecordSwitch;
+    /**
+     * 携程拨打明细补推sleep 时间
+     */
+    private Integer xieChengCallingRecordSleep;
 }
 

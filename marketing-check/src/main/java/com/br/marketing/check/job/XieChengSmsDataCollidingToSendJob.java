@@ -41,8 +41,6 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
     @Autowired
     private PushDataService pushDataService;
 
-    @Autowired
-    private XieChengSmsCollidingDataLogMapper xieChengSmsCollidingDataLogMapper;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
