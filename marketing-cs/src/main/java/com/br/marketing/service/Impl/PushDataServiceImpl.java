@@ -1117,7 +1117,7 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Override
     public Result pushXieChengSmsCollidingToDbData(String data) {
-        log.warn("携程短信撞库mq消息={}", data);
+        log.warn("携程短信信息={}", data);
         try {
             JSONObject jsonObject = JSONObject.parseObject(data);
             Long localId = Long.valueOf(jsonObject.getInteger("localId"));

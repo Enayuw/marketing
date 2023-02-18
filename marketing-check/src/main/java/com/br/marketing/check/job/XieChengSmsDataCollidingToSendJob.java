@@ -99,7 +99,6 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
     }
 
     private void push(LocalFile lf, boolean value) {
-        // 立即推
         JSONObject msg = new JSONObject();
         msg.put("localId", lf.getId());
         msg.put("isNewFile", value);
