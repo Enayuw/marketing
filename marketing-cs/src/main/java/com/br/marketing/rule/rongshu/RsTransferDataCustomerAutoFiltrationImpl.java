@@ -79,7 +79,6 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
                     (RsCollectDataImpl.RsRuleNecessaryData) context.getRuleNecessaryData();
             Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
             MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, transfer.getCustNum());
-            log.warn("转化数据推送客服：{}", JSONObject.toJSON(marketingSyncUser));
             //用户非空判断
             if (marketingSyncUser == null) {
                 return false;
@@ -89,7 +88,7 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
             if (iPeriodOfValidityService.isExpire(appletDate,marketingCommonConfig.getRsValidityDay(),null)) {
                 return false;
             }
-            // unlenAmount 金额判断
+            // unlentAmount 金额判断
             if(StringUtils.isBlank(transfer.getUnlentAmount())){
                 return false;
             }
