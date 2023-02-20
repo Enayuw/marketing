@@ -72,7 +72,8 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
                 continue;
             }
             minId = rongshuCycleDataList.get(rongshuCycleDataList.size() - 1).getId() + 1;
-            String tcId = tableCreateService.getCId(rongshuCycleDataList.get(0).getApiCode());
+            String tcId = tableCreateService.getTcId(rongshuCycleDataList.get(0).getApiCode());
+            String cId = tableCreateService.getCId(rongshuCycleDataList.get(0).getApiCode());
             String nowDate = LocalDate.now().toString();
             List<IbuAdapDTO> ibuAdapDTOList = new ArrayList<>();
             rongshuCycleDataList.forEach(rongshuCycleData -> {
@@ -87,18 +88,13 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
                 IbuReqDTO.Datum datum = JSONObject.parseObject(extendInfo.getRedundancyField(), IbuReqDTO.Datum.class);
                 //构造PhoneSaleExtendInfo
                 extendInfo.setAppletDate(nowDate);
-                //开关打开，状态为1
-                if (marketingCommonConfig.getRongShuPushDaasSwitch()) {
-                    extendInfo.setPStatus(1);
-                } else {
-                    extendInfo.setPStatus(4);
-                }
                 extendInfo.setCreateTime(new Date());
                 extendInfo.setPushDxTime(new Date());
                 extendInfo.setUpdateTime(new Date());
+                extendInfo.setStatus("b");
                 //构造推客服数据
                 ConversionData conversionData = new ConversionData();
-                conversionData.setCid(tcId);
+                conversionData.setCid(cId);
                 conversionData.setDataId(extendInfo.getSourceId().toString());
                 conversionData.setExpireDate(marketingCommonConfig.getRsTransferDataToCustomerExpireDate());
                 conversionData.setInversionStatus("0");

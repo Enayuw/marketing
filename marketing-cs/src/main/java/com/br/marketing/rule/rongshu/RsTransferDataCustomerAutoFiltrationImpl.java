@@ -88,14 +88,19 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
             if (iPeriodOfValidityService.isExpire(appletDate,marketingCommonConfig.getRsValidityDay(),null)) {
                 return false;
             }
-            // unlentAmount 金额判断
-            if(StringUtils.isBlank(transfer.getUnlentAmount())){
-                return false;
-            }
+            //userType =4 || userType =5 || unlentAmount < 10000
+            return transfer.getUserType().equals("4")
+                    || transfer.getUserType().equals("5")
+                    || getUnlentAmount(transfer);
+        }
+        return false;
+    }
+
+    private boolean getUnlentAmount( MarketingTransferSyncUser transfer){
+        if(StringUtils.isNotBlank(transfer.getUnlentAmount())){
             int rsUnlentAmount = marketingCommonConfig.getRsUnlentAmount() == null ? 1000 : marketingCommonConfig.getRsUnlentAmount();
             Double unlentAmount = Double.valueOf(transfer.getUnlentAmount());
-            //userType =4 || userType =5 || unlentAmount < 10000
-            return transfer.getUserType().equals("4") || transfer.getUserType().equals("5") || unlentAmount < rsUnlentAmount;
+            return unlentAmount < rsUnlentAmount;
         }
         return false;
     }
