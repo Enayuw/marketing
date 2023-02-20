@@ -88,12 +88,6 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
                 IbuReqDTO.Datum datum = JSONObject.parseObject(extendInfo.getRedundancyField(), IbuReqDTO.Datum.class);
                 //构造PhoneSaleExtendInfo
                 extendInfo.setAppletDate(nowDate);
-                //开关打开，状态为1
-                if (marketingCommonConfig.getRongShuPushDaasSwitch()) {
-                    extendInfo.setPStatus(1);
-                } else {
-                    extendInfo.setPStatus(4);
-                }
                 extendInfo.setCreateTime(new Date());
                 extendInfo.setPushDxTime(new Date());
                 extendInfo.setUpdateTime(new Date());

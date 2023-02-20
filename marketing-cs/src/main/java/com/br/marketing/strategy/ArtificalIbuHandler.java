@@ -85,6 +85,12 @@ public class ArtificalIbuHandler extends AbstractExternalInterfaceHandler<IbuAda
                 redisChgService.unlock(key, value);
                 iterator.remove();
             } else {
+                //开关打开，状态为1,开关关闭，状态为4标识挡板数据状态
+                if (marketingCommonConfig.getRongShuPushDaasSwitch()) {
+                    phoneSaleExtendInfo.setPStatus(1);
+                } else {
+                    phoneSaleExtendInfo.setPStatus(4);
+                }
                 phoneSaleExtendInfoMapper.insertSelective(phoneSaleExtendInfo);
                 redisChgService.unlock(key, value);
                 //a情况，需要insert or update 周期表
