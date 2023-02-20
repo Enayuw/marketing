@@ -96,6 +96,7 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
                 extendInfo.setCreateTime(new Date());
                 extendInfo.setPushDxTime(new Date());
                 extendInfo.setUpdateTime(new Date());
+                extendInfo.setStatus("b");
                 //构造推客服数据
                 ConversionData conversionData = new ConversionData();
                 conversionData.setCid(tcId);
