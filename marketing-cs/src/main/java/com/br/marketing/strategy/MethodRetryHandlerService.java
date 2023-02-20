@@ -44,10 +44,7 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
@@ -495,7 +492,7 @@ public class MethodRetryHandlerService {
      * @return
      */
     @RetryMethod(isOrNoDbRetry = true)
-    public Result callDassIbuBatchData(List<IbuReqDTO.Datum> datumList, Integer retry) {
+    public Result callDassIbuBatchData(ArrayList<IbuReqDTO.Datum> datumList, Integer retry) {
         Result result = dassServiceClient.pushIbuArtificial(datumList);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             Set<String> set = datumList.stream().map(IbuReqDTO.Datum::getId).map(String::valueOf).collect(Collectors.toSet());
