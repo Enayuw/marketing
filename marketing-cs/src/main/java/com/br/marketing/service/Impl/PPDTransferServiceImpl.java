@@ -130,10 +130,10 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
             return number;
         }
         TransferActionFront frontData = frontDataRes.getData();
-//        if (frontData != null && new Integer(2).equals(frontData.getStatus())) {
-//            log.warn("拍拍贷老客周期性推送电销任务今日已经推送!");
-//            return number;
-//        }
+        if (frontData != null && new Integer(2).equals(frontData.getStatus())) {
+            log.warn("拍拍贷老客周期性推送电销任务今日已经推送!");
+            return number;
+        }
         // 任务状态标记为4
         Long frontId = yiXinTransferService.saveFrontData(StringUtils.join(apiCode, ","), yyyymmdd, 4);
         String tcId = tableCreateService.getTcId(apiCode[0]);
