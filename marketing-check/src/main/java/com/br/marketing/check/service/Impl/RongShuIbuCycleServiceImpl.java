@@ -72,7 +72,8 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
                 continue;
             }
             minId = rongshuCycleDataList.get(rongshuCycleDataList.size() - 1).getId() + 1;
-            String tcId = tableCreateService.getCId(rongshuCycleDataList.get(0).getApiCode());
+            String tcId = tableCreateService.getTcId(rongshuCycleDataList.get(0).getApiCode());
+            String cId = tableCreateService.getCId(rongshuCycleDataList.get(0).getApiCode());
             String nowDate = LocalDate.now().toString();
             List<IbuAdapDTO> ibuAdapDTOList = new ArrayList<>();
             rongshuCycleDataList.forEach(rongshuCycleData -> {
@@ -99,7 +100,7 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
                 extendInfo.setStatus("b");
                 //构造推客服数据
                 ConversionData conversionData = new ConversionData();
-                conversionData.setCid(tcId);
+                conversionData.setCid(cId);
                 conversionData.setDataId(extendInfo.getSourceId().toString());
                 conversionData.setExpireDate(marketingCommonConfig.getRsTransferDataToCustomerExpireDate());
                 conversionData.setInversionStatus("0");
