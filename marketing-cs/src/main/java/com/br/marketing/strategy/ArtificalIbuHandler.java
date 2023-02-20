@@ -159,7 +159,7 @@ public class ArtificalIbuHandler extends AbstractExternalInterfaceHandler<IbuAda
             } else {
                 subList = ibuReqList.subList((i - 1) * pageSize, pageSize * (i));
             }
-            methodRetryHandlerService.callDassIbuBatchData(subList, 0);
+            methodRetryHandlerService.callDassIbuBatchData(new ArrayList<>(subList), 0);
         }
     }
 

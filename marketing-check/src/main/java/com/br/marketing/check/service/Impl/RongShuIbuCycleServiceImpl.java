@@ -72,7 +72,7 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
                 continue;
             }
             minId = rongshuCycleDataList.get(rongshuCycleDataList.size() - 1).getId() + 1;
-            String tcId = tableCreateService.getTcId(rongshuCycleDataList.get(0).getApiCode());
+            String tcId = tableCreateService.getCId(rongshuCycleDataList.get(0).getApiCode());
             String nowDate = LocalDate.now().toString();
             List<IbuAdapDTO> ibuAdapDTOList = new ArrayList<>();
             rongshuCycleDataList.forEach(rongshuCycleData -> {
