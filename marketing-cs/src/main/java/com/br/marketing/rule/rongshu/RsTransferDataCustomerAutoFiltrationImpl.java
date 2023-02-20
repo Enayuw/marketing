@@ -88,7 +88,7 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
             if (iPeriodOfValidityService.isExpire(appletDate,marketingCommonConfig.getRsValidityDay(),null)) {
                 return false;
             }
-            // unlenAmount 金额判断
+            // unlentAmount 金额判断
             if(StringUtils.isBlank(transfer.getUnlentAmount())){
                 return false;
             }
