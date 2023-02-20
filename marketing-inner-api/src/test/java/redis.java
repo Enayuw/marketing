@@ -89,6 +89,7 @@ public class redis {
         System.out.println("s1:"+s1);
     }
 
+
     @Test
     public void testAop(){
         DataDistrubuteTestDTO req = new DataDistrubuteTestDTO();
@@ -99,14 +100,10 @@ public class redis {
         dataDetailTestDTOS.add(a);
         DataJoinLogDTO log = new DataJoinLogDTO();
         log.setApiCode("7410437");
-        log.setCustNum("123");
-        log.setCell("123");
+        log.setCustNum("111");
+        log.setCell("111");
         log.setDistributeDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         log.setDistributeType(1);
-        log.setCreateTime(new Date());
-        log.setUpdateTime(new Date());
-        log.setSourceId(1L);
-        log.setSourceType("123");
         log.setDataCode(a.hashCode());
         log.setDataMd5(DigestUtils.md5DigestAsHex(a.toString().getBytes()));
         dataDistributeDetailLogs.add(log);
@@ -121,10 +118,6 @@ public class redis {
         log1.setCell("111");
         log1.setDistributeDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         log1.setDistributeType(1);
-        log1.setCreateTime(new Date());
-        log1.setUpdateTime(new Date());
-        log1.setSourceId(2l);
-        log1.setSourceType("123");
         log1.setDataCode(b.hashCode());
         log1.setDataMd5(DigestUtils.md5DigestAsHex(b.toString().getBytes()));
         dataDistributeDetailLogs.add(log1);

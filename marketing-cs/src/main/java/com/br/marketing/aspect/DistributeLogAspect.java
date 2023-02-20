@@ -69,6 +69,10 @@ public class DistributeLogAspect {
             return jp.proceed();
         }
         List data = logBase.getData();
+        HashMap<String, Object> dataMap = new HashMap<>();
+        for (Object datum : data) {
+            dataMap.put(DigestUtils.md5DigestAsHex(datum.toString().getBytes()) + datum.hashCode(), datum);
+        }
         if (logBase.getIsSole() && !soleTypes.contains(logBase.getSoleField())) {
             return jp.proceed();
         }
@@ -81,7 +85,10 @@ public class DistributeLogAspect {
         ArrayList<Object> soleDataLogs = new ArrayList<>();
         if (!isRecord) {
             HashSet dataMd5Set = new HashSet();
-            for (DataJoinLogDTO log : detailLogList) {
+
+            Iterator<DataJoinLogDTO> iterator = detailLogList.iterator();
+            while (iterator.hasNext()) {
+                DataJoinLogDTO log = iterator.next();
                 if (logBase.getIsSole()) {
                     //region 去重处理
                     String key = RedisKeyConstant.dributeDataSloeLock;
@@ -99,11 +106,10 @@ public class DistributeLogAspect {
                         //region 去重判断
                         // 数组内去重
                         if (!dataMd5Set.add(log.getDataMd5())) {
-                            Optional first = data.stream().filter(t -> new Integer(t.hashCode()).equals(log.getDataCode())
-                                    && log.getDataMd5().equals(DigestUtils.md5DigestAsHex(t.toString().getBytes()))).findFirst();
-                            if (first.isPresent()) {
-                                soleDatas.add(first.get());
-                                soleDataLogs.add(log);
+                            Object o = dataMap.get(log.getDataMd5() + log.getDataCode());
+                            if(o != null){
+                                iterator.remove();
+                                data.remove(o);
                                 redisChgService.unlock(key, uuid.toString());
                                 continue;
                             }
@@ -128,11 +134,10 @@ public class DistributeLogAspect {
                         }
                         List<DataDistributeDetailLog> dataDistributeDetailLogs = dataDistributeDetailLogMapper.selectByExample(logExample);
                         if (dataDistributeDetailLogs.size() > 0) {
-                            Optional first = data.stream().filter(t -> new Integer(t.hashCode()).equals(log.getDataCode())
-                                    && log.getDataMd5().equals(DigestUtils.md5DigestAsHex(t.toString().getBytes()))).findFirst();
-                            if (first.isPresent()) {
-                                soleDatas.add(first.get());
-                                soleDataLogs.add(log);
+                            Object o = dataMap.get(log.getDataMd5() + log.getDataCode());
+                            if(o != null){
+                                iterator.remove();
+                                data.remove(o);
                                 redisChgService.unlock(key, uuid.toString());
                                 continue;
                             }
@@ -155,12 +160,13 @@ public class DistributeLogAspect {
                     log.setId(newLog.getId());
                 }
             }
+
         }
-        if (logBase.getIsSole()) {
-            ((DataDistributeLogBase) args[0]).getData().removeAll(soleDatas);
-            ((DataDistributeLogBase) args[0]).setDetailLogList(detailLogList);
-            ((DataDistributeLogBase) args[0]).getDetailLogList().removeAll(soleDataLogs);
-        }
+//        if (logBase.getIsSole()) {
+//            ((DataDistributeLogBase) args[0]).getData().removeAll(soleDatas);
+//            ((DataDistributeLogBase) args[0]).setDetailLogList(detailLogList);
+//            ((DataDistributeLogBase) args[0]).getDetailLogList().removeAll(soleDataLogs);
+//        }
         Object proceed = jp.proceed();
         //region 结果处理
         if (proceed instanceof Result) {
@@ -172,7 +178,7 @@ public class DistributeLogAspect {
                 upExample.createCriteria().andIdIn(logIds);
                 updateEntity.setSuccessDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
                 updateEntity.setpStatus(2);
-                if(logIds !=null && logIds.size()>0) {
+                if (logIds != null && logIds.size() > 0) {
                     dataDistributeDetailLogMapper.updateByExampleSelective(updateEntity, upExample);
                 }
             } else if (ResultCode.FAIL.getValue().equals(res.getCode())) {
@@ -180,7 +186,7 @@ public class DistributeLogAspect {
                 DataDistributeDetailLogExample upExample = new DataDistributeDetailLogExample();
                 upExample.createCriteria().andIdIn(logIds);
                 updateEntity.setpStatus(3);
-                if(logIds !=null && logIds.size()>0) {
+                if (logIds != null && logIds.size() > 0) {
                     dataDistributeDetailLogMapper.updateByExampleSelective(updateEntity, upExample);
                 }
             }

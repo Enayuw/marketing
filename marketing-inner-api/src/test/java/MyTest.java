@@ -1,5 +1,7 @@
 
 import java.math.BigDecimal;
+
+import com.br.marketing.dto.DataDetailTestDTO;
 import com.google.common.collect.Lists;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
@@ -39,6 +41,45 @@ import java.util.regex.Pattern;
 public class MyTest {
 
     final static SimpleDateFormat yyyyMMddHMS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    @Test
+    public void testhashcode(){
+        ArrayList<DataDetailTestDTO> dataDetailTestDTOS = new ArrayList<>();
+
+        DataDetailTestDTO log = new DataDetailTestDTO();
+        log.setName("7410437");
+
+        DataDetailTestDTO log1 = new DataDetailTestDTO();
+        log1.setName("7410437");
+
+        DataDetailTestDTO log2 = new DataDetailTestDTO();
+        log2.setName("7410437");
+
+        DataDetailTestDTO log3 = new DataDetailTestDTO();
+        log3.setName("7410437");
+
+        String s = DigestUtils.md5DigestAsHex((log.toString() + log.hashCode()).getBytes());
+        System.out.println("s:"+s);
+        System.out.println("loghascode:"+log.hashCode());
+        System.out.println("log1hascode:"+log1.hashCode());
+        String s1 = DigestUtils.md5DigestAsHex((log.toString() + log.hashCode()).getBytes());
+        System.out.println("s1:"+s1);
+        dataDetailTestDTOS.add(log);
+        dataDetailTestDTOS.add(log1);
+        dataDetailTestDTOS.add(log2);
+        dataDetailTestDTOS.add(log3);
+        HashMap<String, Object> objectObjectHashMap = new HashMap<>();
+        for (DataDetailTestDTO dataDetailTestDTO : dataDetailTestDTOS) {
+            objectObjectHashMap.put(DigestUtils.md5DigestAsHex((log.toString()).getBytes())+log.hashCode(),dataDetailTestDTO);
+        }
+        List abc = dataDetailTestDTOS;
+        abc.remove(log);
+        System.out.println(dataDetailTestDTOS);
+        Iterator<DataDetailTestDTO> iterator = dataDetailTestDTOS.iterator();
+        if (iterator.hasNext()) {
+            iterator.remove();
+        }
+    }
 
     @Test
     public void testThreadSafe() {
