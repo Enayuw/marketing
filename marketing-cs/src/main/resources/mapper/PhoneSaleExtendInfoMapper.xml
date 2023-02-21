@@ -197,7 +197,7 @@
         limit ${(pageNum - 1) * pageSize}, #{pageSize}
     </select>
 
-    <sql id="Example_Where_Clause">
+    <sql id="Example_Where_Clause_Custom">
         <where>
             <foreach collection="example.oredCriteria" item="criteria" separator="or">
                 <if test="criteria.valid">
@@ -238,7 +238,7 @@
         , (select id
         from b_phone_sale_extend_info
         <if test="_parameter != null">
-            <include refid="Example_Where_Clause"/>
+            <include refid="Example_Where_Clause_Custom"/>
         </if>
         <if test="example.orderByClause != null">
             order by ${example.orderByClause}
@@ -256,7 +256,7 @@
         cust_num
         from b_phone_sale_extend_info
         <if test="_parameter != null">
-            <include refid="Example_Where_Clause"/>
+            <include refid="Example_Where_Clause_Custom"/>
         </if>
         <if test="example.orderByClause != null">
             order by ${example.orderByClause}
