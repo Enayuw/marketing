@@ -1116,7 +1116,7 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     @Override
-    public Result pushXieChengSmsCollidingToDbData(String data) {
+    public void  pushXieChengSmsCollidingToDbData(String data) {
         log.warn("携程短信信息={}", data);
         try {
             JSONObject jsonObject = JSONObject.parseObject(data);
@@ -1125,7 +1125,7 @@ public class PushDataServiceImpl implements PushDataService {
             // 创建线程池
             ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingThread(), marketingCommonConfig.getXieChengSmsCollidingThread());
 
-            Boolean actionMark = true;
+            boolean actionMark = true;
             // 根据id匹配 进行数据查询 每批次查询 5000
             Long minId = null;
             AtomicInteger failNum = new AtomicInteger(0);
@@ -1139,8 +1139,7 @@ public class PushDataServiceImpl implements PushDataService {
                 minId = xieChengSmsCollidingDataList.get(xieChengSmsCollidingDataList.size() - 1).getId();
                 // 将查询出来的明细数据进行分组，每组50个数据
                 List<List<XieChengSmsCollidingData>> xieChengSmsCollidingDataPartitions = Lists.partition(xieChengSmsCollidingDataList, XIECHENGSMSCOLLIDINGPARTATIONNUM);
-                for (int i = 0; i < xieChengSmsCollidingDataPartitions.size(); i++) {
-                    List<XieChengSmsCollidingData> xieChengSmsCollidingDataListPartition = xieChengSmsCollidingDataPartitions.get(i);
+                for (List<XieChengSmsCollidingData> xieChengSmsCollidingDataListPartition : xieChengSmsCollidingDataPartitions) {
                     xieChengSmsCollidingThread.submit(() -> pushXieChengSmsCollidingData(xieChengSmsCollidingDataListPartition, failNum, localId));
                 }
             }
@@ -1158,7 +1157,6 @@ public class PushDataServiceImpl implements PushDataService {
         } catch (Exception e) {
             log.error("携程短信撞库接口推送异常:{}", e);
         }
-        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
     private String getEndTime(Boolean isNewFile) {
@@ -1172,7 +1170,7 @@ public class PushDataServiceImpl implements PushDataService {
 
     private boolean isJson(String str) {
         try {
-            JSONObject jsonStr = JSONObject.parseObject(str);
+            JSONObject.parseObject(str);
             return true;
         } catch (Exception e) {
             return false;
