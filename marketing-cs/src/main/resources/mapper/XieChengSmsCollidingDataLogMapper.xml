@@ -83,6 +83,7 @@
         where
         <foreach collection="list" item="i" open="( " separator=") or (" close=" )" >
             sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}
+            and id =(select id from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} order by create_time desc limit 1)
         </foreach>
     </update>
 
