@@ -449,5 +449,10 @@ public class MarketingCommonConfig {
      * 携程拨打明细补推sleep 时间
      */
     private Integer xieChengCallingRecordSleep;
+
+    /**
+     * 携程短信撞库开始时间
+     */
+    private String xieChengSmsCollidingStartTime;
 }
 
