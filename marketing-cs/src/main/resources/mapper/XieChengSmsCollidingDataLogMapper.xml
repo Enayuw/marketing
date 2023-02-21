@@ -37,7 +37,7 @@
                 <foreach collection="list" item="i" index="index">
                     <if test="i.mktLevel != null and i.mktLevel != ''">
                         when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}
-                        and id =(select id from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} order by create_time desc limit 1)
+                        and id = (select max(id) from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} group by sha256_code_list)
             then #{i.mktLevel}
                     </if>
                 </foreach>
@@ -46,7 +46,7 @@
                 <foreach collection="list" item="i" index="index">
                     <if test="i.result != null">
                         when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}
-                        and id =(select id from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} order by create_time desc limit 1)
+                        and id = (select max(id) from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} group by sha256_code_list)
             then #{i.result, jdbcType=BIT}
                     </if>
                 </foreach>
@@ -55,7 +55,7 @@
                 <foreach collection="list" item="i" index="index">
                     <if test="i.orgChannel != null and i.orgChannel != ''">
                         when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}
-                        and id =(select id from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} order by create_time desc limit 1)
+                        and id = (select max(id) from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} group by sha256_code_list)
             then #{i.orgChannel}
 
                     </if>
@@ -65,7 +65,7 @@
                 <foreach collection="list" item="i" index="index">
                     <if test="i.status != null and i.status != ''">
                         when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}
-                        and id =(select id from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} order by create_time desc limit 1)
+                        and id = (select max(id) from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} group by sha256_code_list)
             then #{i.status}
                     </if>
                 </foreach>
@@ -74,7 +74,7 @@
                 <foreach collection="list" item="i" index="index">
                     <if test="i.dataMessage != null and i.dataMessage != ''">
                         when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}
-                        and id =(select id from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} order by create_time desc limit 1)
+                        and id =(select max(id) from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} group by sha256_code_list)
             then #{i.dataMessage}
                     </if>
                 </foreach>
@@ -83,7 +83,7 @@
         where
         <foreach collection="list" item="i" open="( " separator=") or (" close=" )" >
             sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}
-            and id =(select id from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} order by create_time desc limit 1)
+            and id =(select max(id) from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} group by sha256_code_list)
         </foreach>
     </update>
 
