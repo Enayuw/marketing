@@ -4,17 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
-import com.br.marketing.entity.Marketing;
 import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.mapper.XieChengSmsCollidingDataLogMapper;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -35,15 +31,14 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
 
     private final static String XIECHENGSMSCOLLIDING = "xiechengsmscolliding";
 
-    @Autowired
-    RabbitMqProducter producter;
+
     @Resource
     private LocalFileMapper localFileMapper;
 
-    @Autowired
+    @Resource
     private PushDataService pushDataService;
 
-    @Autowired
+    @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
 
@@ -61,12 +56,12 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
         //3. 周期推：日期小于当天（旧文件）
         //4. 未来推：日期大于当天
         //4. 补偿推：根据localId 直接推
-        //    locall_id 来源 定时任务方法输入、查询log表异常的数据所对应的local_id
+        //    local_id 来源 定时任务方法输入、查询log表异常的数据所对应的local_id
         String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
         System.out.println(jobParameter);
         if (StringUtils.isNotBlank(jobParameter)) {
             List<String> params = Splitter.on(",").splitToList(jobParameter);
-            push(Long.valueOf(params.get(0)), ("0").equals(params.get(1)) ? true : false);
+            push(Long.valueOf(params.get(0)), ("0").equals(params.get(1)));
         } else {
             LocalFileExample localFileExample = new LocalFileExample();
             localFileExample.createCriteria()
@@ -74,7 +69,7 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
                     .andStatusEqualTo("1");
             List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
 
-            localFileList.stream().forEach((lf) -> {
+            localFileList.forEach((lf) -> {
                 LocalDate fileDate = isFileDate(lf);
                 // 新文件
                 LocalDate now = LocalDate.now();
@@ -111,50 +106,21 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
     /**
      * 判断当前时间是否大于20点
      *
-     * @return
      */
     private  LocalTime getSendTime() {
         DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
-        LocalTime sendTime = LocalTime.parse(marketingCommonConfig.getXieChengSmsCollidingStartTime(), timeFormat);
-        return sendTime;
+        return LocalTime.parse(marketingCommonConfig.getXieChengSmsCollidingStartTime(), timeFormat);
     }
 
     private LocalDate isFileDate(LocalFile lf) {
-        String fileName = lf.getFileName();
-        String pushTime = "";
-        if (fileName.contains("sup")) {
-            pushTime = fileName.trim().substring(13, 21);
+        List<String> strings = Splitter.on("_").splitToList(lf.getFileName());
+        if (strings.contains("sup")) {
+            return getLocalDate(strings.get(2));
         } else {
-            pushTime = fileName.trim().substring(9, 17);
+            return getLocalDate(strings.get(1));
         }
-        //把String转为LocalDate
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        return LocalDate.parse(pushTime, dateFormatter);
     }
-
-    public static void main(String[] args) {
-        String fileName = "callback_20230209_01.txt";
-        String fileName1 = "sup_callback_20230113_01.txt";
-        String pushTime;
-        if (fileName.contains("sup")) {
-            pushTime = fileName1.trim().substring(13, 21);
-        } else {
-            pushTime = fileName.trim().substring(9, 17);
-        }
-
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
-
-        //把String转为LocalDate
-        LocalDate localDate = LocalDate.parse(pushTime, dtf);
-        boolean after = LocalDate.now().isEqual(localDate);
-        System.out.println(after);
-
-        //DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
-        //LocalTime localTime = LocalTime.parse("14:58:00", dtf);
-        //boolean before = !LocalTime.now().isBefore(localTime);
-        //System.out.println(before);
-
-
+    private static LocalDate getLocalDate(String dateStr) {
+        return LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyyMMdd"));
     }
-
 }
