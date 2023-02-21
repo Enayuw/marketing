@@ -66,9 +66,7 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
         System.out.println(jobParameter);
         if (StringUtils.isNotBlank(jobParameter)) {
             List<String> params = Splitter.on(",").splitToList(jobParameter);
-            LocalFile localFile = new LocalFile();
-            localFile.setId(Long.valueOf(params.get(0)));
-            push(localFile, ("0").equals(params.get(0)) ? true : false);
+            push(Long.valueOf(params.get(0)), ("0").equals(params.get(1)) ? true : false);
         } else {
             LocalFileExample localFileExample = new LocalFileExample();
             localFileExample.createCriteria()
@@ -86,16 +84,16 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
                     // 整点推 // 补偿推
                     // 当期那时间是否符合推送时间 当前时间 >= 推送时间
                     if (!LocalTime.now().isBefore(getSendTime())) {
-                        push(lf, true);
+                        push(lf.getId(), true);
                     }
                 }
                 if (LocalDate.now().isAfter(fileDate)) {
                     //周期推
                     // 当前时间大约文件推送时间 旧文件
                     if (lf.getFileName().contains("sup")) {
-                        push(lf, false);
+                        push(lf.getId(), false);
                     } else if (!LocalTime.now().isBefore(getSendTime())) {
-                        push(lf, false);
+                        push(lf.getId(), false);
                     }
                 }
             });
@@ -103,9 +101,9 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
 
     }
 
-    private void push(LocalFile lf, boolean value) {
+    private void push(Long localId, boolean value) {
         JSONObject msg = new JSONObject();
-        msg.put("localId", lf.getId());
+        msg.put("localId", localId);
         msg.put("isNewFile", value);
         pushDataService.pushXieChengSmsCollidingToDbData(msg.toJSONString());
     }
