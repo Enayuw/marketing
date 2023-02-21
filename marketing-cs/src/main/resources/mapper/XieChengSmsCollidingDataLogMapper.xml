@@ -73,14 +73,16 @@
             <trim prefix="data_message=case" suffix="end,">
                 <foreach collection="list" item="i" index="index">
                     <if test="i.dataMessage != null and i.dataMessage != ''">
-                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}  then #{i.dataMessage}
+                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}
+                        and id =(select id from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} order by create_time desc limit 1)
+            then #{i.dataMessage}
                     </if>
                 </foreach>
             </trim>
         </trim>
         where
         <foreach collection="list" item="i" open="( " separator=") or (" close=" )" >
-            id in (select id from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} order by create_time desc limit 1)
+            sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}
         </foreach>
     </update>
 
