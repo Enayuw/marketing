@@ -68,21 +68,23 @@ public class DistributeLogAspect {
         if (detailLogList.size() <= 0) {
             return jp.proceed();
         }
-        List data = logBase.getData();
-        HashMap<String, Object> dataMap = new HashMap<>();
-        for (Object datum : data) {
-            dataMap.put(DigestUtils.md5DigestAsHex(datum.toString().getBytes()) + datum.hashCode(), datum);
-        }
         if (logBase.getIsSole() && !soleTypes.contains(logBase.getSoleField())) {
             return jp.proceed();
+        }
+        List data = logBase.getData();
+        HashMap<String, Object> dataMap = new HashMap<>();
+        if(logBase.getIsSole()) {
+            for (Object datum : data) {
+                dataMap.put(DigestUtils.md5DigestAsHex(datum.toString().getBytes()) + datum.hashCode(), datum);
+            }
         }
         //endregion
         DataJoinLogDTO dataDistributeDetailLog = detailLogList.get(0);
         boolean isRecord = dataDistributeDetailLog.getId() != null && dataDistributeDetailLog.getId() > 0;
         //去重数据
-        ArrayList<Object> soleDatas = new ArrayList<>();
-        //去重日志
-        ArrayList<Object> soleDataLogs = new ArrayList<>();
+//        ArrayList<Object> soleDatas = new ArrayList<>();
+//        //去重日志
+//        ArrayList<Object> soleDataLogs = new ArrayList<>();
         if (!isRecord) {
             HashSet dataMd5Set = new HashSet();
 
