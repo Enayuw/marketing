@@ -132,11 +132,11 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
                 }
             }
 
-            int ppdOldPhoneValidityDay = marketingCommonConfig.getPpdOldPhoneValidityDay() != null
-                    ? marketingCommonConfig.getPpdOldPhoneValidityDay() : 7;
-            // 计算时包括当天，所以需要在ppdOldPhoneValidityDay配置的中减少一天
-            String _7Day = LocalDate.now().minusDays(ppdOldPhoneValidityDay > 0 ? ppdOldPhoneValidityDay - 1
-                    : ppdOldPhoneValidityDay).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+//            int ppdOldPhoneValidityDay = marketingCommonConfig.getPpdOldPhoneValidityDay() != null
+//                    ? marketingCommonConfig.getPpdOldPhoneValidityDay() : 7;
+//            // 计算时包括当天，所以需要在ppdOldPhoneValidityDay配置的中减少一天
+//            String _7Day = LocalDate.now().minusDays(ppdOldPhoneValidityDay > 0 ? ppdOldPhoneValidityDay - 1
+//                    : ppdOldPhoneValidityDay).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             //分布式锁，控制推电销判断逻辑顺序执行
             String key = RedisKeyConstant.ppdOldPushDx.concat(":")
                     .concat(transfer.getApiCode()).concat(":")
@@ -146,8 +146,8 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
             redisChgService.lock(key, value);
             PhoneSaleExtendInfoExample extendInfoExample = new PhoneSaleExtendInfoExample();
             extendInfoExample.createCriteria().andApiCodeEqualTo(transfer.getApiCode())
-                    .andCustNumEqualTo(transfer.getCustNum()).andStatusIn(Arrays.asList("a", "b"))
-                    .andAppletDateBetween(_7Day, transfer.getRequestData());
+                    .andCustNumEqualTo(transfer.getCustNum()).andStatusEqualTo("a")
+                    .andAppletDateGreaterThanOrEqualTo(builder.getBeginDateStr());
             int count = phoneSaleExtendInfoMapper.countByExample(extendInfoExample);
             if (count > 0) {
                 redisChgService.unlock(key, value);
