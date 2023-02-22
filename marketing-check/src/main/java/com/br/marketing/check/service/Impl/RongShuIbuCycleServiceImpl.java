@@ -88,7 +88,7 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
                 IbuAdapDTO ibuAdapDTO = new IbuAdapDTO();
                 PhoneSaleExtendInfo extendInfo = phoneSaleExtendInfoMapper.selectByPrimaryKey(rongshuCycleData.getPhoneExtendId());
                 if (ObjectUtils.isEmpty(extendInfo)) {
-                    log.warn("榕树周期性推送人工IBU未查到电销扩展表数据，cycleDataId={},extendId={}", rongshuCycleData.getId(), extendInfo.getId());
+                    log.warn("榕树周期性推送人工IBU未查到电销扩展表数据，cycleDataId={},extendId={}", rongshuCycleData.getId(), rongshuCycleData.getPhoneExtendId());
                     return;
                 }
                 String cell = BrCipherMaker.getInstance().decode(extendInfo.getCell());
