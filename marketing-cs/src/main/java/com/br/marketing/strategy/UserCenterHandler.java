@@ -39,54 +39,54 @@ public class UserCenterHandler {
             JSONObject jsonObject = JSON.parseObject(mes);
             String apiCode = jsonObject.getString("apiCode");
             String operateType = jsonObject.getString("operateType");
-
-            MerchantParam merchantParam = RpcClientProxy.getMerchantParam(apiCode);
-            String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
-            if (StringUtils.isNotEmpty(companyMsg) && merchantParam != null) {
-                JSONObject companyJSONObj = JSON.parseObject(companyMsg);
-                marketingCustomer.setCid(String.valueOf(companyJSONObj.get("COMP_ID")));
-                marketingCustomer.setName(companyJSONObj.getString("COMP_NAME"));
-                marketingCustomer.setShortName(companyJSONObj.getString("COMP_SHORT_NAME"));
-                marketingCustomer.setApplyLoanType(companyJSONObj.getString("APPLY_LOAN_TYPE"));
-                marketingCustomer.setAccountStatus(merchantParam.getAccountStatus());
-                marketingCustomer.setAccountType(merchantParam.getAccountType());
-                marketingCustomer.setApiCode(merchantParam.getApiCode());
-                marketingCustomer.setCallMethod(merchantParam.getCallMethod());
-                marketingCustomer.setUpdateTime(new Date());
-                marketingCustomer.setIsCharging(merchantParam.getIsCharging());
-                marketingCustomer.setIsCheck(merchantParam.getIsCheck());
-                marketingCustomer.setRequestCode(merchantParam.getRequestCode());
-                marketingCustomer.setResponseCode(merchantParam.getResponseCode());
-                marketingCustomer.setStatus(Byte.valueOf(merchantParam.getAccountStatus()));
-                marketingCustomer.setStartTime(merchantParam.getStartTime());
-                marketingCustomer.setEndTime(merchantParam.getEndTime());
-                marketingCustomer.setTransport(merchantParam.getTransport());
-                //String mealJson = merchantParam.getMealJson();
-                //marketingCustomer.setMealJson(merchantParam.getMealJson().toString());
-                marketingCustomer.setEncryptionKey(merchantParam.getEncryptionKey());
-                marketingCustomer.setDecryptKey(merchantParam.getDecryptKey());
-                marketingCustomer.setSnVer(merchantParam.getSnVer());
-                marketingCustomer.setFileEncryptionMethods(merchantParam.getFileEncryptionMethods());
-                marketingCustomer.setFileEncryptionAlgorithm(merchantParam.getFileEncryptionAlgorithm());
-                marketingCustomer.setFileEncryptionKey(merchantParam.getFileEncryptionKey());
-                marketingCustomer.setIsOutputDataProduct(merchantParam.getIsOutputDataProduct());
-                marketingCustomer.setMessage(merchantParam.getRemarks());
-                if ("add".equals(operateType)) {
+            String apiType = jsonObject.getString("apiType");
+            if (apiType.equals("智能运营")) {
+                MerchantParam merchantParam = RpcClientProxy.getMerchantParam(apiCode);
+                String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
+                if (StringUtils.isNotEmpty(companyMsg) && merchantParam != null) {
+                    JSONObject companyJSONObj = JSON.parseObject(companyMsg);
+                    marketingCustomer.setCid(String.valueOf(companyJSONObj.get("COMP_ID")));
+                    marketingCustomer.setName(companyJSONObj.getString("COMP_NAME"));
+                    marketingCustomer.setShortName(companyJSONObj.getString("COMP_SHORT_NAME"));
+                    marketingCustomer.setApplyLoanType(companyJSONObj.getString("APPLY_LOAN_TYPE"));
+                    marketingCustomer.setAccountStatus(merchantParam.getAccountStatus());
+                    marketingCustomer.setAccountType(merchantParam.getAccountType());
+                    marketingCustomer.setApiCode(merchantParam.getApiCode());
+                    marketingCustomer.setCallMethod(merchantParam.getCallMethod());
+                    marketingCustomer.setUpdateTime(new Date());
+                    marketingCustomer.setIsCharging(merchantParam.getIsCharging());
+                    marketingCustomer.setIsCheck(merchantParam.getIsCheck());
+                    marketingCustomer.setRequestCode(merchantParam.getRequestCode());
+                    marketingCustomer.setResponseCode(merchantParam.getResponseCode());
+                    marketingCustomer.setStatus(Byte.valueOf(merchantParam.getAccountStatus()));
+                    marketingCustomer.setStartTime(merchantParam.getStartTime());
+                    marketingCustomer.setEndTime(merchantParam.getEndTime());
+                    marketingCustomer.setTransport(merchantParam.getTransport());
+                    //String mealJson = merchantParam.getMealJson();
+                    //marketingCustomer.setMealJson(merchantParam.getMealJson().toString());
+                    marketingCustomer.setEncryptionKey(merchantParam.getEncryptionKey());
+                    marketingCustomer.setDecryptKey(merchantParam.getDecryptKey());
+                    marketingCustomer.setSnVer(merchantParam.getSnVer());
+                    marketingCustomer.setFileEncryptionMethods(merchantParam.getFileEncryptionMethods());
+                    marketingCustomer.setFileEncryptionAlgorithm(merchantParam.getFileEncryptionAlgorithm());
+                    marketingCustomer.setFileEncryptionKey(merchantParam.getFileEncryptionKey());
+                    marketingCustomer.setIsOutputDataProduct(merchantParam.getIsOutputDataProduct());
+                    marketingCustomer.setMessage(merchantParam.getRemarks());
                     MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
                     marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(marketingCustomer.getCid());
                     List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
-                    if(marketingCustomers.size()==0){
+                    if (marketingCustomers.size() == 0) {
                         marketingCustomer.setCreateTime(new Date());
                         marketingCustomerMapper.insertSelective(marketingCustomer);
+                    } else {
+                        marketingCustomer.setUpdateTime(new Date());
+                        marketingCustomerMapper.updateByExampleSelective(marketingCustomer, marketingCustomerExample);
                     }
                 } else {
-                    MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
-                    marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(marketingCustomer.getCid());
-                    marketingCustomerMapper.updateByExampleSelective(marketingCustomer, marketingCustomerExample);
+                    log.warn("商户信息查询失败:merchantParam：{}-----，companyMsg：{}------ ", merchantParam, companyMsg);
                 }
-            }else {
-                log.warn("商户信息查询失败:merchantParam：{}-----，companyMsg：{}------ ", merchantParam,companyMsg );
             }
+
         } catch (Exception e) {
             log.error("同步商户中心信息:{} 失败 -- ", mes, e);
             result.setCode(ResultCode.FAIL.getValue());
