@@ -92,6 +92,7 @@ public class ArtificalIbuHandler extends AbstractExternalInterfaceHandler<IbuAda
                 } else {
                     phoneSaleExtendInfo.setPStatus(4);
                 }
+                phoneSaleExtendInfo.setCreateTime(new Date());
                 phoneSaleExtendInfoMapper.insertSelective(phoneSaleExtendInfo);
                 redisChgService.unlock(key, value);
                 //a情况，需要insert or update 周期表
