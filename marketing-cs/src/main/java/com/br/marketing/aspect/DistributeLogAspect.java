@@ -147,7 +147,7 @@ public class DistributeLogAspect {
                             }
                         } else {
                             DataDistributeDetailLog newLog = new DataDistributeDetailLog();
-                            BeanUtils.copyProperties(log, newLog);
+                            BeanUtils.copyProperties(logData, newLog);
                             dataDistributeDetailLogMapper.insertSelective(newLog);
                             logData.setId(newLog.getId());
                         }
@@ -159,7 +159,7 @@ public class DistributeLogAspect {
                     //endregion
                 } else {
                     DataDistributeDetailLog newLog = new DataDistributeDetailLog();
-                    BeanUtils.copyProperties(log, newLog);
+                    BeanUtils.copyProperties(logData, newLog);
                     dataDistributeDetailLogMapper.insertSelective(newLog);
                     logData.setId(newLog.getId());
                 }
