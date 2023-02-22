@@ -156,9 +156,9 @@ public class ArtificalIbuHandler extends AbstractExternalInterfaceHandler<IbuAda
     //推送人工ibu
     private void callDaasIbu(List<IbuReqDTO.Datum> ibuReqList, ProcessHandlerContext context) {
         /**
-         * 人工ibu批量接口 每500条数据一个批次
+         * 人工ibu批量接口 每50条数据一个批次
          */
-        int pageSize = 500;
+        int pageSize = 50;
         int totalCount = ibuReqList.size();
         int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
         for (int i = 1; i <= pageCount; i++) {
