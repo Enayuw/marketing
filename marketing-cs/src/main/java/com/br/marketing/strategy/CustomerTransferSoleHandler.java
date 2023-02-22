@@ -42,6 +42,7 @@ public class CustomerTransferSoleHandler extends AbstractExternalInterfaceHandle
         //数据日志数组
         ArrayList<DataJoinLogDTO> logList = new ArrayList<>();
         Integer sum = 0;
+        long start = System.currentTimeMillis();
         // 遍历数据数组
         for (ConversionData conversionData : transferList) {
             sum++;
@@ -69,6 +70,7 @@ public class CustomerTransferSoleHandler extends AbstractExternalInterfaceHandle
                 logList = new ArrayList<>();
             }
         }
+        log.warn("推送客服转化去重耗时："+(System.currentTimeMillis()-start));
         return null;
     }
 

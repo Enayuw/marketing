@@ -89,17 +89,19 @@ public class DistributeLogAspect {
             HashSet dataMd5Set = new HashSet();
 
             Iterator<DataJoinLogDTO> iterator = detailLogList.iterator();
+            long start = System.currentTimeMillis();
             while (iterator.hasNext()) {
-                DataJoinLogDTO log = iterator.next();
+                long start2 = System.currentTimeMillis();
+                DataJoinLogDTO logData = iterator.next();
                 if (logBase.getIsSole()) {
                     //region 去重处理
                     String key = RedisKeyConstant.dributeDataSloeLock;
                     if (soleTypeOne.equals(logBase.getSoleField())) {
-                        key = key.concat(String.format(":%d:%d:%s:%s", log.getDistributeType()
-                                , logBase.getSoleDay(), log.getApiCode(), log.getCustNum()));
+                        key = key.concat(String.format(":%d:%d:%s:%s", logData.getDistributeType()
+                                , logBase.getSoleDay(), logData.getApiCode(), logData.getCustNum()));
                     } else if (soleTypeTwo.equals(logBase.getSoleField())) {
-                        key = key.concat(String.format(":%d:%d:%s:%s", log.getDistributeType()
-                                , logBase.getSoleDay(), log.getApiCode(), log.getCell()));
+                        key = key.concat(String.format(":%d:%d:%s:%s", logData.getDistributeType()
+                                , logBase.getSoleDay(), logData.getApiCode(), logData.getCell()));
                     }
 
                     try {
@@ -107,8 +109,8 @@ public class DistributeLogAspect {
                         redisChgService.lock(key, uuid.toString());
                         //region 去重判断
                         // 数组内去重
-                        if (!dataMd5Set.add(log.getDataMd5())) {
-                            Object o = dataMap.get(log.getDataMd5() + log.getDataCode());
+                        if (!dataMd5Set.add(logData.getDataMd5())) {
+                            Object o = dataMap.get(logData.getDataMd5() + logData.getDataCode());
                             if(o != null){
                                 iterator.remove();
                                 data.remove(o);
@@ -118,8 +120,8 @@ public class DistributeLogAspect {
                         }
                         DataDistributeDetailLogExample logExample = new DataDistributeDetailLogExample();
                         logExample.setOrderByClause(" id limit 1 ");
-                        DataDistributeDetailLogExample.Criteria criteria = logExample.createCriteria().andApiCodeEqualTo(log.getApiCode())
-                                .andDistributeTypeEqualTo(log.getDistributeType());
+                        DataDistributeDetailLogExample.Criteria criteria = logExample.createCriteria().andApiCodeEqualTo(logData.getApiCode())
+                                .andDistributeTypeEqualTo(logData.getDistributeType());
                         if (logBase.getSoleDay() != null && logBase.getSoleDay() > 0) {
                             if (logBase.getSoleDay() == 1) {
                                 String day = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -130,13 +132,13 @@ public class DistributeLogAspect {
                             }
                         }
                         if (logBase.getSoleField() == 1) {
-                            criteria.andCustNumEqualTo(log.getCustNum());
+                            criteria.andCustNumEqualTo(logData.getCustNum());
                         } else if (logBase.getSoleField() == 2) {
-                            criteria.andCellEqualTo(log.getCell());
+                            criteria.andCellEqualTo(logData.getCell());
                         }
                         List<DataDistributeDetailLog> dataDistributeDetailLogs = dataDistributeDetailLogMapper.selectByExample(logExample);
                         if (dataDistributeDetailLogs.size() > 0) {
-                            Object o = dataMap.get(log.getDataMd5() + log.getDataCode());
+                            Object o = dataMap.get(logData.getDataMd5() + logData.getDataCode());
                             if(o != null){
                                 iterator.remove();
                                 data.remove(o);
@@ -147,7 +149,7 @@ public class DistributeLogAspect {
                             DataDistributeDetailLog newLog = new DataDistributeDetailLog();
                             BeanUtils.copyProperties(log, newLog);
                             dataDistributeDetailLogMapper.insertSelective(newLog);
-                            log.setId(newLog.getId());
+                            logData.setId(newLog.getId());
                         }
                         redisChgService.unlock(key, uuid.toString());
                         //endregion
@@ -159,17 +161,21 @@ public class DistributeLogAspect {
                     DataDistributeDetailLog newLog = new DataDistributeDetailLog();
                     BeanUtils.copyProperties(log, newLog);
                     dataDistributeDetailLogMapper.insertSelective(newLog);
-                    log.setId(newLog.getId());
+                    logData.setId(newLog.getId());
                 }
+                log.warn("推送客服转化去重一次的耗时："+(System.currentTimeMillis()-start2));
             }
-
+            log.warn("推送客服转化切面去重耗时："+(System.currentTimeMillis()-start));
         }
 //        if (logBase.getIsSole()) {
 //            ((DataDistributeLogBase) args[0]).getData().removeAll(soleDatas);
 //            ((DataDistributeLogBase) args[0]).setDetailLogList(detailLogList);
 //            ((DataDistributeLogBase) args[0]).getDetailLogList().removeAll(soleDataLogs);
 //        }
+
+        long start1 = System.currentTimeMillis();
         Object proceed = jp.proceed();
+        log.warn("推送客服转化推送耗时："+(System.currentTimeMillis()-start1));
         //region 结果处理
         if (proceed instanceof Result) {
             Result res = (Result) proceed;
