@@ -493,6 +493,16 @@ public class MethodRetryHandlerService {
      */
     @RetryMethod(isOrNoDbRetry = true)
     public Result callDassIbuBatchData(ArrayList<IbuReqDTO.Datum> datumList, Integer retry) {
+        //重试方法 这里反序列化过来是JsonObject
+        if (!(datumList.get(0) instanceof IbuReqDTO.Datum)) {
+            ArrayList<IbuReqDTO.Datum> list = new ArrayList<>();
+            for (int i = 0; i < datumList.size(); i++) {
+                if (datumList.get(i) != null) {
+                    list.add(JSON.parseObject(JSON.toJSONString(datumList.get(i)), IbuReqDTO.Datum.class));
+                }
+            }
+            datumList = list;
+        }
         Result result = dassServiceClient.pushIbuArtificial(datumList);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             Set<String> set = datumList.stream().map(IbuReqDTO.Datum::getId).map(String::valueOf).collect(Collectors.toSet());

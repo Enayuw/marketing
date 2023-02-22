@@ -1,6 +1,5 @@
 package com.br.marketing.rule.rongshu;
 
-import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
@@ -9,7 +8,6 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.impl.RsCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
@@ -39,15 +37,11 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
 
     private final static String INVERSIONSTATUS="0";
 
-
-
     private final MarketingCommonConfig marketingCommonConfig;
-
 
     private final IPeriodOfValidityService iPeriodOfValidityService;
 
-    @Autowired
-    TableCreateServiceImpl tableCreateService;
+    private final TableCreateServiceImpl tableCreateService;
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -99,7 +93,7 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
     private boolean getUnlentAmount( MarketingTransferSyncUser transfer){
         if(StringUtils.isNotBlank(transfer.getUnlentAmount())){
             int rsUnlentAmount = marketingCommonConfig.getRsUnlentAmount() == null ? 1000 : marketingCommonConfig.getRsUnlentAmount();
-            Double unlentAmount = Double.valueOf(transfer.getUnlentAmount());
+            double unlentAmount = Double.parseDouble(transfer.getUnlentAmount());
             return unlentAmount < rsUnlentAmount;
         }
         return false;
