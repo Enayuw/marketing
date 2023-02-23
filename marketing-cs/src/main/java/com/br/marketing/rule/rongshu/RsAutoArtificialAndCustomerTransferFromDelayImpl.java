@@ -124,7 +124,7 @@ public class RsAutoArtificialAndCustomerTransferFromDelayImpl implements Assembl
         phoneSaleExtendInfo.setTaskId(marketingSyncUser.getCusBatch());
         phoneSaleExtendInfo.setUserType(transfer.getUserType());
         phoneSaleExtendInfo.setAppletDate(transfer.getRequestData());
-        phoneSaleExtendInfo.setAppletTime(transfer.getApplyTime());
+        phoneSaleExtendInfo.setAppletTime(transfer.getRequestTime());
         phoneSaleExtendInfo.setStatus("a");
         phoneSaleExtendInfo.setPStatus(1);
         phoneSaleExtendInfo.setCreateTime(new Date());

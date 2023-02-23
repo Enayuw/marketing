@@ -29,6 +29,7 @@ import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -298,7 +299,7 @@ public class MyTest {
 
     @Test
     public void testDay(){
-        long l = LocalDate.now().toEpochDay() - LocalDate.parse("2021-04-26").toEpochDay();
+        long l = LocalDate.parse("2023-04-30").toEpochDay() - LocalDate.parse("2023-02-02").toEpochDay();
         System.out.println(l);
     }
 
@@ -647,4 +648,5 @@ public class MyTest {
         //String sm3Value =  Sm3Util.getSM3Value("b42b692a53777f13a894a881b24492fe86e06838ae23e91ac9f2ba43050bc448dyih");
         System.out.println(sm3Value);
     }
+
 }
