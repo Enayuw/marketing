@@ -5,6 +5,7 @@ import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.RsCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -111,6 +112,6 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
 
     @Override
     public Integer ruleDataCollection() {
-        return null;
+        return RuleDataCollectionEnum.RS_DATA_COLLECTION.getCode();
     }
 }
