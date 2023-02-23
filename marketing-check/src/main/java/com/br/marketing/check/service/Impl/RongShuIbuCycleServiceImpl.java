@@ -3,6 +3,7 @@ package com.br.marketing.check.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.common.util.DateUtils;
 import com.br.marketing.check.service.RongShuIbuCycleService;
 import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.dassservice.input.ibu.IbuAdapDTO;
@@ -20,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -76,6 +78,8 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
             String cId = tableCreateService.getCId(rongshuCycleDataList.get(0).getApiCode());
             String nowDate = LocalDate.now().toString();
             List<IbuAdapDTO> ibuAdapDTOList = new ArrayList<>();
+            ProcessHandlerContext context = new ProcessHandlerContext();
+            context.setApiCode(rongshuCycleDataList.get(0).getApiCode());
             rongshuCycleDataList.forEach(rongshuCycleData -> {
                 //进行条件剔除
                 if (iRongShuPushDaasService.isFilter(rongshuCycleData.getApiCode(), rongshuCycleData.getCustNum(), tcId)) {
@@ -83,6 +87,10 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
                 }
                 IbuAdapDTO ibuAdapDTO = new IbuAdapDTO();
                 PhoneSaleExtendInfo extendInfo = phoneSaleExtendInfoMapper.selectByPrimaryKey(rongshuCycleData.getPhoneExtendId());
+                if (ObjectUtils.isEmpty(extendInfo)) {
+                    log.warn("榕树周期性推送人工IBU未查到电销扩展表数据，cycleDataId={},extendId={}", rongshuCycleData.getId(), rongshuCycleData.getPhoneExtendId());
+                    return;
+                }
                 String cell = BrCipherMaker.getInstance().decode(extendInfo.getCell());
                 //构造推人工IBU
                 IbuReqDTO.Datum datum = JSONObject.parseObject(extendInfo.getRedundancyField(), IbuReqDTO.Datum.class);
@@ -100,16 +108,16 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
                 conversionData.setInversionStatus("0");
                 conversionData.setPhone(cell);
                 conversionData.setCaseNum(extendInfo.getCustNum());
+                conversionData.setPartnerProcessDate(extendInfo.getAppletTime());
                 ibuAdapDTO.setDatum(datum);
                 ibuAdapDTO.setConversionData(conversionData);
                 ibuAdapDTO.setPhoneSaleExtendInfo(extendInfo);
                 ibuAdapDTO.setPushType("b");
                 ibuAdapDTOList.add(ibuAdapDTO);
-                ProcessHandlerContext context = new ProcessHandlerContext();
-                context.setApiCode(rongshuCycleDataList.get(0).getApiCode());
-                //推送
-                artificalIbuHandler.call(ibuAdapDTOList, context);
             });
+            //推送
+            artificalIbuHandler.call(ibuAdapDTOList, context);
         }
+        log.warn("榕树周期性推送人工IBU接口完成");
     }
 }
