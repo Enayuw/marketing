@@ -3,6 +3,7 @@ package com.br.marketing.check.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.common.util.DateUtils;
 import com.br.marketing.check.service.RongShuIbuCycleService;
 import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.dassservice.input.ibu.IbuAdapDTO;
@@ -107,6 +108,7 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
                 conversionData.setInversionStatus("0");
                 conversionData.setPhone(cell);
                 conversionData.setCaseNum(extendInfo.getCustNum());
+                conversionData.setPartnerProcessDate(extendInfo.getAppletTime());
                 ibuAdapDTO.setDatum(datum);
                 ibuAdapDTO.setConversionData(conversionData);
                 ibuAdapDTO.setPhoneSaleExtendInfo(extendInfo);
