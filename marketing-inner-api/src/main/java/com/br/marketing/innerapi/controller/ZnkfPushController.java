@@ -42,7 +42,7 @@ public class ZnkfPushController {
             return znkfPushService.znkfPushCallBack(dto);
         }catch (Exception ex){
             log.error(ex.getMessage());
-            throw ex;
+            return "fail";
         }
     }
 
