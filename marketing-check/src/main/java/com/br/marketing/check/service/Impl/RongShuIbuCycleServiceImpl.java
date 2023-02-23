@@ -66,7 +66,6 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
         });
         Boolean mark = Boolean.TRUE;
         Long minId = null;
-        Integer numTotal = 0;
         while (mark) {
             List<RongshuCycleData> rongshuCycleDataList = rongshuCycleDataMapper.getCycleData(pushDateList, minId);
             if (CollectionUtils.isEmpty(rongshuCycleDataList)) {
@@ -116,8 +115,7 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
             });
             //推送
             artificalIbuHandler.call(ibuAdapDTOList, context);
-            numTotal += ibuAdapDTOList.size();
         }
-        log.warn("榕树周期性推送人工IBU接口完成，推送量={}", numTotal);
+        log.warn("榕树周期性推送人工IBU接口完成");
     }
 }
