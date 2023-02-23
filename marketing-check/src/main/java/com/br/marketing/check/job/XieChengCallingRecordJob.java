@@ -7,7 +7,9 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -17,6 +19,8 @@ import java.util.List;
  * @version 1.0
  * @date 2023/2/18 16:57
  */
+@Component
+@Slf4j
 public class XieChengCallingRecordJob extends AbstractSimpleElasticJob {
 
     @Autowired
