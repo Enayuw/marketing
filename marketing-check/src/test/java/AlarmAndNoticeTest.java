@@ -114,13 +114,13 @@ public class AlarmAndNoticeTest {
     }
 
     @Resource
-    private TransferToFileByXieChengServiceImpl transferToFileService;
+    private TransferToFileBySamoyeServiveImpl transferToFileService;
 
     @Test
     public void transferFileTest(){
-        String jobParameter = "7410787#2022-05-21;7492632#true";
-        String myParam = transferToFileService.isMyParam("7410951", jobParameter);
-        Result<List<TransferFileTask>> listResult = transferToFileService.buildTransferTask("7410951",myParam);
+        String jobParameter = "7410787#2022-05-21";
+        String myParam = transferToFileService.isMyParam("7412001", jobParameter);
+        Result<List<TransferFileTask>> listResult = transferToFileService.buildTransferTask("7412001",myParam);
         if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0){
             List<TransferFileTask> data = listResult.getData();
             for (TransferFileTask datum : data){
