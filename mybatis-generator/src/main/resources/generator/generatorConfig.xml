@@ -12,6 +12,11 @@
         <!--            <property name="suppressAllComments" value="true"/>-->
         <!--        </commentGenerator>-->
 
+        <!-- 数据库关键字冲突,自动处理 -->
+        <property name="autoDelimitKeywords" value="true"/>
+        <!-- 用反引号`包裹,默认是双引号"-->
+        <property name="beginningDelimiter" value="`"/>
+        <property name="endingDelimiter" value="`"/>
 
         <commentGenerator type="com.edison.CommentGenerator">
             <!--            <property name="author" value="Wjm"/>-->
@@ -54,13 +59,13 @@
         <!-- 要生成的表 tableName是数据库中的表名或视图名 domainObjectName是实体类名-->
         <!--        <table tableName="b_loan_task" domainObjectName="LoanTask" enableCountByExample="false" enableUpdateByExample="false"-->
         <!--               enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false">-->
-        <table tableName="b_phone_sale_transfer" domainObjectName="PhoneSaleTransfer" >
+        <table tableName="b_phone_sale_extend_info" domainObjectName="PhoneSaleExtendInfo" >
 <!--            <property name="useActualColumnNames" value="false"/>-->
             <!-- 数据库表主键 自动返回主键值 -->
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
             <!--如果有超常字段 需要映射字段类型为VARCHAR-->
 
-<!--            <columnOverride column="content" javaType="java.lang.String" jdbcType="VARCHAR" />-->
+            <columnOverride column="content" javaType="java.lang.String" jdbcType="VARCHAR" />
 <!--            <columnOverride column="content_show" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="result_content" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="error_content" javaType="java.lang.String" jdbcType="VARCHAR" />-->

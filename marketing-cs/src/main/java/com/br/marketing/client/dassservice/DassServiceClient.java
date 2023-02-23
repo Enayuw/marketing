@@ -7,6 +7,7 @@ import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportAdapHaluoDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.client.dassservice.input.black.PushBlackListRequest;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
@@ -35,6 +36,7 @@ import org.springframework.util.DigestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
+import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -61,14 +63,19 @@ public class DassServiceClient {
     @Value("${api.dass.isProxy:0}")
     private String isProxy;
 
+    @Value("${api.dass.ibuAk:00}")
+    private String ibuAk;
+
+    @Value("${api.dass.ibuSk:00}")
+    private String ibuSk;
+
+    @Value("${api.dass.batchHermesUserData:00}")
+    private String batchHermesUserData;
+
+    static String ibuBatchToDass = "IBTD";
+
     @Autowired
     RestTemplate restTemplate;
-
-
-//    @Autowired
-//    @Qualifier("restTemplateByProxy")
-//    RestTemplate restTemplateByProxy;
-
 
     @Autowired
     HttpProxyClient httpProxyClient;
@@ -86,7 +93,7 @@ public class DassServiceClient {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
-    public Result postHermesUserData(DassImportAdapHaluoDTO dto){
+    public Result postHermesUserData(DassImportAdapHaluoDTO dto) {
         DassImportAdapDTO trueDto = new DassImportAdapDTO();
         trueDto.setList(dto.getList());
         trueDto.setInterfaceExtendInfo(dto.getInterfaceExtendInfo());
@@ -287,23 +294,23 @@ public class DassServiceClient {
     }
 
     private String extendSort(String extend) {
-        if(StringUtils.isEmpty(extend)){
+        if (StringUtils.isEmpty(extend)) {
             return null;
         }
         JSONObject jsonParam = JSON.parseObject(extend);
         HashMap sortMap = Maps.newLinkedHashMap();
-        sortMap.put("is_usr_lst_app_sta_tim","");
-        sortMap.put("face_recognitiion","");
-        sortMap.put("is_usr_idt","");
-        sortMap.put("is_bindcard","");
-        sortMap.put("is_usr_inf","");
-        sortMap.put("typeSign","");
+        sortMap.put("is_usr_lst_app_sta_tim", "");
+        sortMap.put("face_recognitiion", "");
+        sortMap.put("is_usr_idt", "");
+        sortMap.put("is_bindcard", "");
+        sortMap.put("is_usr_inf", "");
+        sortMap.put("typeSign", "");
         JSONObject jsonSortParam = new JSONObject(sortMap);
         jsonSortParam.putAll(jsonParam);
-        Iterator<Map.Entry<String, Object>> iterator  = jsonSortParam.entrySet().iterator();
-        while(iterator .hasNext()){
+        Iterator<Map.Entry<String, Object>> iterator = jsonSortParam.entrySet().iterator();
+        while (iterator.hasNext()) {
             Map.Entry entry = iterator.next();
-            if(StringUtils.isEmpty(entry.getValue())){
+            if (StringUtils.isEmpty(entry.getValue())) {
                 iterator.remove();
             }
         }
@@ -371,5 +378,52 @@ public class DassServiceClient {
             result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
         }
         return result;
+    }
+
+    /**
+     * ibu人工定制接口(批量)
+     *
+     * @return
+     */
+    public Result pushIbuArtificial(List<IbuReqDTO.Datum> datumList) {
+        UUID reqId = UUID.randomUUID();
+        try {
+            Result<String> res = new Result<>();
+            IbuReqDTO ibuReqDTO = new IbuReqDTO();
+            ibuReqDTO.setData(JSON.toJSONString(datumList));
+            ibuReqDTO.setAccessKey(ibuAk);
+            ibuReqDTO.setTs(System.currentTimeMillis());
+            StringBuilder mText = new StringBuilder();
+            mText.append(ibuSk);
+            mText.append(ibuReqDTO.getData());
+            mText.append(ibuReqDTO.getTs());
+            String s = DigestUtils.md5DigestAsHex(mText.toString().getBytes()).toUpperCase();
+            ibuReqDTO.setSign(s);
+            StringBuilder paramStr = new StringBuilder();
+            HashMap<String, String> resContent = httpProxyClient.sendByCodeWithLog(ibuReqDTO, batchHermesUserData
+                    , isProxy.equals("0") ? false : true
+                    , MediaType.APPLICATION_FORM_URLENCODED_VALUE, reqId.toString()
+                    , httpProxyClient.isLogStore(ibuBatchToDass).get(0)
+                    , httpProxyClient.isLogStore(ibuBatchToDass).get(1));
+            String httpcode = resContent.get("httpcode");
+            if("200".equals(httpcode)){
+                JSONObject content = JSONObject.parseObject(resContent.get("content"));
+                Integer code = content.getInteger("code");
+                if(new Integer(0).equals(code)){
+                    res.setCode(ResultCode.SUCCESS.getValue());
+                }else {
+                    log.error("ibu定制接口非code成功("+reqId.toString()+")："+resContent.getOrDefault("content",""));
+                    res.setCode(ResultCode.FAIL.getValue()).setMessage(resContent.get("content"));
+                }
+            }else{
+                log.error("ibu定制接口非200情况("+reqId.toString()+")："+resContent.getOrDefault("content",""));
+                res.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(resContent.get("content"));
+            }
+            return res;
+        } catch (Exception ex) {
+            log.error("ibu定制接口错误("+reqId.toString()+")"+ex.getMessage(),ex);
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
+        }
+
     }
 }

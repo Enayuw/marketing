@@ -82,4 +82,13 @@ public class RedisKeyConstant {
      */
     public static final String pushXieChengSmsCollidingLock = prefix.concat("xieCheng:pushXieChengSmsColliding");
 
+    /**
+     * 分发数据日志锁
+     */
+    public static final String dributeDataSloeLock = prefix.concat("dributeData");
+
+    /**
+     * 榕树推送人工Ibu手机号加锁  key
+     */
+    public static final String pushRongShuDaasIbuKey = prefix.concat("rongshu:pushdaasibu:cell");
 }

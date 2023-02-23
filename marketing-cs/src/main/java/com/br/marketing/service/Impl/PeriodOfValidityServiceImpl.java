@@ -7,14 +7,18 @@ import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.util.PeriodOfValidityHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Date;
@@ -163,6 +167,20 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
             }
         }
         return custNums;
+    }
+
+    @Override
+    public boolean isExpire(String dataDateStr, String validityDayStr, DateTimeFormatter dtf) {
+        if(StringUtils.isBlank(dataDateStr)){
+            throw new NullPointerException("dataDateStr为NULL");
+        }
+        if(dtf == null){
+            dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        }
+        LocalDate dataDate = LocalDate.parse(dataDateStr, dtf);
+        Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr);
+        LocalDate startDate = LocalDate.now().minusDays(day);
+        return dataDate.compareTo(startDate)<0;
     }
 
     @Override

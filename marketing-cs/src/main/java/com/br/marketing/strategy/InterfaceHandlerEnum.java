@@ -16,7 +16,9 @@ public enum InterfaceHandlerEnum {
     MULTIPLE_DASSBATCH_CUSTOMERBLACK(12, "推送电销和客服黑名单组合接口"),
     INIT_TO_POLICY(13, "原始数据推送决策接口"),
     ZHONGAN_LOCK_DATA_INSERT(14, "众安明细锁定数据落库"),
-    XIE_CHENG_CALL_RECORD_INSERT_DB(15, "携程通话明细保存到携程推营销数据表");
+    XIE_CHENG_CALL_RECORD_INSERT_DB(15, "携程通话明细保存到携程推营销数据表"),
+    ARTIFICIAL_IBU_BATCH_DATA(16, "人工IBU批量接口"),
+    CUSTOMER_TRANSFER_SOLE(17, "客服转化去重");
 
     InterfaceHandlerEnum(Integer code, String name) {
         this.code = code;
