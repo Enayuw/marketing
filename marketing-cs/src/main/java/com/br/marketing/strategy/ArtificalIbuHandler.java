@@ -84,6 +84,26 @@ public class ArtificalIbuHandler extends AbstractExternalInterfaceHandler<IbuAda
             if (phoneSaleExtendInfoMapper.countByExample(extendInfoExample) > 0) {
                 //今日已经推送,删除集合中数据
                 redisChgService.unlock(key, value);
+                //更新周期数据表
+                if ("a".equals(ibuAdapDTO.getPushType())) {
+                    RongshuCycleDataExample cycleDataExample = new RongshuCycleDataExample();
+                    cycleDataExample.createCriteria().andApiCodeEqualTo(phoneSaleExtendInfo.getApiCode()).andCellEqualTo(phoneSaleExtendInfo.getCell());
+                    List<RongshuCycleData> rongshuCycleDataList = rongshuCycleDataMapper.selectByExample(cycleDataExample);
+                    if (!CollectionUtils.isEmpty(rongshuCycleDataList)) {
+                        //update
+                        RongshuCycleData update = new RongshuCycleData();
+                        update.setId(rongshuCycleDataList.get(0).getId());
+                        update.setPushDaasDate(nowDate);
+                        update.setPushDaasTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                        if (marketingCommonConfig.getRongShuPushDaasSwitch()) {
+                            update.setPStatus(1);
+                        } else {
+                            update.setPStatus(0);
+                        }
+                        update.setUpdateTime(new Date());
+                        rongshuCycleDataMapper.updateByPrimaryKeySelective(update);
+                    }
+                }
                 iterator.remove();
             } else {
                 //开关打开，状态为1,开关关闭，状态为4标识挡板数据状态
@@ -95,6 +115,7 @@ public class ArtificalIbuHandler extends AbstractExternalInterfaceHandler<IbuAda
                 phoneSaleExtendInfo.setCreateTime(new Date());
                 phoneSaleExtendInfoMapper.insertSelective(phoneSaleExtendInfo);
                 redisChgService.unlock(key, value);
+
                 //a情况，需要insert or update 周期表
                 if ("a".equals(ibuAdapDTO.getPushType())) {
                     insertOrUpdateCycleData(ibuAdapDTO, nowDate);
