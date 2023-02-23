@@ -4,6 +4,7 @@ package com.br.marketing.check.service.Impl;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
+import com.br.common.util.StringUtils;
 import com.br.marketing.check.service.RongShuIbuCycleService;
 import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.dassservice.input.ibu.IbuAdapDTO;
@@ -25,6 +26,8 @@ import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -108,7 +111,8 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
                 conversionData.setInversionStatus("0");
                 conversionData.setPhone(cell);
                 conversionData.setCaseNum(extendInfo.getCustNum());
-                conversionData.setPartnerProcessDate(extendInfo.getAppletTime());
+                conversionData.setPartnerProcessDate(StringUtils.isNotEmpty(extendInfo.getAppletTime()) ? extendInfo.getAppletTime() :
+                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 ibuAdapDTO.setDatum(datum);
                 ibuAdapDTO.setConversionData(conversionData);
                 ibuAdapDTO.setPhoneSaleExtendInfo(extendInfo);

@@ -115,6 +115,8 @@ otherConfig:
     destinationName: marketing_query_log
 
 api:
+  customerService:
+    apiCode: 4000296
   intelligentCustomerService:
     baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
     pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
