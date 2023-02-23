@@ -243,6 +243,17 @@
         order by id asc limit 5000;
     </select>
 
+    <select id="getTransferFileUserByTime" resultType="com.br.marketing.vo.TransferUserVO">
+        select * from
+        b_marketing_transfer_${apiCode}
+        where
+        <if test="minId != null and minId >0">
+            id >=#{minId} and
+        </if>
+        <![CDATA[ create_time >= #{beginTime} and create_time < #{endTime} ]]>
+        order by id asc limit 5000;
+    </select>
+
     <select id="getSyncUserByTaskAndCust" resultType="com.br.marketing.entity.MarketingSyncUser">
         select * from
             b_marketing_sync_${apiCode}
