@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.util.List;
 
+import static com.br.marketing.common.utils.MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE;
+
 /**
  * @author GuangChao.Zhang
  * @version 1.0
@@ -42,7 +44,7 @@ public class XieChengCallingRecordJob extends AbstractSimpleElasticJob {
                 JSONObject msg = new JSONObject();
                 msg.put("localId", localId);
                 msg.put("type", 2);
-                producter.send("Marketing.Universal.SftpToDb.XieChengReceive"
+                producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE
                         , msg.toJSONString());
             });
             try {

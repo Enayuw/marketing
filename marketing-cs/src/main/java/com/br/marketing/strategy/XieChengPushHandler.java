@@ -15,6 +15,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
+import static com.br.marketing.common.utils.MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE;
+
 /**
  * 推送携程
  *
@@ -48,7 +50,7 @@ public class XieChengPushHandler extends AbstractExternalInterfaceHandler<XieChe
                 JSONObject msg = new JSONObject();
                 msg.put("localId", dto.getInitId());
                 msg.put("type", 2);
-                producter.send("Marketing.Universal.SftpToDb.XieChengReceive"
+                producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE
                         , msg.toJSONString());
             }
         }
