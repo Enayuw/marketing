@@ -116,6 +116,9 @@ public class MethodRetryHandlerService {
     PhoneSaleTransferMapper phoneSaleTransferMapper;
 
     @Resource
+    PhoneSaleIbuMapper phoneSaleIbuMapper;
+
+    @Resource
     LocalFileMapper localFileMapper;
 
 
@@ -433,6 +436,7 @@ public class MethodRetryHandlerService {
     }
 
 
+
     /**
      * 推送决策接口
      *
@@ -509,6 +513,43 @@ public class MethodRetryHandlerService {
             saveBizLog(String.join(",", set), InterfaceHandlerEnum.ARTIFICIAL_IBU_BATCH_DATA.getCode(),
                     null);
             phoneSaleExtendInfoMapper.updateBatch(set);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("调用人工IBU批量接口失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
+
+    @RetryMethod(isOrNoDbRetry = true)
+    public Result dassIbuWithFile(List<IbuReqDTO.Datum> datumList, Integer retry){
+        //重试方法 这里反序列化过来是JsonObject
+        if (!(datumList.get(0) instanceof IbuReqDTO.Datum)) {
+            ArrayList<IbuReqDTO.Datum> list = new ArrayList<>();
+            for (int i = 0; i < datumList.size(); i++) {
+                if (datumList.get(i) != null) {
+                    list.add(JSON.parseObject(JSON.toJSONString(datumList.get(i)), IbuReqDTO.Datum.class));
+                }
+            }
+            datumList = list;
+        }
+        List<Long> ids = datumList.stream().map(t->t.getId()).collect(Collectors.toList());
+        Result result = dassServiceClient.pushIbuArtificial(datumList);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            Set<String> set = datumList.stream().map(IbuReqDTO.Datum::getId).map(String::valueOf).collect(Collectors.toSet());
+            if(new Integer(1).equals(retry)){
+                Long id = ids.get(0);
+                PhoneSaleIbu phoneSaleIbu = phoneSaleIbuMapper.selectByPrimaryKey(id.intValue());
+                LocalFile localFile = localFileMapper.selectByPrimaryKey(Long.valueOf(phoneSaleIbu.getLocalId()));
+                LocalFile updateFile = new LocalFile();
+                updateFile.setId(localFile.getId());
+                JSONObject jsonObject = JSON.parseObject(result.getData().toString());
+                boolean code = "0".equals(jsonObject.getString("code"));
+                if(code){
+                    updateFile.setPushNumber(localFile.getPushNumber()+ids.size());
+                }else{
+                    updateFile.setErrorActualNumber(localFile.getErrorActualNumber()+ids.size());
+                }
+                localFileMapper.updateByPrimaryKeySelective(updateFile);
+            }
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         log.error("调用人工IBU批量接口失败 -- {}", JSON.toJSONString(result));

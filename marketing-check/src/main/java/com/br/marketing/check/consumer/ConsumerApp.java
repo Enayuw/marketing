@@ -151,4 +151,18 @@ public class ConsumerApp {
         }.getType());
         consumerService.consumerRun(channel, message, pushDataService::pushDassTransferData, o, "");
     }
+    /**
+     * 推送dassIBU
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_PUSH_DASS_IBU, durable = "true")
+            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_IBU)}, containerFactory = "containerFactory")
+    public void consumerPushDassIbu(Channel channel, Message message) {
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        consumerService.consumerRun(channel, message, pushDataService::pushDassTransferIbu, o, "");
+    }
 }

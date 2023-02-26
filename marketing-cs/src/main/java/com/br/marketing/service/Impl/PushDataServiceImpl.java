@@ -12,6 +12,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.haier.HaierServiceClient;
@@ -52,6 +53,7 @@ import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,6 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -157,6 +160,9 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Resource
     PhoneSaleExtendShuheMapper phoneSaleExtendShuheMapper;
+
+    @Resource
+    PhoneSaleIbuMapper phoneSaleIbuMapper;
 
     @Autowired
     RabbitMqProducter producter;
@@ -299,6 +305,101 @@ public class PushDataServiceImpl implements PushDataService {
                 threadPool.submit(() -> {
                     Result result = methodRetryHandlerService.dassTransferWithFile(dto, null);
                     int size = dto.getDassTransferDataDTOList().size();
+                    if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                        success.addAndGet(size);
+                    }else if(ResultCode.FAIL.getValue().equals(result.getCode())){
+                        fail.addAndGet(size);
+                    }else{
+                        retry.addAndGet(size);
+                    }
+                });
+            } else {
+                actionMark = false;
+            }
+        }
+        threadPool.shutdown();
+        while (true) {
+            if (threadPool.isTerminated()) {
+                break;
+            }
+            try {
+                Thread.sleep(3000);
+            } catch (Exception e) {
+            }
+        }
+
+        localFile.setPushEndTime(new Date());
+        localFile.setPushNumber(success.get());
+        localFile.setErrorActualNumber(fail.get());
+        localFileMapper.updateByPrimaryKeySelective(localFile);
+        if (SftpFileTypeEnum.DXTRANSFORM.getValue().equals(localFile.getFileType())) {
+            StringBuilder content = new StringBuilder();
+            content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
+                    .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
+                    .append("数量：".concat(number.toString()).concat("\r\n"))
+                    .append("成功数量：".concat(success.get()+"").concat("\r\n"))
+                    .append("失败数量：".concat(fail.get()+"").concat("\r\n"))
+                    .append("需重试数量：".concat(retry.get()+"").concat("\r\n"))
+                    .append("文件推送dass转化结束".concat("\r\n"));
+            alarmClient.sendAlarm(content.toString(), "Dass转化结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
+    }
+
+    @Override
+    public Result pushDassTransferIbu(Long id) {
+
+        Boolean isContiue = false;
+        Boolean actionMark = true;
+        Integer minId = null;
+        String key = "dass:push:threadnum";
+        Integer threadNum = 5;
+
+        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
+        if (localFile == null) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(isContiue);
+        }
+
+        localFile.setPushStartTime(new Date());
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
+        Integer number = 0;
+        AtomicInteger success = new AtomicInteger(0);
+        AtomicInteger fail = new AtomicInteger(0);
+        AtomicInteger retry = new AtomicInteger(0);
+        while (actionMark) {
+            List<PhoneSaleIbu> phoneSaleIbus =  phoneSaleIbuMapper.getPushDassTransferData(id, minId);
+            number += phoneSaleIbus.size();
+            if (phoneSaleIbus.size() > 0) {
+                List<IbuReqDTO.Datum> reqlist = new ArrayList<>();
+                for (PhoneSaleIbu ibu : phoneSaleIbus) {
+                    IbuReqDTO.Datum dataum = new IbuReqDTO.Datum();
+                    BeanUtils.copyProperties(ibu,dataum);
+                    dataum.setPlanId(StringUtils.isNotBlank(ibu.getPlanId())?Integer.valueOf(ibu.getPlanId()):null);
+                    dataum.setCallAccessScore(StringUtils.isNotBlank(ibu.getCallAccessScore())?Integer.valueOf(ibu.getCallAccessScore()):null);
+                    dataum.setPid(StringUtils.isNotBlank(ibu.getPid())?Integer.valueOf(ibu.getPid()):null);
+                    dataum.setConnectTimes(StringUtils.isNotBlank(ibu.getConnectTimes())?Integer.valueOf(ibu.getConnectTimes()):null);
+                    dataum.setZyTotalUsableAmount(StringUtils.isNotBlank(ibu.getZyTotalUsableAmount())?new BigDecimal(ibu.getZyTotalUsableAmount()):null);
+                    if(StringUtils.isNotBlank(ibu.getRecommendH5List())){
+                        dataum.setRecommendH5List(Arrays.asList(ibu.getRecommendList()));
+                    }
+                    if(StringUtils.isNotBlank(ibu.getRecommendList())){
+                        dataum.setRecommendList(Arrays.asList(ibu.getRecommendList()));
+                    }
+                    dataum.setZyApplyFlag(StringUtils.isNotBlank(ibu.getZyApplyFlag())?Boolean.valueOf(ibu.getZyApplyFlag()):null);
+                    dataum.setZyApplySuccessFlag(StringUtils.isNotBlank(ibu.getZyApplySuccessFlag())?Boolean.valueOf(ibu.getZyApplySuccessFlag()):null);
+                    if (StringUtils.isNotBlank(ibu.getPhone())) {
+                        dataum.setPhone(BrCipherMaker.getInstance().decode(ibu.getPhone()));
+                    }
+                    reqlist.add(dataum);
+                }
+
+                PhoneSaleIbu lastIbu = phoneSaleIbus.get(phoneSaleIbus.size() - 1);
+//                DassTransferDataAdapDTO dto = new DassTransferDataAdapDTO();
+//                dto.setDassTransferDataDTOList(transferDataDTOS);
+                minId = lastIbu.getId();
+                threadPool.submit(() -> {
+                    Result result = methodRetryHandlerService.dassIbuWithFile(reqlist, null);
+                    int size = reqlist.size();
                     if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
                         success.addAndGet(size);
                     }else if(ResultCode.FAIL.getValue().equals(result.getCode())){
