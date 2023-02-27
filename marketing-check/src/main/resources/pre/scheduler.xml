@@ -440,7 +440,7 @@
     />
     <job:simple id="XieChengSmsDataCollidingToSendJob"
                 class="com.br.marketing.check.job.XieChengSmsDataCollidingToSendJob"
-                cron="0 0 0/1 * * ?"
+                cron="0 0/10 20-23 * * ? "
                 description="携程短信撞库数据发送定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -526,7 +526,7 @@
     />
     <job:simple id="XieChengCallingRecordJob"
                 class="com.br.marketing.check.job.XieChengCallingRecordJob"
-                cron="0 0 23 * * ?"
+                cron="* * * 31 2 ?"
                 description="携程通话明细暂停后启动推送定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
