@@ -663,7 +663,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                     case "userCode":
                         if (StringUtils.isNotBlank(datas.get(i))) {
                             error = error.replace("userCode不能为空;", "");
-                            phoneSaleIbu.setUserType(datas.get(i));
+                            phoneSaleIbu.setUserCode(datas.get(i));
                         }
                         break;
                     case "source":
