@@ -351,7 +351,7 @@ public class PushDataServiceImpl implements PushDataService {
 
         Boolean isContiue = false;
         Boolean actionMark = true;
-        Integer minId = null;
+        Long minId = null;
         String key = "dass:push:threadnum";
         Integer threadNum = 5;
 

@@ -660,6 +660,12 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                             phoneSaleIbu.setUserType(datas.get(i));
                         }
                         break;
+                    case "userCode":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("userCode不能为空;", "");
+                            phoneSaleIbu.setUserType(datas.get(i));
+                        }
+                        break;
                     case "source":
                         if (StringUtils.isNotBlank(datas.get(i))) {
                             error = error.replace("source不能为空;", "");

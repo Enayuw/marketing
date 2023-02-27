@@ -11,7 +11,7 @@ public interface PhoneSaleIbuMapperBase {
 
     int deleteByExample(PhoneSaleIbuExample example);
 
-    int deleteByPrimaryKey(Integer id);
+    int deleteByPrimaryKey(Long id);
 
     int insert(PhoneSaleIbu record);
 
@@ -19,7 +19,7 @@ public interface PhoneSaleIbuMapperBase {
 
     List<PhoneSaleIbu> selectByExample(PhoneSaleIbuExample example);
 
-    PhoneSaleIbu selectByPrimaryKey(Integer id);
+    PhoneSaleIbu selectByPrimaryKey(Long id);
 
     int updateByExampleSelective(@Param("record") PhoneSaleIbu record, @Param("example") PhoneSaleIbuExample example);
 
