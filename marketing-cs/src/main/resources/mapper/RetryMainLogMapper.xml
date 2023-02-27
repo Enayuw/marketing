@@ -13,6 +13,6 @@
         from b_retry_main_log
         where retry_status = 1
         and incr_id >= #{minId}
-        order by incr_id asc limit 5000;
+        order by incr_id asc limit 500;
     </select>
 </mapper>
