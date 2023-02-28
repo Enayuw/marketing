@@ -58,7 +58,6 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
         //4. 补偿推：根据localId 直接推
         //    local_id 来源 定时任务方法输入、查询log表异常的数据所对应的local_id
         String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
-        System.out.println(jobParameter);
         if (StringUtils.isNotBlank(jobParameter)) {
             List<String> params = Splitter.on(",").splitToList(jobParameter);
             push(Long.valueOf(params.get(0)), ("0").equals(params.get(1)));
