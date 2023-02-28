@@ -939,7 +939,9 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                             if (jo == null) {
                                 jo = new JSONObject();
                             }
-                            jo.put(s, datas.get(i));
+                            if(!"extend".equals(s)){
+                                jo.put(s, datas.get(i));
+                            }
                         }
                         break;
                     default:
