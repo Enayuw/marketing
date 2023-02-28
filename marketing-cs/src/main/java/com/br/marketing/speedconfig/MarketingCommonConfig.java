@@ -418,7 +418,7 @@ public class MarketingCommonConfig {
     /**
      * 拍拍贷有效期34；目前仅老客使用
      */
-    private Integer ppdValidityDay;
+    private String ppdValidityDay;
 
     /**
      * 携程短信撞库轮询时间间隔
@@ -440,6 +440,45 @@ public class MarketingCommonConfig {
      * 拍拍贷老客推电销去重时间天数
      */
     private Integer ppdOldPhoneValidityDay;
+
+    /**
+     * 拍拍贷老客转人工数据提取apicode集合
+     */
+    private List<String> PPDOldTransferFileApiCodes;
+    /**
+     * 拍拍贷老客转人工数据提取执行时间
+     */
+    private String PPDOldTransferFileExecuteTime;
+    /**
+     * 拍拍贷有效期34；目前仅老客使用
+     */
+    private String ppdOldValidityDayStr;
+
+    /**
+     * 榕树转化数据生效截止时间
+     */
+    private String rsTransferDataToCustomerExpireDate;
+
+    /**
+     * 榕树为提取金额
+     */
+    private Integer rsUnlentAmount;
+
+    /**
+     * 榕树有效期
+     */
+    private String rsValidityDay;
+
+    /**
+     * 榕树周期性推送时间集合
+     */
+    private List<Integer> rongShuCyclePushDays;
+
+    /**
+     * 榕树推送人工Ibu接口开关，true为可推送，false不能推送
+     */
+    private Boolean rongShuPushDaasSwitch;
+
 
     /**
      * 携程拨打明细推送暂停开关 true：暂停开关打开，false 暂停开关关闭

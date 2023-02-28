@@ -1,28 +1,40 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.BrCipherMaker;
+import com.br.marketing.bo.PeriodOfValidityBO;
+import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.TransferActionFront;
+import com.br.marketing.common.utils.AESUtil;
+import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IPPDTransferService;
+import com.br.marketing.service.IPeriodOfValidityService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.strategy.ArtificialBatchRealTimeDataHandler;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,6 +52,24 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
 
     @Resource
     YiXinTransferServiceImpl yiXinTransferService;
+
+    @Resource
+    private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
+
+    @Resource
+    private IPeriodOfValidityService iPeriodOfValidityService;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private ArtificialBatchRealTimeDataHandler artificialBatchRealTimeDataHandler;
+
+    @Resource
+    private MarketingSyncUserMapper marketingSyncUserMapper;
+
+    @Value("${api.dass.aesKey:00}")
+    private String aesKey;
 
     @Override
     public Result actionPPDToDx(String apiCodes) {
@@ -87,5 +117,215 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
         }
         yiXinTransferService.updateFrontDataStatus(frontId, 2);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public long ppdaiOldPeriodicityPushDx(LocalDate now, String... apiCode) {
+        String yyyymmdd = now.format(DateTimeFormatter.ISO_LOCAL_DATE);
+        int number = 0;
+        // 查询任务状态为4的记录
+        Result<TransferActionFront> frontDataRes = yiXinTransferService.getFrontData(
+                StringUtils.join(apiCode, ","), yyyymmdd, 4);
+        if (!ResultCode.SUCCESS.getValue().equals(frontDataRes.getCode())) {
+            return number;
+        }
+        TransferActionFront frontData = frontDataRes.getData();
+        if (frontData != null && new Integer(2).equals(frontData.getStatus())) {
+            log.warn("拍拍贷老客周期性推送电销任务今日已经推送!");
+            return number;
+        }
+        // 任务状态标记为4
+        Long frontId = yiXinTransferService.saveFrontData(StringUtils.join(apiCode, ","), yyyymmdd, 4);
+        String tcId = tableCreateService.getTcId(apiCode[0]);
+        String ppdValidityDay = marketingCommonConfig.getPpdOldValidityDayStr() == null
+                ? "[T+33]" : marketingCommonConfig.getPpdOldValidityDayStr();
+        int ppdOldPhoneValidityDay = marketingCommonConfig.getPpdOldPhoneValidityDay() != null
+                ? marketingCommonConfig.getPpdOldPhoneValidityDay() : 5;
+        // 获取周期日期
+        LocalDate localDate = now.minusDays(ppdOldPhoneValidityDay);
+        Date startDate = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(localDate.atTime(23, 59, 59, 999999999)
+                .atZone(ZoneId.systemDefault()).toInstant());
+        Date date = Date.from(now.atTime(LocalTime.now(ZoneId.systemDefault())).atZone(ZoneId.systemDefault()).toInstant());
+        int pageSize = 2000;
+        List<String> statusList = Arrays.asList("a", "b");
+        List<BatchRealTimeUserDataDTO> transferData;
+        for (String code : apiCode) {
+            int pageNum = 1;
+            int numberA = 0;
+            int numberB = 0;
+            PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
+            example.createCriteria().andApiCodeEqualTo(code).andStatusIn(statusList).andPStatusEqualTo(2)
+                    .andPushDxTimeBetween(startDate, endDate);
+            example.setOrderByClause("id,status");
+            while (true) {
+                List<PhoneSaleExtendInfo> list = phoneSaleExtendInfoMapper.findListPageByExample(
+                        example, pageNum, pageSize);
+                int size = list.size();
+                if (size == 0) {
+                    break;
+                }
+                pageNum++;
+                Map<String, PhoneSaleExtendInfo> infoMap = list.parallelStream().collect(Collectors.toMap(
+                        PhoneSaleExtendInfo::getCustNum, Function.identity(), (v1, v2) -> v1));
+                Set<String> set = infoMap.keySet();
+                // 获取（ppdOldPhoneValidityDay-1）天内（包括当天）已推送过的案件编号
+                Set<String> custNumSet = selectPush(code, ppdOldPhoneValidityDay - 1, new ArrayList<>(set), statusList);
+                if (custNumSet == null) {
+                    continue;
+                }
+                // 删除已推送过的案件编号
+                set.removeAll(custNumSet);
+                // 获取案件编号对应的上传数据
+                Map<String, MarketingSyncUser> syncUserMap = getMarketingSyncUserMap(code, set);
+                if (syncUserMap == null) {
+                    continue;
+                }
+                Collection<PhoneSaleExtendInfo> values = infoMap.values();
+                transferData = new ArrayList<>();
+                for (PhoneSaleExtendInfo info : values) {
+                    MarketingSyncUser syncUser = syncUserMap.get(info.getCustNum());
+                    if (syncUser == null) {
+                        continue;
+                    }
+                    Date appletTime = syncUser.getAppletTime() == null ? syncUser.getCreateTime() : syncUser.getAppletTime();
+                    // 剔除对应案件编号有效期内转化数据中命中IfLent=Y的案件编号
+                    if (checkPeriodOfValidityAndIfLentIsY(ppdValidityDay, appletTime, tcId, info)) {
+                        // 判断有效期
+                        if (iPeriodOfValidityService.isNotExpire(date, ppdValidityDay, appletTime)) {
+                            // 数据情况统计
+                            if ("a".equals(info.getStatus())) {
+                                numberA++;
+                            } else if ("b".equals(info.getStatus())) {
+                                numberB++;
+                            }
+                            // 封装人工接口数据
+                            DassImportDataDTO dassImportData = getDassImportData(info, syncUser);
+                            BatchRealTimeUserDataDTO dataDTO = new BatchRealTimeUserDataDTO();
+                            dataDTO.setDassImportDataDTO(dassImportData);
+                            // 封装人工本地数据记录
+                            getPhoneSaleExtendInfo(info);
+                            dataDTO.setPhoneSaleExtendInfo(info);
+                            transferData.add(dataDTO);
+                        }
+                    }
+                }
+                artificialBatchRealTimeDataHandler.call(transferData, new ProcessHandlerContext());
+                number += transferData.size();
+                transferData.clear();
+                if (size < pageSize) {
+                    break;
+                }
+            }
+            log.warn("拍拍贷老客周期性推送电销任务: apiCode={},推送总量:{},a情况推送量:{},b情况推送量{}"
+                    , code, number, numberA, numberB);
+        }
+        yiXinTransferService.updateFrontDataStatus(frontId, 2);
+        return number;
+    }
+
+    /**
+     * 2023-02-15 17:17
+     * 获取案件编号对应的上传数据
+     */
+    private Map<String, MarketingSyncUser> getMarketingSyncUserMap(String apiCode, Set<String> set) {
+        try {
+            if (CollectionUtils.isEmpty(set)) {
+                return null;
+            }
+            List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserLastByCustNums(apiCode
+                    , new ArrayList<>(set));
+            if (CollectionUtils.isEmpty(syncUserList)) {
+                return null;
+            }
+            return syncUserList.parallelStream().collect(Collectors.toMap(MarketingSyncUser::getCustNum, Function.identity()
+                    , BinaryOperator.maxBy(Comparator.comparing(MarketingSyncUser::getCreateTime))));
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * 2023-02-15 14:53
+     * 检查是否存在案件编号有效期内转化数据中命中IfLent=Y的案件编号
+     */
+    private boolean checkPeriodOfValidityAndIfLentIsY(String ppdValidityDay
+            , Date appletTime
+            , String tcId
+            , PhoneSaleExtendInfo info) {
+        try {
+            PeriodOfValidityBO builder = iPeriodOfValidityService.getPeriodOfValidityRange(ppdValidityDay
+                    , appletTime).addDateString().builder();
+            MarketingTransferSyncUserExample transferSyncUserExample = new MarketingTransferSyncUserExample();
+            transferSyncUserExample.settCid(tcId);
+            transferSyncUserExample.createCriteria()
+                    .andTCidEqualTo(tcId)
+                    .andApiCodeEqualTo(info.getApiCode())
+                    .andCustNumEqualTo(info.getCustNum())
+                    .andIfLentEqualTo("Y")
+                    .andRequestDataBetween(builder.getBeginDateStr(), builder.getEnDateStr());
+            return marketingTransferSyncUserMapper.countByExample(transferSyncUserExample) < 1;
+        } catch (IllegalArgumentException e) {
+            log.error(e.getMessage(), e);
+            return false;
+        }
+    }
+
+    /**
+     * 2023-02-15 16:05
+     * <p>
+     * 检查前{@code day}天前是否推送过，包括当天
+     */
+    private Set<String> selectPush(String apiCode, int day, List<String> custNums, List<String> statusList) {
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            Instant endInstant = now.atZone(ZoneId.systemDefault()).withHour(23).withMinute(59).withSecond(59)
+                    .withNano(999999999).toInstant();
+            Instant startInstant = now.toLocalDate().minusDays(day).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+            PhoneSaleExtendInfoExample extendInfoExample = new PhoneSaleExtendInfoExample();
+            extendInfoExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusIn(statusList)
+                    .andCustNumIn(custNums).andPushDxTimeBetween(Date.from(startInstant), Date.from(endInstant));
+            extendInfoExample.setDistinct(true);
+            return phoneSaleExtendInfoMapper.getCustNumSettikv_(extendInfoExample);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return null;
+        }
+    }
+
+    private DassImportDataDTO getDassImportData(PhoneSaleExtendInfo info, MarketingSyncUser syncUser) {
+        DassImportDataDTO batchImportData = new DassImportDataDTO();
+        batchImportData.setId(info.getSourceId());
+        try {
+            String decodeName;
+            String name = StringUtils.isNotBlank(syncUser.getName()) ?
+                    (syncUser.getName().equals(decodeName = BrCipherMaker.getInstance().decode(syncUser.getName())) ? "1"
+                            : decodeName) : "1";
+            // 根据custNum取上传接口最新的name转成明文传输
+            batchImportData.setName(name);
+            String phone = AESUtil.aesEncrypty(BrCipherMaker.getInstance().decode(syncUser.getCell()), aesKey);
+            // 根据custNum取上传接口最新的cell转aes加密
+            batchImportData.setPhone(phone);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return null;
+        }
+        batchImportData.setUid(info.getCustNum());
+        batchImportData.setOrgname("ppdai");
+        batchImportData.setUserType("1");
+        batchImportData.setSource("18");
+        batchImportData.setType("8");
+        return batchImportData;
+    }
+
+    private void getPhoneSaleExtendInfo(PhoneSaleExtendInfo info) {
+        info.setPStatus(1);
+        info.setCreateTime(new Date());
+        info.setPushDxTime(new Date());
+        if ("a".equals(info.getStatus())) {
+            info.setStatus("b");
+        }
+        info.setId(null);
     }
 }

@@ -1,11 +1,19 @@
 
+import java.util.Date;
+import com.br.marketing.client.dassservice.DassServiceClient;
+import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.dto.DataDetailTestDTO;
+import com.br.marketing.dto.DataDistrubuteTestDTO;
+import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.mapper.*;
+import com.br.marketing.service.IScoreResultService;
+import com.br.marketing.service.Impl.CheckServicePackageImpl;
 import com.br.marketing.strategy.UserCenterHandler;
 import com.google.common.collect.Lists;
 import java.text.DecimalFormat;
@@ -59,7 +67,101 @@ public class redis {
     @Resource
     MarketingSyncInfoMapper syncInfoMapper;
 
+    @Autowired
+    DassServiceClient dassServiceClient;
 
+    @Autowired
+    CheckServicePackageImpl checkServicePackage;
+
+    @Test
+    public void testhashcode(){
+        DataDetailTestDTO log = new DataDetailTestDTO();
+        log.setName("7410437");
+
+        DataDetailTestDTO log1 = new DataDetailTestDTO();
+        log1.setName("7410437");
+
+        String s = DigestUtils.md5DigestAsHex((log.toString() + log.hashCode()).getBytes());
+        System.out.println("s:"+s);
+        System.out.println("loghascode:"+log.hashCode());
+        System.out.println("log1hascode:"+log1.hashCode());
+        String s1 = DigestUtils.md5DigestAsHex((log.toString() + log.hashCode()).getBytes());
+        System.out.println("s1:"+s1);
+    }
+
+
+    @Test
+    public void testAop(){
+        DataDistrubuteTestDTO req = new DataDistrubuteTestDTO();
+        ArrayList<DataDetailTestDTO> dataDetailTestDTOS = new ArrayList<>();
+        ArrayList<DataJoinLogDTO> dataDistributeDetailLogs = new ArrayList<>();
+        DataDetailTestDTO a = new DataDetailTestDTO();
+        a.setName("丽丽1");
+        dataDetailTestDTOS.add(a);
+        DataJoinLogDTO log = new DataJoinLogDTO();
+        log.setApiCode("7410437");
+        log.setCustNum("111");
+        log.setCell("111");
+        log.setDistributeDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        log.setDistributeType(1);
+        log.setDataCode(a.hashCode());
+        log.setDataMd5(DigestUtils.md5DigestAsHex(a.toString().getBytes()));
+        dataDistributeDetailLogs.add(log);
+
+
+        DataDetailTestDTO b = new DataDetailTestDTO();
+        b.setName("丽丽1");
+        dataDetailTestDTOS.add(b);
+        DataJoinLogDTO log1 = new DataJoinLogDTO();
+        log1.setApiCode("7410437");
+        log1.setCustNum("111");
+        log1.setCell("111");
+        log1.setDistributeDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        log1.setDistributeType(1);
+        log1.setDataCode(b.hashCode());
+        log1.setDataMd5(DigestUtils.md5DigestAsHex(b.toString().getBytes()));
+        dataDistributeDetailLogs.add(log1);
+        req.setData(dataDetailTestDTOS);
+        req.setDetailLogList(dataDistributeDetailLogs);
+        req.setIsSole(true);
+        req.setSoleField(1);
+        req.setSoleDay(1);
+        checkServicePackage.getTestRes(req,null);
+    }
+
+    @Autowired
+    IScoreResultService iScoreResultService;
+
+    @Test
+    public void testScore(){
+        Result<String> conditionRes = iScoreResultService.isFilterScoreByTransfer("7492641","PPDOld_TransferData_ArtificialBatch");
+    }
+
+    @Test
+    public void testIbuInterface(){
+        List<IbuReqDTO.Datum> list = new ArrayList<>();
+        IbuReqDTO.Datum datum = new IbuReqDTO.Datum();
+        datum.setUid("ab123");
+        datum.setUserType("D");
+        datum.setUserCode("ab123");
+        datum.setUserName("1");
+        datum.setPhone("15520342033");
+        datum.setSource("101");
+        datum.setPlanId(123);
+
+        IbuReqDTO.Datum datum1 = new IbuReqDTO.Datum();
+        datum1.setUid("123");
+        datum1.setUserType("D");
+        datum1.setUserCode("ab123");
+        datum1.setUserName("1");
+        datum1.setPhone("15520342034");
+        datum1.setSource("101");
+        datum1.setPlanId(123);
+        list.add(datum);
+        list.add(datum1);
+
+        Result result = dassServiceClient.pushIbuArtificial(list);
+    }
 
     @Test
     public void testHaluo(){

@@ -73,15 +73,16 @@ public class ErrorControllerAspect {
         }catch (Throwable e) {
             try {
                 ApiResult<Object> obj = new ApiResult<>();
-                obj.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue().toString());
-                final MethodSignature methodSignature = (MethodSignature) jp.getSignature();
-                errorHandle(methodSignature.getDeclaringType().getName(), methodSignature.getName(), jp.getArgs(), e, null);
-                obj.setMessage("发生内部错误");
                 if (e instanceof BusinessException) {
                     BusinessException exception = (BusinessException) e;
                     obj.setCode(exception.getCode());
                     obj.setMessage(exception.getMsg());
+                    return obj;
                 }
+                obj.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue().toString());
+                final MethodSignature methodSignature = (MethodSignature) jp.getSignature();
+                errorHandle(methodSignature.getDeclaringType().getName(), methodSignature.getName(), jp.getArgs(), e, null);
+                obj.setMessage("发生内部错误");
                 return obj;
             } catch (Exception ee) {
                 log.error("异常结果生成异常", ee);

@@ -1,12 +1,15 @@
 package com.br.marketing.client;
 
 import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
@@ -18,6 +21,7 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -45,10 +49,21 @@ public class DefaultBeanConfigure {
 //    @ConditionalOnExpression("#{'ISTIO_ETCD'.equals('${rpc.mode}')}")
     RestTemplate restTemplate() {
         HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory(
-                HttpClientBuilder.create().setMaxConnPerRoute(500).setMaxConnTotal(1000).build());
+                HttpClientBuilder.create().setMaxConnPerRoute(500).setMaxConnTotal(1000)
+                                    .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy() {
+                        @Override
+                        public long getKeepAliveDuration(final HttpResponse response, final HttpContext context) {
+                            long keepAlive = super.getKeepAliveDuration(response, context);
+                            if (keepAlive == -1) {
+                                keepAlive = 5000;
+                            }
+                            return keepAlive;
+                        }
+                    })
+                    .evictIdleConnections(20, TimeUnit.SECONDS).build());
         httpRequestFactory.setConnectionRequestTimeout(3000);
         httpRequestFactory.setConnectTimeout(1000);
-        httpRequestFactory.setReadTimeout(10000);
+        httpRequestFactory.setReadTimeout(20000);
         RestTemplate restTemplate = new RestTemplate(httpRequestFactory);
         restTemplate.getMessageConverters()
                 .set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));

@@ -33,7 +33,8 @@ public enum RuleDataCollectionEnum {
     YI_XIN_DATA_COLLECTION(4, "宜信推电销所需数据收集"),
     HALUO_DASS_COLLECTION(5, "哈罗推电销数据收集"),
     PPD_DATA_COLLECTION(6, "拍拍贷推电销数据收集"),
-    TONG_CHENG_DATA_COLLECTION(7, "同程金融规则所需数据收集");
+    TONG_CHENG_DATA_COLLECTION(7, "同程金融规则所需数据收集"),
+    RS_DATA_COLLECTION(8, "榕树规则所需数据收集");
 
     RuleDataCollectionEnum(Integer code, String name) {
         this.code = code;

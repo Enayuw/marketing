@@ -311,6 +311,10 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
     private String paramOfValidity(CallRecordDTO dto) {
         //taskid、caseNum、CID、apicode，sessionId；
+        if (ObjectUtils.isEmpty(dto)) {
+            log.warn("dto数据为null！");
+            return "dto is null!";
+        }
         if (StringUtils.isEmpty(dto.getDetail()) || StringUtils.isEmpty(dto.getDetail().getSessionId())) {
             log.warn("taskId={},caseNum={},sessionId={}的数据sessionId缺失！", dto.getTaskId(), dto.getCaseNum(), dto.getDetail().getSessionId());
             return "no param sessionId!";

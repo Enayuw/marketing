@@ -3,6 +3,7 @@ package com.br.marketing.tools.controller;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.utils.BrExecutors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,7 +29,7 @@ public class FileController {
         ExecutorService mergeExecutor = BrExecutors.getThreadPool(100, 100);
         FileReader read = null;
         BufferedReader br = null;
-        String pathName = "/opt/temp_file/id.txt";
+        String pathName = "/opt/temp_file/20230221_phoneAction.txt";
         File file1 = new File(pathName);
         List<BufferedWriter> fws = new ArrayList<>();
         try {
@@ -42,12 +43,12 @@ public class FileController {
             int rownum = 1;
             Integer fileIndex = 0;
 
-            read = new FileReader("/opt/temp_file/1_1.txt");
+            read = new FileReader("/opt/temp_file/20230221_01.txt");
             br = new BufferedReader(read);
             String row;
             while ((row = br.readLine()) != null) {
-                String content=","+row;
-                if(rownum>10000){
+                String content=row+"\r\n";
+                if(rownum>1000000){
                     fileIndex++;
                     String fileAddPath = pathName.replace(".txt", "-" + fileIndex).concat(".txt");
                     File file = new File(fileAddPath);
@@ -134,7 +135,7 @@ public class FileController {
         for (File file : files) {
             ExecutorService mergeExecutor = BrExecutors.getThreadPool(100, 100);
             String[] fileSplit = file.getPath().split("\\.");
-            String wFilePath = fileSplit[0] + "action." + fileSplit[1];
+            String wFilePath = fileSplit[0] + "_phoneAction." + fileSplit[1];
             File wFile = new File(wFilePath);
             try {
                 BufferedWriter writer = new BufferedWriter(
@@ -150,13 +151,36 @@ public class FileController {
                     mergeExecutor.submit(()->{
                         try {
                             if(new Integer(1).equals(threaNum)){
-                                writer.append(content);
-                            }else{
-                                String[] split = content.split(",");
+                                String[] split = content.split("\t");
                                 StringBuilder sb = new StringBuilder();
                                 sb.append(split[0]);
-                                sb.append(",");
-                                sb.append(BrCipherMaker.getInstance().decode(split[1]));
+//                                sb.append(",");
+//                                sb.append(split[1]);
+//                                sb.append(",");
+//                                sb.append(split[2]);
+//                                sb.append(",");
+//                                sb.append(split[3]);
+//                                sb.append(",");
+//                                sb.append(split[4]);
+//                                sb.append(",");
+//                                sb.append(split[5]);
+                                sb.append("\r\n");
+                                writer.append(content).append("\r\n");
+                            }else{
+                                String[] split = content.split("\t");
+                                StringBuilder sb = new StringBuilder();
+                                sb.append(BrCipherMaker.getInstance().decode(split[0]).getBytes());
+//                                sb.append(",");
+//                                sb.append(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(split[1]).getBytes()));
+//                                sb.append(",");
+//                                sb.append(split[2]);
+//                                sb.append(",");
+//                                sb.append(split[3]);
+//                                sb.append(",");
+//                                sb.append(split[4]);
+//                                sb.append(",");
+//                                sb.append(split[5]);
+                                sb.append("\r\n");
                                 writer.append(sb.toString());
                             }
 

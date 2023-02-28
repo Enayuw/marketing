@@ -69,16 +69,20 @@ public class BatchMessageDelayHandler extends AbstractExternalInterfaceHandler<M
          * eg:{"last": 0,"tcId": 772,"ids": [607772,607771,607770,607769,607768],"apiCode": "7410430"}
          */
 
+        boolean b = mqFacts.get(0).getIncludeRules() != null && mqFacts.get(0).getIncludeRules().size() > 0;
         Set<String> set = new HashSet<>();
-        HashMap<String, List<String>> ppdCustomerType = marketingCommonConfig.getPpdCustomerType();
-        // 拍拍贷处理规则
-        if (ppdCustomerType.get("transform").contains(context.getApiCode())){
-            set.add("PPD_TransferData_ArtificialBatch");
+        if(b){
+            set = mqFacts.get(0).getIncludeRules();
         }else{
-            //宜信处理规则
-            set.add("YiXin_RealTimeData_ArtificialBatchRealTimeData");
+            HashMap<String, List<String>> ppdCustomerType = marketingCommonConfig.getPpdCustomerType();
+            // 拍拍贷处理规则
+            if (ppdCustomerType.get("transform").contains(context.getApiCode())){
+                set.add("PPD_TransferData_ArtificialBatch");
+            }else{
+                //宜信处理规则
+                set.add("YiXin_RealTimeData_ArtificialBatchRealTimeData");
+            }
         }
-
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("apiCode",context.getApiCode());
         jsonObject.put("ids",mqFacts.stream().map(MqFact::getSourceId).collect(Collectors.toSet()));

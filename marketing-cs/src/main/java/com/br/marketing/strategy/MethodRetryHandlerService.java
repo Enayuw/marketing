@@ -8,6 +8,7 @@ import com.br.marketing.client.dassservice.PushBlackListResponse;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportAdapHaluoDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
@@ -17,18 +18,19 @@ import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerSer
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
-import com.br.marketing.client.robotaiapi.input.BlackDetailDTO;
-import com.br.marketing.client.robotaiapi.input.ConversionData;
-import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
-import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
+import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.client.zhongan.ZhongAnClient;
+import com.br.marketing.common.annoation.DistributeLog;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.DistributeSourceTypeEnum;
+import com.br.marketing.common.enums.DistributeTypeEnum;
+import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.monkeydata.service.PushRosterLockingDataToZhongAn;
@@ -37,14 +39,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
@@ -117,6 +117,34 @@ public class MethodRetryHandlerService {
 
     @Resource
     LocalFileMapper localFileMapper;
+
+
+    /**
+     *
+     * @param data 数据
+     * @param distributeTypeEnum DistributeTypeEnum 数据流向枚举
+     * @param apiCode
+     * @param custNum 案件号
+     * @param cell 手机号
+     * @param sourceId 源数据id
+     * @param distributeSourceTypeEnum 数据源类型
+     * @return
+     */
+    public DataJoinLogDTO dataJoinLogFix(Object data, DistributeTypeEnum distributeTypeEnum, String apiCode
+            , String custNum, String cell, Long sourceId, DistributeSourceTypeEnum distributeSourceTypeEnum){
+        DataJoinLogDTO dataJoinLogDTO = new DataJoinLogDTO();
+        dataJoinLogDTO.setApiCode(apiCode);
+        dataJoinLogDTO.setCustNum(custNum);
+        dataJoinLogDTO.setCell(cell);
+        dataJoinLogDTO.setDistributeDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        dataJoinLogDTO.setDistributeType(distributeTypeEnum.getValue());
+        dataJoinLogDTO.setCreateTime(new Date());
+        dataJoinLogDTO.setSourceId(sourceId);
+        dataJoinLogDTO.setSourceType(distributeSourceTypeEnum.getValue());
+        dataJoinLogDTO.setDataCode(data.hashCode());
+        dataJoinLogDTO.setDataMd5(DigestUtils.md5DigestAsHex(data.toString().getBytes()));
+        return dataJoinLogDTO;
+    }
 
     /**
      * 全局重试任务执行类
@@ -220,6 +248,34 @@ public class MethodRetryHandlerService {
         //调用客户转化接口失败，记录数据入库，定时任务重试
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
     }
+
+    /**
+     * 客户转化去重方法
+     * @param robotOutboundDTO
+     * @param retry
+     * @return
+     */
+    @RetryMethod(isOrNoDbRetry = true)
+    @DistributeLog
+    public Result<TransferRobotOutboundVO<UnsuccessfulData>> callCustomerTransfer(TransferRobotOutboundSoleDTO robotOutboundDTO, Integer retry) {
+        if(robotOutboundDTO.getData().size()<=0){
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        }
+        TransferRobotOutboundDTO transferRobotOutboundDTO = new TransferRobotOutboundDTO();
+        transferRobotOutboundDTO.setTransferInfoId(robotOutboundDTO.getTransferInfoId());
+        transferRobotOutboundDTO.setApiCode(robotOutboundDTO.getApiCode());
+        transferRobotOutboundDTO.setJsonData(new TransferJsonDataDTO(robotOutboundDTO.getData(),robotOutboundDTO.getLast()));
+        TransferRobotOutboundVO<UnsuccessfulData> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(transferRobotOutboundDTO);
+        if (!"9999".equals(transferRobotOutboundVO.getCode())) {
+            Set<Long> set = robotOutboundDTO.getDetailLogList().stream().map(DataDistributeDetailLog::getSourceId).collect(toSet());
+            saveBizLog(Joiner.on(",").join(set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), robotOutboundDTO.getTransferInfoId());
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(transferRobotOutboundVO);
+        }
+        log.error("调用客服接口失败 -- {}", JSON.toJSONString(transferRobotOutboundVO));
+        //调用客户转化接口失败，记录数据入库，定时任务重试
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
+    }
+
 
     void saveBizLog(String data, Integer handlerEnum, Long infoId) {
         DataCompare dataCompare = new DataCompare(data, handlerEnum, infoId);
@@ -426,6 +482,37 @@ public class MethodRetryHandlerService {
                     , LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
         }
         return result;
+    }
+
+
+    /**
+     * 调用电销Ibu批量接口
+     * 调用成功，将该批数据记录到数据库中以便数据对比
+     * @param datumList
+     * @return
+     */
+    @RetryMethod(isOrNoDbRetry = true)
+    public Result callDassIbuBatchData(ArrayList<IbuReqDTO.Datum> datumList, Integer retry) {
+        //重试方法 这里反序列化过来是JsonObject
+        if (!(datumList.get(0) instanceof IbuReqDTO.Datum)) {
+            ArrayList<IbuReqDTO.Datum> list = new ArrayList<>();
+            for (int i = 0; i < datumList.size(); i++) {
+                if (datumList.get(i) != null) {
+                    list.add(JSON.parseObject(JSON.toJSONString(datumList.get(i)), IbuReqDTO.Datum.class));
+                }
+            }
+            datumList = list;
+        }
+        Result result = dassServiceClient.pushIbuArtificial(datumList);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            Set<String> set = datumList.stream().map(IbuReqDTO.Datum::getId).map(String::valueOf).collect(Collectors.toSet());
+            saveBizLog(String.join(",", set), InterfaceHandlerEnum.ARTIFICIAL_IBU_BATCH_DATA.getCode(),
+                    null);
+            phoneSaleExtendInfoMapper.updateBatch(set);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("调用人工IBU批量接口失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
     private void updatePushStatus(ZaMarketDataBO bo, Integer updatePushStatus, Integer updateStatus) {

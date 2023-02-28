@@ -1,15 +1,15 @@
 package com.br.marketing.entity;
 
-import java.io.Serializable;
-import java.util.Date;
 import lombok.Data;
 
-/**
- * b_phone_sale_extend_info
- * @author 
- */
+import java.io.Serializable;
+import java.util.Date;
+
 @Data
-public class PhoneSaleExtendInfo implements Serializable {
+public class PhoneSaleExtendInfo  implements Serializable {
+    /**
+     * 
+     */
     private Long id;
 
     /**
@@ -21,6 +21,11 @@ public class PhoneSaleExtendInfo implements Serializable {
      * 案件编号
      */
     private String custNum;
+
+    /**
+     * 手机号
+     */
+    private String cell;
 
     /**
      * taskId
@@ -86,6 +91,16 @@ public class PhoneSaleExtendInfo implements Serializable {
      * 推送电销时间
      */
     private Date pushDxTime;
+
+    /**
+     * 冗余信息
+     */
+    private String redundancyField;
+
+    /**
+     * null或者1——人工批量和人工单条，2——ibu定制人工批量接口
+     */
+    private Integer interfaceType;
 
     private static final long serialVersionUID = 1L;
 }

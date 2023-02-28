@@ -42,7 +42,6 @@ public class RetryAspect {
         RetryMainLog retryMainLog = new RetryMainLog();
         retryMainLog.setRetryType(1);
         if (args.length>0) {
-            retryMainLog.setRetryParam(JSON.toJSONString(args[0]));
             retryMainLog.setRetryParamType(args[0].getClass().getName());
         }
         if(args.length>1){
@@ -70,6 +69,7 @@ public class RetryAspect {
                         Result res1 = (Result) res;
                         if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(res1.getCode())) {
                             if (nowNum <= 0 && orNoDbRetry) {
+                                retryMainLog.setRetryParam(JSON.toJSONString(args[0]));
                                 retryMainLog.setRetryService(className);
                                 retryMainLog.setServiceType(1);
                                 retryMainLog.setRetryNum(0);
@@ -93,6 +93,7 @@ public class RetryAspect {
                     }
                 }catch (Exception ex){
                     if(nowNum <= 0 && orNoDbRetry){
+                        retryMainLog.setRetryParam(JSON.toJSONString(args[0]));
                         retryMainLog.setRetryService(className);
                         retryMainLog.setServiceType(1);
                         retryMainLog.setRetryNum(0);
