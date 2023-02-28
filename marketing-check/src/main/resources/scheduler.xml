@@ -367,7 +367,7 @@
     />
     <job:simple id="XieChengCallingRecordJob"
                 class="com.br.marketing.check.job.XieChengCallingRecordJob"
-                cron="* * * 31 2 ?"
+                cron="* * * 29 2 ?"
                 description="携程通话明细暂停后启动推送定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
