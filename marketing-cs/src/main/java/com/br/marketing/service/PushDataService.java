@@ -60,7 +60,7 @@ public interface PushDataService {
      * @param data
      * @return
      */
-    Result<Boolean> pushXieChengSmsCollidingToDbData(String data);
+    void pushXieChengSmsCollidingToDbData(String data);
 
     String getHaierRequestId(String type);
 

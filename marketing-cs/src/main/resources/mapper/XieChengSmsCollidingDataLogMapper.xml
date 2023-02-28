@@ -27,42 +27,55 @@
             <trim prefix="info=case" suffix="end,">
                 <foreach collection="list" item="i" index="index">
                     <if test="i.info != null and i.info != ''">
-                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} then #{i.info}
+                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}
+                        and id =(select id from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} order by create_time desc limit 1)
+            then #{i.info}
                     </if>
                 </foreach>
             </trim>
             <trim prefix="mkt_level=case" suffix="end,">
                 <foreach collection="list" item="i" index="index">
                     <if test="i.mktLevel != null and i.mktLevel != ''">
-                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} then #{i.mktLevel}
+                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}
+                        and id =(select id from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} order by create_time desc limit 1)
+            then #{i.mktLevel}
                     </if>
                 </foreach>
             </trim>
             <trim prefix="result=case" suffix="end,">
                 <foreach collection="list" item="i" index="index">
                     <if test="i.result != null">
-                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}  then #{i.result, jdbcType=BIT}
+                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}
+                        and id =(select id from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} order by create_time desc limit 1)
+            then #{i.result, jdbcType=BIT}
                     </if>
                 </foreach>
             </trim>
             <trim prefix="org_channel=case" suffix="end,">
                 <foreach collection="list" item="i" index="index">
                     <if test="i.orgChannel != null and i.orgChannel != ''">
-                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} then #{i.orgChannel}
+                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}
+                        and id =(select id from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} order by create_time desc limit 1)
+            then #{i.orgChannel}
+
                     </if>
                 </foreach>
             </trim>
             <trim prefix="status=case" suffix="end,">
                 <foreach collection="list" item="i" index="index">
                     <if test="i.status != null and i.status != ''">
-                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} then #{i.status}
+                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}
+                        and id =(select id from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} order by create_time desc limit 1)
+            then #{i.status}
                     </if>
                 </foreach>
             </trim>
             <trim prefix="data_message=case" suffix="end,">
                 <foreach collection="list" item="i" index="index">
                     <if test="i.dataMessage != null and i.dataMessage != ''">
-                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} then #{i.dataMessage}
+                        when sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}
+                        and id =(select id from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} order by create_time desc limit 1)
+            then #{i.dataMessage}
                     </if>
                 </foreach>
             </trim>
@@ -70,6 +83,7 @@
         where
         <foreach collection="list" item="i" open="( " separator=") or (" close=" )" >
             sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId}
+            and id =(select id from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} order by create_time desc limit 1)
         </foreach>
     </update>
 
