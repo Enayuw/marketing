@@ -200,6 +200,7 @@ public class ArtificalIbuHandler extends AbstractExternalInterfaceHandler<IbuAda
                 dassImportDataDTO.setSource("26");
                 dassImportDataDTO.setUid(daum.getUid());
                 dassImportDataDTO.setUserType("2");
+                dassImportDataDTO.setId(daum.getId());
                 batchRealTimeUserDataDTO.setDassImportDataDTO(dassImportDataDTO);
                 batchRealTimeUserDataDTOList.add(batchRealTimeUserDataDTO);
             });
