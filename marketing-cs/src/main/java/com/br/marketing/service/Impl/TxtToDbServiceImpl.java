@@ -636,6 +636,9 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         phoneSaleIbu.setApiCode(dto.getApiCode());
         phoneSaleIbu.setLocalId(dto.getLocalId().toString());
         phoneSaleIbu.setmStatus(1);
+        Date date = new Date();
+        phoneSaleIbu.setCreateTime(date);
+        phoneSaleIbu.setUpdateTime(date);
         try {
             Boolean phoneMark = Boolean.TRUE;
             if (datas.size() != address.size()) {
@@ -965,9 +968,6 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                 phoneSaleIbu.setmStatus(2);
                 phoneSaleIbu.setDataMessage(String.format("行号：%d;报错信息：%s", line, "手机号解密失败"));
             }
-            Date date = new Date();
-            phoneSaleIbu.setCreateTime(date);
-            phoneSaleIbu.setUpdateTime(date);
             phoneSaleIbuMapper.insertSelective(phoneSaleIbu);
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);
