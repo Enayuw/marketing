@@ -391,7 +391,7 @@ public class PushDataServiceImpl implements PushDataService {
                         dataum.setPhone(BrCipherMaker.getInstance().decode(ibu.getPhone()));
                     }
                     if (StringUtils.isNotBlank(ibu.getUserName())) {
-                        dataum.setPhone(BrCipherMaker.getInstance().decode(ibu.getUserName()));
+                        dataum.setUserName(BrCipherMaker.getInstance().decode(ibu.getUserName()));
                     }
                     reqlist.add(dataum);
                 }
