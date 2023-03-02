@@ -441,10 +441,6 @@ public class PushDataServiceImpl implements PushDataService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
     }
 
-    public static void main(String[] args) {
-        System.out.println(Integer.valueOf("2333333333333"));
-    }
-
     @Override
     public Result pushSevenTransferData(Long id) {
         Boolean isContiue = false;
