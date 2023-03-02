@@ -544,6 +544,7 @@ public class MethodRetryHandlerService {
                     LocalFile localFile = localFileMapper.selectByPrimaryKey(Long.valueOf(phoneSaleIbu.getLocalId()));
                     updateFile.setId(localFile.getId());
                     updateFile.setPushNumber(localFile.getPushNumber() + ids.size());
+                    updateFile.setErrorActualNumber(localFile.getPushNumber() - ids.size());
                     localFileMapper.updateByPrimaryKeySelective(updateFile);
                 }
                 updateEntity.setmStatus(3);
@@ -554,15 +555,6 @@ public class MethodRetryHandlerService {
             } else if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             } else {
-                if (new Integer(1).equals(retry)) {
-                    Long id = ids.get(0);
-                    PhoneSaleIbu phoneSaleIbu = phoneSaleIbuMapper.selectByPrimaryKey(id);
-                    LocalFile localFile = localFileMapper.selectByPrimaryKey(Long.valueOf(phoneSaleIbu.getLocalId()));
-                    updateFile.setId(localFile.getId());
-                    updateFile.setPushNumber(localFile.getPushNumber() + ids.size());
-                    updateFile.setErrorActualNumber(localFile.getErrorActualNumber() + ids.size());
-                    localFileMapper.updateByPrimaryKeySelective(updateFile);
-                }
                 updateEntity.setmStatus(4);
                 PhoneSaleIbuExample ibuExample = new PhoneSaleIbuExample();
                 ibuExample.createCriteria().andIdIn(ids);
