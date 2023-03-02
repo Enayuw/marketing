@@ -544,7 +544,6 @@ public class MethodRetryHandlerService {
                     LocalFile localFile = localFileMapper.selectByPrimaryKey(Long.valueOf(phoneSaleIbu.getLocalId()));
                     updateFile.setId(localFile.getId());
                     updateFile.setPushNumber(localFile.getPushNumber() + ids.size());
-                    updateFile.setErrorActualNumber(localFile.getPushNumber() - ids.size());
                     localFileMapper.updateByPrimaryKeySelective(updateFile);
                 }
                 updateEntity.setmStatus(3);

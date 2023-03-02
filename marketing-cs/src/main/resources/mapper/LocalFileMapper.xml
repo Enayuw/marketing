@@ -20,7 +20,7 @@
         bf.push_number,
         bc.short_name,
         bc.cid from b_local_file bf inner join b_marketing_customer bc on bc.api_code = bf.api_code
-        where bf.file_type in ('qiqi','xiecheng','yiqianbao','dianxiao','halo','haier','zhongan','xiechengsms','marketingData','dx_transform','dx_ibu')
+        where bf.file_type in ('qiqi','xiecheng','yiqianbao','dianxiao','halo','haier','zhongan','xiechengsms','marketingData','dx_transform')
         <if test="search !=null and search!=''">
             and (
             bc.cid like concat("%", #{search},"%")
@@ -44,7 +44,7 @@
     </select>
     <select id="allCount" resultType="java.lang.Integer">
         select sum(bf.actual_number),bf.api_code from b_local_file bf left join b_marketing_customer bc on bc.api_code = bf.api_code
-        where bf.file_type in ('qiqi','xiecheng','yiqianbao','dianxiao','halo','haier','zhongan','xiechengsms','marketingData','dx_transform','dx_ibu')
+        where bf.file_type in ('qiqi','xiecheng','yiqianbao','dianxiao','halo','haier','zhongan','xiechengsms','marketingData','dx_transform')
         <if test="search !=null and search!=''">
             and (
             bc.cid like concat("%", #{search},"%")

@@ -428,9 +428,8 @@ public class PushDataServiceImpl implements PushDataService {
 
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(success.get());
-        localFile.setErrorActualNumber(fail.get());
         localFileMapper.updateByPrimaryKeySelective(localFile);
-        if (SftpFileTypeEnum.DXTRANSFORM.getValue().equals(localFile.getFileType())) {
+        if (SftpFileTypeEnum.DXIBU.getValue().equals(localFile.getFileType())) {
             StringBuilder content = new StringBuilder();
             content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
                     .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
