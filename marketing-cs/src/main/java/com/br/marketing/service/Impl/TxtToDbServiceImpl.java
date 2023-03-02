@@ -690,7 +690,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                     case "userName":
                         if (StringUtils.isNotBlank(datas.get(i))) {
                             error = error.replace("userName不能为空;", "");
-                            phoneSaleIbu.setUserName(datas.get(i));
+                            phoneSaleIbu.setUserName(BrCipherMaker.getInstance().encode(decryptName(datas.get(i))));
                         }
                         break;
                     case "planId":
