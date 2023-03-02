@@ -370,7 +370,7 @@ public class PushDataServiceImpl implements PushDataService {
             List<PhoneSaleIbu> phoneSaleIbus =  phoneSaleIbuMapper.getPushDassTransferData(id, minId);
             number += phoneSaleIbus.size();
             if (phoneSaleIbus.size() > 0) {
-                List<IbuReqDTO.Datum> reqlist = new ArrayList<>();
+                ArrayList<IbuReqDTO.Datum> reqlist = new ArrayList<>();
                 for (PhoneSaleIbu ibu : phoneSaleIbus) {
                     IbuReqDTO.Datum dataum = new IbuReqDTO.Datum();
                     BeanUtils.copyProperties(ibu,dataum);
@@ -439,6 +439,10 @@ public class PushDataServiceImpl implements PushDataService {
             alarmClient.sendAlarm(content.toString(), "Dass转化结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Integer.valueOf("2333333333333"));
     }
 
     @Override

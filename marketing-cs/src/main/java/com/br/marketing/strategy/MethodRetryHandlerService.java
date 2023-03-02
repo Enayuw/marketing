@@ -520,7 +520,7 @@ public class MethodRetryHandlerService {
     }
 
     @RetryMethod(isOrNoDbRetry = true)
-    public Result dassIbuWithFile(List<IbuReqDTO.Datum> datumList, Integer retry){
+    public Result dassIbuWithFile(ArrayList<IbuReqDTO.Datum> datumList, Integer retry){
         try {
             //重试方法 这里反序列化过来是JsonObject
             if (!(datumList.get(0) instanceof IbuReqDTO.Datum)) {
