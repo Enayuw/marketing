@@ -12,6 +12,8 @@ public interface PushDataService {
 
     Result pushDassTransferData(Long id);
 
+    Result pushDassTransferIbu(Long id);
+
     Result pushSevenTransferData(Long id);
 
     Result pushHaierData();

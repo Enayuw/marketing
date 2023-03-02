@@ -1,4 +1,5 @@
 package com.br.marketing.service.Impl;
+import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -51,6 +52,9 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
 
     @Resource
     PhoneSaleTransferMapper phoneSaleTransferMapper;
+
+    @Resource
+    PhoneSaleIbuMapper phoneSaleIbuMapper;
 
     @Resource
     MarketingTransferSyncUserMapper transferSyncUserMapper;
@@ -615,6 +619,363 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
             phoneSaleTransferMapper.insertSelective(phoneSaleTransfer);
         }
         return new Result().setCode(new Integer("1").equals(phoneSaleTransfer.getmStatus())
+                ?ResultCode.SUCCESS.getValue()
+                :ResultCode.FAIL.getValue());
+    }
+
+    @Override
+    public Result phoneTodbByIbu(TxtToDbDTO dto) {
+        PhoneSaleIbu phoneSaleIbu = new PhoneSaleIbu();
+        String row = dto.getContent();
+        HashMap<Integer, String> address = dto.getAddress();
+        HashMap<Integer, String> extSetFields = dto.getExtSetField();
+        Integer line = dto.getLine();
+        List<String> datas = Splitter.on(",").splitToList(row);
+        JSONObject jo = null;
+        String error = "uid不能为空;userType不能为空;userCode不能为空;userName不能为空;phone不能为空;source不能为空;";
+        phoneSaleIbu.setApiCode(dto.getApiCode());
+        phoneSaleIbu.setLocalId(dto.getLocalId().toString());
+        phoneSaleIbu.setmStatus(1);
+        Date date = new Date();
+        phoneSaleIbu.setCreateTime(date);
+        phoneSaleIbu.setUpdateTime(date);
+        try {
+            Boolean phoneMark = Boolean.TRUE;
+            if (datas.size() != address.size()) {
+                phoneSaleIbu.setmStatus(2);
+                phoneSaleIbu.setDataMessage(String.format("行号：%d;报错信息：%s", line, "表头和该行数据不一致"));
+                phoneSaleIbuMapper.insertSelective(phoneSaleIbu);
+                return new Result().setCode(ResultCode.FAIL.getValue());
+            }
+            Integer nullMark = 0;
+            for (int i = 0; i < datas.size(); i++) {
+                String sureaddress = address.get(i);
+                switch (sureaddress) {
+                    case "uid":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("uid不能为空;", "");
+                            phoneSaleIbu.setUid(datas.get(i));
+                        }
+                        break;
+                    case "userType":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("userType不能为空;", "");
+                            phoneSaleIbu.setUserType(datas.get(i));
+                        }
+                        break;
+                    case "userCode":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("userCode不能为空;", "");
+                            phoneSaleIbu.setUserCode(datas.get(i));
+                        }
+                        break;
+                    case "source":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("source不能为空;", "");
+                            phoneSaleIbu.setSource(datas.get(i));
+                        }
+                        break;
+
+                    case "phone":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("phone不能为空;", "");
+                            Result<String> stringResult = decryptPhone(datas.get(i));
+                            if (ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
+                                phoneSaleIbu.setPhone(BrCipherMaker.getInstance().encode(stringResult.getData()));
+                            } else {
+                                phoneMark = Boolean.FALSE;
+                            }
+                        }
+                        break;
+                    case "userName":
+                        if (StringUtils.isNotBlank(datas.get(i))) {
+                            error = error.replace("userName不能为空;", "");
+                            phoneSaleIbu.setUserName(BrCipherMaker.getInstance().encode(decryptName(datas.get(i))));
+                        }
+                        break;
+                    case "planId":
+                        phoneSaleIbu.setPlanId(datas.get(i));
+                        break;
+                    case "pid":
+                        phoneSaleIbu.setPid(datas.get(i));
+                        break;
+                    case "purpose":
+                        phoneSaleIbu.setPurpose(datas.get(i));
+                        break;
+                    case "gender":
+                    phoneSaleIbu.setGender(datas.get(i));
+                        break;
+                    case "signInTimeStr":
+                    phoneSaleIbu.setSignInTimeStr(datas.get(i));
+                    break;
+                    case "clickProductName":
+                    phoneSaleIbu.setClickProductName(datas.get(i));
+                    break;
+                    case "clickTimeStr":
+                    phoneSaleIbu.setClickTimeStr(datas.get(i));
+                    break;
+                    case "recommendList":
+                    phoneSaleIbu.setRecommendList(datas.get(i));
+                    break;
+                    case "recommendH5List":
+                    phoneSaleIbu.setRecommendH5List(datas.get(i));
+                    break;
+                    case "basicInfo":
+                    phoneSaleIbu.setBasicInfo(datas.get(i));
+                    break;
+                    case "realName":
+                    phoneSaleIbu.setRealName(datas.get(i));
+                    break;
+                    case "supplement":
+                    phoneSaleIbu.setSupplement(datas.get(i));
+                    break;
+                    case "contract":
+                    phoneSaleIbu.setContract(datas.get(i));
+                    break;
+                    case "operator":
+                    phoneSaleIbu.setOperator(datas.get(i));
+                    break;
+                    case "loanProductName":
+                    phoneSaleIbu.setLoanProductName(datas.get(i));
+                    break;
+                    case "loanTimeStr":
+                    phoneSaleIbu.setLoanTimeStr(datas.get(i));
+                    break;
+                    case "createTimeStr":
+                    phoneSaleIbu.setCreateTimeStr(datas.get(i));
+                        break;
+                    case "diffAmount":
+                    phoneSaleIbu.setDiffAmount(datas.get(i));
+                        break;
+                    case "faceRecognition":
+                    phoneSaleIbu.setFaceRecognition(datas.get(i));
+                        break;
+                    case "firstApproveResult":
+                    phoneSaleIbu.setFirstApproveResult(datas.get(i));
+                        break;
+                    case "firstApproveTimeStr":
+                    phoneSaleIbu.setFirstApproveTimeStr(datas.get(i));
+                        break;
+                    case "hasBindCard":
+                    phoneSaleIbu.setHasBindCard(datas.get(i));
+                        break;
+                    case "hasEverBorrow":
+                    phoneSaleIbu.setHasEverBorrow(datas.get(i));
+                        break;
+                    case "hasWithdraw":
+                    phoneSaleIbu.setHasWithdraw(datas.get(i));
+                        break;
+                    case "insteadCommitFlag":
+                    phoneSaleIbu.setInsteadCommitFlag(datas.get(i));
+                        break;
+                    case "insteadCommitPname":
+                    phoneSaleIbu.setInsteadCommitPname(datas.get(i));
+                        break;
+                    case "isTimely":
+                    phoneSaleIbu.setIsTimely(datas.get(i));
+                        break;
+                    case "loanFailedTimeStr":
+                    phoneSaleIbu.setLoanFailedTimeStr(datas.get(i));
+                        break;
+                    case "loanSuccessTimeStr":
+                    phoneSaleIbu.setLoanSuccessTimeStr(datas.get(i));
+                        break;
+                    case "loanWillingness":
+                    phoneSaleIbu.setLoanWillingness(datas.get(i));
+                        break;
+                    case "aCardScore":
+                    phoneSaleIbu.setaCardScore(datas.get(i));
+                        break;
+                    case "bucketName":
+                    phoneSaleIbu.setBucketName(datas.get(i));
+                        break;
+                    case "overdueDays":
+                    phoneSaleIbu.setOverdueDays(datas.get(i));
+                        break;
+                    case "prepayAmount":
+                    phoneSaleIbu.setPrepayAmount(datas.get(i));
+                        break;
+                    case "prepayPname":
+                    phoneSaleIbu.setPrepayPname(datas.get(i));
+                        break;
+                    case "prepayTimeStr":
+                    phoneSaleIbu.setPrepayTimeStr(datas.get(i));
+                        break;
+                    case "repayPname":
+                    phoneSaleIbu.setRepayPname(datas.get(i));
+                        break;
+                    case "repayAmount":
+                    phoneSaleIbu.setRepayAmount(datas.get(i));
+                        break;
+                    case "repayTimeStr":
+                    phoneSaleIbu.setRepayTimeStr(datas.get(i));
+                        break;
+                    case "secondApproveResult":
+                    phoneSaleIbu.setSecondApproveResult(datas.get(i));
+                        break;
+                    case "secondApproveTimeStr":
+                    phoneSaleIbu.setSecondApproveTimeStr(datas.get(i));
+                        break;
+                    case "applyAmount":
+                    phoneSaleIbu.setApplyAmount(datas.get(i));
+                        break;
+                    case "approveAmount":
+                    phoneSaleIbu.setApproveAmount(datas.get(i));
+                        break;
+                    case "prodType":
+                    phoneSaleIbu.setProdType(datas.get(i));
+                        break;
+                    case "score":
+                    phoneSaleIbu.setScore(datas.get(i));
+                        break;
+                    case "callTimes":
+                    phoneSaleIbu.setCallTimes(datas.get(i));
+                        break;
+                    case "callAccessScore":
+                    phoneSaleIbu.setCallAccessScore(datas.get(i));
+                        break;
+                    case "remark":
+                    phoneSaleIbu.setRemark(datas.get(i));
+                        break;
+                    case "grade":
+                    phoneSaleIbu.setGrade(datas.get(i));
+                        break;
+                    case "totalAmount":
+                    phoneSaleIbu.setTotalAmount(datas.get(i));
+                        break;
+                    case "surplusAmount":
+                    phoneSaleIbu.setSurplusAmount(datas.get(i));
+                        break;
+                    case "pchannel":
+                    phoneSaleIbu.setPchannel(datas.get(i));
+                        break;
+                    case "channelName":
+                    phoneSaleIbu.setChannelName(datas.get(i));
+                        break;
+                    case "marketPurpose":
+                    phoneSaleIbu.setMarketPurpose(datas.get(i));
+                        break;
+                    case "riskControlLabel":
+                    phoneSaleIbu.setRiskControlLabel(datas.get(i));
+                        break;
+                    case "firstLoginTimeStr":
+                    phoneSaleIbu.setFirstLoginTimeStr(datas.get(i));
+                        break;
+                    case "goalsApp":
+                    phoneSaleIbu.setGoalsApp(datas.get(i));
+                        break;
+                    case "flowSideName":
+                    phoneSaleIbu.setFlowSideName(datas.get(i));
+                        break;
+                    case "flowSidePath":
+                    phoneSaleIbu.setFlowSidePath(datas.get(i));
+                        break;
+                    case "cusTag":
+                    phoneSaleIbu.setCusTag(datas.get(i));
+                        break;
+                    case "abgroupPushOffsetStr":
+                    phoneSaleIbu.setAbgroupPushOffsetStr(datas.get(i));
+                        break;
+                    case "extra1":
+                    phoneSaleIbu.setExtra1(datas.get(i));
+                        break;
+                    case "extra2":
+                    phoneSaleIbu.setExtra2(datas.get(i));
+                        break;
+                    case "extra3":
+                    phoneSaleIbu.setExtra3(datas.get(i));
+                        break;
+                    case "creditTimeStr":
+                    phoneSaleIbu.setCreditTimeStr(datas.get(i));
+                        break;
+                    case "creditChannel":
+                    phoneSaleIbu.setCreditChannel(datas.get(i));
+                        break;
+                    case "amountStatus":
+                    phoneSaleIbu.setAmountStatus(datas.get(i));
+                        break;
+                    case "connectTimes":
+                    phoneSaleIbu.setConnectTimes(datas.get(i));
+                        break;
+                    case "zyApplyFlag":
+                    phoneSaleIbu.setZyApplyFlag(datas.get(i));
+                        break;
+                    case "zyApplySuccessFlag":
+                    phoneSaleIbu.setZyApplySuccessFlag(datas.get(i));
+                        break;
+                    case "zyAmountStatus":
+                    phoneSaleIbu.setZyAmountStatus(datas.get(i));
+                        break;
+                    case "zyTotalUsableAmount":
+                    phoneSaleIbu.setZyTotalUsableAmount(datas.get(i));
+                        break;
+                    case "isIdnumber":
+                    phoneSaleIbu.setIsIdnumber(datas.get(i));
+                        break;
+                    case "isTaobao":
+                    phoneSaleIbu.setIsTaobao(datas.get(i));
+                        break;
+                    case "isNuclearapproval":
+                    phoneSaleIbu.setIsNuclearapproval(datas.get(i));
+                        break;
+                    case "callaccessscore":
+                    phoneSaleIbu.setCallaccessscore(datas.get(i));
+                        break;
+                    case "marketingScore":
+                    phoneSaleIbu.setMarketingScore(datas.get(i));
+                        break;
+                    case "noWithdrawOrders":
+                    phoneSaleIbu.setNoWithdrawOrders(datas.get(i));
+                        break;
+                    case "planData":
+                    phoneSaleIbu.setPlanData(datas.get(i));
+                        break;
+                    case "priorityScore":
+                    phoneSaleIbu.setPriorityScore(datas.get(i));
+                        break;
+                    case "callType":
+                    phoneSaleIbu.setCallType(datas.get(i));
+                        break;
+                    case "extend":
+                        String s = extSetFields.get(i);
+                        if (StringUtils.isNotBlank(s)) {
+                            if (jo == null) {
+                                jo = new JSONObject();
+                            }
+                            if(!"extend".equals(s)){
+                                jo.put(s, datas.get(i));
+                            }
+                        }
+                        break;
+                    default:
+                        nullMark++;
+                        break;
+                }
+                if (jo != null) {
+                    phoneSaleIbu.setReserveField1(jo.toJSONString());
+                }
+            }
+
+            if(nullMark.equals(datas.size())){
+                phoneSaleIbu.setmStatus(2);
+                phoneSaleIbu.setDataMessage(String.format("行号：%d;报错信息：%s", line, "该行数据不包含有效字段数据"));
+            }
+            if (!StringUtils.isEmpty(error)) {
+                phoneSaleIbu.setmStatus(2);
+                phoneSaleIbu.setDataMessage(String.format("行号：%d;报错信息：%s", line, error));
+            }
+            if (!phoneMark) {
+                phoneSaleIbu.setmStatus(2);
+                phoneSaleIbu.setDataMessage(String.format("行号：%d;报错信息：%s", line, "手机号解密失败"));
+            }
+            phoneSaleIbuMapper.insertSelective(phoneSaleIbu);
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+            phoneSaleIbu.setmStatus(2);
+            phoneSaleIbu.setDataMessage(String.format("行号：%d;报错信息：%s", line, "手机号解密失败"));
+            phoneSaleIbuMapper.insertSelective(phoneSaleIbu);
+        }
+        return new Result().setCode(new Integer("1").equals(phoneSaleIbu.getmStatus())
                 ?ResultCode.SUCCESS.getValue()
                 :ResultCode.FAIL.getValue());
     }

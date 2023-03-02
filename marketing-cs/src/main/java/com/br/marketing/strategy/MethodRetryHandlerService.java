@@ -116,6 +116,9 @@ public class MethodRetryHandlerService {
     PhoneSaleTransferMapper phoneSaleTransferMapper;
 
     @Resource
+    PhoneSaleIbuMapper phoneSaleIbuMapper;
+
+    @Resource
     LocalFileMapper localFileMapper;
 
 
@@ -433,6 +436,7 @@ public class MethodRetryHandlerService {
     }
 
 
+
     /**
      * 推送决策接口
      *
@@ -512,6 +516,55 @@ public class MethodRetryHandlerService {
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         log.error("调用人工IBU批量接口失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
+
+    @RetryMethod(isOrNoDbRetry = true)
+    public Result dassIbuWithFile(ArrayList<IbuReqDTO.Datum> datumList, Integer retry){
+        try {
+            //重试方法 这里反序列化过来是JsonObject
+            if (!(datumList.get(0) instanceof IbuReqDTO.Datum)) {
+                ArrayList<IbuReqDTO.Datum> list = new ArrayList<>();
+                for (int i = 0; i < datumList.size(); i++) {
+                    if (datumList.get(i) != null) {
+                        list.add(JSON.parseObject(JSON.toJSONString(datumList.get(i)), IbuReqDTO.Datum.class));
+                    }
+                }
+                datumList = list;
+            }
+            List<Long> ids = datumList.stream().map(t -> t.getId()).collect(Collectors.toList());
+            PhoneSaleIbu updateEntity = new PhoneSaleIbu();
+            LocalFile updateFile = new LocalFile();
+            Result result = dassServiceClient.pushIbuArtificial(datumList);
+            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                Set<String> set = datumList.stream().map(IbuReqDTO.Datum::getId).map(String::valueOf).collect(Collectors.toSet());
+                if (new Integer(1).equals(retry)) {
+                    Long id = ids.get(0);
+                    PhoneSaleIbu phoneSaleIbu = phoneSaleIbuMapper.selectByPrimaryKey(id);
+                    LocalFile localFile = localFileMapper.selectByPrimaryKey(Long.valueOf(phoneSaleIbu.getLocalId()));
+                    updateFile.setId(localFile.getId());
+                    updateFile.setPushNumber(localFile.getPushNumber() + ids.size());
+                    localFileMapper.updateByPrimaryKeySelective(updateFile);
+                }
+                updateEntity.setmStatus(3);
+                PhoneSaleIbuExample ibuExample = new PhoneSaleIbuExample();
+                ibuExample.createCriteria().andIdIn(ids);
+                phoneSaleIbuMapper.updateByExampleSelective(updateEntity, ibuExample);
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
+            } else if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
+                return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            } else {
+                updateEntity.setmStatus(4);
+                PhoneSaleIbuExample ibuExample = new PhoneSaleIbuExample();
+                ibuExample.createCriteria().andIdIn(ids);
+                phoneSaleIbuMapper.updateByExampleSelective(updateEntity, ibuExample);
+                log.error("调用人工IBU批量接口失败 -- {}", JSON.toJSONString(result));
+                return new Result().setCode(ResultCode.FAIL.getValue());
+            }
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+        }
+
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 

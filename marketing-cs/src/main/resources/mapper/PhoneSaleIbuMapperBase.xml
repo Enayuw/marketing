@@ -1,0 +1,1636 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.PhoneSaleIbuMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.PhoneSaleIbu" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="local_id" property="localId" jdbcType="VARCHAR" />
+    <result column="m_status" property="mStatus" jdbcType="INTEGER" />
+    <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
+    <result column="uid" property="uid" jdbcType="VARCHAR" />
+    <result column="user_type" property="userType" jdbcType="VARCHAR" />
+    <result column="purpose" property="purpose" jdbcType="VARCHAR" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="user_name" property="userName" jdbcType="VARCHAR" />
+    <result column="gender" property="gender" jdbcType="VARCHAR" />
+    <result column="phone" property="phone" jdbcType="VARCHAR" />
+    <result column="sign_in_time_str" property="signInTimeStr" jdbcType="VARCHAR" />
+    <result column="click_product_name" property="clickProductName" jdbcType="VARCHAR" />
+    <result column="click_time_str" property="clickTimeStr" jdbcType="VARCHAR" />
+    <result column="recommend_list" property="recommendList" jdbcType="VARCHAR" />
+    <result column="recommend_h5_list" property="recommendH5List" jdbcType="VARCHAR" />
+    <result column="basic_info" property="basicInfo" jdbcType="VARCHAR" />
+    <result column="real_name" property="realName" jdbcType="VARCHAR" />
+    <result column="supplement" property="supplement" jdbcType="VARCHAR" />
+    <result column="contract" property="contract" jdbcType="VARCHAR" />
+    <result column="operator" property="operator" jdbcType="VARCHAR" />
+    <result column="loan_product_name" property="loanProductName" jdbcType="VARCHAR" />
+    <result column="loan_time_str" property="loanTimeStr" jdbcType="VARCHAR" />
+    <result column="create_time_str" property="createTimeStr" jdbcType="VARCHAR" />
+    <result column="diff_amount" property="diffAmount" jdbcType="VARCHAR" />
+    <result column="face_recognition" property="faceRecognition" jdbcType="VARCHAR" />
+    <result column="first_approve_result" property="firstApproveResult" jdbcType="VARCHAR" />
+    <result column="first_approve_time_str" property="firstApproveTimeStr" jdbcType="VARCHAR" />
+    <result column="has_bind_card" property="hasBindCard" jdbcType="VARCHAR" />
+    <result column="has_ever_borrow" property="hasEverBorrow" jdbcType="VARCHAR" />
+    <result column="has_withdraw" property="hasWithdraw" jdbcType="VARCHAR" />
+    <result column="instead_commit_flag" property="insteadCommitFlag" jdbcType="VARCHAR" />
+    <result column="instead_commit_pname" property="insteadCommitPname" jdbcType="VARCHAR" />
+    <result column="is_timely" property="isTimely" jdbcType="VARCHAR" />
+    <result column="loan_failed_time_str" property="loanFailedTimeStr" jdbcType="VARCHAR" />
+    <result column="loan_success_time_str" property="loanSuccessTimeStr" jdbcType="VARCHAR" />
+    <result column="loan_willingness" property="loanWillingness" jdbcType="VARCHAR" />
+    <result column="a_card_score" property="aCardScore" jdbcType="VARCHAR" />
+    <result column="bucket_name" property="bucketName" jdbcType="VARCHAR" />
+    <result column="overdue_days" property="overdueDays" jdbcType="VARCHAR" />
+    <result column="prepay_amount" property="prepayAmount" jdbcType="VARCHAR" />
+    <result column="prepay_pname" property="prepayPname" jdbcType="VARCHAR" />
+    <result column="prepay_time_str" property="prepayTimeStr" jdbcType="VARCHAR" />
+    <result column="repay_pname" property="repayPname" jdbcType="VARCHAR" />
+    <result column="repay_amount" property="repayAmount" jdbcType="VARCHAR" />
+    <result column="repay_time_str" property="repayTimeStr" jdbcType="VARCHAR" />
+    <result column="second_approve_result" property="secondApproveResult" jdbcType="VARCHAR" />
+    <result column="second_approve_time_str" property="secondApproveTimeStr" jdbcType="VARCHAR" />
+    <result column="apply_amount" property="applyAmount" jdbcType="VARCHAR" />
+    <result column="approve_amount" property="approveAmount" jdbcType="VARCHAR" />
+    <result column="source" property="source" jdbcType="VARCHAR" />
+    <result column="prod_type" property="prodType" jdbcType="VARCHAR" />
+    <result column="score" property="score" jdbcType="VARCHAR" />
+    <result column="call_times" property="callTimes" jdbcType="VARCHAR" />
+    <result column="call_access_score" property="callAccessScore" jdbcType="VARCHAR" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="grade" property="grade" jdbcType="VARCHAR" />
+    <result column="total_amount" property="totalAmount" jdbcType="VARCHAR" />
+    <result column="surplus_amount" property="surplusAmount" jdbcType="VARCHAR" />
+    <result column="pid" property="pid" jdbcType="VARCHAR" />
+    <result column="pchannel" property="pchannel" jdbcType="VARCHAR" />
+    <result column="channel_name" property="channelName" jdbcType="VARCHAR" />
+    <result column="market_purpose" property="marketPurpose" jdbcType="VARCHAR" />
+    <result column="risk_control_label" property="riskControlLabel" jdbcType="VARCHAR" />
+    <result column="first_login_time_str" property="firstLoginTimeStr" jdbcType="VARCHAR" />
+    <result column="plan_id" property="planId" jdbcType="VARCHAR" />
+    <result column="goals_app" property="goalsApp" jdbcType="VARCHAR" />
+    <result column="flow_side_name" property="flowSideName" jdbcType="VARCHAR" />
+    <result column="flow_side_path" property="flowSidePath" jdbcType="VARCHAR" />
+    <result column="cus_tag" property="cusTag" jdbcType="VARCHAR" />
+    <result column="abgroup_push_offset_str" property="abgroupPushOffsetStr" jdbcType="VARCHAR" />
+    <result column="extra1" property="extra1" jdbcType="VARCHAR" />
+    <result column="extra2" property="extra2" jdbcType="VARCHAR" />
+    <result column="extra3" property="extra3" jdbcType="VARCHAR" />
+    <result column="reserve_field1" property="reserveField1" jdbcType="VARCHAR" />
+    <result column="credit_time_str" property="creditTimeStr" jdbcType="VARCHAR" />
+    <result column="credit_channel" property="creditChannel" jdbcType="VARCHAR" />
+    <result column="amount_status" property="amountStatus" jdbcType="VARCHAR" />
+    <result column="connect_times" property="connectTimes" jdbcType="VARCHAR" />
+    <result column="zy_apply_flag" property="zyApplyFlag" jdbcType="VARCHAR" />
+    <result column="zy_apply_success_flag" property="zyApplySuccessFlag" jdbcType="VARCHAR" />
+    <result column="zy_amount_status" property="zyAmountStatus" jdbcType="VARCHAR" />
+    <result column="zy_total_usable_amount" property="zyTotalUsableAmount" jdbcType="VARCHAR" />
+    <result column="is_idnumber" property="isIdnumber" jdbcType="VARCHAR" />
+    <result column="is_taobao" property="isTaobao" jdbcType="VARCHAR" />
+    <result column="is_nuclearapproval" property="isNuclearapproval" jdbcType="VARCHAR" />
+    <result column="callaccessscore" property="callaccessscore" jdbcType="VARCHAR" />
+    <result column="marketing_score" property="marketingScore" jdbcType="VARCHAR" />
+    <result column="no_withdraw_orders" property="noWithdrawOrders" jdbcType="VARCHAR" />
+    <result column="plan_data" property="planData" jdbcType="VARCHAR" />
+    <result column="priority_score" property="priorityScore" jdbcType="VARCHAR" />
+    <result column="call_type" property="callType" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, local_id, m_status, data_message, `uid`, user_type, purpose, user_code, 
+    user_name, gender, phone, sign_in_time_str, click_product_name, click_time_str, recommend_list, 
+    recommend_h5_list, basic_info, real_name, supplement, contract, `operator`, loan_product_name, 
+    loan_time_str, create_time_str, diff_amount, face_recognition, first_approve_result, 
+    first_approve_time_str, has_bind_card, has_ever_borrow, has_withdraw, instead_commit_flag, 
+    instead_commit_pname, is_timely, loan_failed_time_str, loan_success_time_str, loan_willingness, 
+    a_card_score, bucket_name, overdue_days, prepay_amount, prepay_pname, prepay_time_str, 
+    repay_pname, repay_amount, repay_time_str, second_approve_result, second_approve_time_str, 
+    apply_amount, approve_amount, `source`, prod_type, score, call_times, call_access_score, 
+    remark, grade, total_amount, surplus_amount, pid, pchannel, channel_name, market_purpose, 
+    risk_control_label, first_login_time_str, plan_id, goals_app, flow_side_name, flow_side_path, 
+    cus_tag, abgroup_push_offset_str, extra1, extra2, extra3, reserve_field1, credit_time_str, 
+    credit_channel, amount_status, connect_times, zy_apply_flag, zy_apply_success_flag, 
+    zy_amount_status, zy_total_usable_amount, is_idnumber, is_taobao, is_nuclearapproval, 
+    callaccessscore, marketing_score, no_withdraw_orders, plan_data, priority_score, 
+    call_type, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.PhoneSaleIbuExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_phone_sale_ibu
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_phone_sale_ibu
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_phone_sale_ibu
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.PhoneSaleIbuExample" >
+    delete from b_phone_sale_ibu
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.PhoneSaleIbu" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_phone_sale_ibu (api_code, local_id, m_status, 
+      data_message, `uid`, user_type, 
+      purpose, user_code, user_name, 
+      gender, phone, sign_in_time_str, 
+      click_product_name, click_time_str, recommend_list, 
+      recommend_h5_list, basic_info, real_name, 
+      supplement, contract, `operator`, 
+      loan_product_name, loan_time_str, create_time_str, 
+      diff_amount, face_recognition, first_approve_result, 
+      first_approve_time_str, has_bind_card, has_ever_borrow, 
+      has_withdraw, instead_commit_flag, instead_commit_pname, 
+      is_timely, loan_failed_time_str, loan_success_time_str, 
+      loan_willingness, a_card_score, bucket_name, 
+      overdue_days, prepay_amount, prepay_pname, 
+      prepay_time_str, repay_pname, repay_amount, 
+      repay_time_str, second_approve_result, second_approve_time_str, 
+      apply_amount, approve_amount, `source`, 
+      prod_type, score, call_times, 
+      call_access_score, remark, grade, 
+      total_amount, surplus_amount, pid, 
+      pchannel, channel_name, market_purpose, 
+      risk_control_label, first_login_time_str, plan_id, 
+      goals_app, flow_side_name, flow_side_path, 
+      cus_tag, abgroup_push_offset_str, extra1, 
+      extra2, extra3, reserve_field1, 
+      credit_time_str, credit_channel, amount_status, 
+      connect_times, zy_apply_flag, zy_apply_success_flag, 
+      zy_amount_status, zy_total_usable_amount, is_idnumber, 
+      is_taobao, is_nuclearapproval, callaccessscore, 
+      marketing_score, no_withdraw_orders, plan_data, 
+      priority_score, call_type, create_time, 
+      update_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=VARCHAR}, #{mStatus,jdbcType=INTEGER}, 
+      #{dataMessage,jdbcType=VARCHAR}, #{uid,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR}, 
+      #{purpose,jdbcType=VARCHAR}, #{userCode,jdbcType=VARCHAR}, #{userName,jdbcType=VARCHAR}, 
+      #{gender,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, #{signInTimeStr,jdbcType=VARCHAR}, 
+      #{clickProductName,jdbcType=VARCHAR}, #{clickTimeStr,jdbcType=VARCHAR}, #{recommendList,jdbcType=VARCHAR}, 
+      #{recommendH5List,jdbcType=VARCHAR}, #{basicInfo,jdbcType=VARCHAR}, #{realName,jdbcType=VARCHAR}, 
+      #{supplement,jdbcType=VARCHAR}, #{contract,jdbcType=VARCHAR}, #{operator,jdbcType=VARCHAR}, 
+      #{loanProductName,jdbcType=VARCHAR}, #{loanTimeStr,jdbcType=VARCHAR}, #{createTimeStr,jdbcType=VARCHAR}, 
+      #{diffAmount,jdbcType=VARCHAR}, #{faceRecognition,jdbcType=VARCHAR}, #{firstApproveResult,jdbcType=VARCHAR}, 
+      #{firstApproveTimeStr,jdbcType=VARCHAR}, #{hasBindCard,jdbcType=VARCHAR}, #{hasEverBorrow,jdbcType=VARCHAR}, 
+      #{hasWithdraw,jdbcType=VARCHAR}, #{insteadCommitFlag,jdbcType=VARCHAR}, #{insteadCommitPname,jdbcType=VARCHAR}, 
+      #{isTimely,jdbcType=VARCHAR}, #{loanFailedTimeStr,jdbcType=VARCHAR}, #{loanSuccessTimeStr,jdbcType=VARCHAR}, 
+      #{loanWillingness,jdbcType=VARCHAR}, #{aCardScore,jdbcType=VARCHAR}, #{bucketName,jdbcType=VARCHAR}, 
+      #{overdueDays,jdbcType=VARCHAR}, #{prepayAmount,jdbcType=VARCHAR}, #{prepayPname,jdbcType=VARCHAR}, 
+      #{prepayTimeStr,jdbcType=VARCHAR}, #{repayPname,jdbcType=VARCHAR}, #{repayAmount,jdbcType=VARCHAR}, 
+      #{repayTimeStr,jdbcType=VARCHAR}, #{secondApproveResult,jdbcType=VARCHAR}, #{secondApproveTimeStr,jdbcType=VARCHAR}, 
+      #{applyAmount,jdbcType=VARCHAR}, #{approveAmount,jdbcType=VARCHAR}, #{source,jdbcType=VARCHAR}, 
+      #{prodType,jdbcType=VARCHAR}, #{score,jdbcType=VARCHAR}, #{callTimes,jdbcType=VARCHAR}, 
+      #{callAccessScore,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{grade,jdbcType=VARCHAR}, 
+      #{totalAmount,jdbcType=VARCHAR}, #{surplusAmount,jdbcType=VARCHAR}, #{pid,jdbcType=VARCHAR}, 
+      #{pchannel,jdbcType=VARCHAR}, #{channelName,jdbcType=VARCHAR}, #{marketPurpose,jdbcType=VARCHAR}, 
+      #{riskControlLabel,jdbcType=VARCHAR}, #{firstLoginTimeStr,jdbcType=VARCHAR}, #{planId,jdbcType=VARCHAR}, 
+      #{goalsApp,jdbcType=VARCHAR}, #{flowSideName,jdbcType=VARCHAR}, #{flowSidePath,jdbcType=VARCHAR}, 
+      #{cusTag,jdbcType=VARCHAR}, #{abgroupPushOffsetStr,jdbcType=VARCHAR}, #{extra1,jdbcType=VARCHAR}, 
+      #{extra2,jdbcType=VARCHAR}, #{extra3,jdbcType=VARCHAR}, #{reserveField1,jdbcType=VARCHAR}, 
+      #{creditTimeStr,jdbcType=VARCHAR}, #{creditChannel,jdbcType=VARCHAR}, #{amountStatus,jdbcType=VARCHAR}, 
+      #{connectTimes,jdbcType=VARCHAR}, #{zyApplyFlag,jdbcType=VARCHAR}, #{zyApplySuccessFlag,jdbcType=VARCHAR}, 
+      #{zyAmountStatus,jdbcType=VARCHAR}, #{zyTotalUsableAmount,jdbcType=VARCHAR}, #{isIdnumber,jdbcType=VARCHAR}, 
+      #{isTaobao,jdbcType=VARCHAR}, #{isNuclearapproval,jdbcType=VARCHAR}, #{callaccessscore,jdbcType=VARCHAR}, 
+      #{marketingScore,jdbcType=VARCHAR}, #{noWithdrawOrders,jdbcType=VARCHAR}, #{planData,jdbcType=VARCHAR}, 
+      #{priorityScore,jdbcType=VARCHAR}, #{callType,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.PhoneSaleIbu" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_phone_sale_ibu
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="localId != null" >
+        local_id,
+      </if>
+      <if test="mStatus != null" >
+        m_status,
+      </if>
+      <if test="dataMessage != null" >
+        data_message,
+      </if>
+      <if test="uid != null" >
+        `uid`,
+      </if>
+      <if test="userType != null" >
+        user_type,
+      </if>
+      <if test="purpose != null" >
+        purpose,
+      </if>
+      <if test="userCode != null" >
+        user_code,
+      </if>
+      <if test="userName != null" >
+        user_name,
+      </if>
+      <if test="gender != null" >
+        gender,
+      </if>
+      <if test="phone != null" >
+        phone,
+      </if>
+      <if test="signInTimeStr != null" >
+        sign_in_time_str,
+      </if>
+      <if test="clickProductName != null" >
+        click_product_name,
+      </if>
+      <if test="clickTimeStr != null" >
+        click_time_str,
+      </if>
+      <if test="recommendList != null" >
+        recommend_list,
+      </if>
+      <if test="recommendH5List != null" >
+        recommend_h5_list,
+      </if>
+      <if test="basicInfo != null" >
+        basic_info,
+      </if>
+      <if test="realName != null" >
+        real_name,
+      </if>
+      <if test="supplement != null" >
+        supplement,
+      </if>
+      <if test="contract != null" >
+        contract,
+      </if>
+      <if test="operator != null" >
+        `operator`,
+      </if>
+      <if test="loanProductName != null" >
+        loan_product_name,
+      </if>
+      <if test="loanTimeStr != null" >
+        loan_time_str,
+      </if>
+      <if test="createTimeStr != null" >
+        create_time_str,
+      </if>
+      <if test="diffAmount != null" >
+        diff_amount,
+      </if>
+      <if test="faceRecognition != null" >
+        face_recognition,
+      </if>
+      <if test="firstApproveResult != null" >
+        first_approve_result,
+      </if>
+      <if test="firstApproveTimeStr != null" >
+        first_approve_time_str,
+      </if>
+      <if test="hasBindCard != null" >
+        has_bind_card,
+      </if>
+      <if test="hasEverBorrow != null" >
+        has_ever_borrow,
+      </if>
+      <if test="hasWithdraw != null" >
+        has_withdraw,
+      </if>
+      <if test="insteadCommitFlag != null" >
+        instead_commit_flag,
+      </if>
+      <if test="insteadCommitPname != null" >
+        instead_commit_pname,
+      </if>
+      <if test="isTimely != null" >
+        is_timely,
+      </if>
+      <if test="loanFailedTimeStr != null" >
+        loan_failed_time_str,
+      </if>
+      <if test="loanSuccessTimeStr != null" >
+        loan_success_time_str,
+      </if>
+      <if test="loanWillingness != null" >
+        loan_willingness,
+      </if>
+      <if test="aCardScore != null" >
+        a_card_score,
+      </if>
+      <if test="bucketName != null" >
+        bucket_name,
+      </if>
+      <if test="overdueDays != null" >
+        overdue_days,
+      </if>
+      <if test="prepayAmount != null" >
+        prepay_amount,
+      </if>
+      <if test="prepayPname != null" >
+        prepay_pname,
+      </if>
+      <if test="prepayTimeStr != null" >
+        prepay_time_str,
+      </if>
+      <if test="repayPname != null" >
+        repay_pname,
+      </if>
+      <if test="repayAmount != null" >
+        repay_amount,
+      </if>
+      <if test="repayTimeStr != null" >
+        repay_time_str,
+      </if>
+      <if test="secondApproveResult != null" >
+        second_approve_result,
+      </if>
+      <if test="secondApproveTimeStr != null" >
+        second_approve_time_str,
+      </if>
+      <if test="applyAmount != null" >
+        apply_amount,
+      </if>
+      <if test="approveAmount != null" >
+        approve_amount,
+      </if>
+      <if test="source != null" >
+        `source`,
+      </if>
+      <if test="prodType != null" >
+        prod_type,
+      </if>
+      <if test="score != null" >
+        score,
+      </if>
+      <if test="callTimes != null" >
+        call_times,
+      </if>
+      <if test="callAccessScore != null" >
+        call_access_score,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="grade != null" >
+        grade,
+      </if>
+      <if test="totalAmount != null" >
+        total_amount,
+      </if>
+      <if test="surplusAmount != null" >
+        surplus_amount,
+      </if>
+      <if test="pid != null" >
+        pid,
+      </if>
+      <if test="pchannel != null" >
+        pchannel,
+      </if>
+      <if test="channelName != null" >
+        channel_name,
+      </if>
+      <if test="marketPurpose != null" >
+        market_purpose,
+      </if>
+      <if test="riskControlLabel != null" >
+        risk_control_label,
+      </if>
+      <if test="firstLoginTimeStr != null" >
+        first_login_time_str,
+      </if>
+      <if test="planId != null" >
+        plan_id,
+      </if>
+      <if test="goalsApp != null" >
+        goals_app,
+      </if>
+      <if test="flowSideName != null" >
+        flow_side_name,
+      </if>
+      <if test="flowSidePath != null" >
+        flow_side_path,
+      </if>
+      <if test="cusTag != null" >
+        cus_tag,
+      </if>
+      <if test="abgroupPushOffsetStr != null" >
+        abgroup_push_offset_str,
+      </if>
+      <if test="extra1 != null" >
+        extra1,
+      </if>
+      <if test="extra2 != null" >
+        extra2,
+      </if>
+      <if test="extra3 != null" >
+        extra3,
+      </if>
+      <if test="reserveField1 != null" >
+        reserve_field1,
+      </if>
+      <if test="creditTimeStr != null" >
+        credit_time_str,
+      </if>
+      <if test="creditChannel != null" >
+        credit_channel,
+      </if>
+      <if test="amountStatus != null" >
+        amount_status,
+      </if>
+      <if test="connectTimes != null" >
+        connect_times,
+      </if>
+      <if test="zyApplyFlag != null" >
+        zy_apply_flag,
+      </if>
+      <if test="zyApplySuccessFlag != null" >
+        zy_apply_success_flag,
+      </if>
+      <if test="zyAmountStatus != null" >
+        zy_amount_status,
+      </if>
+      <if test="zyTotalUsableAmount != null" >
+        zy_total_usable_amount,
+      </if>
+      <if test="isIdnumber != null" >
+        is_idnumber,
+      </if>
+      <if test="isTaobao != null" >
+        is_taobao,
+      </if>
+      <if test="isNuclearapproval != null" >
+        is_nuclearapproval,
+      </if>
+      <if test="callaccessscore != null" >
+        callaccessscore,
+      </if>
+      <if test="marketingScore != null" >
+        marketing_score,
+      </if>
+      <if test="noWithdrawOrders != null" >
+        no_withdraw_orders,
+      </if>
+      <if test="planData != null" >
+        plan_data,
+      </if>
+      <if test="priorityScore != null" >
+        priority_score,
+      </if>
+      <if test="callType != null" >
+        call_type,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="localId != null" >
+        #{localId,jdbcType=VARCHAR},
+      </if>
+      <if test="mStatus != null" >
+        #{mStatus,jdbcType=INTEGER},
+      </if>
+      <if test="dataMessage != null" >
+        #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="uid != null" >
+        #{uid,jdbcType=VARCHAR},
+      </if>
+      <if test="userType != null" >
+        #{userType,jdbcType=VARCHAR},
+      </if>
+      <if test="purpose != null" >
+        #{purpose,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userName != null" >
+        #{userName,jdbcType=VARCHAR},
+      </if>
+      <if test="gender != null" >
+        #{gender,jdbcType=VARCHAR},
+      </if>
+      <if test="phone != null" >
+        #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="signInTimeStr != null" >
+        #{signInTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="clickProductName != null" >
+        #{clickProductName,jdbcType=VARCHAR},
+      </if>
+      <if test="clickTimeStr != null" >
+        #{clickTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="recommendList != null" >
+        #{recommendList,jdbcType=VARCHAR},
+      </if>
+      <if test="recommendH5List != null" >
+        #{recommendH5List,jdbcType=VARCHAR},
+      </if>
+      <if test="basicInfo != null" >
+        #{basicInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="realName != null" >
+        #{realName,jdbcType=VARCHAR},
+      </if>
+      <if test="supplement != null" >
+        #{supplement,jdbcType=VARCHAR},
+      </if>
+      <if test="contract != null" >
+        #{contract,jdbcType=VARCHAR},
+      </if>
+      <if test="operator != null" >
+        #{operator,jdbcType=VARCHAR},
+      </if>
+      <if test="loanProductName != null" >
+        #{loanProductName,jdbcType=VARCHAR},
+      </if>
+      <if test="loanTimeStr != null" >
+        #{loanTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="createTimeStr != null" >
+        #{createTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="diffAmount != null" >
+        #{diffAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="faceRecognition != null" >
+        #{faceRecognition,jdbcType=VARCHAR},
+      </if>
+      <if test="firstApproveResult != null" >
+        #{firstApproveResult,jdbcType=VARCHAR},
+      </if>
+      <if test="firstApproveTimeStr != null" >
+        #{firstApproveTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="hasBindCard != null" >
+        #{hasBindCard,jdbcType=VARCHAR},
+      </if>
+      <if test="hasEverBorrow != null" >
+        #{hasEverBorrow,jdbcType=VARCHAR},
+      </if>
+      <if test="hasWithdraw != null" >
+        #{hasWithdraw,jdbcType=VARCHAR},
+      </if>
+      <if test="insteadCommitFlag != null" >
+        #{insteadCommitFlag,jdbcType=VARCHAR},
+      </if>
+      <if test="insteadCommitPname != null" >
+        #{insteadCommitPname,jdbcType=VARCHAR},
+      </if>
+      <if test="isTimely != null" >
+        #{isTimely,jdbcType=VARCHAR},
+      </if>
+      <if test="loanFailedTimeStr != null" >
+        #{loanFailedTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="loanSuccessTimeStr != null" >
+        #{loanSuccessTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="loanWillingness != null" >
+        #{loanWillingness,jdbcType=VARCHAR},
+      </if>
+      <if test="aCardScore != null" >
+        #{aCardScore,jdbcType=VARCHAR},
+      </if>
+      <if test="bucketName != null" >
+        #{bucketName,jdbcType=VARCHAR},
+      </if>
+      <if test="overdueDays != null" >
+        #{overdueDays,jdbcType=VARCHAR},
+      </if>
+      <if test="prepayAmount != null" >
+        #{prepayAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="prepayPname != null" >
+        #{prepayPname,jdbcType=VARCHAR},
+      </if>
+      <if test="prepayTimeStr != null" >
+        #{prepayTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="repayPname != null" >
+        #{repayPname,jdbcType=VARCHAR},
+      </if>
+      <if test="repayAmount != null" >
+        #{repayAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="repayTimeStr != null" >
+        #{repayTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="secondApproveResult != null" >
+        #{secondApproveResult,jdbcType=VARCHAR},
+      </if>
+      <if test="secondApproveTimeStr != null" >
+        #{secondApproveTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="applyAmount != null" >
+        #{applyAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="approveAmount != null" >
+        #{approveAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="source != null" >
+        #{source,jdbcType=VARCHAR},
+      </if>
+      <if test="prodType != null" >
+        #{prodType,jdbcType=VARCHAR},
+      </if>
+      <if test="score != null" >
+        #{score,jdbcType=VARCHAR},
+      </if>
+      <if test="callTimes != null" >
+        #{callTimes,jdbcType=VARCHAR},
+      </if>
+      <if test="callAccessScore != null" >
+        #{callAccessScore,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="grade != null" >
+        #{grade,jdbcType=VARCHAR},
+      </if>
+      <if test="totalAmount != null" >
+        #{totalAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="surplusAmount != null" >
+        #{surplusAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="pid != null" >
+        #{pid,jdbcType=VARCHAR},
+      </if>
+      <if test="pchannel != null" >
+        #{pchannel,jdbcType=VARCHAR},
+      </if>
+      <if test="channelName != null" >
+        #{channelName,jdbcType=VARCHAR},
+      </if>
+      <if test="marketPurpose != null" >
+        #{marketPurpose,jdbcType=VARCHAR},
+      </if>
+      <if test="riskControlLabel != null" >
+        #{riskControlLabel,jdbcType=VARCHAR},
+      </if>
+      <if test="firstLoginTimeStr != null" >
+        #{firstLoginTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="planId != null" >
+        #{planId,jdbcType=VARCHAR},
+      </if>
+      <if test="goalsApp != null" >
+        #{goalsApp,jdbcType=VARCHAR},
+      </if>
+      <if test="flowSideName != null" >
+        #{flowSideName,jdbcType=VARCHAR},
+      </if>
+      <if test="flowSidePath != null" >
+        #{flowSidePath,jdbcType=VARCHAR},
+      </if>
+      <if test="cusTag != null" >
+        #{cusTag,jdbcType=VARCHAR},
+      </if>
+      <if test="abgroupPushOffsetStr != null" >
+        #{abgroupPushOffsetStr,jdbcType=VARCHAR},
+      </if>
+      <if test="extra1 != null" >
+        #{extra1,jdbcType=VARCHAR},
+      </if>
+      <if test="extra2 != null" >
+        #{extra2,jdbcType=VARCHAR},
+      </if>
+      <if test="extra3 != null" >
+        #{extra3,jdbcType=VARCHAR},
+      </if>
+      <if test="reserveField1 != null" >
+        #{reserveField1,jdbcType=VARCHAR},
+      </if>
+      <if test="creditTimeStr != null" >
+        #{creditTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="creditChannel != null" >
+        #{creditChannel,jdbcType=VARCHAR},
+      </if>
+      <if test="amountStatus != null" >
+        #{amountStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="connectTimes != null" >
+        #{connectTimes,jdbcType=VARCHAR},
+      </if>
+      <if test="zyApplyFlag != null" >
+        #{zyApplyFlag,jdbcType=VARCHAR},
+      </if>
+      <if test="zyApplySuccessFlag != null" >
+        #{zyApplySuccessFlag,jdbcType=VARCHAR},
+      </if>
+      <if test="zyAmountStatus != null" >
+        #{zyAmountStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="zyTotalUsableAmount != null" >
+        #{zyTotalUsableAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="isIdnumber != null" >
+        #{isIdnumber,jdbcType=VARCHAR},
+      </if>
+      <if test="isTaobao != null" >
+        #{isTaobao,jdbcType=VARCHAR},
+      </if>
+      <if test="isNuclearapproval != null" >
+        #{isNuclearapproval,jdbcType=VARCHAR},
+      </if>
+      <if test="callaccessscore != null" >
+        #{callaccessscore,jdbcType=VARCHAR},
+      </if>
+      <if test="marketingScore != null" >
+        #{marketingScore,jdbcType=VARCHAR},
+      </if>
+      <if test="noWithdrawOrders != null" >
+        #{noWithdrawOrders,jdbcType=VARCHAR},
+      </if>
+      <if test="planData != null" >
+        #{planData,jdbcType=VARCHAR},
+      </if>
+      <if test="priorityScore != null" >
+        #{priorityScore,jdbcType=VARCHAR},
+      </if>
+      <if test="callType != null" >
+        #{callType,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.PhoneSaleIbuExample" resultType="java.lang.Integer" >
+    select count(*) from b_phone_sale_ibu
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_phone_sale_ibu
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.localId != null" >
+        local_id = #{record.localId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mStatus != null" >
+        m_status = #{record.mStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.dataMessage != null" >
+        data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="record.uid != null" >
+        `uid` = #{record.uid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.userType != null" >
+        user_type = #{record.userType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.purpose != null" >
+        purpose = #{record.purpose,jdbcType=VARCHAR},
+      </if>
+      <if test="record.userCode != null" >
+        user_code = #{record.userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.userName != null" >
+        user_name = #{record.userName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.gender != null" >
+        gender = #{record.gender,jdbcType=VARCHAR},
+      </if>
+      <if test="record.phone != null" >
+        phone = #{record.phone,jdbcType=VARCHAR},
+      </if>
+      <if test="record.signInTimeStr != null" >
+        sign_in_time_str = #{record.signInTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.clickProductName != null" >
+        click_product_name = #{record.clickProductName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.clickTimeStr != null" >
+        click_time_str = #{record.clickTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.recommendList != null" >
+        recommend_list = #{record.recommendList,jdbcType=VARCHAR},
+      </if>
+      <if test="record.recommendH5List != null" >
+        recommend_h5_list = #{record.recommendH5List,jdbcType=VARCHAR},
+      </if>
+      <if test="record.basicInfo != null" >
+        basic_info = #{record.basicInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.realName != null" >
+        real_name = #{record.realName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.supplement != null" >
+        supplement = #{record.supplement,jdbcType=VARCHAR},
+      </if>
+      <if test="record.contract != null" >
+        contract = #{record.contract,jdbcType=VARCHAR},
+      </if>
+      <if test="record.operator != null" >
+        `operator` = #{record.operator,jdbcType=VARCHAR},
+      </if>
+      <if test="record.loanProductName != null" >
+        loan_product_name = #{record.loanProductName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.loanTimeStr != null" >
+        loan_time_str = #{record.loanTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTimeStr != null" >
+        create_time_str = #{record.createTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.diffAmount != null" >
+        diff_amount = #{record.diffAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.faceRecognition != null" >
+        face_recognition = #{record.faceRecognition,jdbcType=VARCHAR},
+      </if>
+      <if test="record.firstApproveResult != null" >
+        first_approve_result = #{record.firstApproveResult,jdbcType=VARCHAR},
+      </if>
+      <if test="record.firstApproveTimeStr != null" >
+        first_approve_time_str = #{record.firstApproveTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.hasBindCard != null" >
+        has_bind_card = #{record.hasBindCard,jdbcType=VARCHAR},
+      </if>
+      <if test="record.hasEverBorrow != null" >
+        has_ever_borrow = #{record.hasEverBorrow,jdbcType=VARCHAR},
+      </if>
+      <if test="record.hasWithdraw != null" >
+        has_withdraw = #{record.hasWithdraw,jdbcType=VARCHAR},
+      </if>
+      <if test="record.insteadCommitFlag != null" >
+        instead_commit_flag = #{record.insteadCommitFlag,jdbcType=VARCHAR},
+      </if>
+      <if test="record.insteadCommitPname != null" >
+        instead_commit_pname = #{record.insteadCommitPname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isTimely != null" >
+        is_timely = #{record.isTimely,jdbcType=VARCHAR},
+      </if>
+      <if test="record.loanFailedTimeStr != null" >
+        loan_failed_time_str = #{record.loanFailedTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.loanSuccessTimeStr != null" >
+        loan_success_time_str = #{record.loanSuccessTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.loanWillingness != null" >
+        loan_willingness = #{record.loanWillingness,jdbcType=VARCHAR},
+      </if>
+      <if test="record.aCardScore != null" >
+        a_card_score = #{record.aCardScore,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bucketName != null" >
+        bucket_name = #{record.bucketName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.overdueDays != null" >
+        overdue_days = #{record.overdueDays,jdbcType=VARCHAR},
+      </if>
+      <if test="record.prepayAmount != null" >
+        prepay_amount = #{record.prepayAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.prepayPname != null" >
+        prepay_pname = #{record.prepayPname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.prepayTimeStr != null" >
+        prepay_time_str = #{record.prepayTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.repayPname != null" >
+        repay_pname = #{record.repayPname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.repayAmount != null" >
+        repay_amount = #{record.repayAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.repayTimeStr != null" >
+        repay_time_str = #{record.repayTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.secondApproveResult != null" >
+        second_approve_result = #{record.secondApproveResult,jdbcType=VARCHAR},
+      </if>
+      <if test="record.secondApproveTimeStr != null" >
+        second_approve_time_str = #{record.secondApproveTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.applyAmount != null" >
+        apply_amount = #{record.applyAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.approveAmount != null" >
+        approve_amount = #{record.approveAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.source != null" >
+        `source` = #{record.source,jdbcType=VARCHAR},
+      </if>
+      <if test="record.prodType != null" >
+        prod_type = #{record.prodType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.score != null" >
+        score = #{record.score,jdbcType=VARCHAR},
+      </if>
+      <if test="record.callTimes != null" >
+        call_times = #{record.callTimes,jdbcType=VARCHAR},
+      </if>
+      <if test="record.callAccessScore != null" >
+        call_access_score = #{record.callAccessScore,jdbcType=VARCHAR},
+      </if>
+      <if test="record.remark != null" >
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.grade != null" >
+        grade = #{record.grade,jdbcType=VARCHAR},
+      </if>
+      <if test="record.totalAmount != null" >
+        total_amount = #{record.totalAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.surplusAmount != null" >
+        surplus_amount = #{record.surplusAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pid != null" >
+        pid = #{record.pid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pchannel != null" >
+        pchannel = #{record.pchannel,jdbcType=VARCHAR},
+      </if>
+      <if test="record.channelName != null" >
+        channel_name = #{record.channelName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.marketPurpose != null" >
+        market_purpose = #{record.marketPurpose,jdbcType=VARCHAR},
+      </if>
+      <if test="record.riskControlLabel != null" >
+        risk_control_label = #{record.riskControlLabel,jdbcType=VARCHAR},
+      </if>
+      <if test="record.firstLoginTimeStr != null" >
+        first_login_time_str = #{record.firstLoginTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.planId != null" >
+        plan_id = #{record.planId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.goalsApp != null" >
+        goals_app = #{record.goalsApp,jdbcType=VARCHAR},
+      </if>
+      <if test="record.flowSideName != null" >
+        flow_side_name = #{record.flowSideName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.flowSidePath != null" >
+        flow_side_path = #{record.flowSidePath,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cusTag != null" >
+        cus_tag = #{record.cusTag,jdbcType=VARCHAR},
+      </if>
+      <if test="record.abgroupPushOffsetStr != null" >
+        abgroup_push_offset_str = #{record.abgroupPushOffsetStr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.extra1 != null" >
+        extra1 = #{record.extra1,jdbcType=VARCHAR},
+      </if>
+      <if test="record.extra2 != null" >
+        extra2 = #{record.extra2,jdbcType=VARCHAR},
+      </if>
+      <if test="record.extra3 != null" >
+        extra3 = #{record.extra3,jdbcType=VARCHAR},
+      </if>
+      <if test="record.reserveField1 != null" >
+        reserve_field1 = #{record.reserveField1,jdbcType=VARCHAR},
+      </if>
+      <if test="record.creditTimeStr != null" >
+        credit_time_str = #{record.creditTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.creditChannel != null" >
+        credit_channel = #{record.creditChannel,jdbcType=VARCHAR},
+      </if>
+      <if test="record.amountStatus != null" >
+        amount_status = #{record.amountStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="record.connectTimes != null" >
+        connect_times = #{record.connectTimes,jdbcType=VARCHAR},
+      </if>
+      <if test="record.zyApplyFlag != null" >
+        zy_apply_flag = #{record.zyApplyFlag,jdbcType=VARCHAR},
+      </if>
+      <if test="record.zyApplySuccessFlag != null" >
+        zy_apply_success_flag = #{record.zyApplySuccessFlag,jdbcType=VARCHAR},
+      </if>
+      <if test="record.zyAmountStatus != null" >
+        zy_amount_status = #{record.zyAmountStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="record.zyTotalUsableAmount != null" >
+        zy_total_usable_amount = #{record.zyTotalUsableAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isIdnumber != null" >
+        is_idnumber = #{record.isIdnumber,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isTaobao != null" >
+        is_taobao = #{record.isTaobao,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isNuclearapproval != null" >
+        is_nuclearapproval = #{record.isNuclearapproval,jdbcType=VARCHAR},
+      </if>
+      <if test="record.callaccessscore != null" >
+        callaccessscore = #{record.callaccessscore,jdbcType=VARCHAR},
+      </if>
+      <if test="record.marketingScore != null" >
+        marketing_score = #{record.marketingScore,jdbcType=VARCHAR},
+      </if>
+      <if test="record.noWithdrawOrders != null" >
+        no_withdraw_orders = #{record.noWithdrawOrders,jdbcType=VARCHAR},
+      </if>
+      <if test="record.planData != null" >
+        plan_data = #{record.planData,jdbcType=VARCHAR},
+      </if>
+      <if test="record.priorityScore != null" >
+        priority_score = #{record.priorityScore,jdbcType=VARCHAR},
+      </if>
+      <if test="record.callType != null" >
+        call_type = #{record.callType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_phone_sale_ibu
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      local_id = #{record.localId,jdbcType=VARCHAR},
+      m_status = #{record.mStatus,jdbcType=INTEGER},
+      data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      `uid` = #{record.uid,jdbcType=VARCHAR},
+      user_type = #{record.userType,jdbcType=VARCHAR},
+      purpose = #{record.purpose,jdbcType=VARCHAR},
+      user_code = #{record.userCode,jdbcType=VARCHAR},
+      user_name = #{record.userName,jdbcType=VARCHAR},
+      gender = #{record.gender,jdbcType=VARCHAR},
+      phone = #{record.phone,jdbcType=VARCHAR},
+      sign_in_time_str = #{record.signInTimeStr,jdbcType=VARCHAR},
+      click_product_name = #{record.clickProductName,jdbcType=VARCHAR},
+      click_time_str = #{record.clickTimeStr,jdbcType=VARCHAR},
+      recommend_list = #{record.recommendList,jdbcType=VARCHAR},
+      recommend_h5_list = #{record.recommendH5List,jdbcType=VARCHAR},
+      basic_info = #{record.basicInfo,jdbcType=VARCHAR},
+      real_name = #{record.realName,jdbcType=VARCHAR},
+      supplement = #{record.supplement,jdbcType=VARCHAR},
+      contract = #{record.contract,jdbcType=VARCHAR},
+      `operator` = #{record.operator,jdbcType=VARCHAR},
+      loan_product_name = #{record.loanProductName,jdbcType=VARCHAR},
+      loan_time_str = #{record.loanTimeStr,jdbcType=VARCHAR},
+      create_time_str = #{record.createTimeStr,jdbcType=VARCHAR},
+      diff_amount = #{record.diffAmount,jdbcType=VARCHAR},
+      face_recognition = #{record.faceRecognition,jdbcType=VARCHAR},
+      first_approve_result = #{record.firstApproveResult,jdbcType=VARCHAR},
+      first_approve_time_str = #{record.firstApproveTimeStr,jdbcType=VARCHAR},
+      has_bind_card = #{record.hasBindCard,jdbcType=VARCHAR},
+      has_ever_borrow = #{record.hasEverBorrow,jdbcType=VARCHAR},
+      has_withdraw = #{record.hasWithdraw,jdbcType=VARCHAR},
+      instead_commit_flag = #{record.insteadCommitFlag,jdbcType=VARCHAR},
+      instead_commit_pname = #{record.insteadCommitPname,jdbcType=VARCHAR},
+      is_timely = #{record.isTimely,jdbcType=VARCHAR},
+      loan_failed_time_str = #{record.loanFailedTimeStr,jdbcType=VARCHAR},
+      loan_success_time_str = #{record.loanSuccessTimeStr,jdbcType=VARCHAR},
+      loan_willingness = #{record.loanWillingness,jdbcType=VARCHAR},
+      a_card_score = #{record.aCardScore,jdbcType=VARCHAR},
+      bucket_name = #{record.bucketName,jdbcType=VARCHAR},
+      overdue_days = #{record.overdueDays,jdbcType=VARCHAR},
+      prepay_amount = #{record.prepayAmount,jdbcType=VARCHAR},
+      prepay_pname = #{record.prepayPname,jdbcType=VARCHAR},
+      prepay_time_str = #{record.prepayTimeStr,jdbcType=VARCHAR},
+      repay_pname = #{record.repayPname,jdbcType=VARCHAR},
+      repay_amount = #{record.repayAmount,jdbcType=VARCHAR},
+      repay_time_str = #{record.repayTimeStr,jdbcType=VARCHAR},
+      second_approve_result = #{record.secondApproveResult,jdbcType=VARCHAR},
+      second_approve_time_str = #{record.secondApproveTimeStr,jdbcType=VARCHAR},
+      apply_amount = #{record.applyAmount,jdbcType=VARCHAR},
+      approve_amount = #{record.approveAmount,jdbcType=VARCHAR},
+      `source` = #{record.source,jdbcType=VARCHAR},
+      prod_type = #{record.prodType,jdbcType=VARCHAR},
+      score = #{record.score,jdbcType=VARCHAR},
+      call_times = #{record.callTimes,jdbcType=VARCHAR},
+      call_access_score = #{record.callAccessScore,jdbcType=VARCHAR},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      grade = #{record.grade,jdbcType=VARCHAR},
+      total_amount = #{record.totalAmount,jdbcType=VARCHAR},
+      surplus_amount = #{record.surplusAmount,jdbcType=VARCHAR},
+      pid = #{record.pid,jdbcType=VARCHAR},
+      pchannel = #{record.pchannel,jdbcType=VARCHAR},
+      channel_name = #{record.channelName,jdbcType=VARCHAR},
+      market_purpose = #{record.marketPurpose,jdbcType=VARCHAR},
+      risk_control_label = #{record.riskControlLabel,jdbcType=VARCHAR},
+      first_login_time_str = #{record.firstLoginTimeStr,jdbcType=VARCHAR},
+      plan_id = #{record.planId,jdbcType=VARCHAR},
+      goals_app = #{record.goalsApp,jdbcType=VARCHAR},
+      flow_side_name = #{record.flowSideName,jdbcType=VARCHAR},
+      flow_side_path = #{record.flowSidePath,jdbcType=VARCHAR},
+      cus_tag = #{record.cusTag,jdbcType=VARCHAR},
+      abgroup_push_offset_str = #{record.abgroupPushOffsetStr,jdbcType=VARCHAR},
+      extra1 = #{record.extra1,jdbcType=VARCHAR},
+      extra2 = #{record.extra2,jdbcType=VARCHAR},
+      extra3 = #{record.extra3,jdbcType=VARCHAR},
+      reserve_field1 = #{record.reserveField1,jdbcType=VARCHAR},
+      credit_time_str = #{record.creditTimeStr,jdbcType=VARCHAR},
+      credit_channel = #{record.creditChannel,jdbcType=VARCHAR},
+      amount_status = #{record.amountStatus,jdbcType=VARCHAR},
+      connect_times = #{record.connectTimes,jdbcType=VARCHAR},
+      zy_apply_flag = #{record.zyApplyFlag,jdbcType=VARCHAR},
+      zy_apply_success_flag = #{record.zyApplySuccessFlag,jdbcType=VARCHAR},
+      zy_amount_status = #{record.zyAmountStatus,jdbcType=VARCHAR},
+      zy_total_usable_amount = #{record.zyTotalUsableAmount,jdbcType=VARCHAR},
+      is_idnumber = #{record.isIdnumber,jdbcType=VARCHAR},
+      is_taobao = #{record.isTaobao,jdbcType=VARCHAR},
+      is_nuclearapproval = #{record.isNuclearapproval,jdbcType=VARCHAR},
+      callaccessscore = #{record.callaccessscore,jdbcType=VARCHAR},
+      marketing_score = #{record.marketingScore,jdbcType=VARCHAR},
+      no_withdraw_orders = #{record.noWithdrawOrders,jdbcType=VARCHAR},
+      plan_data = #{record.planData,jdbcType=VARCHAR},
+      priority_score = #{record.priorityScore,jdbcType=VARCHAR},
+      call_type = #{record.callType,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.PhoneSaleIbu" >
+    update b_phone_sale_ibu
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="localId != null" >
+        local_id = #{localId,jdbcType=VARCHAR},
+      </if>
+      <if test="mStatus != null" >
+        m_status = #{mStatus,jdbcType=INTEGER},
+      </if>
+      <if test="dataMessage != null" >
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="uid != null" >
+        `uid` = #{uid,jdbcType=VARCHAR},
+      </if>
+      <if test="userType != null" >
+        user_type = #{userType,jdbcType=VARCHAR},
+      </if>
+      <if test="purpose != null" >
+        purpose = #{purpose,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userName != null" >
+        user_name = #{userName,jdbcType=VARCHAR},
+      </if>
+      <if test="gender != null" >
+        gender = #{gender,jdbcType=VARCHAR},
+      </if>
+      <if test="phone != null" >
+        phone = #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="signInTimeStr != null" >
+        sign_in_time_str = #{signInTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="clickProductName != null" >
+        click_product_name = #{clickProductName,jdbcType=VARCHAR},
+      </if>
+      <if test="clickTimeStr != null" >
+        click_time_str = #{clickTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="recommendList != null" >
+        recommend_list = #{recommendList,jdbcType=VARCHAR},
+      </if>
+      <if test="recommendH5List != null" >
+        recommend_h5_list = #{recommendH5List,jdbcType=VARCHAR},
+      </if>
+      <if test="basicInfo != null" >
+        basic_info = #{basicInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="realName != null" >
+        real_name = #{realName,jdbcType=VARCHAR},
+      </if>
+      <if test="supplement != null" >
+        supplement = #{supplement,jdbcType=VARCHAR},
+      </if>
+      <if test="contract != null" >
+        contract = #{contract,jdbcType=VARCHAR},
+      </if>
+      <if test="operator != null" >
+        `operator` = #{operator,jdbcType=VARCHAR},
+      </if>
+      <if test="loanProductName != null" >
+        loan_product_name = #{loanProductName,jdbcType=VARCHAR},
+      </if>
+      <if test="loanTimeStr != null" >
+        loan_time_str = #{loanTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="createTimeStr != null" >
+        create_time_str = #{createTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="diffAmount != null" >
+        diff_amount = #{diffAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="faceRecognition != null" >
+        face_recognition = #{faceRecognition,jdbcType=VARCHAR},
+      </if>
+      <if test="firstApproveResult != null" >
+        first_approve_result = #{firstApproveResult,jdbcType=VARCHAR},
+      </if>
+      <if test="firstApproveTimeStr != null" >
+        first_approve_time_str = #{firstApproveTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="hasBindCard != null" >
+        has_bind_card = #{hasBindCard,jdbcType=VARCHAR},
+      </if>
+      <if test="hasEverBorrow != null" >
+        has_ever_borrow = #{hasEverBorrow,jdbcType=VARCHAR},
+      </if>
+      <if test="hasWithdraw != null" >
+        has_withdraw = #{hasWithdraw,jdbcType=VARCHAR},
+      </if>
+      <if test="insteadCommitFlag != null" >
+        instead_commit_flag = #{insteadCommitFlag,jdbcType=VARCHAR},
+      </if>
+      <if test="insteadCommitPname != null" >
+        instead_commit_pname = #{insteadCommitPname,jdbcType=VARCHAR},
+      </if>
+      <if test="isTimely != null" >
+        is_timely = #{isTimely,jdbcType=VARCHAR},
+      </if>
+      <if test="loanFailedTimeStr != null" >
+        loan_failed_time_str = #{loanFailedTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="loanSuccessTimeStr != null" >
+        loan_success_time_str = #{loanSuccessTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="loanWillingness != null" >
+        loan_willingness = #{loanWillingness,jdbcType=VARCHAR},
+      </if>
+      <if test="aCardScore != null" >
+        a_card_score = #{aCardScore,jdbcType=VARCHAR},
+      </if>
+      <if test="bucketName != null" >
+        bucket_name = #{bucketName,jdbcType=VARCHAR},
+      </if>
+      <if test="overdueDays != null" >
+        overdue_days = #{overdueDays,jdbcType=VARCHAR},
+      </if>
+      <if test="prepayAmount != null" >
+        prepay_amount = #{prepayAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="prepayPname != null" >
+        prepay_pname = #{prepayPname,jdbcType=VARCHAR},
+      </if>
+      <if test="prepayTimeStr != null" >
+        prepay_time_str = #{prepayTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="repayPname != null" >
+        repay_pname = #{repayPname,jdbcType=VARCHAR},
+      </if>
+      <if test="repayAmount != null" >
+        repay_amount = #{repayAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="repayTimeStr != null" >
+        repay_time_str = #{repayTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="secondApproveResult != null" >
+        second_approve_result = #{secondApproveResult,jdbcType=VARCHAR},
+      </if>
+      <if test="secondApproveTimeStr != null" >
+        second_approve_time_str = #{secondApproveTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="applyAmount != null" >
+        apply_amount = #{applyAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="approveAmount != null" >
+        approve_amount = #{approveAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="source != null" >
+        `source` = #{source,jdbcType=VARCHAR},
+      </if>
+      <if test="prodType != null" >
+        prod_type = #{prodType,jdbcType=VARCHAR},
+      </if>
+      <if test="score != null" >
+        score = #{score,jdbcType=VARCHAR},
+      </if>
+      <if test="callTimes != null" >
+        call_times = #{callTimes,jdbcType=VARCHAR},
+      </if>
+      <if test="callAccessScore != null" >
+        call_access_score = #{callAccessScore,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="grade != null" >
+        grade = #{grade,jdbcType=VARCHAR},
+      </if>
+      <if test="totalAmount != null" >
+        total_amount = #{totalAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="surplusAmount != null" >
+        surplus_amount = #{surplusAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="pid != null" >
+        pid = #{pid,jdbcType=VARCHAR},
+      </if>
+      <if test="pchannel != null" >
+        pchannel = #{pchannel,jdbcType=VARCHAR},
+      </if>
+      <if test="channelName != null" >
+        channel_name = #{channelName,jdbcType=VARCHAR},
+      </if>
+      <if test="marketPurpose != null" >
+        market_purpose = #{marketPurpose,jdbcType=VARCHAR},
+      </if>
+      <if test="riskControlLabel != null" >
+        risk_control_label = #{riskControlLabel,jdbcType=VARCHAR},
+      </if>
+      <if test="firstLoginTimeStr != null" >
+        first_login_time_str = #{firstLoginTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="planId != null" >
+        plan_id = #{planId,jdbcType=VARCHAR},
+      </if>
+      <if test="goalsApp != null" >
+        goals_app = #{goalsApp,jdbcType=VARCHAR},
+      </if>
+      <if test="flowSideName != null" >
+        flow_side_name = #{flowSideName,jdbcType=VARCHAR},
+      </if>
+      <if test="flowSidePath != null" >
+        flow_side_path = #{flowSidePath,jdbcType=VARCHAR},
+      </if>
+      <if test="cusTag != null" >
+        cus_tag = #{cusTag,jdbcType=VARCHAR},
+      </if>
+      <if test="abgroupPushOffsetStr != null" >
+        abgroup_push_offset_str = #{abgroupPushOffsetStr,jdbcType=VARCHAR},
+      </if>
+      <if test="extra1 != null" >
+        extra1 = #{extra1,jdbcType=VARCHAR},
+      </if>
+      <if test="extra2 != null" >
+        extra2 = #{extra2,jdbcType=VARCHAR},
+      </if>
+      <if test="extra3 != null" >
+        extra3 = #{extra3,jdbcType=VARCHAR},
+      </if>
+      <if test="reserveField1 != null" >
+        reserve_field1 = #{reserveField1,jdbcType=VARCHAR},
+      </if>
+      <if test="creditTimeStr != null" >
+        credit_time_str = #{creditTimeStr,jdbcType=VARCHAR},
+      </if>
+      <if test="creditChannel != null" >
+        credit_channel = #{creditChannel,jdbcType=VARCHAR},
+      </if>
+      <if test="amountStatus != null" >
+        amount_status = #{amountStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="connectTimes != null" >
+        connect_times = #{connectTimes,jdbcType=VARCHAR},
+      </if>
+      <if test="zyApplyFlag != null" >
+        zy_apply_flag = #{zyApplyFlag,jdbcType=VARCHAR},
+      </if>
+      <if test="zyApplySuccessFlag != null" >
+        zy_apply_success_flag = #{zyApplySuccessFlag,jdbcType=VARCHAR},
+      </if>
+      <if test="zyAmountStatus != null" >
+        zy_amount_status = #{zyAmountStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="zyTotalUsableAmount != null" >
+        zy_total_usable_amount = #{zyTotalUsableAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="isIdnumber != null" >
+        is_idnumber = #{isIdnumber,jdbcType=VARCHAR},
+      </if>
+      <if test="isTaobao != null" >
+        is_taobao = #{isTaobao,jdbcType=VARCHAR},
+      </if>
+      <if test="isNuclearapproval != null" >
+        is_nuclearapproval = #{isNuclearapproval,jdbcType=VARCHAR},
+      </if>
+      <if test="callaccessscore != null" >
+        callaccessscore = #{callaccessscore,jdbcType=VARCHAR},
+      </if>
+      <if test="marketingScore != null" >
+        marketing_score = #{marketingScore,jdbcType=VARCHAR},
+      </if>
+      <if test="noWithdrawOrders != null" >
+        no_withdraw_orders = #{noWithdrawOrders,jdbcType=VARCHAR},
+      </if>
+      <if test="planData != null" >
+        plan_data = #{planData,jdbcType=VARCHAR},
+      </if>
+      <if test="priorityScore != null" >
+        priority_score = #{priorityScore,jdbcType=VARCHAR},
+      </if>
+      <if test="callType != null" >
+        call_type = #{callType,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.PhoneSaleIbu" >
+    update b_phone_sale_ibu
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      local_id = #{localId,jdbcType=VARCHAR},
+      m_status = #{mStatus,jdbcType=INTEGER},
+      data_message = #{dataMessage,jdbcType=VARCHAR},
+      `uid` = #{uid,jdbcType=VARCHAR},
+      user_type = #{userType,jdbcType=VARCHAR},
+      purpose = #{purpose,jdbcType=VARCHAR},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      user_name = #{userName,jdbcType=VARCHAR},
+      gender = #{gender,jdbcType=VARCHAR},
+      phone = #{phone,jdbcType=VARCHAR},
+      sign_in_time_str = #{signInTimeStr,jdbcType=VARCHAR},
+      click_product_name = #{clickProductName,jdbcType=VARCHAR},
+      click_time_str = #{clickTimeStr,jdbcType=VARCHAR},
+      recommend_list = #{recommendList,jdbcType=VARCHAR},
+      recommend_h5_list = #{recommendH5List,jdbcType=VARCHAR},
+      basic_info = #{basicInfo,jdbcType=VARCHAR},
+      real_name = #{realName,jdbcType=VARCHAR},
+      supplement = #{supplement,jdbcType=VARCHAR},
+      contract = #{contract,jdbcType=VARCHAR},
+      `operator` = #{operator,jdbcType=VARCHAR},
+      loan_product_name = #{loanProductName,jdbcType=VARCHAR},
+      loan_time_str = #{loanTimeStr,jdbcType=VARCHAR},
+      create_time_str = #{createTimeStr,jdbcType=VARCHAR},
+      diff_amount = #{diffAmount,jdbcType=VARCHAR},
+      face_recognition = #{faceRecognition,jdbcType=VARCHAR},
+      first_approve_result = #{firstApproveResult,jdbcType=VARCHAR},
+      first_approve_time_str = #{firstApproveTimeStr,jdbcType=VARCHAR},
+      has_bind_card = #{hasBindCard,jdbcType=VARCHAR},
+      has_ever_borrow = #{hasEverBorrow,jdbcType=VARCHAR},
+      has_withdraw = #{hasWithdraw,jdbcType=VARCHAR},
+      instead_commit_flag = #{insteadCommitFlag,jdbcType=VARCHAR},
+      instead_commit_pname = #{insteadCommitPname,jdbcType=VARCHAR},
+      is_timely = #{isTimely,jdbcType=VARCHAR},
+      loan_failed_time_str = #{loanFailedTimeStr,jdbcType=VARCHAR},
+      loan_success_time_str = #{loanSuccessTimeStr,jdbcType=VARCHAR},
+      loan_willingness = #{loanWillingness,jdbcType=VARCHAR},
+      a_card_score = #{aCardScore,jdbcType=VARCHAR},
+      bucket_name = #{bucketName,jdbcType=VARCHAR},
+      overdue_days = #{overdueDays,jdbcType=VARCHAR},
+      prepay_amount = #{prepayAmount,jdbcType=VARCHAR},
+      prepay_pname = #{prepayPname,jdbcType=VARCHAR},
+      prepay_time_str = #{prepayTimeStr,jdbcType=VARCHAR},
+      repay_pname = #{repayPname,jdbcType=VARCHAR},
+      repay_amount = #{repayAmount,jdbcType=VARCHAR},
+      repay_time_str = #{repayTimeStr,jdbcType=VARCHAR},
+      second_approve_result = #{secondApproveResult,jdbcType=VARCHAR},
+      second_approve_time_str = #{secondApproveTimeStr,jdbcType=VARCHAR},
+      apply_amount = #{applyAmount,jdbcType=VARCHAR},
+      approve_amount = #{approveAmount,jdbcType=VARCHAR},
+      `source` = #{source,jdbcType=VARCHAR},
+      prod_type = #{prodType,jdbcType=VARCHAR},
+      score = #{score,jdbcType=VARCHAR},
+      call_times = #{callTimes,jdbcType=VARCHAR},
+      call_access_score = #{callAccessScore,jdbcType=VARCHAR},
+      remark = #{remark,jdbcType=VARCHAR},
+      grade = #{grade,jdbcType=VARCHAR},
+      total_amount = #{totalAmount,jdbcType=VARCHAR},
+      surplus_amount = #{surplusAmount,jdbcType=VARCHAR},
+      pid = #{pid,jdbcType=VARCHAR},
+      pchannel = #{pchannel,jdbcType=VARCHAR},
+      channel_name = #{channelName,jdbcType=VARCHAR},
+      market_purpose = #{marketPurpose,jdbcType=VARCHAR},
+      risk_control_label = #{riskControlLabel,jdbcType=VARCHAR},
+      first_login_time_str = #{firstLoginTimeStr,jdbcType=VARCHAR},
+      plan_id = #{planId,jdbcType=VARCHAR},
+      goals_app = #{goalsApp,jdbcType=VARCHAR},
+      flow_side_name = #{flowSideName,jdbcType=VARCHAR},
+      flow_side_path = #{flowSidePath,jdbcType=VARCHAR},
+      cus_tag = #{cusTag,jdbcType=VARCHAR},
+      abgroup_push_offset_str = #{abgroupPushOffsetStr,jdbcType=VARCHAR},
+      extra1 = #{extra1,jdbcType=VARCHAR},
+      extra2 = #{extra2,jdbcType=VARCHAR},
+      extra3 = #{extra3,jdbcType=VARCHAR},
+      reserve_field1 = #{reserveField1,jdbcType=VARCHAR},
+      credit_time_str = #{creditTimeStr,jdbcType=VARCHAR},
+      credit_channel = #{creditChannel,jdbcType=VARCHAR},
+      amount_status = #{amountStatus,jdbcType=VARCHAR},
+      connect_times = #{connectTimes,jdbcType=VARCHAR},
+      zy_apply_flag = #{zyApplyFlag,jdbcType=VARCHAR},
+      zy_apply_success_flag = #{zyApplySuccessFlag,jdbcType=VARCHAR},
+      zy_amount_status = #{zyAmountStatus,jdbcType=VARCHAR},
+      zy_total_usable_amount = #{zyTotalUsableAmount,jdbcType=VARCHAR},
+      is_idnumber = #{isIdnumber,jdbcType=VARCHAR},
+      is_taobao = #{isTaobao,jdbcType=VARCHAR},
+      is_nuclearapproval = #{isNuclearapproval,jdbcType=VARCHAR},
+      callaccessscore = #{callaccessscore,jdbcType=VARCHAR},
+      marketing_score = #{marketingScore,jdbcType=VARCHAR},
+      no_withdraw_orders = #{noWithdrawOrders,jdbcType=VARCHAR},
+      plan_data = #{planData,jdbcType=VARCHAR},
+      priority_score = #{priorityScore,jdbcType=VARCHAR},
+      call_type = #{callType,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
