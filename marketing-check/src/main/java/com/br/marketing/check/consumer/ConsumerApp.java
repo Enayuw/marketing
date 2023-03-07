@@ -123,20 +123,20 @@ public class ConsumerApp {
         consumerService.consumerRun(channel, message, pushDataService::pushXieChengToDbData, mes, null);
     }
 
-    /**
-     * 消费 携程短信撞库消费
-     *
-     * @param channel 通道
-     * @param message 消息体
-     */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGSMSCOLLIDINGRECEIVE, durable = "true")
-            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
-            , key = MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGSMSCOLLIDINGRECEIVE)}, containerFactory = "containerFactory")
-    public void xieChengSmsCollidingToDb(Channel channel, Message message) {
-        String mes  = new String(message.getBody(), StandardCharsets.UTF_8);
-        /*消费逻辑*/
-        consumerService.consumerRun(channel, message, pushDataService::pushXieChengSmsCollidingToDbData, mes, null);
-    }
+    ///**
+    // * 消费 携程短信撞库消费
+    // *
+    // * @param channel 通道
+    // * @param message 消息体
+    // */
+    //@RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGSMSCOLLIDINGRECEIVE, durable = "true")
+    //        , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
+    //        , key = MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGSMSCOLLIDINGRECEIVE)}, containerFactory = "containerFactory")
+    //public void xieChengSmsCollidingToDb(Channel channel, Message message) {
+    //    String mes  = new String(message.getBody(), StandardCharsets.UTF_8);
+    //    /*消费逻辑*/
+    //    consumerService.consumerRun(channel, message, pushDataService::pushXieChengSmsCollidingToDbData, mes, null);
+    //}
     /**
      * 推送dass转化
      *
@@ -150,5 +150,19 @@ public class ConsumerApp {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         consumerService.consumerRun(channel, message, pushDataService::pushDassTransferData, o, "");
+    }
+    /**
+     * 推送dassIBU
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_PUSH_DASS_IBU, durable = "true")
+            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_IBU)}, containerFactory = "containerFactory")
+    public void consumerPushDassIbu(Channel channel, Message message) {
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        consumerService.consumerRun(channel, message, pushDataService::pushDassTransferIbu, o, "");
     }
 }

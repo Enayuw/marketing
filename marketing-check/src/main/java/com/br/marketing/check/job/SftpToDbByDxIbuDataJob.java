@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class SftpToDbByDxTransferDataJob extends AbstractSimpleElasticJob {
+public class SftpToDbByDxIbuDataJob extends AbstractSimpleElasticJob {
     @Autowired
     SyncConfigService syncConfigService;
     @Value("${otherConfig.warning.sftpHost:00}")
@@ -103,7 +103,7 @@ public class SftpToDbByDxTransferDataJob extends AbstractSimpleElasticJob {
         List<String> apiCodes = marketingCustomers.stream().map(t -> t.getApiCode()).collect(Collectors.toList());
         SyncConfigExample syncConfigExample = new SyncConfigExample();
         syncConfigExample.createCriteria().andApiCodeIn(apiCodes).andStatusEqualTo(1)
-                .andDataTypeEqualTo(DataTypeEnum.DXTRANSFER.getValue()).andTypeEqualTo(1);
+                .andDataTypeEqualTo(DataTypeEnum.DXIBU.getValue()).andTypeEqualTo(1);
         List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
         syncConfigs.forEach(t -> {
             if (StringUtils.isNotBlank(t.getTargetPath())) {
@@ -113,7 +113,7 @@ public class SftpToDbByDxTransferDataJob extends AbstractSimpleElasticJob {
                     sftpClient.connect();
                     SftpToDbUtils.listStpFile(t.getTargetPath(), map, sftpClient, t);
                     if (!map.isEmpty()) {
-                        log.info("----------获取运营需要推送电销转化结果数据-------------");
+                        log.info("----------获取运营需要推送电销ibu结果数据-------------");
                         long start = System.currentTimeMillis();
                         dealDataFile(map, sftpClient, t);
                         long end = System.currentTimeMillis();
@@ -122,7 +122,7 @@ public class SftpToDbByDxTransferDataJob extends AbstractSimpleElasticJob {
                         }
                     }
                 } catch (JSchException e) {
-                    log.error("SftpToDbByDxTransferDataJob,sftp连接失败", e);
+                    log.error("SftpToDbByDxIbuDataJob,sftp连接失败", e);
                 } catch (Exception e) {
                     log.error("获取sftp上的数据文件列表出错", e);
                 } finally {
@@ -159,8 +159,7 @@ public class SftpToDbByDxTransferDataJob extends AbstractSimpleElasticJob {
                     String successFile = fileName + ".success";
                     if (fileNames.contains(successFile)) {
                         context.setLocalTxtFilePath(syncConfigService.getPath()
-                                .concat("sftp_dxTransfer_data/")
-                                .concat(apiCode).concat("/"));
+                                .concat("sftp_dxIbu_data/").concat(apiCode).concat("/"));
                         if (!sftpToDbByDXService.dowloadFile(context)) {
                             continue;
                         }
@@ -171,7 +170,7 @@ public class SftpToDbByDxTransferDataJob extends AbstractSimpleElasticJob {
                         localFile.setLocalPath(context.getLocalTxtFilePath());
                         localFile.setStatus("1");
                         localFile.setCreateTime(new Date());
-                        localFile.setFileType(SftpFileTypeEnum.DXTRANSFORM.getValue());
+                        localFile.setFileType(SftpFileTypeEnum.DXIBU.getValue());
                         localFileMapper.insertSelective(localFile);
 
                         try {
@@ -182,8 +181,8 @@ public class SftpToDbByDxTransferDataJob extends AbstractSimpleElasticJob {
                             sftpToDbByCommonService.actionTxtFile(context
                                     , localFile
                                     , baseHeads
-                                    , MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_TRANSFER
-                                    , iTxtToDbService::phoneTodbByTransfer);
+                                    , MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_IBU
+                                    , iTxtToDbService::phoneTodbByIbu);
                         } catch (Exception e) {
                             log.warn("rename file error ", e);
                             try {

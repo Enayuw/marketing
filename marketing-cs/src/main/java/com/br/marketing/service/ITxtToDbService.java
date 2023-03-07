@@ -12,6 +12,8 @@ public interface ITxtToDbService {
 
     Result phoneTodbByTransfer(TxtToDbDTO content);
 
+    Result phoneTodbByIbu(TxtToDbDTO content);
+
     Result phoneTodbByXW(TxtToDbDTO content);
 
     /**

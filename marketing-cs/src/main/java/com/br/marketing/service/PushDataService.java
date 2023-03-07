@@ -12,6 +12,8 @@ public interface PushDataService {
 
     Result pushDassTransferData(Long id);
 
+    Result pushDassTransferIbu(Long id);
+
     Result pushSevenTransferData(Long id);
 
     Result pushHaierData();
@@ -60,7 +62,7 @@ public interface PushDataService {
      * @param data
      * @return
      */
-    Result<Boolean> pushXieChengSmsCollidingToDbData(String data);
+    void pushXieChengSmsCollidingToDbData(String data);
 
     String getHaierRequestId(String type);
 

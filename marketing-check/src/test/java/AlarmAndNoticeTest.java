@@ -1,3 +1,4 @@
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.commondto.Result;
@@ -7,11 +8,13 @@ import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.service.EmailService;
 import com.br.marketing.service.Impl.*;
+import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.TransferToFileByTongChengServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -130,4 +133,14 @@ public class AlarmAndNoticeTest {
         }
     }
 
+    @Autowired
+    private PushDataService pushDataService;
+
+    @Test
+    public void pushData(){
+        JSONObject msg = new JSONObject();
+        msg.put("localId", 1972439l);
+        msg.put("isNewFile", false);
+        pushDataService.pushXieChengSmsCollidingToDbData(msg.toJSONString());
+    }
 }

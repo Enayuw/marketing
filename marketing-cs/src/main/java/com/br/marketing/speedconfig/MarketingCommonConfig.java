@@ -435,6 +435,7 @@ public class MarketingCommonConfig {
      */
     private Integer threadNumSftpToDbByCommon;
 
+
     /**
      * 拍拍贷老客推电销去重时间天数
      */
@@ -483,5 +484,19 @@ public class MarketingCommonConfig {
      */
     private Boolean rongShuPushNewIbuSwitch;
 
+
+    /**
+     * 携程拨打明细推送暂停开关 true：暂停开关打开，false 暂停开关关闭
+     */
+    private Boolean xieChengCallingRecordSwitch;
+    /**
+     * 携程拨打明细补推sleep 时间
+     */
+    private Integer xieChengCallingRecordSleep;
+
+    /**
+     * 携程短信撞库开始时间
+     */
+    private String xieChengSmsCollidingStartTime;
 }
 

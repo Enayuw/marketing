@@ -19,7 +19,8 @@ public enum DataTypeEnum {
     ,FILETODB(6,"入库文件")
     ,OFFLINESCORE(7,"离线跑分文件")
     ,MARKETINGDATA(8,"原始数据文件")
-    ,DXTRANSFER(9,"转化过滤");
+    ,DXTRANSFER(9,"转化过滤")
+    ,DXIBU(10,"ibu电销");
     private Integer value;
     private String desc;
 

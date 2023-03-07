@@ -6,6 +6,7 @@ import com.br.marketing.dto.XieChengDataDTO;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -13,6 +14,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
+
+import static com.br.marketing.common.utils.MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE;
 
 /**
  * 推送携程
@@ -29,6 +32,9 @@ public class XieChengPushHandler extends AbstractExternalInterfaceHandler<XieChe
     @Resource
     private RabbitMqProducter producter;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     @Override
     JSONObject call(List<XieChengDataDTO> list, ProcessHandlerContext context) {
         for (XieChengDataDTO dto : list) {
@@ -40,11 +46,11 @@ public class XieChengPushHandler extends AbstractExternalInterfaceHandler<XieChe
             xieChengData.setStatus(1);
             xieChengData.setType("1");
             int i = xieChengDataMapper.insertSelective(xieChengData);
-            if (i > 0) {
+            if (i > 0 && Boolean.FALSE.equals(marketingCommonConfig.getXieChengCallingRecordSwitch())) {
                 JSONObject msg = new JSONObject();
                 msg.put("localId", dto.getInitId());
                 msg.put("type", 2);
-                producter.send("Marketing.Universal.SftpToDb.XieChengReceive"
+                producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE
                         , msg.toJSONString());
             }
         }
