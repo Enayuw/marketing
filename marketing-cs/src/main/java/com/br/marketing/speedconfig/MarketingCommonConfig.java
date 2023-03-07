@@ -479,6 +479,11 @@ public class MarketingCommonConfig {
      */
     private Boolean rongShuPushDaasSwitch;
 
+    /**
+     * 榕树推送人工Ibu通用接口开关，true为推送通用接口，false推送老接口
+     */
+    private Boolean rongShuPushNewIbuSwitch;
+
 
     /**
      * 携程拨打明细推送暂停开关 true：暂停开关打开，false 暂停开关关闭

@@ -100,8 +100,9 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
                 //构造PhoneSaleExtendInfo
                 extendInfo.setAppletDate(nowDate);
                 extendInfo.setCreateTime(new Date());
-                extendInfo.setPushDxTime(new Date());
                 extendInfo.setUpdateTime(new Date());
+                //推电销时间置为null
+                extendInfo.setPushDxTime(null);
                 extendInfo.setStatus("b");
                 //构造推客服数据
                 ConversionData conversionData = new ConversionData();

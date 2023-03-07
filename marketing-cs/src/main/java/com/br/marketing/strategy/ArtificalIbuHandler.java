@@ -3,10 +3,13 @@ package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.dassservice.input.ibu.IbuAdapDTO;
+import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.entity.PhoneSaleExtendInfoExample;
@@ -18,6 +21,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -56,6 +60,11 @@ public class ArtificalIbuHandler extends AbstractExternalInterfaceHandler<IbuAda
 
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
+    @Resource
+    private ArtificialBatchRealTimeDataHandler artificialBatchRealTimeDataHandler;
+
+    @Value("${api.dass.aesKey:00}")
+    private String aesKey;
 
 
     @Override
@@ -179,6 +188,26 @@ public class ArtificalIbuHandler extends AbstractExternalInterfaceHandler<IbuAda
         /**
          * 人工ibu批量接口 每50条数据一个批次
          */
+        //开关打开，重新构造参数,调用通用接口（电销批量接口）
+        if (marketingCommonConfig.getRongShuPushNewIbuSwitch()) {
+            List<BatchRealTimeUserDataDTO> batchRealTimeUserDataDTOList = new ArrayList<>();
+            ibuReqList.forEach(daum -> {
+                BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
+                DassImportDataDTO dassImportDataDTO = new DassImportDataDTO();
+                dassImportDataDTO.setPhone(AESUtil.aesEncrypty(daum.getPhone(), aesKey));
+                dassImportDataDTO.setName("1");
+                dassImportDataDTO.setOrgname("rongshu");
+                dassImportDataDTO.setSource("26");
+                dassImportDataDTO.setUid(daum.getUid());
+                dassImportDataDTO.setUserType("2");
+                dassImportDataDTO.setId(daum.getId());
+                batchRealTimeUserDataDTO.setDassImportDataDTO(dassImportDataDTO);
+                batchRealTimeUserDataDTOList.add(batchRealTimeUserDataDTO);
+            });
+            artificialBatchRealTimeDataHandler.call(batchRealTimeUserDataDTOList, new ProcessHandlerContext());
+            return;
+        }
+
         int pageSize = 50;
         int totalCount = ibuReqList.size();
         int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
