@@ -498,5 +498,10 @@ public class MarketingCommonConfig {
      * 携程短信撞库开始时间
      */
     private String xieChengSmsCollidingStartTime;
+
+    /**
+     * 桔子转化数据提取
+     */
+    private List<String> orangeTransferFileApiCodes;
 }
 

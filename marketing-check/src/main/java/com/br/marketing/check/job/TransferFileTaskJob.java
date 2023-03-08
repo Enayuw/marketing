@@ -58,30 +58,61 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    /**
+     * 数禾
+     */
     @Resource
     private TransferToFileByShuHeServiceImpl transferToFileByShuHeService;
 
+    /**
+     * 宜信
+     */
     @Resource
     private TransferToFileByYiXinRealTimeServiceImpl transferToFileByYiXinRealTimeService;
-
+    /**
+     * 玖富
+     */
     @Resource
     private TransferToFileByJiuFuServiceImpl transferToFileByJiuFuService;
-
+    /**
+     * 同城
+     */
     @Resource
     private TransferToFileByTongChengServiceImpl transferToFileByTongChengService;
 
     @Resource
     private SyncLogMapper loanSyncLogMapper;
+    /**
+     * 小赢
+     */
     @Resource
     private TransferToFileByXiaoYingRealTimeServiceImpl xiaoYingRealTimeService;
+    /**
+     * 拍拍贷
+     */
     @Resource
     private TransferToFileByPPDServiceImpl transferToFileByPPDService;
+    /**
+     * 众安
+     */
     @Resource
     private TransferToFileByZhongAnServiceImpl transferToFileByZhongAnService;
+    /**
+     * 携程
+     */
     @Resource
     private TransferToFileByXieChengServiceImpl transferToFileByXieChengService;
+    /**
+     * 拍拍贷老客
+     */
     @Resource
     private TransferToFileByPPDOldServiceImpl transferToFileByPPDOldService;
+
+    /**
+     * 桔子
+     */
+    @Resource
+    private TransferToFileByOrangeServiceImpl orangeService;
 
 
     @Override
@@ -178,6 +209,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByXieChengService, marketingCommonConfig.getXieChengTransferApiCodes())
                 // 拍拍贷老客转人工数据提取
                 .addBind(transferToFileByPPDOldService, marketingCommonConfig.getPPDOldTransferFileApiCodes())
+                // 桔子转化数据提取
+                .addBind(orangeService, marketingCommonConfig.getOrangeTransferFileApiCodes())
                 .build();
     }
 
