@@ -156,6 +156,7 @@ public class TransferToFileByOrangeServiceImpl implements ITransferToFileService
             //判断是否再有效期内
             for (MarketingTransferSyncUser data : list) {
                 String custNum = data.getCustNum();
+                String orderId = JSONObject.parseObject(data.getReserveField1()).getString("orderId");
                 String sb = deleteNull(custNum) +
                         deleteNull(data.getIfLogin()) +
                         deleteNull(data.getCustomName()) +
@@ -168,7 +169,7 @@ public class TransferToFileByOrangeServiceImpl implements ITransferToFileService
                         deleteNull(data.getIfLent()) +
                         formDateStr(data.getLentTime()) +
                         deleteNull(data.getLentAmount()) +
-                        deleteNull(JSONObject.parseObject(data.getReserveField1()).getString("orderId")) +
+                        (StringUtils.isNotEmpty(orderId) ? orderId : "") +
                         "\r\n";
                 fw.append(sb);
                 totalSize = totalSize + 1;
@@ -201,7 +202,7 @@ public class TransferToFileByOrangeServiceImpl implements ITransferToFileService
     private String formDateStr(String dateTimeStr) {
         try {
             return LocalDateTime.parse(dateTimeStr
-                    , DATE_TIME_FORMATTER).format(DATE_TIME_2_FORMATTER);
+                    , DATE_TIME_FORMATTER).format(DATE_TIME_2_FORMATTER).concat(",");
         } catch (Exception e) {
             return deleteNull(dateTimeStr);
         }
