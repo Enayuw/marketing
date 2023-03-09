@@ -1,5 +1,7 @@
 package com.br.marketing.rule.rongshu;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
@@ -92,9 +94,22 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
     }
 
     private boolean getUnlentAmount( MarketingTransferSyncUser transfer){
-        if(StringUtils.isNotBlank(transfer.getUnlentAmount())){
+        if(StringUtils.isNotBlank(transfer.getReserveField1())){
+            Double unlentAmount  = null;
             int rsUnlentAmount = marketingCommonConfig.getRsUnlentAmount() == null ? 1000 : marketingCommonConfig.getRsUnlentAmount();
-            double unlentAmount = Double.parseDouble(transfer.getUnlentAmount());
+            try {
+                JSONObject jsonObject = JSON.parseObject(transfer.getReserveField1());
+                String unlentAmountStr = jsonObject.getString("unlentAmount");
+                if(StringUtils.isNotBlank(unlentAmountStr)){
+                    unlentAmount = Double.valueOf(unlentAmountStr);
+                }
+            }catch (Exception ex){
+                log.error(ex.getMessage(),ex);
+                return false;
+            }
+            if(unlentAmount == null){
+                return false;
+            }
             return unlentAmount < rsUnlentAmount;
         }
         return false;
