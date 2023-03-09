@@ -144,10 +144,10 @@ public class TransferToFileByOrangeServiceImpl implements ITransferToFileService
         syncUser.settCid(tcId);
         String localDateStr = transferFileTask.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                 .toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE);
+        syncUser.setRequestData(localDateStr);
         while (mark) {
             List<MarketingTransferSyncUser> list = marketingTransferSyncUserMapper.findTransferByApiCodeAndCreateTimePage(syncUser
-                    , localDateStr + " 00:00:00", localDateStr + " 23:59:59:999", null
-                    , page * offset, offset);
+                    , null, null, null, page * offset, offset);
             if (CollectionUtils.isEmpty(list)) {
                 mark = Boolean.FALSE;
                 continue;

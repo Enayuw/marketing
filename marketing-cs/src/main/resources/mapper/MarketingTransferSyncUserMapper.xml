@@ -166,6 +166,9 @@
             <if test="transferSyncUser.ifLent != null and transferSyncUser.ifLent.trim() neq ''">
                 AND if_lent=#{transferSyncUser.ifLent}
             </if>
+            <if test="transferSyncUser.requestData != null and transferSyncUser.requestData.trim() neq ''">
+                AND request_data=#{transferSyncUser.requestData}
+            </if>
         </where>
         order by
         <choose>
