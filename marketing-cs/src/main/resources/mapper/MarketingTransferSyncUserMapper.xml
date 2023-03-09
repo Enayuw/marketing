@@ -325,4 +325,24 @@
         api_code = #{apiCode}
         AND request_data = #{requestData}
     </select>
+
+    <select id="getConvtypeData" resultType="java.lang.String">
+        select distinct cust_num
+        from b_marketing_transfer_sync_${tcId}
+        where request_data = #{requestData}
+          AND json_unquote(json_extract(reserve_field1, '$.convType')) = #{convType}
+        order by id asc #{limitStart}, 2000
+    </select>
+
+    <select id="getCustNumAndConvtypeData" resultType="java.lang.String">
+        select distinct cust_num
+        from b_marketing_transfer_sync_${tcId}
+        where request_data = #{requestData}
+        and cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+          AND ${convTypeStr}
+    </select>
+
 </mapper>

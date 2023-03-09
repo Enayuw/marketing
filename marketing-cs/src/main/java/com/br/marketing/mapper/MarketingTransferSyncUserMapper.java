@@ -269,4 +269,11 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @return
      */
     int getTransferDataCount(@Param("tcId") String tcId, @Param("apiCode") String apiCode, @Param("requestData") String requestDate);
+
+
+    List<String> getConvtypeData(@Param("tcId") String tcId, @Param("limitStart") Integer limitStart, @Param("requestData") String requestDate, @Param("convType") String convType);
+
+    List<String> getCustNumAndConvtypeData(@Param("tcId") String tcId, @Param("custNums") List<String> custNums, @Param("requestData") String requestDate, @Param("convTypeStr") String convTypeStr);
+
+
 }
