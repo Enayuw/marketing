@@ -141,4 +141,9 @@ public class RsAutoArtificialAndCustomerTransferToDelayImpl implements AssembleD
     public Integer ruleDataCollection() {
         return RuleDataCollectionEnum.RS_DATA_COLLECTION.getCode();
     }
+
+    public static void main(String[] args) {
+        LocalDate localDate = LocalDate.now().minusDays(87);
+        System.out.println(localDate);
+    }
 }

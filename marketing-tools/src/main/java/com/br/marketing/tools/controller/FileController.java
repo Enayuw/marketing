@@ -151,35 +151,35 @@ public class FileController {
                     mergeExecutor.submit(()->{
                         try {
                             if(new Integer(1).equals(threaNum)){
-                                String[] split = content.split("\t");
+                                String[] split = content.split("\\|");
                                 StringBuilder sb = new StringBuilder();
-                                sb.append(split[0]);
-//                                sb.append(",");
-//                                sb.append(split[1]);
-//                                sb.append(",");
-//                                sb.append(split[2]);
-//                                sb.append(",");
-//                                sb.append(split[3]);
-//                                sb.append(",");
-//                                sb.append(split[4]);
-//                                sb.append(",");
-//                                sb.append(split[5]);
+                                sb.append(split[0].trim());
+                                sb.append(",");
+                                sb.append(split[1].trim());
+                                sb.append(",");
+                                sb.append(split[2].trim());
+                                sb.append(",");
+                                sb.append(split[3].trim());
+                                sb.append(",");
+                                sb.append(split[4].trim());
+                                sb.append(",");
+                                sb.append(split[5].trim());
                                 sb.append("\r\n");
-                                writer.append(content).append("\r\n");
+                                writer.append(content);
                             }else{
-                                String[] split = content.split("\t");
+                                String[] split = content.split("\\|");
                                 StringBuilder sb = new StringBuilder();
-                                sb.append(BrCipherMaker.getInstance().decode(split[0]).getBytes());
-//                                sb.append(",");
-//                                sb.append(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(split[1]).getBytes()));
-//                                sb.append(",");
-//                                sb.append(split[2]);
-//                                sb.append(",");
-//                                sb.append(split[3]);
-//                                sb.append(",");
-//                                sb.append(split[4]);
-//                                sb.append(",");
-//                                sb.append(split[5]);
+                                sb.append(split[0].trim());
+                                sb.append(",");
+                                sb.append(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(split[1].trim()).getBytes()));
+                                sb.append(",");
+                                sb.append(concent(split[2]));
+                                sb.append(",");
+                                sb.append(concent(split[3]));
+                                sb.append(",");
+                                sb.append(concent(split[4]));
+                                sb.append(",");
+                                sb.append(concent(split[5]));
                                 sb.append("\r\n");
                                 writer.append(sb.toString());
                             }
@@ -233,5 +233,11 @@ public class FileController {
         }
 
         return "123";
+    }
+
+    String concent(String a){
+        String replace = a.trim().replace("\"", "");
+        String b = "NULL".equals(replace)?"": replace;
+        return b;
     }
 }
