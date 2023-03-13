@@ -11,6 +11,7 @@ import java.util.Set;
 public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUserMapperBase {
     /**
      * 根据cust_num获取最新数据
+     *
      * @param cid
      * @param caseNum
      * @return
@@ -21,10 +22,11 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * 根据cust_num、Apicode获取1h内最新数据
      */
     MarketingTransferSyncUser getNewestByCusnumAndApicode(@Param("cid") String cid, @Param("caseNum") String caseNum, @Param("apicode") String apicode
-            , @Param("userType") String userType,@Param("timeAddHour") String timeAddHour);
+            , @Param("userType") String userType, @Param("timeAddHour") String timeAddHour);
 
     /**
      * 根据cust_num获取1小时内最新数据
+     *
      * @param cid
      * @param caseNum
      * @param timeAddHour
@@ -32,38 +34,42 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      */
     MarketingTransferSyncUser getNewestByCusnumInHour(@Param("cid") String cid, @Param("caseNum") String caseNum, @Param("timeAddHour") String timeAddHour);
 
-    List<MarketingTransferSyncUser> getTransferOrderInsertTime(@Param("cid") String cid,@Param("data") String data,@Param("limitStart") Integer limitStart);
+    List<MarketingTransferSyncUser> getTransferOrderInsertTime(@Param("cid") String cid, @Param("data") String data, @Param("limitStart") Integer limitStart);
 
-    List<MarketingTransferSyncUser> getTransferByRequestData(@Param("cid") String cid, @Param("endDate") String endDate,@Param("limitStart") Integer limitStart);
+    List<MarketingTransferSyncUser> getTransferByRequestData(@Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
 
-    List<MarketingTransferSyncUser> getTransferData(@Param("cid") String cid, @Param("endDate") String endDate,@Param("limitStart") Integer limitStart);
+    List<MarketingTransferSyncUser> getTransferData(@Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
 
     /**
-     *  根据ApplyDt数据统计
+     * 根据ApplyDt数据统计
+     *
      * @param cid
      * @param apiCode
      * @param limitStart
      * @return
      */
-    List<MarketingTransferSyncUser> getTransferByApplyDt(@Param("cid") String cid,@Param("apiCode") String apiCode,@Param("limitStart") Integer limitStart,
-                                                         @Param("startDay") String startDay,@Param("endDay") String endDay);
+    List<MarketingTransferSyncUser> getTransferByApplyDt(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("limitStart") Integer limitStart,
+                                                         @Param("startDay") String startDay, @Param("endDay") String endDay);
+
     /**
      * 获取指定日期，指定custNum的非延时数据
+     *
      * @param cid
      * @param custNums
      * @param date
      * @return
      */
-    List<MarketingTransferSyncUser> getTransferOrderInsertTimeByCustNum(@Param("cid") String cid,@Param("custNums")List<String> custNums ,@Param("date") String date);
+    List<MarketingTransferSyncUser> getTransferOrderInsertTimeByCustNum(@Param("cid") String cid, @Param("custNums") List<String> custNums, @Param("date") String date);
 
     /**
      * 获取指定custNum的最新数据
+     *
      * @param cid
      * @param custNums
      * @param date
      * @return
      */
-    List<MarketingTransferSyncUser> getTransferOrderRequestTimeByCustNum(@Param("cid") String cid,@Param("custNums")List<String> custNums ,@Param("date") String date);
+    List<MarketingTransferSyncUser> getTransferOrderRequestTimeByCustNum(@Param("cid") String cid, @Param("custNums") List<String> custNums, @Param("date") String date);
 
     /**
      * 数禾转化数据提取，按场景
@@ -108,6 +114,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     /**
      * 过滤转化表实时数据&&上传表案件状态为有效的数据
+     *
      * @param tcId
      * @param apiCode
      * @param limitStart
@@ -117,6 +124,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     /**
      * 过滤caseEffecctive=0的案件编号
+     *
      * @param tcId
      * @param apiCode
      * @param set
@@ -126,6 +134,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     /**
      * 获取request_data = eliminateDate下 applyLoan = 0的数据
+     *
      * @param tcId
      * @param eliminateDate
      * @return
@@ -213,6 +222,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @return
      */
     List<MarketingTransferSyncUser> getJuZiCRuleTransferData(@Param("tCid") String tcId, @Param("requestData") String requestData, @Param("minId") Long minId);
+
     /**
      * 获取桔子B规则的转化数据
      *
@@ -221,7 +231,8 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param minId
      * @return
      */
-    List<MarketingTransferSyncUser> getJuZiBRuleTransferData(@Param("tCid") String tcId,@Param("requestData") String requestData, @Param("registerTime") String registerTime, @Param("minId") Long minId);
+    List<MarketingTransferSyncUser> getJuZiBRuleTransferData(@Param("tCid") String tcId, @Param("requestData") String requestData, @Param("registerTime") String registerTime, @Param("minId") Long minId);
+
     /**
      * 获取桔子A规则的转化数据
      *
@@ -230,7 +241,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param minId
      * @return
      */
-    List<MarketingTransferSyncUser> getJuZiARuleTransferData(@Param("tCid") String tcId,@Param("requestData") String requestData, @Param("loginTime") String loginTime, @Param("minId") Long minId);
+    List<MarketingTransferSyncUser> getJuZiARuleTransferData(@Param("tCid") String tcId, @Param("requestData") String requestData, @Param("loginTime") String loginTime, @Param("minId") Long minId);
 
     /**
      * 获取桔子D规则的锁定期数据
@@ -240,7 +251,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param custNums
      * @return
      */
-    List<String> getJuZiDRuleLockData(@Param("tCid") String tcId, @Param("lentTime") String lentTime,@Param("custNums")Set<String> custNums);
+    List<String> getJuZiDRuleLockData(@Param("tCid") String tcId, @Param("lentTime") String lentTime, @Param("custNums") Set<String> custNums);
 
     /**
      * 获取桔子C规则的锁定期数据
@@ -250,7 +261,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param custNums
      * @return
      */
-    List<String> getJuZiCRuleLockData(@Param("tCid") String tcId, @Param("applyLoanTime") String applyLoanTime,@Param("custNums")Set<String> custNums);
+    List<String> getJuZiCRuleLockData(@Param("tCid") String tcId, @Param("applyLoanTime") String applyLoanTime, @Param("custNums") Set<String> custNums);
 
     /**
      * 获取桔子B规则或A规则的锁定期数据
@@ -260,10 +271,11 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param custNums
      * @return
      */
-    List<String> getJuZiBOrARuleLockData(@Param("tCid") String tcId, @Param("applyDt") String applyDt,@Param("custNums")Set<String> custNums);
+    List<String> getJuZiBOrARuleLockData(@Param("tCid") String tcId, @Param("applyDt") String applyDt, @Param("custNums") Set<String> custNums);
 
     /**
      * 获取转化数据的数据量
+     *
      * @param tcId
      * @param requestDate
      * @return
@@ -275,5 +287,9 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     List<String> getCustNumAndConvtypeData(@Param("tcId") String tcId, @Param("custNums") List<String> custNums, @Param("requestData") String requestDate, @Param("convTypeStr") String convTypeStr);
 
-
+    List<MarketingTransferSyncUser> getRsToPolicyData(@Param("requestDate") String requestDate, @Param("tcId") String tcId
+            , @Param("userTypes") List<String> userTypes
+            , @Param("ifActivity") String ifActivity, @Param("activityTime") String activityTime
+            , @Param("ifApply") String ifApply, @Param("applyDt") String applyDt
+            , @Param("minId") Long minId, @Param("pageSize") Integer pageSize);
 }
