@@ -22,8 +22,7 @@ public class XieChengPushPolicyJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
 
-        String apiCode = context.getJobParameter();
-        xieChengTransferService.pushDataToPolicy(apiCode);
+        xieChengTransferService.pushDataToPolicy();
 
     }
 }

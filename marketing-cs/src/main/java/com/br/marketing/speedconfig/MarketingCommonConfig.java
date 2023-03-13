@@ -503,5 +503,10 @@ public class MarketingCommonConfig {
      * 携程定时任务推决策有效期配置:配置为数字
      */
     private Integer xieChengPushPolicyValidityDay;
+
+    /**
+     * 携程定时任务推决策apicode配置:[sourceapicode,targetapicode]
+     */
+    private List<String> xieChengPushPolicyApiCode;
 }
 

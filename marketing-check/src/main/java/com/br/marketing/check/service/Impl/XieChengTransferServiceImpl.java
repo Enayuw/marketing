@@ -10,6 +10,7 @@ import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.XieChengSmsCollidingDataLogMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.PolicySoleHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -44,15 +45,20 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
     @Resource
     private PolicySoleHandler policySoleHandler;
 
-    private static String XIECHENGAPICODE = "3710058";
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
+    private static String SOURCEAPICODE = "3710058";
+
+    private static String TARGETAPICODE = "3710078";
 
     @Override
-    public void pushDataToPolicy(String apiCode) {
-        if (StringUtils.isNotEmpty(apiCode)) {
-            XIECHENGAPICODE = apiCode;
+    public void pushDataToPolicy() {
+        if (!CollectionUtils.isEmpty(marketingCommonConfig.getXieChengPushPolicyApiCode())) {
+            SOURCEAPICODE = marketingCommonConfig.getXieChengPushPolicyApiCode().get(0);
         }
         String requestDate = LocalDate.now().minusDays(1).toString();
-        String tcId = tableCreateService.getTcId(XIECHENGAPICODE);
+        String tcId = tableCreateService.getTcId(SOURCEAPICODE);
         Set<String> cellSets = new HashSet<>();
         PushStatusAHandler(requestDate, tcId, cellSets);
         PushStatusBHandler(requestDate, tcId, cellSets);
@@ -175,10 +181,13 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
             pushMarketingUserDetailByRuleDTOList.add(pushMarketingUserDetailByRuleDTO);
         });
         ProcessHandlerContext context = new ProcessHandlerContext();
-        context.setApiCode("3710078");
+        if (!CollectionUtils.isEmpty(marketingCommonConfig.getXieChengPushPolicyApiCode())) {
+            TARGETAPICODE = marketingCommonConfig.getXieChengPushPolicyApiCode().get(1);
+        }
+        context.setApiCode(TARGETAPICODE);
         context.setMqFact(new MqFact());
         policySoleHandler.call(pushMarketingUserDetailByRuleDTOList, context);
-        log.warn("携程推送决策情况status={},convtype={},pushNum={}", status, convtype, pushDataList.size());
+        log.warn("携程推送决策情况apiCode={},status={},convtype={},pushNum={}", TARGETAPICODE, status, convtype, pushDataList.size());
     }
 
     private Map<String, XieChengSmsCollidingDataLog> getSmsCollidingData(List<String> cellSets) {
