@@ -200,7 +200,7 @@ public class DistributeLogAspect {
                 DataDistributeDetailLogExample upExample = new DataDistributeDetailLogExample();
                 upExample.createCriteria().andIdIn(logIds);
                 updateEntity.setSuccessDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-                updateEntity.setPStatus(2);
+                updateEntity.setpStatus(2);
                 if (logIds != null && logIds.size() > 0) {
                     dataDistributeDetailLogMapper.updateByExampleSelective(updateEntity, upExample);
                 }
@@ -208,7 +208,7 @@ public class DistributeLogAspect {
                 List<Long> logIds = detailLogList.stream().map(DataDistributeDetailLog::getId).collect(Collectors.toList());
                 DataDistributeDetailLogExample upExample = new DataDistributeDetailLogExample();
                 upExample.createCriteria().andIdIn(logIds);
-                updateEntity.setPStatus(3);
+                updateEntity.setpStatus(3);
                 if (logIds != null && logIds.size() > 0) {
                     dataDistributeDetailLogMapper.updateByExampleSelective(updateEntity, upExample);
                 }
