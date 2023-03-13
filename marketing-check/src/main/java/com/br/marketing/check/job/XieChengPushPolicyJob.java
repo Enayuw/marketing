@@ -1,8 +1,10 @@
 package com.br.marketing.check.job;
 
+import com.br.marketing.check.service.XieChengTransferService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,14 +15,15 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class XieChengPushPolicyJob extends AbstractSimpleElasticJob {
+
+    @Autowired
+    private XieChengTransferService xieChengTransferService;
+
     @Override
-    public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
+    public void process(JobExecutionMultipleShardingContext context) {
 
-
-
-
-
-
+        String apiCode = context.getJobParameter();
+        xieChengTransferService.pushDataToPolicy(apiCode);
 
     }
 }

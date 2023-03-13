@@ -1,15 +1,18 @@
 package com.br.marketing.aspect;
 
+import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.annoation.DistributeLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.DistributeTypeEnum;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.DataDistributeLogBase;
 import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.DataDistributeDetailLogMapper;
+import com.br.marketing.service.IPeriodOfValidityService;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -40,6 +43,9 @@ public class DistributeLogAspect {
 
     @Autowired
     RedisChgService redisChgService;
+
+    @Resource
+    private IPeriodOfValidityService iPeriodOfValidityService;
 
     private final static List soleTypes;
 
@@ -127,7 +133,10 @@ public class DistributeLogAspect {
                                 String day = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                                 criteria.andDistributeDateEqualTo(day);
                             } else {
-                                String day = LocalDate.now().minusDays(logBase.getSoleDay() - 1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                                //使用统一有效期配置
+                                PeriodOfValidityBO builder = iPeriodOfValidityService.getPeriodOfValidityRange(logBase.getSoleDay()
+                                        , new Date()).addDateString().builder();
+                                String day = builder.getBeginDateStr();
                                 criteria.andDistributeDateGreaterThanOrEqualTo(day);
                             }
                         }
@@ -135,6 +144,10 @@ public class DistributeLogAspect {
                             criteria.andCustNumEqualTo(logData.getCustNum());
                         } else if (logBase.getSoleField() == 2) {
                             criteria.andCellEqualTo(logData.getCell());
+                        }
+                        //添加状态查询
+                        if (StringUtils.isNotEmpty(logData.getStatus())) {
+                            criteria.andStatusEqualTo(logData.getStatus());
                         }
                         List<DataDistributeDetailLog> dataDistributeDetailLogs = dataDistributeDetailLogMapper.selectByExample(logExample);
                         if (dataDistributeDetailLogs.size() > 0) {
@@ -187,7 +200,7 @@ public class DistributeLogAspect {
                 DataDistributeDetailLogExample upExample = new DataDistributeDetailLogExample();
                 upExample.createCriteria().andIdIn(logIds);
                 updateEntity.setSuccessDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-                updateEntity.setpStatus(2);
+                updateEntity.setPStatus(2);
                 if (logIds != null && logIds.size() > 0) {
                     dataDistributeDetailLogMapper.updateByExampleSelective(updateEntity, upExample);
                 }
@@ -195,7 +208,7 @@ public class DistributeLogAspect {
                 List<Long> logIds = detailLogList.stream().map(DataDistributeDetailLog::getId).collect(Collectors.toList());
                 DataDistributeDetailLogExample upExample = new DataDistributeDetailLogExample();
                 upExample.createCriteria().andIdIn(logIds);
-                updateEntity.setpStatus(3);
+                updateEntity.setPStatus(3);
                 if (logIds != null && logIds.size() > 0) {
                     dataDistributeDetailLogMapper.updateByExampleSelective(updateEntity, upExample);
                 }

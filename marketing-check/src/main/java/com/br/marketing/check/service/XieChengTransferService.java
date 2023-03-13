@@ -3,5 +3,5 @@ package com.br.marketing.check.service;
 public interface XieChengTransferService {
 
 
-    void pushDataToPolicy();
+    void pushDataToPolicy(String apiCode);
 }

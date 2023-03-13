@@ -326,16 +326,17 @@
         AND request_data = #{requestData}
     </select>
 
-    <select id="getConvtypeData" resultType="java.lang.String">
-        select distinct cust_num
+    <select id="getConvtypeData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select cust_num,id
         from b_marketing_transfer_sync_${tcId}
         where request_data = #{requestData}
           AND json_unquote(json_extract(reserve_field1, '$.convType')) = #{convType}
-        order by id asc #{limitStart}, 2000
+        group by cust_num
+        order by id asc  limit #{limitStart}, 2000
     </select>
 
     <select id="getCustNumAndConvtypeData" resultType="java.lang.String">
-        select distinct cust_num
+        select cust_num
         from b_marketing_transfer_sync_${tcId}
         where request_data = #{requestData}
         and cust_num in

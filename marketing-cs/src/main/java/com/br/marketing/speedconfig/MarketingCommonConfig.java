@@ -498,5 +498,10 @@ public class MarketingCommonConfig {
      * 携程短信撞库开始时间
      */
     private String xieChengSmsCollidingStartTime;
+
+    /**
+     * 携程定时任务推决策有效期配置:配置为数字
+     */
+    private Integer xieChengPushPolicyValidityDay;
 }
 

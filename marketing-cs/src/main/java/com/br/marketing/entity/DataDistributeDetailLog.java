@@ -1,11 +1,16 @@
 package com.br.marketing.entity;
 
+import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
-public class DataDistributeDetailLog {
-    /**
-     * 
-     */
+/**
+ * b_data_distribute_detail_log
+ * @author :zhenLi
+ * @updateTime: 2023-03-10
+ */
+@Data
+public class DataDistributeDetailLog implements Serializable {
     private Long id;
 
     /**
@@ -22,6 +27,11 @@ public class DataDistributeDetailLog {
      * 手机号
      */
     private String cell;
+
+    /**
+     * 情况类型
+     */
+    private String status;
 
     /**
      * 推送状态1-待推送；2-成功；
@@ -63,99 +73,5 @@ public class DataDistributeDetailLog {
      */
     private String sourceType;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getApiCode() {
-        return apiCode;
-    }
-
-    public void setApiCode(String apiCode) {
-        this.apiCode = apiCode == null ? null : apiCode.trim();
-    }
-
-    public String getCustNum() {
-        return custNum;
-    }
-
-    public void setCustNum(String custNum) {
-        this.custNum = custNum == null ? null : custNum.trim();
-    }
-
-    public String getCell() {
-        return cell;
-    }
-
-    public void setCell(String cell) {
-        this.cell = cell == null ? null : cell.trim();
-    }
-
-    public Integer getpStatus() {
-        return pStatus;
-    }
-
-    public void setpStatus(Integer pStatus) {
-        this.pStatus = pStatus;
-    }
-
-    public String getDistributeDate() {
-        return distributeDate;
-    }
-
-    public void setDistributeDate(String distributeDate) {
-        this.distributeDate = distributeDate == null ? null : distributeDate.trim();
-    }
-
-    public Integer getDistributeType() {
-        return distributeType;
-    }
-
-    public void setDistributeType(Integer distributeType) {
-        this.distributeType = distributeType;
-    }
-
-    public String getSuccessDate() {
-        return successDate;
-    }
-
-    public void setSuccessDate(String successDate) {
-        this.successDate = successDate == null ? null : successDate.trim();
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Long getSourceId() {
-        return sourceId;
-    }
-
-    public void setSourceId(Long sourceId) {
-        this.sourceId = sourceId;
-    }
-
-    public String getSourceType() {
-        return sourceType;
-    }
-
-    public void setSourceType(String sourceType) {
-        this.sourceType = sourceType == null ? null : sourceType.trim();
-    }
+    private static final long serialVersionUID = 1L;
 }

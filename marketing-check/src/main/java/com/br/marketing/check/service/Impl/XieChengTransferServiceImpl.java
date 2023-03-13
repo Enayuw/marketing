@@ -1,17 +1,25 @@
 package com.br.marketing.check.service.Impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.service.XieChengTransferService;
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
+import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.XieChengSmsCollidingDataLog;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.XieChengSmsCollidingDataLogMapper;
+import com.br.marketing.origin.MqFact;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
-import com.google.common.collect.Lists;
+import com.br.marketing.strategy.PolicySoleHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,22 +41,90 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
     @Resource
     private XieChengSmsCollidingDataLogMapper xieChengSmsCollidingDataLogMapper;
 
-    private static final String XIECHENGAPICODE = "3710058";
+    @Resource
+    private PolicySoleHandler policySoleHandler;
+
+    private static String XIECHENGAPICODE = "3710058";
 
     @Override
-    public void pushDataToPolicy() {
-        String requestDay = LocalDate.now().minusDays(1).toString();
+    public void pushDataToPolicy(String apiCode) {
+        if (StringUtils.isNotEmpty(apiCode)) {
+            XIECHENGAPICODE = apiCode;
+        }
+        String requestDate = LocalDate.now().minusDays(1).toString();
         String tcId = tableCreateService.getTcId(XIECHENGAPICODE);
         Set<String> cellSets = new HashSet<>();
-        PushStatusAHandler(requestDay, tcId, cellSets);
-        PushStatusBHandler(requestDay, tcId, cellSets);
-        PushStatusCHandler(requestDay, tcId, cellSets);
+        PushStatusAHandler(requestDate, tcId, cellSets);
+        PushStatusBHandler(requestDate, tcId, cellSets);
+        PushStatusCHandler(requestDate, tcId, cellSets);
     }
 
-    private void PushStatusCHandler(String requestDay, String tcId, Set<String> cellSets) {
+    private void PushStatusCHandler(String requestDate, String tcId, Set<String> cellSets) {
+
+        Integer page = 0;
+        Boolean mark = Boolean.TRUE;
+        while (mark) {
+            List<MarketingTransferSyncUser> transferSyncUserList = marketingTransferSyncUserMapper.getConvtypeData(tcId, page * 2000, requestDate, "105");
+            if (CollectionUtils.isEmpty(transferSyncUserList)) {
+                mark = Boolean.FALSE;
+                continue;
+            }
+            page++;
+            List<String> custNums = transferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
+            List<String> filterCustNums = marketingTransferSyncUserMapper.getCustNumAndConvtypeData(tcId, custNums, requestDate, "reserve_field1->>'$.convType' ='106'");
+            transferSyncUserList.removeIf(marketingTransferSyncUser -> filterCustNums.contains(marketingTransferSyncUser.getCustNum()) || cellSets.contains(marketingTransferSyncUser.getCustNum()));
+            //获取orgChannel和result
+            Map<String, XieChengSmsCollidingDataLog> smsCollidingDataLogMap = getSmsCollidingData(custNums);
+            //推送决策
+            pushPolicy(transferSyncUserList, smsCollidingDataLogMap, "c", "105");
+        }
     }
 
-    private void PushStatusBHandler(String requestDay, String tcId, Set<String> cellSets) {
+    private void PushStatusBHandler(String requestDate, String tcId, Set<String> cellSets) {
+
+        Integer page = 0;
+        Boolean mark = Boolean.TRUE;
+        while (mark) {
+            List<MarketingTransferSyncUser> transferSyncUserList = marketingTransferSyncUserMapper.getConvtypeData(tcId, page * 2000, requestDate, "108");
+            if (CollectionUtils.isEmpty(transferSyncUserList)) {
+                mark = Boolean.FALSE;
+                continue;
+            }
+            page++;
+            List<String> custNums = transferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
+            List<String> filterCustNums = marketingTransferSyncUserMapper.getCustNumAndConvtypeData(tcId, custNums, requestDate, "reserve_field1->>'$.convType' !='108'");
+            //去重
+            transferSyncUserList.removeIf(marketingTransferSyncUser -> filterCustNums.contains(marketingTransferSyncUser.getCustNum()) || cellSets.contains(marketingTransferSyncUser.getCustNum()));
+            cellSets.addAll(transferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList()));
+            //获取orgChannel和result
+            Map<String, XieChengSmsCollidingDataLog> smsCollidingDataLogMap = getSmsCollidingData(custNums);
+            //推送决策
+            pushPolicy(transferSyncUserList, smsCollidingDataLogMap, "b", "108");
+        }
+        page = 0;
+        mark = Boolean.TRUE;
+        while (mark) {
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getConvtypeData(tcId, page * 2000, requestDate, "214");
+            if (CollectionUtils.isEmpty(marketingTransferSyncUserList)) {
+                mark = Boolean.FALSE;
+                continue;
+            }
+            page++;
+            List<String> Conv214Nums = marketingTransferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
+            List<String> Conv214And108Nums = marketingTransferSyncUserMapper.getCustNumAndConvtypeData(tcId, Conv214Nums, requestDate, "reserve_field1->>'$.convType' ='108'");
+            if (CollectionUtils.isEmpty(Conv214And108Nums)) {
+                continue;
+            }
+            List<String> filterCustNums = marketingTransferSyncUserMapper.getCustNumAndConvtypeData(tcId, Conv214And108Nums, requestDate, "(reserve_field1->>'$.convType' !='214'  and reserve_field1->>'$.convType' !='108')");
+            //去重
+            marketingTransferSyncUserList.removeIf(marketingTransferSyncUser -> !Conv214And108Nums.contains(marketingTransferSyncUser.getCustNum()));
+            marketingTransferSyncUserList.removeIf(marketingTransferSyncUser -> filterCustNums.contains(marketingTransferSyncUser.getCustNum()) || cellSets.contains(marketingTransferSyncUser.getCustNum()));
+            cellSets.addAll(marketingTransferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList()));
+            //获取orgChannel和result
+            Map<String, XieChengSmsCollidingDataLog> smsCollidingDataLogMap = getSmsCollidingData(Conv214And108Nums);
+            //推送决策
+            pushPolicy(marketingTransferSyncUserList, smsCollidingDataLogMap, "b", "108");
+        }
     }
 
     private void PushStatusAHandler(String requestDate, String tcId, Set<String> cellSets) {
@@ -56,30 +132,57 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
         Boolean mark = Boolean.TRUE;
         int totalSize = 0;
         while (mark) {
-            List<String> custNums = marketingTransferSyncUserMapper.getConvtypeData(tcId, page * 2000, requestDate, "214");
-            if (CollectionUtils.isEmpty(custNums)) {
+            List<MarketingTransferSyncUser> transferSyncUserList = marketingTransferSyncUserMapper.getConvtypeData(tcId, page * 2000, requestDate, "214");
+            if (CollectionUtils.isEmpty(transferSyncUserList)) {
                 mark = Boolean.FALSE;
                 continue;
             }
             page++;
+            List<String> custNums = transferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
             List<String> filterCustNums = marketingTransferSyncUserMapper.getCustNumAndConvtypeData(tcId, custNums, requestDate, "reserve_field1->>'$.convType' !='214'");
             custNums.removeAll(filterCustNums);
             cellSets.addAll(custNums);
             //获取orgChannel和result
-            Map<String, XieChengSmsCollidingDataLog> smsCollidingDataLogMap = getSmsCollidingData(cellSets);
+            Map<String, XieChengSmsCollidingDataLog> smsCollidingDataLogMap = getSmsCollidingData(custNums);
             //推送决策
-            pushPolicy(cellSets, smsCollidingDataLogMap);
+            transferSyncUserList.removeIf(marketingTransferSyncUser -> filterCustNums.contains(marketingTransferSyncUser.getCustNum()));
+            pushPolicy(transferSyncUserList, smsCollidingDataLogMap, "a", "214");
         }
     }
 
-    private void pushPolicy(Set<String> cellSets, Map<String, XieChengSmsCollidingDataLog> smsCollidingDataLogMap) {
+    private void pushPolicy(List<MarketingTransferSyncUser> pushDataList, Map<String, XieChengSmsCollidingDataLog> smsCollidingDataLogMap, String status, String convtype) {
 
-
+        List<PushMarketingUserDetailByRuleDTO> pushMarketingUserDetailByRuleDTOList = new ArrayList<>();
+        pushDataList.forEach(marketingTransferSyncUser -> {
+            PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
+            XieChengSmsCollidingDataLog xieChengSmsCollidingDataLog = smsCollidingDataLogMap.get(marketingTransferSyncUser.getCustNum());
+            pushMarketingUserDetailByRuleDTO.setCaseNumber(marketingTransferSyncUser.getCustNum());
+            pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + status);
+            pushMarketingUserDetailByRuleDTO.setPhone(marketingTransferSyncUser.getCustNum());
+            pushMarketingUserDetailByRuleDTO.setInitId(marketingTransferSyncUser.getId());
+            JSONObject varDto = new JSONObject();
+            varDto.put("status", status);
+            varDto.put("coveType", convtype);
+            varDto.put("requestTime", new Date());
+            if (ObjectUtils.isNotEmpty(xieChengSmsCollidingDataLog)) {
+                varDto.put("result", xieChengSmsCollidingDataLog.getResult());
+                varDto.put("orgChannel", xieChengSmsCollidingDataLog.getOrgChannel());
+            } else {
+                varDto.put("result", "");
+                varDto.put("orgChannel", "");
+            }
+            pushMarketingUserDetailByRuleDTO.setVariables(varDto);
+            pushMarketingUserDetailByRuleDTOList.add(pushMarketingUserDetailByRuleDTO);
+        });
+        ProcessHandlerContext context = new ProcessHandlerContext();
+        context.setApiCode("3710078");
+        context.setMqFact(new MqFact());
+        policySoleHandler.call(pushMarketingUserDetailByRuleDTOList, context);
+        log.warn("携程推送决策情况status={},convtype={},pushNum={}", status, convtype, pushDataList.size());
     }
 
-    private Map<String, XieChengSmsCollidingDataLog> getSmsCollidingData(Set<String> cellSets) {
-
-        List<XieChengSmsCollidingDataLog> xieChengSmsCollidingDataLogs = xieChengSmsCollidingDataLogMapper.getDataByCells(Lists.newArrayList(cellSets));
+    private Map<String, XieChengSmsCollidingDataLog> getSmsCollidingData(List<String> cellSets) {
+        List<XieChengSmsCollidingDataLog> xieChengSmsCollidingDataLogs = xieChengSmsCollidingDataLogMapper.getDataByCells(cellSets);
 
         Map<String, XieChengSmsCollidingDataLog> smsCollidingDataLogMap = xieChengSmsCollidingDataLogs.stream().collect(
                 Collectors.groupingBy(XieChengSmsCollidingDataLog::getSha256CodeList
@@ -87,7 +190,6 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
                                 Collectors.reducing((v1, v2) ->
                                         v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
                                 , Optional::get)));
-
         return smsCollidingDataLogMap;
 
     }

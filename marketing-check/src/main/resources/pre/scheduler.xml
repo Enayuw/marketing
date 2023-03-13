@@ -583,4 +583,19 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="XieChengPushPolicyJob"
+                class="com.br.marketing.check.job.XieChengPushPolicyJob"
+                cron="0 0 8 * * ?"
+                description="携程转化数据推送决策"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters=""
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>

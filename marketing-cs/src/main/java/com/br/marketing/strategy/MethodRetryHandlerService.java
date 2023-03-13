@@ -16,6 +16,7 @@ import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDT
 import com.br.marketing.client.dassservice.output.DassExportAdapterDTO;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleDTO;
+import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleSoleDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.*;
@@ -134,7 +135,7 @@ public class MethodRetryHandlerService {
      * @return
      */
     public DataJoinLogDTO dataJoinLogFix(Object data, DistributeTypeEnum distributeTypeEnum, String apiCode
-            , String custNum, String cell, Long sourceId, DistributeSourceTypeEnum distributeSourceTypeEnum){
+            , String custNum, String cell, Long sourceId, DistributeSourceTypeEnum distributeSourceTypeEnum,String status){
         DataJoinLogDTO dataJoinLogDTO = new DataJoinLogDTO();
         dataJoinLogDTO.setApiCode(apiCode);
         dataJoinLogDTO.setCustNum(custNum);
@@ -146,6 +147,7 @@ public class MethodRetryHandlerService {
         dataJoinLogDTO.setSourceType(distributeSourceTypeEnum.getValue());
         dataJoinLogDTO.setDataCode(data.hashCode());
         dataJoinLogDTO.setDataMd5(DigestUtils.md5DigestAsHex(data.toString().getBytes()));
+        dataJoinLogDTO.setStatus(status);
         return dataJoinLogDTO;
     }
 
@@ -574,4 +576,21 @@ public class MethodRetryHandlerService {
                 , new Date());
     }
 
+    /**
+     * 调用决策接口去重方法
+     * @return
+     */
+    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = true)
+    @DistributeLog
+    public Result callPolicySoleData(PolicyRetryByRuleSoleDTO soleDTO, Integer o) {
+        List<Long> ids = soleDTO.getIds();
+        PushMarketingUserDTO pushMarketingUserDTO = soleDTO.getPushMarketingUserDTO();
+        Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(), soleDTO.getInfoId());
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
 }
