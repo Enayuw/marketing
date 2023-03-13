@@ -589,7 +589,7 @@ public class MethodRetryHandlerService {
         PushMarketingUserDTO pushMarketingUserDTO = soleDTO.getPushMarketingUserDTO();
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(), soleDTO.getInfoId());
+            saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY_SOLE.getCode(), soleDTO.getInfoId());
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));

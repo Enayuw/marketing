@@ -508,5 +508,10 @@ public class MarketingCommonConfig {
      * 榕树推送决策策略集
      */
     private HashMap<String,HashMap<String,String>> rsStrategyCodes;
+
+    /**
+     * 携程定时任务推决策apicode配置:[sourceapicode,targetapicode]
+     */
+    private List<String> xieChengPushPolicyApiCode;
 }
 
