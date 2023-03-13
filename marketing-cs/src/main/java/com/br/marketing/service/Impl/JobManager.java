@@ -41,16 +41,18 @@ public class JobManager {
             log.error(String.format("该推送日志当前有条 请检查apiCode:%s,data:%s,type:%s", apiCode, date, actionType));
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
+        if(transferActionFronts.size()<=0){
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(null);
+        }
 
         TransferActionFront transferActionFront = transferActionFronts.get(0);
+
         if (new Integer(2).equals(transferActionFront.getStatus())) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("今日作业已经执行结束");
         }
-        if (transferActionFronts.size() > 0) {
-            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(transferActionFront);
-        }
 
-        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(null);
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(transferActionFront);
+
     }
 
     public Long saveFrontData(String apiCode, String date, Integer actionType) {

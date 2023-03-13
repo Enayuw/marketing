@@ -1,8 +1,11 @@
 package com.br.marketing.speedconfig;
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.speed.client.common.annotations.SpeedFile;
+import com.google.gson.JsonObject;
 import lombok.Data;
+import netscape.javascript.JSObject;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.*;
@@ -507,7 +510,7 @@ public class MarketingCommonConfig {
     /**
      * 榕树推送决策策略集
      */
-    private HashMap<String,HashMap<String,String>> rsStrategyCodes;
+    private HashMap<String, JSONObject> rsStrategyCodes;
 
     /**
      * 携程定时任务推决策apicode配置:[sourceapicode,targetapicode]

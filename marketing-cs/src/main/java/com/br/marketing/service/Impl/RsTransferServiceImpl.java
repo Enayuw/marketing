@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
@@ -68,16 +69,21 @@ public class RsTransferServiceImpl implements RsTransferService {
         if(!ResultCode.SUCCESS.getValue().equals(frontData.getCode())){
             return new Result().setCode(ResultCode.FAIL.getValue());
         }
+        Long jobId  = 0L;
         TransferActionFront actionFront = frontData.getData();
-
+        if(actionFront ==null){
+            jobId = jobManager.saveFrontData(apiCode,date,1);
+        }else{
+            jobId = actionFront.getId();
+        }
         HashSet cellSet = new HashSet();
-        HashMap<String, HashMap<String, String>> rsStrategyCodes = marketingCommonConfig.getRsStrategyCodes();
-        HashMap<String, String> strategyCodeMap = rsStrategyCodes.get(apiCode);
-        action(date,apiCode,tcId,cellSet,"1",date,"c",strategyCodeMap.get("c"));
-        action(date,apiCode,tcId,cellSet,"0",null,"d",strategyCodeMap.get("d"));
+        HashMap<String, JSONObject> rsStrategyCodes = marketingCommonConfig.getRsStrategyCodes();
+        JSONObject strategyCode = rsStrategyCodes.get(apiCode);
+        action(date,apiCode,tcId,cellSet,"1",date,"c",strategyCode.getString("c"));
+        action(date,apiCode,tcId,cellSet,"0",null,"d",strategyCode.getString("d"));
         int size = cellSet.size();
         log.warn("榕树推送决策推送了"+size+"条");
-        jobManager.updateFrontDataStatus(actionFront.getId(),2);
+        jobManager.updateFrontDataStatus(jobId,2);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
@@ -88,11 +94,12 @@ public class RsTransferServiceImpl implements RsTransferService {
         Integer sort = 1;
         while (actionMark){
             List<PushMarketingUserDetailDTO> list = new ArrayList<>();
-            List<MarketingTransferSyncUser> rsToPolicyData = transferSyncUserMapper.getRsToPolicyData(date, tcId, Arrays.asList("1", "2"), "1", date, "1", applyDt, minId, 500);
+            List<MarketingTransferSyncUser> rsToPolicyData = transferSyncUserMapper.getRsToPolicyData(date, tcId, Arrays.asList("1", "2"), "1", date, ifApply, applyDt, minId, 500);
             if(rsToPolicyData.size()<=0){
                 actionMark = Boolean.FALSE;
                 continue;
             }
+            minId = rsToPolicyData.get(rsToPolicyData.size()-1).getId();
             Set<String> custNums = rsToPolicyData.stream().map(t -> t.getCustNum()).collect(Collectors.toSet());
             Map<String, MarketingSyncUser> syncUserMap = commonMethodHandlerService.customerMarketingSyncUser(custNums, apiCode);
             for (MarketingTransferSyncUser transferUser : rsToPolicyData) {
