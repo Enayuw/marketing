@@ -158,7 +158,9 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
     }
 
     private void pushPolicy(List<MarketingTransferSyncUser> pushDataList, Map<String, XieChengSmsCollidingDataLog> smsCollidingDataLogMap, String status, String convtype) {
-
+        if (!CollectionUtils.isEmpty(marketingCommonConfig.getXieChengPushPolicyApiCode())) {
+            TARGETAPICODE = marketingCommonConfig.getXieChengPushPolicyApiCode().get(1);
+        }
         List<PushMarketingUserDetailByRuleDTO> pushMarketingUserDetailByRuleDTOList = new ArrayList<>();
         pushDataList.forEach(marketingTransferSyncUser -> {
             PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
@@ -170,7 +172,7 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
             JSONObject varDto = new JSONObject();
             varDto.put("status", status);
             varDto.put("coveType", convtype);
-            varDto.put("requestTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            varDto.put("requestTime", marketingTransferSyncUser.getRequestData());
             if (ObjectUtils.isNotEmpty(xieChengSmsCollidingDataLog)) {
                 varDto.put("result", xieChengSmsCollidingDataLog.getResult());
                 varDto.put("orgChannel", xieChengSmsCollidingDataLog.getOrgChannel());
@@ -182,9 +184,6 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
             pushMarketingUserDetailByRuleDTOList.add(pushMarketingUserDetailByRuleDTO);
         });
         ProcessHandlerContext context = new ProcessHandlerContext();
-        if (!CollectionUtils.isEmpty(marketingCommonConfig.getXieChengPushPolicyApiCode())) {
-            TARGETAPICODE = marketingCommonConfig.getXieChengPushPolicyApiCode().get(1);
-        }
         context.setApiCode(TARGETAPICODE);
         context.setMqFact(new MqFact());
         policySoleHandler.call(pushMarketingUserDetailByRuleDTOList, context);
