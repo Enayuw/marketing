@@ -173,8 +173,8 @@ public class FenqileServiceImpl implements IFenqileService {
         taskInfoDTO.setAccessNumber(UUID.randomUUID() + String.format("%05d", secureRandom.nextInt(10000)));
         taskInfoDTO.setMethod("caseAdd");
         taskInfoDTO.setBatchNumber(batchNumber);
-        taskInfoDTO.setBatchName(batchNumber
-                + date.toInstant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.BASIC_ISO_DATE) + apiCode);
+        taskInfoDTO.setBatchName(batchNumber + date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                .format(DateTimeFormatter.BASIC_ISO_DATE) + apiCode);
         taskInfoDTO.setStrategyCode(strategyCode);
         PushMarketingUserDTO<PushMarketingUserTaskInfoDTO> pushMarketingUserDTO = new PushMarketingUserDTO<>();
         pushMarketingUserDTO.setApiCode(apiCode);
