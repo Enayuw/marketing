@@ -18,6 +18,7 @@ import com.br.marketing.service.IRongShuPushDaasService;
 import com.br.marketing.service.RsTransferService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.google.api.client.json.Json;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,7 +120,10 @@ public class RsTransferServiceImpl implements RsTransferService {
                 PushMarketingUserDetailDTO pushMarketingUserDetailDTO = new PushMarketingUserDetailDTO();
                 pushMarketingUserDetailDTO.setCaseNumber(transferUser.getCustNum());
                 pushMarketingUserDetailDTO.setPhone(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(syncUser.getCell()).getBytes()));
-//                pushMarketingUserDetailDTO.setVariables();
+                JSONObject jb = new JSONObject();
+                jb.put("userType",transferUser.getUserType());
+                jb.put("status",status);
+                pushMarketingUserDetailDTO.setVariables(jb);
                 list.add(pushMarketingUserDetailDTO);
 
             }
