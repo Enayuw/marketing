@@ -43,10 +43,6 @@ public class DistributeLogAspect {
 
     @Autowired
     RedisChgService redisChgService;
-
-    @Resource
-    private IPeriodOfValidityService iPeriodOfValidityService;
-
     private final static List soleTypes;
 
     // 1-apiCode,custNum
@@ -133,10 +129,7 @@ public class DistributeLogAspect {
                                 String day = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                                 criteria.andDistributeDateEqualTo(day);
                             } else {
-                                //使用统一有效期配置
-                                PeriodOfValidityBO builder = iPeriodOfValidityService.getPeriodOfValidityRange(logBase.getSoleDay()
-                                        , new Date()).addDateString().builder();
-                                String day = builder.getBeginDateStr();
+                                String day = LocalDate.now().minusDays(logBase.getSoleDay() - 1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                                 criteria.andDistributeDateGreaterThanOrEqualTo(day);
                             }
                         }

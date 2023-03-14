@@ -71,7 +71,7 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
         Integer page = 0;
         Boolean mark = Boolean.TRUE;
         while (mark) {
-            List<MarketingTransferSyncUser> transferSyncUserList = marketingTransferSyncUserMapper.getConvtypeData(tcId, page * 2000, requestDate, "105");
+            List<MarketingTransferSyncUser> transferSyncUserList = marketingTransferSyncUserMapper.getConvtypeData(tcId, page * 500, requestDate, "105");
             if (CollectionUtils.isEmpty(transferSyncUserList)) {
                 mark = Boolean.FALSE;
                 continue;
@@ -92,7 +92,7 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
         Integer page = 0;
         Boolean mark = Boolean.TRUE;
         while (mark) {
-            List<MarketingTransferSyncUser> transferSyncUserList = marketingTransferSyncUserMapper.getConvtypeData(tcId, page * 2000, requestDate, "108");
+            List<MarketingTransferSyncUser> transferSyncUserList = marketingTransferSyncUserMapper.getConvtypeData(tcId, page * 500, requestDate, "108");
             if (CollectionUtils.isEmpty(transferSyncUserList)) {
                 mark = Boolean.FALSE;
                 continue;
@@ -111,7 +111,7 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
         page = 0;
         mark = Boolean.TRUE;
         while (mark) {
-            List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getConvtypeData(tcId, page * 2000, requestDate, "214");
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getConvtypeData(tcId, page * 500, requestDate, "214");
             if (CollectionUtils.isEmpty(marketingTransferSyncUserList)) {
                 mark = Boolean.FALSE;
                 continue;
@@ -137,9 +137,8 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
     private void PushStatusAHandler(String requestDate, String tcId, Set<String> cellSets) {
         Integer page = 0;
         Boolean mark = Boolean.TRUE;
-        int totalSize = 0;
         while (mark) {
-            List<MarketingTransferSyncUser> transferSyncUserList = marketingTransferSyncUserMapper.getConvtypeData(tcId, page * 2000, requestDate, "214");
+            List<MarketingTransferSyncUser> transferSyncUserList = marketingTransferSyncUserMapper.getConvtypeData(tcId, page * 500, requestDate, "214");
             if (CollectionUtils.isEmpty(transferSyncUserList)) {
                 mark = Boolean.FALSE;
                 continue;
