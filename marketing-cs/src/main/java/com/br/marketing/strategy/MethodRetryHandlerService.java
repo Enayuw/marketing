@@ -585,6 +585,9 @@ public class MethodRetryHandlerService {
     @RetryMethod(retryNowNum = 2, isOrNoDbRetry = true)
     @DistributeLog
     public Result callPolicySoleData(PolicyRetryByRuleSoleDTO soleDTO, Integer o) {
+        if(soleDTO.getData().size()<=0){
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        }
         List<Long> ids = soleDTO.getIds();
         PushMarketingUserDTO pushMarketingUserDTO = soleDTO.getPushMarketingUserDTO();
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
