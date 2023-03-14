@@ -361,7 +361,7 @@
             and replace(substring(reserve_field1->'$.activityTime',1,11),'"','')=#{activityTime}
         </if>
         <if test="ifApply != null ">
-            and if_apply=#{ifActivity}
+            and if_apply=#{ifApply}
         </if>
         <if test="applyDt != null ">
             and STR_TO_DATE(apply_dt,'%Y-%m-%d') = #{applyDt}
