@@ -18,6 +18,7 @@ import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerSer
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleSoleDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
@@ -580,16 +581,26 @@ public class MethodRetryHandlerService {
 
     /**
      * 调用决策接口去重方法
+     *
      * @return
      */
     @RetryMethod(retryNowNum = 2, isOrNoDbRetry = true)
     @DistributeLog
     public Result callPolicySoleData(PolicyRetryByRuleSoleDTO soleDTO, Integer o) {
-        if(soleDTO.getData().size()<=0){
+        if (soleDTO.getData().size() <= 0) {
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         }
         List<Long> ids = soleDTO.getIds();
-        PushMarketingUserDTO pushMarketingUserDTO = soleDTO.getPushMarketingUserDTO();
+        PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
+        taskInfoDTO.setData(soleDTO.getData());
+        taskInfoDTO.setAccessNumber(UUID.randomUUID().toString());
+        taskInfoDTO.setMethod("caseAdd");
+        taskInfoDTO.setBatchNumber(soleDTO.getBatchNumber());
+        taskInfoDTO.setStrategyCode(soleDTO.getStrategyCode());
+
+        PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
+        pushMarketingUserDTO.setApiCode(soleDTO.getApiCode());
+        pushMarketingUserDTO.setJsonData(taskInfoDTO);
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY_SOLE.getCode(), soleDTO.getInfoId());

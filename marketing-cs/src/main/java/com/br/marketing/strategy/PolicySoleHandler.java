@@ -50,26 +50,17 @@ public class PolicySoleHandler extends AbstractExternalInterfaceHandler<PushMark
                 pushs.add(entity);
                 sourceIds.add(t.getInitId());
                 // 把封装的日志插入到数组中
-                logList.add(methodRetryHandlerService.dataJoinLogFix(t, DistributeTypeEnum.POLICYDATA
+                logList.add(methodRetryHandlerService.dataJoinLogFix(entity, DistributeTypeEnum.POLICYDATA
                         , context.getApiCode(), t.getPhone(), t.getPhone()
                         , Long.valueOf(t.getInitId()), DistributeSourceTypeEnum.TRANSFER, t.getBatchNumber().substring(t.getBatchNumber().length() - 1)));
             });
-            PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
-            taskInfoDTO.setData(pushs);
-            taskInfoDTO.setAccessNumber(UUID.randomUUID().toString());
-            taskInfoDTO.setMethod("caseAdd");
-            taskInfoDTO.setBatchNumber(batch);
-            taskInfoDTO.setStrategyCode(ruleLists.get(0).getStrategyCode());
-
-            PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
-            pushMarketingUserDTO.setApiCode(context.getApiCode());
-            pushMarketingUserDTO.setJsonData(taskInfoDTO);
-
             PolicyRetryByRuleSoleDTO retryByRuleDTO = new PolicyRetryByRuleSoleDTO();
+            retryByRuleDTO.setApiCode(context.getApiCode());
+            retryByRuleDTO.setBatchNumber(batch);
+            retryByRuleDTO.setStrategyCode(ruleLists.get(0).getStrategyCode());
             retryByRuleDTO.setIds(sourceIds);
             retryByRuleDTO.setInfoId(context.getMqFact().getSourceId());
-            retryByRuleDTO.setPushMarketingUserDTO(pushMarketingUserDTO);
-            retryByRuleDTO.setData(ruleLists);
+            retryByRuleDTO.setData(pushs);
             retryByRuleDTO.setDetailLogList(logList);
             //传参去重
             retryByRuleDTO.setIsSole(true);

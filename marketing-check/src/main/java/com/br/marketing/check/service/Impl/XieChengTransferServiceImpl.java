@@ -20,6 +20,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -169,7 +170,7 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
             JSONObject varDto = new JSONObject();
             varDto.put("status", status);
             varDto.put("coveType", convtype);
-            varDto.put("requestTime", new Date());
+            varDto.put("requestTime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             if (ObjectUtils.isNotEmpty(xieChengSmsCollidingDataLog)) {
                 varDto.put("result", xieChengSmsCollidingDataLog.getResult());
                 varDto.put("orgChannel", xieChengSmsCollidingDataLog.getOrgChannel());
