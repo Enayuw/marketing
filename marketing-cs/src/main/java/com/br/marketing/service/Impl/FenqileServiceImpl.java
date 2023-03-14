@@ -170,10 +170,10 @@ public class FenqileServiceImpl implements IFenqileService {
         SecureRandom secureRandom = new SecureRandom();
         PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
         taskInfoDTO.setData(dtoList);
-        taskInfoDTO.setAccessNumber(UUID.randomUUID() + String.format("%05d", secureRandom.nextInt(10000)));
+        taskInfoDTO.setAccessNumber(UUID.randomUUID() + String.valueOf(System.nanoTime())
+                + String.format("%05d", secureRandom.nextInt(10000)));
         taskInfoDTO.setMethod("caseAdd");
-        taskInfoDTO.setBatchNumber(batchNumber + "_" + apiCode);
-        taskInfoDTO.setBatchName(batchNumber + "_" + date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+        taskInfoDTO.setBatchNumber(batchNumber + "_" + date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
                 .format(DateTimeFormatter.BASIC_ISO_DATE) + "_" + apiCode);
         taskInfoDTO.setStrategyCode(strategyCode);
         PushMarketingUserDTO<PushMarketingUserTaskInfoDTO> pushMarketingUserDTO = new PushMarketingUserDTO<>();
