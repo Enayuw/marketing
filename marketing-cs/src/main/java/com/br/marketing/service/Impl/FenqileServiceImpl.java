@@ -1,6 +1,8 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.Sha256Util;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailDTO;
@@ -11,14 +13,17 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.entity.TransferActionFrontExample;
+import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.mapper.MarketingUserMapper;
 import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.service.IFenqileService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.security.SecureRandom;
@@ -47,6 +52,9 @@ public class FenqileServiceImpl implements IFenqileService {
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     @Override
     public Integer periodPushDecision(String apiCode, int day, String strategyCode, LocalDate localDate
             , String startTimeStr, String endTimeStr) {
@@ -66,6 +74,8 @@ public class FenqileServiceImpl implements IFenqileService {
                             .format(DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT_SSS));
                 }
             }
+            HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();
+            Integer encType = pushCellEncPolicy == null ? ScoreThreeKeyEncryptEnum.md5.getValue() : pushCellEncPolicy.getOrDefault(apiCode, ScoreThreeKeyEncryptEnum.md5.getValue());
             try {
                 while (true) {
                     List<MarketingSyncUser> l = marketingUserMapper.findCustNumCellUserTypeScoreDatePage(apiCode
@@ -75,7 +85,7 @@ public class FenqileServiceImpl implements IFenqileService {
                     }
                     date = l.get(l.size() - 1).getAppletTime();
                     page++;
-                    sum += makeData(apiCode, l, localDateStr, strategyCode);
+                    sum += makeData(apiCode, l, localDateStr, strategyCode, encType);
                     if (l.size() < 2000) {
                         break;
                     }
@@ -109,7 +119,8 @@ public class FenqileServiceImpl implements IFenqileService {
      * 2023-03-13 17:42
      * 组装数据
      */
-    private int makeData(String apiCode, List<MarketingSyncUser> list, String batchNumber, String strategyCode) {
+    private int makeData(String apiCode, List<MarketingSyncUser> list, String batchNumber, String strategyCode
+            , Integer encType) {
         List<PushMarketingUserDetailDTO> dtoList = new ArrayList<>();
         List<Long> ids = new ArrayList<>();
         int pageSize = 500;
@@ -120,7 +131,14 @@ public class FenqileServiceImpl implements IFenqileService {
         int sum = 0;
         for (MarketingSyncUser syncUser : list) {
             PushMarketingUserDetailDTO dto = new PushMarketingUserDetailDTO();
-            dto.setPhone(syncUser.getCell());
+            String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
+            if (ScoreThreeKeyEncryptEnum.md5.getValue().equals(encType)) {
+                dto.setPhone(DigestUtils.md5DigestAsHex(cell.getBytes()));
+            } else if (ScoreThreeKeyEncryptEnum.sha256.getValue().equals(encType)) {
+                dto.setPhone(Sha256Util.getSHA256Encrypt(cell));
+            } else {
+                dto.setPhone(cell);
+            }
             dto.setCaseNumber(syncUser.getCustNum());
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("userType", syncUser.getUserType());
