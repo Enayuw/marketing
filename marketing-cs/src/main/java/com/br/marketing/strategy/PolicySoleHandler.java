@@ -11,12 +11,10 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,7 +42,13 @@ public class PolicySoleHandler extends AbstractExternalInterfaceHandler<PushMark
             List<PushMarketingUserDetailByRuleDTO> ruleLists = batchMap.get(batch);
             ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
             List<Long> sourceIds = new ArrayList<>();
-            ruleLists.forEach(t -> {
+            List<String> list = Arrays.asList(batch.split("_"));
+            String status = "";
+            if (!CollectionUtils.isEmpty(list)) {
+                String statusSub = list.get(0);
+                status = statusSub.substring(statusSub.length() - 1);
+            }
+            for(PushMarketingUserDetailByRuleDTO t : ruleLists) {
                 PushMarketingUserDetailDTO entity = new PushMarketingUserDetailDTO();
                 BeanUtils.copyProperties(t, entity);
                 pushs.add(entity);
@@ -52,8 +56,9 @@ public class PolicySoleHandler extends AbstractExternalInterfaceHandler<PushMark
                 // 把封装的日志插入到数组中
                 logList.add(methodRetryHandlerService.dataJoinLogFix(entity, DistributeTypeEnum.POLICYDATA
                         , context.getApiCode(), t.getPhone(), t.getPhone()
-                        , Long.valueOf(t.getInitId()), DistributeSourceTypeEnum.TRANSFER, t.getBatchNumber().substring(t.getBatchNumber().length() - 1)));
-            });
+                        , Long.valueOf(t.getInitId()), DistributeSourceTypeEnum.TRANSFER, status));
+
+            }
             PolicyRetryByRuleSoleDTO retryByRuleDTO = new PolicyRetryByRuleSoleDTO();
             retryByRuleDTO.setApiCode(context.getApiCode());
             retryByRuleDTO.setBatchNumber(batch);

@@ -164,7 +164,7 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
             PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
             XieChengSmsCollidingDataLog xieChengSmsCollidingDataLog = smsCollidingDataLogMap.get(marketingTransferSyncUser.getCustNum());
             pushMarketingUserDetailByRuleDTO.setCaseNumber(marketingTransferSyncUser.getCustNum());
-            pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + status);
+            pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + status+"_"+TARGETAPICODE);
             pushMarketingUserDetailByRuleDTO.setPhone(marketingTransferSyncUser.getCustNum());
             pushMarketingUserDetailByRuleDTO.setInitId(marketingTransferSyncUser.getId());
             JSONObject varDto = new JSONObject();
