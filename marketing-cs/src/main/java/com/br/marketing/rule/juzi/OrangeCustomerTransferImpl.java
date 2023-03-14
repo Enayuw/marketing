@@ -1,9 +1,13 @@
 package com.br.marketing.rule.juzi;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.context.RuleDataCollectionEnum;
+import com.br.marketing.context.impl.OrangeCollectDataImpl;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rule.AssembleData;
@@ -17,6 +21,7 @@ import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 /**
  * D20230302桔子自动化过滤-3710075（营销→外呼）
@@ -29,7 +34,8 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> {
 
-    protected final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final int NUMBER = 1000;
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -40,12 +46,13 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
         conversionData.setInversionStatus("0");
         conversionData.setCid("3874");
         conversionData.setCaseNum(transfer.getCustNum());
-        // TODO: 2023-03-14 yyyy-mm-dd HH:mm:ss 添加有效期截至时间
-        conversionData.setExpireDate("");
+        OrangeCollectDataImpl.OrangeRuleNecessaryData data = (OrangeCollectDataImpl.OrangeRuleNecessaryData
+                ) context.getRuleNecessaryData();
+        conversionData.setExpireDate(data.getExpireDate());
         String query = RpcClientProxy.decode(transfer.getCustNum(), "cell", "md5", "");
         conversionData.setPhone(query);
         if (StringUtils.isEmpty(transfer.getCreateTime())) {
-            conversionData.setPartnerProcessDate(LocalDateTime.now().format(dateTimeFormatter));
+            conversionData.setPartnerProcessDate(LocalDateTime.now().format(DATE_TIME_FORMATTER));
         } else {
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         }
@@ -67,14 +74,28 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
                 try {
                     a = new BigDecimal(auditAmount);
                     l = new BigDecimal(lentAmount);
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
+                } catch (Exception ignored) {
                     return false;
                 }
-                boolean bool = a.subtract(l).doubleValue() < 1000;
-                // TODO: 2023-03-14  需要添加有效期判断结果
-                if (bool) {
-                    return true;
+                if (a.subtract(l).doubleValue() < NUMBER) {
+                    // TODO: 2023-03-14  需要添加有效期判断结果
+                    boolean isNotExpire = true;
+                    if (isNotExpire) {
+                        OrangeCollectDataImpl.OrangeRuleNecessaryData data = (OrangeCollectDataImpl.OrangeRuleNecessaryData
+                                ) context.getRuleNecessaryData();
+                        Map<String, MarketingSyncUser> customerMap = data.getCustomerMap();
+                        if (customerMap.containsKey(transfer.getCustNum())) {
+                            if (StringUtils.hasText(transfer.getReserveField1())) {
+                                try {
+                                    JSONObject jsonObject = JSONObject.parseObject(transfer.getReserveField1());
+                                    data.setExpireDate(jsonObject.getString("eDate"));
+                                } catch (Exception ignored) {
+                                    return false;
+                                }
+                            }
+                        }
+                        return true;
+                    }
                 }
             }
         }
@@ -93,7 +114,7 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
 
     @Override
     public Integer ruleDataCollection() {
-        return null;
+        return RuleDataCollectionEnum.ORANGE_DATA_COLLECTION.getCode();
     }
 
 }
