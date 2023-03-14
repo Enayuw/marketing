@@ -129,7 +129,7 @@ public class RsTransferServiceImpl implements RsTransferService {
             }
             PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
             taskInfoDTO.setData(list);
-            taskInfoDTO.setAccessNumber(apiCode+"_"+time+"_"+sort);
+            taskInfoDTO.setAccessNumber(apiCode+"_"+time+"_"+status+"_"+sort);
             taskInfoDTO.setMethod("caseAdd");
             taskInfoDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))+status+"_"+apiCode);
             taskInfoDTO.setStrategyCode(strategyCode);
