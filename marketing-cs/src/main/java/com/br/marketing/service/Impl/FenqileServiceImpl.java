@@ -62,7 +62,7 @@ public class FenqileServiceImpl implements IFenqileService {
                     Date dateOld = new Date();
                     dateOld.setTime(Long.parseLong(actionFront.getRemark()));
                     startTimeStr = dateOld.toInstant().atZone(ZoneId.systemDefault())
-                            .plus(1, ChronoUnit.MILLIS)
+                            .plus(1, ChronoUnit.SECONDS)
                             .format(DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT_SSS));
                 }
             }
@@ -82,6 +82,7 @@ public class FenqileServiceImpl implements IFenqileService {
                 }
                 saveOrUpdate(day, apiCode, localDateStr, date, actionRow);
             } catch (Exception e) {
+                saveOrUpdate(day, apiCode, localDateStr, date, actionRow);
                 log.error(e.getMessage(), e);
                 return null;
             }
