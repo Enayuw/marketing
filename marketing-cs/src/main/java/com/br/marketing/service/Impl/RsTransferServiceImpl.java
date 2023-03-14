@@ -91,7 +91,7 @@ public class RsTransferServiceImpl implements RsTransferService {
     void action(String date,String apiCode,String tcId,HashSet cellSet,String ifApply,String applyDt,String status,String strategyCode){
         Long minId = null;
         Boolean actionMark = Boolean.TRUE;
-        String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         Integer sort = 1;
         while (actionMark){
             List<PushMarketingUserDetailDTO> list = new ArrayList<>();
@@ -129,9 +129,9 @@ public class RsTransferServiceImpl implements RsTransferService {
             }
             PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
             taskInfoDTO.setData(list);
-            taskInfoDTO.setAccessNumber(time+sort);
+            taskInfoDTO.setAccessNumber(apiCode+"_"+time+"_"+sort);
             taskInfoDTO.setMethod("caseAdd");
-            taskInfoDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))+status);
+            taskInfoDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))+status+"_"+apiCode);
             taskInfoDTO.setStrategyCode(strategyCode);
 
             PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
