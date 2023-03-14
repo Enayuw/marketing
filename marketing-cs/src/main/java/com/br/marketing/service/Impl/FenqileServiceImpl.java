@@ -59,6 +59,7 @@ public class FenqileServiceImpl implements IFenqileService {
     public Integer periodPushDecision(String apiCode, int day, String strategyCode, LocalDate localDate
             , String startTimeStr, String endTimeStr) {
         String localDateStr = localDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
+        String basicDateStr = localDate.format(DateTimeFormatter.BASIC_ISO_DATE);
         List<TransferActionFront> actionRow = getActionRow(apiCode, day, localDateStr);
         int page = 0;
         int sum = 0;
@@ -85,7 +86,7 @@ public class FenqileServiceImpl implements IFenqileService {
                     }
                     date = l.get(l.size() - 1).getAppletTime();
                     page++;
-                    sum += makeData(apiCode, l, localDateStr, strategyCode, encType);
+                    sum += makeData(apiCode, l, basicDateStr, strategyCode, encType, date);
                     if (l.size() < 2000) {
                         break;
                     }
@@ -120,7 +121,7 @@ public class FenqileServiceImpl implements IFenqileService {
      * 组装数据
      */
     private int makeData(String apiCode, List<MarketingSyncUser> list, String batchNumber, String strategyCode
-            , Integer encType) {
+            , Integer encType, Date date) {
         List<PushMarketingUserDetailDTO> dtoList = new ArrayList<>();
         List<Long> ids = new ArrayList<>();
         int pageSize = 500;
@@ -151,7 +152,7 @@ public class FenqileServiceImpl implements IFenqileService {
             int size = dtoList.size();
             if (size == pageSize || number == 1) {
                 number--;
-                Result<?> result = pushDecision(dtoList, ids, batchNumber, strategyCode, apiCode);
+                Result<?> result = pushDecision(dtoList, ids, batchNumber, strategyCode, apiCode, date);
                 if (result != null && ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                     sum += dtoList.size();
                 }
@@ -165,13 +166,15 @@ public class FenqileServiceImpl implements IFenqileService {
      * 发送数据
      */
     private Result<?> pushDecision(List<PushMarketingUserDetailDTO> dtoList
-            , List<Long> ids, String batchNumber, String strategyCode, String apiCode) {
+            , List<Long> ids, String batchNumber, String strategyCode, String apiCode, Date date) {
         SecureRandom secureRandom = new SecureRandom();
         PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
         taskInfoDTO.setData(dtoList);
         taskInfoDTO.setAccessNumber(UUID.randomUUID() + String.format("%05d", secureRandom.nextInt(10000)));
         taskInfoDTO.setMethod("caseAdd");
         taskInfoDTO.setBatchNumber(batchNumber);
+        taskInfoDTO.setBatchName(batchNumber
+                + date.toInstant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.BASIC_ISO_DATE) + apiCode);
         taskInfoDTO.setStrategyCode(strategyCode);
         PushMarketingUserDTO<PushMarketingUserTaskInfoDTO> pushMarketingUserDTO = new PushMarketingUserDTO<>();
         pushMarketingUserDTO.setApiCode(apiCode);
