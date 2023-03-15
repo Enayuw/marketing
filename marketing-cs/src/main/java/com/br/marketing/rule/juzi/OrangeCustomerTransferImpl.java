@@ -11,6 +11,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,6 +38,9 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final int NUMBER = 1000;
+
+    @Resource
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -78,8 +83,7 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
                     return false;
                 }
                 if (a.subtract(l).doubleValue() < NUMBER) {
-                    // TODO: 2023-03-14  需要添加有效期判断结果，syncUser不等于null时有效
-                    MarketingSyncUser syncUser = null;
+                    MarketingSyncUser syncUser = transferDataValidityPeriodService.getNewValidityPeriodData(transfer);
                     if (syncUser != null) {
                         OrangeCollectDataImpl.OrangeRuleNecessaryData data = (OrangeCollectDataImpl.OrangeRuleNecessaryData
                                 ) context.getRuleNecessaryData();
