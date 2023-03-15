@@ -19,9 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 
 /**
  * D20230302桔子自动化过滤-3710075（营销→外呼）
@@ -79,19 +79,25 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
                 }
                 if (a.subtract(l).doubleValue() < NUMBER) {
                     // TODO: 2023-03-14  需要添加有效期判断结果
-                    boolean isNotExpire = true;
-                    if (isNotExpire) {
+                    MarketingSyncUser syncUser = null;
+                    if (syncUser != null) {
                         OrangeCollectDataImpl.OrangeRuleNecessaryData data = (OrangeCollectDataImpl.OrangeRuleNecessaryData
                                 ) context.getRuleNecessaryData();
-                        Map<String, MarketingSyncUser> customerMap = data.getCustomerMap();
-                        if (customerMap.containsKey(transfer.getCustNum())) {
-                            if (StringUtils.hasText(transfer.getReserveField1())) {
+                        if (StringUtils.hasText(syncUser.getReserveField1())) {
+                            try {
+                                JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
+                                String eDate = jsonObject.getString("eDate");
                                 try {
-                                    JSONObject jsonObject = JSONObject.parseObject(transfer.getReserveField1());
-                                    data.setExpireDate(jsonObject.getString("eDate"));
-                                } catch (Exception ignored) {
-                                    return false;
+                                    LocalDateTime.parse(eDate, DATE_TIME_FORMATTER);
+                                } catch (Exception exception) {
+                                    try {
+                                        data.setExpireDate(LocalDate.parse(eDate, DateTimeFormatter.ISO_LOCAL_DATE)
+                                                .atStartOfDay().format(DATE_TIME_FORMATTER));
+                                    } catch (Exception ignored) {
+                                    }
                                 }
+                            } catch (Exception ignored) {
+                                return false;
                             }
                         }
                         return true;
