@@ -20,7 +20,6 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -173,8 +172,8 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
             varDto.put("coveType", convtype);
             varDto.put("requestTime", marketingTransferSyncUser.getRequestData());
             if (ObjectUtils.isNotEmpty(xieChengSmsCollidingDataLog)) {
-                varDto.put("result", xieChengSmsCollidingDataLog.getResult());
-                varDto.put("orgChannel", xieChengSmsCollidingDataLog.getOrgChannel());
+                varDto.put("result", Objects.isNull(xieChengSmsCollidingDataLog.getResult())?"":xieChengSmsCollidingDataLog.getResult());
+                varDto.put("orgChannel", Objects.isNull(xieChengSmsCollidingDataLog.getOrgChannel())?"":xieChengSmsCollidingDataLog.getOrgChannel());
             } else {
                 varDto.put("result", "");
                 varDto.put("orgChannel", "");
