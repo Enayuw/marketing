@@ -688,7 +688,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 , customerInfoPushMain.getId().toString());
         //endregion
 
-        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
     }
 
     class actionEs implements Callable<List<Future<Result<Integer>>>> {
@@ -910,7 +910,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             long count = pushLog.stream().filter(t -> !"00".equals(t.getRealStauts())).count();
             CustomerInfoPushMain updateMain = new CustomerInfoPushMain();
             updateMain.setId(mId);
-            updateMain.setmStatus(count > 0 ? 5 : 4);
+            updateMain.setmStatus(count > 0 ? PushRuleStatusEnum.CONFIRMED_FAIL.getValue() : PushRuleStatusEnum.CONFIRMED_SUCCESS.getValue());
             customerInfoPushMainMapper.updateByPrimaryKeySelective(updateMain);
         }
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue);

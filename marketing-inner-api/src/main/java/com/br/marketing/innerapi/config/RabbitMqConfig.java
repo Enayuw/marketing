@@ -45,56 +45,7 @@ public class RabbitMqConfig {
     public TopicExchange deadGateExchange() {
         return new TopicExchange(MQConstants.MARKETINGEXCHANGER_DEAD_NAME, true, false);
     }
-    /**
-     * 延迟队列-查询推送智能客服状态
-     *
-     * @return
-     */
-    @Bean(name = MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY)
-    public Queue customerSearchDelayQueue() {
-        Map<String, Object> args = new HashMap<>(2);
-        // x-dead-letter-exchange    这里声明当前队列绑定的死信交换机
-        args.put("x-dead-letter-exchange", MQConstants.MARKETINGEXCHANGER_DEAD_NAME);
-        // x-dead-letter-routing-key  这里声明当前队列的死信路由key
-        args.put("x-dead-letter-routing-key", MQConstants.ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY);
-        // x-message-ttl  声明队列的TTL
-        args.put("x-message-ttl", 3000);
-        return QueueBuilder.durable(MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY).withArguments(args).build();
-    }
 
-    /**
-     * 绑定-查询推送智能客服绑定
-     *
-     * @return
-     */
-    @Bean
-    public Binding customerSearchDelayBinding() {
-        return BindingBuilder.bind(customerSearchDelayQueue())
-                .to(gateExchange())
-                .with(MQConstants.ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY);
-    }
-
-    /**
-     * 消费队列-查询推送智能客服状态
-     *
-     * @return
-     */
-    @Bean(name = MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH)
-    public Queue customerSearchQueue() {
-        return new Queue(MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH, true);
-    }
-
-    /**
-     * 绑定死信交换机- 消费队列-查询推送智能客服状态
-     *
-     * @return
-     */
-    @Bean
-    public Binding customerSearchBinding() {
-        return BindingBuilder.bind(customerSearchQueue())
-                .to(deadGateExchange())
-                .with(MQConstants.ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY);
-    }
 
     /**
      * 消费队列-通用转化队列

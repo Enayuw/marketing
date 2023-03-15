@@ -6,8 +6,8 @@ public enum PushRuleStatusEnum {
     RUNNING(1,"执行中"),
     TO_BE_CONFIRMED(2,"待确认"),
     PUSH_FAIL(3,"推送失败"),
-    CONFIRMED_SUCCESS(4,"推送失败"),
-    CONFIRMED_FAIL(5,"推送失败");
+    CONFIRMED_SUCCESS(4,"确认成功"),
+    CONFIRMED_FAIL(5,"确认失败");
 
     PushRuleStatusEnum(Integer value, String desc) {
         this.value = value;

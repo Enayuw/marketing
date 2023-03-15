@@ -32,7 +32,9 @@ public class ToPolicyByRuleJob extends AbstractSimpleElasticJob {
             Result canPushTask = pushRuleService.isCanPushTask(pushTask.getData());
             if(ResultCode.SUCCESS.getValue().equals(canPushTask.getCode())){
                 Result<Boolean> booleanResult = pushRuleService.consumerPushCustomer(pushTask.getData());
-
+                if(ResultCode.SUCCESS.getValue().equals(booleanResult.getCode())&&Boolean.TRUE.equals(booleanResult.getData())){
+                    log.warn(pushTask.getData()+":推送决策成功");
+                }
             }
         }
     }
