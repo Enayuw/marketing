@@ -42,6 +42,9 @@ public interface PushRuleService {
      */
     Result<List<PushInfoDetailVO>> getPushInfos(@Valid RequestPushInfoDTO dto);
 
+    Result<Long> getPushTask();
+
+    Result isCanPushTask(Long taskId);
     /**
      * 推送客服
      *

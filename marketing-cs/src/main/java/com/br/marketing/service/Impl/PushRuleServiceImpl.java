@@ -1,12 +1,10 @@
 package com.br.marketing.service.Impl;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.*;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
@@ -37,6 +35,7 @@ import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.PushRuleStatusEnum;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
@@ -47,6 +46,7 @@ import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.service.IRuleConfigService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.PushTransferRobotaiLogService;
@@ -325,6 +325,63 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource
     MarketingTaskExtendMapper marketingTaskExtendMapper;
 
+    @Override
+    public Result<Long> getPushTask() {
+        Date date = Date.from(LocalDate.now().minusDays(2L).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        CustomerInfoPushMainExample pushMainExample = new CustomerInfoPushMainExample();
+        pushMainExample.setOrderByClause(" create_time,id limit 1");
+        pushMainExample.createCriteria()
+                .andMStatusEqualTo(PushRuleStatusEnum.TO_BE_RUNNING.getValue())
+                .andCreateTimeGreaterThanOrEqualTo(date);
+        List<CustomerInfoPushMain> customerInfoPushMains = customerInfoPushMainMapper.selectByExample(pushMainExample);
+        if (customerInfoPushMains.size() > 0) {
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMains.get(0).getId());
+        }
+        return new Result<>().setCode(ResultCode.FAIL.getValue());
+    }
+
+    @Override
+    public Result isCanPushTask(Long taskId) {
+        String lockValue = getCanPushTaskLock(taskId);
+        if (StringUtils.isBlank(lockValue)) {
+            CustomerInfoPushMain customerInfoPushMain = customerInfoPushMainMapper.selectByPrimaryKey(taskId);
+            if (!customerInfoPushMain.getmStatus().equals(PushRuleStatusEnum.TO_BE_RUNNING.getValue())) {
+                removeCanPushTaskLock(taskId, lockValue);
+                return new Result().setCode(ResultCode.FAIL.getValue());
+            }
+            CustomerInfoPushMain updateEntity = new CustomerInfoPushMain();
+            updateEntity.setId(taskId);
+            updateEntity.setmStatus(PushRuleStatusEnum.RUNNING.getValue());
+            customerInfoPushMainMapper.updateByPrimaryKeySelective(updateEntity);
+            removeCanPushTaskLock(taskId, lockValue);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        return new Result().setCode(ResultCode.FAIL.getValue());
+    }
+
+    String getCanPushTaskLock(Long taskId) {
+        try {
+            String taskByPushRuleGetLock = RedisKeyConstant.taskByPushRuleGetLock.concat(":" + taskId);
+            UUID uuid = UUID.randomUUID();
+            Long setnx = redisChgService.setnx(taskByPushRuleGetLock, uuid.toString(), 3);
+            if (setnx.equals(0l)) {
+                return null;
+            }
+            return uuid.toString();
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+            return null;
+        }
+    }
+
+    void removeCanPushTaskLock(Long taskId, String lockValue) {
+        String taskByPushRuleGetLock = RedisKeyConstant.taskByPushRuleGetLock.concat(":" + taskId);
+        String s = redisChgService.get(taskByPushRuleGetLock);
+        if (lockValue.equals(s)) {
+            redisChgService.del(taskByPushRuleGetLock);
+        }
+    }
+
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<String> pushCustomer(PushCustomerDTO dto) {
@@ -372,7 +429,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setCreateTime(date);
         customerInfoPushMain.setUpdateTime(date);
         customerInfoPushMain.setmCusBatchNumberList(Joiner.on(",").join(showTitles));
-        customerInfoPushMain.setmStatus(1);
+        customerInfoPushMain.setmStatus(PushRuleStatusEnum.TO_BE_RUNNING.getValue());
         customerInfoPushMain.setOptUserId(String.valueOf(dto.getUserDetail().getId()));
         customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
@@ -390,7 +447,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
 
         //region push mq
-        producter.send("Marketing.Push.CustomerService", customerInfoPushMain.getId().toString());
+//        producter.send("Marketing.Push.CustomerService", customerInfoPushMain.getId().toString());
         //endregion
 
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
@@ -558,8 +615,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         Integer realTotalNum = 0;
         CustomerInfoPushMain main = new CustomerInfoPushMain();
         main.setmStatus(2);
-        ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum,50);
-        ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(getJcNum, getJcNum,50);
+        ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum, 50);
+        ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(getJcNum, getJcNum, 50);
         List<Future<List<Future<Result<Integer>>>>> res = new ArrayList<>();
         long startTime = System.currentTimeMillis();
         HashMap<Integer, Integer> partDataNum = new HashMap<>();
@@ -683,10 +740,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             String searchAfterStr = "";
             int totalPage = total / pageSize + (totalYuShu > 0 ? 1 : 0);
             log.warn("任务id：{}，当前片：{}，总数：{}，页数：{}"
-                    ,customerInfoPushMain.getId()
-                    ,StringUtils.isBlank(part)?"":part
-                    ,total
-                    ,totalPage);
+                    , customerInfoPushMain.getId()
+                    , StringUtils.isBlank(part) ? "" : part
+                    , total
+                    , totalPage);
             List<Future<Result<Integer>>> resList = new ArrayList<>();
             for (int i = 1; i <= totalPage; i++) {
                 try {
@@ -700,10 +757,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                     List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
                     Integer realNum = marketingHistories.size();
                     log.warn("任务id：{}，当前片：{}，获取的数量：{}，当前页码：{}"
-                            ,customerInfoPushMain.getId()
-                            ,StringUtils.isBlank(part)?"":part
-                            ,realNum
-                            ,i);
+                            , customerInfoPushMain.getId()
+                            , StringUtils.isBlank(part) ? "" : part
+                            , realNum
+                            , i);
                     List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
                     for (int k = 0; k < marketingHistories.size(); k++) {
                         MarketingHistory marketingHistory = marketingHistories.get(k);
@@ -745,7 +802,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
                     pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
                     pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
-                    pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + (StringUtils.isBlank(part)?"0":part) + "_" + sn);
+                    pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + (StringUtils.isBlank(part) ? "0" : part) + "_" + sn);
                     pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
 
                     //传输参数信息
@@ -759,12 +816,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                             , pushMarketingUserTaskInfoDTO.getAccessNumber()
                             , customerInfoPushMain.getId()
                             , userDetailDTOS.size())));
-                }catch (Exception ex){
+                } catch (Exception ex) {
                     String error = String.format("任务id：%s，当前片：%s，当前页码：%d，异常："
-                            ,customerInfoPushMain.getId().toString()
-                            ,StringUtils.isBlank(part)?"":part
-                            ,i);
-                    log.error(error+ex.getMessage(),ex);
+                            , customerInfoPushMain.getId().toString()
+                            , StringUtils.isBlank(part) ? "" : part
+                            , i);
+                    log.error(error + ex.getMessage(), ex);
                 }
             }
             return resList;
@@ -796,8 +853,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO, mainId,
                         accessNumber, size);
             }
-            if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
-                log.error("推送决策重试失败 accessNumber:{}",accessNumber);
+            if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                log.error("推送决策重试失败 accessNumber:{}", accessNumber);
             }
             result.setDate(size);
             return result;
@@ -1340,7 +1397,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 //携程特殊处理
                 if (marketingCommonConfig.getXieChengTransferInsertApiCodes().contains(transferSyncUser.getApiCode())
-                        && StringUtils.isNotBlank(transferDataItemDTO.getCustNum()) && transferDataItemDTO.getCustNum().length() > 18){
+                        && StringUtils.isNotBlank(transferDataItemDTO.getCustNum()) && transferDataItemDTO.getCustNum().length() > 18) {
                     transferSyncUser.setCustNum(transferDataItemDTO.getCustNum().substring(18));
                     String reserveField1 = transferDataItemDTO.getReserveField1();
                     if (StringUtils.isNotBlank(reserveField1)) {
