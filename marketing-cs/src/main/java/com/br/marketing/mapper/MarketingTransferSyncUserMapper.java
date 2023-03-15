@@ -269,4 +269,13 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @return
      */
     int getTransferDataCount(@Param("tcId") String tcId, @Param("apiCode") String apiCode, @Param("requestData") String requestDate);
+
+
+    /**
+     * 获取桔子B规则或A规则的锁定期数据
+     *
+     * @param tcId
+     * @return
+     */
+    List<MarketingTransferSyncUser> getJuZiARuleData(@Param("tCid") String tcId,@Param("minId") Long minId);
 }

@@ -243,7 +243,7 @@
         select * from
         b_marketing_transfer_sync_${tCid}
         <where>
-            audit_amount > '0.00'
+           audit audit_amount > '0.00'
             <if test="minId != null and minId >0">
                 AND id >=#{minId}
             </if>
@@ -327,5 +327,22 @@
         where
         api_code = #{apiCode}
         AND request_data = #{requestData}
+    </select>
+
+    <select id="getJuZiARuleData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from
+        b_marketing_transfer_sync_${tCid}
+        <where>
+            request_data = DATE_FORMAT(now(),"%Y-%m-%d")
+            and if_apply = '1'
+            and (apply_result is null or apply_result ='')
+            and  audit_amount >= 100
+            and  apply_dt between DATE_SUB(DATE_FORMAT(now(),"%Y-%m-%d"),INTERVAL 1 day) and DATE_FORMAT(now(),"%Y-%m-%d")
+            <if test="minId != null and minId >0">
+                AND id >=#{minId}
+            </if>
+
+            order by id asc limit 2000;
+        </where>
     </select>
 </mapper>
