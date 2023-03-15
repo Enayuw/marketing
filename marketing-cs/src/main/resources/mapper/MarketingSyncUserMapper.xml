@@ -372,7 +372,7 @@
         from b_marketing_sync_${marketingTransferSyncUser.apiCode}
         <where>
             cust_num  = #{marketingTransferSyncUser.custNum}  and   user_type =#{marketingTransferSyncUser.userType}
-            <if test="collectRequestDate!=null and  collectRequestDate.size>0" >
+            <if test="collectRequestDate!=null and  collectRequestDate.size()>0" >
                 and  applet_date not in
                 <foreach collection="collectRequestDate" item="item" open="(" close=")" separator=",">
                     #{item}
