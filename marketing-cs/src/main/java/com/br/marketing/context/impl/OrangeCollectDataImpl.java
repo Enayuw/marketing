@@ -23,7 +23,7 @@ public class OrangeCollectDataImpl extends CommonMethodHandlerService {
 
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
-
+        context.setRuleNecessaryData(new OrangeRuleNecessaryData());
     }
 
     @Override

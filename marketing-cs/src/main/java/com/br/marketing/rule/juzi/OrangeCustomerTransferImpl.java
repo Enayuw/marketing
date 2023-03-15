@@ -67,8 +67,8 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             String auditAmount = transfer.getAuditAmount();
-            String lentAmount = transfer.getLentAmount();
-            if (StringUtils.hasText(auditAmount) && StringUtils.hasText(lentAmount)) {
+            String lentAmount;
+            if (StringUtils.hasText(auditAmount) && StringUtils.hasText(lentAmount = transfer.getLentAmount())) {
                 BigDecimal a;
                 BigDecimal l;
                 try {
@@ -78,7 +78,7 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
                     return false;
                 }
                 if (a.subtract(l).doubleValue() < NUMBER) {
-                    // TODO: 2023-03-14  需要添加有效期判断结果
+                    // TODO: 2023-03-14  需要添加有效期判断结果，syncUser不等于null时有效
                     MarketingSyncUser syncUser = null;
                     if (syncUser != null) {
                         OrangeCollectDataImpl.OrangeRuleNecessaryData data = (OrangeCollectDataImpl.OrangeRuleNecessaryData
