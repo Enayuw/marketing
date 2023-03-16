@@ -71,9 +71,11 @@ public class FenqileServiceImpl implements IFenqileService {
                 TransferActionFront actionFront = actionRow.get(0);
                 if (StringUtils.isNotBlank(actionFront.getRemark())) {
                     String[] split = actionFront.getRemark().split(";");
-                    sumOld = Integer.parseInt(split[1]);
                     Date dateOld = new Date();
                     dateOld.setTime(Long.parseLong(split[0]));
+                    if (split.length > 1) {
+                        sumOld = Integer.parseInt(split[1]);
+                    }
                     startTimeStr = dateOld.toInstant().atZone(ZoneId.systemDefault())
                             .plus(1, ChronoUnit.SECONDS)
                             .format(DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT_SSS));
@@ -214,7 +216,7 @@ public class FenqileServiceImpl implements IFenqileService {
         } else if (date != null) {
             TransferActionFront actionFront = actionRow.get(0);
             long time = date.getTime();
-            if (actionFront.getRemark() != null && Long.parseLong(actionFront.getRemark()) == (time)) {
+            if (actionFront.getRemark() != null && actionFront.getRemark().startsWith(String.valueOf(time))) {
                 return;
             }
             TransferActionFront actionNew = new TransferActionFront();
