@@ -1,5 +1,8 @@
 package com.br.marketing.rule.rongshu;
 
+import IceInternal.Ex;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
@@ -19,6 +22,7 @@ import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -33,6 +37,7 @@ import java.util.Set;
 
 
 @Service
+@Slf4j
 public class RsAutoArtificialAndCustomerTransferToDelayImpl implements AssembleData<MqFact> {
 
 
@@ -71,9 +76,23 @@ public class RsAutoArtificialAndCustomerTransferToDelayImpl implements AssembleD
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             String userType = transfer.getUserType();
             String auditTime = StringUtils.isBlank(transfer.getAuditTime()) ? "" : transfer.getAuditTime();
-            Double unlentAmount = StringUtils.isNotBlank(transfer.getUnlentAmount())
-                    ? Double.valueOf(transfer.getUnlentAmount())
-                    : new Double(0);
+            String reserveField1 = transfer.getReserveField1();
+            if(StringUtils.isBlank(reserveField1)){
+                return false;
+            }
+            Double unlentAmount = new Double(0);
+            try {
+                JSONObject jsonObject = JSON.parseObject(reserveField1);
+                String unlentAmountStr = jsonObject.getString("unlentAmount");
+                if(StringUtils.isNotBlank(unlentAmountStr)){
+                    unlentAmount = Double.valueOf(unlentAmountStr);
+                }
+
+            }catch (Exception ex){
+                log.error(ex.getMessage(),ex);
+                return false;
+            }
+
             int rsUnlentAmount = marketingCommonConfig.getRsUnlentAmount() == null ? 1000 : marketingCommonConfig.getRsUnlentAmount();
             if (!"3".equals(userType)) {
                 return false;
@@ -121,5 +140,10 @@ public class RsAutoArtificialAndCustomerTransferToDelayImpl implements AssembleD
     @Override
     public Integer ruleDataCollection() {
         return RuleDataCollectionEnum.RS_DATA_COLLECTION.getCode();
+    }
+
+    public static void main(String[] args) {
+        LocalDate localDate = LocalDate.now().minusDays(87);
+        System.out.println(localDate);
     }
 }

@@ -516,5 +516,10 @@ public class MarketingCommonConfig {
      * 携程定时任务推决策apicode配置:[sourceapicode,targetapicode]
      */
     private List<String> xieChengPushPolicyApiCode;
+    /**
+     * 桔子转化数据提取
+     */
+    private List<String> orangeTransferFileApiCodes;
+
 }
 
