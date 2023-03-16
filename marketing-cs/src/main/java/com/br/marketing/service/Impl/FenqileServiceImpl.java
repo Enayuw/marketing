@@ -10,10 +10,12 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.entity.MarketingSyncInfoExample;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.entity.TransferActionFrontExample;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
+import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingUserMapper;
 import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.service.IFenqileService;
@@ -30,7 +32,6 @@ import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /**
@@ -55,9 +56,21 @@ public class FenqileServiceImpl implements IFenqileService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    private MarketingSyncInfoMapper marketingSyncInfoMapper;
+
     @Override
     public Integer periodPushDecision(String apiCode, int day, String strategyCode, LocalDate localDate
             , String startTimeStr, String endTimeStr) {
+        MarketingSyncInfoExample example = new MarketingSyncInfoExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo(1)
+                .andCreateTimeGreaterThanOrEqualTo(Date.from(LocalDate.now().atStartOfDay()
+                        .atZone(ZoneId.systemDefault()).toInstant()))
+                .andCreateTimeLessThanOrEqualTo(new Date());
+        int count = marketingSyncInfoMapper.countByExample(example);
+        if (count != 0 && day == 0) {
+            return 0;
+        }
         String localDateStr = localDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
         String basicDateStr = localDate.format(DateTimeFormatter.BASIC_ISO_DATE);
         List<TransferActionFront> actionRow = getActionRow(apiCode, day, localDateStr);
@@ -77,12 +90,12 @@ public class FenqileServiceImpl implements IFenqileService {
                         sumOld = Integer.parseInt(split[1]);
                     }
                     startTimeStr = dateOld.toInstant().atZone(ZoneId.systemDefault())
-                            .plus(1, ChronoUnit.SECONDS)
                             .format(DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT_SSS));
                 }
             }
             HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();
-            Integer encType = pushCellEncPolicy == null ? ScoreThreeKeyEncryptEnum.md5.getValue() : pushCellEncPolicy.getOrDefault(apiCode, ScoreThreeKeyEncryptEnum.md5.getValue());
+            Integer encType = pushCellEncPolicy == null ? ScoreThreeKeyEncryptEnum.md5.getValue()
+                    : pushCellEncPolicy.getOrDefault(apiCode, ScoreThreeKeyEncryptEnum.md5.getValue());
             try {
                 while (true) {
                     List<MarketingSyncUser> l = marketingUserMapper.findCustNumCellUserTypeScoreDatePage(apiCode
@@ -90,7 +103,7 @@ public class FenqileServiceImpl implements IFenqileService {
                     if (CollectionUtils.isEmpty(l)) {
                         break;
                     }
-                    date = l.get(l.size() - 1).getAppletTime();
+                    date = l.get(l.size() - 1).getCreateTime();
                     page++;
                     sum += makeData(apiCode, l, basicDateStr, strategyCode, encType, date);
                     exceptionDate = date;

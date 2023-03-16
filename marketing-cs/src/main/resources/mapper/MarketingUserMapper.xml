@@ -491,10 +491,11 @@
 		where
 		<choose>
 			<when test="beginTime != null and beginTime != '' and endTime != null and endTime != ''">
-				<![CDATA[ applet_time between #{beginTime} and #{endTime} ]]>
+				<![CDATA[ create_time > #{beginTime} and create_time <= #{endTime}]]>
+				--                <![CDATA[ create_time between #{beginTime} and #{endTime} ]]>
 			</when>
 			<otherwise>
-				<![CDATA[ applet_time >= #{beginTime}]]>
+				<![CDATA[ create_time > #{beginTime}]]>
 			</otherwise>
 		</choose>
 		order by create_time, id limit ${page*2000},2000) as t2
