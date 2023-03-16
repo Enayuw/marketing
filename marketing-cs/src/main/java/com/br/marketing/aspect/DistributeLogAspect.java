@@ -51,10 +51,14 @@ public class DistributeLogAspect {
     // 2-apiCode,cell
     private final static Integer soleTypeTwo = new Integer(2);
 
+    // 3-apiCode,cell,status
+    private final static Integer soleTypeThree = new Integer(3);
+
     static {
         soleTypes = new ArrayList();
         soleTypes.add(soleTypeOne);
         soleTypes.add(soleTypeTwo);
+        soleTypes.add(soleTypeThree);
     }
 
     @Around("@annotation(com.br.marketing.common.annoation.DistributeLog)")
@@ -104,6 +108,9 @@ public class DistributeLogAspect {
                     } else if (soleTypeTwo.equals(logBase.getSoleField())) {
                         key = key.concat(String.format(":%d:%d:%s:%s", logData.getDistributeType()
                                 , logBase.getSoleDay(), logData.getApiCode(), logData.getCell()));
+                    }else if (soleTypeThree.equals(logBase.getSoleField())) {
+                        key = key.concat(String.format(":%d:%d:%s:%s:%s", logData.getDistributeType()
+                                , logBase.getSoleDay(), logData.getApiCode(), logData.getCell(),logData.getStatus()));
                     }
 
                     try {
