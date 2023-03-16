@@ -503,5 +503,12 @@ public class MarketingCommonConfig {
      * 桔子转化数据提取
      */
     private List<String> orangeTransferFileApiCodes;
+
+
+    /**
+     * 分期乐自动化周期转决策周期，day为周期天数，格式{apiCode:{day:策略编号}}
+     * eg:{"3710027":{0:"CASTR0000361",7:"CASTR0000362",14:"CASTR0000363"},"7410027":{0:"CASTR0000361",7:"CASTR0000362",14:"CASTR0000363"}}
+     */
+    private Map<String, Map<Integer, String>> fenqilePeriodPushDecisionPeriod;
 }
 

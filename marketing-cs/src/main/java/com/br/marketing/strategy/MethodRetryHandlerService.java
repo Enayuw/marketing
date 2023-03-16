@@ -27,7 +27,6 @@ import com.br.marketing.common.annoation.DistributeLog;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.dto.DataJoinLogDTO;
@@ -451,7 +450,9 @@ public class MethodRetryHandlerService {
         Long infoId = dto.getInfoId();
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(), infoId);
+            if (infoId != null) {
+                saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(), infoId);
+            }
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));

@@ -18,10 +18,8 @@ import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -182,15 +180,12 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(dateYyyyMmDdStr)
                 .andFileNameIn(stringList);
         List<TransferFileTask> list = transferFileTaskMapper.selectByExample(taskExample);
-        log.warn("数禾[{}]转化数据提取分#生成文件任务{}", apiCode, list.size());
         for (TransferFileTask task : list) {
             userTypes.remove(map.get(task.getFileName()));
         }
         if (LocalTime.now().isAfter(startTime) && userTypes.size() > 0) {
-            log.warn("数禾[{}]转化数据提取分1#{}", apiCode, shuHeTransferDataExtractMap);
             // 将配置中的有效期处理成天
             Map<String, Integer> dataExtractMap = dataExtractDateHandle(shuHeTransferDataExtractMap, userTypes);
-            log.warn("数禾[{}]转化数据提取分2#{}", apiCode, dataExtractMap);
             userTypes.forEach(userType -> {
                 TransferFileTask transferFileTask = new TransferFileTask();
                 long contextId = System.currentTimeMillis();

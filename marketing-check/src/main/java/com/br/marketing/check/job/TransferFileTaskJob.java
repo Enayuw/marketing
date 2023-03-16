@@ -20,6 +20,7 @@ import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -132,7 +133,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 try {
                     //自定义参数传入格式举例 7410785#20220711,true;7412003#123;.....
                     String myParam = serviceImpl.isMyParam(marketingCustomer.getApiCode(), jobParameter);
-                    log.warn("apicode={}获取的自定义参数为{}", marketingCustomer.getApiCode(), myParam);
+                    if (StringUtils.isNotBlank(myParam)) {
+                        log.warn("apicode={}获取的自定义参数为{}", marketingCustomer.getApiCode(), myParam);
+                    }
                     Result<List<TransferFileTask>> listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(), myParam);
                     if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
                         List<TransferFileTask> data = listResult.getData();
