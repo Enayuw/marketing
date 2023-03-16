@@ -69,8 +69,8 @@ public class PolicySoleHandler extends AbstractExternalInterfaceHandler<PushMark
             retryByRuleDTO.setDetailLogList(logList);
             //传参去重
             retryByRuleDTO.setIsSole(true);
-            //2-根据apicode cell维度去重
-            retryByRuleDTO.setSoleField(2);
+            //2-根据apicode cell,status 维度去重
+            retryByRuleDTO.setSoleField(3);
             //去重数据范围1-是当天，其他值则now()-(day-1)
             if (marketingCommonConfig.getXieChengPushPolicyValidityDay() != null) {
                 retryByRuleDTO.setSoleDay(marketingCommonConfig.getXieChengPushPolicyValidityDay());

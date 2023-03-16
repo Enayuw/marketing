@@ -137,9 +137,8 @@ public class DistributeLogAspect {
                             criteria.andCustNumEqualTo(logData.getCustNum());
                         } else if (logBase.getSoleField() == 2) {
                             criteria.andCellEqualTo(logData.getCell());
-                        }
-                        //添加状态查询
-                        if (StringUtils.isNotEmpty(logData.getStatus())) {
+                        } else if (logBase.getSoleField() == 3) {
+                            criteria.andCellEqualTo(logData.getCell());
                             criteria.andStatusEqualTo(logData.getStatus());
                         }
                         List<DataDistributeDetailLog> dataDistributeDetailLogs = dataDistributeDetailLogMapper.selectByExample(logExample);
