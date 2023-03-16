@@ -83,6 +83,21 @@ public class MyTest {
     }
 
     @Test
+    public void testIbu(){
+        IbuReqDTO ibuReqDTO = new IbuReqDTO();
+        ibuReqDTO.setData("[{\"id\":614504,\"phone\":\"14455624387\",\"planId\":5655,\"reserveField1\":\"{\\\"operateType\\\":\\\"0\\\",\\\"tid\\\":\\\"89658\\\"}\",\"source\":\"100\",\"uid\":\"zwistio_2023030708174\",\"userCode\":\"zwistio_2023030708174\",\"userName\":\"1\",\"userType\":\"D\"},{\"id\":614505,\"phone\":\"14455624388\",\"planId\":5655,\"reserveField1\":\"{\\\"operateType\\\":\\\"0\\\",\\\"tid\\\":\\\"89658\\\"}\",\"source\":\"100\",\"uid\":\"zwistio_2023030708175\",\"userCode\":\"zwistio_2023030708175\",\"userName\":\"1\",\"userType\":\"D\"},{\"id\":614506,\"phone\":\"14455624389\",\"planId\":5655,\"reserveField1\":\"{\\\"operateType\\\":\\\"0\\\",\\\"tid\\\":\\\"89658\\\"}\",\"source\":\"100\",\"uid\":\"zwistio_2023030708176\",\"userCode\":\"zwistio_2023030708176\",\"userName\":\"1\",\"userType\":\"D\"}]");
+        ibuReqDTO.setAccessKey("d87a6e0ab4dc2903");
+        ibuReqDTO.setTs(System.currentTimeMillis());
+        StringBuilder mText = new StringBuilder();
+        mText.append("fbd1478a51d88954");
+        mText.append(ibuReqDTO.getData());
+        mText.append(ibuReqDTO.getTs());
+        String s = DigestUtils.md5DigestAsHex(mText.toString().getBytes()).toUpperCase();
+        ibuReqDTO.setSign(s);
+        System.out.println(ibuReqDTO.toString());
+    }
+
+    @Test
     public void testThreadSafe() {
         String abc = "2021-08-11 11:00:00";
         for (int i = 0; i < 20; i++) {
