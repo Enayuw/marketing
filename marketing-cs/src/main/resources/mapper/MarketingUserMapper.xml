@@ -492,7 +492,6 @@
 		<choose>
 			<when test="beginTime != null and beginTime != '' and endTime != null and endTime != ''">
 				<![CDATA[ create_time > #{beginTime} and create_time <= #{endTime}]]>
-				--                <![CDATA[ create_time between #{beginTime} and #{endTime} ]]>
 			</when>
 			<otherwise>
 				<![CDATA[ create_time > #{beginTime}]]>
