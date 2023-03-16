@@ -61,15 +61,19 @@ public class FenqileServiceImpl implements IFenqileService {
         String localDateStr = localDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
         String basicDateStr = localDate.format(DateTimeFormatter.BASIC_ISO_DATE);
         List<TransferActionFront> actionRow = getActionRow(apiCode, day, localDateStr);
-        int page = 0;
         int sum = 0;
         if (day == 0 || actionRow.size() < 1) {
+            int page = 0;
+            int sumOld = 0;
             Date date = null;
+            Date exceptionDate = null;
             if (actionRow.size() > 0) {
                 TransferActionFront actionFront = actionRow.get(0);
                 if (StringUtils.isNotBlank(actionFront.getRemark())) {
+                    String[] split = actionFront.getRemark().split(";");
+                    sumOld = Integer.parseInt(split[1]);
                     Date dateOld = new Date();
-                    dateOld.setTime(Long.parseLong(actionFront.getRemark()));
+                    dateOld.setTime(Long.parseLong(split[0]));
                     startTimeStr = dateOld.toInstant().atZone(ZoneId.systemDefault())
                             .plus(1, ChronoUnit.SECONDS)
                             .format(DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT_SSS));
@@ -87,13 +91,14 @@ public class FenqileServiceImpl implements IFenqileService {
                     date = l.get(l.size() - 1).getAppletTime();
                     page++;
                     sum += makeData(apiCode, l, basicDateStr, strategyCode, encType, date);
+                    exceptionDate = date;
                     if (l.size() < 2000) {
                         break;
                     }
                 }
-                saveOrUpdate(day, apiCode, localDateStr, date, actionRow);
+                saveOrUpdate(day, apiCode, localDateStr, date, actionRow, sum + sumOld);
             } catch (Exception e) {
-                saveOrUpdate(day, apiCode, localDateStr, date, actionRow);
+                saveOrUpdate(day, apiCode, localDateStr, exceptionDate, actionRow, sum + sumOld);
                 log.error(e.getMessage(), e);
                 return null;
             }
@@ -112,6 +117,7 @@ public class FenqileServiceImpl implements IFenqileService {
                 .andApiCodeEqualTo(apiCode)
                 .andActionDataEqualTo(localDateStr)
                 .andIsDelEqualTo(1);
+        frontExample.setOrderByClause("create_time desc");
         List<TransferActionFront> list = transferActionFrontMapper.selectByExample(frontExample);
         return CollectionUtils.isEmpty(list) ? Collections.emptyList() : list;
     }
@@ -125,10 +131,7 @@ public class FenqileServiceImpl implements IFenqileService {
         List<PushMarketingUserDetailDTO> dtoList = new ArrayList<>();
         List<Long> ids = new ArrayList<>();
         int pageSize = 500;
-        int number = list.size() / pageSize;
-        if (list.size() % pageSize != 0) {
-            number++;
-        }
+        int s = list.size();
         int sum = 0;
         for (MarketingSyncUser syncUser : list) {
             PushMarketingUserDetailDTO dto = new PushMarketingUserDetailDTO();
@@ -149,13 +152,15 @@ public class FenqileServiceImpl implements IFenqileService {
             dto.setVariables(jsonObject);
             dtoList.add(dto);
             ids.add(syncUser.getId());
+            s--;
             int size = dtoList.size();
-            if (size == pageSize || number == 1) {
-                number--;
+            if (size == pageSize || s == 0) {
                 Result<?> result = pushDecision(dtoList, ids, batchNumber, strategyCode, apiCode, date);
                 if (result != null && ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                    sum += dtoList.size();
+                    sum += size;
                 }
+                dtoList.clear();
+                ids.clear();
             }
         }
         return sum;
@@ -190,7 +195,8 @@ public class FenqileServiceImpl implements IFenqileService {
         }
     }
 
-    private void saveOrUpdate(int day, String apiCode, String localDateStr, Date date, List<TransferActionFront> actionRow) {
+    private void saveOrUpdate(int day, String apiCode, String localDateStr, Date date
+            , List<TransferActionFront> actionRow, int sum) {
         if (actionRow.size() < 1) {
             TransferActionFront actionFront = new TransferActionFront();
             actionFront.setActionType(day);
@@ -200,7 +206,9 @@ public class FenqileServiceImpl implements IFenqileService {
             actionFront.setApiCode(apiCode);
             actionFront.setActionData(localDateStr);
             if (day == 0 && date != null) {
-                actionFront.setRemark(date.getTime() + "");
+                actionFront.setRemark(date.getTime() + ";" + sum);
+            } else {
+                actionFront.setRemark(String.valueOf(sum));
             }
             transferActionFrontMapper.insertSelective(actionFront);
         } else if (date != null) {
@@ -211,7 +219,7 @@ public class FenqileServiceImpl implements IFenqileService {
             }
             TransferActionFront actionNew = new TransferActionFront();
             actionNew.setId(actionFront.getId());
-            actionNew.setRemark(time + "");
+            actionNew.setRemark(time + ";" + sum);
             transferActionFrontMapper.updateByPrimaryKeySelective(actionNew);
         }
     }
