@@ -65,8 +65,10 @@ public class RsTransferServiceImpl implements RsTransferService {
     public Result getRsToPolicy(String apiCode,String date) {
         apiCode = StringUtils.isNotBlank(apiCode)?apiCode:"4004643";
         String tcId = tableCreateService.getTcId(apiCode);
-        date = StringUtils.isNotBlank(date) ? date : LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        Result<TransferActionFront> frontData = jobManager.getFrontData(apiCode, date, 1);
+        LocalDate now = LocalDate.now();
+        String actionDay = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        date = StringUtils.isNotBlank(date) ? date : now.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        Result<TransferActionFront> frontData = jobManager.getFrontData(apiCode, actionDay, 1);
         if(!ResultCode.SUCCESS.getValue().equals(frontData.getCode())){
             return new Result().setCode(ResultCode.FAIL.getValue());
         }
