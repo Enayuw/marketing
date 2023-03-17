@@ -1,7 +1,6 @@
 package com.br.marketing.check.job.juzi;
 
-import com.br.marketing.check.service.JuZiCheckToDassService;
-import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.check.service.JuZiPeriodPredicateService;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
 import com.br.marketing.mapper.DataDistributeDetailLogMapper;
@@ -14,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,7 +46,7 @@ public class JuZiTransferDataToDassJob extends AbstractSimpleElasticJob {
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     @Autowired
-    private JuZiCheckToDassService juZiCheckToDassService;
+    private List<JuZiPeriodPredicateService> juZiPeriodPredicateServiceList;
 
     @Autowired
     private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
@@ -60,43 +58,48 @@ public class JuZiTransferDataToDassJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
+        executePeriodData("a",juZiPeriodPredicateServiceList);
+
+
         // 情况A
-        boolean A_Continue = Boolean.TRUE;
+        boolean D_Continue = Boolean.TRUE;
         Long aminId = null;
-        while (A_Continue) {
+        while (D_Continue) {
             // 查询转化数据表
-            List<MarketingTransferSyncUser> juZiARuleDataList = marketingTransferSyncUserMapper.getJuZiARuleData(TCID, aminId);
+            List<MarketingTransferSyncUser> juZiDRuleDataList = marketingTransferSyncUserMapper.getJuZiDRuleData(TCID, aminId);
             // 都没有推过才会继续执行，推过的数据要剔除掉。
-            if (juZiARuleDataList.size() <= 0) {
-                A_Continue = Boolean.FALSE;
+            if (juZiDRuleDataList.size() <= 0) {
+                D_Continue = Boolean.FALSE;
                 continue;
             }
-            aminId = juZiARuleDataList.get(juZiARuleDataList.size() - 1).getId() + 1;
-            List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists = juZiARuleDataList.stream().map(jz -> transferDataValidityPeriodService.getNewValidityPeriodTransferData(jz)).collect(Collectors.toList()).stream().filter((marketingSyncUser) -> marketingSyncUser != null).collect(Collectors.toList());
+            aminId = juZiDRuleDataList.get(juZiDRuleDataList.size() - 1).getId() + 1;
+            List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists = juZiDRuleDataList.stream().map(jz -> transferDataValidityPeriodService.getNewValidityPeriodTransferData(jz)).collect(Collectors.toList()).stream().filter(Objects::nonNull).collect(Collectors.toList());
             if(marketingTransferSyncUserCellLists.size()>0){
                 // 查询电销推送日志表
                 Set<String> toDassLogInfoSet = phoneSaleExtendInfoMapper.getToDassLogInfoList(marketingTransferSyncUserCellLists.get(0).getApiCode(), marketingTransferSyncUserCellLists.stream().map(MarketingTransferSyncUserCell::getCustNum).collect(Collectors.toSet()));
                 // 查询决策推送日志表
                 Set<String> distributionToDassLogInfoSet =dataDistributeDetailLogMapper.getToDataDistributeInfoList(marketingTransferSyncUserCellLists.get(0).getApiCode(), marketingTransferSyncUserCellLists.stream().map(MarketingTransferSyncUserCell::getCustNum).collect(Collectors.toSet()));
                 // 合并2个集合
-                Set<String> resultSet = new HashSet();
+                Set<String> resultSet = new HashSet<>();
                 Stream.of(toDassLogInfoSet, distributionToDassLogInfoSet).forEach(resultSet::addAll);
                 // 判断集合和是否包含待推送数据。
                 List<MarketingTransferSyncUserCell> toDassDataList = new ArrayList<>();
-                for(int i=0;i<marketingTransferSyncUserCellLists.size();i++){
-                    if(!resultSet.contains(marketingTransferSyncUserCellLists.get(i).getCustNum())){
-                        toDassDataList.add(marketingTransferSyncUserCellLists.get(i));
+                for (MarketingTransferSyncUserCell marketingTransferSyncUserCellList : marketingTransferSyncUserCellLists) {
+                    if (!resultSet.contains(marketingTransferSyncUserCellList.getCustNum())) {
+                        toDassDataList.add(marketingTransferSyncUserCellList);
                     }
                 }
-                // 推送daas
+                // 推送决策
                 if(toDassDataList.size()>0){
-                    juZiCheckToDassService.transferDataPeriodToDass("a",toDassDataList);
+
                 }
 
             }
             System.out.println(marketingTransferSyncUserCellLists);
         }
-    //
+
+
+        //
     //    // 情况B
     //    boolean B_Continue = Boolean.TRUE;
     //    Long bminId = null;
@@ -126,6 +129,45 @@ public class JuZiTransferDataToDassJob extends AbstractSimpleElasticJob {
     //        juZiCheckToDassService.checkTimeDataToDx("c",MarketingTransferSyncUserCellLists);
     //        System.out.println(MarketingTransferSyncUserCellLists);
     //    }
+    }
+
+    private void executePeriodData(String status ,  List<JuZiPeriodPredicateService> juZiPeriodPredicateServiceList) {
+        // 情况A
+        boolean A_Continue = Boolean.TRUE;
+        Long aminId = null;
+        while (A_Continue) {
+            // 查询转化数据表
+            List<MarketingTransferSyncUser> juZiARuleDataList = marketingTransferSyncUserMapper.getJuZiARuleData(TCID, aminId);
+            // 都没有推过才会继续执行，推过的数据要剔除掉。
+            if (juZiARuleDataList.size() <= 0) {
+                A_Continue = Boolean.FALSE;
+                continue;
+            }
+            aminId = juZiARuleDataList.get(juZiARuleDataList.size() - 1).getId() + 1;
+            List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists = juZiARuleDataList.stream().map(jz -> transferDataValidityPeriodService.getNewValidityPeriodTransferData(jz)).collect(Collectors.toList()).stream().filter(Objects::nonNull).collect(Collectors.toList());
+            if(marketingTransferSyncUserCellLists.size()>0){
+                // 查询电销推送日志表
+                Set<String> toDassLogInfoSet = phoneSaleExtendInfoMapper.getToDassLogInfoList(marketingTransferSyncUserCellLists.get(0).getApiCode(), marketingTransferSyncUserCellLists.stream().map(MarketingTransferSyncUserCell::getCustNum).collect(Collectors.toSet()));
+                // 查询决策推送日志表
+                Set<String> distributionToDassLogInfoSet =dataDistributeDetailLogMapper.getToDataDistributeInfoList(marketingTransferSyncUserCellLists.get(0).getApiCode(), marketingTransferSyncUserCellLists.stream().map(MarketingTransferSyncUserCell::getCustNum).collect(Collectors.toSet()));
+                // 合并2个集合
+                Set<String> resultSet = new HashSet<>();
+                Stream.of(toDassLogInfoSet, distributionToDassLogInfoSet).forEach(resultSet::addAll);
+                // 判断集合和是否包含待推送数据。
+                List<MarketingTransferSyncUserCell> toDassDataList = new ArrayList<>();
+                for (MarketingTransferSyncUserCell marketingTransferSyncUserCellList : marketingTransferSyncUserCellLists) {
+                    if (!resultSet.contains(marketingTransferSyncUserCellList.getCustNum())) {
+                        toDassDataList.add(marketingTransferSyncUserCellList);
+                    }
+                }
+                // 推送daas
+                if(toDassDataList.size()>0){
+                    juZiPeriodPredicateServiceList.forEach(juZiPeriodPredicateService -> juZiPeriodPredicateService.transferDataPeriod(status,toDassDataList));
+                }
+
+            }
+            System.out.println(marketingTransferSyncUserCellLists);
+        }
     }
 
 }

@@ -60,12 +60,8 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     private MarketingSyncUser getMarketingSyncUser(MarketingTransferSyncUser marketingTransferSyncUser) {
         MarketingSyncUser marketingSyncUser = null;
         // 1. 查询配置表
-        MarketingDataValidConfigExample marketingDataValidConfigExample = new MarketingDataValidConfigExample();
-        marketingDataValidConfigExample
-                .createCriteria()
-                .andApiCodeEqualTo(marketingTransferSyncUser.getApiCode())
-                .andUserTypeEqualTo(marketingTransferSyncUser.getUserType());
-        List<MarketingDataValidConfig> marketingDataValidConfigs = marketingDataValidConfigMapper.selectByExample(marketingDataValidConfigExample);
+
+        List<MarketingDataValidConfig> marketingDataValidConfigs = marketingDataValidConfigMapper.selectInfo(marketingTransferSyncUser.getApiCode(), marketingTransferSyncUser.getUserType());
 
         // 2. 获取T,N 模式下 有效期范围的规则集合，T，N
         List<MarketingDataValidConfig> marketingDataValidConfigTN = marketingDataValidConfigs.stream().filter(m -> m.getValidType() == 1).collect(Collectors.toList());

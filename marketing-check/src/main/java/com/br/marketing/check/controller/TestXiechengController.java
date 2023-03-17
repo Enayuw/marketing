@@ -2,16 +2,16 @@ package com.br.marketing.check.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.check.service.JuZiPeriodPredicateService;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.xiecheng.FinanceAESUtils;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
-import com.br.marketing.mapper.XieChengSmsCollidingDataMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.MarketingSmyPushService;
 import com.br.marketing.service.PushDataService;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -31,6 +31,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * --------------------------------
@@ -65,11 +66,62 @@ public class TestXiechengController {
 
     @Autowired
     XieChengSmsCollidingDataMapper xieChengSmsCollidingDataMapper;
+    @Autowired
+    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+    @Autowired
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
+    @Autowired
+    private List<JuZiPeriodPredicateService> juZiPeriodPredicateServiceList;
+
+
+
+
+
+    @Autowired
+    private DataDistributeDetailLogMapper dataDistributeDetailLogMapper;
 
     @GetMapping("/test")
     public void transfersmyTest(String id) {
-        pushDataService.pushXieChengSmsCollidingToDbData(id);
+
+        // 情况A
+        boolean A_Continue = Boolean.TRUE;
+        Long aminId = null;
+        while (A_Continue) {
+            // 查询转化数据表
+            List<MarketingTransferSyncUser> juZiARuleDataList = marketingTransferSyncUserMapper.getJuZiARuleData("7780", aminId);
+            // 都没有推过才会继续执行，推过的数据要剔除掉。
+            if (juZiARuleDataList.size() <= 0) {
+                A_Continue = Boolean.FALSE;
+                continue;
+            }
+            aminId = juZiARuleDataList.get(juZiARuleDataList.size() - 1).getId() + 1;
+            List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists = juZiARuleDataList.stream().map(jz -> transferDataValidityPeriodService.getNewValidityPeriodTransferData(jz)).collect(Collectors.toList()).stream().filter(Objects::nonNull).collect(Collectors.toList());
+            if(marketingTransferSyncUserCellLists.size()>0){
+                // 查询电销推送日志表
+                Set<String> toDassLogInfoSet = phoneSaleExtendInfoMapper.getToDassLogInfoList(marketingTransferSyncUserCellLists.get(0).getApiCode(), marketingTransferSyncUserCellLists.stream().map(MarketingTransferSyncUserCell::getCustNum).collect(Collectors.toSet()));
+                // 查询决策推送日志表
+                Set<String> distributionToDassLogInfoSet =dataDistributeDetailLogMapper.getToDataDistributeInfoList(marketingTransferSyncUserCellLists.get(0).getApiCode(), marketingTransferSyncUserCellLists.stream().map(MarketingTransferSyncUserCell::getCustNum).collect(Collectors.toSet()));
+                // 合并2个集合
+                Set<String> resultSet = new HashSet<>();
+                Stream.of(toDassLogInfoSet, distributionToDassLogInfoSet).forEach(resultSet::addAll);
+                // 判断集合和是否包含待推送数据。
+                List<MarketingTransferSyncUserCell> toDassDataList = new ArrayList<>();
+                for (MarketingTransferSyncUserCell marketingTransferSyncUserCellList : marketingTransferSyncUserCellLists) {
+                    if (!resultSet.contains(marketingTransferSyncUserCellList.getCustNum())) {
+                        toDassDataList.add(marketingTransferSyncUserCellList);
+                    }
+                }
+                // 推送daas
+                //if(toDassDataList.size()>0){
+                //    juZiPeriodPredicateServiceList.forEach(juZiPeriodPredicateService -> juZiPeriodPredicateService.transferDataPeriod(0,toDassDataList));
+                //}
+
+            }
+            System.out.println(marketingTransferSyncUserCellLists);
+        }
+
+        //pushDataService.pushXieChengSmsCollidingToDbData(id);
 //        LocalFileExample localFileExample = new LocalFileExample();
 //        localFileExample.createCriteria()
 //                .andFileTypeEqualTo(XIECHENGSMSCOLLIDING)

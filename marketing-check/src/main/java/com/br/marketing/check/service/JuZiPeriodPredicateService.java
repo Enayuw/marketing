@@ -10,6 +10,7 @@ import java.util.List;
  * @version 1.0
  * @date 2023/3/15 17:57
  */
-public interface JuZiCheckToDassService {
-    Result transferDataPeriodToDass(String status ,List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellList);
+@FunctionalInterface
+public interface JuZiPeriodPredicateService {
+    void  transferDataPeriod(String status ,List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellList);
 }

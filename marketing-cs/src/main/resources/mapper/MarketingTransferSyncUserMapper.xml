@@ -344,4 +344,19 @@
             order by id asc limit 2000;
         </where>
     </select>
+    <select id="getJuZiDRuleData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from
+        b_marketing_transfer_sync_${tCid}
+        <where>
+            if_login = '1'
+            and (if_allly is null or if_apply ='')
+            and (apply_result is null or apply_result ='')
+            and (if_lent is null or if_lent ='')
+            <if test="minId != null and minId >0">
+                AND id >=#{minId}
+            </if>
+            order by id asc limit 2000;
+        </where>
+    </select>
+
 </mapper>
