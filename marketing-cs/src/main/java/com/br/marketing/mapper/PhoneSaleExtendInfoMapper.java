@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
+import com.br.marketing.entity.MarketingTransferSyncUserCell;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.entity.PhoneSaleExtendInfoExample;
 import com.br.marketing.vo.PhoneSaleInfoVO;
@@ -139,4 +140,6 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
      * @return set CustNum
      */
     Set<String> getCustNumSettikv_(@Param("example") PhoneSaleExtendInfoExample example);
+
+    Set<String> getToDassLogInfoList(@Param("apiCode") String apiCode, @Param("custNums")Set<String> custNums);
 }

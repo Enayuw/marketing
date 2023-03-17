@@ -262,5 +262,18 @@
             order by ${example.orderByClause}
         </if>
     </select>
+    <select id="getToDassLogInfoList" resultType="java.lang.String">
+        select
+        distinct cust_num
+        from b_phone_sale_extend_info
+        where api_code = #{apiCode}
+        and cust_num in
+        <foreach collection="custNums" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        and create_time between DATE_FORMAT(now(),"%Y-%m-%d") and DATE_add(DATE_FORMAT(now(),"%Y-%m-%d"),INTERVAL 1 day)
+
+</select>
+
 
 </mapper>

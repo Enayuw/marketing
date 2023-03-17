@@ -243,7 +243,7 @@
         select * from
         b_marketing_transfer_sync_${tCid}
         <where>
-           audit audit_amount > '0.00'
+            audit_amount > '0.00'
             <if test="minId != null and minId >0">
                 AND id >=#{minId}
             </if>
@@ -341,7 +341,6 @@
             <if test="minId != null and minId >0">
                 AND id >=#{minId}
             </if>
-
             order by id asc limit 2000;
         </where>
     </select>

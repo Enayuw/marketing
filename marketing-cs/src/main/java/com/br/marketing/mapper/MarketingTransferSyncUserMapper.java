@@ -272,7 +272,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
 
     /**
-     * 获取桔子B规则或A规则的锁定期数据
+     * 获取桔子A规则的转化数据
      *
      * @param tcId
      * @return

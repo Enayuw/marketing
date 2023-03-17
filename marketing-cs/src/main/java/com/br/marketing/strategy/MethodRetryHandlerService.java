@@ -308,6 +308,15 @@ public class MethodRetryHandlerService {
     }
 
     /**
+     * 桔子周期推dass
+     * @param dassImportAdapDTO
+     * @param retry
+     * @return
+     */
+    public Result transferDataPeriodToDass(DassImportAdapDTO dassImportAdapDTO, Integer retry) {
+        return smyCallDassRealTimeBatchData(dassImportAdapDTO,retry);
+    }
+    /**
      * 萨摩耶推daas
      * @param dassImportAdapDTO
      * @param retry
@@ -321,7 +330,7 @@ public class MethodRetryHandlerService {
             phoneSaleExtendInfoMapper.updateBatch(set);
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        log.error("调用批量萨摩耶实时转电销失败 -- {}", JSON.toJSONString(result));
+        log.error("转化数据周期推送电销失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
@@ -378,6 +387,7 @@ public class MethodRetryHandlerService {
         log.error("调用电销转化接口失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
+
 
     /**
      * 萨摩耶转化数据剔除

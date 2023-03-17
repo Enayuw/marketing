@@ -4,7 +4,9 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
+import com.sun.org.apache.xml.internal.security.utils.JavaUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +43,18 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     @Override
     public boolean isValidityPeriod(MarketingTransferSyncUser marketingTransferSyncUser) {
         return getMarketingSyncUser(marketingTransferSyncUser) == null ? false : true;
+    }
+
+    @Override
+    public MarketingTransferSyncUserCell getNewValidityPeriodTransferData(MarketingTransferSyncUser marketingTransferSyncUser) {
+        MarketingSyncUser marketingSyncUser = getMarketingSyncUser(marketingTransferSyncUser);
+        if (marketingSyncUser != null) {
+            MarketingTransferSyncUserCell marketingTransferSyncUserCell = new MarketingTransferSyncUserCell();
+            BeanUtils.copyProperties(marketingTransferSyncUser,marketingTransferSyncUserCell);
+            marketingTransferSyncUserCell.setCell(marketingSyncUser.getCell());
+            return marketingTransferSyncUserCell;
+        }
+        return null;
     }
 
     private MarketingSyncUser getMarketingSyncUser(MarketingTransferSyncUser marketingTransferSyncUser) {
