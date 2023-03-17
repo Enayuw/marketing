@@ -95,6 +95,8 @@ public class FenqileServiceImpl implements IFenqileService {
                     LocalDateTime localDateTime = dateOld.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
                     if (localDateTime.compareTo(LocalDateTime.parse(startTimeStr, DTF)) > 0) {
                         startTimeStr = localDateTime.format(DTF);
+                    } else {
+                        return sum;
                     }
                 }
             }
