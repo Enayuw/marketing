@@ -229,8 +229,8 @@ public class FenqileServiceImpl implements IFenqileService {
             actionFront.setActionData(localDateStr);
             if (day == 0) {
                 actionFront.setRemark((date != null ? date.getTime()
-                        : Date.from(LocalDateTime.now().minusSeconds(1).atZone(ZoneId.systemDefault()).toInstant()))
-                        + ";" + sum);
+                        : Date.from(LocalDateTime.now().minusSeconds(1).atZone(ZoneId.systemDefault()).toInstant())
+                        .getTime()) + ";" + sum);
             } else {
                 actionFront.setRemark(String.valueOf(sum));
             }
