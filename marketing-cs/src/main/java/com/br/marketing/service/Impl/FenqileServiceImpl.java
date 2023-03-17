@@ -30,6 +30,7 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import java.security.SecureRandom;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -58,6 +59,8 @@ public class FenqileServiceImpl implements IFenqileService {
 
     @Resource
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
+
+    private final static DateTimeFormatter DTF = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT_SSS);
 
     @Override
     public Integer periodPushDecision(String apiCode, int day, String strategyCode, LocalDate localDate
@@ -89,8 +92,10 @@ public class FenqileServiceImpl implements IFenqileService {
                     if (split.length > 1) {
                         sumOld = Integer.parseInt(split[1]);
                     }
-                    startTimeStr = dateOld.toInstant().atZone(ZoneId.systemDefault())
-                            .format(DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT_SSS));
+                    LocalDateTime localDateTime = dateOld.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                    if (localDateTime.compareTo(LocalDateTime.parse(startTimeStr, DTF)) > 0) {
+                        startTimeStr = localDateTime.format(DTF);
+                    }
                 }
             }
             HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();
@@ -220,8 +225,9 @@ public class FenqileServiceImpl implements IFenqileService {
             actionFront.setIsDel(1);
             actionFront.setApiCode(apiCode);
             actionFront.setActionData(localDateStr);
-            if (day == 0 && date != null) {
-                actionFront.setRemark(date.getTime() + ";" + sum);
+            if (day == 0) {
+                actionFront.setRemark((date != null ? date.getTime()
+                        : Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant())) + ";" + sum);
             } else {
                 actionFront.setRemark(String.valueOf(sum));
             }
