@@ -35,7 +35,6 @@ public class FenqilePeriodPushDecisionJob extends AbstractSimpleElasticJob {
     @Resource
     private IFenqileService iFenqileService;
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT);
-    ;
 
     /**
      * 2023-03-10 16:40
