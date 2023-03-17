@@ -8,12 +8,14 @@ import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataD
 
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -27,7 +29,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class JuZiPeriodPredicateServiceImpl implements JuZiPeriodPredicateService {
+public class JuZiPeriodPredicateToDassServiceImpl implements JuZiPeriodPredicateService {
 
     private final static Set<String> statusSet = new HashSet<String>(){{
         add("a");
@@ -39,6 +41,9 @@ public class JuZiPeriodPredicateServiceImpl implements JuZiPeriodPredicateServic
 
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
+
+
+
     @Override
     public void transferDataPeriod(String status,List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellList) {
         if(statusSet.contains(status)){
@@ -82,6 +87,8 @@ public class JuZiPeriodPredicateServiceImpl implements JuZiPeriodPredicateServic
         }
 
     }
+
+
 
     public void JuZiPushDaas(List<BatchRealTimeUserDataDTO> batchRealTimeUserDataDTOList) {
         /**

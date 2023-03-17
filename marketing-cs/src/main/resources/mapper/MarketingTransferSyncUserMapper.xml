@@ -336,7 +336,7 @@
             request_data = DATE_FORMAT(now(),"%Y-%m-%d")
             and if_apply = '1'
             and (apply_result is null or apply_result ='')
-            and  audit_amount >= 100
+            and  audit_amount >= 1000
             and  apply_dt between DATE_SUB(DATE_FORMAT(now(),"%Y-%m-%d"),INTERVAL 1 day) and DATE_FORMAT(now(),"%Y-%m-%d")
             <if test="minId != null and minId >0">
                 AND id >=#{minId}
@@ -344,11 +344,28 @@
             order by id asc limit 2000;
         </where>
     </select>
+    <select id="getJuZiCRuleData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from
+        b_marketing_transfer_sync_${tCid}
+        <where>
+            request_data = DATE_FORMAT(now(),"%Y-%m-%d")
+            and if_apply = '1'
+            and (apply_result is null or apply_result ='')
+            and  audit_amount >= 1000
+            and  login_time between DATE_SUB(DATE_FORMAT(now(),"%Y-%m-%d"),INTERVAL 1 day) and DATE_FORMAT(now(),"%Y-%m-%d")
+            <if test="minId != null and minId >0">
+                AND id >=#{minId}
+            </if>
+            order by id asc limit 2000;
+        </where>
+    </select>
+
     <select id="getJuZiDRuleData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select * from
         b_marketing_transfer_sync_${tCid}
         <where>
-            if_login = '1'
+            request_data = DATE_FORMAT(now(),"%Y-%m-%d")
+            and if_login = '1'
             and (if_allly is null or if_apply ='')
             and (apply_result is null or apply_result ='')
             and (if_lent is null or if_lent ='')

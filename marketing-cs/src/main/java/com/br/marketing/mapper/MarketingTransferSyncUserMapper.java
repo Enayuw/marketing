@@ -278,5 +278,6 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @return
      */
     List<MarketingTransferSyncUser> getJuZiARuleData(@Param("tCid") String tcId,@Param("minId") Long minId);
+    List<MarketingTransferSyncUser> getJuZiCRuleData(@Param("tCid") String tcId,@Param("minId") Long minId);
     List<MarketingTransferSyncUser> getJuZiDRuleData(@Param("tCid") String tcId,@Param("minId") Long minId);
 }
