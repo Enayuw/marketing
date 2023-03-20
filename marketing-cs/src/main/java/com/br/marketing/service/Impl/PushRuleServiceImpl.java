@@ -343,7 +343,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Override
     public Result isCanPushTask(Long taskId) {
         String lockValue = getCanPushTaskLock(taskId);
-        if (StringUtils.isBlank(lockValue)) {
+        if (StringUtils.isNotBlank(lockValue)) {
             CustomerInfoPushMain customerInfoPushMain = customerInfoPushMainMapper.selectByPrimaryKey(taskId);
             if (!customerInfoPushMain.getmStatus().equals(PushRuleStatusEnum.TO_BE_RUNNING.getValue())) {
                 removeCanPushTaskLock(taskId, lockValue);
