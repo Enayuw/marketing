@@ -1,11 +1,17 @@
 package com.br.marketing.entity;
 
+import lombok.Data;
+
+import java.io.Serializable;
 import java.util.Date;
 
-public class TransferActionFront {
-    /**
-     * 
-     */
+/**
+ * b_transfer_action_front
+ *
+ * @author
+ */
+@Data
+public class TransferActionFront implements Serializable {
     private Long id;
 
     /**
@@ -43,67 +49,10 @@ public class TransferActionFront {
      */
     private Date updateTime;
 
-    public Long getId() {
-        return id;
-    }
+    /**
+     * 备注
+     */
+    private String remark;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getApiCode() {
-        return apiCode;
-    }
-
-    public void setApiCode(String apiCode) {
-        this.apiCode = apiCode == null ? null : apiCode.trim();
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public Integer getActionType() {
-        return actionType;
-    }
-
-    public void setActionType(Integer actionType) {
-        this.actionType = actionType;
-    }
-
-    public String getActionData() {
-        return actionData;
-    }
-
-    public void setActionData(String actionData) {
-        this.actionData = actionData == null ? null : actionData.trim();
-    }
-
-    public Integer getIsDel() {
-        return isDel;
-    }
-
-    public void setIsDel(Integer isDel) {
-        this.isDel = isDel;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
+    private static final long serialVersionUID = 1L;
 }

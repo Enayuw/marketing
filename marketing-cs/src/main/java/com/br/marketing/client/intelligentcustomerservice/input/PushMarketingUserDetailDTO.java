@@ -2,10 +2,15 @@ package com.br.marketing.client.intelligentcustomerservice.input;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.io.Serializable;
 
-@Data
+@Getter
+@Setter
+@ToString
 public class PushMarketingUserDetailDTO implements Serializable {
 
     public static final long serialVersionUID = 1L;

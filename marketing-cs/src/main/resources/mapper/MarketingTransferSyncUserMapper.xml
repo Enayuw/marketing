@@ -329,6 +329,53 @@
         AND request_data = #{requestData}
     </select>
 
+    <select id="getConvtypeData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tcId}
+        where request_data = #{requestData}
+          AND json_unquote(json_extract(reserve_field1, '$.convType')) = #{convType}
+        group by cust_num
+        order by id asc  limit #{limitStart}, 500
+    </select>
+
+    <select id="getCustNumAndConvtypeData" resultType="java.lang.String">
+        select cust_num
+        from b_marketing_transfer_sync_${tcId}
+        where request_data = #{requestData}
+        and cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+          AND ${convTypeStr}
+    </select>
+
+    <select id="getRsToPolicyData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tcId}
+        where request_data = #{requestDate}
+        and user_type in
+        <foreach collection="userTypes" item="userType" open="(" separator="," close=")">
+            #{userType}
+        </foreach>
+        <if test="ifActivity != null ">
+            and reserve_field1->'$.ifActivity'=#{ifActivity}
+        </if>
+        <if test="activityTime != null ">
+            and replace(substring(reserve_field1->'$.activityTime',1,11),'"','')=#{activityTime}
+        </if>
+        <if test="ifApply != null ">
+            and if_apply=#{ifApply}
+        </if>
+        <if test="applyDt != null ">
+            and STR_TO_DATE(apply_dt,'%Y-%m-%d') = #{applyDt}
+        </if>
+        <if test="minId != null and minId>0">
+            and id > #{minId}
+        </if>
+        order by id asc
+        limit #{pageSize}
+    </select>
+
     <select id="getJuZiARuleData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select * from
         b_marketing_transfer_sync_${tCid}

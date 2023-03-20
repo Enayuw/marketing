@@ -1,15 +1,18 @@
 package com.br.marketing.aspect;
 
+import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.annoation.DistributeLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.DistributeTypeEnum;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.DataDistributeLogBase;
 import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.DataDistributeDetailLogMapper;
+import com.br.marketing.service.IPeriodOfValidityService;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -40,7 +43,6 @@ public class DistributeLogAspect {
 
     @Autowired
     RedisChgService redisChgService;
-
     private final static List soleTypes;
 
     // 1-apiCode,custNum
@@ -49,10 +51,14 @@ public class DistributeLogAspect {
     // 2-apiCode,cell
     private final static Integer soleTypeTwo = new Integer(2);
 
+    // 3-apiCode,cell,status
+    private final static Integer soleTypeThree = new Integer(3);
+
     static {
         soleTypes = new ArrayList();
         soleTypes.add(soleTypeOne);
         soleTypes.add(soleTypeTwo);
+        soleTypes.add(soleTypeThree);
     }
 
     @Around("@annotation(com.br.marketing.common.annoation.DistributeLog)")
@@ -102,6 +108,9 @@ public class DistributeLogAspect {
                     } else if (soleTypeTwo.equals(logBase.getSoleField())) {
                         key = key.concat(String.format(":%d:%d:%s:%s", logData.getDistributeType()
                                 , logBase.getSoleDay(), logData.getApiCode(), logData.getCell()));
+                    }else if (soleTypeThree.equals(logBase.getSoleField())) {
+                        key = key.concat(String.format(":%d:%d:%s:%s:%s", logData.getDistributeType()
+                                , logBase.getSoleDay(), logData.getApiCode(), logData.getCell(),logData.getStatus()));
                     }
 
                     try {
@@ -135,6 +144,9 @@ public class DistributeLogAspect {
                             criteria.andCustNumEqualTo(logData.getCustNum());
                         } else if (logBase.getSoleField() == 2) {
                             criteria.andCellEqualTo(logData.getCell());
+                        } else if (logBase.getSoleField() == 3) {
+                            criteria.andCellEqualTo(logData.getCell());
+                            criteria.andStatusEqualTo(logData.getStatus());
                         }
                         List<DataDistributeDetailLog> dataDistributeDetailLogs = dataDistributeDetailLogMapper.selectByExample(logExample);
                         if (dataDistributeDetailLogs.size() > 0) {

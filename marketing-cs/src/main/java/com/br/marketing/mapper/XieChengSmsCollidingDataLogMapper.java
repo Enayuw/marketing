@@ -31,4 +31,11 @@ public interface XieChengSmsCollidingDataLogMapper extends XieChengSmsCollidingD
    void updateBatch(@Param("list") List<XieChengSmsCollidingDataLog> list);
 
 
+
+   /**
+    * 根据cell查询数据
+    *
+    */
+   List<XieChengSmsCollidingDataLog> getDataByCells(@Param("cells") List<String> cells);
+
 }

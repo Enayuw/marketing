@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 public interface TransferActionFrontMapperBase {
-    int countByExample(TransferActionFrontExample example);
+    long countByExample(TransferActionFrontExample example);
 
     int deleteByExample(TransferActionFrontExample example);
 

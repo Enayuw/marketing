@@ -50,7 +50,7 @@ public class CustomerTransferSoleHandler extends AbstractExternalInterfaceHandle
             // 把封装的日志插入到数组中
             logList.add(methodRetryHandlerService.dataJoinLogFix(conversionData,DistributeTypeEnum.CUSTOMERTRANSFER
                     ,context.getApiCode(), conversionData.getCaseNum(), BrCipherMaker.getInstance().encode(conversionData.getPhone())
-                    , Long.valueOf(conversionData.getDataId()), DistributeSourceTypeEnum.TRANSFER));
+                    , Long.valueOf(conversionData.getDataId()), DistributeSourceTypeEnum.TRANSFER,null));
             if(sendList.size()==pageSize||sum == totalCount){
                 // 对象继承 DataDistributeLogBase
                 TransferRobotOutboundSoleDTO robotOutboundDTO = new TransferRobotOutboundSoleDTO();
