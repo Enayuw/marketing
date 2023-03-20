@@ -2,7 +2,8 @@ package com.br.marketing.check.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.check.service.JuZiPeriodPredicateService;
+import com.br.marketing.check.service.OriginPeriodPredicateGetDataService;
+import com.br.marketing.check.service.OriginPeriodPredicateService;
 import com.br.marketing.check.service.OrangePushDassService;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
@@ -60,7 +61,6 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
     private ArtificialBatchRealTimeDataHandler artificialBatchRealTimeDataHandler;
 
 
-
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
@@ -68,6 +68,9 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
     private DataDistributeDetailLogMapper dataDistributeDetailLogMapper;
     @Value("${api.dass.aesKey:}")
     private String aesKey;
+
+    @Resource
+
 
     private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
 
@@ -99,45 +102,43 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
     }
 
     @Override
-    public void transferPeriodToPushDaas(String tcid,String status, List<JuZiPeriodPredicateService> juZiPeriodPredicateServiceList) {
+    public void transferPeriodToPushDaas(String tcid, String status,
+                                         List<OriginPeriodPredicateService> juZiPeriodPredicateServiceList,
+                                         List<OriginPeriodPredicateGetDataService> originPeriodPredicateGetDataServices) {
 
         boolean ruleContinue = Boolean.TRUE;
-        Long aminId = null;
+        Long minId = null;
         while (ruleContinue) {
-            // 查询转化数据表
-            List<MarketingTransferSyncUser> juZiRuleDataList;
-            switch (status) {
-                case "a":
-                    juZiRuleDataList = marketingTransferSyncUserMapper.getJuZiARuleData(tcid, aminId);
-                    break;
-                case "b":
-                    juZiRuleDataList = marketingTransferSyncUserMapper.getJuZiBRuleData(tcid, aminId);
-                    juZiRuleDataList.removeIf(juZiRuleData->{
-                            return  !StringUtils.isBlank(juZiRuleData.getAuditAmount()) &&
-                                    !StringUtils.isBlank(juZiRuleData.getLentAmount()) &&
-                                    Double.valueOf(juZiRuleData.getAuditAmount())-Double.valueOf(juZiRuleData.getLentAmount()) <1000;
-                    });
-                    break;
-                case "c":
-                    juZiRuleDataList = marketingTransferSyncUserMapper.getJuZiCRuleData(tcid, aminId);
-                    juZiRuleDataList.removeIf(juZiRuleData->{
-                        return  !StringUtils.isBlank(juZiRuleData.getAuditAmount()) &&
-                                !StringUtils.isBlank(juZiRuleData.getLentAmount()) &&
-                                Double.valueOf(juZiRuleData.getAuditAmount())-Double.valueOf(juZiRuleData.getLentAmount()) <1000;
-                    });
-                    break;
-                case "d":
-                    juZiRuleDataList = marketingTransferSyncUserMapper.getJuZiDRuleData(tcid, aminId);
-                    break;
-                default:
-                    juZiRuleDataList = new ArrayList<>();
+
+            List<MarketingTransferSyncUser> juZiRuleDataList = new ArrayList<>();
+            // 获取需要处理的数据  a,b,c,d 4种情况。
+            for (int i = 0; i < originPeriodPredicateGetDataServices.size(); i++) {
+                juZiRuleDataList = originPeriodPredicateGetDataServices.get(i).getJuZiRuleData(status, tcid, minId);
+                if(juZiRuleDataList.size() > 0) break;
             }
             if (juZiRuleDataList.size() == 0) {
                 ruleContinue = Boolean.FALSE;
                 continue;
             }
-            aminId = juZiRuleDataList.get(juZiRuleDataList.size() - 1).getId() + 1;
-            List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists = juZiRuleDataList.stream().map(jz -> transferDataValidityPeriodService.getNewValidityPeriodTransferData(jz)).collect(Collectors.toList()).stream().filter(Objects::nonNull).collect(Collectors.toList());
+            minId = juZiRuleDataList.get(juZiRuleDataList.size() - 1).getId() + 1;
+
+            // 1. 获取有效期内的最新的数据
+            List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists = juZiRuleDataList.stream().map(jz -> transferDataValidityPeriodService.getNewValidityPeriodTransferData(jz))
+                    .collect(Collectors.toList()).stream().filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            // 2. 批次内去重
+            marketingTransferSyncUserCellLists.stream().collect(Collectors.collectingAndThen(
+                    Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(MarketingTransferSyncUserCell::getCell))), ArrayList::new)
+            );
+
+            // 3. 情况b 和 c 要做剔除
+            if ("b".equals(status) || "c".equals(status)) {
+                marketingTransferSyncUserCellLists.removeIf(m ->
+                        marketingTransferSyncUserMapper.getValidityPeriodData(m.getCustNum())
+                                .stream().anyMatch(d -> transferDataValidityPeriodService.isValidityPeriod(d)));
+            }
+
             if (marketingTransferSyncUserCellLists.size() > 0) {
                 // 查询电销推送日志表
                 Set<String> toDassLogInfoSet = phoneSaleExtendInfoMapper.getToDassLogInfoList(marketingTransferSyncUserCellLists.get(0).getApiCode(), marketingTransferSyncUserCellLists.stream().map(MarketingTransferSyncUserCell::getCustNum).collect(Collectors.toSet()));
@@ -146,22 +147,19 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
                 // 合并2个集合
                 Set<String> resultSet = new HashSet<>();
                 Stream.of(toDassLogInfoSet, distributionToDassLogInfoSet).forEach(resultSet::addAll);
-                // 判断集合和是否包含待推送数据。
-                // 都没有推过才会继续执行，推过的数据要剔除掉。
-                List<MarketingTransferSyncUserCell> toDassDataList = new ArrayList<>();
-                for (MarketingTransferSyncUserCell marketingTransferSyncUserCellList : marketingTransferSyncUserCellLists) {
-                    if (!resultSet.contains(marketingTransferSyncUserCellList.getCustNum())) {
-                        toDassDataList.add(marketingTransferSyncUserCellList);
-                    }
-                }
-                // 推送daas
-                if (toDassDataList.size() > 0) {
-                    juZiPeriodPredicateServiceList.forEach(juZiPeriodPredicateService -> juZiPeriodPredicateService.transferDataPeriod(status, toDassDataList));
+
+                // 4. 剔除当天推过的数据。
+                marketingTransferSyncUserCellLists.removeIf(m -> resultSet.contains(m.getCustNum()));
+
+                // 5. 推送daas 、 决策
+                if (marketingTransferSyncUserCellLists.size() > 0) {
+                    juZiPeriodPredicateServiceList.forEach(juZiPeriodPredicateService -> juZiPeriodPredicateService.transferDataPeriod(status, marketingTransferSyncUserCellLists));
                 }
 
             }
         }
-    }
+}
+
 
     /**
      * 2022/10/20 15:53
@@ -188,7 +186,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             } catch (Exception e) {
                 try {
                     applyLoanTimeLocalDate = LocalDateTime.parse(applyLoanTimeStr
-                            , DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT))
+                                    , DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT))
                             .toLocalDate().plusDays(day);
                     if (localDate.isBefore(applyLoanTimeLocalDate) || localDate.isEqual(applyLoanTimeLocalDate)) {
                         return true;

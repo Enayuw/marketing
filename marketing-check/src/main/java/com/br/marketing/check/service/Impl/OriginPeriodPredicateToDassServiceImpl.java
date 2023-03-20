@@ -1,21 +1,19 @@
 package com.br.marketing.check.service.Impl;
 
 import com.br.common.util.BrCipherMaker;
-import com.br.marketing.check.service.JuZiPeriodPredicateService;
+import com.br.marketing.check.service.OriginPeriodPredicateService;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
 
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -29,7 +27,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class JuZiPeriodPredicateToDassServiceImpl implements JuZiPeriodPredicateService {
+public class OriginPeriodPredicateToDassServiceImpl implements OriginPeriodPredicateService {
 
     private final static Set<String> statusSet = new HashSet<String>(){{
         add("a");

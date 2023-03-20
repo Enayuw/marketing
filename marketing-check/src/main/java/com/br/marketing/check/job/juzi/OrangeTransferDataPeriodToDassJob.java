@@ -1,11 +1,11 @@
 package com.br.marketing.check.job.juzi;
 
-import com.br.marketing.check.service.JuZiPeriodPredicateService;
+import com.br.marketing.check.service.OriginPeriodPredicateGetDataService;
+import com.br.marketing.check.service.OriginPeriodPredicateService;
 import com.br.marketing.check.service.OrangePushDassService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -36,9 +36,10 @@ public class OrangeTransferDataPeriodToDassJob extends AbstractSimpleElasticJob 
 
 
     @Resource
-    private List<JuZiPeriodPredicateService> juZiPeriodPredicateServiceList;
+    private List<OriginPeriodPredicateService> juZiPeriodPredicateServiceList;
 
-
+    @Resource
+    private List<OriginPeriodPredicateGetDataService> originPeriodPredicateGetDataServices;
     @Resource
     private OrangePushDassService orderDassService;
 
@@ -50,7 +51,7 @@ public class OrangeTransferDataPeriodToDassJob extends AbstractSimpleElasticJob 
     }};
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        statusSet.forEach(status -> orderDassService.transferPeriodToPushDaas(TCID, status, juZiPeriodPredicateServiceList));
+        statusSet.forEach(status -> orderDassService.transferPeriodToPushDaas(TCID, status, juZiPeriodPredicateServiceList,originPeriodPredicateGetDataServices));
     }
 
 }

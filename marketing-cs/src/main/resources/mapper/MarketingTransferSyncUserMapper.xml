@@ -392,18 +392,17 @@
         </where>
     </select>
     <select id="getJuZiBRuleData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-        select * from b_marketing_transfer_sync_${tCid}
-        where audit_amount - lent_amount >=1000
-        and cust_num in(
-        select cust_num from b_phone_sale_extend_info
-        where
-        (applet_date between DATE_SUB(applet_date,INTERVAL 2 day) and DATE_SUB(applet_date,INTERVAL 1 day) ) or
-        (applet_date between DATE_SUB(applet_date,INTERVAL 6 day) and DATE_SUB(applet_date,INTERVAL 5 day) )
-        <if test="minId != null and minId >0">
-            and    id >=#{minId}
+        SELECT  a.* FROM b_marketing_transfer_sync_7780 a
+        INNER JOIN b_phone_sale_extend_info b ON a.cust_num = b.cust_num
+        WHERE (( a.applet_date BETWEEN DATE_SUB( a.applet_date, INTERVAL 2 DAY ) AND DATE_SUB( a.applet_date, INTERVAL 1 DAY ) )
+        OR ( a.applet_date BETWEEN DATE_SUB( a.applet_date, INTERVAL 6 DAY ) AND DATE_SUB( a.applet_date, INTERVAL 5 DAY ) ) )
+        <if test = "minId != null and minId >0">
+            AND a.id >= #{minId}
         </if>
-        order by id asc limit 2000;
-        )
+        AND
+        ORDER BY
+        a.id ASC
+        LIMIT 2000;
 
     </select>
     <select id="getJuZiCRuleData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
@@ -414,7 +413,6 @@
             and if_apply = '1'
             and (apply_result is null or apply_result ='')
             and  audit_amount >= 1000
-            and  audit_amount - lent_amount >=1000
             and  login_time between DATE_SUB(DATE_FORMAT(now(),"%Y-%m-%d"),INTERVAL 1 day) and DATE_FORMAT(now(),"%Y-%m-%d")
             <if test="minId != null and minId >0">
                 AND id >=#{minId}
@@ -438,7 +436,11 @@
             order by id asc limit 2000;
         </where>
     </select>
-
+    <select id="getValidityPeriodData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from
+        b_marketing_transfer_sync_${tCid}
+        where custNum =#{custNum}  <![CDATA[ and audit_amount-lent_amount <1000 ]]>
+    </select>
 
 
 </mapper>

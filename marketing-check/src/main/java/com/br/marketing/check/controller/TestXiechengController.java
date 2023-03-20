@@ -1,23 +1,17 @@
 package com.br.marketing.check.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.check.service.JuZiPeriodPredicateService;
+import com.br.marketing.check.service.OriginPeriodPredicateService;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.xiecheng.FinanceAESUtils;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.MarketingSmyPushService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
-import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,11 +21,6 @@ import javax.annotation.Resource;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * --------------------------------
@@ -72,7 +61,7 @@ public class TestXiechengController {
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     @Autowired
-    private List<JuZiPeriodPredicateService> juZiPeriodPredicateServiceList;
+    private List<OriginPeriodPredicateService> juZiPeriodPredicateServiceList;
 
 
 
