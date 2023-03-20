@@ -56,6 +56,11 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         return null;
     }
 
+    /**
+     * shijian
+     * @param marketingTransferSyncUser
+     * @return
+     */
     private MarketingSyncUser getMarketingSyncUser(MarketingTransferSyncUser marketingTransferSyncUser) {
         MarketingSyncUser marketingSyncUser = null;
         // 1. 查询配置表
