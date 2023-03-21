@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class TransferDataValidityPeriodServiceImpl implements TransferDataValidityPeriodService {
 
-    private final static String DATEFORMATPATTERN = "yyyy-MM-dd";
+    private final static String DATEFORMATPATTERN = "yyyy-MM-dd HH:mm:ss";
 
 
     private final MarketingSyncUserMapper marketingSyncUserMap;
@@ -67,18 +68,17 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
 
         List<MarketingDataValidConfig> marketingDataValidConfigs = marketingDataValidConfigMapper.selectInfo(marketingTransferSyncUser.getApiCode(), marketingTransferSyncUser.getUserType());
         // 获取需要判断的指定日期
-        String requestData = requestDate==null? marketingTransferSyncUser.getRequestData():requestDate;
-        LocalDate parse = LocalDate.parse(requestData, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
-
+        String requestTime = requestDate==null? marketingTransferSyncUser.getRequestTime():requestDate;
+        LocalDateTime parse = LocalDateTime.parse(requestTime, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
         // 2. 获取T,N 模式下 有效期范围的规则集合，T，N
         List<MarketingDataValidConfig> marketingDataValidConfigTN = marketingDataValidConfigs.stream().filter(m -> m.getValidType() == 1).collect(Collectors.toList());
         List<String> collectRequestDateTN = new ArrayList<>();
         marketingDataValidConfigTN.forEach(mctn -> {
             String validStartDate = mctn.getValidStartDate();
             String validEndDate = mctn.getValidEndDate();
-            LocalDate startDate = LocalDate.parse(validStartDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
-            LocalDate endDate = LocalDate.parse(validEndDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
-            if (startDate.isBefore(parse) && parse.isBefore(endDate)) {
+            LocalDateTime startDateTime = LocalDateTime.parse(validStartDate+"00:00:00", DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
+            LocalDateTime endDateTime = LocalDateTime.parse(validEndDate+"23:59:59", DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
+            if ((startDateTime.isBefore(parse) || startDateTime.isEqual(parse) )&& (parse.isBefore(endDateTime) ||parse.isEqual(endDateTime))) {
                 collectRequestDateTN.add(mctn.getAppletDate());
             }
         });
@@ -112,10 +112,11 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         }
         return marketingSyncUser;
     }
-    public java.util.Date convertToDateViaInstant(LocalDate dateToConvert) {
-        return java.util.Date.from(dateToConvert.atStartOfDay().atZone(ZoneId.systemDefault())
+    public java.util.Date convertToDateViaInstant(LocalDateTime dateToConvert) {
+        return java.util.Date.from(dateToConvert.atZone(ZoneId.systemDefault())
                 .toInstant());
     }
+
 
     private static MarketingSyncUser getNewMarketingSyncUser(MarketingSyncUser marketingSyncUser, MarketingSyncUser marketingSyncUserTaN) {
         if (marketingSyncUser != null) {
