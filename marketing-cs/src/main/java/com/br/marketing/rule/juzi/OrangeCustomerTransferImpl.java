@@ -103,12 +103,12 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
                                         data.setExpireDate(eDate);
                                     } catch (Exception exception) {
                                         // 验证日期格式yyyy-MM-dd
-                                        data.setExpireDate(LocalDate.parse(eDate, DateTimeFormatter.ISO_LOCAL_DATE)
-                                                .atStartOfDay().format(DATE_TIME_FORMATTER));
+                                        LocalDate.parse(eDate, DateTimeFormatter.ISO_LOCAL_DATE);
+                                        data.setExpireDate(eDate.concat(" 23:59:59"));
                                     }
                                 }
                             } catch (Exception ignored) {
-                                return false;
+                                // 20230321 与测试同学讨论，认为json解析失败时不影响数据判断
                             }
                         }
                         return true;
