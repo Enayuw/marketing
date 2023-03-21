@@ -83,7 +83,7 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
                     return false;
                 }
                 if (a.subtract(l).doubleValue() < NUMBER) {
-                    MarketingSyncUser syncUser = transferDataValidityPeriodService.getNewValidityPeriodData(transfer,null);
+                    MarketingSyncUser syncUser = transferDataValidityPeriodService.getNewValidityPeriodData(transfer, null);
                     if (syncUser != null) {
                         OrangeCollectDataImpl.OrangeRuleNecessaryData data = (OrangeCollectDataImpl.OrangeRuleNecessaryData
                                 ) context.getRuleNecessaryData();
@@ -91,13 +91,16 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
                             try {
                                 JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
                                 String eDate = jsonObject.getString("eDate");
-                                try {
-                                    LocalDateTime.parse(eDate, DATE_TIME_FORMATTER);
-                                } catch (Exception exception) {
+                                if (StringUtils.hasText(eDate)) {
                                     try {
-                                        data.setExpireDate(LocalDate.parse(eDate, DateTimeFormatter.ISO_LOCAL_DATE)
-                                                .atStartOfDay().format(DATE_TIME_FORMATTER));
-                                    } catch (Exception ignored) {
+                                        LocalDateTime.parse(eDate, DATE_TIME_FORMATTER);
+                                        data.setExpireDate(eDate);
+                                    } catch (Exception exception) {
+                                        try {
+                                            data.setExpireDate(LocalDate.parse(eDate, DateTimeFormatter.ISO_LOCAL_DATE)
+                                                    .atStartOfDay().format(DATE_TIME_FORMATTER));
+                                        } catch (Exception ignored) {
+                                        }
                                     }
                                 }
                             } catch (Exception ignored) {
