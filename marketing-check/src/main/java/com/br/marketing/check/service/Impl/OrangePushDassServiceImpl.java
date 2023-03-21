@@ -69,9 +69,6 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
     @Value("${api.dass.aesKey:}")
     private String aesKey;
 
-    @Resource
-
-
     private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
 
     @Override
