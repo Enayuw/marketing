@@ -84,26 +84,28 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
                 } catch (Exception ignored) {
                     return false;
                 }
+                // audit_amount-lent_amount＜1000 条件判断，满足则继续
                 if (a.subtract(l).doubleValue() < NUMBER) {
                     MarketingSyncUser syncUser = transferDataValidityPeriodService.getNewValidityPeriodData(transfer, null);
+                    // 验证有效期
                     if (syncUser != null) {
                         OrangeCollectDataImpl.OrangeRuleNecessaryData data = (OrangeCollectDataImpl.OrangeRuleNecessaryData
                                 ) context.getRuleNecessaryData();
                         data.setSyncUser(syncUser);
                         if (StringUtils.hasText(syncUser.getReserveField1())) {
                             try {
+                                // 解析扩展字段
                                 JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
                                 String eDate = jsonObject.getString("eDate");
                                 if (StringUtils.hasText(eDate)) {
                                     try {
+                                        // 验证日期格式yyyy-MM-dd HH:mm:ss
                                         LocalDateTime.parse(eDate, DATE_TIME_FORMATTER);
                                         data.setExpireDate(eDate);
                                     } catch (Exception exception) {
-                                        try {
-                                            data.setExpireDate(LocalDate.parse(eDate, DateTimeFormatter.ISO_LOCAL_DATE)
-                                                    .atStartOfDay().format(DATE_TIME_FORMATTER));
-                                        } catch (Exception ignored) {
-                                        }
+                                        // 验证日期格式yyyy-MM-dd
+                                        data.setExpireDate(LocalDate.parse(eDate, DateTimeFormatter.ISO_LOCAL_DATE)
+                                                .atStartOfDay().format(DATE_TIME_FORMATTER));
                                     }
                                 }
                             } catch (Exception ignored) {
