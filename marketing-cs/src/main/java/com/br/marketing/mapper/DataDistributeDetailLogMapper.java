@@ -7,5 +7,5 @@ import java.util.Set;
 
 public interface DataDistributeDetailLogMapper extends DataDistributeDetailLogMapperBase {
 
-    Set<String> getToDataDistributeInfoList(@Param("apiCode") String apiCode, @Param("custNums") Set<String> custNums);
+    Set<String> getToDataDistributeInfoList(@Param("apiCode") String apiCode, @Param("cells") Set<String> cells);
 }

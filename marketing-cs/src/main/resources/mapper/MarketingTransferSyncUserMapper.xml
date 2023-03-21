@@ -396,7 +396,7 @@
         SELECT  a.* FROM b_marketing_transfer_sync_${tCid} a
         INNER JOIN b_phone_sale_extend_info b ON a.cust_num = b.cust_num
         WHERE
-        api_code = #{apiCode}
+        a.api_code = #{apiCode}
         and
             b.status ="a"
         AND (( b.create_time BETWEEN DATE_SUB( b.create_time, INTERVAL 2 DAY ) AND DATE_SUB( b.create_time, INTERVAL 1 DAY ) )
@@ -432,7 +432,7 @@
         select * from
         b_marketing_transfer_sync_${tCid}
         <where>
-            a.api_code = #{apiCode}
+            api_code = #{apiCode}
             and
             request_data = DATE_FORMAT(now(),"%Y-%m-%d")
             and if_login = '1'
@@ -449,7 +449,7 @@
         select * from
         b_marketing_transfer_sync_${tCid}
         where api_code = #{apiCode}
-          and custNum =#{custNum}  <![CDATA[ and audit_amount-lent_amount <1000 ]]>
+          and cust_num =#{custNum}  <![CDATA[ and audit_amount-lent_amount <1000 ]]>
     </select>
 
 

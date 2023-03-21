@@ -120,7 +120,8 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             minId = juZiRuleDataList.get(juZiRuleDataList.size() - 1).getId() + 1;
 
             // 1. 获取有效期内的最新的数据
-            List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists = juZiRuleDataList.stream().map(jz -> transferDataValidityPeriodService.getNewValidityPeriodTransferData(jz,null))
+            List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists =
+                    juZiRuleDataList.stream().map(jz -> transferDataValidityPeriodService.getNewValidityPeriodTransferData(jz,null))
                     .collect(Collectors.toList()).stream().filter(Objects::nonNull)
                     .collect(Collectors.toList());
 
@@ -132,27 +133,28 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             // 3. 情况b 和 c 要做剔除
             if ("b".equals(status) || "c".equals(status)) {
                 marketingTransferSyncUserCellLists.removeIf(m ->
-                        marketingTransferSyncUserMapper.getValidityPeriodData(m.getCustNum())
+                        marketingTransferSyncUserMapper.getValidityPeriodData(tcid,apiCode,m.getCustNum())
                                 .stream().anyMatch(d -> transferDataValidityPeriodService.isValidityPeriod(d,null)));
             }
 
             if (marketingTransferSyncUserCellLists.size() > 0) {
+                // 获取cell set 集合
+                Set<String> cellSet = marketingTransferSyncUserCellLists.stream().map(MarketingTransferSyncUserCell::getCell).collect(Collectors.toSet());
                 // 查询电销推送日志表
-                Set<String> toDassLogInfoSet = phoneSaleExtendInfoMapper.getToDassLogInfoList(marketingTransferSyncUserCellLists.get(0).getApiCode(), marketingTransferSyncUserCellLists.stream().map(MarketingTransferSyncUserCell::getCustNum).collect(Collectors.toSet()));
+                Set<String> toDassLogInfoSet = phoneSaleExtendInfoMapper.getToDassLogInfoList(apiCode,cellSet);
                 // 查询决策推送日志表
-                Set<String> distributionToDassLogInfoSet = dataDistributeDetailLogMapper.getToDataDistributeInfoList(marketingTransferSyncUserCellLists.get(0).getApiCode(), marketingTransferSyncUserCellLists.stream().map(MarketingTransferSyncUserCell::getCustNum).collect(Collectors.toSet()));
+                Set<String> distributionToDassLogInfoSet = dataDistributeDetailLogMapper.getToDataDistributeInfoList(apiCode, cellSet);
                 // 合并2个集合
                 Set<String> resultSet = new HashSet<>();
                 Stream.of(toDassLogInfoSet, distributionToDassLogInfoSet).forEach(resultSet::addAll);
 
                 // 4. 剔除当天推过的数据。
-                marketingTransferSyncUserCellLists.removeIf(m -> resultSet.contains(m.getCustNum()));
+                marketingTransferSyncUserCellLists.removeIf(m -> resultSet.contains(m.getCell()));
 
                 // 5. 推送daas 、 决策
                 if (marketingTransferSyncUserCellLists.size() > 0) {
-                    juZiPeriodPredicateServiceList.forEach(juZiPeriodPredicateService -> juZiPeriodPredicateService.transferDataPeriod(status, marketingTransferSyncUserCellLists));
+                    juZiPeriodPredicateServiceList.forEach(juZiPeriodPredicateService -> juZiPeriodPredicateService.transferDataPeriod(apiCode,status, marketingTransferSyncUserCellLists));
                 }
-
             }
         }
 }

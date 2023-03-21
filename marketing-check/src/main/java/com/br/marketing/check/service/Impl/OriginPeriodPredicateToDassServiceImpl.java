@@ -6,6 +6,7 @@ import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
 
+import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
@@ -14,6 +15,7 @@ import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -40,10 +42,11 @@ public class OriginPeriodPredicateToDassServiceImpl implements OriginPeriodPredi
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
 
-
+    @Value("${api.dass.aesKey:00}")
+    private String aesKey;
 
     @Override
-    public void transferDataPeriod(String status,List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellList) {
+    public void transferDataPeriod(String apiCode,String status,List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellList) {
         if(statusSet.contains(status)){
             List<BatchRealTimeUserDataDTO> transferDataList = new ArrayList<>();
             marketingTransferSyncUserCellList.forEach(marketingTransferSyncUserCell -> {
@@ -62,11 +65,12 @@ public class OriginPeriodPredicateToDassServiceImpl implements OriginPeriodPredi
                 if (StringUtils.isEmpty(cell)) {
                     return;
                 }
-                dassImportDataDTO.setPhone(cell);
+                dassImportDataDTO.setPhone( AESUtil.aesEncrypty(cell, aesKey));
                 BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
                 PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
-                phoneSaleExtendInfo.setApiCode(marketingTransferSyncUserCell.getApiCode());
+                phoneSaleExtendInfo.setApiCode(apiCode);
                 phoneSaleExtendInfo.setCreateTime(new Date());
+                phoneSaleExtendInfo.setCell(marketingTransferSyncUserCell.getCell());
                 phoneSaleExtendInfo.setStatus(status);
                 phoneSaleExtendInfo.setCustNum(marketingTransferSyncUserCell.getCustNum());
                 phoneSaleExtendInfo.setAppletDate(marketingTransferSyncUserCell.getRequestData());

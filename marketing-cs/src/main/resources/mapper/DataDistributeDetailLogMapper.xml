@@ -4,11 +4,11 @@
 
     <select id="getToDataDistributeInfoList" resultType="java.lang.String">
         select
-         cust_num
+        cell
         from b_data_distribute_detail_log
         where api_code = #{apiCode}
-        and cust_num in
-        <foreach collection="custNums" item="item" open="(" close=")" separator=",">
+        and cell in
+        <foreach collection="cells" item="item" open="(" close=")" separator=",">
             #{item}
         </foreach>
         and distribute_date between  DATE_FORMAT(now(),"%Y-%m-%d") and DATE_add(DATE_FORMAT(now(),"%Y-%m-%d"),INTERVAL 1 day)

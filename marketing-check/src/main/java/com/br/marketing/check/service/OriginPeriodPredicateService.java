@@ -11,7 +11,7 @@ import java.util.List;
  */
 
 public interface OriginPeriodPredicateService {
-    void  transferDataPeriod(String status ,List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellList);
+    void  transferDataPeriod(String apiCode,String status ,List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellList);
 
 
 }

@@ -40,23 +40,23 @@ public class OriginPeriodPredicateToJueCeServiceImpl implements OriginPeriodPred
     private MarketingCommonConfig marketingCommonConfig;
 
     @Override
-    public void transferDataPeriod(String status, List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellList) {
+    public void transferDataPeriod(String apiCode,String status, List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellList) {
         // 推决策
         if(statusSet.contains(status)){
             ArrayList<DataJoinLogDTO> logList = new ArrayList<>();
             ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
-            String apiCode = marketingTransferSyncUserCellList.get(0).getApiCode();
+
             marketingTransferSyncUserCellList.forEach(marketingTransferSyncUserCell -> {
                 PushMarketingUserDetailDTO marketingUserDetailDTO = new PushMarketingUserDetailDTO();
                 marketingUserDetailDTO.setCaseNumber(marketingTransferSyncUserCell.getCustNum());
                 // log解密  md5加密
-                String cell = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(marketingUserDetailDTO.getPhone()).getBytes());
+                String cell = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(marketingTransferSyncUserCell.getCell()).getBytes());
                 marketingUserDetailDTO.setPhone(cell);
                 marketingUserDetailDTO.setVariables(new JSONObject());
                 pushs.add(marketingUserDetailDTO);
                 // 把封装的日志插入到数组中
                 logList.add(methodRetryHandlerService.dataJoinLogFix(marketingUserDetailDTO, DistributeTypeEnum.POLICYDATA
-                        , marketingTransferSyncUserCell.getApiCode(), marketingUserDetailDTO.getCaseNumber(), marketingUserDetailDTO.getPhone()
+                        , apiCode, marketingTransferSyncUserCell.getCustNum(), marketingTransferSyncUserCell.getCell()
                         , null, DistributeSourceTypeEnum.TRANSFER, status));
                     }
             );
