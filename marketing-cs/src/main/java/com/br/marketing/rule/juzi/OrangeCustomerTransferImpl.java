@@ -108,7 +108,7 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
                                     }
                                 }
                             } catch (Exception ignored) {
-                                // 20230321 与测试同学讨论，认为json解析失败时不影响数据判断
+                                // 20230321 与测试同学讨论，经测试同学与需求方确认，认为json解析失败时不影响数据判断
                             }
                         }
                         return true;
