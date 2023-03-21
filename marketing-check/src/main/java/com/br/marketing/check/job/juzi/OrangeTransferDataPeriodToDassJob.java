@@ -3,6 +3,8 @@ package com.br.marketing.check.job.juzi;
 import com.br.marketing.check.service.OriginPeriodPredicateGetDataService;
 import com.br.marketing.check.service.OriginPeriodPredicateService;
 import com.br.marketing.check.service.OrangePushDassService;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -32,9 +34,6 @@ public class OrangeTransferDataPeriodToDassJob extends AbstractSimpleElasticJob 
  不需要判断有效期
  * */
 
-    private final static String TCID = "7780";
-
-
     @Resource
     private List<OriginPeriodPredicateService> juZiPeriodPredicateServiceList;
 
@@ -42,6 +41,12 @@ public class OrangeTransferDataPeriodToDassJob extends AbstractSimpleElasticJob 
     private List<OriginPeriodPredicateGetDataService> originPeriodPredicateGetDataServices;
     @Resource
     private OrangePushDassService orderDassService;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
 
     private static final Set<String> statusSet = new HashSet<String>() {{
         add("a");
@@ -51,7 +56,12 @@ public class OrangeTransferDataPeriodToDassJob extends AbstractSimpleElasticJob 
     }};
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        statusSet.forEach(status -> orderDassService.transferPeriodToPushDaas(TCID, status, juZiPeriodPredicateServiceList,originPeriodPredicateGetDataServices));
+        List<String> originToDassApiCodes = marketingCommonConfig.getOriginToDassApiCodes();
+        originToDassApiCodes.forEach(apiCode ->{
+            String cId = tableCreateService.getTcId(apiCode);
+            statusSet.forEach(status -> orderDassService.transferPeriodToPushDaas(cId,apiCode, status, juZiPeriodPredicateServiceList,originPeriodPredicateGetDataServices));
+        });
+
     }
 
 }

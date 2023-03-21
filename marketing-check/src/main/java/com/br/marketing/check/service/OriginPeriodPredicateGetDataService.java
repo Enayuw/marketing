@@ -16,7 +16,7 @@ import java.util.List;
  */
 public interface OriginPeriodPredicateGetDataService {
 
-    List<MarketingTransferSyncUser> getJuZiRuleData(String status,String tcid,Long minId);
+    List<MarketingTransferSyncUser> getJuZiRuleData(String status,String tcid,String apiCode,Long minId);
 
     @Service
     @Slf4j
@@ -25,9 +25,9 @@ public interface OriginPeriodPredicateGetDataService {
         private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
         @Override
-        public List<MarketingTransferSyncUser> getJuZiRuleData(String status,String tcid, Long minId) {
+        public List<MarketingTransferSyncUser> getJuZiRuleData(String status,String tcid,String apiCode, Long minId) {
             if("a".equals(status)){
-                return  marketingTransferSyncUserMapper.getJuZiARuleData(tcid, minId);
+                return  marketingTransferSyncUserMapper.getJuZiARuleData(tcid,apiCode, minId);
             }
             return new ArrayList<>();
         }
@@ -41,9 +41,9 @@ public interface OriginPeriodPredicateGetDataService {
         private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
         @Override
-        public List<MarketingTransferSyncUser> getJuZiRuleData(String status,String tcid, Long minId) {
+        public List<MarketingTransferSyncUser> getJuZiRuleData(String status,String tcid,String apiCode, Long minId) {
             if("b".equals(status)){
-                return  marketingTransferSyncUserMapper.getJuZiBRuleData(tcid, minId);
+                return  marketingTransferSyncUserMapper.getJuZiBRuleData(tcid,apiCode, minId);
             }
             return new ArrayList<>();
         }
@@ -56,9 +56,9 @@ public interface OriginPeriodPredicateGetDataService {
         private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
         @Override
-        public List<MarketingTransferSyncUser> getJuZiRuleData(String status,String tcid, Long minId) {
+        public List<MarketingTransferSyncUser> getJuZiRuleData(String status,String tcid,String apiCode, Long minId) {
             if("c".equals(status)){
-                return  marketingTransferSyncUserMapper.getJuZiCRuleData(tcid, minId);
+                return  marketingTransferSyncUserMapper.getJuZiCRuleData(tcid, apiCode,minId);
             }
             return new ArrayList<>();
         }
@@ -71,9 +71,9 @@ public interface OriginPeriodPredicateGetDataService {
         private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
         @Override
-        public List<MarketingTransferSyncUser> getJuZiRuleData(String status ,String tcid, Long minId) {
+        public List<MarketingTransferSyncUser> getJuZiRuleData(String status ,String tcid,String apiCode, Long minId) {
             if("d".equals(status)){
-                return marketingTransferSyncUserMapper.getJuZiDRuleData(tcid, minId);
+                return marketingTransferSyncUserMapper.getJuZiDRuleData(tcid,apiCode, minId);
             }
             return new ArrayList<>();
         }
