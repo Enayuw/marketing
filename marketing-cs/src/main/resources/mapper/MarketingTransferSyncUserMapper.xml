@@ -385,7 +385,7 @@
             and if_apply = '1'
             and (apply_result is null or apply_result ='')
             and  audit_amount >= 1000
-            and  apply_dt between DATE_SUB(DATE_FORMAT(now(),"%Y-%m-%d"),INTERVAL 1 day) and DATE_FORMAT(now(),"%Y-%m-%d")
+            and  apply_dt = date_sub(curdate(),interval 1 day)
             <if test="minId != null and minId >0">
                 AND id >=#{minId}
             </if>
@@ -399,8 +399,8 @@
         a.api_code = #{apiCode}
         and
             b.status ="a"
-        AND (( b.create_time BETWEEN DATE_SUB( b.create_time, INTERVAL 2 DAY ) AND DATE_SUB( b.create_time, INTERVAL 1 DAY ) )
-        OR ( b.create_time BETWEEN DATE_SUB( b.create_time, INTERVAL 6 DAY ) AND DATE_SUB( b.create_time, INTERVAL 5 DAY ) ) )
+        AND (DATE_FORMAT(b.create_time,"%Y-%m-%d") = date_sub(curdate(),interval 2 day)
+        OR DATE_FORMAT(b.create_time,"%Y-%m-%d") = date_sub(curdate(),interval 6 day))
         <if test = "minId != null and minId >0">
             AND a.id >= #{minId}
         </if>
@@ -420,7 +420,7 @@
             and if_apply = '1'
             and (apply_result is null or apply_result ='')
             and  audit_amount >= 1000
-            and  login_time between DATE_SUB(DATE_FORMAT(now(),"%Y-%m-%d"),INTERVAL 1 day) and DATE_FORMAT(now(),"%Y-%m-%d")
+            and  DATE_FORMAT(login_time,"%Y-%m-%d") =  date_sub(curdate(),interval 1 day)
             <if test="minId != null and minId >0">
                 AND id >=#{minId}
             </if>

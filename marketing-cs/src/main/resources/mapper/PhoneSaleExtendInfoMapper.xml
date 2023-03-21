@@ -271,7 +271,8 @@
         <foreach collection="cells" item="item" open="(" close=")" separator=",">
             #{item}
         </foreach>
-        and create_time between DATE_FORMAT(now(),"%Y-%m-%d") and DATE_add(DATE_FORMAT(now(),"%Y-%m-%d"),INTERVAL 1 day)
+        and DATE_FORMAT(now(),"%Y-%m-%d") =  date_format(create_time,"%Y-%m-%d")
+
 
 </select>
 
