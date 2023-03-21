@@ -264,7 +264,7 @@
     </select>
     <select id="getToDassLogInfoList" resultType="java.lang.String">
         select
-        distinct cust_num
+        cust_num
         from b_phone_sale_extend_info
         where api_code = #{apiCode}
         and cust_num in

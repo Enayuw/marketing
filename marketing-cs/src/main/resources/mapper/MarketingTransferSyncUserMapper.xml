@@ -432,7 +432,7 @@
         select * from
         b_marketing_transfer_sync_${tCid}
         <where>
-            api_code = #{apiCode}
+            a.api_code = #{apiCode}
             and
             request_data = DATE_FORMAT(now(),"%Y-%m-%d")
             and if_login = '1'

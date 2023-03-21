@@ -85,7 +85,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         });
 
         // 如果T,N 模式不为空则查询最新一条数据
-        if (!collectRequestDateTN.isEmpty()) {
+        if (collectRequestDateTN.size() > 0) {
             marketingSyncUser = marketingSyncUserMap.selectInAppletDate(collectRequestDateTN, marketingTransferSyncUser);
         }
 
