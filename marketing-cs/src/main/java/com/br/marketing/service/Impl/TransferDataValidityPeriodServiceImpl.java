@@ -70,14 +70,15 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         // 获取需要判断的指定日期
         String requestTime = requestDate==null? marketingTransferSyncUser.getRequestTime():requestDate;
         LocalDateTime parse = LocalDateTime.parse(requestTime, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
+
         // 2. 获取T,N 模式下 有效期范围的规则集合，T，N
         List<MarketingDataValidConfig> marketingDataValidConfigTN = marketingDataValidConfigs.stream().filter(m -> m.getValidType() == 1).collect(Collectors.toList());
         List<String> collectRequestDateTN = new ArrayList<>();
         marketingDataValidConfigTN.forEach(mctn -> {
             String validStartDate = mctn.getValidStartDate();
             String validEndDate = mctn.getValidEndDate();
-            LocalDateTime startDateTime = LocalDateTime.parse(validStartDate+"00:00:00", DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
-            LocalDateTime endDateTime = LocalDateTime.parse(validEndDate+"23:59:59", DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
+            LocalDateTime startDateTime = LocalDateTime.parse(validStartDate+" 00:00:00", DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
+            LocalDateTime endDateTime = LocalDateTime.parse(validEndDate+" 23:59:59", DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
             if ((startDateTime.isBefore(parse) || startDateTime.isEqual(parse) )&& (parse.isBefore(endDateTime) ||parse.isEqual(endDateTime))) {
                 collectRequestDateTN.add(mctn.getAppletDate());
             }

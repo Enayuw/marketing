@@ -20,5 +20,5 @@ public interface OrangePushDassService {
      * 2023/03/17 17:26
      * 周期推送电销(new)
      */
-    void transferPeriodToPushDaas(String tcid,String status, List<OriginPeriodPredicateService> juZiPeriodPredicateServiceList,List<OriginPeriodPredicateGetDataService> originPeriodPredicateGetDataServices);
+    void transferPeriodToPushDaas(String tcid,String apiCode,String status, List<OriginPeriodPredicateService> juZiPeriodPredicateServiceList,List<OriginPeriodPredicateGetDataService> originPeriodPredicateGetDataServices);
 }

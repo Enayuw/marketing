@@ -1,6 +1,7 @@
 package com.br.marketing.check.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.check.service.OriginPeriodPredicateService;
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleSoleDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailDTO;
@@ -8,12 +9,14 @@ import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 
 import java.util.*;
 
@@ -46,7 +49,9 @@ public class OriginPeriodPredicateToJueCeServiceImpl implements OriginPeriodPred
             marketingTransferSyncUserCellList.forEach(marketingTransferSyncUserCell -> {
                 PushMarketingUserDetailDTO marketingUserDetailDTO = new PushMarketingUserDetailDTO();
                 marketingUserDetailDTO.setCaseNumber(marketingTransferSyncUserCell.getCustNum());
-                marketingUserDetailDTO.setPhone(marketingUserDetailDTO.getPhone());
+                // log解密  md5加密
+                String cell = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(marketingUserDetailDTO.getPhone()).getBytes());
+                marketingUserDetailDTO.setPhone(cell);
                 marketingUserDetailDTO.setVariables(new JSONObject());
                 pushs.add(marketingUserDetailDTO);
                 // 把封装的日志插入到数组中

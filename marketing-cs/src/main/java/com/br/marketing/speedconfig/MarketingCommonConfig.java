@@ -531,5 +531,9 @@ public class MarketingCommonConfig {
      * 桔子转化数据推电销决策策略编号设置
      */
     private Map<String, String> originStrategyMap;
+    /**
+     * 桔子转化数据推daas 决策 apiCode
+     */
+    private List<String> originToDassApiCodes;
 }
 

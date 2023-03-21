@@ -99,7 +99,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
     }
 
     @Override
-    public void transferPeriodToPushDaas(String tcid, String status,
+    public void transferPeriodToPushDaas(String tcid, String apiCode, String status,
                                          List<OriginPeriodPredicateService> juZiPeriodPredicateServiceList,
                                          List<OriginPeriodPredicateGetDataService> originPeriodPredicateGetDataServices) {
 
@@ -110,7 +110,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             List<MarketingTransferSyncUser> juZiRuleDataList = new ArrayList<>();
             // 获取需要处理的数据  a,b,c,d 4种情况。
             for (int i = 0; i < originPeriodPredicateGetDataServices.size(); i++) {
-                juZiRuleDataList = originPeriodPredicateGetDataServices.get(i).getJuZiRuleData(status, tcid, minId);
+                juZiRuleDataList = originPeriodPredicateGetDataServices.get(i).getJuZiRuleData(status, tcid,apiCode, minId);
                 if(juZiRuleDataList.size() > 0) break;
             }
             if (juZiRuleDataList.size() == 0) {
