@@ -11,6 +11,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
@@ -42,6 +43,9 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
+
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
@@ -49,7 +53,8 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(transfer.getCid());
         conversionData.setInversionStatus("0");
-        conversionData.setCid("3874");
+        String cId = tableCreateService.getCId(transfer.getApiCode());
+        conversionData.setCid(StringUtils.hasText(cId) ? cId : "3874");
         conversionData.setCaseNum(transfer.getCustNum());
         OrangeCollectDataImpl.OrangeRuleNecessaryData data = (OrangeCollectDataImpl.OrangeRuleNecessaryData
                 ) context.getRuleNecessaryData();
