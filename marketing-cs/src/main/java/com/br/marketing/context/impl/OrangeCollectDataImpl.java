@@ -3,6 +3,7 @@ package com.br.marketing.context.impl;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.RuleNecessaryData;
+import com.br.marketing.entity.MarketingSyncUser;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,11 @@ public class OrangeCollectDataImpl extends CommonMethodHandlerService {
          * 生效截止时间 格式yyyy-mm-dd HH:mm:ss
          */
         private String expireDate;
+
+        /**
+         * 客户上传表信息
+         */
+        private MarketingSyncUser syncUser;
     }
 
 
