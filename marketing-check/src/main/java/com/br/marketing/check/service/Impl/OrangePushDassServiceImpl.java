@@ -120,7 +120,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             minId = juZiRuleDataList.get(juZiRuleDataList.size() - 1).getId() + 1;
 
             // 1. 获取有效期内的最新的数据
-            List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists = juZiRuleDataList.stream().map(jz -> transferDataValidityPeriodService.getNewValidityPeriodTransferData(jz))
+            List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists = juZiRuleDataList.stream().map(jz -> transferDataValidityPeriodService.getNewValidityPeriodTransferData(jz,null))
                     .collect(Collectors.toList()).stream().filter(Objects::nonNull)
                     .collect(Collectors.toList());
 
@@ -133,7 +133,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             if ("b".equals(status) || "c".equals(status)) {
                 marketingTransferSyncUserCellLists.removeIf(m ->
                         marketingTransferSyncUserMapper.getValidityPeriodData(m.getCustNum())
-                                .stream().anyMatch(d -> transferDataValidityPeriodService.isValidityPeriod(d)));
+                                .stream().anyMatch(d -> transferDataValidityPeriodService.isValidityPeriod(d,null)));
             }
 
             if (marketingTransferSyncUserCellLists.size() > 0) {

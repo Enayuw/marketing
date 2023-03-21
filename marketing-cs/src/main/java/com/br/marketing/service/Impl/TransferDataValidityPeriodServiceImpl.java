@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -35,18 +36,19 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     private final IPeriodOfValidityService iPeriodOfValidityService;
 
     @Override
-    public MarketingSyncUser getNewValidityPeriodData(MarketingTransferSyncUser marketingTransferSyncUser) {
-        return getMarketingSyncUser(marketingTransferSyncUser);
+    public MarketingSyncUser getNewValidityPeriodData(MarketingTransferSyncUser marketingTransferSyncUser,String requestDate) {
+        return getMarketingSyncUser(marketingTransferSyncUser,requestDate);
     }
 
     @Override
-    public boolean isValidityPeriod(MarketingTransferSyncUser marketingTransferSyncUser) {
-        return getMarketingSyncUser(marketingTransferSyncUser) == null ? false : true;
+    public boolean isValidityPeriod(MarketingTransferSyncUser marketingTransferSyncUser,String requestDate) {
+        return getMarketingSyncUser(marketingTransferSyncUser, requestDate) != null;
     }
 
+
     @Override
-    public MarketingTransferSyncUserCell getNewValidityPeriodTransferData(MarketingTransferSyncUser marketingTransferSyncUser) {
-        MarketingSyncUser marketingSyncUser = getMarketingSyncUser(marketingTransferSyncUser);
+    public MarketingTransferSyncUserCell getNewValidityPeriodTransferData(MarketingTransferSyncUser marketingTransferSyncUser,String requestDate) {
+        MarketingSyncUser marketingSyncUser = getMarketingSyncUser(marketingTransferSyncUser,requestDate);
         if (marketingSyncUser != null) {
             MarketingTransferSyncUserCell marketingTransferSyncUserCell = new MarketingTransferSyncUserCell();
             BeanUtils.copyProperties(marketingTransferSyncUser,marketingTransferSyncUserCell);
@@ -58,14 +60,15 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
 
     /**
      * shijian
-     * @param marketingTransferSyncUser
-     * @return
      */
-    private MarketingSyncUser getMarketingSyncUser(MarketingTransferSyncUser marketingTransferSyncUser) {
+    private MarketingSyncUser getMarketingSyncUser(MarketingTransferSyncUser marketingTransferSyncUser,String requestDate) {
         MarketingSyncUser marketingSyncUser = null;
         // 1. 查询配置表
 
         List<MarketingDataValidConfig> marketingDataValidConfigs = marketingDataValidConfigMapper.selectInfo(marketingTransferSyncUser.getApiCode(), marketingTransferSyncUser.getUserType());
+        // 获取需要判断的指定日期
+        String requestData = requestDate==null? marketingTransferSyncUser.getRequestData():requestDate;
+        LocalDate parse = LocalDate.parse(requestData, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
 
         // 2. 获取T,N 模式下 有效期范围的规则集合，T，N
         List<MarketingDataValidConfig> marketingDataValidConfigTN = marketingDataValidConfigs.stream().filter(m -> m.getValidType() == 1).collect(Collectors.toList());
@@ -73,10 +76,8 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         marketingDataValidConfigTN.forEach(mctn -> {
             String validStartDate = mctn.getValidStartDate();
             String validEndDate = mctn.getValidEndDate();
-            String requestData = marketingTransferSyncUser.getRequestData();
             LocalDate startDate = LocalDate.parse(validStartDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
             LocalDate endDate = LocalDate.parse(validEndDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
-            LocalDate parse = LocalDate.parse(requestData, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
             if (startDate.isBefore(parse) && parse.isBefore(endDate)) {
                 collectRequestDateTN.add(mctn.getAppletDate());
             }
@@ -103,13 +104,17 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             Date appletTime = marketingSyncUserTaN.getAppletTime() == null ? marketingSyncUserTaN.getCreateTime() : marketingSyncUserTaN.getAppletTime();
             for (MarketingDataValidConfig mctan : marketingDataValidConfigTaN) {
                 // 判断是否有效
-                if (iPeriodOfValidityService.isNotExpire(null, mctan.getValidDays(), appletTime)) {
+                if (iPeriodOfValidityService.isNotExpire(convertToDateViaInstant(parse), mctan.getValidDays(), appletTime)) {
                     marketingSyncUser = getNewMarketingSyncUser(marketingSyncUser, marketingSyncUserTaN);
                     break;
                 }
             }
         }
         return marketingSyncUser;
+    }
+    public java.util.Date convertToDateViaInstant(LocalDate dateToConvert) {
+        return java.util.Date.from(dateToConvert.atStartOfDay().atZone(ZoneId.systemDefault())
+                .toInstant());
     }
 
     private static MarketingSyncUser getNewMarketingSyncUser(MarketingSyncUser marketingSyncUser, MarketingSyncUser marketingSyncUserTaN) {

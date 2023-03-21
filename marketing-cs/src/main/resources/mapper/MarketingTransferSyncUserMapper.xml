@@ -394,12 +394,14 @@
     <select id="getJuZiBRuleData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         SELECT  a.* FROM b_marketing_transfer_sync_7780 a
         INNER JOIN b_phone_sale_extend_info b ON a.cust_num = b.cust_num
-        WHERE (( a.applet_date BETWEEN DATE_SUB( a.applet_date, INTERVAL 2 DAY ) AND DATE_SUB( a.applet_date, INTERVAL 1 DAY ) )
-        OR ( a.applet_date BETWEEN DATE_SUB( a.applet_date, INTERVAL 6 DAY ) AND DATE_SUB( a.applet_date, INTERVAL 5 DAY ) ) )
+        WHERE
+            b.status ="a"
+        AND (( b.create_time BETWEEN DATE_SUB( b.create_time, INTERVAL 2 DAY ) AND DATE_SUB( b.create_time, INTERVAL 1 DAY ) )
+        OR ( b.create_time BETWEEN DATE_SUB( b.create_time, INTERVAL 6 DAY ) AND DATE_SUB( b.create_time, INTERVAL 5 DAY ) ) )
         <if test = "minId != null and minId >0">
             AND a.id >= #{minId}
         </if>
-        AND
+
         ORDER BY
         a.id ASC
         LIMIT 2000;
@@ -427,7 +429,7 @@
         <where>
             request_data = DATE_FORMAT(now(),"%Y-%m-%d")
             and if_login = '1'
-            and (if_allly is null or if_apply ='')
+            and (if_apply is null or if_apply ='')
             and (apply_result is null or apply_result ='')
             and (if_lent is null or if_lent ='')
             <if test="minId != null and minId >0">

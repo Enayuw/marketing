@@ -83,7 +83,7 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
                     return false;
                 }
                 if (a.subtract(l).doubleValue() < NUMBER) {
-                    MarketingSyncUser syncUser = transferDataValidityPeriodService.getNewValidityPeriodData(transfer);
+                    MarketingSyncUser syncUser = transferDataValidityPeriodService.getNewValidityPeriodData(transfer,null);
                     if (syncUser != null) {
                         OrangeCollectDataImpl.OrangeRuleNecessaryData data = (OrangeCollectDataImpl.OrangeRuleNecessaryData
                                 ) context.getRuleNecessaryData();
