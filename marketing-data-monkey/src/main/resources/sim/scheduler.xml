@@ -40,7 +40,7 @@
     />
 
 
-    <job:simple id="zhongAnPushRosterLockingDataOtherTagJob"
+    <job:simple id="ZhongAnPushRosterLockingDataOtherTagJob"
                 class="com.br.marketing.monkey.job.ZhongAnPushRosterLockingDataOtherTagJob"
                 cron="0 0 21 * * ? 2050-3000"
                 description="名单锁定其他标签推送众安"
