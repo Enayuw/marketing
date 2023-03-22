@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.OrangeCollectDataImpl;
@@ -17,6 +18,7 @@ import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
@@ -36,7 +38,8 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> {
 
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(
+            DateHelper.LINE_DATE_COLON_TIME_FORMAT);
     private static final int NUMBER = 1000;
 
     @Resource
@@ -56,12 +59,14 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
         conversionData.setExpireDate(data.getExpireDate());
         if (data.getSyncUser() != null) {
             conversionData.setPhone(BrCipherMaker.getInstance().decode(data.getSyncUser().getCell()));
-        }
-        if (StringUtils.isEmpty(transfer.getCreateTime())) {
-            conversionData.setPartnerProcessDate(LocalDateTime.now().format(DATE_TIME_FORMATTER));
+            conversionData.setTaskId(data.getSyncUser().getCusBatch());
         } else {
-            conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+            conversionData.setPhone("");
+            conversionData.setTaskId("");
         }
+        conversionData.setPartnerProcessDate(ObjectUtils.isEmpty(transfer.getCreateTime())
+                ? LocalDateTime.now().format(DATE_TIME_FORMATTER) : DateUtils.format(transfer.getCreateTime()
+                , DateHelper.LINE_DATE_COLON_TIME_FORMAT));
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
