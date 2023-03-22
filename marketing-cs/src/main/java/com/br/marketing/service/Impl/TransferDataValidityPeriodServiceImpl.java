@@ -98,14 +98,14 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         List<MarketingDataValidConfig> marketingDataValidConfigTaN = marketingDataValidConfigs.stream().filter(m -> m.getValidType() == 2).collect(Collectors.toList());
 
         //5. 空为没有配置默认永久有效
-        if (marketingDataValidConfigTaN.isEmpty()) {
+        if (marketingDataValidConfigTaN.size() == 0) {
             marketingSyncUser = getNewMarketingSyncUser(marketingSyncUser, marketingSyncUserTaN);
         } else {
             //6. 非空 判断上传数据的有效期。
-            Date appletTime = marketingSyncUserTaN.getAppletTime() == null ? marketingSyncUserTaN.getCreateTime() : marketingSyncUserTaN.getAppletTime();
+            LocalDate applyDate = LocalDate.parse(marketingSyncUserTaN.getAppletDate() , DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
             for (MarketingDataValidConfig mctan : marketingDataValidConfigTaN) {
                 // 判断是否有效
-                if (iPeriodOfValidityService.isNotExpire(convertToDateViaInstant(parse), mctan.getValidDays(), appletTime)) {
+                if (iPeriodOfValidityService.isNotExpire(convertToDateViaInstant(parse), mctan.getValidDays(), convertToDateViaInstant(applyDate))) {
                     marketingSyncUser = getNewMarketingSyncUser(marketingSyncUser, marketingSyncUserTaN);
                     break;
                 }
