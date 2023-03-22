@@ -59,10 +59,8 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
         conversionData.setExpireDate(data.getExpireDate());
         if (data.getSyncUser() != null) {
             conversionData.setPhone(BrCipherMaker.getInstance().decode(data.getSyncUser().getCell()));
-            conversionData.setTaskId(data.getSyncUser().getCusBatch());
         } else {
             conversionData.setPhone("");
-            conversionData.setTaskId("");
         }
         conversionData.setPartnerProcessDate(ObjectUtils.isEmpty(transfer.getCreateTime())
                 ? LocalDateTime.now().format(DATE_TIME_FORMATTER) : DateUtils.format(transfer.getCreateTime()
