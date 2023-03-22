@@ -130,7 +130,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
                     Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(MarketingTransferSyncUserCell::getCell))), ArrayList::new)
             );
 
-            // 3. 情况b 和 c 要做剔除
+            // 3. 情况b 和 c 要做剔除 < 1000
             if ("b".equals(status) || "c".equals(status)) {
                 marketingTransferSyncUserCellLists.removeIf(m ->
                         marketingTransferSyncUserMapper.getValidityPeriodData(tcid,apiCode,m.getCustNum())
