@@ -58,13 +58,15 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             if (!CollectionUtils.isEmpty(sftpFileIdList)) {
                 localFileMapper.updateUploadStartTimeById(sftpFileIdList, new Date());
             }
-            List<String> tags = zhonganRosterLockingDataMapper.getTagByApiCodeBizDateList(apiCode, bizDate);
-            for (String tag : tags) {
-                long startTag = System.currentTimeMillis();
-                action(tag, apiCode, bizDate, data);
-                long endTag = System.currentTimeMillis();
-                log.warn("{}【{}名单锁定推送众安】结束，耗时:{}", apiCode, tag, endTag - startTag);
-            }
+            long startcg = System.currentTimeMillis();
+            action("CG", apiCode, bizDate, data);
+            long endcg = System.currentTimeMillis();
+            log.warn("{}【CG名单锁定推送众安】结束，耗时:{}", apiCode, endcg - startcg);
+
+            long startmg = System.currentTimeMillis();
+            action("MG", apiCode, bizDate, data);
+            long endmg = System.currentTimeMillis();
+            log.warn("{}【MG名单锁定推送众安】结束，耗时:{}", apiCode, endmg - startmg);
             rosterLockingDataToZhongAn.localFilePushStatis(apiCode, bizDate);
         }
         long end = System.currentTimeMillis();
