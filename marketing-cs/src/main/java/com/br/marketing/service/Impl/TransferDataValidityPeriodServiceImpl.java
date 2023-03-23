@@ -19,6 +19,9 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -139,51 +142,87 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     }
 
     @Override
-    public Map<String, SyncUserValidityPeriodBO> getSyncUserValidityPeriodMap(List<MarketingTransferSyncUser> transferSyncUserList
-            , String apiCode) {
-        Map<String, SyncUserValidityPeriodBO> boMap = new HashMap<>(2048);
+    public Map<String, SyncUserValidityPeriodBO> getSyncUserValidityPeriodMap(
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode) {
         // 转化数据CustNum案件编号及对应的UserType场景
         Map<String, String> map = transferSyncUserList.parallelStream().collect(Collectors.toMap(
                 MarketingTransferSyncUser::getCustNum, MarketingTransferSyncUser::getUserType));
         List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCustAndStatus(apiCode, map.keySet());
         // apicode全量有效期配置
-        MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
-        example.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(1);
-        List<MarketingDataValidConfig> configList = marketingDataValidConfigMapper.selectByExample(example);
+        List<MarketingDataValidConfig> configList = findConfigAllByApiCodeList(apiCode);
         // 未配置任何有效期
         if (CollectionUtils.isEmpty(configList)) {
             return longValid(preUserByTask);
         }
+
+        // 配置了T,T （范围）的情况
+        // TODO: 2023-03-22  T,T （范围）暂时不做, map.valeus 为转化场景集合
+//        final Collection<String> userTypes = map.values();
+//        ttValidityPeriodMap(configList, preUserByTask, userTypes);
+
         // 配置了T+N的情况
+        return tnValidityPeriodMap(configList, preUserByTask);
+    }
+
+    /**
+     * 2023-03-23 12:25
+     * 配置T,T（范围），原始数据有效期
+     */
+    private Map<String, SyncUserValidityPeriodBO> ttValidityPeriodMap(List<MarketingDataValidConfig> configList
+            , List<MarketingSyncUser> preUserByTask, final Collection<String> userTypes) {
+        List<MarketingDataValidConfig> ttList = configList.parallelStream().filter(config -> config.getValidType()
+                .equals(1) && userTypes.contains(config.getUserType())).collect(Collectors.toList());
+        return null;
+    }
+
+    /**
+     * 2023-03-23 12:25
+     * 配置T+N，原始数据有效期
+     */
+    private Map<String, SyncUserValidityPeriodBO> tnValidityPeriodMap(List<MarketingDataValidConfig> configList
+            , List<MarketingSyncUser> preUserByTask) {
         List<MarketingDataValidConfig> tnList = configList.parallelStream().filter(
-                marketingDataValidConfig -> marketingDataValidConfig.getValidType().equals(2)).collect(Collectors.toList());
+                config -> config.getValidType().equals(2)).collect(Collectors.toList());
         // 未配置T+N
         if (CollectionUtils.isEmpty(tnList)) {
             return longValid(preUserByTask);
         }
 
-        // 配置了T,N （范围）的情况
-        // TODO: 2023-03-22  T,N （范围）暂时不做
-
         final Date date = new Date();
+        // 缓存案件的有效期配置
+        final Map<String, MarketingDataValidConfig> configMap = new ConcurrentHashMap<>(2048);
         // 处理T+N的配置
-        preUserByTask.parallelStream().filter(user -> {
-            for (MarketingDataValidConfig config : tnList) {
-                if (iPeriodOfValidityService.isNotExpire(date, config.getValidDays(), user.getAppletTime())) {
-                    return true;
-                }
-            }
-            return false;
-        }).collect(Collectors.toMap(
-                MarketingSyncUser::getCustNum, marketingSyncUser -> {
-//                    iPeriodOfValidityService.getPeriodOfValidityRange();
-                    SyncUserValidityPeriodBO bo = new SyncUserValidityPeriodBO();
-                    bo.setSyncUser(marketingSyncUser);
-                    bo.setBuilder(PeriodOfValidityBO.custom(marketingSyncUser.getAppletTime(), null));
-                    return bo;
-                }, this::latestSyncUserValidityPeriodBO));
-
-        return null;
+        ConcurrentMap<String, SyncUserValidityPeriodBO> boMap = preUserByTask.parallelStream().collect(Collectors.toConcurrentMap(
+                // 去重，取最新
+                MarketingSyncUser::getCustNum, Function.identity(), this::latestMarketingSyncUser)).values()
+                .parallelStream().filter(user -> {
+                    // 遍历检查是否在有效期
+                    for (MarketingDataValidConfig config : tnList) {
+                        // 只要满足有效期就立即返回
+                        if (iPeriodOfValidityService.isNotExpire(date, config.getValidDays(), user.getAppletTime())) {
+                            // 缓存案件对应的有效期配置
+                            configMap.put(user.getCustNum(), config);
+                            return true;
+                        }
+                    }
+                    return false;
+                }).collect(Collectors.toConcurrentMap(
+                        MarketingSyncUser::getCustNum, syncUser -> {
+                            // 组装原始数据有效期
+                            SyncUserValidityPeriodBO bo = new SyncUserValidityPeriodBO();
+                            MarketingDataValidConfig marketingDataValidConfig = configMap.get(syncUser.getCustNum());
+                            PeriodOfValidityBO.Builder periodOfValidityRange = iPeriodOfValidityService.getPeriodOfValidityRange(
+                                    marketingDataValidConfig.getValidDays(), ObjectUtils.isEmpty(syncUser.getAppletTime())
+                                            ? syncUser.getCreateTime()
+                                            : syncUser.getAppletTime());
+                            bo.setSyncUser(syncUser);
+                            bo.setBuilder(periodOfValidityRange);
+                            return bo;
+                        }));
+        // 辅助 GC
+        configMap.clear();
+        preUserByTask.clear();
+        return boMap;
     }
 
     /**
@@ -194,13 +233,23 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      * @return Map key：custNum value：SyncUserValidityPeriodBO {@linkplain SyncUserValidityPeriodBO MarketingSyncUser PeriodOfValidityBO.Builder}
      */
     private Map<String, SyncUserValidityPeriodBO> longValid(List<MarketingSyncUser> preUserByTask) {
-        return preUserByTask.parallelStream().collect(Collectors.toMap(
+        return preUserByTask.parallelStream().collect(Collectors.toConcurrentMap(
                 MarketingSyncUser::getCustNum, marketingSyncUser -> {
                     SyncUserValidityPeriodBO bo = new SyncUserValidityPeriodBO();
                     bo.setSyncUser(marketingSyncUser);
                     bo.setBuilder(PeriodOfValidityBO.custom(marketingSyncUser.getAppletTime(), null));
                     return bo;
                 }, this::latestSyncUserValidityPeriodBO));
+    }
+
+    /**
+     * 2023-03-22 18:19
+     * 获取最新
+     */
+    private synchronized SyncUserValidityPeriodBO latestSyncUserValidityPeriodBO(SyncUserValidityPeriodBO v1, SyncUserValidityPeriodBO v2) {
+        MarketingSyncUser syncUserV1 = v1.getSyncUser();
+        MarketingSyncUser syncUserV2 = v2.getSyncUser();
+        return latestMarketingSyncUser(syncUserV1, syncUserV2) == syncUserV1 ? v1 : v2;
     }
 
     /**
@@ -214,18 +263,28 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      * 4.2、 v1的AppletTime为null时，v2的AppletTime为null；v1的CreateTime为null时，v2的CreateTime不为null，返回v2
      * 4.3、 v1的AppletTime为null时，v2的AppletTime为null；v1的CreateTime为null时，v2的CreateTime为null，返回v1
      */
-    private SyncUserValidityPeriodBO latestSyncUserValidityPeriodBO(SyncUserValidityPeriodBO v1, SyncUserValidityPeriodBO v2) {
-        MarketingSyncUser syncUserV1 = v1.getSyncUser();
-        MarketingSyncUser syncUserV2 = v2.getSyncUser();
-        return ObjectUtils.isEmpty(syncUserV1.getAppletTime())
-                ? (ObjectUtils.isEmpty(syncUserV2.getAppletTime())
-                ? (ObjectUtils.isEmpty(syncUserV1.getCreateTime())
-                ? (ObjectUtils.isEmpty(syncUserV2.getCreateTime())
-                ? v1 : v2) : (ObjectUtils.isEmpty(syncUserV2.getCreateTime())
-                ? v1 : (syncUserV1.getCreateTime().compareTo(syncUserV2.getCreateTime()) > 0
-                ? v1 : v2))) : v2) : (ObjectUtils.isEmpty(syncUserV2.getAppletTime())
-                ? v1 : (syncUserV1.getAppletTime().compareTo(syncUserV2.getAppletTime()) > 0
-                ? v1 : v2));
+    private synchronized MarketingSyncUser latestMarketingSyncUser(MarketingSyncUser o, MarketingSyncUser o1) {
+        return ObjectUtils.isEmpty(o) ? (ObjectUtils.isEmpty(o1) ? o : o1)
+                : (ObjectUtils.isEmpty(o1) ? (ObjectUtils.isEmpty(o.getAppletTime())
+                ? (ObjectUtils.isEmpty(o1.getAppletTime())
+                ? (ObjectUtils.isEmpty(o.getCreateTime())
+                ? (ObjectUtils.isEmpty(o1.getCreateTime())
+                ? o : o1) : (ObjectUtils.isEmpty(o1.getCreateTime())
+                ? o : (o.getCreateTime().compareTo(o1.getCreateTime()) > 0
+                ? o : o1))) : o1) : (ObjectUtils.isEmpty(o1.getAppletTime())
+                ? o : (o.getAppletTime().compareTo(o1.getAppletTime()) > 0
+                ? o : o1))) : o1);
+    }
+
+    /**
+     * 2023-03-23 12:38
+     * apicode全量有效期配置
+     */
+    private List<MarketingDataValidConfig> findConfigAllByApiCodeList(String apiCode) {
+        MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(1);
+        example.setOrderByClause("create_time desc, update_time desc");
+        return marketingDataValidConfigMapper.selectByExample(example);
     }
 
 }
