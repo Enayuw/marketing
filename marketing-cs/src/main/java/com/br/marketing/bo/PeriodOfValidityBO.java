@@ -126,6 +126,14 @@ public class PeriodOfValidityBO {
         return enDateOtherStr;
     }
 
+    public String getStartOfDayTimeStr() {
+        return startOfDayTimeStr;
+    }
+
+    public String getEndOfDayTimeStr() {
+        return endOfDayTimeStr;
+    }
+
     @Override
     public String toString() {
         return "PeriodOfValidityBO{" +
@@ -137,6 +145,8 @@ public class PeriodOfValidityBO {
                 ", enDateStr='" + enDateStr + '\'' +
                 ", beginDateOtherStr='" + beginDateOtherStr + '\'' +
                 ", enDateOtherStr='" + enDateOtherStr + '\'' +
+                ", startOfDayTimeStr='" + startOfDayTimeStr + '\'' +
+                ", endOfDayTimeStr='" + endOfDayTimeStr + '\'' +
                 '}';
     }
 
