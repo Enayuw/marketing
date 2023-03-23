@@ -72,6 +72,8 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         requestDate = requestDate==null? marketingTransferSyncUser.getRequestData():requestDate;
         LocalDate parse = LocalDate.parse(requestDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
 
+        String userType = marketingTransferSyncUser.getUserType();
+
         // 2. 获取T,N 模式下 有效期范围的规则集合，T，N
         List<MarketingDataValidConfig> marketingDataValidConfigTN = marketingDataValidConfigs.stream().filter(m -> m.getValidType() == 1).collect(Collectors.toList());
         List<String> collectRequestDateTN = new ArrayList<>();
@@ -80,7 +82,9 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             String validEndDate = mctn.getValidEndDate();
             LocalDate startDate = LocalDate.parse(validStartDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
             LocalDate endDate = LocalDate.parse(validEndDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
-            if ((startDate.isBefore(parse) || startDate.isEqual(parse) )&& (parse.isBefore(endDate) ||parse.isEqual(endDate))) {
+            if ((startDate.isBefore(parse) || startDate.isEqual(parse) )
+                    && (parse.isBefore(endDate) ||parse.isEqual(endDate))
+                    && mctn.getUserType().equals(userType)) {
                 collectRequestDateTN.add(mctn.getAppletDate());
             }
         });
@@ -91,9 +95,9 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             marketingSyncUser = marketingSyncUserMap.selectInAppletDate(collectRequestDateTN, marketingTransferSyncUser);
         }
 
-        //3. 获取【非】以上集合最新的一条数据 collectRequestDateTN 需要进行非空判断
-        Set<String> configAppletDate = marketingDataValidConfigTN.stream().map(MarketingDataValidConfig::getAppletDate).collect(Collectors.toSet());
-        MarketingSyncUser marketingSyncUserTaN = marketingSyncUserMap.selectNotInAppletDate(configAppletDate, marketingTransferSyncUser);
+        //3. 获取【非】以上集合最新的一条数据 configAppletDateTN 需要进行非空判断
+        Set<String> configAppletDateTN = marketingDataValidConfigTN.stream().map(MarketingDataValidConfig::getAppletDate).collect(Collectors.toSet());
+        MarketingSyncUser marketingSyncUserTaN = marketingSyncUserMap.selectNotInAppletDate(configAppletDateTN, marketingTransferSyncUser);
         if (marketingSyncUserTaN == null) {
             return marketingSyncUser;
         }
