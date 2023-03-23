@@ -292,4 +292,17 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             , @Param("ifActivity") String ifActivity, @Param("activityTime") String activityTime
             , @Param("ifApply") String ifApply, @Param("applyDt") String applyDt
             , @Param("minId") Long minId, @Param("pageSize") Integer pageSize);
+
+
+    /**
+     * 获取桔子A规则的转化数据
+     *
+     * @param tcId
+     * @return
+     */
+    List<MarketingTransferSyncUser> getJuZiARuleData(@Param("tCid") String tcId,@Param("apiCode") String apiCode,@Param("minId") Long minId);
+    List<MarketingTransferSyncUser> getJuZiCRuleData(@Param("tCid") String tcId,@Param("apiCode") String apiCode,@Param("minId") Long minId);
+    List<MarketingTransferSyncUser> getJuZiDRuleData(@Param("tCid") String tcId,@Param("apiCode") String apiCode,@Param("minId") Long minId);
+    List<MarketingTransferSyncUser> getJuZiBRuleData(@Param("tCid") String tcId,@Param("apiCode") String apiCode,@Param("minId") Long minId);
+    List<MarketingTransferSyncUser> getValidityPeriodData(@Param("tCid") String tcId,@Param("apiCode") String apiCode,@Param("custNum") String custNum);
 }

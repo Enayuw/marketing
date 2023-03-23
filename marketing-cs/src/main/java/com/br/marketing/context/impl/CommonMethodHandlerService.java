@@ -1,14 +1,16 @@
 package com.br.marketing.context.impl;
 
+import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.context.AbstractRuleCollectDataService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendHaluo;
 import com.br.marketing.entity.PhoneSaleExtendHaluoExample;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.PhoneSaleExtendHaluoMapper;
-import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -51,7 +53,7 @@ public class CommonMethodHandlerService implements AbstractRuleCollectDataServic
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
 
     @Resource
-    private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     @Resource
     PhoneSaleExtendHaluoMapper phoneSaleExtendHaluoMapper;
@@ -66,7 +68,7 @@ public class CommonMethodHandlerService implements AbstractRuleCollectDataServic
         return RuleDataCollectionEnum.DEFAULT_DATA_COLLECTION;
     }
 
-    public Map<String, MarketingSyncUser> customerMarketingSyncUser(Set<String> set, String apiCode){
+    public Map<String, MarketingSyncUser> customerMarketingSyncUser(Set<String> set, String apiCode) {
 
         List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCustAndStatus(apiCode, set);
         return preUserByTask.stream().collect(
@@ -77,7 +79,16 @@ public class CommonMethodHandlerService implements AbstractRuleCollectDataServic
                                 , Optional::get)));
     }
 
-    public Map<String,List<PhoneSaleExtendHaluo>> getPhoneSaleExtendInfos(List<String> custNums, String apiCode, String startDate, String endDate){
+    /**
+     * 2023-03-23 12:59
+     * 有效期内的原始数据（上传数据）
+     */
+    public Map<String, SyncUserValidityPeriodBO> customerSyncUserValidityPeriod(
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode) {
+        return transferDataValidityPeriodService.getSyncUserValidityPeriodMap(transferSyncUserList, apiCode);
+    }
+
+    public Map<String, List<PhoneSaleExtendHaluo>> getPhoneSaleExtendInfos(List<String> custNums, String apiCode, String startDate, String endDate) {
         PhoneSaleExtendHaluoExample extendInfoExample = new PhoneSaleExtendHaluoExample();
         extendInfoExample.createCriteria()
                 .andCustNumIn(custNums)

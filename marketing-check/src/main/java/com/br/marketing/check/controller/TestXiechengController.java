@@ -1,23 +1,17 @@
 package com.br.marketing.check.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.check.service.OriginPeriodPredicateService;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.xiecheng.FinanceAESUtils;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
-import com.br.marketing.mapper.XieChengSmsCollidingDataMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.MarketingSmyPushService;
 import com.br.marketing.service.PushDataService;
-import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
-import com.google.common.collect.Lists;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,10 +21,6 @@ import javax.annotation.Resource;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 /**
  * --------------------------------
@@ -65,11 +55,26 @@ public class TestXiechengController {
 
     @Autowired
     XieChengSmsCollidingDataMapper xieChengSmsCollidingDataMapper;
+    @Autowired
+    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+    @Autowired
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
+    @Autowired
+    private List<OriginPeriodPredicateService> juZiPeriodPredicateServiceList;
+
+
+
+
+
+    @Autowired
+    private DataDistributeDetailLogMapper dataDistributeDetailLogMapper;
 
     @GetMapping("/test")
     public void transfersmyTest(String id) {
-        pushDataService.pushXieChengSmsCollidingToDbData(id);
+
+
+        //pushDataService.pushXieChengSmsCollidingToDbData(id);
 //        LocalFileExample localFileExample = new LocalFileExample();
 //        localFileExample.createCriteria()
 //                .andFileTypeEqualTo(XIECHENGSMSCOLLIDING)
