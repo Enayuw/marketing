@@ -1,9 +1,13 @@
 package com.br.marketing.service;
 
-import com.br.marketing.entity.MarketingSyncInfo;
+import com.br.marketing.bo.PeriodOfValidityBO;
+import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author GuangChao.Zhang
@@ -16,19 +20,30 @@ public interface TransferDataValidityPeriodService {
      * (T+N),(T,N)
      * 判断转化数据是否在有效期内,在的话返回最新一条上传数据，不在返回可空
      */
-    MarketingSyncUser getNewValidityPeriodData(MarketingTransferSyncUser marketingTransferSyncUser,String requestDate);
+    MarketingSyncUser getNewValidityPeriodData(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate);
 
     /**
      * (T+N),(T,N)
      * 判断转化数据是否在有效期内,在的话返回最新一条上传数据，返回带电话的转化数据不在返回可空
      */
-    MarketingTransferSyncUserCell getNewValidityPeriodTransferData(MarketingTransferSyncUser marketingTransferSyncUser,String requestDate);
+    MarketingTransferSyncUserCell getNewValidityPeriodTransferData(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate);
 
     /**
-     *  判断转化数据是否在有效期内，在的话返回true，不在返回false
+     * 判断转化数据是否在有效期内，在的话返回true，不在返回false
      */
-    boolean isValidityPeriod(MarketingTransferSyncUser marketingTransferSyncUser,String requestDate);
+    boolean isValidityPeriod(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate);
 
+    /**
+     * 有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
+     *
+     * @param transferSyncUserList 转化数据集合
+     * @param apiCode              客户编号
+     * @return Map key：custNum value：SyncUserValidityPeriodBO {@linkplain SyncUserValidityPeriodBO MarketingSyncUser PeriodOfValidityBO.Builder}
+     * @author Guo Zeqiang
+     * @dateTime 2023-03-22 16:07
+     */
+    Map<String, SyncUserValidityPeriodBO> getSyncUserValidityPeriodMap(List<MarketingTransferSyncUser> transferSyncUserList
+            , String apiCode);
 
 
 }
