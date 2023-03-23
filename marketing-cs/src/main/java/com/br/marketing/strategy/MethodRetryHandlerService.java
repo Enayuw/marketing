@@ -309,15 +309,8 @@ public class MethodRetryHandlerService {
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
-    /**
-     * 桔子周期推dass
-     * @param dassImportAdapDTO
-     * @param retry
-     * @return
-     */
-    public Result transferDataPeriodToDass(DassImportAdapDTO dassImportAdapDTO, Integer retry) {
-        return smyCallDassRealTimeBatchData(dassImportAdapDTO,retry);
-    }
+
+
     /**
      * 萨摩耶推daas
      * @param dassImportAdapDTO

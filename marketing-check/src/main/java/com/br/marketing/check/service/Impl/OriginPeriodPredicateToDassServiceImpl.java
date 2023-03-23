@@ -116,7 +116,7 @@ public class OriginPeriodPredicateToDassServiceImpl implements OriginPeriodPredi
             if (!org.apache.commons.collections.CollectionUtils.isEmpty(phoneSaleExtendInfos)){
                 phoneSaleExtendInfoMapper.saveBatch(dassImportAdapDTO.getPhoneSaleExtendInfos());
             }
-            methodRetryHandlerService.transferDataPeriodToDass(dassImportAdapDTO, 0);
+            methodRetryHandlerService.smyCallDassRealTimeBatchData(dassImportAdapDTO, 0);
         }
     }
 }
