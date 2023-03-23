@@ -79,6 +79,12 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     List<MarketingSyncUser> getPreUserByInCust(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);
 
+    /**
+     * 2023-03-24 1:44
+     * 废弃原因：
+     * 当案件编号存在大量重复时，获取到大的对象集合，会出现内存溢出
+     */
+    @Deprecated
     List<MarketingSyncUser> getPreUserByInCustAndStatus(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);
 
     List<MarketingSyncUser> getPreUserByInCustWithNoFail(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);

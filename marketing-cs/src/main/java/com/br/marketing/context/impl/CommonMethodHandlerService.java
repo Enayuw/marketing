@@ -8,7 +8,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendHaluo;
 import com.br.marketing.entity.PhoneSaleExtendHaluoExample;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
+import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendHaluoMapper;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import org.springframework.stereotype.Service;
@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 public class CommonMethodHandlerService implements AbstractRuleCollectDataService {
 
     @Resource
-    private MarketingSyncInfoMapper marketingSyncInfoMapper;
+    private MarketingSyncUserMapper marketingSyncUserMapper;
 
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
@@ -70,7 +70,7 @@ public class CommonMethodHandlerService implements AbstractRuleCollectDataServic
 
     public Map<String, MarketingSyncUser> customerMarketingSyncUser(Set<String> set, String apiCode) {
 
-        List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCustAndStatus(apiCode, set);
+        List<MarketingSyncUser> preUserByTask = marketingSyncUserMapper.getSyncUserLastByCustNumsAndStatus(apiCode, set);
         return preUserByTask.stream().collect(
                 Collectors.groupingBy(MarketingSyncUser::getCustNum
                         , Collectors.collectingAndThen(

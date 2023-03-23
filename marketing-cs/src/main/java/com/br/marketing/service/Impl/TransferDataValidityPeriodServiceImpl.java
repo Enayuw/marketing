@@ -4,7 +4,6 @@ import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
@@ -42,7 +41,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
 
     private final IPeriodOfValidityService iPeriodOfValidityService;
 
-    private final MarketingSyncInfoMapper marketingSyncInfoMapper;
+    private final MarketingSyncUserMapper marketingSyncUserMapper;
 
     @Override
     public MarketingSyncUser getNewValidityPeriodData(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate) {
@@ -147,7 +146,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         // 转化数据CustNum案件编号及对应的UserType场景
         Map<String, String> map = transferSyncUserList.parallelStream().collect(Collectors.toMap(
                 MarketingTransferSyncUser::getCustNum, MarketingTransferSyncUser::getUserType));
-        List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCustAndStatus(apiCode, map.keySet());
+        List<MarketingSyncUser> preUserByTask = marketingSyncUserMapper.getSyncUserLastByCustNumsAndStatus(apiCode, map.keySet());
         // apicode全量有效期配置
         List<MarketingDataValidConfig> configList = findConfigAllByApiCodeList(apiCode);
         // 未配置任何有效期

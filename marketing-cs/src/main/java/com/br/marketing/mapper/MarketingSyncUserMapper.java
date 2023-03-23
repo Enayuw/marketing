@@ -25,15 +25,23 @@ public interface MarketingSyncUserMapper {
 
     /**
      * 根据客户编号修改上传详情表数据为剔除状态
+     *
      * @param apiCode
      * @param uIds
      * @return
      */
-    int updateSyncUserCaseEffective(@Param("apiCode") String apiCode,@Param("uIds") Set<String> uIds);
+    int updateSyncUserCaseEffective(@Param("apiCode") String apiCode, @Param("uIds") Set<String> uIds);
 
-    List<MarketingSyncUser> getSyncUserLastByCustNums(@Param("apiCode") String apiCode,@Param("custNums") List<String> custNums);
+    List<MarketingSyncUser> getSyncUserLastByCustNums(@Param("apiCode") String apiCode, @Param("custNums") List<String> custNums);
 
-    List<MarketingSyncUser> getNewestByCustNums(@Param("apiCode") String apiCode,@Param("custNums") Set<String> custNums);
+    /**
+     * 2023-03-24 1:49
+     * 根据案件编号集合获取正常状态的
+     * 最新上传原始数据部分属性(部分列)列表
+     */
+    List<MarketingSyncUser> getSyncUserLastByCustNumsAndStatus(@Param("apiCode") String apiCode, @Param("custNums") Set<String> custs);
+
+    List<MarketingSyncUser> getNewestByCustNums(@Param("apiCode") String apiCode, @Param("custNums") Set<String> custNums);
 
     /**
      * 2022/7/14 11:20
