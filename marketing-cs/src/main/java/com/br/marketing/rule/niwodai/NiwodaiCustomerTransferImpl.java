@@ -65,7 +65,7 @@ public class NiwodaiCustomerTransferImpl implements AssembleData<ConversionData>
         Map<String, SyncUserValidityPeriodBO> syncUserValidityPeriodMap = data.getSyncUserValidityPeriodMap();
         SyncUserValidityPeriodBO bo = syncUserValidityPeriodMap.get(transfer.getCustNum());
         conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
-        conversionData.setExpireDate(bo.getBuilder().addOfDayTimeStrString().builder().getEnDateOtherStr());
+        conversionData.setExpireDate(bo.getBuilder().addOfDayTimeStrString().builder().getEndOfDayTimeStr());
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
