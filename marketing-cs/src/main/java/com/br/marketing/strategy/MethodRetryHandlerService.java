@@ -605,7 +605,7 @@ public class MethodRetryHandlerService {
         pushMarketingUserDTO.setJsonData(taskInfoDTO);
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            if(ids.size()>0){
+            if(ids!=null && ids.size()>0){
                 saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY_SOLE.getCode(), soleDTO.getInfoId());
             }
             return new Result().setCode(ResultCode.SUCCESS.getValue());
