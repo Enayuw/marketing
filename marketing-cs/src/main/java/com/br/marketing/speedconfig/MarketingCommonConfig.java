@@ -539,6 +539,6 @@ public class MarketingCommonConfig {
     /**
      * 你我贷推决策apicode配置
      */
-    private String niWoDaiPushPolicyTargetApiCode = "7412009";
+    private String niWoDaiPushPolicyTargetApiCode;
 }
 
