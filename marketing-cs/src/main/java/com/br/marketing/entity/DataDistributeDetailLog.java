@@ -70,6 +70,11 @@ public class DataDistributeDetailLog implements Serializable {
      */
     private String sourceType;
 
+    /**
+     * 扩展字段
+     */
+    private String extend;
+
     private static final long serialVersionUID = 1L;
 
     public Long getId() {
@@ -174,5 +179,13 @@ public class DataDistributeDetailLog implements Serializable {
 
     public void setSourceType(String sourceType) {
         this.sourceType = sourceType;
+    }
+
+    public String getExtend() {
+        return extend;
+    }
+
+    public void setExtend(String extend) {
+        this.extend = extend;
     }
 }

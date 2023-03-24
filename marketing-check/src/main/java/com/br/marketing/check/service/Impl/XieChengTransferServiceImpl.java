@@ -3,6 +3,7 @@ package com.br.marketing.check.service.Impl;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.service.XieChengTransferService;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
+import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.XieChengSmsCollidingDataLog;
@@ -179,6 +180,9 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
                 varDto.put("orgChannel", "");
             }
             pushMarketingUserDetailByRuleDTO.setVariables(varDto);
+            pushMarketingUserDetailByRuleDTO.setStatus(status);
+            pushMarketingUserDetailByRuleDTO.setSoleField(SoleFieldEnum.CELL_STATUS_SOLE.getValue());
+            pushMarketingUserDetailByRuleDTO.setSoleType(marketingCommonConfig.getXieChengPushPolicyValidityDay());
             pushMarketingUserDetailByRuleDTOList.add(pushMarketingUserDetailByRuleDTO);
         });
         ProcessHandlerContext context = new ProcessHandlerContext();

@@ -3,6 +3,7 @@
   */
 package com.br.marketing.client.robotaiapi.input;
 import com.br.marketing.rule.InterfaceParams;
+import com.br.marketing.rule.SourceData;
 import lombok.*;
 
 /**
@@ -11,7 +12,7 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-public class ConversionData extends InterfaceParams {
+public class ConversionData extends SourceData {
 
     /**
      * 案件编号
