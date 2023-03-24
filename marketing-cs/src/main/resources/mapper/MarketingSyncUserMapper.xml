@@ -375,12 +375,12 @@
         select *
         from b_marketing_sync_${marketingTransferSyncUser.apiCode}
         <where>
-            cust_num  = #{marketingTransferSyncUser.custNum}
+            cust_num  = #{marketingTransferSyncUser.custNum} and user_type = {marketingTransferSyncUser.userType}
             and  applet_date in
             <foreach collection="collectRequestDate" item="item" open="(" close=")" separator=",">
                 #{item}
             </foreach>
-            order by applet_date,applet_time desc limit 1
+            order by applet_time desc limit 1
         </where>
     </select>
     <select id="selectNotInAppletDate" resultType="com.br.marketing.entity.MarketingSyncUser">
@@ -394,7 +394,7 @@
                     #{item}
                 </foreach>
             </if>
-            order by applet_date,applet_time desc limit 1
+            order by applet_time desc limit 1
         </where>
     </select>
 </mapper>

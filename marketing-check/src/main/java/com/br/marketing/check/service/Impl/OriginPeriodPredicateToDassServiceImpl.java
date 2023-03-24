@@ -77,9 +77,7 @@ public class OriginPeriodPredicateToDassServiceImpl implements OriginPeriodPredi
                 phoneSaleExtendInfo.setAppletTime(marketingTransferSyncUserCell.getRequestTime());
                 phoneSaleExtendInfo.setPStatus(1);
                 phoneSaleExtendInfo.setUserType(marketingTransferSyncUserCell.getUserType());
-                phoneSaleExtendInfo.setTransformType("1");
                 phoneSaleExtendInfo.setSourceId(dassImportDataDTO.getId());
-                phoneSaleExtendInfo.setDxType(dassImportDataDTO.getUserType());
                 batchRealTimeUserDataDTO.setDassImportDataDTO(dassImportDataDTO);
                 batchRealTimeUserDataDTO.setPhoneSaleExtendInfo(phoneSaleExtendInfo);
                 transferDataList.add(batchRealTimeUserDataDTO);
@@ -116,7 +114,7 @@ public class OriginPeriodPredicateToDassServiceImpl implements OriginPeriodPredi
             if (!org.apache.commons.collections.CollectionUtils.isEmpty(phoneSaleExtendInfos)){
                 phoneSaleExtendInfoMapper.saveBatch(dassImportAdapDTO.getPhoneSaleExtendInfos());
             }
-            methodRetryHandlerService.transferDataPeriodToDass(dassImportAdapDTO, 0);
+            methodRetryHandlerService.smyCallDassRealTimeBatchData(dassImportAdapDTO, 0);
         }
     }
 }
