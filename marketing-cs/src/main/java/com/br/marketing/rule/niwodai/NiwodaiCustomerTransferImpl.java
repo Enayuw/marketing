@@ -78,7 +78,13 @@ public class NiwodaiCustomerTransferImpl implements AssembleData<ConversionData>
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             String reserveField1 = transfer.getReserveField1();
             if (StringUtils.isNotBlank(reserveField1)) {
-                JSONObject jsonObject = JSONObject.parseObject(reserveField1);
+                JSONObject jsonObject;
+                try {
+                    jsonObject = JSONObject.parseObject(reserveField1);
+                } catch (Exception e) {
+                    log.warn(e.getMessage(), e);
+                    return false;
+                }
                 Set<Map.Entry<String, String>> entries = TAG_MAP.entrySet();
                 // 遍历所有标记
                 for (Map.Entry<String, String> entry : entries) {
