@@ -375,4 +375,84 @@
         order by id asc
         limit #{pageSize}
     </select>
+
+    <select id="getJuZiARuleData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from
+        b_marketing_transfer_sync_${tCid}
+        <where>
+            api_code = #{apiCode}
+            and request_data = DATE_FORMAT(now(),"%Y-%m-%d")
+            and if_apply = '1'
+            and (apply_result is null or apply_result ='')
+            and  audit_amount >= 1000
+            and  apply_dt between DATE_SUB(DATE_FORMAT(now(),"%Y-%m-%d"),INTERVAL 1 day) and DATE_FORMAT(now(),"%Y-%m-%d")
+            <if test="minId != null and minId >0">
+                AND id >=#{minId}
+            </if>
+            order by id asc limit 2000;
+        </where>
+    </select>
+    <select id="getJuZiBRuleData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        SELECT  a.* FROM b_marketing_transfer_sync_${tCid} a
+        INNER JOIN b_phone_sale_extend_info b ON a.cust_num = b.cust_num
+        WHERE
+        a.api_code = #{apiCode}
+        and
+            b.status ="a"
+        AND (
+        b.create_time BETWEEN DATE_SUB( date_format(now(),"%Y-%m-%d"), INTERVAL 2 DAY ) AND DATE_SUB(date_format(now(),"%Y-%m-%d"), INTERVAL 1 DAY )
+        OR  b.create_time BETWEEN DATE_SUB(date_format(now(),"%Y-%m-%d"),INTERVAL 6 DAY ) AND DATE_SUB( date_format(now(),"%Y-%m-%d"), INTERVAL 5 DAY )
+        )
+        <if test = "minId != null and minId >0">
+            AND a.id >= #{minId}
+        </if>
+
+        ORDER BY
+        a.id ASC
+        LIMIT 2000;
+
+    </select>
+    <select id="getJuZiCRuleData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from
+        b_marketing_transfer_sync_${tCid}
+        <where>
+            api_code = #{apiCode}
+            and
+            request_data = DATE_FORMAT(now(),"%Y-%m-%d")
+            and if_apply = '1'
+            and (apply_result is null or apply_result ='')
+            and  audit_amount >= 1000
+            and  login_time between DATE_SUB(DATE_FORMAT(now(),"%Y-%m-%d"),INTERVAL 1 day) and DATE_FORMAT(now(),"%Y-%m-%d")
+            <if test="minId != null and minId >0">
+                AND id >=#{minId}
+            </if>
+            order by id asc limit 2000;
+        </where>
+    </select>
+
+    <select id="getJuZiDRuleData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from
+        b_marketing_transfer_sync_${tCid}
+        <where>
+            api_code = #{apiCode}
+            and
+            request_data = DATE_FORMAT(now(),"%Y-%m-%d")
+            and if_login = '1'
+            and (if_apply is null or if_apply ='')
+            and (apply_result is null or apply_result ='')
+            and (if_lent is null or if_lent ='')
+            <if test="minId != null and minId >0">
+                AND id >=#{minId}
+            </if>
+            order by id asc limit 2000;
+        </where>
+    </select>
+    <select id="getValidityPeriodData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from
+        b_marketing_transfer_sync_${tCid}
+        where api_code = #{apiCode}
+          and cust_num =#{custNum}  <![CDATA[ and audit_amount-lent_amount <1000 ]]>
+    </select>
+
+
 </mapper>
