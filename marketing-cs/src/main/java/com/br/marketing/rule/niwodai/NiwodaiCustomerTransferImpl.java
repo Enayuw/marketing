@@ -42,9 +42,9 @@ public class NiwodaiCustomerTransferImpl implements AssembleData<ConversionData>
     private final static Map<String, String> TAG_MAP = new ConcurrentHashMap<>();
 
     static {
-        TAG_MAP.put("F", "1");
-        TAG_MAP.put("B", "1");
-        TAG_MAP.put("C", "1");
+        TAG_MAP.put("F", "0");
+        TAG_MAP.put("B", "0");
+        TAG_MAP.put("C", "0");
         TAG_MAP.put("H", "2");
     }
 
