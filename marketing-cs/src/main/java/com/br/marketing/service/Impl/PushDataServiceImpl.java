@@ -1204,7 +1204,6 @@ public class PushDataServiceImpl implements PushDataService {
             }
             try {
                 countDownLatch.await();
-                log.warn("线程执行完毕");
             } catch (InterruptedException e) {
                 log.error("countDownLatch 线程执行异常", e);
             }
@@ -1220,7 +1219,6 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Override
     public void  pushXieChengSmsCollidingToDbData(String data) {
-        log.warn("携程短信信息={}", data);
         try {
             JSONObject jsonObject = JSONObject.parseObject(data);
             Long localId = Long.valueOf(jsonObject.getInteger("localId"));

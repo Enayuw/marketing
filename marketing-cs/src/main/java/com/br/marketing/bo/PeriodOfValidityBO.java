@@ -61,6 +61,23 @@ public class PeriodOfValidityBO {
      */
     private String enDateOtherStr;
 
+    /**
+     * 2023/03/17 11:19
+     * 一天的开始时间
+     * 格式：yyyy-MM-dd hh:mm:dd
+     * eg：2023/03/17 00:00:00
+     */
+    private String startOfDayTimeStr;
+
+    /**
+     * 2023/03/17 11:19
+     * 一天的结束时间
+     * 格式：yyyy-MM-dd hh:mm:dd
+     * eg：2023/03/17 23:59:59
+     */
+    private String endOfDayTimeStr;
+
+
     PeriodOfValidityBO(Date beginDate, Date enDate) {
         this.beginDate = beginDate;
         this.enDate = enDate;
@@ -109,6 +126,14 @@ public class PeriodOfValidityBO {
         return enDateOtherStr;
     }
 
+    public String getStartOfDayTimeStr() {
+        return startOfDayTimeStr;
+    }
+
+    public String getEndOfDayTimeStr() {
+        return endOfDayTimeStr;
+    }
+
     @Override
     public String toString() {
         return "PeriodOfValidityBO{" +
@@ -120,6 +145,8 @@ public class PeriodOfValidityBO {
                 ", enDateStr='" + enDateStr + '\'' +
                 ", beginDateOtherStr='" + beginDateOtherStr + '\'' +
                 ", enDateOtherStr='" + enDateOtherStr + '\'' +
+                ", startOfDayTimeStr='" + startOfDayTimeStr + '\'' +
+                ", endOfDayTimeStr='" + endOfDayTimeStr + '\'' +
                 '}';
     }
 
@@ -170,6 +197,21 @@ public class PeriodOfValidityBO {
             }
             if (periodOfValidityBO.getEnDate() != null) {
                 periodOfValidityBO.enDateOtherStr = DateUtils.format(periodOfValidityBO.getEnDate(), pattern);
+            }
+            return this;
+        }
+
+        /**
+         * 2023-03-23 12:53
+         * 添加
+         * 开始时间的零点时间(00:00:00)与结束时间的末尾时间（23:59:59）
+         */
+        public Builder addOfDayTimeStrString() {
+            if (periodOfValidityBO.getBeginDate() != null) {
+                periodOfValidityBO.startOfDayTimeStr = DateUtils.format(periodOfValidityBO.getBeginDate()).concat(" 00:00:00");
+            }
+            if (periodOfValidityBO.getEnDate() != null) {
+                periodOfValidityBO.endOfDayTimeStr = DateUtils.format(periodOfValidityBO.getEnDate()).concat(" 23:59:59");
             }
             return this;
         }
