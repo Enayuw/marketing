@@ -10,29 +10,30 @@ import java.util.Set;
 public interface MarketingSyncUserMapper {
     int insertMarketingSyncUser(MarketingSyncUser syncUser);
 
-    MarketingSyncUser selectMarketingSyncUserById(@Param("apiCode") String apiCode,@Param("id") Long id);
+    MarketingSyncUser selectMarketingSyncUserById(@Param("apiCode") String apiCode, @Param("id") Long id);
 
-    int updateSyncUserStatus(@Param("apiCode") String apiCode,@Param("id") Long id,@Param("isTask")Integer isTask);
+    int updateSyncUserStatus(@Param("apiCode") String apiCode, @Param("id") Long id, @Param("isTask") Integer isTask);
 
-    Long minId(@Param("apiCode") String apiCode, @Param("appletDate") String appletDate,@Param("dataType")Integer dataType, @Param("userTypes") List<String> userTypes);
+    Long minId(@Param("apiCode") String apiCode, @Param("appletDate") String appletDate, @Param("dataType") Integer dataType, @Param("userTypes") List<String> userTypes);
 
-    Long maxId(@Param("apiCode") String apiCode, @Param("appletDate") String appletDate,@Param("dataType")Integer dataType, @Param("userTypes") List<String> userTypes);
+    Long maxId(@Param("apiCode") String apiCode, @Param("appletDate") String appletDate, @Param("dataType") Integer dataType, @Param("userTypes") List<String> userTypes);
 
-    List<MarketingSyncUser> getUserById(@Param("apiCode") String apiCode, @Param("minId") Long minId,@Param("maxId") Long maxId,@Param("dataType")Integer dataType);
+    List<MarketingSyncUser> getUserById(@Param("apiCode") String apiCode, @Param("minId") Long minId, @Param("maxId") Long maxId, @Param("dataType") Integer dataType);
 
-    MarketingSyncUser selectSynsUserByCustNumLast(@Param("apiCode") String apiCode,@Param("custNum") String custNum);
+    MarketingSyncUser selectSynsUserByCustNumLast(@Param("apiCode") String apiCode, @Param("custNum") String custNum);
 
     /**
      * 根据客户编号修改上传详情表数据为剔除状态
+     *
      * @param apiCode
      * @param uIds
      * @return
      */
-    int updateSyncUserCaseEffective(@Param("apiCode") String apiCode,@Param("uIds") Set<String> uIds);
+    int updateSyncUserCaseEffective(@Param("apiCode") String apiCode, @Param("uIds") Set<String> uIds);
 
-    List<MarketingSyncUser> getSyncUserLastByCustNums(@Param("apiCode") String apiCode,@Param("custNums") List<String> custNums);
+    List<MarketingSyncUser> getSyncUserLastByCustNums(@Param("apiCode") String apiCode, @Param("custNums") List<String> custNums);
 
-    List<MarketingSyncUser> getNewestByCustNums(@Param("apiCode") String apiCode,@Param("custNums") Set<String> custNums);
+    List<MarketingSyncUser> getNewestByCustNums(@Param("apiCode") String apiCode, @Param("custNums") Set<String> custNums);
 
     /**
      * 2022/7/14 11:20
@@ -89,6 +90,7 @@ public interface MarketingSyncUserMapper {
 
     /**
      * 分页获取上传数据，appletdate区间
+     *
      * @param apiCode
      * @param startDate
      * @param endDate
@@ -100,6 +102,7 @@ public interface MarketingSyncUserMapper {
 
     /**
      * 分页获取上传数据，appletdate精确到天
+     *
      * @param apiCode
      * @param executeDate
      * @param minId
@@ -126,4 +129,19 @@ public interface MarketingSyncUserMapper {
      * @dateTime 2023/2/09 10:52
      */
     MarketingSyncUser getAppletTimeBySyncUser(@Param("syncUser") MarketingSyncUser syncUser);
+
+    /**
+     * 根据id和日期获取上传数据
+     * @param apiCode
+     * @param appletDate
+     * @param minId
+     * @param pageSize
+     * @return
+     */
+    List<MarketingSyncUser> getNewSyncUserByDate(@Param("apiCode") String apiCode
+            , @Param("appletDate") String appletDate
+            , @Param("pageSize") Integer pageSize
+            , @Param("minId") Long minId);
+
+    Integer countByAppletDate(@Param("apiCode") String apiCode, @Param("appletDate") String appletDate);
 }

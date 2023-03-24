@@ -1,15 +1,13 @@
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.CkeckApplication;
-import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.service.EmailService;
-import com.br.marketing.service.Impl.*;
+import com.br.marketing.service.Impl.transfertofile.TransferToFileBySamoyeServiveImpl;
 import com.br.marketing.service.PushDataService;
-import com.br.marketing.service.TransferToFileByTongChengServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -22,7 +20,6 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 

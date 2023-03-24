@@ -525,5 +525,10 @@ public class MarketingCommonConfig {
      * eg:{"3710027":{0:"CASTR0000361",7:"CASTR0000362",14:"CASTR0000363"},"7410027":{0:"CASTR0000361",7:"CASTR0000362",14:"CASTR0000363"}}
      */
     private Map<String, Map<Integer, String>> fenqilePeriodPushDecisionPeriod;
+
+    /**
+     * 你我贷有效期
+     */
+    private String youMeDValidityDayStr;
 }
 

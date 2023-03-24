@@ -2,6 +2,8 @@ package com.br.marketing.mapper;
 
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.vo.TransferOfRdRFVO;
+import com.br.marketing.vo.YMDTransferVO;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
@@ -292,4 +294,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             , @Param("ifActivity") String ifActivity, @Param("activityTime") String activityTime
             , @Param("ifApply") String ifApply, @Param("applyDt") String applyDt
             , @Param("minId") Long minId, @Param("pageSize") Integer pageSize);
+
+    List<TransferOfRdRFVO> getTransferOfRdRFs(@Param("requestDate") String requestDate,@Param("custNums") List<String> custNums
+            ,@Param("tcid") String tcId,@Param("apiCode") String apiCode);
 }

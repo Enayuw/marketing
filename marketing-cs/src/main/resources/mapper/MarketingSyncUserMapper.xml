@@ -356,4 +356,25 @@
         order by applet_time desc, create_time desc limit 0,1
     </select>
 
+    <select id="getNewSyncUserByDate" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where applet_date = #{appletDate}
+          and status = 1
+          and is_repeat in (1,2)
+          <if test="minId !=null and minId >0">
+              and id > #{minId}
+          </if>
+          order by id asc
+          limit #{pageSize}
+    </select>
+
+    <select id="countByAppletDate" resultType="java.lang.Integer">
+        select count(*)
+        from b_marketing_sync_${apiCode}
+        where applet_date = #{appletDate}
+          and status = 1
+          and is_repeat in (1,2)
+    </select>
+
 </mapper>

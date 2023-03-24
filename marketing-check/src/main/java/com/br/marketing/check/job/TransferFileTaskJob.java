@@ -13,6 +13,7 @@ import com.br.marketing.mapper.SyncLogMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.*;
+import com.br.marketing.service.Impl.transfertofile.*;
 import com.br.marketing.service.TransferToFileByTongChengServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;

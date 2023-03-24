@@ -375,4 +375,17 @@
         order by id asc
         limit #{pageSize}
     </select>
+
+    <select id="getTransferOfRdRFs" resultType="com.br.marketing.vo.TransferOfRdRFVO">
+        select request_data as requestData
+             ,reserve_field1 as reserveField1
+        from b_marketing_transfer_sync_${tcId}
+        where
+              api_code = #{apiCode}
+          and request_data >= #{requestDate}
+          and cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+    </select>
 </mapper>
