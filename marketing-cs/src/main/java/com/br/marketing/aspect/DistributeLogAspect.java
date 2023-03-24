@@ -7,6 +7,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.DistributeTypeEnum;
+import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.DataDistributeLogBase;
 import com.br.marketing.dto.DataJoinLogDTO;
@@ -43,9 +44,9 @@ public class DistributeLogAspect {
 
     @Autowired
     RedisChgService redisChgService;
-    private final static List soleTypes;
+    /*private final static List soleTypes;
 
-    // 1-apiCode,custNum
+   // 1-apiCode,custNum
     private final static Integer soleTypeOne = new Integer(1);
 
     // 2-apiCode,cell
@@ -59,7 +60,7 @@ public class DistributeLogAspect {
         soleTypes.add(soleTypeOne);
         soleTypes.add(soleTypeTwo);
         soleTypes.add(soleTypeThree);
-    }
+    }*/
 
     @Around("@annotation(com.br.marketing.common.annoation.DistributeLog)")
     public Object distribute(ProceedingJoinPoint jp) throws Throwable {
@@ -74,7 +75,7 @@ public class DistributeLogAspect {
         if (detailLogList.size() <= 0) {
             return jp.proceed();
         }
-        if (logBase.getIsSole() && !soleTypes.contains(logBase.getSoleField())) {
+        if (logBase.getIsSole() && (!SoleFieldEnum.getValues().contains(logBase.getSoleField()))) {
             return jp.proceed();
         }
         List data = logBase.getData();
@@ -102,13 +103,13 @@ public class DistributeLogAspect {
                 if (logBase.getIsSole()) {
                     //region 去重处理
                     String key = RedisKeyConstant.dributeDataSloeLock;
-                    if (soleTypeOne.equals(logBase.getSoleField())) {
+                    if (SoleFieldEnum.CUST_NUM_SOLE.getValue().equals(logBase.getSoleField())) {
                         key = key.concat(String.format(":%d:%d:%s:%s", logData.getDistributeType()
                                 , logBase.getSoleDay(), logData.getApiCode(), logData.getCustNum()));
-                    } else if (soleTypeTwo.equals(logBase.getSoleField())) {
+                    } else if (SoleFieldEnum.CELL_SOLE.getValue().equals(logBase.getSoleField())) {
                         key = key.concat(String.format(":%d:%d:%s:%s", logData.getDistributeType()
                                 , logBase.getSoleDay(), logData.getApiCode(), logData.getCell()));
-                    }else if (soleTypeThree.equals(logBase.getSoleField())) {
+                    }else if (SoleFieldEnum.CELL_STATUS_SOLE.getValue().equals(logBase.getSoleField())) {
                         key = key.concat(String.format(":%d:%d:%s:%s:%s", logData.getDistributeType()
                                 , logBase.getSoleDay(), logData.getApiCode(), logData.getCell(),logData.getStatus()));
                     }
@@ -139,12 +140,15 @@ public class DistributeLogAspect {
                                 String day = LocalDate.now().minusDays(logBase.getSoleDay() - 1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                                 criteria.andDistributeDateGreaterThanOrEqualTo(day);
                             }
+                        } else if (logBase.getSoleDay() != null && logBase.getSoleDay() == -1) {
+                            //单条数据当前有效期内去重
+                            criteria.andExtendEqualTo(logData.getExtend());
                         }
-                        if (logBase.getSoleField() == 1) {
+                        if (logBase.getSoleField().equals(SoleFieldEnum.CUST_NUM_SOLE.getValue())) {
                             criteria.andCustNumEqualTo(logData.getCustNum());
-                        } else if (logBase.getSoleField() == 2) {
+                        } else if (logBase.getSoleField().equals(SoleFieldEnum.CELL_SOLE.getValue())) {
                             criteria.andCellEqualTo(logData.getCell());
-                        } else if (logBase.getSoleField() == 3) {
+                        } else if (logBase.getSoleField().equals(SoleFieldEnum.CELL_STATUS_SOLE.getValue())) {
                             criteria.andCellEqualTo(logData.getCell());
                             criteria.andStatusEqualTo(logData.getStatus());
                         }

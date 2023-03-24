@@ -2,7 +2,12 @@ package com.br.marketing.rule;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-
+/**
+ * @Description :去重参数构建
+ * ---------------------------------
+ * @Author : zhen.Li
+ * @Date : Create in 2023/3/21 14:11
+ */
 @Data
 public class SourceData extends InterfaceParams{
     /**
@@ -10,4 +15,36 @@ public class SourceData extends InterfaceParams{
      */
     @JsonIgnore
     private Long initId;
+
+
+    /**
+     * 有效期开始时间
+     * 格式：yyyy-MM-dd
+     */
+    @JsonIgnore
+    private String expireBeginDate;
+
+    /**
+     * 有效期结束时间
+     * 格式：yyyy-MM-dd
+     */
+    @JsonIgnore
+    private String expireEndDate;
+
+
+    /**
+     * 去重类型：
+     * value = -1,表示单条数据计算有效期去重，expireBeginDate，expireEndDate 必传
+     * value = [0,+∞]，表示一批数据范围内去重,n表示n天内推送一次，
+     */
+    @JsonIgnore
+    private Integer soleType;
+
+    /**
+     * 去重维度：
+     * 见枚举：com.br.marketing.common.enums.SoleFieldEnum
+     */
+    @JsonIgnore
+    private Integer soleField;
+
 }

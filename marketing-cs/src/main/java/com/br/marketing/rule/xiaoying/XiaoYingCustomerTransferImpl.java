@@ -82,7 +82,6 @@ public class XiaoYingCustomerTransferImpl implements AssembleData<ConversionData
                 String ifApply = transfer.getIfApply();
                 boolean bool = STATE_1.equals(ifApply) || (STATE_0.equals(ifApply)
                         && STATE_1.equals(transfer.getIfLogin()));
-                log.warn("规则判断结果：{},ifApply={};ifLogin={}", bool, ifApply, transfer.getIfLogin());
                 if (bool) {
                     MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
                     transferSyncUser.setId(transfer.getId());

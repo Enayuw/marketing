@@ -57,7 +57,7 @@ public class OriginPeriodPredicateToJueCeServiceImpl implements OriginPeriodPred
                 // 把封装的日志插入到数组中
                 logList.add(methodRetryHandlerService.dataJoinLogFix(marketingUserDetailDTO, DistributeTypeEnum.POLICYDATA
                         , apiCode, marketingTransferSyncUserCell.getCustNum(), marketingTransferSyncUserCell.getCell()
-                        , null, DistributeSourceTypeEnum.TRANSFER, status));
+                        , null, DistributeSourceTypeEnum.TRANSFER, status,null));
                     }
             );
             PolicyRetryByRuleSoleDTO retryByRuleDTO = new PolicyRetryByRuleSoleDTO();
