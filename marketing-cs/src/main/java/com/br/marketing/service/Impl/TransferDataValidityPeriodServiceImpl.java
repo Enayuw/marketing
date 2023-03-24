@@ -17,6 +17,10 @@ import org.springframework.util.ObjectUtils;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -44,22 +48,22 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     private final MarketingSyncUserMapper marketingSyncUserMapper;
 
     @Override
-    public MarketingSyncUser getNewValidityPeriodData(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate) {
-        return getMarketingSyncUser(marketingTransferSyncUser, requestDate);
+    public MarketingSyncUser getNewValidityPeriodData(MarketingTransferSyncUser marketingTransferSyncUser,String requestDate) {
+        return getMarketingSyncUser(marketingTransferSyncUser,requestDate);
     }
 
     @Override
-    public boolean isValidityPeriod(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate) {
+    public boolean isValidityPeriod(MarketingTransferSyncUser marketingTransferSyncUser,String requestDate) {
         return getMarketingSyncUser(marketingTransferSyncUser, requestDate) != null;
     }
 
 
     @Override
-    public MarketingTransferSyncUserCell getNewValidityPeriodTransferData(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate) {
-        MarketingSyncUser marketingSyncUser = getMarketingSyncUser(marketingTransferSyncUser, requestDate);
+    public MarketingTransferSyncUserCell getNewValidityPeriodTransferData(MarketingTransferSyncUser marketingTransferSyncUser,String requestDate) {
+        MarketingSyncUser marketingSyncUser = getMarketingSyncUser(marketingTransferSyncUser,requestDate);
         if (marketingSyncUser != null) {
             MarketingTransferSyncUserCell marketingTransferSyncUserCell = new MarketingTransferSyncUserCell();
-            BeanUtils.copyProperties(marketingTransferSyncUser, marketingTransferSyncUserCell);
+            BeanUtils.copyProperties(marketingTransferSyncUser,marketingTransferSyncUserCell);
             marketingTransferSyncUserCell.setCell(marketingSyncUser.getCell());
             return marketingTransferSyncUserCell;
         }
@@ -69,14 +73,16 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     /**
      * shijian
      */
-    private MarketingSyncUser getMarketingSyncUser(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate) {
+    private MarketingSyncUser getMarketingSyncUser(MarketingTransferSyncUser marketingTransferSyncUser,String requestDate) {
         MarketingSyncUser marketingSyncUser = null;
         // 1. 查询配置表
 
         List<MarketingDataValidConfig> marketingDataValidConfigs = marketingDataValidConfigMapper.selectInfo(marketingTransferSyncUser.getApiCode(), marketingTransferSyncUser.getUserType());
         // 获取需要判断的指定日期
-        requestDate = requestDate == null ? marketingTransferSyncUser.getRequestData() : requestDate;
+        requestDate = requestDate==null? marketingTransferSyncUser.getRequestData():requestDate;
         LocalDate parse = LocalDate.parse(requestDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
+
+        String userType = marketingTransferSyncUser.getUserType();
 
         // 2. 获取T,N 模式下 有效期范围的规则集合，T，N
         List<MarketingDataValidConfig> marketingDataValidConfigTN = marketingDataValidConfigs.stream().filter(m -> m.getValidType() == 1).collect(Collectors.toList());
@@ -86,18 +92,22 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             String validEndDate = mctn.getValidEndDate();
             LocalDate startDate = LocalDate.parse(validStartDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
             LocalDate endDate = LocalDate.parse(validEndDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
-            if ((startDate.isBefore(parse) || startDate.isEqual(parse)) && (parse.isBefore(endDate) || parse.isEqual(endDate))) {
+            if ((startDate.isBefore(parse) || startDate.isEqual(parse) )
+                    && (parse.isBefore(endDate) ||parse.isEqual(endDate))
+                    && mctn.getUserType().equals(userType)) {
                 collectRequestDateTN.add(mctn.getAppletDate());
             }
         });
 
         // 如果T,N 模式不为空则查询最新一条数据
         if (collectRequestDateTN.size() > 0) {
+
             marketingSyncUser = marketingSyncUserMap.selectInAppletDate(collectRequestDateTN, marketingTransferSyncUser);
         }
 
-        //3. 获取【非】以上集合最新的一条数据 collectRequestDateTN 需要进行非空判断
-        MarketingSyncUser marketingSyncUserTaN = marketingSyncUserMap.selectNotInAppletDate(collectRequestDateTN, marketingTransferSyncUser);
+        //3. 获取【非】以上集合最新的一条数据 configAppletDateTN 需要进行非空判断
+        Set<String> configAppletDateTN = marketingDataValidConfigTN.stream().map(MarketingDataValidConfig::getAppletDate).collect(Collectors.toSet());
+        MarketingSyncUser marketingSyncUserTaN = marketingSyncUserMap.selectNotInAppletDate(configAppletDateTN, marketingTransferSyncUser);
         if (marketingSyncUserTaN == null) {
             return marketingSyncUser;
         }
@@ -120,7 +130,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         }
         return marketingSyncUser;
     }
-
     public java.util.Date convertToDateViaInstant(LocalDate dateToConvert) {
         return java.util.Date.from(dateToConvert.atStartOfDay().atZone(ZoneId.systemDefault())
                 .toInstant());
