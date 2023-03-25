@@ -135,7 +135,7 @@ public class MethodRetryHandlerService {
      * @return
      */
     public DataJoinLogDTO dataJoinLogFix(Object data, DistributeTypeEnum distributeTypeEnum, String apiCode
-            , String custNum, String cell, Long sourceId, DistributeSourceTypeEnum distributeSourceTypeEnum,String status){
+            , String custNum, String cell, Long sourceId, DistributeSourceTypeEnum distributeSourceTypeEnum,String status,String extend){
         DataJoinLogDTO dataJoinLogDTO = new DataJoinLogDTO();
         dataJoinLogDTO.setApiCode(apiCode);
         dataJoinLogDTO.setCustNum(custNum);
@@ -148,6 +148,7 @@ public class MethodRetryHandlerService {
         dataJoinLogDTO.setDataCode(data.hashCode());
         dataJoinLogDTO.setDataMd5(DigestUtils.md5DigestAsHex(data.toString().getBytes()));
         dataJoinLogDTO.setStatus(status);
+        dataJoinLogDTO.setExtend(extend);
         return dataJoinLogDTO;
     }
 

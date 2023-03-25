@@ -40,4 +40,9 @@ public class PushMarketingUserDetailByRuleDTO extends SourceData {
      */
     private String strategyCode;
 
+    /**
+     * 场景status
+     */
+    private String status;
+
 }
