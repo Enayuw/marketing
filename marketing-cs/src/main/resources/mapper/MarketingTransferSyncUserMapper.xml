@@ -389,7 +389,7 @@
             <if test="minId != null and minId >0">
                 AND id >=#{minId}
             </if>
-            order by id asc limit 10;
+            order by id asc limit 2000;
         </where>
     </select>
     <select id="getJuZiBRuleData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
