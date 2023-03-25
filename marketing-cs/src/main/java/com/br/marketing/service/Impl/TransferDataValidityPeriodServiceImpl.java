@@ -55,6 +55,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             MarketingTransferSyncUserCell marketingTransferSyncUserCell = new MarketingTransferSyncUserCell();
             BeanUtils.copyProperties(marketingTransferSyncUser,marketingTransferSyncUserCell);
             marketingTransferSyncUserCell.setCell(marketingSyncUser.getCell());
+            marketingTransferSyncUserCell.setTaskId(marketingSyncUser.getCusBatch());
             return marketingTransferSyncUserCell;
         }
         return null;

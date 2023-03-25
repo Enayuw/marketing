@@ -76,6 +76,7 @@ public class OriginPeriodPredicateToDassServiceImpl implements OriginPeriodPredi
                 phoneSaleExtendInfo.setAppletDate(marketingTransferSyncUserCell.getRequestData());
                 phoneSaleExtendInfo.setAppletTime(marketingTransferSyncUserCell.getRequestTime());
                 phoneSaleExtendInfo.setPStatus(1);
+                phoneSaleExtendInfo.setTaskId(marketingTransferSyncUserCell.getTaskId());
                 phoneSaleExtendInfo.setUserType(marketingTransferSyncUserCell.getUserType());
                 phoneSaleExtendInfo.setSourceId(dassImportDataDTO.getId());
                 batchRealTimeUserDataDTO.setDassImportDataDTO(dassImportDataDTO);
