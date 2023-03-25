@@ -40,7 +40,7 @@ public class OriginPeriodPredicateToJueCeServiceImpl implements OriginPeriodPred
     private MarketingCommonConfig marketingCommonConfig;
 
     @Override
-    public void transferDataPeriod(String apiCode,String status, List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellList) {
+    public void transferDataPeriod(String apiCode,String status, Set<MarketingTransferSyncUserCell> marketingTransferSyncUserCellList) {
         // 推决策
         if(statusSet.contains(status)){
             ArrayList<DataJoinLogDTO> logList = new ArrayList<>();

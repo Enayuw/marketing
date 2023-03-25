@@ -46,7 +46,7 @@ public class OriginPeriodPredicateToDassServiceImpl implements OriginPeriodPredi
     private String aesKey;
 
     @Override
-    public void transferDataPeriod(String apiCode,String status,List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellList) {
+    public void transferDataPeriod(String apiCode,String status,Set<MarketingTransferSyncUserCell> marketingTransferSyncUserCellList) {
         if(statusSet.contains(status)){
             List<BatchRealTimeUserDataDTO> transferDataList = new ArrayList<>();
             marketingTransferSyncUserCellList.forEach(marketingTransferSyncUserCell -> {

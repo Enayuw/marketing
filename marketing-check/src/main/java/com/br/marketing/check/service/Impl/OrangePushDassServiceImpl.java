@@ -126,20 +126,20 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
                     .collect(Collectors.toList());
 
             // 2. 批次内去重
-            marketingTransferSyncUserCellLists.stream().collect(Collectors.collectingAndThen(
-                    Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(MarketingTransferSyncUserCell::getCell))), ArrayList::new)
-            );
+            Set<MarketingTransferSyncUserCell> marketingTransferSyncUserCellSet = new TreeSet<>(Comparator.comparing(MarketingTransferSyncUserCell::getCell));
+            marketingTransferSyncUserCellSet.addAll(marketingTransferSyncUserCellLists);
+
 
             // 3. 情况b 和 c 要做剔除 < 1000
             if ("b".equals(status) || "c".equals(status)) {
-                marketingTransferSyncUserCellLists.removeIf(m ->
+                marketingTransferSyncUserCellSet.removeIf(m ->
                         marketingTransferSyncUserMapper.getValidityPeriodData(tcid,apiCode,m.getCustNum())
                                 .stream().anyMatch(d -> transferDataValidityPeriodService.isValidityPeriod(d,null)));
             }
 
-            if (marketingTransferSyncUserCellLists.size() > 0) {
+            if (marketingTransferSyncUserCellSet.size() > 0) {
                 // 获取cell set 集合
-                Set<String> cellSet = marketingTransferSyncUserCellLists.stream().map(MarketingTransferSyncUserCell::getCell).collect(Collectors.toSet());
+                Set<String> cellSet = marketingTransferSyncUserCellSet.stream().map(MarketingTransferSyncUserCell::getCell).collect(Collectors.toSet());
                 // 查询电销推送日志表
                 Set<String> toDassLogInfoSet = phoneSaleExtendInfoMapper.getToDassLogInfoList(apiCode,cellSet);
                 // 查询决策推送日志表
@@ -149,11 +149,11 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
                 Stream.of(toDassLogInfoSet, distributionToDassLogInfoSet).forEach(resultSet::addAll);
 
                 // 4. 剔除当天推过的数据。
-                marketingTransferSyncUserCellLists.removeIf(m -> resultSet.contains(m.getCell()));
+                marketingTransferSyncUserCellSet.removeIf(m -> resultSet.contains(m.getCell()));
 
                 // 5. 推送daas 、 决策
-                if (marketingTransferSyncUserCellLists.size() > 0) {
-                    juZiPeriodPredicateServiceList.forEach(juZiPeriodPredicateService -> juZiPeriodPredicateService.transferDataPeriod(apiCode,status, marketingTransferSyncUserCellLists));
+                if (marketingTransferSyncUserCellSet.size() > 0) {
+                    juZiPeriodPredicateServiceList.forEach(juZiPeriodPredicateService -> juZiPeriodPredicateService.transferDataPeriod(apiCode,status, marketingTransferSyncUserCellSet));
                 }
             }
         }
