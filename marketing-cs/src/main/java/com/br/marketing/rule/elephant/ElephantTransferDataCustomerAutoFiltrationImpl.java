@@ -10,17 +10,11 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ElephantCollectDataImpl;
-import com.br.marketing.context.impl.NiwodaiRuleCollectDataImpl;
-import com.br.marketing.context.impl.RsCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
-import com.br.marketing.service.IPeriodOfValidityService;
-import com.br.marketing.service.Impl.TableCreateServiceImpl;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
-import io.kubernetes.client.openapi.models.V1AggregationRule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -101,9 +95,7 @@ public class ElephantTransferDataCustomerAutoFiltrationImpl implements AssembleD
                 if(("1").equals(transfer.getApplyResult()) && ("0").equals(transfer.getIfLent())){
                     return true;
                 }
-                if(StringUtils.isNotEmpty(transfer.getUnlentAmount()) && Double.valueOf(transfer.getUnlentAmount())<=0){
-                    return true;
-                }
+                return StringUtils.isNotEmpty(transfer.getUnlentAmount()) && Double.parseDouble(transfer.getUnlentAmount()) <= 0;
             }
         }
         return false;
