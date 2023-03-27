@@ -377,7 +377,8 @@
     </select>
 
     <select id="getTransferOfRdRFs" resultType="com.br.marketing.vo.TransferOfRdRFVO">
-        select request_data as requestData
+        select cust_num as custNum
+               ,request_data as requestData
              ,reserve_field1 as reserveField1
         from b_marketing_transfer_sync_${tcId}
         where

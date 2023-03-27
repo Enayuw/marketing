@@ -110,6 +110,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByPPDOldServiceImpl transferToFileByPPDOldService;
 
+    @Autowired
+    private TransferToFileByYouMeDServiceImpl transferToFileByYouMeDService;
+
     /**
      * 桔子
      */
@@ -215,6 +218,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByPPDOldService, marketingCommonConfig.getPPDOldTransferFileApiCodes())
                 // 桔子转化数据提取
                 .addBind(orangeService, marketingCommonConfig.getOrangeTransferFileApiCodes())
+                .addBind(transferToFileByYouMeDService,marketingCommonConfig.getYouMeDApiCodes())
                 .build();
     }
 
@@ -251,9 +255,13 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
         if (marketingCommonConfig.getZhongAnTransferApiCodes().contains(customer.getApiCode())) {
             return transferToFileByZhongAnService;
         }
+        if (marketingCommonConfig.getYouMeDApiCodes().contains(customer.getApiCode())) {
+            return transferToFileByYouMeDService;
+        }
         if (marketingCommonConfig.getXieChengTransferApiCodes().contains(customer.getApiCode())) {
             return transferToFileByXieChengService;
-        } else {
+        }
+        else {
             return null;
         }
     }

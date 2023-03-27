@@ -530,5 +530,10 @@ public class MarketingCommonConfig {
      * 你我贷有效期
      */
     private String youMeDValidityDayStr;
+
+    /**
+     * 你我贷apiCode
+     */
+    private  List<String> youMeDApiCodes;
 }
 

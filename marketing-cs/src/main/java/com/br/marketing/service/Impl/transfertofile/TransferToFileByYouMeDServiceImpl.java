@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl.transfertofile;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.common.commondto.Result;
@@ -11,16 +13,19 @@ import com.br.marketing.mapper.*;
 import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.RuleRedisServiceImpl;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.PeriodOfValidityHelper;
 import com.br.marketing.vo.TransferOfRdRFVO;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
+import sun.security.util.AuthResources_es;
 
 import javax.annotation.Resource;
 import java.io.*;
@@ -29,6 +34,9 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -50,6 +58,9 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    @Autowired
+    TableCreateServiceImpl tableCreateService;
+
     @Resource
     MarketingSyncUserMapper syncUserMapper;
     @Autowired
@@ -63,30 +74,29 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
 
     final static SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd");
 
+    final static DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
     @Resource
     MarketingTransferSyncUserMapper transferSyncUserMapper;
 
     @Override
-    public String isMyParam(String apiCode,String jobParameter) {
+    public String isMyParam(String apiCode, String jobParameter) {
         return "";
     }
 
     @Override
-    public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam) {
+    public Result<List<TransferFileTask>> buildTransferTask(String apiCode, String myParam) {
         List<TransferFileTask> resultList = new ArrayList<>();
         Date now = new Date();
         //可配置
         String execute = EXECUTE_TIME;
-        if (StringUtils.isNotEmpty(marketingCommonConfig.getPPDOldTransferFileExecuteTime())) {
-            execute = " " + marketingCommonConfig.getPPDOldTransferFileExecuteTime();
-        }
         Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, execute);
         if (now.after(executeTime)) {
             String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
             taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(1);
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
-            String fileName = String.format("niwodai_transform_%s.txt",yyyyMMdd);
+            String fileName = String.format("niwodai_transform_%s.txt", yyyyMMdd);
             if (CollectionUtils.isEmpty(transferFileTasks)) {
                 log.warn("你我贷转化数据提取-开始执行,apiCode ={}", apiCode);
                 Long transferFileContextId = ruleRedisService.getTransferFileContextId();
@@ -109,7 +119,7 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
     }
 
     @Override
-    public Result actionTransferToFile(TransferFileTask transferFileTask,String jobParameter) {
+    public Result actionTransferToFile(TransferFileTask transferFileTask, String jobParameter) {
         log.warn("你我贷转化数据落库-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();//yyyyMMdd
@@ -149,38 +159,61 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         Date _transferEndDate = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         PeriodOfValidityBO builder1 = periodOfValidityService.getPeriodOfValidityRange(-day, _transferEndDate).builder();
         Date _transferBeginDate = builder1.getBeginDate();
-
+        String _transferBeginDateStr = new SimpleDateFormat("yyyy-MM-dd").format(_transferBeginDate);
+        String tcId = tableCreateService.getTcId(apiCode);
         int pageSize = 5000;
 
         Boolean dateMark = Boolean.TRUE;
-        int totalSize =0;
+        int totalSize = 0;
         HashSet uploadCustNum = new HashSet();
         Integer datePage = 0;
-        while (dateMark){
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(5, 5, 10L, TimeUnit.SECONDS
+                , new ArrayBlockingQueue(50), new ThreadFactoryBuilder().setNameFormat("YMDfile-pool-%d").build()
+                , new ThreadPoolExecutor.CallerRunsPolicy());
+        while (dateMark) {
             Date date = Date.from(yDate.minusDays(datePage).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-            if(date.compareTo(_uploadBeginDate)<0){
+            if (date.compareTo(_uploadBeginDate) < 0) {
                 dateMark = false;
                 continue;
             }
             String dateStr = new SimpleDateFormat("yyyy-MM-dd").format(date);
             Integer count = syncUserMapper.countByAppletDate(apiCode, dateStr);
-            if(count>0) {
+            if (count > 0) {
                 Boolean mark = Boolean.TRUE;
                 Long minId = null;
                 while (mark) {
-                    List<MarketingSyncUser> syncUserSources = syncUserMapper.getNewSyncUserByDate(apiCode,dateStr,pageSize, minId);
+                    List<MarketingSyncUser> syncUserSources = syncUserMapper.getNewSyncUserByDate(apiCode, dateStr, pageSize, minId);
                     if (CollectionUtils.isEmpty(syncUserSources)) {
                         mark = Boolean.FALSE;
                         continue;
                     }
-                    minId = syncUserSources.get(syncUserSources.size()-1).getId();
+                    minId = syncUserSources.get(syncUserSources.size() - 1).getId();
                     List<MarketingSyncUser> syncUsers = syncUserSources.stream().filter(t -> uploadCustNum.add(t.getCustNum())).collect(Collectors.toList());
-
-
+                    threadPoolExecutor.submit(()->{
+                        try {
+                            fieldAction(syncUsers, _transferBeginDateStr, apiCode, tcId, fw);
+                        }catch (Exception ex){
+                            log.error(ex.getMessage(),ex);
+                        }
+                    });
                 }
             }
             datePage++;
         }
+
+        threadPoolExecutor.shutdown();
+        while (true){
+            if(threadPoolExecutor.isTerminated()){
+                log.info("所有线程都执行结束");
+                break;
+            }
+            try {
+                Thread.sleep(3000);
+            }catch (Exception e){
+                log.error("等待所有任务都执行完成",e);
+            }
+        }
+        fw.close();
 
 
         TransferFileTask updatetask = new TransferFileTask();
@@ -194,21 +227,116 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         log.warn("拍拍贷老客转人工数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
 
-    void fieldAction(List<MarketingSyncUser> users,String transferBegin,String apiCode,String tcid,Writer fw){
-        Map<String,MarketingSyncUser> userMap = users.stream().collect(Collectors.toMap(MarketingSyncUser::getCustNum
-                        ,Function.identity(), BinaryOperator.maxBy(Comparator.comparing(MarketingSyncUser::getAppletTime))));
+    void fieldAction(List<MarketingSyncUser> users, String transferBegin, String apiCode, String tcid, Writer fw) {
+        Map<String, MarketingSyncUser> userMap = users.stream().collect(Collectors.toMap(MarketingSyncUser::getCustNum
+                , Function.identity(), BinaryOperator.maxBy(Comparator.comparing(MarketingSyncUser::getAppletTime))));
         List<String> custNums = users.stream().map(t -> t.getCustNum()).collect(Collectors.toList());
         List<TransferOfRdRFVO> transferOfRdRFs = transferSyncUserMapper.getTransferOfRdRFs(transferBegin, custNums, tcid, apiCode);
         Map<String, List<TransferOfRdRFVO>> collect = transferOfRdRFs.stream().sorted(Comparator.comparing(TransferOfRdRFVO::getRequestData)).collect(Collectors.groupingBy(TransferOfRdRFVO::getCustNum));
         for (String custNum : collect.keySet()) {
             List<TransferOfRdRFVO> transferOfRdRFVOS = collect.get(custNum);
-            if(transferOfRdRFVOS.size()<=0){
+            if (transferOfRdRFVOS.size() <= 0) {
                 continue;
             }
-            Boolean _Bhave = Boolean.FALSE;
-            Boolean _Bhave = Boolean.FALSE;
-            for (int i = 0; i < transferOfRdRFVOS.size(); i++) {
+            MarketingSyncUser syncUser = userMap.get(custNum);
 
+            String _Ahave = "";
+            String _Bhave = "";
+            String _Chave = "";
+            String _Dhave = "";
+            String _Fhave = "";
+
+            String _Atime = "";
+            String _Btime = "";
+            String _Ctime = "";
+            String _Dtime = "";
+            String _Ftime = "";
+            String _E="";
+            String _G="";
+            String tDate = "";
+            for (int i = 0; i < transferOfRdRFVOS.size(); i++) {
+                TransferOfRdRFVO transferOfRdRFVO = transferOfRdRFVOS.get(i);
+                if (transferOfRdRFVO.getRequestData().compareTo(syncUser.getAppletDate()) < 0) {
+                    continue;
+                }
+                try {
+                    JSONObject jb = JSON.parseObject(transferOfRdRFVO.getReserveField1());
+                    if (jb == null) {
+                        continue;
+                    }
+                    String a = jb.getString("A");
+                    String b = jb.getString("B");
+                    String c = jb.getString("C");
+                    String d = jb.getString("D");
+                    String f = jb.getString("F");
+                    String e = jb.getString("E");
+                    String g = jb.getString("G");
+                    if(i==transferOfRdRFVOS.size()-1){
+                        tDate = transferOfRdRFVO.getRequestData();
+                        if (StringUtils.isNotBlank(e)) {
+                            _E = e;
+                        }
+                        if (StringUtils.isNotBlank(g)) {
+                            _G = g;
+                        }
+                        if (StringUtils.isNotBlank(a)) {
+                            _Ahave = a;
+                            if("1".equals(a)){
+                                _Atime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
+                            }
+                        }
+                    }
+                    if (StringUtils.isBlank(_Bhave) && StringUtils.isNotBlank(b)) {
+                        _Bhave = b;
+                        if("1".equals(b)) {
+                            _Btime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
+                        }
+                    }
+                    if (StringUtils.isBlank(_Chave) && StringUtils.isNotBlank(c)) {
+                        _Chave = c;
+                        if("1".equals(c)) {
+                            _Ctime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
+                        }
+                    }
+                    if (StringUtils.isBlank(_Dhave) && StringUtils.isNotBlank(d)) {
+                        _Dhave = d;
+                        if("1".equals(d)) {
+                            _Dtime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
+                        }
+                    }
+                    if (StringUtils.isBlank(_Fhave) && StringUtils.isNotBlank(f)) {
+                        _Fhave = f;
+                        if("1".equals(f)) {
+                            _Ftime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
+                        }
+                    }
+
+
+                } catch (Exception e) {
+                    continue;
+                }
+            }
+            StringBuilder content = new StringBuilder();
+            content.append(custNum).append(",")
+                    .append(syncUser.getUserType()).append(",")
+                    .append(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(syncUser.getCell()).getBytes())).append(",")
+                    .append(_Ahave).append(",")
+                    .append(_Atime).append(",")
+                    .append(_Bhave).append(",")
+                    .append(_Btime).append(",")
+                    .append(_Chave).append(",")
+                    .append(_Ctime).append(",")
+                    .append(_Dhave).append(",")
+                    .append(_Dtime).append(",")
+                    .append(_E).append(",")
+                    .append(_Fhave).append(",")
+                    .append(_Ftime).append(",")
+                    .append(_G).append(",")
+                    .append(tDate).append(",").append("\r\n");
+            try {
+                fw.append(content.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
