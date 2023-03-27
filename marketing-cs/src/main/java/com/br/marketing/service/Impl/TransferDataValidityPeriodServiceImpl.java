@@ -94,7 +94,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         }
 
         //3. 获取【非】以上集合最新的一条数据 configAppletDateTN 需要进行非空判断
-        MarketingSyncUser marketingSyncUserTaN = marketingSyncUserMap.selectNotInAppletDate(collectRequestDateTN, marketingTransferSyncUser);
+        MarketingSyncUser marketingSyncUserTaN = marketingSyncUserMap.selectNotInAppletDate(marketingDataValidConfigTN, marketingTransferSyncUser);
         if (marketingSyncUserTaN == null) {
             return marketingSyncUser;
         }
