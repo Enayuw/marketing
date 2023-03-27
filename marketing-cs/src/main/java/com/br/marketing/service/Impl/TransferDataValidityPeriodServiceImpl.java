@@ -77,7 +77,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
 
         // 2. 获取T,N 模式下 有效期范围的规则集合，T，N
         List<MarketingDataValidConfig> marketingDataValidConfigTN = marketingDataValidConfigs.stream().filter(m -> m.getValidType() == 1).collect(Collectors.toList());
-        List<String> collectRequestDateTN = new ArrayList<>();
+        List<MarketingDataValidConfig> collectRequestDateTN = new ArrayList<>();
         marketingDataValidConfigTN.forEach(mctn -> {
             String validStartDate = mctn.getValidStartDate();
             String validEndDate = mctn.getValidEndDate();
@@ -85,7 +85,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             LocalDate endDate = LocalDate.parse(validEndDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
             if ((startDate.isBefore(parse) || startDate.isEqual(parse) )
                     && (parse.isBefore(endDate) ||parse.isEqual(endDate))) {
-                collectRequestDateTN.add(mctn.getAppletDate());
+                collectRequestDateTN.add(mctn);
             }
         });
 

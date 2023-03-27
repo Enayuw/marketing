@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.entity.MarketingDataValidConfig;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import org.apache.ibatis.annotations.Param;
@@ -134,7 +135,7 @@ public interface MarketingSyncUserMapper {
      * @param marketingTransferSyncUser
      * @return
      */
-    MarketingSyncUser  selectInAppletDate( @Param("collectRequestDate") List<String> collectRequestDate,@Param("marketingTransferSyncUser") MarketingTransferSyncUser marketingTransferSyncUser);
+    MarketingSyncUser  selectInAppletDate(@Param("collectRequestDate") List<MarketingDataValidConfig> collectRequestDate, @Param("marketingTransferSyncUser") MarketingTransferSyncUser marketingTransferSyncUser);
 
     /**
      * 根据配置信息，查询【非】apiCode userType 时间为 3个维度下最新一条数据
@@ -142,5 +143,5 @@ public interface MarketingSyncUserMapper {
      * @param marketingTransferSyncUser
      * @return
      */
-    MarketingSyncUser  selectNotInAppletDate( @Param("collectRequestDate") List<String> collectRequestDate,@Param("marketingTransferSyncUser") MarketingTransferSyncUser marketingTransferSyncUser);
+    MarketingSyncUser  selectNotInAppletDate( @Param("collectRequestDate") List<MarketingDataValidConfig> collectRequestDate,@Param("marketingTransferSyncUser") MarketingTransferSyncUser marketingTransferSyncUser);
 }

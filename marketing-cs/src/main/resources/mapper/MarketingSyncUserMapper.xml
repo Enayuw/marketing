@@ -360,9 +360,9 @@
         from b_marketing_sync_${marketingTransferSyncUser.apiCode}
         <where>
             cust_num  = #{marketingTransferSyncUser.custNum}
-            and  applet_date in
+            and (applet_date,user_type) in
             <foreach collection="collectRequestDate" item="item" open="(" close=")" separator=",">
-                #{item}
+                (#{item.applyDate},#{item.userType})
             </foreach>
             order by applet_time desc limit 1
         </where>
@@ -373,9 +373,9 @@
         <where>
             cust_num  = #{marketingTransferSyncUser.custNum}
             <if test="collectRequestDate!=null and  collectRequestDate.size()>0" >
-                and  applet_date not in
+                and  (applet_date,user_type) not in
                 <foreach collection="collectRequestDate" item="item" open="(" close=")" separator=",">
-                    #{item}
+                    (#{item.applyDate},#{item.userType})
                 </foreach>
             </if>
             order by applet_time desc limit 1
