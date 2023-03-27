@@ -85,4 +85,18 @@
           and data_source = 1
         group by local_id
     </select>
+
+    <select id="getTagByApiCodeBizDateList" resultType="java.lang.String">
+        select tag
+        from b_zhongan_roster_locking_data
+        where api_code = '${apiCode}'
+          and <![CDATA[ biz_date <= '${dateStr}' ]]>
+          and push_status = 1
+          and status = 1
+          and data_source = 1
+        group by tag
+        order by tag;
+    </select>
+
+
 </mapper>
