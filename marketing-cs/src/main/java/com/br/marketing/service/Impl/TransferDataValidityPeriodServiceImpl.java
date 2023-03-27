@@ -73,8 +73,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         requestDate = requestDate==null? marketingTransferSyncUser.getRequestData():requestDate;
         LocalDate parse = LocalDate.parse(requestDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
 
-        String userType = marketingTransferSyncUser.getUserType();
-
         // 2. 获取T,N 模式下 有效期范围的规则集合，T，N
         List<MarketingDataValidConfig> marketingDataValidConfigTN = marketingDataValidConfigs.stream().filter(m -> m.getValidType() == 1).collect(Collectors.toList());
         List<MarketingDataValidConfig> collectRequestDateTN = new ArrayList<>();
