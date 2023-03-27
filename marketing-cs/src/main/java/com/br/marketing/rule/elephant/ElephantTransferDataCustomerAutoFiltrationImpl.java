@@ -88,7 +88,7 @@ public class ElephantTransferDataCustomerAutoFiltrationImpl implements AssembleD
                 if(StringUtils.isNotEmpty(applyLoanTime)){
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                     Date applyLoanTimeDate = sdf.parse(applyLoanTime);
-                    if((applyLoanTimeDate.before(appletTime) || applyLoanTimeDate.equals(appletTime)) && ("0").equals(transfer.getApplyResult())){
+                    if((applyLoanTimeDate.after(appletTime) || applyLoanTimeDate.equals(appletTime)) && ("0").equals(transfer.getApplyResult())){
                         return true;
                     }
                 }
