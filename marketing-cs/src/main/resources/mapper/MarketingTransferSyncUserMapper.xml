@@ -451,7 +451,7 @@
         select * from
         b_marketing_transfer_sync_${tCid}
         where api_code = #{apiCode}
-          and cust_num =#{custNum} and audit_amount!=null and lent_amount!=null  <![CDATA[ and audit_amount-lent_amount <1000 ]]>
+          and cust_num =#{custNum} and audit_amount!=null and audit_amount!='' and lent_amount!=null and lent_amount!='' <![CDATA[ and audit_amount-lent_amount <1000 ]]>
     </select>
 
 
