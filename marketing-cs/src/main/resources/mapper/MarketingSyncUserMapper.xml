@@ -355,6 +355,32 @@
         </where>
         order by applet_time desc, create_time desc limit 0,1
     </select>
+    <select id="selectInAppletDate" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${marketingTransferSyncUser.apiCode}
+        <where>
+            cust_num  = #{marketingTransferSyncUser.custNum} and user_type = {marketingTransferSyncUser.userType}
+            and  applet_date in
+            <foreach collection="collectRequestDate" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            order by applet_time desc limit 1
+        </where>
+    </select>
+    <select id="selectNotInAppletDate" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${marketingTransferSyncUser.apiCode}
+        <where>
+            cust_num  = #{marketingTransferSyncUser.custNum}
+            <if test="collectRequestDate!=null and  collectRequestDate.size()>0" >
+                and  applet_date not in
+                <foreach collection="collectRequestDate" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            order by applet_time desc limit 1
+        </where>
+    </select>
 
     <select id="getNewSyncUserByDate" resultType="com.br.marketing.entity.MarketingSyncUser">
         select *

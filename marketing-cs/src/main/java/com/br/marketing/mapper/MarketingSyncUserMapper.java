@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUser;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -129,6 +130,22 @@ public interface MarketingSyncUserMapper {
      * @dateTime 2023/2/09 10:52
      */
     MarketingSyncUser getAppletTimeBySyncUser(@Param("syncUser") MarketingSyncUser syncUser);
+
+    /**
+     * 根据配置信息，查询apiCode userType 时间为 3个维度下最新一条数据
+     * @param collectRequestDate
+     * @param marketingTransferSyncUser
+     * @return
+     */
+    MarketingSyncUser  selectInAppletDate( @Param("collectRequestDate") List<String> collectRequestDate,@Param("marketingTransferSyncUser") MarketingTransferSyncUser marketingTransferSyncUser);
+
+    /**
+     * 根据配置信息，查询【非】apiCode userType 时间为 3个维度下最新一条数据
+     * @param collectRequestDate
+     * @param marketingTransferSyncUser
+     * @return
+     */
+    MarketingSyncUser  selectNotInAppletDate( @Param("collectRequestDate") Set<String> collectRequestDate,@Param("marketingTransferSyncUser") MarketingTransferSyncUser marketingTransferSyncUser);
 
     /**
      * 根据id和日期获取上传数据

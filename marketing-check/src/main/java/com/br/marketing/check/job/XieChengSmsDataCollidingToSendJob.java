@@ -71,9 +71,6 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
             localFileList.forEach((lf) -> {
                 LocalDate fileDate = isFileDate(lf);
                 // 新文件
-                LocalDate now = LocalDate.now();
-                System.out.println(now);
-                System.out.println(fileDate);
                 if (LocalDate.now().isEqual(fileDate) && !lf.getFileName().contains("sup")) {
                     // 整点推 // 补偿推
                     // 当期那时间是否符合推送时间 当前时间 >= 推送时间

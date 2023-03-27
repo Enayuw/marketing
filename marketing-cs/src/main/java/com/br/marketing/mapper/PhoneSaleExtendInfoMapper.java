@@ -139,4 +139,6 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
      * @return set CustNum
      */
     Set<String> getCustNumSettikv_(@Param("example") PhoneSaleExtendInfoExample example);
+
+    Set<String> getToDassLogInfoList(@Param("apiCode") String apiCode, @Param("cells")Set<String> cells);
 }
