@@ -143,7 +143,7 @@ public class DistributeLogAspect {
                         } else if (logBase.getSoleDay() != null && logBase.getSoleDay() == -1) {
                             //单条数据当前有效期内去重
                             if(StringUtils.isEmpty(logData.getExtend())){
-                                criteria.andExtendEqualTo("");
+                                criteria.andExtendIsNull();
                             }else{
                                 criteria.andExtendEqualTo(logData.getExtend());
                             }
