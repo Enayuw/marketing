@@ -15,6 +15,7 @@ import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.RuleRedisServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.PeriodOfValidityHelper;
 import com.br.marketing.vo.TransferOfRdRFVO;
@@ -51,7 +52,7 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
 
     @Autowired
     SyncConfigService syncConfigService;
-    @Autowired
+    @Resource
     private TransferFileTaskMapper transferFileTaskMapper;
     @Autowired
     private RuleRedisServiceImpl ruleRedisService;
@@ -70,14 +71,14 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
 
     final static String VALIDITY_DATSTR = "[T+33]";
 
-    final static String PPD_TRANSFER_FILE = "push_";
-
-    final static SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd");
-
     final static DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Resource
     MarketingTransferSyncUserMapper transferSyncUserMapper;
+
+    @Autowired
+    TransferDataValidityPeriodService transferDataValidityPeriodService;
+
 
     @Override
     public String isMyParam(String apiCode, String jobParameter) {
@@ -147,22 +148,24 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
 
     private void writeYMDTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException, IllegalAccessException {
         Long start = System.currentTimeMillis();
-        String ppdOldValidityDayStr = StringUtils.isNotEmpty(marketingCommonConfig.getYouMeDValidityDayStr()) ? marketingCommonConfig.getYouMeDValidityDayStr() : VALIDITY_DATSTR;
         //endDate-上传数据的有效结束时间，beginDate-上传数据的有效开始时间
         LocalDate yDate = LocalDate.now().minusDays(1L);
         Date _uploadEndDate = Date.from(yDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-        Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(ppdOldValidityDayStr);
-        PeriodOfValidityBO builder = periodOfValidityService.getPeriodOfValidityRange(-day, _uploadEndDate).builder();
-        Date _uploadBeginDate = builder.getBeginDate();
-        String _uploadBeginDateStr = new SimpleDateFormat("yyyy-MM-dd").format(_uploadBeginDate);
-        String _uploadEndDateStr = new SimpleDateFormat("yyyy-MM-dd").format(_uploadEndDate);
+        Result<Date> _uploadBeginDateRes = transferDataValidityPeriodService.getValidityBeginOfTn(apiCode, _uploadEndDate);
+        if (!ResultCode.SUCCESS.getValue().equals(_uploadBeginDateRes.getCode())) {
+            throw new RuntimeException(_uploadBeginDateRes.getMessage());
+        }
+        Date _uploadBeginDate = _uploadBeginDateRes.getData();
 
         Date _transferEndDate = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-        PeriodOfValidityBO builder1 = periodOfValidityService.getPeriodOfValidityRange(-day, _transferEndDate).builder();
-        Date _transferBeginDate = builder1.getBeginDate();
+        Result<Date> _transferEndDateRes = transferDataValidityPeriodService.getValidityBeginOfTn(apiCode, _transferEndDate);
+        if (!ResultCode.SUCCESS.getValue().equals(_transferEndDateRes.getCode())) {
+            throw new RuntimeException(_transferEndDateRes.getMessage());
+        }
+        Date _transferBeginDate = _transferEndDateRes.getData();
         String _transferBeginDateStr = new SimpleDateFormat("yyyy-MM-dd").format(_transferBeginDate);
         String tcId = tableCreateService.getTcId(apiCode);
-        int pageSize = 5000;
+        int pageSize = 2000;
 
         Boolean dateMark = Boolean.TRUE;
         int totalSize = 0;
@@ -193,7 +196,7 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                     totalSize += syncUsers.size();
                     threadPoolExecutor.submit(() -> {
                         try {
-                            fieldAction(syncUsers, _transferBeginDateStr, apiCode, tcId, fw);
+                            fieldAction(syncUsers, _transferBeginDateStr, dateStr, apiCode, tcId, fw);
                         } catch (Exception ex) {
                             log.error(ex.getMessage(), ex);
                         }
@@ -229,12 +232,15 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         log.warn("拍拍贷老客转人工数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
 
-    void fieldAction(List<MarketingSyncUser> users, String transferBegin, String apiCode, String tcid, Writer fw) {
-        Map<String, MarketingSyncUser> userMap = users.stream().collect(Collectors.toMap(MarketingSyncUser::getCustNum
-                , Function.identity(), BinaryOperator.maxBy(Comparator.comparing(MarketingSyncUser::getAppletTime))));
+    void fieldAction(List<MarketingSyncUser> users, String transferBegin, String uploadEnd, String apiCode, String tcid, Writer fw) {
         List<String> custNums = users.stream().map(t -> t.getCustNum()).collect(Collectors.toList());
+        List<MarketingSyncUser> userList = syncUserMapper.getNewSyncUserByCustNumtikv_(apiCode, custNums, uploadEnd);
+        Map<String, MarketingSyncUser> userMap = userList.stream().collect(Collectors.toMap(MarketingSyncUser::getCustNum
+                , Function.identity(), BinaryOperator.maxBy(Comparator.comparing(MarketingSyncUser::getAppletTime))));
         List<TransferOfRdRFVO> transferOfRdRFs = transferSyncUserMapper.getTransferOfRdRFs(transferBegin, custNums, tcid, apiCode);
-        Map<String, List<TransferOfRdRFVO>> collect = transferOfRdRFs.stream().sorted(Comparator.comparing(TransferOfRdRFVO::getRequestData)).collect(Collectors.groupingBy(TransferOfRdRFVO::getCustNum));
+        Map<String, List<TransferOfRdRFVO>> collect = transferOfRdRFs.stream()
+                .sorted(Comparator.comparing(TransferOfRdRFVO::getRequestTime))
+                .collect(Collectors.groupingBy(TransferOfRdRFVO::getCustNum));
         for (String custNum : collect.keySet()) {
             List<TransferOfRdRFVO> transferOfRdRFVOS = collect.get(custNum);
             if (transferOfRdRFVOS.size() <= 0) {
@@ -258,7 +264,7 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
             String tDate = "";
             for (int i = 0; i < transferOfRdRFVOS.size(); i++) {
                 TransferOfRdRFVO transferOfRdRFVO = transferOfRdRFVOS.get(i);
-                if (transferOfRdRFVO.getRequestData().compareTo(syncUser.getAppletDate()) < 0) {
+                if (transferOfRdRFVO.getRequestData().compareTo(syncUser.getAppletDate()) <= 0) {
                     continue;
                 }
                 try {
@@ -270,13 +276,28 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                     String b = jb.getString("B");
                     String c = jb.getString("C");
                     String d = jb.getString("D");
-                    String f = jb.getString("F");
                     String e = jb.getString("E");
+                    String f = jb.getString("F");
                     String g = jb.getString("G");
                     if (i == transferOfRdRFVOS.size() - 1) {
                         tDate = transferOfRdRFVO.getRequestData();
+                        if(StringUtils.isNotBlank(a)){
+                            _Ahave = a;
+                        }
+                        if(StringUtils.isNotBlank(b)){
+                            _Bhave = b;
+                        }
+                        if(StringUtils.isNotBlank(c)){
+                            _Chave = c;
+                        }
+                        if(StringUtils.isNotBlank(d)){
+                            _Dhave = d;
+                        }
                         if (StringUtils.isNotBlank(e)) {
                             _E = e;
+                        }
+                        if(StringUtils.isNotBlank(f)){
+                            _Fhave = f;
                         }
                         if (StringUtils.isNotBlank(g)) {
                             _G = g;
@@ -288,32 +309,18 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                             }
                         }
                     }
-                    if (StringUtils.isBlank(_Bhave) && StringUtils.isNotBlank(b)) {
-                        _Bhave = b;
-                        if ("1".equals(b)) {
-                            _Btime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
-                        }
+                    if (StringUtils.isBlank(_Btime) && "1".equals(b)) {
+                        _Btime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
                     }
-                    if (StringUtils.isBlank(_Chave) && StringUtils.isNotBlank(c)) {
-                        _Chave = c;
-                        if ("1".equals(c)) {
-                            _Ctime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
-                        }
+                    if (StringUtils.isBlank(_Ctime) && "1".equals(c)) {
+                        _Ctime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
                     }
-                    if (StringUtils.isBlank(_Dhave) && StringUtils.isNotBlank(d)) {
-                        _Dhave = d;
-                        if ("1".equals(d)) {
-                            _Dtime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
-                        }
+                    if (StringUtils.isBlank(_Dtime) && "1".equals(d)) {
+                        _Dtime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
                     }
-                    if (StringUtils.isBlank(_Fhave) && StringUtils.isNotBlank(f)) {
-                        _Fhave = f;
-                        if ("1".equals(f)) {
-                            _Ftime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
-                        }
+                    if (StringUtils.isBlank(_Ftime) && "1".equals(f)) {
+                        _Ftime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
                     }
-
-
                 } catch (Exception e) {
                     continue;
                 }

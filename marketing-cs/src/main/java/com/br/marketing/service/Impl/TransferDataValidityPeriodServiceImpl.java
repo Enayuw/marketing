@@ -1,9 +1,14 @@
 package com.br.marketing.service.Impl;
 
+import com.br.marketing.bo.PeriodOfValidityBO;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
+import com.br.marketing.util.PeriodOfValidityHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.SimpleFormatter;
 import java.util.stream.Collectors;
 
 /**
@@ -59,6 +65,27 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             return marketingTransferSyncUserCell;
         }
         return null;
+    }
+
+    @Override
+    public Result<Date> getValidityBeginOfTn(String apiCode, Date endDate) {
+        MarketingDataValidConfigExample configExample = new MarketingDataValidConfigExample();
+        configExample.createCriteria().andApiCodeEqualTo(apiCode).andValidTypeEqualTo(2).andIsDelEqualTo(1);
+        List<MarketingDataValidConfig> marketingDataValidConfigs = marketingDataValidConfigMapper.selectByExample(configExample);
+        if(marketingDataValidConfigs.size()>0){
+            MarketingDataValidConfig marketingDataValidConfig = marketingDataValidConfigs.get(0);
+            Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(marketingDataValidConfig.getValidDays());
+            PeriodOfValidityBO builder = iPeriodOfValidityService.getPeriodOfValidityRange(-day, endDate).builder();
+            Date beginDate = builder.getBeginDate();
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(beginDate);
+        }else{
+            String minAppletDate = marketingSyncUserMap.getMinAppletDate(apiCode);
+            if(StringUtils.isBlank(minAppletDate)){
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("该客户未上传过数据");
+            }
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(minAppletDate);
+
+        }
     }
 
     /**

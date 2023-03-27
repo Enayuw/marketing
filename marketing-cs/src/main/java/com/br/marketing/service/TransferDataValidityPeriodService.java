@@ -1,9 +1,13 @@
 package com.br.marketing.service;
 
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.MarketingSyncInfo;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
+
+import java.time.LocalDate;
+import java.util.Date;
 
 /**
  * @author GuangChao.Zhang
@@ -29,6 +33,13 @@ public interface TransferDataValidityPeriodService {
      */
     boolean isValidityPeriod(MarketingTransferSyncUser marketingTransferSyncUser,String requestDate);
 
+    /**
+     * 根据apiCode和日期
+     * 获取T+N规则的有效开始时间
+     * @param apiCode
+     * @return
+     */
+    Result<Date> getValidityBeginOfTn(String apiCode, Date endDate);
 
 
 }

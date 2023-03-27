@@ -161,4 +161,8 @@ public interface MarketingSyncUserMapper {
             , @Param("minId") Long minId);
 
     Integer countByAppletDate(@Param("apiCode") String apiCode, @Param("appletDate") String appletDate);
+
+    List<MarketingSyncUser> getNewSyncUserByCustNumtikv_(@Param("apiCode") String apiCode,@Param("custNums") List<String> custNums,@Param("dateEnd") String dateEnd);
+
+    String getMinAppletDate(@Param("apiCode") String apiCode);
 }

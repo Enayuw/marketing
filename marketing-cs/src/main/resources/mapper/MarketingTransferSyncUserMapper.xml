@@ -459,7 +459,8 @@
     <select id="getTransferOfRdRFs" resultType="com.br.marketing.vo.TransferOfRdRFVO">
         select cust_num as custNum
                ,request_data as requestData
-             ,reserve_field1 as reserveField1
+               ,request_time as requestTime
+               ,reserve_field1 as reserveField1
         from b_marketing_transfer_sync_${tcId}
         where
               api_code = #{apiCode}
