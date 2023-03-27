@@ -131,10 +131,11 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         String fileAllPath = descPath.concat(transferFileTask.getFileName());
         transferFileTask.setFilePath(descPath);
         File file = new File(fileAllPath);
+        Integer num = 0;
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file), "UTF-8"));) {
-            fw.append("custNum,userType,cell,A,loginTime,B,applyDt,C,applyDtApp,D,applyTime,E,F,lentTime,G,requestData");
+            fw.append("custNum,userType,cell,A,loginTime,B,applyDt,C,applyDtApp,D,applyTime,E,F,lentTime,G,requestDate");
             fw.append("\r\n");
             writeYMDTransferToFile(fw, apiCode, transferFileTask);
         } catch (Exception ex) {
@@ -189,11 +190,12 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                     }
                     minId = syncUserSources.get(syncUserSources.size() - 1).getId();
                     List<MarketingSyncUser> syncUsers = syncUserSources.stream().filter(t -> uploadCustNum.add(t.getCustNum())).collect(Collectors.toList());
-                    threadPoolExecutor.submit(()->{
+                    totalSize += syncUsers.size();
+                    threadPoolExecutor.submit(() -> {
                         try {
                             fieldAction(syncUsers, _transferBeginDateStr, apiCode, tcId, fw);
-                        }catch (Exception ex){
-                            log.error(ex.getMessage(),ex);
+                        } catch (Exception ex) {
+                            log.error(ex.getMessage(), ex);
                         }
                     });
                 }
@@ -202,15 +204,15 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         }
 
         threadPoolExecutor.shutdown();
-        while (true){
-            if(threadPoolExecutor.isTerminated()){
+        while (true) {
+            if (threadPoolExecutor.isTerminated()) {
                 log.info("所有线程都执行结束");
                 break;
             }
             try {
                 Thread.sleep(3000);
-            }catch (Exception e){
-                log.error("等待所有任务都执行完成",e);
+            } catch (Exception e) {
+                log.error("等待所有任务都执行完成", e);
             }
         }
         fw.close();
@@ -251,8 +253,8 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
             String _Ctime = "";
             String _Dtime = "";
             String _Ftime = "";
-            String _E="";
-            String _G="";
+            String _E = "";
+            String _G = "";
             String tDate = "";
             for (int i = 0; i < transferOfRdRFVOS.size(); i++) {
                 TransferOfRdRFVO transferOfRdRFVO = transferOfRdRFVOS.get(i);
@@ -271,7 +273,7 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                     String f = jb.getString("F");
                     String e = jb.getString("E");
                     String g = jb.getString("G");
-                    if(i==transferOfRdRFVOS.size()-1){
+                    if (i == transferOfRdRFVOS.size() - 1) {
                         tDate = transferOfRdRFVO.getRequestData();
                         if (StringUtils.isNotBlank(e)) {
                             _E = e;
@@ -281,32 +283,32 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                         }
                         if (StringUtils.isNotBlank(a)) {
                             _Ahave = a;
-                            if("1".equals(a)){
+                            if ("1".equals(a)) {
                                 _Atime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
                             }
                         }
                     }
                     if (StringUtils.isBlank(_Bhave) && StringUtils.isNotBlank(b)) {
                         _Bhave = b;
-                        if("1".equals(b)) {
+                        if ("1".equals(b)) {
                             _Btime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
                         }
                     }
                     if (StringUtils.isBlank(_Chave) && StringUtils.isNotBlank(c)) {
                         _Chave = c;
-                        if("1".equals(c)) {
+                        if ("1".equals(c)) {
                             _Ctime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
                         }
                     }
                     if (StringUtils.isBlank(_Dhave) && StringUtils.isNotBlank(d)) {
                         _Dhave = d;
-                        if("1".equals(d)) {
+                        if ("1".equals(d)) {
                             _Dtime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
                         }
                     }
                     if (StringUtils.isBlank(_Fhave) && StringUtils.isNotBlank(f)) {
                         _Fhave = f;
-                        if("1".equals(f)) {
+                        if ("1".equals(f)) {
                             _Ftime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
                         }
                     }
@@ -332,7 +334,7 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                     .append(_Fhave).append(",")
                     .append(_Ftime).append(",")
                     .append(_G).append(",")
-                    .append(tDate).append(",").append("\r\n");
+                    .append(tDate).append("\r\n");
             try {
                 fw.append(content.toString());
             } catch (IOException e) {
