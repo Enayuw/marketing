@@ -142,7 +142,11 @@ public class DistributeLogAspect {
                             }
                         } else if (logBase.getSoleDay() != null && logBase.getSoleDay() == -1) {
                             //单条数据当前有效期内去重
-                            criteria.andExtendEqualTo(logData.getExtend());
+                            if(StringUtils.isEmpty(logData.getExtend())){
+                                criteria.andExtendEqualTo("");
+                            }else{
+                                criteria.andExtendEqualTo(logData.getExtend());
+                            }
                         }
                         if (logBase.getSoleField().equals(SoleFieldEnum.CUST_NUM_SOLE.getValue())) {
                             criteria.andCustNumEqualTo(logData.getCustNum());

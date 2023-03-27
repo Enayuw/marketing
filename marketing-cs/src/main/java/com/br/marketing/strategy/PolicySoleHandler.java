@@ -53,7 +53,7 @@ public class PolicySoleHandler extends AbstractExternalInterfaceHandler<PushMark
                     sourceIds.add(t.getInitId());
                     // 把封装的日志插入到数组中
                     logList.add(methodRetryHandlerService.dataJoinLogFix(entity, DistributeTypeEnum.POLICYDATA
-                            , context.getApiCode(), t.getPhone(), t.getPhone()
+                            , context.getApiCode(), t.getCaseNumber(), t.getPhone()
                             , Long.valueOf(t.getInitId()), DistributeSourceTypeEnum.TRANSFER, t.getStatus(),t.getExpireEndDate()));
 
                 }
