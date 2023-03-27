@@ -72,7 +72,6 @@ public class NiWoDaiPolicyTransferImpl implements AssembleData<PushMarketingUser
         //去重参数设置
         pushMarketingUserDetailByRuleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
         pushMarketingUserDetailByRuleDTO.setStatus(status);
-        context.setApiCode(marketingCommonConfig.getNiWoDaiPushPolicyTargetApiCode());
         return pushMarketingUserDetailByRuleDTO;
     }
 

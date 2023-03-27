@@ -35,8 +35,10 @@ import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.monkeydata.service.PushRosterLockingDataToZhongAn;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -121,6 +123,9 @@ public class MethodRetryHandlerService {
 
     @Resource
     LocalFileMapper localFileMapper;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
 
     /**
@@ -609,7 +614,11 @@ public class MethodRetryHandlerService {
         taskInfoDTO.setStrategyCode(soleDTO.getStrategyCode());
 
         PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
-        pushMarketingUserDTO.setApiCode(soleDTO.getApiCode());
+        if (StringUtils.isNotEmpty(marketingCommonConfig.getApiCodeMatch().get(soleDTO.getApiCode()))) {
+            pushMarketingUserDTO.setApiCode(marketingCommonConfig.getApiCodeMatch().get(soleDTO.getApiCode()));
+        } else {
+            pushMarketingUserDTO.setApiCode(soleDTO.getApiCode());
+        }
         pushMarketingUserDTO.setJsonData(taskInfoDTO);
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
