@@ -359,7 +359,7 @@
         select *
         from b_marketing_sync_${marketingTransferSyncUser.apiCode}
         <where>
-            cust_num  = #{marketingTransferSyncUser.custNum} and user_type = {marketingTransferSyncUser.userType}
+            cust_num  = #{marketingTransferSyncUser.custNum}
             and  applet_date in
             <foreach collection="collectRequestDate" item="item" open="(" close=")" separator=",">
                 #{item}

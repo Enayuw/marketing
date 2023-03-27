@@ -84,8 +84,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             LocalDate startDate = LocalDate.parse(validStartDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
             LocalDate endDate = LocalDate.parse(validEndDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
             if ((startDate.isBefore(parse) || startDate.isEqual(parse) )
-                    && (parse.isBefore(endDate) ||parse.isEqual(endDate))
-                    && mctn.getUserType().equals(userType)) {
+                    && (parse.isBefore(endDate) ||parse.isEqual(endDate))) {
                 collectRequestDateTN.add(mctn.getAppletDate());
             }
         });
@@ -97,8 +96,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         }
 
         //3. 获取【非】以上集合最新的一条数据 configAppletDateTN 需要进行非空判断
-        Set<String> configAppletDateTN = marketingDataValidConfigTN.stream().map(MarketingDataValidConfig::getAppletDate).collect(Collectors.toSet());
-        MarketingSyncUser marketingSyncUserTaN = marketingSyncUserMap.selectNotInAppletDate(configAppletDateTN, marketingTransferSyncUser);
+        MarketingSyncUser marketingSyncUserTaN = marketingSyncUserMap.selectNotInAppletDate(collectRequestDateTN, marketingTransferSyncUser);
         if (marketingSyncUserTaN == null) {
             return marketingSyncUser;
         }

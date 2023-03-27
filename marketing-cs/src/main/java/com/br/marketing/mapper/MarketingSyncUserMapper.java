@@ -142,5 +142,5 @@ public interface MarketingSyncUserMapper {
      * @param marketingTransferSyncUser
      * @return
      */
-    MarketingSyncUser  selectNotInAppletDate( @Param("collectRequestDate") Set<String> collectRequestDate,@Param("marketingTransferSyncUser") MarketingTransferSyncUser marketingTransferSyncUser);
+    MarketingSyncUser  selectNotInAppletDate( @Param("collectRequestDate") List<String> collectRequestDate,@Param("marketingTransferSyncUser") MarketingTransferSyncUser marketingTransferSyncUser);
 }
