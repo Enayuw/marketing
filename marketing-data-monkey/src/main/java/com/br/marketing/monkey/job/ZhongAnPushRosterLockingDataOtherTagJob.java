@@ -63,6 +63,9 @@ public class ZhongAnPushRosterLockingDataOtherTagJob extends AbstractSimpleElast
                 if ("CG".equals(tag) || "MG".equals(tag)) {
                     continue;
                 }
+                if(" TMG".equals(tag)||"TCG".equals(tag)){
+                    bizDate = "2099-12-31";
+                }
                 long startTag = System.currentTimeMillis();
                 action(tag, apiCode, bizDate, data);
                 long endTag = System.currentTimeMillis();
