@@ -4,8 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
+import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
@@ -42,9 +44,9 @@ public class NiwodaiCustomerTransferImpl implements AssembleData<ConversionData>
     private final static Map<String, String> TAG_MAP = new ConcurrentHashMap<>();
 
     static {
-        TAG_MAP.put("F", "1");
-        TAG_MAP.put("B", "1");
-        TAG_MAP.put("C", "1");
+        TAG_MAP.put("F", "0");
+        TAG_MAP.put("B", "0");
+        TAG_MAP.put("C", "0");
         TAG_MAP.put("H", "2");
     }
 
@@ -65,10 +67,18 @@ public class NiwodaiCustomerTransferImpl implements AssembleData<ConversionData>
         Map<String, SyncUserValidityPeriodBO> syncUserValidityPeriodMap = data.getSyncUserValidityPeriodMap();
         SyncUserValidityPeriodBO bo = syncUserValidityPeriodMap.get(transfer.getCustNum());
         conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
-        conversionData.setExpireDate(bo.getBuilder().addOfDayTimeStrString().builder().getEndOfDayTimeStr());
+        PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
+        // 有效期设置
+        conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
+        // 去重参数设置
+        conversionData.setInitId(transfer.getId());
+        conversionData.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
+        conversionData.setSoleType(-1);
+        conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
+        conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
         return conversionData;
     }
 
@@ -78,7 +88,13 @@ public class NiwodaiCustomerTransferImpl implements AssembleData<ConversionData>
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             String reserveField1 = transfer.getReserveField1();
             if (StringUtils.isNotBlank(reserveField1)) {
-                JSONObject jsonObject = JSONObject.parseObject(reserveField1);
+                JSONObject jsonObject;
+                try {
+                    jsonObject = JSONObject.parseObject(reserveField1);
+                } catch (Exception e) {
+                    log.warn(e.getMessage(), e);
+                    return false;
+                }
                 Set<Map.Entry<String, String>> entries = TAG_MAP.entrySet();
                 // 遍历所有标记
                 for (Map.Entry<String, String> entry : entries) {
@@ -105,7 +121,7 @@ public class NiwodaiCustomerTransferImpl implements AssembleData<ConversionData>
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE.getCode();
     }
 
     @Override
