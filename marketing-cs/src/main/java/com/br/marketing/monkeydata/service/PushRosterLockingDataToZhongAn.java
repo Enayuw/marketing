@@ -475,7 +475,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         Integer count = zhonganRosterLockingDataMapper.countByExample(lockingDataExample);
         LocalFile localFile = new LocalFile();
         LocalFile localFileOld = localFileMapper.getByPrimaryKey(localId);
-        if(count !=null && count.equals(localFileOld.getPushNumber())){
+        if (count != null && !count.equals(localFileOld.getPushNumber())) {
             localFile.setPushNumber(count);
             localFile.setId(localId);
             localFile.setPushEndTime(new Date());
