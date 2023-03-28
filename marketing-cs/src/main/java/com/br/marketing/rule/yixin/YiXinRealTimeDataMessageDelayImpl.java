@@ -95,7 +95,8 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
                 log.warn("id:{} key:{}不满足当天该案件编号未被推送", transfer.getId(), key);
                 return false;
             }
-            boolean flag = transformType && Arrays.asList(4, 6, 8).contains(liveType) && mqFact.getIsDelay() == null;
+            /* 2023-03-24 liveType是4,6的数据不进入静置队列 */
+            boolean flag = transformType && Arrays.asList(8).contains(liveType) && mqFact.getIsDelay() == null;
             if (!flag){
                 log.warn("id:{} cust_num:{}不满足进入延迟队列", transfer.getId(), transfer.getCustNum());
                 return false;

@@ -1,4 +1,5 @@
 package com.br.marketing.rule.rongshu;
+
 import java.util.Date;
 import java.math.BigDecimal;
 
@@ -90,19 +91,20 @@ public class RsAutoArtificialAndCustomerTransferFromDelayImpl implements Assembl
         datum.setUserName("1");
         datum.setPhone(cell);
         datum.setSource("100");
-        if(StringUtils.isNotBlank(marketingSyncUser.getReserveField1())){
+        datum.setGoalsApp("01");
+        if (StringUtils.isNotBlank(marketingSyncUser.getReserveField1())) {
             JSONObject json = JSON.parseObject(marketingSyncUser.getReserveField1());
             String tid = json.getString("tid");
             String operateType = json.getString("operateType");
             String planId = json.getString("planId");
             JSONObject reserve = new JSONObject();
-            if(tid!=null){
-                reserve.put("tid",tid);
+            if (tid != null) {
+                reserve.put("tid", tid);
             }
-            if(operateType!=null){
-                reserve.put("operateType",operateType);
+            if (operateType != null) {
+                reserve.put("operateType", operateType);
             }
-            if(StringUtils.isNotBlank(planId)){
+            if (StringUtils.isNotBlank(planId)) {
                 datum.setPlanId(Integer.valueOf(planId));
             }
             datum.setReserveField1(reserve.toJSONString());
@@ -114,7 +116,7 @@ public class RsAutoArtificialAndCustomerTransferFromDelayImpl implements Assembl
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(tableCreateService.getCId(context.getApiCode()));
         conversionData.setExpireDate(marketingCommonConfig.getRsTransferDataToCustomerExpireDate());
-        if (!org.springframework.util.StringUtils.isEmpty(transfer.getCreateTime())){
+        if (!org.springframework.util.StringUtils.isEmpty(transfer.getCreateTime())) {
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         }
 
@@ -130,8 +132,8 @@ public class RsAutoArtificialAndCustomerTransferFromDelayImpl implements Assembl
         phoneSaleExtendInfo.setCreateTime(new Date());
         phoneSaleExtendInfo.setSourceId(transfer.getId());
         phoneSaleExtendInfo.setRedundancyField(JSON.toJSONString(datum));
-        phoneSaleExtendInfo.setInterfaceType(2);
-
+        phoneSaleExtendInfo.setInterfaceType((marketingCommonConfig.getRongShuPushNewIbuSwitch() != null && !marketingCommonConfig.getRongShuPushNewIbuSwitch())
+                ? 2 : 1);
         return ibuAdapDTO;
     }
 
@@ -139,7 +141,7 @@ public class RsAutoArtificialAndCustomerTransferFromDelayImpl implements Assembl
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MqFact mqFact = context.getMqFact();
         Integer isDelay = mqFact.getIsDelay();
-        if (isDelay == null||isDelay!=1){
+        if (isDelay == null || isDelay != 1) {
             return false;
         }
         if (transmitFact instanceof MarketingTransferSyncUser) {

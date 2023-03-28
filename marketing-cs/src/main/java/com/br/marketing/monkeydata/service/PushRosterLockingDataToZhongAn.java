@@ -186,7 +186,18 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                     }
                 }
                 updatePushStatus(hitBlackList, 5, apiCode, tag, dateStr);
+                break;
             default:
+                while (iterator.hasNext()) {
+                    ZhonganRosterLockingData next = iterator.next();
+                    String key = next.getMobileMd5() + next.getBizDate();
+                    MarketingSyncUser user = syncUserMapNew.get(key);
+                    if (ObjectUtils.isEmpty(user)) {
+                        notUploadData.add(next);
+                    } else {
+                        list.add(new ZhonganRosterLockingDataBO(next, user, apiCode, tag));
+                    }
+                }
         }
         updatePushStatus(notValidity, 4, apiCode, tag, dateStr);
         updatePushStatus(notUploadData, 3, apiCode, tag, dateStr);
