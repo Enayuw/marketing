@@ -49,29 +49,54 @@ public class ZhongAnPushRosterLockingDataOtherTagJob extends AbstractSimpleElast
             }
         }
         String bizDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
-
-        Page2Condition<ZhonganRosterLockingData> data = new Page2Condition<>();
-        data.setPageIndex(0);
-        data.setPageSize(2000);
+        List<String> tags = Arrays.asList("TMG", "TCG");
         for (String apiCode : list) {
-            List<Long> sftpFileIdList = zhonganRosterLockingDataMapper.getSftpFileIdList(apiCode, bizDate);
-            if (!CollectionUtils.isEmpty(sftpFileIdList)) {
-                localFileMapper.updateUploadStartTimeById(sftpFileIdList, new Date());
-            }
-            List<String> tags = zhonganRosterLockingDataMapper.getTagByApiCodeBizDateList(apiCode, bizDate);
-            for (String tag : tags) {
-                if ("CG".equals(tag) || "MG".equals(tag)) {
-                    continue;
-                }
-                long startTag = System.currentTimeMillis();
-                action(tag, apiCode, bizDate, data);
-                long endTag = System.currentTimeMillis();
-                log.warn("{}【{}名单锁定其他标签推送众安】结束，耗时:{}", apiCode, tag, endTag - startTag);
-            }
-            rosterLockingDataToZhongAn.localFilePushStatis(apiCode, bizDate);
+            branchWithOutTags(apiCode, bizDate, tags);
+            branchTagsWithOutDate(apiCode, tags);
         }
         long end = System.currentTimeMillis();
         log.warn("【名单锁定其他标签推送众安】调度结束，耗时:{}", end - start);
+    }
+
+    private void branchWithOutTags(String apiCode, String bizDate, List<String> excludeTags) {
+        List<Long> sftpFileIdList = zhonganRosterLockingDataMapper.getSftpFileIdListByNoTags(apiCode, bizDate, excludeTags);
+        if (!CollectionUtils.isEmpty(sftpFileIdList)) {
+            localFileMapper.updateUploadStartTimeById(sftpFileIdList, new Date());
+        }
+        List<String> dataTags = zhonganRosterLockingDataMapper.getTagsByApiCodeBizDateNoTagList(apiCode, bizDate, excludeTags);
+        for (String tag : dataTags) {
+            Page2Condition<ZhonganRosterLockingData> data = new Page2Condition<>();
+            data.setPageIndex(0);
+            data.setPageSize(2000);
+            if ("CG".equals(tag) || "MG".equals(tag)) {
+                continue;
+            }
+            long startTag = System.currentTimeMillis();
+            action(tag, apiCode, bizDate, data);
+            long endTag = System.currentTimeMillis();
+            log.warn("{}【{}名单锁定其他标签推送众安】结束，耗时:{}", apiCode, tag, endTag - startTag);
+        }
+        rosterLockingDataToZhongAn.localFilePushStatis(apiCode, bizDate);
+    }
+
+    private void branchTagsWithOutDate(String apiCode, List<String> tags) {
+
+        List<Long> sftpFileIdList = zhonganRosterLockingDataMapper.getSftpFileIdListByTags(apiCode, tags);
+        if (!CollectionUtils.isEmpty(sftpFileIdList)) {
+            localFileMapper.updateUploadStartTimeById(sftpFileIdList, new Date());
+        }
+        List<String> dataTags = zhonganRosterLockingDataMapper.getTagsByApiCodeTagList(apiCode, tags);
+        for (String tag : tags) {
+            String bizDate = "2099-12-31";
+            long startTag = System.currentTimeMillis();
+            Page2Condition<ZhonganRosterLockingData> data = new Page2Condition<>();
+            data.setPageIndex(0);
+            data.setPageSize(2000);
+            action(tag, apiCode, bizDate, data);
+            long endTag = System.currentTimeMillis();
+            log.warn("{}【{}名单锁定其他标签推送众安】结束，耗时:{}", apiCode, tag, endTag - startTag);
+        }
+        sftpFileIdList.forEach(t -> rosterLockingDataToZhongAn.localFilePushStatis(t));
     }
 
     private void action(String tag, String apiCode, String bizDate, Page2Condition<ZhonganRosterLockingData> data) {

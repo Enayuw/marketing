@@ -17,6 +17,7 @@ import com.br.marketing.dto.SftpFilePushSuccessDTO;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.ZhonganRosterLockingData;
+import com.br.marketing.entity.ZhonganRosterLockingDataExample;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.ZhonganMarketingBanMapper;
@@ -463,5 +464,23 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             localFile.setPushEndTime(new Date());
             localFileMapper.updateByPrimaryKeySelective(localFile);
         }
+    }
+
+    public void localFilePushStatis(Long localId) {
+        ZhonganRosterLockingDataExample lockingDataExample = new ZhonganRosterLockingDataExample();
+        lockingDataExample.createCriteria().andLocalIdEqualTo(localId)
+                .andPushStatusEqualTo(2)
+                .andStatusEqualTo(1)
+                .andDataSourceEqualTo(1);
+        Integer count = zhonganRosterLockingDataMapper.countByExample(lockingDataExample);
+        LocalFile localFile = new LocalFile();
+        LocalFile localFileOld = localFileMapper.getByPrimaryKey(localId);
+        if (count != null && !count.equals(localFileOld.getPushNumber())) {
+            localFile.setPushNumber(count);
+            localFile.setId(localId);
+            localFile.setPushEndTime(new Date());
+            localFileMapper.updateByPrimaryKeySelective(localFile);
+        }
+
     }
 }
