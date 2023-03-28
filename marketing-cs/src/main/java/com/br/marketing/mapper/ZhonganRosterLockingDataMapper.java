@@ -69,6 +69,17 @@ public interface ZhonganRosterLockingDataMapper extends ZhonganRosterLockingData
     List<Long> getSftpFileIdList(@Param("apiCode") String apiCode
             , @Param("dateStr") String dateStr);
 
+    List<Long> getSftpFileIdListByTags(@Param("apiCode") String apiCode,@Param("tags") List<String> tags);
+
+    List<Long> getSftpFileIdListByNoTags(@Param("apiCode") String apiCode, @Param("dateStr") String dateStr
+            ,@Param("tags") List<String> tags);
+
     List<String> getTagByApiCodeBizDateList(@Param("apiCode") String apiCode
             , @Param("dateStr") String dateStr);
+
+    List<String> getTagsByApiCodeTagList(@Param("apiCode") String apiCode
+            ,@Param("tags") List<String> tags);
+
+    List<String> getTagsByApiCodeBizDateNoTagList(@Param("apiCode") String apiCode, @Param("dateStr") String dateStr
+            ,@Param("tags") List<String> tags);
 }
