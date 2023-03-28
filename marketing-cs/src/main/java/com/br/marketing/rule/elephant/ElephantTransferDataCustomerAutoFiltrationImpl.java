@@ -97,15 +97,19 @@ public class ElephantTransferDataCustomerAutoFiltrationImpl implements AssembleD
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                     Date applyLoanTimeDate = sdf.parse(applyLoanTime);
                     if((applyLoanTimeDate.after(appletTime) || applyLoanTimeDate.equals(appletTime)) && ("0").equals(transfer.getApplyResult())){
+                        log.warn("当前数据符合推送规则 1:{}","true");
                         return true;
                     }
                 }
                 if(("1").equals(transfer.getApplyResult()) && ("0").equals(transfer.getIfLent())){
+                    log.warn("当前数据符合推送规则 2:{}","true");
                     return true;
                 }
+                log.warn("当前数据符合推送规则 3:{}",StringUtils.isNotEmpty(transfer.getUnlentAmount()) && Double.parseDouble(transfer.getUnlentAmount()) <= 0);
                 return StringUtils.isNotEmpty(transfer.getUnlentAmount()) && Double.parseDouble(transfer.getUnlentAmount()) <= 0;
             }
         }
+        log.warn("当前数据不符合推送规则");
         return false;
     }
 
