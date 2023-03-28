@@ -36,6 +36,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BinaryOperator;
@@ -156,6 +157,8 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
             throw new RuntimeException(_uploadBeginDateRes.getMessage());
         }
         Date _uploadBeginDate = _uploadBeginDateRes.getData();
+        String _uploadBeginDateStr = new SimpleDateFormat("yyyy-MM-dd").format(_uploadBeginDate);
+        String _uploadEndDateStr = new SimpleDateFormat("yyyy-MM-dd").format(_uploadEndDate);
 
         Date _transferEndDate = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         Result<Date> _transferEndDateRes = transferDataValidityPeriodService.getValidityBeginOfTn(apiCode, _transferEndDate);
@@ -164,45 +167,31 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         }
         Date _transferBeginDate = _transferEndDateRes.getData();
         String _transferBeginDateStr = new SimpleDateFormat("yyyy-MM-dd").format(_transferBeginDate);
+        String _transferEndDateStr = new SimpleDateFormat("yyyy-MM-dd").format(_transferEndDate);
         String tcId = tableCreateService.getTcId(apiCode);
         int pageSize = 2000;
 
         Boolean dateMark = Boolean.TRUE;
         int totalSize = 0;
-        HashSet uploadCustNum = new HashSet();
+        CopyOnWriteArraySet custNumSet = new CopyOnWriteArraySet();
         Integer datePage = 0;
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(5, 5, 10L, TimeUnit.SECONDS
                 , new ArrayBlockingQueue(50), new ThreadFactoryBuilder().setNameFormat("YMDfile-pool-%d").build()
                 , new ThreadPoolExecutor.CallerRunsPolicy());
         while (dateMark) {
-            Date date = Date.from(yDate.minusDays(datePage).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-            if (date.compareTo(_uploadBeginDate) < 0) {
+            Integer pageIndex = datePage * pageSize;
+            List<MarketingTransferSyncUser> transferUsers = transferSyncUserMapper.getTransferUsersRangReqDateByPage(tcId, apiCode, _transferBeginDateStr, _transferEndDateStr, pageIndex, pageSize);
+            if(transferUsers.size()<=0){
                 dateMark = false;
                 continue;
             }
-            String dateStr = new SimpleDateFormat("yyyy-MM-dd").format(date);
-            Integer count = syncUserMapper.countByAppletDate(apiCode, dateStr);
-            if (count > 0) {
-                Boolean mark = Boolean.TRUE;
-                Long minId = null;
-                while (mark) {
-                    List<MarketingSyncUser> syncUserSources = syncUserMapper.getNewSyncUserByDate(apiCode, dateStr, pageSize, minId);
-                    if (CollectionUtils.isEmpty(syncUserSources)) {
-                        mark = Boolean.FALSE;
-                        continue;
-                    }
-                    minId = syncUserSources.get(syncUserSources.size() - 1).getId();
-                    List<MarketingSyncUser> syncUsers = syncUserSources.stream().filter(t -> uploadCustNum.add(t.getCustNum())).collect(Collectors.toList());
-                    totalSize += syncUsers.size();
-                    threadPoolExecutor.submit(() -> {
-                        try {
-                            fieldAction(syncUsers, _transferBeginDateStr, dateStr, apiCode, tcId, fw);
-                        } catch (Exception ex) {
-                            log.error(ex.getMessage(), ex);
-                        }
-                    });
+            threadPoolExecutor.submit(() -> {
+                try {
+                    fieldAction(transferUsers,custNumSet,_transferBeginDateStr, _uploadBeginDateStr,_uploadEndDateStr, apiCode, tcId, fw);
+                } catch (Exception ex) {
+                    log.error(ex.getMessage(), ex);
                 }
-            }
+            });
             datePage++;
         }
 
@@ -226,15 +215,15 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         updatetask.setStatus(2);
         updatetask.setFileName(transferFileTask.getFileName());
         updatetask.setFilePath(transferFileTask.getFilePath());
-        updatetask.setTaskNumber(totalSize);
+        updatetask.setTaskNumber(custNumSet.size());
         updatetask.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
         log.warn("拍拍贷老客转人工数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
 
-    void fieldAction(List<MarketingSyncUser> users, String transferBegin, String uploadEnd, String apiCode, String tcid, Writer fw) {
+    void fieldAction(List<MarketingTransferSyncUser> users,CopyOnWriteArraySet custNumSet, String transferBegin,String uploadBegin, String uploadEnd, String apiCode, String tcid, Writer fw) {
         List<String> custNums = users.stream().map(t -> t.getCustNum()).collect(Collectors.toList());
-        List<MarketingSyncUser> userList = syncUserMapper.getNewSyncUserByCustNumtikv_(apiCode, custNums, uploadEnd);
+        List<MarketingSyncUser> userList = syncUserMapper.getNewSyncUserByCustNumtikv_(apiCode, custNums,uploadBegin, uploadEnd);
         Map<String, MarketingSyncUser> userMap = userList.stream().collect(Collectors.toMap(MarketingSyncUser::getCustNum
                 , Function.identity(), BinaryOperator.maxBy(Comparator.comparing(MarketingSyncUser::getAppletTime))));
         List<TransferOfRdRFVO> transferOfRdRFs = transferSyncUserMapper.getTransferOfRdRFs(transferBegin, custNums, tcid, apiCode);
@@ -247,7 +236,12 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                 continue;
             }
             MarketingSyncUser syncUser = userMap.get(custNum);
-
+            if(syncUser == null){
+                continue;
+            }
+            if (!custNumSet.add(custNum)) {
+                continue;
+            }
             String _Ahave = "";
             String _Bhave = "";
             String _Chave = "";
@@ -264,9 +258,6 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
             String tDate = "";
             for (int i = 0; i < transferOfRdRFVOS.size(); i++) {
                 TransferOfRdRFVO transferOfRdRFVO = transferOfRdRFVOS.get(i);
-                if (transferOfRdRFVO.getRequestData().compareTo(syncUser.getAppletDate()) <= 0) {
-                    continue;
-                }
                 try {
                     JSONObject jb = JSON.parseObject(transferOfRdRFVO.getReserveField1());
                     if (jb == null) {

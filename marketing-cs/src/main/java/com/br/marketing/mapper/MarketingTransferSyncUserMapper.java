@@ -301,12 +301,20 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param tcId
      * @return
      */
-    List<MarketingTransferSyncUser> getJuZiARuleData(@Param("tCid") String tcId,@Param("apiCode") String apiCode,@Param("minId") Long minId);
-    List<MarketingTransferSyncUser> getJuZiCRuleData(@Param("tCid") String tcId,@Param("apiCode") String apiCode,@Param("minId") Long minId);
-    List<MarketingTransferSyncUser> getJuZiDRuleData(@Param("tCid") String tcId,@Param("apiCode") String apiCode,@Param("minId") Long minId);
-    List<MarketingTransferSyncUser> getJuZiBRuleData(@Param("tCid") String tcId,@Param("apiCode") String apiCode,@Param("minId") Long minId);
-    List<MarketingTransferSyncUser> getValidityPeriodData(@Param("tCid") String tcId,@Param("apiCode") String apiCode,@Param("custNum") String custNum);
+    List<MarketingTransferSyncUser> getJuZiARuleData(@Param("tCid") String tcId, @Param("apiCode") String apiCode, @Param("minId") Long minId);
 
-    List<TransferOfRdRFVO> getTransferOfRdRFs(@Param("requestDate") String requestDate,@Param("custNums") List<String> custNums
-            ,@Param("tcId") String tcId,@Param("apiCode") String apiCode);
+    List<MarketingTransferSyncUser> getJuZiCRuleData(@Param("tCid") String tcId, @Param("apiCode") String apiCode, @Param("minId") Long minId);
+
+    List<MarketingTransferSyncUser> getJuZiDRuleData(@Param("tCid") String tcId, @Param("apiCode") String apiCode, @Param("minId") Long minId);
+
+    List<MarketingTransferSyncUser> getJuZiBRuleData(@Param("tCid") String tcId, @Param("apiCode") String apiCode, @Param("minId") Long minId);
+
+    List<MarketingTransferSyncUser> getValidityPeriodData(@Param("tCid") String tcId, @Param("apiCode") String apiCode, @Param("custNum") String custNum);
+
+    List<TransferOfRdRFVO> getTransferOfRdRFs(@Param("requestDate") String requestDate, @Param("custNums") List<String> custNums
+            , @Param("tcId") String tcId, @Param("apiCode") String apiCode);
+
+    List<MarketingTransferSyncUser> getTransferUsersRangReqDateByPage(@Param("tCid") String tcId, @Param("apiCode") String apiCode
+            , @Param("begingDate") String begingDate, @Param("endDate") String endDate
+            , @Param("pageIndex") Integer pageIndex, @Param("pageSize") Integer pageSiz);
 }

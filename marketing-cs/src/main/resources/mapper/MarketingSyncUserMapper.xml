@@ -410,7 +410,7 @@
         select *,row_number() over(partition by cust_num order by applet_time desc) as num
         from b_marketing_sync_${apiCode}
         where status = 1 and is_repeat in (1,2)
-        <![CDATA[ and applet_date <= #{dateEnd} ]]>
+        <![CDATA[ and applet_date >=#{dateBegin}  and applet_date <= #{dateEnd} ]]>
         and cust_num in
         <foreach collection="custNums" item="item" open="(" close=")" separator=",">
             #{item}

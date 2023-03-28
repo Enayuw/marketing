@@ -470,4 +470,15 @@
             #{custNum}
         </foreach>
     </select>
+
+    <select id="getTransferUsersRangReqDateByPage" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select b.*
+        from (select id from
+            b_marketing_transfer_sync_${tCid}
+        where api_code = #{apiCode}
+           <![CDATA[ and request_data >= #{begingDate} and request_data <= #{endDate} ]]>
+        order by request_time desc,create_time desc limit #{pageIndex},#{pageSize}) as a
+        ,b_marketing_transfer_sync_${tCid} as b
+        where a.id = b.id
+    </select>
 </mapper>
