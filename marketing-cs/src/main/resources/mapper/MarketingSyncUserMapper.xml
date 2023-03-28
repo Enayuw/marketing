@@ -359,7 +359,7 @@
         select *
         from b_marketing_sync_${marketingTransferSyncUser.apiCode}
         <where>
-            cust_num  = #{marketingTransferSyncUser.custNum}
+            cust_num  = #{marketingTransferSyncUser.custNum} and status =1
             and (applet_date,user_type) in
             <foreach collection="collectRequestDate" item="item" open="(" close=")" separator=",">
                 (#{item.appletDate},#{item.userType})
@@ -371,7 +371,7 @@
         select *
         from b_marketing_sync_${marketingTransferSyncUser.apiCode}
         <where>
-            cust_num  = #{marketingTransferSyncUser.custNum}
+            cust_num  = #{marketingTransferSyncUser.custNum}  and status =1
             <if test="collectRequestDate!=null and  collectRequestDate.size()>0" >
                 and  (applet_date,user_type) not in
                 <foreach collection="collectRequestDate" item="item" open="(" close=")" separator=",">
