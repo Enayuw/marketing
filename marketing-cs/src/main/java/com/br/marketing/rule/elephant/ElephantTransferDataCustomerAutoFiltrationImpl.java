@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.Map;
 
 
+
 /**
  * 小象转化数据自动过滤推客服
  *
@@ -94,7 +95,7 @@ public class ElephantTransferDataCustomerAutoFiltrationImpl implements AssembleD
                 String applyLoanTime = StringUtils.isNotEmpty(JSON.parseObject(transfer.getReserveField1()).getString("applyLoanTime")) ? JSON.parseObject(transfer.getReserveField1()).getString("applyLoanTime") : "";
                 // applyResult
                 if (StringUtils.isNotEmpty(applyLoanTime)) {
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    SimpleDateFormat sdf = new SimpleDateFormat(DateHelper.LINE_DATE_COLON_TIME_FORMAT);
                     Date applyLoanTimeDate = sdf.parse(applyLoanTime);
                     if ((applyLoanTimeDate.after(appletTime) || applyLoanTimeDate.equals(appletTime)) && ("0").equals(transfer.getApplyResult())) {
                         return true;
