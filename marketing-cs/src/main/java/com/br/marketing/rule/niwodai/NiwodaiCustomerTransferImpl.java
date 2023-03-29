@@ -99,7 +99,7 @@ public class NiwodaiCustomerTransferImpl implements AssembleData<ConversionData>
                 // 遍历所有标记
                 for (Map.Entry<String, String> entry : entries) {
                     // 检查指定标记中值中满足1的值
-                    if ("1".equals(jsonObject.get(entry.getKey()))) {
+                    if ("1".equals(jsonObject.getString(entry.getKey()))) {
                         NiwodaiRuleCollectDataImpl.NiwodaiRuleNecessaryData data =
                                 (NiwodaiRuleCollectDataImpl.NiwodaiRuleNecessaryData) context.getRuleNecessaryData();
                         // 检查有效期配置，非空时满足有效期

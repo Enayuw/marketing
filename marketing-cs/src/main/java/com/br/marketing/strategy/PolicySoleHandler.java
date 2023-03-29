@@ -8,6 +8,7 @@ import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.DataJoinLogDTO;
+import com.br.marketing.es.util.BrCipherMaker;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -53,7 +54,7 @@ public class PolicySoleHandler extends AbstractExternalInterfaceHandler<PushMark
                     sourceIds.add(t.getInitId());
                     // 把封装的日志插入到数组中
                     logList.add(methodRetryHandlerService.dataJoinLogFix(entity, DistributeTypeEnum.POLICYDATA
-                            , context.getApiCode(), t.getCaseNumber(), t.getPhone()
+                            , context.getApiCode(), t.getCaseNumber(), BrCipherMaker.getInstance().encode(t.getCell())
                             , Long.valueOf(t.getInitId()), DistributeSourceTypeEnum.TRANSFER, t.getStatus(),t.getExpireEndDate()));
 
                 }

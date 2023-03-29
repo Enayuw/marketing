@@ -63,6 +63,7 @@ public class NiWoDaiPolicyTransferImpl implements AssembleData<PushMarketingUser
                 (NiwodaiRuleCollectDataImpl.NiwodaiRuleNecessaryData) context.getRuleNecessaryData();
         SyncUserValidityPeriodBO bo = data.getSyncUserValidityPeriodMap().get(transfer.getCustNum());
         pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell())));
+        pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
         JSONObject varDto = new JSONObject();
         varDto.put("userType", transfer.getUserType());
         varDto.put("status", status);

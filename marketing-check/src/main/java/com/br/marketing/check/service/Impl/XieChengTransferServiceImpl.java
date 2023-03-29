@@ -10,6 +10,7 @@ import com.br.marketing.entity.XieChengSmsCollidingDataLog;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.XieChengSmsCollidingDataLogMapper;
 import com.br.marketing.origin.MqFact;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.PolicySoleHandler;
@@ -167,6 +168,8 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
             pushMarketingUserDetailByRuleDTO.setCaseNumber(marketingTransferSyncUser.getCustNum());
             pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + status+"_"+TARGETAPICODE);
             pushMarketingUserDetailByRuleDTO.setPhone(marketingTransferSyncUser.getCustNum());
+            //明文cell
+            pushMarketingUserDetailByRuleDTO.setCell(RpcClientProxy.decode(marketingTransferSyncUser.getCustNum(), "cell", "sha", ""));
             pushMarketingUserDetailByRuleDTO.setInitId(marketingTransferSyncUser.getId());
             JSONObject varDto = new JSONObject();
             varDto.put("status", status);
