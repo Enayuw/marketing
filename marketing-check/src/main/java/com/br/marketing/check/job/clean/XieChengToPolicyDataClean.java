@@ -49,7 +49,7 @@ public class XieChengToPolicyDataClean extends AbstractSimpleElasticJob {
                         log.warn("cell={}解密失败", cell);
                         return;
                     }
-                    dataDistributeDetailLog.setCell(BrCipherMaker.getInstance().encode(cell));
+                    dataDistributeDetailLog.setCell(BrCipherMaker.getInstance().encode(decodeCell));
                     dataDistributeDetailLogMapper.updateByPrimaryKey(dataDistributeDetailLog);
                     log.warn("携程数据更新成功");
 
