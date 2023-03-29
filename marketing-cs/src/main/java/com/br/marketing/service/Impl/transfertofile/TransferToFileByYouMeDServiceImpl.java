@@ -181,13 +181,13 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         while (dateMark) {
             Integer pageIndex = datePage * pageSize;
             List<MarketingTransferSyncUser> transferUsers = transferSyncUserMapper.getTransferUsersRangReqDateByPage(tcId, apiCode, _transferBeginDateStr, _transferEndDateStr, pageIndex, pageSize);
-            if(transferUsers.size()<=0){
+            if (transferUsers.size() <= 0) {
                 dateMark = false;
                 continue;
             }
             threadPoolExecutor.submit(() -> {
                 try {
-                    fieldAction(transferUsers,custNumSet,_transferBeginDateStr, _uploadBeginDateStr,_uploadEndDateStr, apiCode, tcId, fw);
+                    fieldAction(transferUsers, custNumSet, _transferBeginDateStr, _uploadBeginDateStr, _uploadEndDateStr, apiCode, tcId, fw);
                 } catch (Exception ex) {
                     log.error(ex.getMessage(), ex);
                 }
@@ -221,9 +221,9 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         log.warn("拍拍贷老客转人工数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
 
-    void fieldAction(List<MarketingTransferSyncUser> users,CopyOnWriteArraySet custNumSet, String transferBegin,String uploadBegin, String uploadEnd, String apiCode, String tcid, Writer fw) {
+    void fieldAction(List<MarketingTransferSyncUser> users, CopyOnWriteArraySet custNumSet, String transferBegin, String uploadBegin, String uploadEnd, String apiCode, String tcid, Writer fw) {
         List<String> custNums = users.stream().map(t -> t.getCustNum()).collect(Collectors.toList());
-        List<MarketingSyncUser> userList = syncUserMapper.getNewSyncUserByCustNumtikv_(apiCode, custNums,uploadBegin, uploadEnd);
+        List<MarketingSyncUser> userList = syncUserMapper.getNewSyncUserByCustNumtikv_(apiCode, custNums, uploadBegin, uploadEnd);
         Map<String, MarketingSyncUser> userMap = userList.stream().collect(Collectors.toMap(MarketingSyncUser::getCustNum
                 , Function.identity(), BinaryOperator.maxBy(Comparator.comparing(MarketingSyncUser::getAppletTime))));
         List<TransferOfRdRFVO> transferOfRdRFs = transferSyncUserMapper.getTransferOfRdRFs(transferBegin, custNums, tcid, apiCode);
@@ -236,7 +236,7 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                 continue;
             }
             MarketingSyncUser syncUser = userMap.get(custNum);
-            if(syncUser == null){
+            if (syncUser == null) {
                 continue;
             }
             if (!custNumSet.add(custNum)) {
@@ -270,24 +270,26 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                     String e = jb.getString("E");
                     String f = jb.getString("F");
                     String g = jb.getString("G");
+
+                    //region a,b,c,d,e,f,g 只取最新一条转化记录的值
                     if (i == transferOfRdRFVOS.size() - 1) {
                         tDate = transferOfRdRFVO.getRequestData();
-                        if(StringUtils.isNotBlank(a)){
+                        if (StringUtils.isNotBlank(a)) {
                             _Ahave = a;
                         }
-                        if(StringUtils.isNotBlank(b)){
+                        if (StringUtils.isNotBlank(b)) {
                             _Bhave = b;
                         }
-                        if(StringUtils.isNotBlank(c)){
+                        if (StringUtils.isNotBlank(c)) {
                             _Chave = c;
                         }
-                        if(StringUtils.isNotBlank(d)){
+                        if (StringUtils.isNotBlank(d)) {
                             _Dhave = d;
                         }
                         if (StringUtils.isNotBlank(e)) {
                             _E = e;
                         }
-                        if(StringUtils.isNotBlank(f)){
+                        if (StringUtils.isNotBlank(f)) {
                             _Fhave = f;
                         }
                         if (StringUtils.isNotBlank(g)) {
@@ -295,10 +297,13 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                         }
                         if (StringUtils.isNotBlank(a)) {
                             _Ahave = a;
-                            if ("1".equals(a)) {
-                                _Atime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
-                            }
                         }
+                    }
+                    //endregion
+
+                    //region 时间字段赋值，登录时间取最新的a=1的日期-1,其它日期取最早一条的key=1的日期-1
+                    if ("1".equals(a)) {
+                        _Atime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
                     }
                     if (StringUtils.isBlank(_Btime) && "1".equals(b)) {
                         _Btime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
@@ -312,6 +317,8 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                     if (StringUtils.isBlank(_Ftime) && "1".equals(f)) {
                         _Ftime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
                     }
+                    //endregion
+
                 } catch (Exception e) {
                     continue;
                 }
