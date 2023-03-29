@@ -84,7 +84,7 @@ public class NiWoDaiPolicyTransferImpl implements AssembleData<PushMarketingUser
             if (StringUtils.isNotBlank(reserveField1)) {
                 JSONObject jsonObject = JSONObject.parseObject(reserveField1);
                 boolean statusA = ("1".equals(jsonObject.getString("A"))) && ("0".equals(jsonObject.getString("B"))) && ("0".equals(jsonObject.getString("C")));
-                boolean statusB = ("1".equals(jsonObject.getString("A"))) && ("0".equals(jsonObject.getString("D"))) && ("0".equals(jsonObject.getString("F")));
+                boolean statusB = ("1".equals(jsonObject.getString("A"))) && ("1".equals(jsonObject.getString("D"))) && ("0".equals(jsonObject.getString("F")));
                 if (statusA || statusB) {
                     NiwodaiRuleCollectDataImpl.NiwodaiRuleNecessaryData data =
                             (NiwodaiRuleCollectDataImpl.NiwodaiRuleNecessaryData) context.getRuleNecessaryData();
