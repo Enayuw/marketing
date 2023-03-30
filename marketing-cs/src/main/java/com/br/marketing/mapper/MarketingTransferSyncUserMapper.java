@@ -2,6 +2,7 @@ package com.br.marketing.mapper;
 
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.vo.TransferOfCnIdVO;
 import com.br.marketing.vo.TransferOfRdRFVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -318,6 +319,6 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             , @Param("begingDate") String begingDate, @Param("endDate") String endDate
             , @Param("pageIndex") Integer pageIndex, @Param("pageSize") Integer pageSiz);
 
-    List<MarketingTransferSyncUser> getTransferReqDateAndIdByPage(@Param("tCid") String tcId, @Param("apiCode") String apiCode
+    List<TransferOfCnIdVO> getTransferReqDateAndIdByPage(@Param("tCid") String tcId, @Param("apiCode") String apiCode
             , @Param("requestDate") String requestDate, @Param("minId") Long minId);
 }

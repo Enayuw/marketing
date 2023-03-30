@@ -19,6 +19,7 @@ import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.PeriodOfValidityHelper;
+import com.br.marketing.vo.TransferOfCnIdVO;
 import com.br.marketing.vo.TransferOfRdRFVO;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -178,7 +179,7 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         CopyOnWriteArraySet custNumSet = new CopyOnWriteArraySet();
         Integer datePage = 0;
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(5, 5, 10L, TimeUnit.SECONDS
-                , new ArrayBlockingQueue(50), new ThreadFactoryBuilder().setNameFormat("YMDfile-pool-%d").build()
+                , new ArrayBlockingQueue(20), new ThreadFactoryBuilder().setNameFormat("YMDfile-pool-%d").build()
                 , new ThreadPoolExecutor.CallerRunsPolicy());
         while (dateMark) {
             Date nowDate = Date.from(startDate.minusDays(datePage).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -213,7 +214,7 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                 }
                 //endregion
 
-                List<MarketingTransferSyncUser> transferSyncUsers = transferSyncUserMapper.getTransferReqDateAndIdByPage(tcId, apiCode, nowDateStr,minId);
+                List<TransferOfCnIdVO> transferSyncUsers = transferSyncUserMapper.getTransferReqDateAndIdByPage(tcId, apiCode, nowDateStr,minId);
                 if (transferSyncUsers.size() <= 0) {
                     dayMark = false;
                     continue;
@@ -253,10 +254,10 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         updatetask.setTaskNumber(custNumSet.size());
         updatetask.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
-        log.warn("拍拍贷老客转人工数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
+        log.warn("你我贷转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
 
-    void fieldAction(List<MarketingTransferSyncUser> users, CopyOnWriteArraySet custNumSet, String transferBegin, String uploadBegin, String uploadEnd, String apiCode, String tcid, Writer fw) {
+    void fieldAction(List<TransferOfCnIdVO> users, CopyOnWriteArraySet custNumSet, String transferBegin, String uploadBegin, String uploadEnd, String apiCode, String tcid, Writer fw) {
         List<String> custNums = users.stream().map(t -> t.getCustNum()).collect(Collectors.toList());
         custNums.removeAll(custNumSet);
         if (custNums.size() <= 0) {

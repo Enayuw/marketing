@@ -482,7 +482,7 @@
         where a.id = b.id
     </select>
 
-    <select id="getTransferReqDateAndIdByPage" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+    <select id="getTransferReqDateAndIdByPage" resultType="com.br.marketing.vo.TransferOfCnIdVO">
         select *
         from b_marketing_transfer_sync_${tCid}
         where api_code = #{apiCode} and request_data = #{requestDate}
