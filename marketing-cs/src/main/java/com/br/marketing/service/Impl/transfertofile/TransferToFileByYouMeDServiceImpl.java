@@ -188,11 +188,13 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                     : marketingCommonConfig.getYouMeDDataPull().get("isContinue");
             if (!"1".equals(isContinue)) {
                 dateMark = Boolean.FALSE;
+                log.warn("你我贷接收到中断指令");
                 continue;
             }
-            if(threadNum.intValue() != threadPoolExecutor.getCorePoolSize()){
+            if (threadNum.intValue() != threadPoolExecutor.getCorePoolSize()) {
                 threadPoolExecutor.setCorePoolSize(threadNum);
                 threadPoolExecutor.setMaximumPoolSize(threadNum);
+                log.warn(String.format("你我贷线程池线程数变更：核心线程数：%d，最大线程数：%d，活动线程数：%d", threadPoolExecutor.getCorePoolSize(), threadPoolExecutor.getMaximumPoolSize(), threadPoolExecutor.getActiveCount()));
             }
             Integer pageIndex = datePage * pageSize;
             List<String> custNums = transferSyncUserMapper.getTransferCustNumsRangReqDateByPage(tcId, apiCode, _transferBeginDateStr, _transferEndDateStr, pageIndex, pageSize);
