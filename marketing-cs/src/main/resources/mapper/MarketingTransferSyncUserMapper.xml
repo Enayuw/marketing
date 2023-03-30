@@ -471,7 +471,7 @@
         </foreach>
     </select>
 
-    <select id="getTransferUsersRangReqDateByPage" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+    <select id="getTransferUsersRangReqDateByPage" resultType="java.lang.String">
         select b.*
         from (select id from
             b_marketing_transfer_sync_${tCid}

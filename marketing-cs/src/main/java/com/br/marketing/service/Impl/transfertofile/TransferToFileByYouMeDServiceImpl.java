@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl.transfertofile;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.common.commondto.Result;
@@ -179,15 +180,29 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                 , new ArrayBlockingQueue(50), new ThreadFactoryBuilder().setNameFormat("YMDfile-pool-%d").build()
                 , new ThreadPoolExecutor.CallerRunsPolicy());
         while (dateMark) {
+            Integer threadNum = StringUtils.isBlank(marketingCommonConfig.getYouMeDDataPull().get("threadNum"))
+                    ? 5
+                    : Integer.valueOf(marketingCommonConfig.getYouMeDDataPull().get("threadNum"));
+            String isContinue = StringUtils.isBlank(marketingCommonConfig.getYouMeDDataPull().get("isContinue"))
+                    ? "1"
+                    : marketingCommonConfig.getYouMeDDataPull().get("isContinue");
+            if (!"1".equals(isContinue)) {
+                dateMark = Boolean.FALSE;
+                continue;
+            }
+            if(threadNum.intValue() != threadPoolExecutor.getCorePoolSize()){
+                threadPoolExecutor.setCorePoolSize(threadNum);
+                threadPoolExecutor.setMaximumPoolSize(threadNum);
+            }
             Integer pageIndex = datePage * pageSize;
-            List<MarketingTransferSyncUser> transferUsers = transferSyncUserMapper.getTransferUsersRangReqDateByPage(tcId, apiCode, _transferBeginDateStr, _transferEndDateStr, pageIndex, pageSize);
-            if (transferUsers.size() <= 0) {
+            List<String> custNums = transferSyncUserMapper.getTransferCustNumsRangReqDateByPage(tcId, apiCode, _transferBeginDateStr, _transferEndDateStr, pageIndex, pageSize);
+            if (custNums.size() <= 0) {
                 dateMark = false;
                 continue;
             }
             threadPoolExecutor.submit(() -> {
                 try {
-                    fieldAction(transferUsers, custNumSet, _transferBeginDateStr, _uploadBeginDateStr, _uploadEndDateStr, apiCode, tcId, fw);
+                    fieldAction(custNums, custNumSet, _transferBeginDateStr, _uploadBeginDateStr, _uploadEndDateStr, apiCode, tcId, fw);
                 } catch (Exception ex) {
                     log.error(ex.getMessage(), ex);
                 }
@@ -221,8 +236,11 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         log.warn("拍拍贷老客转人工数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
 
-    void fieldAction(List<MarketingTransferSyncUser> users, CopyOnWriteArraySet custNumSet, String transferBegin, String uploadBegin, String uploadEnd, String apiCode, String tcid, Writer fw) {
-        List<String> custNums = users.stream().map(t -> t.getCustNum()).collect(Collectors.toList());
+    void fieldAction(List<String> custNums, CopyOnWriteArraySet custNumSet, String transferBegin, String uploadBegin, String uploadEnd, String apiCode, String tcid, Writer fw) {
+        custNums.removeAll(custNumSet);
+        if (custNums.size() <= 0) {
+            return;
+        }
         List<MarketingSyncUser> userList = syncUserMapper.getNewSyncUserByCustNumtikv_(apiCode, custNums, uploadBegin, uploadEnd);
         Map<String, MarketingSyncUser> userMap = userList.stream().collect(Collectors.toMap(MarketingSyncUser::getCustNum
                 , Function.identity(), BinaryOperator.maxBy(Comparator.comparing(MarketingSyncUser::getAppletTime))));
@@ -326,7 +344,7 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
             StringBuilder content = new StringBuilder();
             content.append(custNum).append(",")
                     .append(syncUser.getUserType()).append(",")
-                    .append(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(syncUser.getCell()).getBytes())).append(",")
+                    .append(Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(syncUser.getCell()))).append(",")
                     .append(_Ahave).append(",")
                     .append(_Atime).append(",")
                     .append(_Bhave).append(",")

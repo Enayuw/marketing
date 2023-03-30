@@ -314,7 +314,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     List<TransferOfRdRFVO> getTransferOfRdRFs(@Param("requestDate") String requestDate, @Param("custNums") List<String> custNums
             , @Param("tcId") String tcId, @Param("apiCode") String apiCode);
 
-    List<MarketingTransferSyncUser> getTransferUsersRangReqDateByPage(@Param("tCid") String tcId, @Param("apiCode") String apiCode
+    List<String> getTransferCustNumsRangReqDateByPage(@Param("tCid") String tcId, @Param("apiCode") String apiCode
             , @Param("begingDate") String begingDate, @Param("endDate") String endDate
             , @Param("pageIndex") Integer pageIndex, @Param("pageSize") Integer pageSiz);
 }

@@ -545,5 +545,10 @@ public class MarketingCommonConfig {
      * 你我贷apiCode
      */
     private  List<String> youMeDApiCodes;
+
+    /**
+     * 你我贷转化数据提取相关配置 线程数量，是否继续（1-继续，0-退出）{"threadNum":"10","isContinue":"1"}
+     */
+    private Map<String,String> youMeDDataPull;
 }
 
