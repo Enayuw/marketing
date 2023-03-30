@@ -222,6 +222,9 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                 }
                 minId = transferSyncUsers.get(transferSyncUsers.size()-1).getId();
                 List<String> custNums = transferSyncUsers.stream().filter(t -> custNumSet.add(t.getCustNum())).map(t -> t.getCustNum()).collect(Collectors.toList());
+                if(custNums.size()<=0){
+                    continue;
+                }
                 threadPoolExecutor.submit(() -> {
                     try {
                         fieldAction(custNums, _transferBeginDateStr, _uploadBeginDateStr, _uploadEndDateStr, apiCode, tcId, fw);
