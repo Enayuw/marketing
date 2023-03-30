@@ -317,4 +317,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     List<String> getTransferCustNumsRangReqDateByPage(@Param("tCid") String tcId, @Param("apiCode") String apiCode
             , @Param("begingDate") String begingDate, @Param("endDate") String endDate
             , @Param("pageIndex") Integer pageIndex, @Param("pageSize") Integer pageSiz);
+
+    List<MarketingTransferSyncUser> getTransferReqDateAndIdByPage(@Param("tCid") String tcId, @Param("apiCode") String apiCode
+            , @Param("requestDate") String requestDate, @Param("minId") Long minId);
 }

@@ -162,6 +162,7 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         String _uploadEndDateStr = new SimpleDateFormat("yyyy-MM-dd").format(_uploadEndDate);
 
         Date _transferEndDate = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        LocalDate startDate = LocalDate.now();
         Result<Date> _transferEndDateRes = transferDataValidityPeriodService.getValidityBeginOfTn(apiCode, _transferEndDate);
         if (!ResultCode.SUCCESS.getValue().equals(_transferEndDateRes.getCode())) {
             throw new RuntimeException(_transferEndDateRes.getMessage());
@@ -180,37 +181,52 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                 , new ArrayBlockingQueue(50), new ThreadFactoryBuilder().setNameFormat("YMDfile-pool-%d").build()
                 , new ThreadPoolExecutor.CallerRunsPolicy());
         while (dateMark) {
-            Integer threadNum = (marketingCommonConfig.getYouMeDDataPull() == null
-                    || StringUtils.isBlank(marketingCommonConfig.getYouMeDDataPull().get("threadNum")))
-                    ? 5
-                    : Integer.valueOf(marketingCommonConfig.getYouMeDDataPull().get("threadNum"));
-            String isContinue =(marketingCommonConfig.getYouMeDDataPull() == null
-                    || StringUtils.isBlank(marketingCommonConfig.getYouMeDDataPull().get("isContinue")))
-                    ? "1"
-                    : marketingCommonConfig.getYouMeDDataPull().get("isContinue");
-            if (!"1".equals(isContinue)) {
+            Date nowDate = Date.from(startDate.minusDays(datePage).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+            String nowDateStr = new SimpleDateFormat("yyyy-MM-dd").format(nowDate);
+            if(nowDate.compareTo(_transferBeginDate)<0){
                 dateMark = Boolean.FALSE;
-                log.warn("你我贷接收到中断指令");
                 continue;
             }
-            if (threadNum.intValue() != threadPoolExecutor.getCorePoolSize()) {
-                threadPoolExecutor.setCorePoolSize(threadNum);
-                threadPoolExecutor.setMaximumPoolSize(threadNum);
-                log.warn(String.format("你我贷线程池线程数变更：核心线程数：%d，最大线程数：%d，活动线程数：%d", threadPoolExecutor.getCorePoolSize(), threadPoolExecutor.getMaximumPoolSize(), threadPoolExecutor.getActiveCount()));
-            }
-            Integer pageIndex = datePage * pageSize;
-            List<String> custNums = transferSyncUserMapper.getTransferCustNumsRangReqDateByPage(tcId, apiCode, _transferBeginDateStr, _transferEndDateStr, pageIndex, pageSize);
-            if (custNums.size() <= 0) {
-                dateMark = false;
-                continue;
-            }
-            threadPoolExecutor.submit(() -> {
-                try {
-                    fieldAction(custNums, custNumSet, _transferBeginDateStr, _uploadBeginDateStr, _uploadEndDateStr, apiCode, tcId, fw);
-                } catch (Exception ex) {
-                    log.error(ex.getMessage(), ex);
+            Boolean dayMark = Boolean.TRUE;
+            Long minId = null;
+            while (dayMark){
+
+                //region 任务执行控制
+                Integer threadNum = (marketingCommonConfig.getYouMeDDataPull() == null
+                        || StringUtils.isBlank(marketingCommonConfig.getYouMeDDataPull().get("threadNum")))
+                        ? 5
+                        : Integer.valueOf(marketingCommonConfig.getYouMeDDataPull().get("threadNum"));
+                String isContinue =(marketingCommonConfig.getYouMeDDataPull() == null
+                        || StringUtils.isBlank(marketingCommonConfig.getYouMeDDataPull().get("isContinue")))
+                        ? "1"
+                        : marketingCommonConfig.getYouMeDDataPull().get("isContinue");
+                if (!"1".equals(isContinue)) {
+                    dateMark = Boolean.FALSE;
+                    dayMark = Boolean.FALSE;
+                    log.warn("你我贷接收到中断指令");
+                    continue;
                 }
-            });
+                if (threadNum.intValue() != threadPoolExecutor.getCorePoolSize()) {
+                    threadPoolExecutor.setCorePoolSize(threadNum);
+                    threadPoolExecutor.setMaximumPoolSize(threadNum);
+                    log.warn(String.format("你我贷线程池线程数变更：核心线程数：%d，最大线程数：%d，活动线程数：%d", threadPoolExecutor.getCorePoolSize(), threadPoolExecutor.getMaximumPoolSize(), threadPoolExecutor.getActiveCount()));
+                }
+                //endregion
+
+                List<MarketingTransferSyncUser> transferSyncUsers = transferSyncUserMapper.getTransferReqDateAndIdByPage(tcId, apiCode, nowDateStr,minId);
+                if (transferSyncUsers.size() <= 0) {
+                    dayMark = false;
+                    continue;
+                }
+                minId = transferSyncUsers.get(transferSyncUsers.size()-1).getId();
+                threadPoolExecutor.submit(() -> {
+                    try {
+                        fieldAction(transferSyncUsers, custNumSet, _transferBeginDateStr, _uploadBeginDateStr, _uploadEndDateStr, apiCode, tcId, fw);
+                    } catch (Exception ex) {
+                        log.error(ex.getMessage(), ex);
+                    }
+                });
+            }
             datePage++;
         }
 
@@ -240,7 +256,8 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         log.warn("拍拍贷老客转人工数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
 
-    void fieldAction(List<String> custNums, CopyOnWriteArraySet custNumSet, String transferBegin, String uploadBegin, String uploadEnd, String apiCode, String tcid, Writer fw) {
+    void fieldAction(List<MarketingTransferSyncUser> users, CopyOnWriteArraySet custNumSet, String transferBegin, String uploadBegin, String uploadEnd, String apiCode, String tcid, Writer fw) {
+        List<String> custNums = users.stream().map(t -> t.getCustNum()).collect(Collectors.toList());
         custNums.removeAll(custNumSet);
         if (custNums.size() <= 0) {
             return;
