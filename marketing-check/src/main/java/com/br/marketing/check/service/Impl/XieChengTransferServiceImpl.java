@@ -183,6 +183,7 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
                 varDto.put("orgChannel", "");
             }
             pushMarketingUserDetailByRuleDTO.setVariables(varDto);
+            pushMarketingUserDetailByRuleDTO.setStrategyCode("");
             pushMarketingUserDetailByRuleDTO.setStatus(status);
             pushMarketingUserDetailByRuleDTO.setSoleField(SoleFieldEnum.CELL_STATUS_SOLE.getValue());
             pushMarketingUserDetailByRuleDTO.setSoleType(marketingCommonConfig.getXieChengPushPolicyValidityDay());
