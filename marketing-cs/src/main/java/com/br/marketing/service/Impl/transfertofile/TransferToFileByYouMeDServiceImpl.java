@@ -180,10 +180,12 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                 , new ArrayBlockingQueue(50), new ThreadFactoryBuilder().setNameFormat("YMDfile-pool-%d").build()
                 , new ThreadPoolExecutor.CallerRunsPolicy());
         while (dateMark) {
-            Integer threadNum = StringUtils.isBlank(marketingCommonConfig.getYouMeDDataPull().get("threadNum"))
+            Integer threadNum = (marketingCommonConfig.getYouMeDDataPull() == null
+                    || StringUtils.isBlank(marketingCommonConfig.getYouMeDDataPull().get("threadNum")))
                     ? 5
                     : Integer.valueOf(marketingCommonConfig.getYouMeDDataPull().get("threadNum"));
-            String isContinue = StringUtils.isBlank(marketingCommonConfig.getYouMeDDataPull().get("isContinue"))
+            String isContinue =(marketingCommonConfig.getYouMeDDataPull() == null
+                    || StringUtils.isBlank(marketingCommonConfig.getYouMeDDataPull().get("isContinue")))
                     ? "1"
                     : marketingCommonConfig.getYouMeDDataPull().get("isContinue");
             if (!"1".equals(isContinue)) {
