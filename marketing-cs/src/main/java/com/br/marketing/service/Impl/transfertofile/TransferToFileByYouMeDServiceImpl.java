@@ -70,7 +70,7 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
     @Autowired
     private IPeriodOfValidityService periodOfValidityService;
 
-    final static String EXECUTE_TIME = " 10:00:00";
+    final static String EXECUTE_TIME = "10:00:00";
 
     final static String VALIDITY_DATSTR = "[T+33]";
 
@@ -93,8 +93,8 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         List<TransferFileTask> resultList = new ArrayList<>();
         Date now = new Date();
         //可配置
-        String execute = EXECUTE_TIME;
-        Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, execute);
+        String execute = StringUtils.isBlank(marketingCommonConfig.getYouMeDFileExecTime())?EXECUTE_TIME:marketingCommonConfig.getYouMeDFileExecTime();
+        Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, " "+execute);
         if (now.after(executeTime)) {
             String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
