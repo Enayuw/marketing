@@ -172,7 +172,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         }
         TransferFileTaskExample taskExample = new TransferFileTaskExample();
         Map<String, String> map = new HashMap<>();
-        List<String> stringList = userTypes.parallelStream().map(s -> {
+        List<String> stringList = userTypes.stream().map(s -> {
             String fileName = getFileName(s, apiCode, finalDateYyyyMmDdStr, EXTENSION);
             map.put(fileName, s);
             return fileName;
