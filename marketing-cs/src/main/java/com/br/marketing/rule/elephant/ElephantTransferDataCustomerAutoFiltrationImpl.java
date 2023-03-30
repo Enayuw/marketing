@@ -66,7 +66,6 @@ public class ElephantTransferDataCustomerAutoFiltrationImpl implements AssembleD
         Map<String, SyncUserValidityPeriodBO> syncUserValidityPeriodMap = data.getSyncUserValidityPeriodMap();
         SyncUserValidityPeriodBO bo = syncUserValidityPeriodMap.get(transfer.getCustNum());
         conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
-        conversionData.setExpireDate(bo.getBuilder().addOfDayTimeStrString().builder().getEndOfDayTimeStr());
         PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
         // 有效期设置
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
