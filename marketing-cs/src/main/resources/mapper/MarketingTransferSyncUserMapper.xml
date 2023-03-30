@@ -472,7 +472,7 @@
     </select>
 
     <select id="getTransferCustNumsRangReqDateByPage" resultType="java.lang.String">
-        select b.*
+        select b.cust_num
         from (select id from
             b_marketing_transfer_sync_${tCid}
         where api_code = #{apiCode}
