@@ -91,13 +91,14 @@ public class ElephantTransferDataCustomerAutoFiltrationImpl implements AssembleD
             if (ruleNecessaryData.getSyncUserValidityPeriodMap().get(transfer.getCustNum()) != null) {
                 SyncUserValidityPeriodBO syncUserValidityPeriodBO = ruleNecessaryData.getSyncUserValidityPeriodMap().get(transfer.getCustNum());
                 MarketingSyncUser syncUser = syncUserValidityPeriodBO.getSyncUser();
-                Date appletTime = syncUser.getAppletTime();
+                String appletStrDate = syncUser.getAppletDate();
                 String applyLoanTime = StringUtils.isNotEmpty(JSON.parseObject(transfer.getReserveField1()).getString("applyLoanTime")) ? JSON.parseObject(transfer.getReserveField1()).getString("applyLoanTime") : "";
                 // applyResult
                 if (StringUtils.isNotEmpty(applyLoanTime)) {
-                    SimpleDateFormat sdf = new SimpleDateFormat(DateHelper.LINE_DATE_COLON_TIME_FORMAT);
+                    SimpleDateFormat sdf = new SimpleDateFormat(DateHelper.LINE_DATE_FORMAT);
                     Date applyLoanTimeDate = sdf.parse(applyLoanTime);
-                    if ((applyLoanTimeDate.after(appletTime) || applyLoanTimeDate.equals(appletTime)) && ("0").equals(transfer.getApplyResult())) {
+                    Date appletDate= sdf.parse(appletStrDate);
+                    if ((applyLoanTimeDate.after(appletDate) || applyLoanTimeDate.equals(appletDate)) && ("0").equals(transfer.getApplyResult())) {
                         return true;
                     }
                 }
