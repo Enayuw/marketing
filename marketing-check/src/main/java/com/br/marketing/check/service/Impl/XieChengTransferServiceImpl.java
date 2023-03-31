@@ -3,12 +3,14 @@ package com.br.marketing.check.service.Impl;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.service.XieChengTransferService;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
+import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.XieChengSmsCollidingDataLog;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.XieChengSmsCollidingDataLogMapper;
 import com.br.marketing.origin.MqFact;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.PolicySoleHandler;
@@ -166,6 +168,8 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
             pushMarketingUserDetailByRuleDTO.setCaseNumber(marketingTransferSyncUser.getCustNum());
             pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + status+"_"+TARGETAPICODE);
             pushMarketingUserDetailByRuleDTO.setPhone(marketingTransferSyncUser.getCustNum());
+            //明文cell
+            pushMarketingUserDetailByRuleDTO.setCell(RpcClientProxy.decode(marketingTransferSyncUser.getCustNum(), "cell", "sha", ""));
             pushMarketingUserDetailByRuleDTO.setInitId(marketingTransferSyncUser.getId());
             JSONObject varDto = new JSONObject();
             varDto.put("status", status);
@@ -179,6 +183,10 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
                 varDto.put("orgChannel", "");
             }
             pushMarketingUserDetailByRuleDTO.setVariables(varDto);
+            pushMarketingUserDetailByRuleDTO.setStrategyCode("");
+            pushMarketingUserDetailByRuleDTO.setStatus(status);
+            pushMarketingUserDetailByRuleDTO.setSoleField(SoleFieldEnum.CELL_STATUS_SOLE.getValue());
+            pushMarketingUserDetailByRuleDTO.setSoleType(marketingCommonConfig.getXieChengPushPolicyValidityDay());
             pushMarketingUserDetailByRuleDTOList.add(pushMarketingUserDetailByRuleDTO);
         });
         ProcessHandlerContext context = new ProcessHandlerContext();

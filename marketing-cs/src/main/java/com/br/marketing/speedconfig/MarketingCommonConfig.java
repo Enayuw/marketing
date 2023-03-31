@@ -535,5 +535,15 @@ public class MarketingCommonConfig {
      * 桔子转化数据推daas 决策 apiCode
      */
     private List<String> originToDassApiCodes;
+
+    /**
+     * 你我贷推决策apicode配置
+     */
+    private String niWoDaiPushPolicyTargetApiCode;
+
+    /**
+     * 转化数据推送决策api_code对应关系 {(sourceapicode,targetapicode)}
+     */
+    private HashMap<String, String> apiCodeMatch;
 }
 
