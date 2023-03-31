@@ -397,4 +397,46 @@
             order by applet_time desc limit 1
         </where>
     </select>
+
+    <select id="getNewSyncUserByDate" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where applet_date = #{appletDate}
+          and status = 1
+          and is_repeat in (1,2)
+          <if test="minId !=null and minId >0">
+              and id > #{minId}
+          </if>
+          order by id asc
+          limit #{pageSize}
+    </select>
+
+    <select id="countByAppletDate" resultType="java.lang.Integer">
+        select count(*)
+        from b_marketing_sync_${apiCode}
+        where applet_date = #{appletDate}
+          and status = 1
+          and is_repeat in (1,2)
+    </select>
+
+    <select id="getNewSyncUserByCustNumtikv_" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from
+             (
+        select *,row_number() over(partition by cust_num order by applet_time desc) as num
+        from b_marketing_sync_${apiCode}
+        where status = 1 and is_repeat in (1,2)
+        <![CDATA[ and applet_date >=#{dateBegin}  and applet_date <= #{dateEnd} ]]>
+        and cust_num in
+        <foreach collection="custNums" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        ) t where t.num =1
+    </select>
+
+    <select id="getMinAppletDate" resultType="java.lang.String">
+        select min(applet_date)
+        from b_marketing_sync_${apiCode}
+        where status = 1 and is_repeat in (1,2);
+    </select>
 </mapper>

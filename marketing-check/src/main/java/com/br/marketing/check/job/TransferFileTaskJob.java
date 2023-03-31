@@ -13,6 +13,7 @@ import com.br.marketing.mapper.SyncLogMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.*;
+import com.br.marketing.service.Impl.transfertofile.*;
 import com.br.marketing.service.TransferToFileByTongChengServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -108,6 +109,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
      */
     @Resource
     private TransferToFileByPPDOldServiceImpl transferToFileByPPDOldService;
+
+    @Autowired
+    private TransferToFileByYouMeDServiceImpl transferToFileByYouMeDService;
 
     /**
      * 桔子
@@ -214,6 +218,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByPPDOldService, marketingCommonConfig.getPPDOldTransferFileApiCodes())
                 // 桔子转化数据提取
                 .addBind(orangeService, marketingCommonConfig.getOrangeTransferFileApiCodes())
+                .addBind(transferToFileByYouMeDService,marketingCommonConfig.getYouMeDApiCodes())
                 .build();
     }
 
@@ -250,9 +255,13 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
         if (marketingCommonConfig.getZhongAnTransferApiCodes().contains(customer.getApiCode())) {
             return transferToFileByZhongAnService;
         }
+        if (marketingCommonConfig.getYouMeDApiCodes().contains(customer.getApiCode())) {
+            return transferToFileByYouMeDService;
+        }
         if (marketingCommonConfig.getXieChengTransferApiCodes().contains(customer.getApiCode())) {
             return transferToFileByXieChengService;
-        } else {
+        }
+        else {
             return null;
         }
     }

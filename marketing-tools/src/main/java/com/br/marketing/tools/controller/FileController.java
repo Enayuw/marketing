@@ -151,7 +151,7 @@ public class FileController {
                     mergeExecutor.submit(()->{
                         try {
                             if(new Integer(1).equals(threaNum)){
-                                String[] split = content.split("\\|");
+                                String[] split = content.split("\t");
                                 StringBuilder sb = new StringBuilder();
                                 sb.append(split[0].trim());
                                 sb.append(",");
@@ -162,12 +162,10 @@ public class FileController {
                                 sb.append(split[3].trim());
                                 sb.append(",");
                                 sb.append(split[4].trim());
-                                sb.append(",");
-                                sb.append(split[5].trim());
                                 sb.append("\r\n");
                                 writer.append(content);
                             }else{
-                                String[] split = content.split("\\|");
+                                String[] split = content.split("\t");
                                 StringBuilder sb = new StringBuilder();
                                 sb.append(split[0].trim());
                                 sb.append(",");
@@ -178,8 +176,6 @@ public class FileController {
                                 sb.append(concent(split[3]));
                                 sb.append(",");
                                 sb.append(concent(split[4]));
-                                sb.append(",");
-                                sb.append(concent(split[5]));
                                 sb.append("\r\n");
                                 writer.append(sb.toString());
                             }

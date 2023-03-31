@@ -8,6 +8,7 @@ import com.br.marketing.client.zhongan.input.ZkReqDTO;
 import com.br.marketing.client.zhongan.output.ZkReponseVO;
 import com.br.marketing.client.zhongan.utils.Md5OfZanUtils;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.monkeydata.entity.commonobj.PageCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @RestController
 @RequestMapping("/tst")
@@ -92,12 +94,38 @@ public class TstController {
         return "123";
     }
 
-    @GetMapping("/testErrorLog")
-    public String testErrorLog(){
-        log.error("只打印错误信息：正常");
-        log.error("打印错误信息和异常：正常",new RuntimeException("异常信息"));
-        log.error("打印错误信息带有参数{},{}：正常",1,2,new RuntimeException("异常信息"));
-        return "123";
+    @GetMapping("/testLogError")
+    public String testLogError(){
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(200, 200);
+        for (int i = 0; i < 300; i++) {
+            threadPool.submit(()->
+                    {
+                        RuntimeException runtimeException = new RuntimeException("url=https://finance-gateway-pop.diandian.com.cn/fcpGateway param=ZhongAnRequestDTO(apiKey=zadpreloan.nexusmetric.07brdyy01, reqNo=22684673dbda48d9be5b73459ff741ff, reqDate=2023-03-29, gatewayVersion=1.0.0, bizParam=XjY5R26rHuFEbLq3pQi5lvshWdtfn09hz0XKPNG2uwqvliIfgDqYL9UDxnfcB9/1QkioxYm2mC82Xd7B9sIR0xGei1KIZgEKsiwlXlZEaE2/rQCX8fs43hIDPHAGn1hfLuGfeku1V11EZUa0BVV0d/ibXHQLY633r03cc+QTYEs=, sign=9c67bee0e3b7990d7f40c8e5e05c26e7)\n" +
+                                "org.apache.http.conn.HttpHostConnectException: Connect to 192.168.22.169:3128 [/192.168.22.169] failed: Connection timed out (Connection timed out)");
+                        log.error("url={} param={}","https://finance-gateway-pop.diandian.com.cn/fcpGateway","ZhongAnRequestDTO(apiKey=zadpreloan.nexusmetric.07brdyy01, reqNo=22684673dbda48d9be5b73459ff741ff, reqDate=2023-03-29, gatewayVersion=1.0.0, bizParam=XjY5R26rHuFEbLq3pQi5lvshWdtfn09hz0XKPNG2uwqvliIfgDqYL9UDxnfcB9/1QkioxYm2mC82Xd7B9sIR0xGei1KIZgEKsiwlXlZEaE2/rQCX8fs43hIDPHAGn1hfLuGfeku1V11EZUa0BVV0d/ibXHQLY633r03cc+QTYEs=, sign=9c67bee0e3b7990d7f40c8e5e05c26e7)",runtimeException);
+                    });
+        }
+        threadPool.shutdown();
+        Boolean b = true;
+        while (b){
+            if(threadPool.isTerminated()){
+                System.out.println("结束");
+                b=false;
+            }else{
+                System.out.println("休息");
+                try {
+                    Thread.sleep(3000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return "success";
     }
 
+    @GetMapping("/testReq")
+    public String testReq(){
+        log.error("test");
+        return "testReq";
+    }
 }

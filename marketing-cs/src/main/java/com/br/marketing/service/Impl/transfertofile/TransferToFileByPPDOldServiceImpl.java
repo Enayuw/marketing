@@ -1,4 +1,4 @@
-package com.br.marketing.service.Impl;
+package com.br.marketing.service.Impl.transfertofile;
 
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.PeriodOfValidityBO;
@@ -12,6 +12,7 @@ import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.ITransferToFileService;
+import com.br.marketing.service.Impl.RuleRedisServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.PeriodOfValidityHelper;

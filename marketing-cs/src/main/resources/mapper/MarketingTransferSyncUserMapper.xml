@@ -455,4 +455,40 @@
     </select>
 
 
+
+    <select id="getTransferOfRdRFs" resultType="com.br.marketing.vo.TransferOfRdRFVO">
+        select cust_num as custNum
+               ,request_data as requestData
+               ,request_time as requestTime
+               ,reserve_field1 as reserveField1
+        from b_marketing_transfer_sync_${tcId}
+        where
+              api_code = #{apiCode}
+          and request_data >= #{requestDate}
+          and cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+    </select>
+
+    <select id="getTransferCustNumsRangReqDateByPage" resultType="java.lang.String">
+        select b.cust_num
+        from (select id from
+            b_marketing_transfer_sync_${tCid}
+        where api_code = #{apiCode}
+           <![CDATA[ and request_data >= #{begingDate} and request_data <= #{endDate} ]]>
+        order by request_data desc,id desc limit #{pageIndex},#{pageSize}) as a
+        ,b_marketing_transfer_sync_${tCid} as b
+        where a.id = b.id
+    </select>
+
+    <select id="getTransferReqDateAndIdByPage" resultType="com.br.marketing.vo.TransferOfCnIdVO">
+        select *
+        from b_marketing_transfer_sync_${tCid}
+        where api_code = #{apiCode} and request_data = #{requestDate}
+        <if test="minId != null and minId >0">
+            and id > #{minId}
+        </if>
+        order by id asc limit 2000;
+    </select>
 </mapper>

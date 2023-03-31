@@ -2,6 +2,8 @@ package com.br.marketing.mapper;
 
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.vo.TransferOfCnIdVO;
+import com.br.marketing.vo.TransferOfRdRFVO;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
@@ -300,9 +302,23 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param tcId
      * @return
      */
-    List<MarketingTransferSyncUser> getJuZiARuleData(@Param("tCid") String tcId,@Param("apiCode") String apiCode,@Param("minId") Long minId);
-    List<MarketingTransferSyncUser> getJuZiCRuleData(@Param("tCid") String tcId,@Param("apiCode") String apiCode,@Param("minId") Long minId);
-    List<MarketingTransferSyncUser> getJuZiDRuleData(@Param("tCid") String tcId,@Param("apiCode") String apiCode,@Param("minId") Long minId);
-    List<MarketingTransferSyncUser> getJuZiBRuleData(@Param("tCid") String tcId,@Param("apiCode") String apiCode,@Param("minId") Long minId);
-    List<MarketingTransferSyncUser> getValidityPeriodData(@Param("tCid") String tcId,@Param("apiCode") String apiCode,@Param("custNum") String custNum);
+    List<MarketingTransferSyncUser> getJuZiARuleData(@Param("tCid") String tcId, @Param("apiCode") String apiCode, @Param("minId") Long minId);
+
+    List<MarketingTransferSyncUser> getJuZiCRuleData(@Param("tCid") String tcId, @Param("apiCode") String apiCode, @Param("minId") Long minId);
+
+    List<MarketingTransferSyncUser> getJuZiDRuleData(@Param("tCid") String tcId, @Param("apiCode") String apiCode, @Param("minId") Long minId);
+
+    List<MarketingTransferSyncUser> getJuZiBRuleData(@Param("tCid") String tcId, @Param("apiCode") String apiCode, @Param("minId") Long minId);
+
+    List<MarketingTransferSyncUser> getValidityPeriodData(@Param("tCid") String tcId, @Param("apiCode") String apiCode, @Param("custNum") String custNum);
+
+    List<TransferOfRdRFVO> getTransferOfRdRFs(@Param("requestDate") String requestDate, @Param("custNums") List<String> custNums
+            , @Param("tcId") String tcId, @Param("apiCode") String apiCode);
+
+    List<String> getTransferCustNumsRangReqDateByPage(@Param("tCid") String tcId, @Param("apiCode") String apiCode
+            , @Param("begingDate") String begingDate, @Param("endDate") String endDate
+            , @Param("pageIndex") Integer pageIndex, @Param("pageSize") Integer pageSiz);
+
+    List<TransferOfCnIdVO> getTransferReqDateAndIdByPage(@Param("tCid") String tcId, @Param("apiCode") String apiCode
+            , @Param("requestDate") String requestDate, @Param("minId") Long minId);
 }

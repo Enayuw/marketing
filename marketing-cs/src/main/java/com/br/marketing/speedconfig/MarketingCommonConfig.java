@@ -545,5 +545,25 @@ public class MarketingCommonConfig {
      * 转化数据推送决策api_code对应关系 {(sourceapicode,targetapicode)}
      */
     private HashMap<String, String> apiCodeMatch;
+
+    /**
+     * 你我贷有效期
+     */
+    private String youMeDValidityDayStr;
+
+    /**
+     * 你我贷apiCode
+     */
+    private  List<String> youMeDApiCodes;
+
+    /**
+     * 你我贷转化数据提取相关配置 线程数量，是否继续（1-继续，0-退出）{"threadNum":"10","isContinue":"1"}
+     */
+    private Map<String,String> youMeDDataPull;
+
+    /**
+     * 你我贷数据提取时间
+     */
+    private String youMeDFileExecTime;
 }
 

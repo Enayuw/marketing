@@ -1,4 +1,4 @@
-package com.br.marketing.service.Impl;
+package com.br.marketing.service.Impl.transfertofile;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.commondto.Result;
@@ -12,6 +12,8 @@ import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.mapper.XieChengSmsCollidingDataLogMapper;
 import com.br.marketing.service.ITransferToFileService;
+import com.br.marketing.service.Impl.RuleRedisServiceImpl;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
