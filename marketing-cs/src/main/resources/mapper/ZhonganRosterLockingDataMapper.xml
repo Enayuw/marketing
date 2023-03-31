@@ -86,6 +86,35 @@
         group by local_id
     </select>
 
+    <select id="getSftpFileIdListByTags" resultType="java.lang.Long">
+        select local_id
+        from b_zhongan_roster_locking_data
+        WHERE api_code = '${apiCode}'
+          and tag in
+          <foreach collection="tags" item="tag" open="(" close=")" separator=",">
+              #{tag}
+          </foreach>
+          and push_status = 1
+          and status = 1
+          and data_source = 1
+        group by local_id
+    </select>
+
+    <select id="getSftpFileIdListByNoTags" resultType="java.lang.Long">
+        select local_id
+        from b_zhongan_roster_locking_data
+        WHERE api_code = '${apiCode}'
+        and <![CDATA[ biz_date <= '${dateStr}' ]]>
+        and tag not in
+        <foreach collection="tags" item="tag" open="(" close=")" separator=",">
+            #{tag}
+        </foreach>
+        and push_status = 1
+        and status = 1
+        and data_source = 1
+        group by local_id
+    </select>
+
     <select id="getTagByApiCodeBizDateList" resultType="java.lang.String">
         select tag
         from b_zhongan_roster_locking_data
@@ -98,5 +127,34 @@
         order by tag;
     </select>
 
+    <select id="getTagsByApiCodeTagList" resultType="java.lang.String">
+        select tag
+        from b_zhongan_roster_locking_data
+        where api_code = '${apiCode}'
+        and tag in
+        <foreach collection="tags" item="tag" open="(" close=")" separator=",">
+            #{tag}
+        </foreach>
+          and push_status = 1
+          and status = 1
+          and data_source = 1
+        group by tag
+        order by tag;
+    </select>
 
+    <select id="getTagsByApiCodeBizDateNoTagList" resultType="java.lang.String">
+        select tag
+        from b_zhongan_roster_locking_data
+        where api_code = '${apiCode}'
+        and <![CDATA[ biz_date <= '${dateStr}' ]]>
+        and tag not in
+        <foreach collection="tags" item="tag" open="(" close=")" separator=",">
+            #{tag}
+        </foreach>
+        and push_status = 1
+        and status = 1
+        and data_source = 1
+        group by tag
+        order by tag;
+    </select>
 </mapper>

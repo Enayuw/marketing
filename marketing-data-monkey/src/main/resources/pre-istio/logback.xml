@@ -26,29 +26,8 @@
         </encoder>
     </appender>
 
-    <!-- 错误日志：用于将错误日志输出到独立文件 -->
-    <appender name="ERROR_FILE" class="com.br.marketing.monkey.alarm.AlarmAppender">
-        <file>${LOG_HOME}/${POD_NAME}_error.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_HOME}/${POD_NAME}_error.%i.log.%d{yyyy-MM-dd}</fileNamePattern>
-            <maxHistory>2</maxHistory>
-            <maxFileSize>50MB</maxFileSize>
-            <totalSizeCap>250MB</totalSizeCap>
-            <cleanHistoryOnStart>true</cleanHistoryOnStart>
-        </rollingPolicy>
-        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>${ENCODER_PATTERN}</pattern>
-        </encoder>
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>ERROR</level>
-        </filter>
-    </appender>
-
     <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="RollingFile"/>
-    </appender>
-    <appender name="ASYNC_ERROR" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="ERROR_FILE"/>
     </appender>
 
     <logger name="com.br" level="${LOG_LEVEL}"/>
@@ -59,6 +38,5 @@
     <root>
         <level value="${LOG_LEVEL}"/>
         <appender-ref ref="ASYNC"/>
-        <appender-ref ref="ASYNC_ERROR"/>
     </root>
 </configuration>

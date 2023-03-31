@@ -10,6 +10,7 @@ import com.br.marketing.client.zhongan.utils.Md5OfZanUtils;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.monkeydata.entity.commonobj.PageCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/tst")
+@Slf4j
 public class TstController {
 
     @Autowired
@@ -89,4 +91,13 @@ public class TstController {
         zhongAnHandleImpl.action(pageCondition);
         return "123";
     }
+
+    @GetMapping("/testErrorLog")
+    public String testErrorLog(){
+        log.error("只打印错误信息：正常");
+        log.error("打印错误信息和异常：正常",new RuntimeException("异常信息"));
+        log.error("打印错误信息带有参数{},{}：正常",1,2,new RuntimeException("异常信息"));
+        return "123";
+    }
+
 }

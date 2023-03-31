@@ -42,21 +42,6 @@
         </encoder>
     </appender>
 
-    <!--错误日志：用于将错误日志输出到独立文件-->
-    <appender name="ERROR_FILE" class="com.br.marketing.monkey.alarm.AlarmAppender">
-        <file>${LOG_HOME}/${APP_NAME}_error.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_HOME}/${APP_NAME}_error.log.%d{yyyy-MM-dd}
-            </fileNamePattern>
-            <maxHistory>7</maxHistory>
-        </rollingPolicy>
-        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>${ENCODER_PATTERN}</pattern>
-        </encoder>
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>ERROR</level>
-        </filter>
-    </appender>
     <appender name="TASK_INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_HOME}/${APP_NAME}_TASK.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -84,20 +69,17 @@
         <root level="INFO" >
             <appender-ref ref="STDOUT"/>
             <appender-ref ref="FILE"/>
-            <appender-ref ref="ERROR_FILE"/>
         </root>
     </springProfile>
     <springProfile name="pre">
         <root level="INFO" >
                     <appender-ref ref="STDOUT"/>
             <appender-ref ref="FILE"/>
-            <appender-ref ref="ERROR_FILE"/>
         </root>
     </springProfile>
     <springProfile name="prod">
         <root level="ERROR" >
             <appender-ref ref="FILE"/>
-            <appender-ref ref="ERROR_FILE"/>
         </root>
     </springProfile>
 <!--    <root level="INFO">-->

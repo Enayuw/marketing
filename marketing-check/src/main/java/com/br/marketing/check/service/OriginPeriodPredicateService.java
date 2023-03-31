@@ -3,6 +3,7 @@ package com.br.marketing.check.service;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author GuangChao.Zhang
@@ -11,7 +12,7 @@ import java.util.List;
  */
 
 public interface OriginPeriodPredicateService {
-    void  transferDataPeriod(String apiCode,String status ,List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellList);
+    void  transferDataPeriod(String apiCode, String status , Set<MarketingTransferSyncUserCell> marketingTransferSyncUserCellList);
 
 
 }
