@@ -41,6 +41,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -175,7 +176,7 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         int pageSize = 2000;
 
         Boolean dateMark = Boolean.TRUE;
-        int totalSize = 0;
+        AtomicInteger totalSize = new AtomicInteger();
 //        CopyOnWriteArraySet custNumSet = new CopyOnWriteArraySet();
         HashSet custNumSet = new HashSet<>();
         Integer datePage = 0;
@@ -227,7 +228,7 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                 }
                 threadPoolExecutor.submit(() -> {
                     try {
-                        fieldAction(custNums, _transferBeginDateStr, _uploadBeginDateStr, _uploadEndDateStr, apiCode, tcId, fw);
+                        fieldAction(custNums,totalSize, _transferBeginDateStr, _uploadBeginDateStr, _uploadEndDateStr, apiCode, tcId, fw);
                     } catch (Exception ex) {
                         log.error(ex.getMessage(), ex);
                     }
@@ -256,18 +257,19 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         updatetask.setStatus(2);
         updatetask.setFileName(transferFileTask.getFileName());
         updatetask.setFilePath(transferFileTask.getFilePath());
-        updatetask.setTaskNumber(custNumSet.size());
+        updatetask.setTaskNumber(totalSize.get());
         updatetask.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
         log.warn("你我贷转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
 
-    void fieldAction(List<String> custNums, String transferBegin, String uploadBegin, String uploadEnd, String apiCode, String tcid, Writer fw) {
+    void fieldAction(List<String> custNums,AtomicInteger totalSize, String transferBegin, String uploadBegin, String uploadEnd, String apiCode, String tcid, Writer fw) {
 //        List<String> custNums = users.stream().map(t -> t.getCustNum()).collect(Collectors.toList());
 //        custNums.removeAll(custNumSet);
 //        if (custNums.size() <= 0) {
 //            return;
 //        }
+        Integer num = 0;
         List<MarketingSyncUser> userList = syncUserMapper.getNewSyncUserByCustNumtikv_(apiCode, custNums, uploadBegin, uploadEnd);
         Map<String, MarketingSyncUser> userMap = userList.stream().collect(Collectors.toMap(MarketingSyncUser::getCustNum
                 , Function.identity(), BinaryOperator.maxBy(Comparator.comparing(MarketingSyncUser::getAppletTime))));
@@ -387,11 +389,12 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                     .append(tDate).append("\r\n");
             try {
                 fw.append(content.toString());
+                num++;
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-
+        totalSize.getAndAdd(num);
     }
 
 
