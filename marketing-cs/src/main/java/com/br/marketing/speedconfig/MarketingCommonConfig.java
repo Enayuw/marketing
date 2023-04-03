@@ -565,5 +565,14 @@ public class MarketingCommonConfig {
      * 你我贷数据提取时间
      */
     private String youMeDFileExecTime;
+
+    /**
+     * 国美apiCode
+     */
+    private  List<String> gomeApiCodes;
+    /**
+     * 国美数据提取时间
+     */
+    private String gomeFileExecTime;
 }
 
