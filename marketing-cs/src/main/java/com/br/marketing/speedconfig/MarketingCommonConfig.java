@@ -565,5 +565,16 @@ public class MarketingCommonConfig {
      * 你我贷数据提取时间
      */
     private String youMeDFileExecTime;
+
+    /**
+     * 海尔数据提取apiCode
+     */
+    private  List<String> haierApiCodes;
+
+
+    /**
+     * 海尔数据提取时间
+     */
+    private String haierTransferFileExecTime;
 }
 

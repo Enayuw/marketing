@@ -119,6 +119,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByOrangeServiceImpl orangeService;
 
+    /**
+     * 海尔
+     */
+    @Resource
+    private TransferToFileByHaierServiceImpl transferToFileByHaierService;
+
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
@@ -219,6 +225,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 // 桔子转化数据提取
                 .addBind(orangeService, marketingCommonConfig.getOrangeTransferFileApiCodes())
                 .addBind(transferToFileByYouMeDService,marketingCommonConfig.getYouMeDApiCodes())
+                // 海尔转化数据提取
+                .addBind(transferToFileByHaierService,marketingCommonConfig.getHaierApiCodes())
                 .build();
     }
 

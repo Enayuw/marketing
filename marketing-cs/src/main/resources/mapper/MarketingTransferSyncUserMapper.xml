@@ -491,4 +491,14 @@
         </if>
         order by id asc limit 2000;
     </select>
+
+    <select id="getTransferReqDateOrderCreateTime" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tCid}
+        where api_code = #{apiCode} and request_data = #{requestDate}
+        <if test="minId != null and minId >0">
+            and id > #{minId}
+        </if>
+        order by id asc limit 2000;
+    </select>
 </mapper>
