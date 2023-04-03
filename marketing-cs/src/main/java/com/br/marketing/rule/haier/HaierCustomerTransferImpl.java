@@ -1,6 +1,7 @@
 package com.br.marketing.rule.haier;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
@@ -34,16 +35,16 @@ public class HaierCustomerTransferImpl implements AssembleData<ConversionData> {
 
     private final DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    private Boolean dateCompare(LocalDate uploadDate,String otherTime){
+    private Boolean dateCompare(LocalDate uploadDate, String otherTime) {
         try {
             if (com.br.common.util.StringUtils.isNotBlank(otherTime)) {
                 LocalDate otherDate = LocalDate.parse(otherTime.substring(0, 10), df);
-                if(otherDate.compareTo(uploadDate)>=0){
+                if (otherDate.compareTo(uploadDate) >= 0) {
                     return true;
                 }
             }
-        }catch (Exception ex){
-            log.error("海尔比较时间错误："+ex.getMessage(),ex);
+        } catch (Exception ex) {
+            log.error("海尔比较时间错误：" + ex.getMessage(), ex);
         }
         return false;
     }
@@ -60,44 +61,23 @@ public class HaierCustomerTransferImpl implements AssembleData<ConversionData> {
             }
             String upLoadDateStr = syncUser.getAppletDate();
             LocalDate upLoadDate = LocalDate.parse(upLoadDateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            if ("4".equals(transferSyncUser.getUserType())&&(dateCompare(upLoadDate,transferSyncUser.getLentTime()))) {
+            if ("4".equals(transferSyncUser.getUserType()) && (dateCompare(upLoadDate, transferSyncUser.getLentTime()))) {
                 return true;
             }
-            if("4".equals(transferSyncUser.getUserType())&&(dateCompare(upLoadDate,transferSyncUser.getApplyDt()))&&"0".equals(transferSyncUser.getApplyResult())){
+            if ("4".equals(transferSyncUser.getUserType()) && (dateCompare(upLoadDate, transferSyncUser.getApplyDt())) && "0".equals(transferSyncUser.getApplyResult())) {
                 return true;
             }
-            if ("3".equals(transferSyncUser.getUserType())
-                    && org.apache.commons.lang3.StringUtils.isNotBlank(transferSyncUser.getAuditTime())
-                    && Pattern.compile(msTimeRegex).matcher(transferSyncUser.getAuditTime()).matches()
-                    && org.apache.commons.lang3.StringUtils.isNotBlank(transferSyncUser.getLentTime())
-                    && Pattern.compile(msTimeRegex).matcher(transferSyncUser.getLentTime()).matches()
-                    && "0".equals(transferSyncUser.getIfLent())) {
+            JSONObject jb = JSON.parseObject(transferSyncUser.getReserveField1());
+            if ("5".equals(transferSyncUser.getUserType()) && "0".equals(transferSyncUser.getUnlentAmount()) && jb != null && dateCompare(upLoadDate, jb.getString("applyLoanTime"))) {
                 return true;
             }
-            if (StringUtils.isEmpty(transferSyncUser.getApplyDt())) {
-                return false;
-            }
-            LocalDate applydt = LocalDate.parse(transferSyncUser.getApplyDt().substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            LocalDate appletDate = LocalDate.parse(syncUser.getAppletDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            if ("0".equals(transferSyncUser.getApplyResult()) && applydt.compareTo(appletDate) >= 0) {
+            if ("3".equals(transferSyncUser.getUserType()) && dateCompare(upLoadDate, transferSyncUser.getLentTime()) && dateCompare(upLoadDate, transferSyncUser.getAuditTime())) {
                 return true;
             }
-            if (StringUtils.isEmpty(transferSyncUser.getRegisterTime())
-                    && "1".equals(transferSyncUser.getApplyResult())
-                    && applydt.compareTo(appletDate) >= 0) {
+            if ("3".equals(transferSyncUser.getUserType()) && "0".equals(transferSyncUser.getApplyResult()) && dateCompare(upLoadDate, transferSyncUser.getApplyDt())) {
                 return true;
             }
-            if (!StringUtils.isEmpty(transferSyncUser.getRegisterTime())
-                    && Pattern.compile(msTimeRegex).matcher(transferSyncUser.getRegisterTime()).matches()
-                    && LocalDate.parse(transferSyncUser.getRegisterTime().substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd")).compareTo(appletDate)>=0
-                    && !StringUtils.isEmpty(transferSyncUser.getAuditTime())
-                    && LocalDate.parse(transferSyncUser.getAuditTime().substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd")).compareTo(appletDate)>=0
-                    && Pattern.compile(msTimeRegex).matcher(transferSyncUser.getAuditTime()).matches()
-                    && StringUtils.isEmpty(transferSyncUser.getLentTime())
-                    && "1".equals(transferSyncUser.getApplyResult())
-                    && applydt.compareTo(appletDate) >= 0) {
-                return true;
-            }
+
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
@@ -123,7 +103,7 @@ public class HaierCustomerTransferImpl implements AssembleData<ConversionData> {
             conversionData.setCid(transferSyncUser.getCid());
             conversionData.setCaseNum(transferSyncUser.getCustNum());
             conversionData.setGroupType(transferSyncUser.getUserType());
-            conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUser.getCell()));
+//            conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUser.getCell()));
             conversionData.setInversionStatus(status);
             if (!StringUtils.isEmpty(transferSyncUser.getCreateTime())) {
                 conversionData.setPartnerProcessDate(DateUtils.format(transferSyncUser.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
