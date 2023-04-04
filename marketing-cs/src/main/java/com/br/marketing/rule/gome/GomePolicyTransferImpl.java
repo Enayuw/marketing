@@ -3,6 +3,7 @@ package com.br.marketing.rule.gome;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.common.util.StringUtils;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
 import com.br.marketing.common.enums.SoleFieldEnum;
@@ -45,7 +46,7 @@ public class GomePolicyTransferImpl implements AssembleData<PushMarketingUserDet
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         JSONObject jsonObject = JSONObject.parseObject(transfer.getReserveField1());
         String status;
-        if ("0".equals(transfer.getIfApply()) && "1".equals(transfer.getIfLogin()) && LocalDate.now().minusDays(1).isEqual(LocalDate.parse(transfer.getLoginTime()))) {
+        if (StringUtils.isNotEmpty(transfer.getLoginTime()) && "0".equals(transfer.getIfApply()) && "1".equals(transfer.getIfLogin()) && LocalDate.now().minusDays(1).isEqual(LocalDate.parse(transfer.getLoginTime().substring(0, 10)))) {
             status = "a";
         } else {
             status = "b";
@@ -77,8 +78,8 @@ public class GomePolicyTransferImpl implements AssembleData<PushMarketingUserDet
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             String applyLoan = JSON.parseObject(transfer.getReserveField1()).getString("applyLoan");
-            boolean statusA = "0".equals(transfer.getIfApply()) && "1".equals(transfer.getIfLogin()) && LocalDate.now().minusDays(1).isEqual(LocalDate.parse(transfer.getLoginTime()));
-            boolean statusB = "0".equals(applyLoan) && "1".equals(transfer.getApplyResult()) && LocalDate.now().minusDays(1).isEqual(LocalDate.parse(transfer.getAuditTime()));
+            boolean statusA = StringUtils.isNotEmpty(transfer.getLoginTime()) && "0".equals(transfer.getIfApply()) && "1".equals(transfer.getIfLogin()) && LocalDate.now().minusDays(1).isEqual(LocalDate.parse(transfer.getLoginTime().substring(0, 10)));
+            boolean statusB = StringUtils.isNotEmpty(transfer.getAuditTime()) && "0".equals(applyLoan) && "1".equals(transfer.getApplyResult()) && LocalDate.now().minusDays(1).isEqual(LocalDate.parse(transfer.getAuditTime().substring(0, 10)));
             if (statusA || statusB) {
                 GomeRuleCollectDataImpl.GomeRuleNecessaryData data =
                         (GomeRuleCollectDataImpl.GomeRuleNecessaryData) context.getRuleNecessaryData();
