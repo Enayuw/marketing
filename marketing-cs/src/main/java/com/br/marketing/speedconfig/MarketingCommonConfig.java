@@ -576,5 +576,14 @@ public class MarketingCommonConfig {
      * 海尔数据提取时间
      */
     private String haierTransferFileExecTime;
+    /**
+     * 国美apiCode
+     */
+    private  List<String> gomeApiCodes;
+    /**
+     * 国美数据提取时间
+     */
+    private String gomeFileExecTime;
+
 }
 
