@@ -10,7 +10,7 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.ElephantCollectDataImpl;
+import com.br.marketing.context.impl.GomeRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
@@ -55,8 +55,8 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
         conversionData.setPartnerProcessDate(ObjectUtils.isEmpty(transfer.getCreateTime())
                 ? LocalDateTime.now().format(DATE_TIME_FORMATTER) : DateUtils.format(transfer.getCreateTime()
                 , DateHelper.LINE_DATE_COLON_TIME_FORMAT));
-        ElephantCollectDataImpl.ElephantRuleNecessaryData data =
-                (ElephantCollectDataImpl.ElephantRuleNecessaryData) context.getRuleNecessaryData();
+        GomeRuleCollectDataImpl.GomeRuleNecessaryData data =
+                (GomeRuleCollectDataImpl.GomeRuleNecessaryData) context.getRuleNecessaryData();
         conversionData.setInversionStatus("0");
         Map<String, SyncUserValidityPeriodBO> syncUserValidityPeriodMap = data.getSyncUserValidityPeriodMap();
         SyncUserValidityPeriodBO bo = syncUserValidityPeriodMap.get(transfer.getCustNum());
@@ -76,10 +76,10 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-            ElephantCollectDataImpl.ElephantRuleNecessaryData ruleNecessaryData =
-                    (ElephantCollectDataImpl.ElephantRuleNecessaryData) context.getRuleNecessaryData();
+            GomeRuleCollectDataImpl.GomeRuleNecessaryData ruleNecessaryData =
+                    (GomeRuleCollectDataImpl.GomeRuleNecessaryData) context.getRuleNecessaryData();
             if (ruleNecessaryData.getSyncUserValidityPeriodMap().get(transfer.getCustNum()) != null) {
-              return actionA(transfer) || actionB(transfer) ||actionC(transfer);
+                return actionA(transfer) || actionB(transfer) || actionC(transfer);
             }
         }
         return false;
@@ -87,19 +87,21 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
 
     /**
      * 情况a
+     *
      * @param transfer 转化数据
      * @return bool
      */
-    private boolean actionA(MarketingTransferSyncUser transfer){
+    private boolean actionA(MarketingTransferSyncUser transfer) {
         return ("1").equals(transfer.getIfApply()) && ("0").equals(transfer.getApplyResult());
     }
-    private boolean actionB(MarketingTransferSyncUser transfer){
+
+    private boolean actionB(MarketingTransferSyncUser transfer) {
         String applyLoan = JSON.parseObject(transfer.getReserveField1()).getString("applyLoan");
-        return ("1".equals(applyLoan)&&"0".equals(transfer.getIfLent()));
+        return ("1".equals(applyLoan) && "0".equals(transfer.getIfLent()));
     }
 
-    private boolean actionC(MarketingTransferSyncUser transfer){
-      return   StringUtils.isNotEmpty(transfer.getUnlentAmount()) && Double.parseDouble(transfer.getUnlentAmount()) >= 0;
+    private boolean actionC(MarketingTransferSyncUser transfer) {
+        return StringUtils.isNotEmpty(transfer.getUnlentAmount()) && Double.parseDouble(transfer.getUnlentAmount()) >= 0;
     }
 
     @Override
