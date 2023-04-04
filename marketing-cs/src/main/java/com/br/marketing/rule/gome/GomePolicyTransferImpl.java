@@ -7,6 +7,7 @@ import com.br.common.util.StringUtils;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
 import com.br.marketing.common.enums.SoleFieldEnum;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.GomeRuleCollectDataImpl;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
@@ -44,9 +46,9 @@ public class GomePolicyTransferImpl implements AssembleData<PushMarketingUserDet
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        JSONObject jsonObject = JSONObject.parseObject(transfer.getReserveField1());
         String status;
-        if (StringUtils.isNotEmpty(transfer.getLoginTime()) && "0".equals(transfer.getIfApply()) && "1".equals(transfer.getIfLogin()) && LocalDate.now().minusDays(1).isEqual(LocalDate.parse(transfer.getLoginTime().substring(0, 10)))) {
+        if (StringUtils.isNotEmpty(transfer.getLoginTime()) && "0".equals(transfer.getIfApply()) && "1".equals(transfer.getIfLogin())
+                && LocalDate.now().minusDays(1).isEqual(DateHelper.parseDate(transfer.getLoginTime()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate())) {
             status = "a";
         } else {
             status = "b";
@@ -78,8 +80,10 @@ public class GomePolicyTransferImpl implements AssembleData<PushMarketingUserDet
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             String applyLoan = JSON.parseObject(transfer.getReserveField1()).getString("applyLoan");
-            boolean statusA = StringUtils.isNotEmpty(transfer.getLoginTime()) && "0".equals(transfer.getIfApply()) && "1".equals(transfer.getIfLogin()) && LocalDate.now().minusDays(1).isEqual(LocalDate.parse(transfer.getLoginTime().substring(0, 10)));
-            boolean statusB = StringUtils.isNotEmpty(transfer.getAuditTime()) && "0".equals(applyLoan) && "1".equals(transfer.getApplyResult()) && LocalDate.now().minusDays(1).isEqual(LocalDate.parse(transfer.getAuditTime().substring(0, 10)));
+            boolean statusA = StringUtils.isNotEmpty(transfer.getLoginTime()) && "0".equals(transfer.getIfApply()) && "1".equals(transfer.getIfLogin())
+                    && LocalDate.now().minusDays(1).isEqual(DateHelper.parseDate(transfer.getLoginTime()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+            boolean statusB = StringUtils.isNotEmpty(transfer.getAuditTime()) && "0".equals(applyLoan) && "1".equals(transfer.getApplyResult()) &&
+                    LocalDate.now().minusDays(1).isEqual(DateHelper.parseDate(transfer.getAuditTime()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
             if (statusA || statusB) {
                 GomeRuleCollectDataImpl.GomeRuleNecessaryData data =
                         (GomeRuleCollectDataImpl.GomeRuleNecessaryData) context.getRuleNecessaryData();
