@@ -185,7 +185,7 @@ public class TransferToFileByGomeServiceImpl implements ITransferToFileService {
                     StringBuilder sb = new StringBuilder();
                     sb.append(deleteNull(custNum))
                             .append(deleteNull(data.getUserType()))
-                            .append(deleteNull(data.getRegisterTime()))
+                            .append(formDateStr(deleteNull(data.getRegisterTime())))
                             .append(deleteNull(data.getIfLogin()))
                             .append(formDateStr(data.getLoginTime()))
                             .append(deleteNull(data.getIfApply()))
