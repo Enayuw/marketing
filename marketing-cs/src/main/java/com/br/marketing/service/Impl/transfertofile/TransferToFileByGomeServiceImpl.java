@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl.transfertofile;
 
 import com.alibaba.fastjson.JSON;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
@@ -21,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
@@ -198,7 +200,7 @@ public class TransferToFileByGomeServiceImpl implements ITransferToFileService {
                     .append(deleteNull(JSON.parseObject(data.getReserveField1()).getString("applyLoan")))
                     .append(deleteNull(JSON.parseObject(data.getReserveField1()).getString("applyLoanTime")));
                 if (preUserMap != null) {
-                    sb.append(preUserMap.get(custNum).getCell());
+                    sb.append(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell()).getBytes()));
                 }
                 sb.append("\r\n");
                 fw.append(sb);
