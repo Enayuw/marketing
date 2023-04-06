@@ -181,30 +181,32 @@ public class TransferToFileByGomeServiceImpl implements ITransferToFileService {
                 preUserMap.putAll(map);
             }
             for (MarketingTransferSyncUser data : list) {
-                String custNum = data.getCustNum();
-                StringBuilder sb = new StringBuilder();
-                sb.append(deleteNull(custNum))
-                    .append(deleteNull(data.getUserType()))
-                    .append(deleteNull(data.getRegisterTime()))
-                    .append(deleteNull(data.getIfLogin()))
-                    .append(formDateStr(data.getLoginTime()))
-                    .append(deleteNull(data.getIfApply()))
-                    .append(formDateStr(data.getApplyDt()))
-                    .append(deleteNull(data.getApplyResult()))
-                    .append(deleteNull(data.getAuditTime()))
-                    .append(deleteNull(data.getAuditAmount()))
-                    .append(deleteNull(data.getIfLent()))
-                    .append(formDateStr(data.getLentTime()))
-                    .append(deleteNull(data.getLentAmount()))
-                    .append(deleteNull(data.getUnlentAmount()))
-                    .append(deleteNull(JSON.parseObject(data.getReserveField1()).getString("applyLoan")))
-                    .append(deleteNull(JSON.parseObject(data.getReserveField1()).getString("applyLoanTime")));
-                if (preUserMap != null) {
-                    sb.append(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell()).getBytes()));
-                }
-                sb.append("\r\n");
-                fw.append(sb);
-                totalSize = totalSize + 1;
+                    String custNum = data.getCustNum();
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(deleteNull(custNum))
+                            .append(deleteNull(data.getUserType()))
+                            .append(deleteNull(data.getRegisterTime()))
+                            .append(deleteNull(data.getIfLogin()))
+                            .append(formDateStr(data.getLoginTime()))
+                            .append(deleteNull(data.getIfApply()))
+                            .append(formDateStr(data.getApplyDt()))
+                            .append(deleteNull(data.getApplyResult()))
+                            .append(deleteNull(data.getAuditTime()))
+                            .append(deleteNull(data.getAuditAmount()))
+                            .append(deleteNull(data.getIfLent()))
+                            .append(formDateStr(data.getLentTime()))
+                            .append(deleteNull(data.getLentAmount()))
+                            .append(deleteNull(data.getUnlentAmount()))
+                            .append(deleteNull(JSON.parseObject(data.getReserveField1()).getString("applyLoan")))
+                            .append(deleteNull(JSON.parseObject(data.getReserveField1()).getString("applyLoanTime")));
+                    if (preUserMap != null && preUserMap.get(custNum)!=null) {
+                        sb.append(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell()).getBytes()));
+                    }else {
+                        sb.append(",");
+                    }
+                    sb.append("\r\n");
+                    fw.append(sb);
+                    totalSize = totalSize + 1;
             }
             list.clear();
         }
