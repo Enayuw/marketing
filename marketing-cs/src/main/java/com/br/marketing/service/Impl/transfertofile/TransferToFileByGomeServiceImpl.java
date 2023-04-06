@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 
 
 /**
- * 你我贷转化数据提取
+ * 国美转化数据提取
  */
 @Slf4j
 @Service
@@ -179,23 +179,28 @@ public class TransferToFileByGomeServiceImpl implements ITransferToFileService {
             }
             for (MarketingTransferSyncUser data : list) {
                 String custNum = data.getCustNum();
-                String sb = deleteNull(custNum) +
-                        deleteNull(data.getUserType()) +
-                        deleteNull(data.getRegisterTime()) +
-                        deleteNull(data.getIfLogin()) +
-                        formDateStr(data.getLoginTime()) +
-                        deleteNull(data.getIfApply()) +
-                        formDateStr(data.getApplyDt()) +
-                        deleteNull(data.getApplyResult()) +
-                        deleteNull(data.getAuditTime()) +
-                        deleteNull(data.getAuditAmount()) +
-                        deleteNull(data.getIfLent()) +
-                        formDateStr(data.getLentTime()) +
-                        deleteNull(data.getLentAmount()) +
-                        deleteNull(data.getUnlentAmount()) +
-                        deleteNull(JSON.parseObject(data.getReserveField1()).getString("applyLoan")) +
-                        deleteNull(JSON.parseObject(data.getReserveField1()).getString("applyLoanTime")) +
-                        deleteNull(preUserMap.get(custNum).getCell());
+                StringBuilder sb = new StringBuilder();
+                sb.append(deleteNull(custNum))
+                    .append(deleteNull(data.getUserType()))
+                    .append(deleteNull(data.getRegisterTime()))
+                    .append(deleteNull(data.getIfLogin()))
+                    .append(formDateStr(data.getLoginTime()))
+                    .append(deleteNull(data.getIfApply()))
+                    .append(formDateStr(data.getApplyDt()))
+                    .append(deleteNull(data.getApplyResult()))
+                    .append(deleteNull(data.getAuditTime()))
+                    .append(deleteNull(data.getAuditAmount()))
+                    .append(deleteNull(data.getIfLent()))
+                    .append(formDateStr(data.getLentTime()))
+                    .append(deleteNull(data.getLentAmount()))
+                    .append(deleteNull(data.getLentAmount()))
+                    .append(deleteNull(data.getUnlentAmount()))
+                    .append(deleteNull(JSON.parseObject(data.getReserveField1()).getString("applyLoan")))
+                    .append(deleteNull(JSON.parseObject(data.getReserveField1()).getString("applyLoanTime")));
+                if (preUserMap != null) {
+                    sb.append(deleteNull(preUserMap.get(custNum).getCell()));
+                }
+
                 fw.append(sb);
                 totalSize = totalSize + 1;
             }
