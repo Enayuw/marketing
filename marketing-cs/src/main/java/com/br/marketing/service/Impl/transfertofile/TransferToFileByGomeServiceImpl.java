@@ -194,14 +194,13 @@ public class TransferToFileByGomeServiceImpl implements ITransferToFileService {
                     .append(deleteNull(data.getIfLent()))
                     .append(formDateStr(data.getLentTime()))
                     .append(deleteNull(data.getLentAmount()))
-                    .append(deleteNull(data.getLentAmount()))
                     .append(deleteNull(data.getUnlentAmount()))
                     .append(deleteNull(JSON.parseObject(data.getReserveField1()).getString("applyLoan")))
                     .append(deleteNull(JSON.parseObject(data.getReserveField1()).getString("applyLoanTime")));
                 if (preUserMap != null) {
-                    sb.append(deleteNull(preUserMap.get(custNum).getCell()));
+                    sb.append(preUserMap.get(custNum).getCell());
                 }
-
+                sb.append("\r\n");
                 fw.append(sb);
                 totalSize = totalSize + 1;
             }
