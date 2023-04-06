@@ -135,8 +135,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
         Map<String, Set<ITransferToFileService>> bind = bindApiCodeServiceImplBean.bind;
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"))
-                //.andApiCodeIn(new ArrayList<>(bind.keySet()));
-                .andApiCodeEqualTo("7492805");
+                .andApiCodeIn(new ArrayList<>(bind.keySet()));
         List<MarketingCustomer> marketingCustomers = customerMapper.selectByExampleAndShard(customerExample
                 , context.getShardingTotalCount()
                 , context.getShardingItems());
