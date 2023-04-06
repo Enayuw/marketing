@@ -113,7 +113,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Autowired
     private TransferToFileByYouMeDServiceImpl transferToFileByYouMeDService;
     @Autowired
-    private TransferToFileByYouMeDServiceImpl transferToFileByGomeService;
+    private TransferToFileByGomeServiceImpl transferToFileByGomeService;
 
     /**
      * 桔子
@@ -135,7 +135,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
         Map<String, Set<ITransferToFileService>> bind = bindApiCodeServiceImplBean.bind;
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"))
-                .andApiCodeIn(new ArrayList<>(bind.keySet()));
+                //.andApiCodeIn(new ArrayList<>(bind.keySet()));
+                .andApiCodeEqualTo("7492805");
         List<MarketingCustomer> marketingCustomers = customerMapper.selectByExampleAndShard(customerExample
                 , context.getShardingTotalCount()
                 , context.getShardingItems());

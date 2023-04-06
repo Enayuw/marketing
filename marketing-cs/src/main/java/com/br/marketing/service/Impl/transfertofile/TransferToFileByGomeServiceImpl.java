@@ -95,7 +95,8 @@ public class TransferToFileByGomeServiceImpl implements ITransferToFileService {
                 transferFileTask.setApiCode(apiCode);
                 transferFileTask.setFileType(1);
                 transferFileTask.setBatchNumber(batchNumber);
-                transferFileTask.setFileName("");
+                String fileName = String.format("guomeizhuanhua_%s.txt", yyyyMMdd);
+                transferFileTask.setFileName(fileName);
                 transferFileTask.setTaskNumber(0);
                 transferFileTask.setStartDate(yyyyMMdd);
                 transferFileTask.setContextId(transferFileContextId);
