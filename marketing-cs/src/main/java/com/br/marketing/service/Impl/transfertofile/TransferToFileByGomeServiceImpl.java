@@ -191,7 +191,7 @@ public class TransferToFileByGomeServiceImpl implements ITransferToFileService {
                             .append(deleteNull(data.getIfApply()))
                             .append(formDateStr(data.getApplyDt()))
                             .append(deleteNull(data.getApplyResult()))
-                            .append(deleteNull(data.getAuditTime()))
+                            .append(formDateStr(deleteNull(data.getAuditTime())))
                             .append(deleteNull(data.getAuditAmount()))
                             .append(deleteNull(data.getIfLent()))
                             .append(formDateStr(data.getLentTime()))
