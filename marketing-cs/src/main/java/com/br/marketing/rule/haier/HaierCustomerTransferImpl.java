@@ -1,5 +1,6 @@
 package com.br.marketing.rule.haier;
 
+import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
@@ -19,6 +20,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -61,20 +63,33 @@ public class HaierCustomerTransferImpl implements AssembleData<ConversionData> {
             }
             String upLoadDateStr = syncUser.getAppletDate();
             LocalDate upLoadDate = LocalDate.parse(upLoadDateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            if ("4".equals(transferSyncUser.getUserType()) && (dateCompare(upLoadDate, transferSyncUser.getLentTime()))) {
+            if ("4".equals(transferSyncUser.getUserType())
+                    && (dateCompare(upLoadDate, transferSyncUser.getLentTime()))) {
                 return true;
             }
-            if ("4".equals(transferSyncUser.getUserType()) && (dateCompare(upLoadDate, transferSyncUser.getApplyDt())) && "0".equals(transferSyncUser.getApplyResult())) {
+            if ("4".equals(transferSyncUser.getUserType())
+                    && (dateCompare(upLoadDate, transferSyncUser.getApplyDt()))
+                    && "0".equals(transferSyncUser.getApplyResult())) {
                 return true;
             }
-            JSONObject jb = JSON.parseObject(transferSyncUser.getReserveField1());
-            if ("5".equals(transferSyncUser.getUserType()) && "0".equals(transferSyncUser.getUnlentAmount()) && jb != null && dateCompare(upLoadDate, jb.getString("applyLoanTime"))) {
+            try {
+                JSONObject jb = JSON.parseObject(transferSyncUser.getReserveField1());
+                if ("5".equals(transferSyncUser.getUserType()) && !StringUtils.isEmpty(transferSyncUser.getUnlentAmount())
+                        && new Double(0).equals(Double.valueOf(transferSyncUser.getUnlentAmount()))
+                        && jb != null && dateCompare(upLoadDate, jb.getString("applyLoanTime"))) {
+                    return true;
+                }
+            }catch (Exception ex){
+                log.error(ex.getMessage(),ex);
+            }
+            if ("3".equals(transferSyncUser.getUserType())
+                    && dateCompare(upLoadDate, transferSyncUser.getLentTime())
+                    && dateCompare(upLoadDate, transferSyncUser.getAuditTime())) {
                 return true;
             }
-            if ("3".equals(transferSyncUser.getUserType()) && dateCompare(upLoadDate, transferSyncUser.getLentTime()) && dateCompare(upLoadDate, transferSyncUser.getAuditTime())) {
-                return true;
-            }
-            if ("3".equals(transferSyncUser.getUserType()) && "0".equals(transferSyncUser.getApplyResult()) && dateCompare(upLoadDate, transferSyncUser.getApplyDt())) {
+            if ("3".equals(transferSyncUser.getUserType())
+                    && "0".equals(transferSyncUser.getApplyResult())
+                    && dateCompare(upLoadDate, transferSyncUser.getApplyDt())) {
                 return true;
             }
 
