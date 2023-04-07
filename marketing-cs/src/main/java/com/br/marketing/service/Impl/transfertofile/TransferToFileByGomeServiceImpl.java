@@ -201,8 +201,6 @@ public class TransferToFileByGomeServiceImpl implements ITransferToFileService {
                             .append(deleteNull(JSON.parseObject(data.getReserveField1()).getString("applyLoanTime")));
                     if (preUserMap != null && preUserMap.get(custNum)!=null) {
                         sb.append(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell()).getBytes()));
-                    }else {
-                        sb.append(",");
                     }
                     sb.append("\r\n");
                     fw.append(sb);
