@@ -23,9 +23,11 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.Locale;
 
 /**
  * 国美自动化转决策
@@ -42,6 +44,8 @@ public class GomePolicyTransferImpl implements AssembleData<PushMarketingUserDet
 
     @Autowired
     private PushRuleService pushRuleService;
+
+    private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT_SSS, Locale.CHINA);
 
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -81,9 +85,9 @@ public class GomePolicyTransferImpl implements AssembleData<PushMarketingUserDet
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             String applyLoan = JSON.parseObject(transfer.getReserveField1()).getString("applyLoan");
             boolean statusA = StringUtils.isNotEmpty(transfer.getLoginTime()) && "0".equals(transfer.getIfApply()) && "1".equals(transfer.getIfLogin())
-                    && LocalDate.now().minusDays(1).isEqual(DateHelper.parseDate(transfer.getLoginTime()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                    && LocalDate.now().minusDays(1).isEqual(LocalDateTime.parse(transfer.getLoginTime(), DATE_TIME_FORMATTER).toLocalDate());
             boolean statusB = StringUtils.isNotEmpty(transfer.getAuditTime()) && "0".equals(applyLoan) && "1".equals(transfer.getApplyResult()) &&
-                    LocalDate.now().minusDays(1).isEqual(DateHelper.parseDate(transfer.getAuditTime()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                    LocalDate.now().minusDays(1).isEqual(LocalDateTime.parse(transfer.getAuditTime(), DATE_TIME_FORMATTER).toLocalDate());
             if (statusA || statusB) {
                 GomeRuleCollectDataImpl.GomeRuleNecessaryData data =
                         (GomeRuleCollectDataImpl.GomeRuleNecessaryData) context.getRuleNecessaryData();
