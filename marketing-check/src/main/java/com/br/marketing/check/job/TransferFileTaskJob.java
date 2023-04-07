@@ -113,7 +113,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Autowired
     private TransferToFileByYouMeDServiceImpl transferToFileByYouMeDService;
     @Autowired
-    private TransferToFileByYouMeDServiceImpl transferToFileByGomeService;
+    private TransferToFileByGomeServiceImpl transferToFileByGomeService;
 
     /**
      * 桔子
