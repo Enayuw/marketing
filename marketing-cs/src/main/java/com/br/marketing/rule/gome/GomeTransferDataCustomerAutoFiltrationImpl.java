@@ -62,8 +62,8 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
         SyncUserValidityPeriodBO bo = syncUserValidityPeriodMap.get(transfer.getCustNum());
         conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
         PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
-        // 有效期设置
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
+        // 有效期设置
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
@@ -111,7 +111,7 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode();
     }
 
     @Override
