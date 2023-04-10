@@ -42,6 +42,22 @@ public interface MarketingSyncUserMapper {
      */
     List<MarketingSyncUser> getSyncUserLastByCustNumsAndStatus(@Param("apiCode") String apiCode, @Param("custNums") Set<String> custs);
 
+    List<MarketingSyncUser> getSyncUserLastByInAppletDateList(@Param("apiCode") String apiCode
+            , @Param("configList") List<MarketingDataValidConfig> configList
+            , @Param("transferSyncUserList") List<MarketingTransferSyncUser> transferSyncUserList);
+
+    List<MarketingSyncUser> getSyncUserLastByInAppletDateUserTypeList(@Param("apiCode") String apiCode
+            , @Param("configList") List<MarketingDataValidConfig> configList
+            , @Param("transferSyncUserList") List<MarketingTransferSyncUser> transferSyncUserList);
+
+    List<MarketingSyncUser> getSyncUserLastByNotInAppletDateList(@Param("apiCode") String apiCode
+            , @Param("configList") List<MarketingDataValidConfig> configList
+            , @Param("transferSyncUserList") List<MarketingTransferSyncUser> transferSyncUserList);
+
+    List<MarketingSyncUser> getSyncUserLastByNotInAppletDateUserTypeList(@Param("apiCode") String apiCode
+            , @Param("configList") List<MarketingDataValidConfig> configList
+            , @Param("transferSyncUserList") List<MarketingTransferSyncUser> transferSyncUserList);
+
     List<MarketingSyncUser> getNewestByCustNums(@Param("apiCode") String apiCode, @Param("custNums") Set<String> custNums);
 
     /**
