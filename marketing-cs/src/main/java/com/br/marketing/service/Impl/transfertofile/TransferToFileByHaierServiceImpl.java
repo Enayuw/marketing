@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 @Service
 public class TransferToFileByHaierServiceImpl implements ITransferToFileService {
 
-    private static final String EXECUTE_TIME = "11:00:00;";
+    private static final String EXECUTE_TIME = "11:00:00";
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Autowired
@@ -112,7 +112,7 @@ public class TransferToFileByHaierServiceImpl implements ITransferToFileService 
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file), "UTF-8"));) {
-            fw.append("custNum,userType,customName,registerTime,loginTime,applyDt,applyResult,auditTime,auditAmount,ifLent,lentTime,lentAmount,lentAmount,settleTime,transformTime,loanStatus,applyLoanTime,transformTimeNew,lentAmountNew,couponType,couponTime,cell");
+            fw.append("custNum,userType,customName,registerTime,loginTime,applyDt,applyResult,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount,settleTime,transformTime,loanStatus,applyLoanTime,transformTimeNew,lentAmountNew,couponType,couponTime,cell");
             fw.append("\r\n");
             writeHaierTransferToFile(fw, apiCode, transferFileTask);
         } catch (Exception ex) {
@@ -153,7 +153,7 @@ public class TransferToFileByHaierServiceImpl implements ITransferToFileService 
             List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
             Map<String, MarketingSyncUser> userMap = preUserByTask.stream().collect(Collectors.toMap(MarketingSyncUser::getCustNum
                     , Function.identity(), BinaryOperator.maxBy(Comparator.comparing(MarketingSyncUser::getCreateTime))));
-            //custNum,userType,customName,registerTime,loginTime,applyDt,applyResult,auditTime,auditAmount,ifLent,lentTime,lentAmount,lentAmount,settleTime,transformTime,loanStatus,applyLoanTime,transformTimeNew,lentAmountNew,couponType,couponTime,cell            for (MarketingTransferSyncUser transferFilterData : dataFilter) {
+            //custNum,userType,customName,registerTime,loginTime,applyDt,applyResult,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount,settleTime,transformTime,loanStatus,applyLoanTime,transformTimeNew,lentAmountNew,couponType,couponTime,cell            for (MarketingTransferSyncUser transferFilterData : dataFilter) {
             for (MarketingTransferSyncUser transferFilterData : dataFilter) {
                 String custNum = transferFilterData.getCustNum();
                 String loanStatus = "", applyLoanTime = "", transformTimeNew = "", lentAmountNew = "", couponType = "", couponTime = "", cell = "";
