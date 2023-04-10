@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Locale;
@@ -52,7 +51,7 @@ public class GomePolicyTransferImpl implements AssembleData<PushMarketingUserDet
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         String status;
         if (StringUtils.isNotEmpty(transfer.getLoginTime()) && "0".equals(transfer.getIfApply()) && "1".equals(transfer.getIfLogin())
-                && LocalDate.now().minusDays(1).isEqual(DateHelper.parseDate(transfer.getLoginTime()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate())) {
+                && LocalDate.now().minusDays(1).isEqual(LocalDateTime.parse(transfer.getLoginTime(), DATE_TIME_FORMATTER).toLocalDate())) {
             status = "a";
         } else {
             status = "b";
