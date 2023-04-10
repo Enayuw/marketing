@@ -3,16 +3,13 @@ package com.br.marketing.service;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.entity.MarketingSyncInfo;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import java.time.LocalDate;
-import java.util.Date;
 
 /**
  * @author GuangChao.Zhang
@@ -49,9 +46,41 @@ public interface TransferDataValidityPeriodService {
      */
     Map<String, SyncUserValidityPeriodBO> getSyncUserValidityPeriodMap(List<MarketingTransferSyncUser> transferSyncUserList
             , String apiCode);
+
+    /**
+     * 有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
+     *
+     * @param transferSyncUserList 转化数据集合
+     * @param apiCode              客户编号
+     * @param requestDateObj       接收日期，为null时使用转化数据请求日期，
+     *                             支持数据格式 String(yyyy-MM-dd)、Date、LocalDate、LocalDateTime、Long、Calendar,
+     *                             非以上格式时默认当前日期
+     * @return Map key：custNum value：SyncUserValidityPeriodBO {@linkplain SyncUserValidityPeriodBO MarketingSyncUser PeriodOfValidityBO.Builder}
+     * @author Guo Zeqiang
+     * @dateTime 2023-03-22 16:07
+     */
+    Map<String, SyncUserValidityPeriodBO> getSyncUserValidityPeriodMap(List<MarketingTransferSyncUser> transferSyncUserList
+            , String apiCode, Object requestDateObj) throws Exception;
+
+    /**
+     * 场景中有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
+     *
+     * @param transferSyncUserList 转化数据集合
+     * @param apiCode              客户编号
+     * @param requestDateObj       接收日期，为null时使用转化数据请求日期，
+     *                             支持数据格式 String(yyyy-MM-dd)、Date、LocalDate、LocalDateTime、Long、Calendar,
+     *                             非以上格式时默认当前日期
+     * @return Map key：custNum value：Map key：userType value：SyncUserValidityPeriodBO {@linkplain SyncUserValidityPeriodBO MarketingSyncUser PeriodOfValidityBO.Builder}
+     * @author Guo Zeqiang
+     * @dateTime 2023-03-22 16:07
+     */
+    Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(List<MarketingTransferSyncUser> transferSyncUserList
+            , String apiCode, Object requestDateObj) throws Exception;
+
     /**
      * 根据apiCode和日期
      * 获取T+N规则的有效开始时间
+     *
      * @param apiCode
      * @return
      */
