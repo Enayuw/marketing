@@ -38,7 +38,7 @@ public class HaierCustomerBlackImpl implements AssembleData<BlackDetailDTO> {
                 return false;
             }
 
-            if ("1".equals(transferSyncUser.getCaseEffective())) {
+            if ("0".equals(transferSyncUser.getCaseEffective())) {
                 return true;
             }
 
