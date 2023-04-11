@@ -70,4 +70,9 @@ public class BackEndResourceController {
             return new ApiResult<String>().fail().setMessage(ex.getMessage());
         }
     }
+
+    @GetMapping("/updateEncryptyType")
+    public ApiResult updateEncryptyType(String apiCode,Integer type){
+
+    }
 }

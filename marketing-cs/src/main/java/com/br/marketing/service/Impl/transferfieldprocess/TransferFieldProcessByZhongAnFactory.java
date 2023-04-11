@@ -33,7 +33,7 @@ public class TransferFieldProcessByZhongAnFactory implements TransferFieldProces
     public void fieldProcess(MarketingTransferSyncUser transferSyncUser) {
         String transferSyncUserCustNum = transferSyncUser.getCustNum();
         String transferSyncUserUserType = transferSyncUser.getUserType();
-        MarketingSyncUser syncUser = syncUserMapper.selectSynsUserByCustNumLast(transferSyncUser.getApiCode(), transferSyncUserCustNum);
+        MarketingSyncUser syncUser = syncUserMapper.selectSynsUserByCellLast(transferSyncUser.getApiCode(), transferSyncUserCustNum);
         if (syncUser != null) {
             transferSyncUser.setCustNum(syncUser.getCustNum());
             transferSyncUser.setUserType(syncUser.getUserType());
