@@ -174,7 +174,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     public Map<String, SyncUserValidityPeriodBO> getSyncUserValidityPeriodMap(
             List<MarketingTransferSyncUser> transferSyncUserList, String apiCode) {
         // 转化数据CustNum案件编号及对应的UserType场景
-        Map<String, String> map = transferSyncUserList.parallelStream().collect(Collectors.toMap(
+        Map<String, String> map = transferSyncUserList.stream().collect(Collectors.toMap(
                 MarketingTransferSyncUser::getCustNum, MarketingTransferSyncUser::getUserType));
         List<MarketingSyncUser> preUserByTask = marketingSyncUserMapper.getSyncUserLastByCustNumsAndStatus(apiCode, map.keySet());
         // apicode全量有效期配置
@@ -210,7 +210,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      */
     private Map<String, SyncUserValidityPeriodBO> tnValidityPeriodMap(List<MarketingDataValidConfig> configList
             , List<MarketingSyncUser> preUserByTask) {
-        List<MarketingDataValidConfig> tnList = configList.parallelStream().filter(
+        List<MarketingDataValidConfig> tnList = configList.stream().filter(
                 config -> config.getValidType().equals(2)).collect(Collectors.toList());
         // 未配置T+N
         if (CollectionUtils.isEmpty(tnList)) {
