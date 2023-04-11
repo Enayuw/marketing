@@ -322,14 +322,16 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
 
     @Override
     public Map<String, SyncUserValidityPeriodBO> getSyncUserValidityPeriodMap(
-            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj) throws Exception {
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj)
+            throws Exception {
         // apicode全量有效期配置
         List<MarketingDataValidConfig> configList = findConfigAllByApiCodeList(apiCode);
         // 未配置任何有效期
         if (CollectionUtils.isEmpty(configList)) {
             Set<String> set = transferSyncUserList.parallelStream().map(
                     MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-            List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserLastByCustNumsAndStatus(apiCode, set);
+            List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserLastByCustNumsAndStatus(
+                    apiCode, set);
             return longValid(syncUserList);
         }
         // 获取转化数据的请求日期
@@ -355,13 +357,16 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
                 continue;
             }
             Map<String, MarketingSyncUser> syncUserLastByNotInAppletDateMap = syncUserLastByNotInAppletDateList
-                    .parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCustNum, Function.identity()));
+                    .parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCustNum
+                            , Function.identity()));
             List<MarketingSyncUser> returnSyncUserList = ttSyncUserLastByInAppletDateList.parallelStream().filter(
-                    syncUser -> !syncUserLastByNotInAppletDateMap.containsKey(syncUser.getCustNum())).collect(Collectors.toList());
+                    syncUser -> !syncUserLastByNotInAppletDateMap.containsKey(syncUser.getCustNum()))
+                    .collect(Collectors.toList());
             // 不在【非】集合中的数据
             boMap.putAll(ttValidityPeriodMap(ttDataValidConfigList, returnSyncUserList));
             Map<String, MarketingSyncUser> ttSyncUserLastByInAppletDateMap = ttSyncUserLastByInAppletDateList
-                    .parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCustNum, Function.identity()));
+                    .parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCustNum
+                            , Function.identity()));
             // 配置了T+N模式的情况
             boMap.putAll(tnValidityPeriodMap(configList, requestDate, ttSyncUserLastByInAppletDateMap
                     , syncUserLastByNotInAppletDateList));
@@ -377,14 +382,16 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
 
     @Override
     public Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(
-            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj) throws Exception {
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj)
+            throws Exception {
         // apicode全量有效期配置
         List<MarketingDataValidConfig> configList = findConfigAllByApiCodeList(apiCode);
         // 未配置任何有效期
         if (CollectionUtils.isEmpty(configList)) {
             Set<String> set = transferSyncUserList.parallelStream().map(
                     MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-            List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserLastByCustNumsAndStatus(apiCode, set);
+            List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserLastByCustNumsAndStatus(
+                    apiCode, set);
             return longValidUserType(syncUserList);
         }
         // 获取转化数据的请求日期
@@ -403,20 +410,23 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             List<MarketingSyncUser> syncUserLastByNotInAppletDateList = marketingSyncUserMapper
                     .getSyncUserLastByNotInAppletDateUserTypeList(apiCode, ttDataValidConfigList, transferSyncUserList);
             // 配置了T,T （范围）模式的情况
-            List<MarketingSyncUser> ttSyncUserLastByInAppletDateList = ttSyncUserLastByInAppletDateAndUserTypeList(apiCode,
-                    ttDataValidConfigList, transferSyncUsers, requestDate);
+            List<MarketingSyncUser> ttSyncUserLastByInAppletDateList = ttSyncUserLastByInAppletDateAndUserTypeList(
+                    apiCode, ttDataValidConfigList, transferSyncUsers, requestDate);
             if (syncUserLastByNotInAppletDateList.size() == 0) {
                 boMap.putAll(ttValidityPeriodUserTypeMap(ttDataValidConfigList, ttSyncUserLastByInAppletDateList));
                 continue;
             }
             Map<String, MarketingSyncUser> syncUserLastByNotInAppletDateMap = syncUserLastByNotInAppletDateList
-                    .parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCustNum, Function.identity()));
+                    .parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCustNum
+                            , Function.identity()));
             List<MarketingSyncUser> returnSyncUserList = ttSyncUserLastByInAppletDateList.parallelStream().filter(
-                    syncUser -> !syncUserLastByNotInAppletDateMap.containsKey(syncUser.getCustNum())).collect(Collectors.toList());
+                    syncUser -> !syncUserLastByNotInAppletDateMap.containsKey(syncUser.getCustNum()))
+                    .collect(Collectors.toList());
             // 不在【非】集合中的数据
             boMap.putAll(ttValidityPeriodUserTypeMap(ttDataValidConfigList, returnSyncUserList));
             Map<String, MarketingSyncUser> ttSyncUserLastByInAppletDateMap = ttSyncUserLastByInAppletDateList
-                    .parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCustNum, Function.identity()));
+                    .parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCustNum
+                            , Function.identity()));
             // 配置了T+N模式的情况
             boMap.putAll(tnValidityPeriodUserTypeMap(configList, requestDate, ttSyncUserLastByInAppletDateMap
                     , syncUserLastByNotInAppletDateList));
@@ -644,15 +654,16 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
                             , listEntry -> listEntry.getValue().parallelStream().collect(
                                     Collectors.toConcurrentMap(MarketingSyncUser::getUserType, syncUser -> {
                                         String custNum = syncUser.getCustNum();
-                                        syncUser = getNewMarketingSyncUser(ttSyncUserLastByInAppletDateMap.get(custNum), syncUser);
+                                        syncUser = getNewMarketingSyncUser(ttSyncUserLastByInAppletDateMap.get(custNum)
+                                                , syncUser);
                                         // 组装原始数据有效期
                                         SyncUserValidityPeriodBO bo = new SyncUserValidityPeriodBO();
                                         MarketingDataValidConfig marketingDataValidConfig = configMap.get(
                                                 custNum + syncUser.getUserType());
                                         PeriodOfValidityBO.Builder periodOfValidityRange = iPeriodOfValidityService
                                                 .getPeriodOfValidityRange(marketingDataValidConfig.getValidDays()
-                                                        , ObjectUtils.isEmpty(syncUser.getAppletTime()) ? syncUser.getCreateTime()
-                                                                : syncUser.getAppletTime());
+                                                        , ObjectUtils.isEmpty(syncUser.getAppletTime())
+                                                                ? syncUser.getCreateTime() : syncUser.getAppletTime());
                                         bo.setSyncUser(syncUser);
                                         bo.setBuilder(periodOfValidityRange);
                                         return bo;

@@ -44,8 +44,8 @@ public interface TransferDataValidityPeriodService {
      * @author Guo Zeqiang
      * @dateTime 2023-03-22 16:07
      */
-    Map<String, SyncUserValidityPeriodBO> getSyncUserValidityPeriodMap(List<MarketingTransferSyncUser> transferSyncUserList
-            , String apiCode);
+    Map<String, SyncUserValidityPeriodBO> getSyncUserValidityPeriodMap(
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode);
 
 
     /**
@@ -57,8 +57,8 @@ public interface TransferDataValidityPeriodService {
      * @author Guo Zeqiang
      * @dateTime 2023-03-22 16:07
      */
-    Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(List<MarketingTransferSyncUser> transferSyncUserList
-            , String apiCode) throws Exception;
+    Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode) throws Exception;
 
     /**
      * 有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
@@ -72,8 +72,8 @@ public interface TransferDataValidityPeriodService {
      * @author Guo Zeqiang
      * @dateTime 2023-03-22 16:07
      */
-    Map<String, SyncUserValidityPeriodBO> getSyncUserValidityPeriodMap(List<MarketingTransferSyncUser> transferSyncUserList
-            , String apiCode, Object requestDateObj) throws Exception;
+    Map<String, SyncUserValidityPeriodBO> getSyncUserValidityPeriodMap(
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj) throws Exception;
 
     /**
      * 场景中有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
@@ -87,8 +87,8 @@ public interface TransferDataValidityPeriodService {
      * @author Guo Zeqiang
      * @dateTime 2023-03-22 16:07
      */
-    Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(List<MarketingTransferSyncUser> transferSyncUserList
-            , String apiCode, Object requestDateObj) throws Exception;
+    Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj) throws Exception;
 
     /**
      * 根据apiCode和日期
