@@ -565,5 +565,10 @@ public class MarketingCommonConfig {
      * 你我贷数据提取时间
      */
     private String youMeDFileExecTime;
+
+    /**
+     * 转化数据字段 apiCode配置{"3710058":"xiecheng"}
+     */
+    private Map<String,String> transferProcessFieldApiCode;
 }
 
