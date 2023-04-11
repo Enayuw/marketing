@@ -47,6 +47,19 @@ public interface TransferDataValidityPeriodService {
     Map<String, SyncUserValidityPeriodBO> getSyncUserValidityPeriodMap(List<MarketingTransferSyncUser> transferSyncUserList
             , String apiCode);
 
+
+    /**
+     * 场景中有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
+     *
+     * @param transferSyncUserList 转化数据集合
+     * @param apiCode              客户编号
+     * @return Map key：custNum value：Map key：userType value：SyncUserValidityPeriodBO {@linkplain SyncUserValidityPeriodBO MarketingSyncUser PeriodOfValidityBO.Builder}
+     * @author Guo Zeqiang
+     * @dateTime 2023-03-22 16:07
+     */
+    Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(List<MarketingTransferSyncUser> transferSyncUserList
+            , String apiCode) throws Exception;
+
     /**
      * 有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
      *

@@ -363,9 +363,16 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             Map<String, MarketingSyncUser> ttSyncUserLastByInAppletDateMap = ttSyncUserLastByInAppletDateList
                     .parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCustNum, Function.identity()));
             // 配置了T+N模式的情况
-            boMap.putAll(tnValidityPeriodMap(configList, requestDate, ttSyncUserLastByInAppletDateMap, syncUserLastByNotInAppletDateList));
+            boMap.putAll(tnValidityPeriodMap(configList, requestDate, ttSyncUserLastByInAppletDateMap
+                    , syncUserLastByNotInAppletDateList));
         }
         return boMap;
+    }
+
+    @Override
+    public Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode) throws Exception {
+        return getSyncUserValidityPeriodUserTypeMap(transferSyncUserList, apiCode, null);
     }
 
     @Override
