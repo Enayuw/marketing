@@ -177,9 +177,9 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     public Map<String, SyncUserValidityPeriodBO> getSyncUserValidityPeriodMap(
             List<MarketingTransferSyncUser> transferSyncUserList, String apiCode) {
         // 转化数据CustNum案件编号及对应的UserType场景
-        Map<String, String> map = transferSyncUserList.parallelStream().collect(Collectors.toMap(
-                MarketingTransferSyncUser::getCustNum, MarketingTransferSyncUser::getUserType));
-        List<MarketingSyncUser> preUserByTask = marketingSyncUserMapper.getSyncUserLastByCustNumsAndStatus(apiCode, map.keySet());
+        Set<String> map = transferSyncUserList.parallelStream().map(MarketingTransferSyncUser::getCustNum)
+                .collect(Collectors.toSet());
+        List<MarketingSyncUser> preUserByTask = marketingSyncUserMapper.getSyncUserLastByCustNumsAndStatus(apiCode, map);
         // apicode全量有效期配置
         List<MarketingDataValidConfig> configList = findConfigAllByApiCodeList(apiCode);
         // 未配置任何有效期
