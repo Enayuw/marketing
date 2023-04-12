@@ -525,7 +525,7 @@
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
-                job-parameter="2023-03-17T00:00:00"
+                job-parameter=""
                 monitor-execution="true"
                 failover="true"
                 misfire="false"
