@@ -570,5 +570,10 @@ public class MarketingCommonConfig {
      * 转化数据字段 apiCode配置{"3710058":"xiecheng"}
      */
     private Map<String,String> transferProcessFieldApiCode;
+
+    /**
+     * 众安转化数据提取时间
+     */
+    private String zhongAnFileExecTime;
 }
 
