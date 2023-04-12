@@ -323,7 +323,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     @Override
     public Map<String, SyncUserValidityPeriodBO> getSyncUserValidityPeriodMap(
             List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj)
-            throws Exception {
+            throws ParseException, IllegalArgumentException {
         // apicode全量有效期配置
         List<MarketingDataValidConfig> configList = findConfigAllByApiCodeList(apiCode);
         // 未配置任何有效期
@@ -376,14 +376,18 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
 
     @Override
     public Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(
-            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode) throws Exception {
-        return getSyncUserValidityPeriodUserTypeMap(transferSyncUserList, apiCode, null);
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode) {
+        try {
+            return getSyncUserValidityPeriodUserTypeMap(transferSyncUserList, apiCode, null);
+        } catch (ParseException | IllegalArgumentException ignored) {
+            return null;
+        }
     }
 
     @Override
     public Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(
             List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj)
-            throws Exception {
+            throws ParseException, IllegalArgumentException {
         // apicode全量有效期配置
         List<MarketingDataValidConfig> configList = findConfigAllByApiCodeList(apiCode);
         // 未配置任何有效期
@@ -441,7 +445,8 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      * @return key requestDate; value List<MarketingTransferSyncUser>
      */
     private Map<Date, List<MarketingTransferSyncUser>> getTransferDataRequestDate(
-            List<MarketingTransferSyncUser> transferSyncUserList, Object requestDateObj) throws Exception {
+            List<MarketingTransferSyncUser> transferSyncUserList, Object requestDateObj)
+            throws ParseException, IllegalArgumentException {
         Map<Date, List<MarketingTransferSyncUser>> requestDateMap;
         if (requestDateObj == null) {
             // 对转化数据按请求日期分组
@@ -482,7 +487,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      * @return Date
      * @throws Exception {@link ParseException 日期格式解析异常}、{@link IllegalArgumentException 参数无效}
      */
-    private Date switchDate(Object requestDateObj) throws Exception {
+    private Date switchDate(Object requestDateObj) throws ParseException, IllegalArgumentException {
         Date requestDate;
         if (requestDateObj instanceof Date) {
             requestDate = (Date) requestDateObj;

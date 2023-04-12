@@ -7,6 +7,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
 
+import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +59,7 @@ public interface TransferDataValidityPeriodService {
      * @dateTime 2023-03-22 16:07
      */
     Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(
-            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode) throws Exception;
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode);
 
     /**
      * 有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
@@ -73,7 +74,8 @@ public interface TransferDataValidityPeriodService {
      * @dateTime 2023-03-22 16:07
      */
     Map<String, SyncUserValidityPeriodBO> getSyncUserValidityPeriodMap(
-            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj) throws Exception;
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj)
+            throws ParseException, IllegalArgumentException;
 
     /**
      * 场景中有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
@@ -88,7 +90,8 @@ public interface TransferDataValidityPeriodService {
      * @dateTime 2023-03-22 16:07
      */
     Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(
-            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj) throws Exception;
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj)
+            throws ParseException, IllegalArgumentException;
 
     /**
      * 根据apiCode和日期
