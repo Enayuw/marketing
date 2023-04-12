@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl.transferfieldprocess;
 
-import com.br.marketing.common.utils.BeanUtils;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.TransferFieldProcessFactory;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -25,12 +24,12 @@ public class TransferFiledProcessImpl {
     MarketingCommonConfig marketingCommonConfig;
 
     @PostConstruct
-    void init(){
+    void init() {
         Map<String, TransferFieldProcessFactory> beans = applicationContext.getBeansOfType(TransferFieldProcessFactory.class);
         this.map = beans.values().stream().collect(Collectors.groupingBy(t -> t.customerName()));
     }
 
-    public TransferFieldProcessFactory getTransferFieldProcessFactory(String apiCode){
+    public TransferFieldProcessFactory getTransferFieldProcessFactory(String apiCode) {
         Map<String, String> transferProcessFieldApiCode = marketingCommonConfig.getTransferProcessFieldApiCode();
         String s = transferProcessFieldApiCode.get(apiCode);
         if (StringUtils.isBlank(s)) {
@@ -38,7 +37,7 @@ public class TransferFiledProcessImpl {
         }
 
         List<TransferFieldProcessFactory> transferFieldProcessFactories = this.map.get(s);
-        if(transferFieldProcessFactories.size()<=0){
+        if (transferFieldProcessFactories.size() <= 0) {
             return null;
         }
         return transferFieldProcessFactories.get(0);

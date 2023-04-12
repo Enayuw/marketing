@@ -24,6 +24,8 @@ public interface MarketingSyncUserMapper {
 
     MarketingSyncUser selectSynsUserByCustNumLast(@Param("apiCode") String apiCode, @Param("custNum") String custNum);
 
+    MarketingSyncUser selectSynsUserByCellLast(@Param("apiCode") String apiCode, @Param("cell") String cell);
+
     /**
      * 根据客户编号修改上传详情表数据为剔除状态
      *
