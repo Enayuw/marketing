@@ -14,6 +14,7 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -47,13 +48,18 @@ public class FenqilePeriodPushDecisionJob extends AbstractSimpleElasticJob {
         String parameter = shardingContext.getJobParameter();
         LocalDateTime beginTime = null;
         LocalDateTime endTime = null;
+        LocalDate customDate = null;
         if (StringUtils.isNotBlank(parameter)) {
             String[] params = parameter.split(",");
             if (params.length > 1) {
                 beginTime = LocalDateTime.parse(params[0], DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                 endTime = LocalDateTime.parse(params[1], DateTimeFormatter.ISO_LOCAL_DATE_TIME);
             } else if (params.length > 0) {
-                beginTime = LocalDateTime.parse(params[0], DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                try {
+                    beginTime = LocalDateTime.parse(params[0], DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                } catch (Exception e) {
+                    customDate = LocalDate.parse(params[0], DateTimeFormatter.ISO_LOCAL_DATE);
+                }
             }
         }
         Map<String, Map<Integer, String>> apiCodePeriodMap = marketingCommonConfig.getFenqilePeriodPushDecisionPeriod();
@@ -61,7 +67,7 @@ public class FenqilePeriodPushDecisionJob extends AbstractSimpleElasticJob {
             apiCodePeriodMap = setDefaultValue();
         }
         Set<Map.Entry<String, Map<Integer, String>>> apiCodePeriods = apiCodePeriodMap.entrySet();
-        LocalDate localDate = LocalDate.now();
+        LocalDate localDate = customDate == null ? LocalDate.now() : customDate;
         String beginTimeStr;
         String endTimeStr;
         if (endTime == null) {
@@ -71,7 +77,7 @@ public class FenqilePeriodPushDecisionJob extends AbstractSimpleElasticJob {
                 Set<Map.Entry<Integer, String>> periods = periodMap.entrySet();
                 for (Map.Entry<Integer, String> period : periods) {
                     int day = period.getKey() == null ? 0 : period.getKey();
-                    if (beginTime == null || localDate.compareTo(beginTime.toLocalDate()) >= day) {
+                    if (beginTime == null || beginTime.toLocalDate().until(localDate, ChronoUnit.DAYS) >= day) {
                         LocalDate localDate1 = localDate.minusDays(day);
                         beginTimeStr = localDate1.atStartOfDay().format(dateTimeFormatter);
                         endTimeStr = localDate1.format(DateTimeFormatter.ISO_LOCAL_DATE) + " 23:59:59:999";
