@@ -75,7 +75,7 @@ public class FenqileServiceImpl implements IFenqileService {
             return 0;
         }
         String localDateStr = localDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
-        String basicDateStr = localDate.format(DateTimeFormatter.BASIC_ISO_DATE);
+        String basicDateStr = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         List<TransferActionFront> actionRow = getActionRow(apiCode, day, localDateStr);
         int sum = 0;
         if (day == 0 || actionRow.size() < 1) {
