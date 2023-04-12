@@ -1,13 +1,16 @@
 package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.innerapi.service.ResourceAllocationService;
+import com.br.marketing.service.ICustomerConfigService;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -18,6 +21,9 @@ public class BackEndResourceController {
 
     @Autowired
     ResourceAllocationService resourceAllocationService;
+
+    @Autowired
+    ICustomerConfigService iCustomerConfigService;
 
     @ApiOperation(value = "新增zk节点信息",notes = "新增zk节点")
     @GetMapping("/createZkData")
@@ -72,7 +78,8 @@ public class BackEndResourceController {
     }
 
     @GetMapping("/updateEncryptyType")
-    public ApiResult updateEncryptyType(String apiCode,Integer type){
-
+    public ApiResult updateEncryptyType(@RequestParam("apiCode") String apiCode, @RequestParam("type") Integer type){
+        Result result = iCustomerConfigService.updateEncryptyType(apiCode, type);
+        return new ApiResult().fromResult(result,1);
     }
 }

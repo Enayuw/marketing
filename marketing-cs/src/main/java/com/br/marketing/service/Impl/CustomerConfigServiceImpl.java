@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl;
 
-import IceInternal.Ex;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -9,8 +8,11 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingCustomerConfig;
 import com.br.marketing.entity.MarketingCustomerConfigExample;
+import com.br.marketing.enums.ThreeKeyEncryptEnum;
+import com.br.marketing.enums.ThreeKeyTypeEnum;
 import com.br.marketing.mapper.MarketingCustomerConfigMapper;
 import com.br.marketing.service.ICustomerConfigService;
+import com.br.marketing.util.EncAndDecUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -79,5 +81,34 @@ public class CustomerConfigServiceImpl implements ICustomerConfigService {
             redisChgService.del(key);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public Result<String> getThreeKeyDigToLog(String apiCode, String content, ThreeKeyTypeEnum threeKeyTypeEnum) {
+        Result<Integer> encryptyTypeRes = getEncryptyType(apiCode);
+        if(!ResultCode.SUCCESS.getValue().equals(encryptyTypeRes.getCode())){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(encryptyTypeRes.getMessage());
+        }
+        Integer data = encryptyTypeRes.getData();
+        ThreeKeyEncryptEnum threeKeyEncryptEnum = ThreeKeyEncryptEnum.getThreeKeyEncryptEnum(data);
+        if(threeKeyEncryptEnum == null){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("该客户配置的加密类型解析错误");
+        }
+        return EncAndDecUtil.digestToLog(content, threeKeyTypeEnum, threeKeyEncryptEnum);
+    }
+
+    @Override
+    public Result<String> getThreeKeyLogToDig(String apiCode, String content) {
+        Result<Integer> encryptyTypeRes = getEncryptyType(apiCode);
+        if(!ResultCode.SUCCESS.getValue().equals(encryptyTypeRes.getCode())){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(encryptyTypeRes.getMessage());
+        }
+        Integer data = encryptyTypeRes.getData();
+        ThreeKeyEncryptEnum threeKeyEncryptEnum = ThreeKeyEncryptEnum.getThreeKeyEncryptEnum(data);
+        if(threeKeyEncryptEnum == null){
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("该客户配置的加密类型解析错误");
+        }
+        String s = EncAndDecUtil.logTodigest(content, threeKeyEncryptEnum);
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(s);
     }
 }
