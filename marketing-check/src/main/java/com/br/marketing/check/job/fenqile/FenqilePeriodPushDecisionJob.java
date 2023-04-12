@@ -56,9 +56,9 @@ public class FenqilePeriodPushDecisionJob extends AbstractSimpleElasticJob {
                 endTime = LocalDateTime.parse(params[1], DateTimeFormatter.ISO_LOCAL_DATE_TIME);
             } else if (params.length > 0) {
                 try {
-                    customDate = LocalDate.parse(params[0], DateTimeFormatter.ISO_LOCAL_DATE);
-                } catch (Exception e) {
                     beginTime = LocalDateTime.parse(params[0], DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                } catch (Exception e) {
+                    customDate = LocalDate.parse(params[0], DateTimeFormatter.ISO_LOCAL_DATE);
                 }
             }
         }
