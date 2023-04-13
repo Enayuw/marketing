@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl.transfertofile;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
@@ -18,6 +19,7 @@ import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.RuleRedisServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +71,9 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
     public static final String ZHUANHUA_COLUMU_NAME = "custNum,cell,userType,createTime,bizType,eventTime,eventType";
+
+    @Resource
+    TransferDataValidityPeriodService validityPeriodService;
 
     @Override
     public String isMyParam(String apiCode, String jobParameter) {
@@ -284,12 +289,6 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         boolean mark = Boolean.TRUE;
         int totalSize = 0;
         String tcId = tableCreateService.getTcId(apiCode);
-//        MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
-//        syncUser.setApiCode(apiCode);
-//        syncUser.settCid(tcId);
-//        String localDateStr = transferFileTask.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
-//                .toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE);
-//        syncUser.setRequestData(localDateStr);
         while (mark) {
             // 获取前一天的日期
             LocalDate date = LocalDate.now().minusDays(1);
@@ -301,10 +300,25 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
                 continue;
             }
             page++;
-            //判断是否在有效期内
-            // todo
+            // 过滤有效期内数据
+            List<MarketingTransferSyncUser> periodList = new ArrayList<>(offset);
+            Map<String, Map<String, SyncUserValidityPeriodBO>> map = validityPeriodService.getSyncUserValidityPeriodUserTypeMap(list, apiCode);
 
-            for (MarketingTransferSyncUser data : list) {
+            for (MarketingTransferSyncUser transferSyncUser : list) {
+                Map<String, SyncUserValidityPeriodBO> boMap = map.get(transferSyncUser.getCustNum());
+                if (CollectionUtils.isEmpty(boMap)) {
+                    continue;
+                }
+
+                SyncUserValidityPeriodBO bo = boMap.get(transferSyncUser.getUserType());
+                if (null == bo) {
+                    continue;
+                }
+
+                periodList.add(transferSyncUser);
+            }
+
+            for (MarketingTransferSyncUser data : periodList) {
                 String custNum = data.getCustNum();
                 String userType = data.getUserType();
 
@@ -326,7 +340,6 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
                 fw.append(sb);
                 totalSize = totalSize + 1;
             }
-            // todo
             list.clear();
         }
         TransferFileTask updatetask = new TransferFileTask();
