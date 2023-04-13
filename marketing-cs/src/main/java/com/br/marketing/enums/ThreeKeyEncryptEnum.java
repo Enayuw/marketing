@@ -8,7 +8,7 @@ import java.util.Optional;
  */
 public enum ThreeKeyEncryptEnum {
 
-    md5(1,"md5"),sha256(2,"sha256");
+    md5(1,"md5"),sha256(2,"sha");
 
     ThreeKeyEncryptEnum(Integer code, String value) {
         this.value = value;

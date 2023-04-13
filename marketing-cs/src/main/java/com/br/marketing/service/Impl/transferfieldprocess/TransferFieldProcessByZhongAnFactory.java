@@ -46,9 +46,10 @@ public class TransferFieldProcessByZhongAnFactory implements TransferFieldProces
         String transferSyncUserCustNum = transferSyncUser.getCustNum();
         String cellByLog = transferSyncUserCustNum;
         String transferSyncUserUserType = transferSyncUser.getUserType();
-        Result<String> cellRes = iCustomerConfigService.getThreeKeyDigToLog(transferSyncUser.getApiCode(),transferSyncUserCustNum,ThreeKeyTypeEnum.CELL);
-        if(ResultCode.SUCCESS.getValue().equals(cellRes.getCode())){
-           cellByLog = cellRes.getData();
+        Result<String> cellRes = EncAndDecUtil.digestToLog(transferSyncUserCustNum, ThreeKeyTypeEnum.CELL, Boolean.FALSE);
+//        Result<String> cellRes = iCustomerConfigService.getThreeKeyDigToLog(transferSyncUser.getApiCode(),transferSyncUserCustNum,ThreeKeyTypeEnum.CELL);
+        if (ResultCode.SUCCESS.getValue().equals(cellRes.getCode())) {
+            cellByLog = cellRes.getData();
         }
         MarketingSyncUser syncUser = syncUserMapper.selectSynsUserByCellLast(transferSyncUser.getApiCode(), cellByLog);
         if (syncUser != null) {
