@@ -2,6 +2,8 @@ package com.br.marketing.speedconfig;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.bo.JobPushDecisionParameterBO;
+import com.br.marketing.enums.CustomerPushDecisionActionEnum;
 import com.br.speed.client.common.annotations.SpeedFile;
 import lombok.Data;
 import org.springframework.context.annotation.Configuration;
@@ -569,6 +571,13 @@ public class MarketingCommonConfig {
     /**
      * 转化数据字段 apiCode配置{"3710058":"xiecheng"}
      */
-    private Map<String,String> transferProcessFieldApiCode;
+    private Map<String, String> transferProcessFieldApiCode;
+
+    /**
+     * 2023-04-12 11:34
+     * 自动化转决策任务配置
+     * key {@link CustomerPushDecisionActionEnum}; value List{@link JobPushDecisionParameterBO}
+     */
+    private LinkedHashMap<CustomerPushDecisionActionEnum, List<JobPushDecisionParameterBO>> jobPushDecisionParameterMap = new LinkedHashMap<>();
 }
 
