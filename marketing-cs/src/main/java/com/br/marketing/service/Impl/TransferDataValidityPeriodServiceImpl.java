@@ -747,7 +747,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         return preUserByTask.parallelStream().collect(Collectors.groupingBy(MarketingSyncUser::getCustNum)).entrySet()
                 .parallelStream().collect(Collectors.toConcurrentMap(Map.Entry::getKey, stringListEntry ->
                         stringListEntry.getValue().parallelStream().collect(Collectors.toConcurrentMap(
-                                MarketingSyncUser::getCustNum, marketingSyncUser -> {
+                                MarketingSyncUser::getUserType, marketingSyncUser -> {
                                     SyncUserValidityPeriodBO bo = new SyncUserValidityPeriodBO();
                                     bo.setSyncUser(marketingSyncUser);
                                     bo.setBuilder(PeriodOfValidityBO.custom(marketingSyncUser.getAppletTime(), null));
