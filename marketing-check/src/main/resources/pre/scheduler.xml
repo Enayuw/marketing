@@ -659,4 +659,19 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
+    <job:simple id="AutomatedPushDecisionJob"
+                class="com.br.marketing.check.job.decision.AutomatedPushDecisionJob"
+                cron="0 1/10 * * * ? "
+                description="自动化推送决策作业"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
 </beans>
