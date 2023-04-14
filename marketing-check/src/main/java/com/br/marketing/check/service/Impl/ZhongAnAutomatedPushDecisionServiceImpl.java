@@ -136,6 +136,12 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             , String apiCode
             , JobPushDecisionParameterBO parameter
             , MethodRetryHandlerService methodRetryHandlerService) {
+        Map<String, Object> paramMap = parameter.getParamMap();
+        int sum = 0;
+        if (CollectionUtils.isEmpty(paramMap)) {
+            log.error("{}_{}未配置场景,配置参数:{}", customerAction(), apiCode, parameter);
+            return sum;
+        }
         List<PushMarketingUserDetailDTO> dtoList = new ArrayList<>();
         List<Long> ids = new ArrayList<>();
         Map<String, Map<String, SyncUserValidityPeriodBO>> validityPeriodUserTypeMap = null;
@@ -144,21 +150,16 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
                     list, apiCode, new Date());
         } catch (ParseException ignored) {
         }
-        int sum = 0;
         for (MarketingTransferSyncUser transferSyncUser : list) {
             String reserveField1 = transferSyncUser.getReserveField1();
             if (StringUtils.isBlank(reserveField1)) {
                 continue;
             }
             String userType = transferSyncUser.getUserType();
-            Map<String, Object> paramMap = parameter.getParamMap();
-            if (CollectionUtils.isEmpty(paramMap)) {
-                log.error("{}_{}未配置场景,配置参数:{}", customerAction(), apiCode, parameter);
-                continue;
-            }
             Object o = paramMap.get(userType);
             if (ObjectUtils.isEmpty(o)) {
-                log.warn("{}_{}匹配到配置场景,配置参数:{}", customerAction(), apiCode, parameter);
+                log.warn("{}_{}未获取到场景配置,custNum:{};userType:{};配置参数:{}", customerAction(), apiCode
+                        , transferSyncUser.getCustNum(), userType, parameter);
                 continue;
             }
             String value = String.valueOf(o);
