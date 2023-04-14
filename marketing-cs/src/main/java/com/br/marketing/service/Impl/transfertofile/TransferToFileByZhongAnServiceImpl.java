@@ -305,13 +305,18 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
             Map<String, Map<String, SyncUserValidityPeriodBO>> map = validityPeriodService.getSyncUserValidityPeriodUserTypeMap(list, apiCode);
 
             for (MarketingTransferSyncUser transferSyncUser : list) {
-                Map<String, SyncUserValidityPeriodBO> boMap = map.get(transferSyncUser.getCustNum());
+                String custNum = transferSyncUser.getCustNum();
+                String userType = transferSyncUser.getUserType();
+
+                Map<String, SyncUserValidityPeriodBO> boMap = map.get(custNum);
                 if (CollectionUtils.isEmpty(boMap)) {
+                    log.warn("{}:{}不满足案件编号“有效期内”条件", custNum, userType);
                     continue;
                 }
 
-                SyncUserValidityPeriodBO bo = boMap.get(transferSyncUser.getUserType());
+                SyncUserValidityPeriodBO bo = boMap.get(userType);
                 if (null == bo) {
+                    log.warn("{}:{}不满足场景“有效期内”条件", custNum, userType);
                     continue;
                 }
 
