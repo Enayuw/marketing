@@ -1,5 +1,6 @@
 package com.br.marketing.check.job.decision;
 
+import com.alibaba.fastjson.JSONArray;
 import com.br.marketing.bo.JobPushDecisionParameterBO;
 import com.br.marketing.check.beanhadler.InterfaceDecisionFactory;
 import com.br.marketing.check.service.AutomatedPushDecisionService;
@@ -50,16 +51,19 @@ public class AutomatedPushDecisionJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext context) {
         long start1 = System.currentTimeMillis();
         String jobParameter = context.getJobParameter();
-        LinkedHashMap<CustomerPushDecisionActionEnum, List<JobPushDecisionParameterBO>> jobPushDecisionParameterMap =
-                commonConfig.getJobPushDecisionParameterMap();
+        Map<String, JSONArray> jobPushDecisionParameterMap = commonConfig.getJobPushDecisionParameterMap();
         if (CollectionUtils.isEmpty(jobPushDecisionParameterMap)) {
             return;
         }
-        Set<Map.Entry<CustomerPushDecisionActionEnum, List<JobPushDecisionParameterBO>>> parameterEntries =
-                jobPushDecisionParameterMap.entrySet();
-        Set<String> apiCodeSet = parameterEntries.stream().map(entry -> entry.getValue().parallelStream()
-                .map(JobPushDecisionParameterBO::getApiCode).collect(Collectors.toSet()))
-                .collect(Collectors.toSet()).stream().flatMap(Collection::stream).collect(Collectors.toSet());
+        Set<String> apiCodeSet = new HashSet<>();
+        Set<Map.Entry<String, JSONArray>> parameterEntries = jobPushDecisionParameterMap.entrySet();
+        Map<CustomerPushDecisionActionEnum, List<JobPushDecisionParameterBO>> map = new LinkedHashMap<>();
+        for (Map.Entry<String, JSONArray> parameterEntry : parameterEntries) {
+            CustomerPushDecisionActionEnum customerPushDecisionActionEnum = CustomerPushDecisionActionEnum.valueOf(parameterEntry.getKey().toString());
+            List<JobPushDecisionParameterBO> list = JSONArray.parseArray(JSONArray.toJSONString(parameterEntry.getValue()), JobPushDecisionParameterBO.class);
+            map.put(customerPushDecisionActionEnum, list);
+            apiCodeSet.addAll(list.stream().map(JobPushDecisionParameterBO::getApiCode).collect(Collectors.toSet()));
+        }
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"))
                 .andApiCodeIn(new ArrayList<>(apiCodeSet));
@@ -70,10 +74,10 @@ public class AutomatedPushDecisionJob extends AbstractSimpleElasticJob {
         if (CollectionUtils.isEmpty(customerApiCodeSet)) {
             return;
         }
+        final Set<Map.Entry<CustomerPushDecisionActionEnum, List<JobPushDecisionParameterBO>>> entries = map.entrySet();
         Map<CustomerPushDecisionActionEnum, AutomatedPushDecisionService> automatedPushDecisionServiceImpl =
                 interfaceDecisionFactory.getAutomatedPushDecisionServiceImpl();
-        for (Map.Entry<CustomerPushDecisionActionEnum, List<JobPushDecisionParameterBO>> parameterEntry
-                : parameterEntries) {
+        for (Map.Entry<CustomerPushDecisionActionEnum, List<JobPushDecisionParameterBO>> parameterEntry : entries) {
             CustomerPushDecisionActionEnum key = parameterEntry.getKey();
             AutomatedPushDecisionService automatedPushDecisionService = automatedPushDecisionServiceImpl.get(key);
             for (JobPushDecisionParameterBO parameter : parameterEntry.getValue()) {
@@ -91,7 +95,8 @@ public class AutomatedPushDecisionJob extends AbstractSimpleElasticJob {
                         if (updateActionFront == null) {
                             log.error("客户[{}]自动化转决策未全部成功!配置信息为:{};调度任务参数:{}", key, parameter, jobParameter);
                         } else {
-                            int u = automatedPushDecisionService.updateActionFrontStatus(transferActionFrontMapper, row);
+                            int u = automatedPushDecisionService.updateActionFrontStatus(transferActionFrontMapper
+                                    , updateActionFront);
                             if (u < 1) {
                                 log.error("客户[{}]自动化转决策任务记录更新入库失败!配置信息为:{};调度任务参数:{}", key, parameter, jobParameter);
                             }

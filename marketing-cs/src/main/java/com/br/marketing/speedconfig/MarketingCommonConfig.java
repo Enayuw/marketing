@@ -1,6 +1,7 @@
 package com.br.marketing.speedconfig;
 
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.JobPushDecisionParameterBO;
 import com.br.marketing.enums.CustomerPushDecisionActionEnum;
@@ -578,6 +579,6 @@ public class MarketingCommonConfig {
      * 自动化转决策任务配置
      * key {@link CustomerPushDecisionActionEnum}; value List{@link JobPushDecisionParameterBO}
      */
-    private LinkedHashMap<CustomerPushDecisionActionEnum, List<JobPushDecisionParameterBO>> jobPushDecisionParameterMap = new LinkedHashMap<>();
+    private LinkedHashMap<String, JSONArray> jobPushDecisionParameterMap = new LinkedHashMap<>();
 }
 
