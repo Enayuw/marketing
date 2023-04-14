@@ -408,7 +408,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             final List<MarketingTransferSyncUser> transferSyncUsers = dateListEntry.getValue();
             // 获取T,T （范围）模式的配置记录
             List<MarketingDataValidConfig> ttDataValidConfigList = configList.parallelStream().filter(
-                    config -> config.getValidType().equals(3) && org.apache.commons.lang3.StringUtils.isNotBlank(
+                    config -> config.getValidType().equals(1) && org.apache.commons.lang3.StringUtils.isNotBlank(
                             config.getUserType())).collect(Collectors.toList());
             // 获取【非】以上集合最新的一条数据 configAppletDateTN 需要进行非空判断
             List<MarketingSyncUser> syncUserLastByNotInAppletDateList = marketingSyncUserMapper
