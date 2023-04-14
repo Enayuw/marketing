@@ -5,21 +5,24 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.JobPushDecisionParameterBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.check.service.AutomatedPushDecisionService;
-import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleDTO;
-import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
-import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailDTO;
-import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
+import com.br.marketing.client.intelligentcustomerservice.input.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.MonitorTypeEnum;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.enums.CustomerPushDecisionActionEnum;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferActionFrontMapper;
+import com.br.marketing.origin.MqFact;
+import com.br.marketing.rpcclient.RpcClientProxy;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.service.ICustomerConfigService;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.strategy.PolicySoleHandler;
 import com.br.marketing.util.EncAndDecUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -61,6 +64,9 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
 
     @Resource
     private ICustomerConfigService iCustomerConfigService;
+
+    @Resource
+    private PolicySoleHandler policySoleHandler;
 
     @Override
     public CustomerPushDecisionActionEnum customerAction() {
@@ -110,7 +116,7 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
         syncUser.setApiCode(apiCode);
         syncUser.setRequestData(LocalDate.now().minusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE));
         int page = 0;
-        int offset = 2000;
+        int offset = 500;
         int sum = 0;
         for (; ; ) {
             int rowCount = page * offset;
@@ -151,6 +157,7 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
                     list, apiCode, new Date());
         } catch (ParseException ignored) {
         }
+        List<PushMarketingUserDetailByRuleDTO> pushMarketingUserDetailByRuleDTOList = new ArrayList<>();
         for (MarketingTransferSyncUser transferSyncUser : list) {
             String reserveField1 = transferSyncUser.getReserveField1();
             if (StringUtils.isBlank(reserveField1)) {
@@ -192,18 +199,36 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
                 log.error(e.getMessage(), e);
                 continue;
             }
-            PushMarketingUserDetailDTO dto = new PushMarketingUserDetailDTO();
-            //赋值上传原始cell
-            dto.setPhone(cell);
-            dto.setCaseNumber(transferSyncUser.getCustNum());
+            PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
+            pushMarketingUserDetailByRuleDTO.setCaseNumber(transferSyncUser.getCustNum());
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("userType", transferSyncUser.getUserType());
-            dto.setVariables(jsonObject);
-            dtoList.add(dto);
-            ids.add(transferSyncUser.getId());
-            sum += pushDecision(dtoList, ids, strategyCode, apiCode, methodRetryHandlerService, status);
+            pushMarketingUserDetailByRuleDTO.setVariables(jsonObject);
+            pushMarketingUserDetailByRuleDTO.setStrategyCode(strategyCode);
+            pushMarketingUserDetailByRuleDTO.setStatus(status);
+            pushMarketingUserDetailByRuleDTO.setPhone(cell);
+            pushMarketingUserDetailByRuleDTO.setCell(decodePhone(cell));
+            pushMarketingUserDetailByRuleDTO.setInitId(transferSyncUser.getId());
+            pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "_" + apiCode + "_" + status);
+            pushMarketingUserDetailByRuleDTOList.add(pushMarketingUserDetailByRuleDTO);
         }
+        sum = pushMarketingUserDetailByRuleDTOList.size();
+        ProcessHandlerContext context = new ProcessHandlerContext();
+        context.setApiCode(apiCode);
+        context.setMqFact(new MqFact());
+        //推送决策
+        policySoleHandler.call(pushMarketingUserDetailByRuleDTOList, context);
         return sum;
+    }
+
+    private String decodePhone(String cell) {
+        if (DecodeClient.isMd5(cell)) {
+            //cell md5
+            return RpcClientProxy.decode(cell, "cell", "md5", "");
+        } else if (cell.length() == 64) {
+            RpcClientProxy.decode(cell, "cell", "sha", "");
+        }
+        return "";
     }
 
 
