@@ -282,7 +282,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         log.warn("众安异业撞库数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
 
-    private void writeZhongAnTransferToFileZhuanHua(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException {
+    private void writeZhongAnTransferToFileZhuanHua(Writer fw, String apiCode, TransferFileTask transferFileTask) throws Exception {
         long start = System.currentTimeMillis();
         int page = 0;
         int offset = 2000;
