@@ -63,11 +63,11 @@ public class TransferFieldProcessByZhongAnFactory implements TransferFieldProces
                 } catch (Exception ex) {
                     jb.put("tmpKey",transferSyncUser.getReserveField1());
                 }
-                jb.put(cKey, transferSyncUserCustNum);
-                jb.put(uKey, transferSyncUserUserType);
-                jb.put(tKey, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(syncUser.getCreateTime()));
-                transferSyncUser.setReserveField1(jb.toJSONString());
             }
+            jb.put(cKey, transferSyncUserCustNum);
+            jb.put(uKey, transferSyncUserUserType);
+            jb.put(tKey, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(syncUser.getCreateTime()));
+            transferSyncUser.setReserveField1(jb.toJSONString());
         }
     }
 }
