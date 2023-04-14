@@ -77,8 +77,7 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
         }
         LocalTime localTime = LocalTime.parse(extractTime);
         String apiCode = parameter.getApiCode();
-//        if (LocalTime.now().isAfter(localTime)) {
-        if (true) {
+        if (LocalTime.now().isAfter(localTime)) {
             String dateStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
             int actionType = 1;
             List<TransferActionFront> actionFrontList = getActionFrontList(apiCode, actionType, dateStr, mapper);
