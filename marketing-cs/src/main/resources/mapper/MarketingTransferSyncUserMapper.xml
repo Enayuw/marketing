@@ -36,6 +36,7 @@
         select * from
         b_marketing_transfer_sync_${cid}
         where request_data=#{data} and api_code = #{apiCode}
+        order by id desc
         limit #{limitStart},2000;
     </select>
 
