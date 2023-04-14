@@ -233,6 +233,119 @@
         b.status=1
     </select>
 
+    <select id="getSyncUserLastByInAppletDateList" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select
+        <include refid="Last_Column_List"/>
+        from
+        (select cust_num,max(applet_time) as applet_time
+        from b_marketing_sync_${apiCode}
+        where cust_num in
+        <foreach collection="transferSyncUserList" item="transfer" open="(" separator="," close=")">
+            #{transfer.custNum}
+        </foreach>
+        <choose>
+            <when test="configList != null and configList.size()>0">
+                and (applet_date) in
+                <foreach collection="configList" item="item" open="(" close=")" separator=",">
+                    (#{item.appletDate})
+                </foreach>
+            </when>
+            <otherwise>
+                1!=1
+            </otherwise>
+        </choose>
+        and status=1
+        group by cust_num
+        ) as a
+        left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and a.applet_time = b.applet_time where
+        b.status=1
+    </select>
+
+    <select id="getSyncUserLastByInAppletDateUserTypeList" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select
+        <include refid="Last_Column_List"/>
+        from
+        (select cust_num,user_type,max(applet_time) as applet_time
+        from b_marketing_sync_${apiCode}
+        where cust_num in
+        <foreach collection="transferSyncUserList" item="transfer" open="(" separator="," close=")">
+            #{transfer.custNum}
+        </foreach>
+        <choose>
+            <when test="configList != null and configList.size()>0">
+                and (applet_date,user_type) in
+                <foreach collection="configList" item="item" open="(" close=")" separator=",">
+                    (#{item.appletDate},#{item.userType})
+                </foreach>
+            </when>
+            <otherwise>
+                1!=1
+            </otherwise>
+        </choose>
+        and status=1
+        group by cust_num,user_type
+        ) as a
+        left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and a.user_type = b.user_type and
+        a.applet_time = b.applet_time where
+        b.status=1
+    </select>
+
+    <select id="getSyncUserLastByNotInAppletDateList" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select
+        <include refid="Last_Column_List"/>
+        from
+        (select cust_num,max(applet_time) as applet_time
+        from b_marketing_sync_${apiCode}
+        where cust_num in
+        <foreach collection="transferSyncUserList" item="transfer" open="(" separator="," close=")">
+            #{transfer.custNum}
+        </foreach>
+        <if test="configList != null and configList.size()>0">
+            and (applet_date) not in
+            <foreach collection="configList" item="item" open="(" close=")" separator=",">
+                (#{item.appletDate})
+            </foreach>
+        </if>
+        and status=1
+        group by cust_num
+        ) as a
+        left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and a.applet_time = b.applet_time where
+        b.status=1
+    </select>
+
+    <select id="getSyncUserLastByNotInAppletDateUserTypeList" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select
+        <include refid="Last_Column_List"/>
+        from
+        (select cust_num,user_type,max(applet_time) as applet_time
+        from b_marketing_sync_${apiCode}
+        where cust_num in
+        <foreach collection="transferSyncUserList" item="transfer" open="(" separator="," close=")">
+            #{transfer.custNum}
+        </foreach>
+        <if test="configList != null and configList.size()>0">
+            and (applet_date,user_type) not in
+            <foreach collection="configList" item="item" open="(" close=")" separator=",">
+                (#{item.appletDate},#{item.userType})
+            </foreach>
+        </if>
+        and status=1
+        group by cust_num,user_type
+        ) as a
+        left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and a.user_type = b.user_type and
+        a.applet_time = b.applet_time where
+        b.status=1
+    </select>
+
+    <sql id="Last_Column_List">
+        b
+        .
+        id
+        , b.cus_batch, b.cust_num, b.id_card, b.name, b.cell, b.user_type, b.reserve_field1,
+        b.reserve_field2, b.create_time,b.update_time, b.applet_date, b.applet_time
+    </sql>
+
+
     <select id="getSyncUserTimeMaxByCustNums" resultType="com.br.marketing.entity.MarketingSyncUser">
         select max(create_time) as createTime, cust_num
         from b_marketing_sync_${apiCode}
