@@ -61,17 +61,8 @@ public class TransferFieldProcessByZhongAnFactory implements TransferFieldProces
                 try {
                     jb = JSON.parseObject(transferSyncUser.getReserveField1());
                 } catch (Exception ex) {
-                    jb = null;
+                    jb.put("tmpKey",transferSyncUser.getReserveField1());
                 }
-            }
-            if (jb == null) {
-                String content = String.format("\"%s\":\"%s\",\"%s\":\"%s\",\"%s\":\"%s\""
-                        , cKey, transferSyncUserCustNum
-                        , uKey, transferSyncUserUserType
-                        , tKey, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(syncUser.getCreateTime()));
-                String initContent = StringUtils.isNotBlank(transferSyncUser.getReserveField1()) ? transferSyncUser.getReserveField1().concat(",") : "";
-                transferSyncUser.setReserveField1(initContent.concat(content));
-            } else {
                 jb.put(cKey, transferSyncUserCustNum);
                 jb.put(uKey, transferSyncUserUserType);
                 jb.put(tKey, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(syncUser.getCreateTime()));
