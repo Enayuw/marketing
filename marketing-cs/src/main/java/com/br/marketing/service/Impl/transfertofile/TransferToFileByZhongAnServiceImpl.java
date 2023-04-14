@@ -206,7 +206,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
-    
+
     private Result actionTransferToFileByZhuanHua(TransferFileTask transferFileTask) {
         log.warn("众安转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
@@ -282,7 +282,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         log.warn("众安异业撞库数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
 
-    private void writeZhongAnTransferToFileZhuanHua(Writer fw, String apiCode, TransferFileTask transferFileTask) throws Exception {
+    private void writeZhongAnTransferToFileZhuanHua(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException {
         long start = System.currentTimeMillis();
         int page = 0;
         int offset = 2000;
@@ -326,25 +326,30 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
             for (MarketingTransferSyncUser data : periodList) {
                 String custNum = data.getCustNum();
                 String userType = data.getUserType();
+                try {
+                    JSONObject reserveFieldJson = JSON.parseObject(data.getReserveField1());
 
-                JSONObject reserveFieldJson = JSON.parseObject(data.getReserveField1());
-                Object cell = reserveFieldJson.get("initCustNum");
-                Object bizType = reserveFieldJson.get("bizType");
-                Object eventTime = reserveFieldJson.get("eventTime");
-                Object eventType = reserveFieldJson.get("eventType");
-                Object createTime = reserveFieldJson.get("uploadCreateTime");
+                    Object cell = reserveFieldJson.get("initCustNum");
+                    Object bizType = reserveFieldJson.get("bizType");
+                    Object eventTime = reserveFieldJson.get("eventTime");
+                    Object eventType = reserveFieldJson.get("eventType");
+                    Object createTime = reserveFieldJson.get("uploadCreateTime");
 
-                String sb = deleteNull(custNum) +
-                        deleteNull(cell) +
-                        deleteNull(userType) +
-                        deleteNull(createTime) +
-                        deleteNull(bizType) +
-                        deleteNull(eventTime) +
-                        (eventType != null ? eventType.toString() : "") +
-                        "\r\n";
-                fw.append(sb);
-                totalSize = totalSize + 1;
+                    String sb = deleteNull(custNum) +
+                            deleteNull(cell) +
+                            deleteNull(userType) +
+                            deleteNull(createTime) +
+                            deleteNull(bizType) +
+                            deleteNull(eventTime) +
+                            (eventType != null ? eventType.toString() : "") +
+                            "\r\n";
+                    fw.append(sb);
+                    totalSize = totalSize + 1;
+                } catch (Exception e) {
+                    log.error("{}:{}数据异常", custNum, userType);
+                }
             }
+
             list.clear();
         }
         TransferFileTask updatetask = new TransferFileTask();
