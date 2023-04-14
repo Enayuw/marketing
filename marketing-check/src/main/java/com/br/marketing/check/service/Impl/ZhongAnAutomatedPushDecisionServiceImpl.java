@@ -3,6 +3,7 @@ package com.br.marketing.check.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.JobPushDecisionParameterBO;
+import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.check.service.AutomatedPushDecisionService;
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
@@ -27,6 +28,7 @@ import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.security.SecureRandom;
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -136,6 +138,12 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             , MethodRetryHandlerService methodRetryHandlerService) {
         List<PushMarketingUserDetailDTO> dtoList = new ArrayList<>();
         List<Long> ids = new ArrayList<>();
+        Map<String, Map<String, SyncUserValidityPeriodBO>> validityPeriodUserTypeMap = null;
+        try {
+            validityPeriodUserTypeMap = transferDataValidityPeriodService.getSyncUserValidityPeriodUserTypeMap(
+                    list, apiCode, new Date());
+        } catch (ParseException ignored) {
+        }
         int sum = 0;
         for (MarketingTransferSyncUser transferSyncUser : list) {
             String reserveField1 = transferSyncUser.getReserveField1();
@@ -156,7 +164,7 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             String value = String.valueOf(o);
             String[] values = value.split("&");
             String strategyCode;
-            String cell = null;
+            String cell;
             String status = values[0];
             if (values.length > 1) {
                 strategyCode = values[1];
@@ -165,8 +173,16 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             }
             try {
                 JSONObject jsonObject = JSON.parseObject(reserveField1);
-                // TODO: 2023-04-14 添加有效期判断 ,使用当前时间
-                if (!"LOGIN".equals(jsonObject.get("eventType"))) {
+                if (!"LOGIN".equals(jsonObject.get("eventType")) || validityPeriodUserTypeMap == null) {
+                    continue;
+                }
+                // 有效期判断
+                Map<String, SyncUserValidityPeriodBO> boMap = validityPeriodUserTypeMap.get(transferSyncUser.getCustNum());
+                if (boMap == null) {
+                    continue;
+                }
+                SyncUserValidityPeriodBO bo = boMap.get(userType);
+                if (bo == null) {
                     continue;
                 }
                 cell = jsonObject.getString("initCustNum");
