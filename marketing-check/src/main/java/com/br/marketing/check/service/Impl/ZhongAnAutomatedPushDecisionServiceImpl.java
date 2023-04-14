@@ -77,7 +77,8 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
         }
         LocalTime localTime = LocalTime.parse(extractTime);
         String apiCode = parameter.getApiCode();
-        if (LocalTime.now().isAfter(localTime)) {
+//        if (LocalTime.now().isAfter(localTime)) {
+        if (true) {
             String dateStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
             int actionType = 1;
             List<TransferActionFront> actionFrontList = getActionFrontList(apiCode, actionType, dateStr, mapper);
@@ -136,25 +137,21 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             , MethodRetryHandlerService methodRetryHandlerService) {
         List<PushMarketingUserDetailDTO> dtoList = new ArrayList<>();
         List<Long> ids = new ArrayList<>();
-        int pageSize = 500;
-        int s = list.size();
         int sum = 0;
         for (MarketingTransferSyncUser transferSyncUser : list) {
             String reserveField1 = transferSyncUser.getReserveField1();
             if (StringUtils.isBlank(reserveField1)) {
-                s--;
                 continue;
             }
             String userType = transferSyncUser.getUserType();
             Map<String, Object> paramMap = parameter.getParamMap();
             if (CollectionUtils.isEmpty(paramMap)) {
                 log.error("{}_{}未配置场景,配置参数:{}", customerAction(), apiCode, parameter);
-                break;
+                continue;
             }
             Object o = paramMap.get(userType);
             if (ObjectUtils.isEmpty(o)) {
                 log.warn("{}_{}匹配到配置场景,配置参数:{}", customerAction(), apiCode, parameter);
-                s--;
                 continue;
             }
             String value = String.valueOf(o);
@@ -171,12 +168,10 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
                 JSONObject jsonObject = JSON.parseObject(reserveField1);
                 // TODO: 2023-04-14 添加有效期判断 ,使用当前时间
                 if (!"LOGIN".equals(jsonObject.get("eventType"))) {
-                    s--;
                     continue;
                 }
                 cell = jsonObject.getString("initCustNum");
             } catch (Exception e) {
-                s--;
                 log.error(e.getMessage(), e);
                 continue;
             }
@@ -188,18 +183,7 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             dto.setVariables(jsonObject);
             dtoList.add(dto);
             ids.add(transferSyncUser.getId());
-            s--;
-            int size = dtoList.size();
-            if (size == pageSize || s == 0) {
-                Result<?> result = pushDecision(dtoList, ids, strategyCode, apiCode, methodRetryHandlerService, status);
-                if (result != null && ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                    sum += size;
-                } else {
-                    log.error("客户[{}]自动化转决策失败!配置信息为:{}", customerAction(), parameter);
-                }
-                dtoList.clear();
-                ids.clear();
-            }
+            sum += pushDecision(dtoList, ids, strategyCode, apiCode, methodRetryHandlerService, status);
         }
         return sum;
     }
@@ -209,28 +193,48 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
      * 2023-03-13 17:43
      * 发送数据
      */
-    private Result<?> pushDecision(List<PushMarketingUserDetailDTO> dtoList
+    private int pushDecision(List<PushMarketingUserDetailDTO> dtoList
             , List<Long> ids, String strategyCode, String apiCode
             , MethodRetryHandlerService methodRetryHandlerService, String status) {
         SecureRandom secureRandom = new SecureRandom();
-        PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
-        taskInfoDTO.setStrategyCode(strategyCode);
-        taskInfoDTO.setData(dtoList);
-        taskInfoDTO.setAccessNumber(System.nanoTime() + String.format("%05d", secureRandom.nextInt(10000)));
-        taskInfoDTO.setMethod("caseAdd");
-        taskInfoDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "_" + apiCode + "_" + status);
-        PushMarketingUserDTO<PushMarketingUserTaskInfoDTO> pushMarketingUserDTO = new PushMarketingUserDTO<>();
-        pushMarketingUserDTO.setApiCode(apiCode);
-        pushMarketingUserDTO.setJsonData(taskInfoDTO);
-        PolicyRetryByRuleDTO retryByRuleDTO = new PolicyRetryByRuleDTO();
-        retryByRuleDTO.setIds(ids);
-        retryByRuleDTO.setInfoId(null);
-        retryByRuleDTO.setPushMarketingUserDTO(pushMarketingUserDTO);
-        try {
-            return pushDecision(retryByRuleDTO, methodRetryHandlerService);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return null;
+        int sum = 0;
+        int pageSize = 500;
+        int totalCount = dtoList.size();
+        int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
+        for (int i = 1; i <= pageCount; i++) {
+            List<PushMarketingUserDetailDTO> subList;
+            List<Long> subIds;
+            if (i == pageCount) {
+                subList = dtoList.subList((i - 1) * pageSize, totalCount);
+                subIds = ids.subList((i - 1) * pageSize, totalCount);
+            } else {
+                subList = dtoList.subList((i - 1) * pageSize, pageSize * (i));
+                subIds = ids.subList((i - 1) * pageSize, pageSize * (i));
+            }
+            PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
+            taskInfoDTO.setStrategyCode(strategyCode);
+            taskInfoDTO.setData(subList);
+            taskInfoDTO.setAccessNumber(System.nanoTime() + String.format("%05d", secureRandom.nextInt(10000)));
+            taskInfoDTO.setMethod("caseAdd");
+            taskInfoDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "_" + apiCode + "_" + status);
+            PushMarketingUserDTO<PushMarketingUserTaskInfoDTO> pushMarketingUserDTO = new PushMarketingUserDTO<>();
+            pushMarketingUserDTO.setJsonData(taskInfoDTO);
+            pushMarketingUserDTO.setApiCode(apiCode);
+            PolicyRetryByRuleDTO retryByRuleDTO = new PolicyRetryByRuleDTO();
+            retryByRuleDTO.setIds(subIds);
+            retryByRuleDTO.setInfoId(null);
+            retryByRuleDTO.setPushMarketingUserDTO(pushMarketingUserDTO);
+            try {
+                Result<?> result = pushDecision(retryByRuleDTO, methodRetryHandlerService);
+                if (result != null && ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                    sum += subList.size();
+                } else {
+                    log.error("客户[{}]自动化转决策失败!apiCode={}", customerAction(), apiCode);
+                }
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
         }
+        return sum;
     }
 }
