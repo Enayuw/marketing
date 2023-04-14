@@ -20,6 +20,7 @@ import com.br.marketing.service.ICustomerConfigService;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.util.EncAndDecUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -192,7 +193,8 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
                 continue;
             }
             PushMarketingUserDetailDTO dto = new PushMarketingUserDetailDTO();
-            dto.setPhone(iCustomerConfigService.getThreeKeyLogToDig(apiCode, cell).getData());
+            //赋值上传原始cell
+            dto.setPhone(cell);
             dto.setCaseNumber(transferSyncUser.getCustNum());
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("userType", transferSyncUser.getUserType());
