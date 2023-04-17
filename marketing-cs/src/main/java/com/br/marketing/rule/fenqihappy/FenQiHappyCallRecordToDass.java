@@ -99,7 +99,6 @@ public class FenQiHappyCallRecordToDass implements AssembleData<RealTimeUserData
                 realTimeUserDataDTO = new RealTimeUserDataDTO();
                 DassSingleImportAdapDTO dassSingleImportAdapDTO = new DassSingleImportAdapDTO();
                 PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
-                phoneSaleExtendInfo.setId(0L);
                 phoneSaleExtendInfo.setApiCode(context.getApiCode());
                 phoneSaleExtendInfo.setCustNum(marketingSyncUser.getCustNum());
                 phoneSaleExtendInfo.setCell(marketingSyncUser.getCell());
@@ -111,6 +110,7 @@ public class FenQiHappyCallRecordToDass implements AssembleData<RealTimeUserData
                 phoneSaleExtendInfo.setPStatus(1);
                 phoneSaleExtendInfo.setCreateTime(new Date());
                 phoneSaleExtendInfo.setUpdateTime(new Date());
+                phoneSaleExtendInfo.setSourceId(dto.getId());
                 phoneSaleExtendInfoMapper.insertSelective(phoneSaleExtendInfo);
 
                 DassSingleImportDataDTO dassSingleImportDataDTO = new DassSingleImportDataDTO();//单条
