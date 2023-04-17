@@ -422,7 +422,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
                             config.getUserType())).collect(Collectors.toList());
             // 获取【非】以上集合最新的一条数据 configAppletDateTN 需要进行非空判断
             List<MarketingSyncUser> syncUserLastByNotInAppletDateList = marketingSyncUserMapper
-                    .getSyncUserLastByNotInAppletDateLimitDateUserTypeList(apiCode, ttDataValidConfigList, transferSyncUserList, UploadLimitDate);
+                    .getSyncUserLastByNotInAppletDateUserTypeList(apiCode, ttDataValidConfigList, transferSyncUserList, UploadLimitDate);
             // 配置了T,T （范围）模式的情况
             List<MarketingSyncUser> ttSyncUserLastByInAppletDateList = ttSyncUserLastByInAppletDateAndUserTypeList(
                     apiCode, ttDataValidConfigList, transferSyncUsers, requestDate);

@@ -60,10 +60,6 @@ public interface MarketingSyncUserMapper {
 
     List<MarketingSyncUser> getSyncUserLastByNotInAppletDateUserTypeList(@Param("apiCode") String apiCode
             , @Param("configList") List<MarketingDataValidConfig> configList
-            , @Param("transferSyncUserList") List<MarketingTransferSyncUser> transferSyncUserList);
-
-    List<MarketingSyncUser> getSyncUserLastByNotInAppletDateLimitDateUserTypeList(@Param("apiCode") String apiCode
-            , @Param("configList") List<MarketingDataValidConfig> configList
             , @Param("transferSyncUserList") List<MarketingTransferSyncUser> transferSyncUserList, @Param("limitDate") String limitDate);
 
     List<MarketingSyncUser> getNewestByCustNums(@Param("apiCode") String apiCode, @Param("custNums") Set<String> custNums);

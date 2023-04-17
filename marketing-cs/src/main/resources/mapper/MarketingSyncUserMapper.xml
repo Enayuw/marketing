@@ -376,31 +376,6 @@
         </if>
     </select>
 
-    <select id="getSyncUserLastByNotInAppletDateLimitDateUserTypeList"
-            resultType="com.br.marketing.entity.MarketingSyncUser">
-        select
-        <include refid="Last_Column_List"/>
-        from
-        (select cust_num,user_type,max(applet_time) as applet_time
-        from b_marketing_sync_${apiCode}
-        where cust_num in
-        <foreach collection="transferSyncUserList" item="transfer" open="(" separator="," close=")">
-            #{transfer.custNum}
-        </foreach>
-        <if test="configList != null and configList.size()>0">
-            and (applet_date,user_type) not in
-            <foreach collection="configList" item="item" open="(" close=")" separator=",">
-                (#{item.appletDate},#{item.userType})
-            </foreach>
-        </if>
-        and status=1
-        group by cust_num,user_type
-        ) as a
-        left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and a.user_type = b.user_type and
-        a.applet_time = b.applet_time where
-        b.status=1
-    </select>
-
     <sql id="Last_Column_List">
         b
         .
