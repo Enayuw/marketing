@@ -154,7 +154,7 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
         Map<String, Map<String, SyncUserValidityPeriodBO>> validityPeriodUserTypeMap = null;
         try {
             validityPeriodUserTypeMap = transferDataValidityPeriodService.getSyncUserValidityPeriodUserTypeMap(
-                    list, apiCode, new Date());
+                    list, apiCode, new Date(),null);
         } catch (ParseException ignored) {
         }
         List<PushMarketingUserDetailByRuleDTO> pushMarketingUserDetailByRuleDTOList = new ArrayList<>();

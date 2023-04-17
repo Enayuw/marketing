@@ -44,6 +44,8 @@ public interface MarketingSyncUserMapper {
      */
     List<MarketingSyncUser> getSyncUserLastByCustNumsAndStatus(@Param("apiCode") String apiCode, @Param("custNums") Set<String> custs);
 
+    List<MarketingSyncUser> getSyncUserLastByCustNumsAndStatusAndDate(@Param("apiCode") String apiCode, @Param("custNums") Set<String> custs, @Param("limitDate") String limitDate);
+
     List<MarketingSyncUser> getSyncUserLastByInAppletDateList(@Param("apiCode") String apiCode
             , @Param("configList") List<MarketingDataValidConfig> configList
             , @Param("transferSyncUserList") List<MarketingTransferSyncUser> transferSyncUserList);
@@ -59,6 +61,10 @@ public interface MarketingSyncUserMapper {
     List<MarketingSyncUser> getSyncUserLastByNotInAppletDateUserTypeList(@Param("apiCode") String apiCode
             , @Param("configList") List<MarketingDataValidConfig> configList
             , @Param("transferSyncUserList") List<MarketingTransferSyncUser> transferSyncUserList);
+
+    List<MarketingSyncUser> getSyncUserLastByNotInAppletDateLimitDateUserTypeList(@Param("apiCode") String apiCode
+            , @Param("configList") List<MarketingDataValidConfig> configList
+            , @Param("transferSyncUserList") List<MarketingTransferSyncUser> transferSyncUserList, @Param("limitDate") String limitDate);
 
     List<MarketingSyncUser> getNewestByCustNums(@Param("apiCode") String apiCode, @Param("custNums") Set<String> custNums);
 
@@ -159,22 +165,25 @@ public interface MarketingSyncUserMapper {
 
     /**
      * 根据配置信息，查询apiCode userType 时间为 3个维度下最新一条数据
+     *
      * @param collectRequestDate
      * @param marketingTransferSyncUser
      * @return
      */
-    MarketingSyncUser  selectInAppletDate(@Param("collectRequestDate") List<MarketingDataValidConfig> collectRequestDate, @Param("marketingTransferSyncUser") MarketingTransferSyncUser marketingTransferSyncUser);
+    MarketingSyncUser selectInAppletDate(@Param("collectRequestDate") List<MarketingDataValidConfig> collectRequestDate, @Param("marketingTransferSyncUser") MarketingTransferSyncUser marketingTransferSyncUser);
 
     /**
      * 根据配置信息，查询【非】apiCode userType 时间为 3个维度下最新一条数据
+     *
      * @param collectRequestDate
      * @param marketingTransferSyncUser
      * @return
      */
-    MarketingSyncUser  selectNotInAppletDate( @Param("collectRequestDate") List<MarketingDataValidConfig> collectRequestDate,@Param("marketingTransferSyncUser") MarketingTransferSyncUser marketingTransferSyncUser);
+    MarketingSyncUser selectNotInAppletDate(@Param("collectRequestDate") List<MarketingDataValidConfig> collectRequestDate, @Param("marketingTransferSyncUser") MarketingTransferSyncUser marketingTransferSyncUser);
 
     /**
      * 根据id和日期获取上传数据
+     *
      * @param apiCode
      * @param appletDate
      * @param minId
@@ -188,7 +197,7 @@ public interface MarketingSyncUserMapper {
 
     Integer countByAppletDate(@Param("apiCode") String apiCode, @Param("appletDate") String appletDate);
 
-    List<MarketingSyncUser> getNewSyncUserByCustNumtikv_(@Param("apiCode") String apiCode,@Param("custNums") List<String> custNums,@Param("dateBegin") String dateBegin,@Param("dateEnd") String dateEnd);
+    List<MarketingSyncUser> getNewSyncUserByCustNumtikv_(@Param("apiCode") String apiCode, @Param("custNums") List<String> custNums, @Param("dateBegin") String dateBegin, @Param("dateEnd") String dateEnd);
 
     String getMinAppletDate(@Param("apiCode") String apiCode);
 }

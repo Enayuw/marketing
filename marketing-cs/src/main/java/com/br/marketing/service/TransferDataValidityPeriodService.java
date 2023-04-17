@@ -61,6 +61,17 @@ public interface TransferDataValidityPeriodService {
     Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(
             List<MarketingTransferSyncUser> transferSyncUserList, String apiCode);
 
+
+    /**
+     * 获取范围内的有效期的原始数据
+     * @param transferSyncUserList
+     * @param apiCode
+     * @param limitDate
+     * @return
+     */
+    Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode,String limitDate);
+
     /**
      * 有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
      *
@@ -90,7 +101,7 @@ public interface TransferDataValidityPeriodService {
      * @dateTime 2023-03-22 16:07
      */
     Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(
-            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj)
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj,String UploadLimitDate)
             throws ParseException, IllegalArgumentException;
 
     /**
