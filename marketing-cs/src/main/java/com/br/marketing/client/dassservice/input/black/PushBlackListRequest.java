@@ -48,7 +48,7 @@ public class PushBlackListRequest {
             sortList.addAll(list);
             list.clear();
         });
-        List<Object> sort2List = sortList.parallelStream().sorted().collect(Collectors.toList());
+        List<Object> sort2List = sortList.stream().sorted().collect(Collectors.toList());
         sortList.clear();
         String paramValue = Joiner.on("").join(sort2List);
         return DigestUtils.md5DigestAsHex(String.format(secretKey + "%s", paramValue).getBytes());

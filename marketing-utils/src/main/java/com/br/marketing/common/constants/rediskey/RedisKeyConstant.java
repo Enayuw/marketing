@@ -91,4 +91,9 @@ public class RedisKeyConstant {
      * 榕树推送人工Ibu手机号加锁  key
      */
     public static final String pushRongShuDaasIbuKey = prefix.concat("rongshu:pushdaasibu:cell");
+
+    /**
+     * 3k加密类型
+     */
+    public static final String encryptyKey = prefix.concat("threek:encrypty");
 }
