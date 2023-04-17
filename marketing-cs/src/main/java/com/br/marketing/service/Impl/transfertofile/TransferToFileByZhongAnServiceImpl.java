@@ -302,7 +302,8 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
             page++;
             // 过滤有效期内数据
             List<MarketingTransferSyncUser> periodList = new ArrayList<>(offset);
-            Map<String, Map<String, SyncUserValidityPeriodBO>> map = validityPeriodService.getSyncUserValidityPeriodUserTypeMap(list, apiCode);
+            Map<String, Map<String, SyncUserValidityPeriodBO>> map = validityPeriodService.getSyncUserValidityPeriodUserTypeMap(list, apiCode,
+                    yesterday);
 
             for (MarketingTransferSyncUser transferSyncUser : list) {
                 String custNum = transferSyncUser.getCustNum();

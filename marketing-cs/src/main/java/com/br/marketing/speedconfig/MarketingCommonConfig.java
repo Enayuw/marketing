@@ -580,7 +580,6 @@ public class MarketingCommonConfig {
      * key {@link CustomerPushDecisionActionEnum}; value List{@link JobPushDecisionParameterBO}
      */
     private LinkedHashMap<String, JSONArray> jobPushDecisionParameterMap = new LinkedHashMap<>();
-    private Map<String,String> transferProcessFieldApiCode;
 
     /**
      * 众安转化数据提取时间
