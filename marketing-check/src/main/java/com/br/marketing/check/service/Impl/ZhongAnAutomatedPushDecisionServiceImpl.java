@@ -10,7 +10,6 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MonitorTypeEnum;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.enums.CustomerPushDecisionActionEnum;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
@@ -23,7 +22,6 @@ import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.strategy.PolicySoleHandler;
-import com.br.marketing.util.EncAndDecUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -196,7 +194,7 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
                 }
                 cell = jsonObject.getString("initCustNum");
             } catch (Exception e) {
-                log.error(e.getMessage(), e);
+                log.warn(e.getMessage(), e);
                 continue;
             }
             PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
