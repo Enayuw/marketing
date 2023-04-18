@@ -580,5 +580,10 @@ public class MarketingCommonConfig {
      * key {@link CustomerPushDecisionActionEnum}; value List{@link JobPushDecisionParameterBO}
      */
     private LinkedHashMap<String, JSONArray> jobPushDecisionParameterMap = new LinkedHashMap<>();
+
+    /**
+     * 众安转化数据提取时间
+     */
+    private String zhongAnFileExecTime;
 }
 
