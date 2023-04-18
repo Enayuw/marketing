@@ -86,14 +86,14 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
         String apiCode = parameter.getApiCode();
         if (LocalTime.now().isAfter(localTime)) {
             String dateStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
-            int actionType = 1;
+            int actionType = 2;
             List<TransferActionFront> actionFrontList = getActionFrontList(apiCode, actionType, dateStr, mapper);
             if (CollectionUtils.isEmpty(actionFrontList)) {
                 TransferActionFront actionFront = new TransferActionFront();
                 actionFront.setActionType(actionType);
-                actionFront.setStatus(actionType);
+                actionFront.setStatus(1);
                 actionFront.setCreateTime(new Date());
-                actionFront.setIsDel(actionType);
+                actionFront.setIsDel(1);
                 actionFront.setApiCode(apiCode);
                 actionFront.setActionData(dateStr);
                 resultList.add(actionFront);
