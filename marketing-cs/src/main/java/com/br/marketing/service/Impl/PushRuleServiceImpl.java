@@ -47,10 +47,8 @@ import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
-import com.br.marketing.service.IRuleConfigService;
-import com.br.marketing.service.PushRuleService;
-import com.br.marketing.service.PushTransferRobotaiLogService;
-import com.br.marketing.service.SoleStrategyService;
+import com.br.marketing.service.*;
+import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.*;
 import com.github.pagehelper.PageHelper;
@@ -324,6 +322,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     MarketingTaskExtendMapper marketingTaskExtendMapper;
+
+    @Autowired
+    TransferFiledProcessImpl transferFiledProcess;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -1273,6 +1274,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         String cid = marketingCustomers.get(0).getCid();
         String tcid = cid.replaceFirst("-", "");
         tableCreateService.createMarketingTransferUserTable(tcid);
+        TransferFieldProcessFactory transferFieldProcessFactory = transferFiledProcess.getTransferFieldProcessFactory(transferInfo.getApiCode());
         ArrayList<Callable<Result<MarketingPreUserErrorDetailVO>>> list = new ArrayList<>();
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             TransferDataItemDTO transferDataItemDTO = dto.getDataItems().get(i);
@@ -1319,44 +1321,47 @@ public class PushRuleServiceImpl implements PushRuleService {
                 transferSyncUser.setLentTime(dateTimeComplet(transferDataItemDTO.getLentTime()));
                 transferSyncUser.setSettleTime(dateTimeComplet(transferDataItemDTO.getSettleTime()));
                 transferSyncUser.setTransformTime(dateTimeComplet(transferDataItemDTO.getTransformTime()));
-                //桔子特殊处理
-                if (marketingCommonConfig.getJuZiTransferInsertApiCodes().contains(transferSyncUser.getApiCode())
-                        && StringUtils.isNotBlank(transferDataItemDTO.getCustNum()) && transferDataItemDTO.getCustNum().length() > 15) {
-                    transferSyncUser.setCustNum(transferDataItemDTO.getCustNum().substring(15));
-                    String reserveField1 = transferDataItemDTO.getReserveField1();
-                    if (StringUtils.isNotBlank(reserveField1)) {
-                        try {
-                            JSONObject json = JSON.parseObject(reserveField1);
-                            json.put("initCustNum", transferDataItemDTO.getCustNum());
-                            transferSyncUser.setReserveField1(JSON.toJSONString(json));
-                        } catch (Exception e) {
-                            transferSyncUser.setReserveField1(reserveField1 + "," + transferDataItemDTO.getCustNum());
-                        }
-                    } else {
-                        JSONObject json = new JSONObject();
-                        json.put("initCustNum", transferDataItemDTO.getCustNum());
-                        transferSyncUser.setReserveField1(JSON.toJSONString(json));
-                    }
+                if(transferFieldProcessFactory!=null){
+                    transferFieldProcessFactory.fieldProcess(transferSyncUser);
                 }
-                //携程特殊处理
-                if (marketingCommonConfig.getXieChengTransferInsertApiCodes().contains(transferSyncUser.getApiCode())
-                        && StringUtils.isNotBlank(transferDataItemDTO.getCustNum()) && transferDataItemDTO.getCustNum().length() > 18){
-                    transferSyncUser.setCustNum(transferDataItemDTO.getCustNum().substring(18));
-                    String reserveField1 = transferDataItemDTO.getReserveField1();
-                    if (StringUtils.isNotBlank(reserveField1)) {
-                        try {
-                            JSONObject json = JSON.parseObject(reserveField1);
-                            json.put("initCustNum", transferDataItemDTO.getCustNum());
-                            transferSyncUser.setReserveField1(JSON.toJSONString(json));
-                        } catch (Exception e) {
-                            transferSyncUser.setReserveField1(reserveField1 + "," + transferDataItemDTO.getCustNum());
-                        }
-                    } else {
-                        JSONObject json = new JSONObject();
-                        json.put("initCustNum", transferDataItemDTO.getCustNum());
-                        transferSyncUser.setReserveField1(JSON.toJSONString(json));
-                    }
-                }
+//                //桔子特殊处理
+//                if (marketingCommonConfig.getJuZiTransferInsertApiCodes().contains(transferSyncUser.getApiCode())
+//                        && StringUtils.isNotBlank(transferDataItemDTO.getCustNum()) && transferDataItemDTO.getCustNum().length() > 15) {
+//                    transferSyncUser.setCustNum(transferDataItemDTO.getCustNum().substring(15));
+//                    String reserveField1 = transferDataItemDTO.getReserveField1();
+//                    if (StringUtils.isNotBlank(reserveField1)) {
+//                        try {
+//                            JSONObject json = JSON.parseObject(reserveField1);
+//                            json.put("initCustNum", transferDataItemDTO.getCustNum());
+//                            transferSyncUser.setReserveField1(JSON.toJSONString(json));
+//                        } catch (Exception e) {
+//                            transferSyncUser.setReserveField1(reserveField1 + "," + transferDataItemDTO.getCustNum());
+//                        }
+//                    } else {
+//                        JSONObject json = new JSONObject();
+//                        json.put("initCustNum", transferDataItemDTO.getCustNum());
+//                        transferSyncUser.setReserveField1(JSON.toJSONString(json));
+//                    }
+//                }
+//                //携程特殊处理
+//                if (marketingCommonConfig.getXieChengTransferInsertApiCodes().contains(transferSyncUser.getApiCode())
+//                        && StringUtils.isNotBlank(transferDataItemDTO.getCustNum()) && transferDataItemDTO.getCustNum().length() > 18){
+//                    transferSyncUser.setCustNum(transferDataItemDTO.getCustNum().substring(18));
+//                    String reserveField1 = transferDataItemDTO.getReserveField1();
+//                    if (StringUtils.isNotBlank(reserveField1)) {
+//                        try {
+//                            JSONObject json = JSON.parseObject(reserveField1);
+//                            json.put("initCustNum", transferDataItemDTO.getCustNum());
+//                            transferSyncUser.setReserveField1(JSON.toJSONString(json));
+//                        } catch (Exception e) {
+//                            transferSyncUser.setReserveField1(reserveField1 + "," + transferDataItemDTO.getCustNum());
+//                        }
+//                    } else {
+//                        JSONObject json = new JSONObject();
+//                        json.put("initCustNum", transferDataItemDTO.getCustNum());
+//                        transferSyncUser.setReserveField1(JSON.toJSONString(json));
+//                    }
+//                }
                 try {
                     marketingTransferSyncUserMapper.insertSelective(transferSyncUser);
                 } catch (Exception ex) {

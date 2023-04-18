@@ -135,7 +135,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             throw new BusinessException("tag:" + tag + ",apiCode" + apiCode
                     + ",未配置有效期[zhongAnPeriodOfValidityDay]！");
         }
-        Map<String, MarketingSyncUser> syncUserMapNew = inList.parallelStream().filter(l -> syncUserMap.containsKey(
+        Map<String, MarketingSyncUser> syncUserMapNew = inList.stream().filter(l -> syncUserMap.containsKey(
                 cellMap.get(l.getMobileMd5()))).collect(Collectors.toMap(d -> d.getMobileMd5() + d.getBizDate()
                 , l -> syncUserMap.get(cellMap.get(l.getMobileMd5()))));
         Integer day;
@@ -249,7 +249,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             , String dateStr
             , int day) {
         Map<String, String> custNumMap = new ConcurrentHashMap<>(1024);
-        List<ZhongAnMobileMd5BizDateQuery> queries = inList.parallelStream().filter(
+        List<ZhongAnMobileMd5BizDateQuery> queries = inList.stream().filter(
                 l -> syncUserMapNew.containsKey(l.getMobileMd5() + l.getBizDate())).map(l -> {
             MarketingSyncUser syncUser = syncUserMapNew.get(l.getMobileMd5() + l.getBizDate());
             custNumMap.put(syncUser.getCustNum(), l.getBizDate());
@@ -262,7 +262,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                 , apiCode, "CG");
         if (!CollectionUtils.isEmpty(cgMobileMd5Set)) {
             // 过滤CG组是否已经推送过
-            List<ZhonganRosterLockingData> list = inList.parallelStream().filter(
+            List<ZhonganRosterLockingData> list = inList.stream().filter(
                     l -> cgMobileMd5Set.contains(l.getMobileMd5())).collect(Collectors.toList());
             // 去掉CG组已推送
             inList.removeAll(list);
@@ -296,7 +296,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
      */
     private Set<String> getMarketingBanMap(String apiCode, List<ZhonganRosterLockingData> inList
             , Map<String, String> cellMap) {
-        List<ZhongAnCellZkDateQuery> queries = inList.parallelStream().map(l
+        List<ZhongAnCellZkDateQuery> queries = inList.stream().map(l
                 -> new ZhongAnCellZkDateQuery(cellMap.getOrDefault(l.getMobileMd5(), "")
                 , l.getBizDate())).collect(Collectors.toList());
         return Optional.ofNullable(zhonganMarketingBanMapper.getNotMarketingCell(
@@ -392,7 +392,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
     private Map<String, String> md5ToLogMap(List<ZhonganRosterLockingData> inList) {
         return inList.parallelStream().collect(Collectors.collectingAndThen(
                 Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ZhonganRosterLockingData::getMobileMd5)))
-                , ArrayList::new)).parallelStream().collect(Collectors.toMap(ZhonganRosterLockingData::getMobileMd5, d -> {
+                , ArrayList::new)).stream().collect(Collectors.toMap(ZhonganRosterLockingData::getMobileMd5, d -> {
             String query = RpcClientProxy.decode(d.getMobileMd5(), "cell", "md5", "");
             return StringUtils.isBlank(query) ? d.getMobileMd5() : BrCipherMaker.getInstance().encode(query);
         }, (v1, v2) -> v1));

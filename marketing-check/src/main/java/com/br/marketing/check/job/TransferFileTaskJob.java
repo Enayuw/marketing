@@ -218,7 +218,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByTongChengService, marketingCommonConfig.getTongChengTransferFileApiCodes())
                 // 小赢转化数据提取
                 .addBind(xiaoYingRealTimeService, marketingCommonConfig.getXiaoYingTransferExtractApiCodes())
-                // 众安异业撞库数据提取
+                // 众安异业撞库、转化数据提取
                 .addBind(transferToFileByZhongAnService, marketingCommonConfig.getZhongAnTransferApiCodes())
                 // 携程转化数据提取
                 .addBind(transferToFileByXieChengService, marketingCommonConfig.getXieChengTransferApiCodes())
