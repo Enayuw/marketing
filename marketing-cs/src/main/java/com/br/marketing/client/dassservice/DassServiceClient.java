@@ -237,8 +237,7 @@ public class DassServiceClient {
     public Result<JSONObject> postRealTimeUserData(DassSingleImportAdapDTO dto) {
         Result result = new Result();
         DassSingleImportDataDTO dassSingleImportDataDTO = dto.getDassSingleImportDataDTO();
-        String phoneAesEncrypt = AESUtil.aesEncrypty(dassSingleImportDataDTO.getPhone(), ascKey);
-        dassSingleImportDataDTO.setPhone(phoneAesEncrypt);
+        dassSingleImportDataDTO.setPhone(getPhone(dassSingleImportDataDTO.getPhone()));
         dassSingleImportDataDTO.setExtend(extendSort(dassSingleImportDataDTO.getExtend()));
         List<DassSingleImportDataDTO> dassSingleImportAdapDTOList = Lists.newArrayList(dassSingleImportDataDTO);
         long l = LocalDateTime.now().plusMinutes(10L).toInstant(ZoneOffset.of("+8")).toEpochMilli();
@@ -286,7 +285,7 @@ public class DassServiceClient {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage("无应答消息");
                 return result;
             }
-            result.setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.parseObject(respStr, Response2Entity.class));
+            result.setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.parseObject(respStr));
         } else {
             result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
         }
@@ -317,6 +316,15 @@ public class DassServiceClient {
         return jsonSortParam.toJSONString();
     }
 
+    private String getPhone(String phone){
+        String content = phone;
+        String s = AESUtil.aesDecrypt(phone, ascKey);
+        if(StringUtils.isBlank(s)){
+            content = AESUtil.aesEncrypty(phone, ascKey);
+        }
+        return content;
+    }
+
     /**
      * 推送转化数据
      */
@@ -325,7 +333,7 @@ public class DassServiceClient {
         List<DassTransferDataDTO> dassTransferDataDTOList = dassTransferDataAdapDTO.getDassTransferDataDTOList();
         dassTransferDataDTOList.forEach(dassTransferDataDTO -> {
             if (StringUtils.isNotEmpty(dassTransferDataDTO.getPhone())) {
-                dassTransferDataDTO.setPhone(AESUtil.aesEncrypty(dassTransferDataDTO.getPhone(), ascKey));
+                dassTransferDataDTO.setPhone(getPhone(dassTransferDataDTO.getPhone()));
             }
         });
         long l = LocalDateTime.now().plusMinutes(10L).toInstant(ZoneOffset.of("+8")).toEpochMilli();
