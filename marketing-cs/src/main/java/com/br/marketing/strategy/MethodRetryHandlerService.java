@@ -217,17 +217,27 @@ public class MethodRetryHandlerService {
     @RetryMethod(isOrNoDbRetry = true)
     public Result callDassRealTimeLog(RealTimeUserDataDTO realTimeUserDataDTO, Integer retry) {
 
-        Result result = dassServiceClient.postRealTimeUserData(realTimeUserDataDTO.getDassSingleImportAdapDTO());
+        Result<JSONObject> result = dassServiceClient.postRealTimeUserData(realTimeUserDataDTO.getDassSingleImportAdapDTO());
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            saveBizLog(realTimeUserDataDTO.getDassSingleImportAdapDTO().getExtendInfo(), InterfaceHandlerEnum.ARTIFICIAL_REAL_TIME_LOG.getCode(),
-                    realTimeUserDataDTO.getDassSingleImportAdapDTO().getTransferInfoId());
-            PhoneSaleExtendInfo phoneSaleExtendInfo = realTimeUserDataDTO.getPhoneSaleExtendInfo();
-            PhoneSaleExtendInfo update = new PhoneSaleExtendInfo();
-            update.setPushDxTime(new Date());
-            update.setId(phoneSaleExtendInfo.getId());
-            update.setPStatus(2);
-            phoneSaleExtendInfoMapper.updateByPrimaryKeySelective(update);
-            return new Result().setCode(ResultCode.SUCCESS.getValue());
+            Integer code = result.getData().getInteger("code");
+            if(new Integer(0).equals(code)) {
+                saveBizLog(realTimeUserDataDTO.getDassSingleImportAdapDTO().getExtendInfo(), InterfaceHandlerEnum.ARTIFICIAL_REAL_TIME_LOG.getCode(),
+                        realTimeUserDataDTO.getDassSingleImportAdapDTO().getTransferInfoId());
+                PhoneSaleExtendInfo phoneSaleExtendInfo = realTimeUserDataDTO.getPhoneSaleExtendInfo();
+                PhoneSaleExtendInfo update = new PhoneSaleExtendInfo();
+                update.setPushDxTime(new Date());
+                update.setId(phoneSaleExtendInfo.getId());
+                update.setPStatus(2);
+                phoneSaleExtendInfoMapper.updateByPrimaryKeySelective(update);
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
+            }else{
+                PhoneSaleExtendInfo phoneSaleExtendInfo = realTimeUserDataDTO.getPhoneSaleExtendInfo();
+                PhoneSaleExtendInfo update = new PhoneSaleExtendInfo();
+                update.setPushDxTime(new Date());
+                update.setId(phoneSaleExtendInfo.getId());
+                update.setPStatus(3);
+                phoneSaleExtendInfoMapper.updateByPrimaryKeySelective(update);
+            }
         }
         log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());

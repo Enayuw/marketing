@@ -234,7 +234,7 @@ public class DassServiceClient {
     /**
      * 单条用户数据实时推送
      */
-    public Result postRealTimeUserData(DassSingleImportAdapDTO dto) {
+    public Result<JSONObject> postRealTimeUserData(DassSingleImportAdapDTO dto) {
         Result result = new Result();
         DassSingleImportDataDTO dassSingleImportDataDTO = dto.getDassSingleImportDataDTO();
         String phoneAesEncrypt = AESUtil.aesEncrypty(dassSingleImportDataDTO.getPhone(), ascKey);
