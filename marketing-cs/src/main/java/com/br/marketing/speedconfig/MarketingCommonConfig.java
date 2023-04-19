@@ -605,5 +605,10 @@ public class MarketingCommonConfig {
      * 众安转化数据提取时间
      */
     private String zhongAnFileExecTime;
+
+    /**
+     * 众安明细推送配置{"userType":{"isPush":"1/0","channelCode":"****"}}
+     */
+    private HashMap<String,HashMap<String,String>> zhongAnDetailPush;
 }
 
