@@ -11,13 +11,11 @@ import com.br.marketing.client.zhongan.input.ZaMarketDetail;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.SftpFilePushSuccessDTO;
-import com.br.marketing.entity.LocalFile;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.ZhonganRosterLockingData;
-import com.br.marketing.entity.ZhonganRosterLockingDataExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.ZhonganMarketingBanMapper;
@@ -29,11 +27,13 @@ import com.br.marketing.monkeydata.query.ZhongAnCellZkDateQuery;
 import com.br.marketing.monkeydata.query.ZhongAnMobileMd5BizDateQuery;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.rpcclient.RpcClientProxy;
+import com.br.marketing.service.IMarketingDataValidService;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -84,6 +84,9 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
     @Resource
     private ZhonganMarketingBanMapper zhonganMarketingBanMapper;
 
+    @Autowired
+    IMarketingDataValidService iMarketingDataValidService;
+
     private static final ThreadPoolExecutor POOL = BrExecutors.getThreadPool(15, 20);
 
     @Override
@@ -130,25 +133,23 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             updatePushStatus(inList, 3, apiCode, tag, dateStr);
             return result;
         }
-        Map<String, String> zhongAnPeriodOfValidityDay = marketingCommonConfig.getZhongAnPeriodOfValidityDay();
-        if (CollectionUtils.isEmpty(zhongAnPeriodOfValidityDay) || !zhongAnPeriodOfValidityDay.containsKey(apiCode)) {
-            throw new BusinessException("tag:" + tag + ",apiCode" + apiCode
-                    + ",未配置有效期[zhongAnPeriodOfValidityDay]！");
-        }
+
+        Result<List<MarketingDataValidConfig>> dataValidConfigByType = iMarketingDataValidService.getDataValidConfigByType(apiCode, 3);
+        AssertResult.assertResult(dataValidConfigByType);
+        List<MarketingDataValidConfig> validConfigs = dataValidConfigByType.getData();
+        Map<String, Integer> userTypeDays = validConfigs.stream().collect(Collectors.toMap(MarketingDataValidConfig::getUserType
+                , t -> dataLoadingHandlerService.periodOfValidityDay(t.getValidDays())));
         Map<String, MarketingSyncUser> syncUserMapNew = inList.stream().filter(l -> syncUserMap.containsKey(
                 cellMap.get(l.getMobileMd5()))).collect(Collectors.toMap(d -> d.getMobileMd5() + d.getBizDate()
                 , l -> syncUserMap.get(cellMap.get(l.getMobileMd5()))));
-        Integer day;
-        try {
-            day = dataLoadingHandlerService.getPeriodOfValidityDay(zhongAnPeriodOfValidityDay, apiCode);
-        } catch (IllegalAccessException e) {
-            log.warn(e.getMessage(), e);
-            throw e;
-        }
         Iterator<ZhonganRosterLockingData> iterator = inList.iterator();
         List<ZhonganRosterLockingDataBO> list = new ArrayList<>();
+        //失效集合
         List<ZhonganRosterLockingData> notValidity = new ArrayList<>();
+        //没有匹配上传数据集合
         List<ZhonganRosterLockingData> notUploadData = new ArrayList<>();
+        //无需推送场景集合
+        List<ZhonganRosterLockingData> notPushData = new ArrayList<>();
         MarketingSyncUser syncUser;
         switch (tag) {
             case "CG":
@@ -215,10 +216,11 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
      * 有效期判断
      */
     private MarketingSyncUser periodOfValidity(Map<String, MarketingSyncUser> syncUserMapNew
-            , Integer day
+            , HashMap<String,Integer>
             , ZhonganRosterLockingData next
             , List<ZhonganRosterLockingData> notValidity
-            , List<ZhonganRosterLockingData> notUploadData) {
+            , List<ZhonganRosterLockingData> notUploadData
+            , List<ZhonganRosterLockingData> noPushData) {
         String mobileMd5 = next.getMobileMd5();
         String key = mobileMd5 + next.getBizDate();
         if (syncUserMapNew.containsKey(key)) {
