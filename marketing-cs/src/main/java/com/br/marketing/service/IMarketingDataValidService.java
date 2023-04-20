@@ -2,8 +2,10 @@ package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.MarketingDataValidConfig;
+import com.br.marketing.entity.MarketingSyncUser;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IMarketingDataValidService {
 
@@ -14,4 +16,13 @@ public interface IMarketingDataValidService {
      * @return 有配置则code返回1，没有则是0
      */
     Result<List<MarketingDataValidConfig>> getDataValidConfigByType(String apiCode,Integer validType);
+
+
+    /**
+     * 根据场景和T+N的有效期配置 判断数据是否有效
+     * @param userTypeTN 配置 “场景”：“有效天数”
+     * @param syncUser 待运营数据
+     * @return
+     */
+    Result isValidByThreeType(Map<String,Integer> userTypeTN, MarketingSyncUser syncUser);
 }

@@ -216,7 +216,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
      * 有效期判断
      */
     private MarketingSyncUser periodOfValidity(Map<String, MarketingSyncUser> syncUserMapNew
-            , HashMap<String,Integer>
+            , HashMap<String,Integer> userTypeDay
             , ZhonganRosterLockingData next
             , List<ZhonganRosterLockingData> notValidity
             , List<ZhonganRosterLockingData> notUploadData
@@ -225,9 +225,8 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         String key = mobileMd5 + next.getBizDate();
         if (syncUserMapNew.containsKey(key)) {
             MarketingSyncUser syncUser = syncUserMapNew.get(key);
-            Date validityDate = syncUser.getAppletTime() == null ? syncUser.getCreateTime() : syncUser.getAppletTime();
-            boolean validityBool = marketingSyncUserService.isPeriodOfValidity(new Date(), day, validityDate);
-            if (validityBool) {
+            Result validByThreeType = iMarketingDataValidService.isValidByThreeType(userTypeDay, syncUser);
+            if (ResultCode.SUCCESS.getValue().equals(validByThreeType.getCode())) {
                 return syncUser;
             } else {
                 // 不在有效期内
