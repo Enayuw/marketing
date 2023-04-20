@@ -457,7 +457,7 @@
     </select>
 
     <select id="getCellByCellAndMaxAppletTime" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select t1.cell,cust_num,applet_date,applet_time,create_time,cus_batch
+        select t1.cell,t1.user_type,cust_num,applet_date,applet_time,create_time,cus_batch
         from b_marketing_sync_${apiCode} t1,
         (select cell,max(applet_time) as appletTime
         from b_marketing_sync_${apiCode}

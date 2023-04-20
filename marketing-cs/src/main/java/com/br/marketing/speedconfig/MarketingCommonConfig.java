@@ -609,6 +609,6 @@ public class MarketingCommonConfig {
     /**
      * 众安明细推送配置{"userType":{"isPush":"1/0","channelCode":"****"}}
      */
-    private HashMap<String,HashMap<String,String>> zhongAnDetailPush;
+    private HashMap<String,JSONObject> zhongAnDetailPush;
 }
 

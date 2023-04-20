@@ -1,4 +1,6 @@
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -43,6 +45,20 @@ public class MyTest {
         }catch (Exception ex){
 
         }
+    }
+
+    @Test
+    public void testFastJson(){
+        JSONObject jb = new JSONObject();
+        jb.put("123","234");
+        ArrayList<JSONObject> a = new ArrayList<>();
+        JSONObject jb1 = new JSONObject();
+        jb1.put("1",jb);
+        JSONObject jb2 = new JSONObject();
+        jb2.put("2",jb);
+        a.add(jb1);
+        a.add(jb2);
+        System.out.println(JSON.toJSONString(a));
     }
 
     @Test
