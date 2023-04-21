@@ -186,7 +186,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                     ZhonganRosterLockingData next = iterator.next();
                     if ((syncUser = isPush(syncUserMapNew, userTypeDays, zhongAnDetailPush, next, notValidity, notUploadData, notPushData, notValidConfigData)) != null) {
                         // 判断黑名单
-                        if (custNumBlackListSet.contains(syncUser.getCustNum()+next.getBizDate())) {
+                        if (custNumBlackListSet.contains(syncUser.getCustNum() + next.getBizDate())) {
                             // 命中黑名单
                             hitBlackList.add(next);
                             continue;
@@ -295,7 +295,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                     return new ZhongAnMobileMd5BizDateQuery(l.getMobileMd5(), periodOfValidityBO);
                 })
                 .collect(Collectors.toList());
-        if(CollectionUtils.isEmpty(queries)){
+        if (CollectionUtils.isEmpty(queries)) {
             return custNumBlackListSet;
         }
         Set<String> cgMobileMd5Set = zhonganRosterLockingDataMapper.getMobileMd5ByBeforePushSettikv_(queries, apiCode, "CG");
@@ -317,9 +317,9 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         Iterator<Map.Entry<String, String>> iterator = custNumMap.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, String> ob = iterator.next();
-            if(nowDay.equals(ob.getValue())||custNumCache.contains(ob.getKey())){
+            if (nowDay.equals(ob.getValue()) && custNumCache.contains(ob.getKey())) {
                 iterator.remove();
-                custNumBlackListSet.add(ob.getKey()+nowDay);
+                custNumBlackListSet.add(ob.getKey() + nowDay);
             }
         }
 //        Set<String> custNumBlackListSet = new HashSet<>(custNumSet);
@@ -333,11 +333,11 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
 //        if (CollectionUtils.isEmpty(custNumMap)) {
 //            return custNumBlackListSet;
 //        }
-        if(!CollectionUtils.isEmpty(custNumMap)){
+        if (!CollectionUtils.isEmpty(custNumMap)) {
             List<CallRecord> blackListSettikv_ = callRecordMapper.getBlackListSettikv_(custNumMap, apiCode);
-            if(!CollectionUtils.isEmpty(blackListSettikv_)){
+            if (!CollectionUtils.isEmpty(blackListSettikv_)) {
                 custNumBlackListSet.addAll(blackListSettikv_.stream()
-                        .map(t->t.getCaseNum()+new SimpleDateFormat("yyyy-MM-dd").format(t.getCallStartTime()))
+                        .map(t -> t.getCaseNum() + new SimpleDateFormat("yyyy-MM-dd").format(t.getCallStartTime()))
                         .collect(Collectors.toSet()));
             }
         }
@@ -394,7 +394,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             ZhonganRosterLockingData data = bo.getData();
             dataList.add(data);
             MarketingSyncUser syncUser = bo.getSyncUser();
-            String channelCode = "MG".equals(data.getTag())||"CG".equals(data.getTag())
+            String channelCode = "MG".equals(data.getTag()) || "CG".equals(data.getTag())
                     ? zhongAnDetailPush.get(syncUser.getUserType()).getString("channelCode")
                     : ZhongAnClient.XdChannelCode;
             detail.setBizDate(data.getBizDate());
