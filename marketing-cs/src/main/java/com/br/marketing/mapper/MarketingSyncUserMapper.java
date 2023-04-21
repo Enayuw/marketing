@@ -137,7 +137,7 @@ public interface MarketingSyncUserMapper {
      * @param minId
      * @return
      */
-    List<MarketingSyncUser> getSyncUserByAppletDate(@Param("apiCode") String apiCode, @Param("executeDate") String executeDate, @Param("minId") Long minId);
+    List<MarketingSyncUser> getSyncUserByAppletDateAndUserType(@Param("apiCode") String apiCode, @Param("executeDate") String executeDate, @Param("minId") Long minId,@Param("userType") String userType);
 
     /**
      * 获取appletDate日期集合
@@ -147,7 +147,7 @@ public interface MarketingSyncUserMapper {
      * @param endDate
      * @return
      */
-    List<String> getAppletDate(@Param("apiCode") String apiCode, @Param("startDate") String startDate, @Param("endDate") String endDate);
+    List<String> getAppletDateByUserType(@Param("apiCode") String apiCode, @Param("startDate") String startDate, @Param("endDate") String endDate,@Param("userType") String userType);
 
     /**
      * 获取案件的上传时间
