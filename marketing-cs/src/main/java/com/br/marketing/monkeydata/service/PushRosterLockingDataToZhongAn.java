@@ -333,11 +333,13 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
 //        if (CollectionUtils.isEmpty(custNumMap)) {
 //            return custNumBlackListSet;
 //        }
-        List<CallRecord> blackListSettikv_ = callRecordMapper.getBlackListSettikv_(custNumMap, apiCode);
-        if(!CollectionUtils.isEmpty(blackListSettikv_)){
-            custNumBlackListSet.addAll(blackListSettikv_.stream()
-                    .map(t->t.getCaseNum()+new SimpleDateFormat("yyyy-MM-dd").format(t.getCallStartTime()))
-                    .collect(Collectors.toSet()));
+        if(!CollectionUtils.isEmpty(custNumMap)){
+            List<CallRecord> blackListSettikv_ = callRecordMapper.getBlackListSettikv_(custNumMap, apiCode);
+            if(!CollectionUtils.isEmpty(blackListSettikv_)){
+                custNumBlackListSet.addAll(blackListSettikv_.stream()
+                        .map(t->t.getCaseNum()+new SimpleDateFormat("yyyy-MM-dd").format(t.getCallStartTime()))
+                        .collect(Collectors.toSet()));
+            }
         }
         return custNumBlackListSet;
     }
