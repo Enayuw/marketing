@@ -180,6 +180,15 @@ api:
       singKey: 95cc01ec07387a44
       channel: commonUnionCheckUser
       isProxy: true
+  didi:
+    baseUrl: https://admarketing-manhattan.xiaojukeji.com
+    smsUrl: ${api.didi.baseUrl}/crow/collision/bairong
+    reachUrl: ${api.didi.baseUrl}/crow/user/success/bairong
+    jmassSUrl: ${api.didi.baseUrl}/model/sample/bairong
+    token: DK&SgWl!fZ%WVSXe
+    scas: 0001
+    channelId: 3140738836439875
+    isProxy: true
 spring:
   rabbitmq:
     addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
