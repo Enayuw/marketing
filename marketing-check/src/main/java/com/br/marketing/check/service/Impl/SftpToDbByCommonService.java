@@ -1,5 +1,7 @@
 package com.br.marketing.check.service.Impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.AlarmApiClient;
@@ -309,6 +311,7 @@ public class SftpToDbByCommonService {
 
         String filepath = context.getLocalTxtFilePath().concat(context.getTxtFileName());
         AtomicInteger errorMark = new AtomicInteger(0);
+        AtomicInteger success = new AtomicInteger(0);
         try (
                 FileReader read = new FileReader(filepath);
                 BufferedReader br = new BufferedReader(read);) {
@@ -328,18 +331,23 @@ public class SftpToDbByCommonService {
             Boolean readFile = Boolean.TRUE;
             while (readFile) {
                 String row = br.readLine();
+                if(line == 1){
+                    line++;
+                    continue;
+                }
                 if(row == null){
                     readFile = Boolean.FALSE;
+                }else{
+                    String trim = row.trim();
+                    if (StringUtils.isNotEmpty(row) && StringUtils.isNotEmpty(trim)) {
+                        datasHp.put(line,trim);
+                        hasNum++;
+                    }
                 }
-                String trim = row.trim();
-                if (StringUtils.isNotEmpty(row) && StringUtils.isNotEmpty(trim)) {
-                    datasHp.put(line,trim);
-                    hasNum++;
-                }
-                if((!readFile && datasHp.size()>0) || datasHp.size()==hasNum){
+                if((!readFile && datasHp.size()>0) || dataNum==hasNum){
                     TxtToDbDTO txtToDbDTO = new TxtToDbDTO();
                     HashMap<Integer, String> threadDatas = new HashMap<>();
-                    BeanUtils.copyProperties(datasHp,threadDatas);
+                    threadDatas.putAll(datasHp);
                     txtToDbDTO.setDatas(threadDatas);
                     txtToDbDTO.setApiCode(localFile.getApiCode());
                     txtToDbDTO.setLocalId(localFile.getId());
@@ -352,8 +360,10 @@ public class SftpToDbByCommonService {
                     txtToDbDTO.setDbName(fileDbConfig.getDbName());
                     threadPool.submit(() -> {
                         Result apply = fuc.apply(txtToDbDTO);
-                        if (!ResultCode.SUCCESS.getValue().equals(apply.getCode())) {
-                            errorMark.getAndIncrement();
+                        if (ResultCode.SUCCESS.getValue().equals(apply.getCode())) {
+                            JSONObject jsonObject = JSON.parseObject(apply.getMessage());
+                            errorMark.getAndAdd(jsonObject.getInteger("errorNum"));
+                            success.getAndAdd(jsonObject.getInteger("successNum"));
                         }
                     });
                     hasNum = 0;
