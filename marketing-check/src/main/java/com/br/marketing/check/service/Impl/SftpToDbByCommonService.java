@@ -369,7 +369,9 @@ public class SftpToDbByCommonService {
                     hasNum = 0;
                     datasHp.clear();
                 }
-                line++;
+                if(row !=null){
+                    line++;
+                }
             }
             /**
              * 等待所有任务都执行完成
