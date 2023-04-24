@@ -205,7 +205,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         if (StringUtils.isNotBlank(value)) {
                             error = error.replace(String.format("%s不能为空;", field), "");
                         }
-                        valueSb.append(StringUtils.isBlank(value) ? "''" : value).append(",");
+                        valueSb.append(StringUtils.isBlank(value) ? "''" : String.format("'%s'",value)).append(",");
                     }
 
                     if (field.equals("extend")) {
@@ -220,7 +220,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                 }
 
                 if (jo != null) {
-                    valueSb.append(jo.toJSONString()).append(",");
+                    valueSb.append(String.format("'%s'",jo.toJSONString())).append(",");
                 } else {
                     valueSb.append("'',");
                 }
