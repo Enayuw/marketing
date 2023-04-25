@@ -609,11 +609,5 @@ public class MarketingCommonConfig {
      * 分期乐推送电销配置 场景：手机号推送去重天数 {"usertType":30}
      */
     private HashMap<String,Long> fenqiHappyPushDassConfig;
-
-    /**
-     * 滴滴接口日志记录判断标识key为接口名称，第一个为db记录判断，第二为file记录
-     * {"pushSmsTrafficAccess":[false,true],"pushReachSuccess":[false,true],"pushJMASS":[false,true]}
-     */
-    private HashMap<String, List<Boolean>> didiApiLogMark;
 }
 
