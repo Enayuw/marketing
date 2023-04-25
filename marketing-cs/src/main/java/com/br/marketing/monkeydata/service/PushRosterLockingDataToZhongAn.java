@@ -40,6 +40,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -270,7 +271,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             , String dateStr
             , Map<String, Integer> userTypeDays) {
         Map<String, String> custNumMap = new ConcurrentHashMap<>(1024);
-        Map<String,PeriodOfValidityBO> custDayMap = new HashMap<>();
+        Map<String, PeriodOfValidityBO> custDayMap = new HashMap<>();
         Set<String> custNumBlackListSet = new HashSet<>();
         String nowDay = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         List<ZhongAnMobileMd5BizDateQuery> queries = inList.stream()
@@ -291,9 +292,9 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                             userTypeDays.get(syncUser.getUserType())
                             , syncUser.getAppletTime() == null
                                     ? syncUser.getCreateTime()
-                                    : syncUser.getAppletTime()).addDateString().builder();
+                                    : syncUser.getAppletTime()).addOfDayTimeStrString().builder();
                     custNumMap.put(syncUser.getCustNum(), l.getBizDate());
-                    custDayMap.put(l.getMobileMd5(),periodOfValidityBO);
+                    custDayMap.put(l.getMobileMd5(), periodOfValidityBO);
                     return new ZhongAnMobileMd5BizDateQuery(l.getMobileMd5(), periodOfValidityBO);
                 })
                 .collect(Collectors.toList());
@@ -308,9 +309,17 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                 if (periodOfValidityBO == null) {
                     return false;
                 }
-                if (periodOfValidityBO.getBeginDate().compareTo(t.getCreateTime()) <= 0 && periodOfValidityBO.getEnDate().compareTo(t.getCreateTime()) >= 0) {
-                    return true;
+                try {
+                    Date beginDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(periodOfValidityBO.getStartOfDayTimeStr());
+                    Date endDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(periodOfValidityBO.getEndOfDayTimeStr());
+                    if (beginDate.compareTo(t.getCreateTime()) <= 0 && endDate.compareTo(t.getCreateTime()) >= 0) {
+                        return true;
+                    }
+                } catch (ParseException e) {
+                    e.printStackTrace();
                 }
+
+
                 return false;
             }).map(t -> t.getMobileMd5()).collect(Collectors.toSet());
 
