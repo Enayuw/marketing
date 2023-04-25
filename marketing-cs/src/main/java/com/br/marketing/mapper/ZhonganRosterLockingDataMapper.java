@@ -37,7 +37,7 @@ public interface ZhonganRosterLockingDataMapper extends ZhonganRosterLockingData
      * @param tag     枚举,CG/MG
      * @return Set
      */
-    Set<String> getMobileMd5ByBeforePushSettikv_(@Param("queries") List<ZhongAnMobileMd5BizDateQuery> queries
+    List<ZhonganRosterLockingData> getMobileMd5ByBeforePush(@Param("queries") List<ZhongAnMobileMd5BizDateQuery> queries
             , @Param("apiCode") String apiCode
             , @Param("tag") String tag);
 
