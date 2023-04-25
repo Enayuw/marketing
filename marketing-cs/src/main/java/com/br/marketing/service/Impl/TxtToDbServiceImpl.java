@@ -176,18 +176,18 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                     insertFields.append(fieldAllHm.get(s)).append(",");
                 }
             }
-            insertFields.append("extend,status,data_message,create_time,create_date,local_id").append(",");
+            insertFields.append("extend,status,data_message,create_time,create_date,local_id,api_code").append(",");
             String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             String day = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             for (Map.Entry<Integer, String> data : dto.getDatas().entrySet()) {
                 List<String> datas = Splitter.on(",").splitToList(data.getValue());
                 Integer line = data.getKey();
                 String error = dto.getErrorMsg();
-                //region 列数不一致
+                //region 列数不一致,直接赋值跳出
                 if (datas.size() != address.size()) {
-                    String value = String.format("('2','%s','%s','%s',%d)"
+                    String value = String.format("('2','%s','%s','%s',%d,'%s')"
                             , String.format("行号：%d;报错信息：%s", line, "表头和该行数据不一致")
-                            , time, day,dto.getLocalId());
+                            , time, day,dto.getLocalId(),dto.getApiCode());
                     errorValues.append(value).append(",");
                     errorNum++;
                     continue;
@@ -239,16 +239,18 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
 
                 //拼接 插入的数据
                 if (StringUtils.isNotBlank(valueSb.toString())) {
-                    valueSb.append(String.format("'%s','%s',%d", time, day,dto.getLocalId())).append(",");
+                    valueSb.append(String.format("'%s','%s',%d,'%s'", time, day,dto.getLocalId(),dto.getApiCode())).append(",");
                     insertValues.append(String.format("(%s),", org.apache.commons.lang3.StringUtils.removeEnd(valueSb.toString(), ",")));
                 }
             }
 
+            //插入列和表头不一致的错误数据
             if (StringUtils.isNotBlank(errorValues.toString())) {
-                String sql = String.format(sqlTemp, dbName, "status,data_message,create_time,create_date,local_id", org.apache.commons.lang3.StringUtils.removeEnd(errorValues.toString(), ","));
+                String sql = String.format(sqlTemp, dbName, "status,data_message,create_time,create_date,local_id,api_code", org.apache.commons.lang3.StringUtils.removeEnd(errorValues.toString(), ","));
                 localFileMapper.insertFileData(sql);
             }
 
+            //插入成功和变天字段缺少值得数据
             if (StringUtils.isNotBlank(insertValues.toString())) {
                 String sql = String.format(sqlTemp, dbName, org.apache.commons.lang3.StringUtils.removeEnd(insertFields.toString(), ","), org.apache.commons.lang3.StringUtils.removeEnd(insertValues.toString(), ","));
                 localFileMapper.insertFileData(sql);
