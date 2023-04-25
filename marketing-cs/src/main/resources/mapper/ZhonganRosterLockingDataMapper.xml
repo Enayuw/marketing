@@ -32,6 +32,7 @@
             <if test="tag!=null and tag!=''">
                 and tag='${tag}'
             </if>
+            and push_status in (2,3)
             and mobile_md5 in
             <foreach collection="queries" item="q" separator="," open="(" close=")">
                 #{q.mobileMd5}
