@@ -82,7 +82,7 @@ public class DiDiClient {
             HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(smsRequestTO, smsUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,
                     JSON.toJSONString(smsReqVO), islogs.get(0), islogs.get(1));
 
-            // httpcode不为200，需要重试
+            // 1.httpcode不为200，需要重试
             if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
                 if (!islogs.get(1)) {
                     log.error("调用滴滴短信流量接口异常-请求参数:{};返回:{}", JSON.toJSONString(smsReqVO), JSON.toJSONString(resMap));
@@ -93,15 +93,6 @@ public class DiDiClient {
             // 解析返回结果
             DiDiResponseTO smsResponseTO = JSON.parseObject(resMap.get("content"), DiDiResponseTO.class);
 
-            // 1.errorCode=10000，返回成功
-            if ("10000".equals(smsResponseTO.getErrorCode())) {
-                return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(smsResponseTO.getData()).setMessage(smsResponseTO.getErrorMessage());
-            }
-
-            if (!islogs.get(1)) {
-                log.error("调用滴滴短信流量接口异常-请求参数:{};返回:{}", JSON.toJSONString(smsReqVO), JSON.toJSONString(resMap));
-            }
-
             // 2.errorCode=20000，需要重试
             if ("20000".equals(smsResponseTO.getErrorCode())) {
                 if (!islogs.get(1)) {
@@ -110,9 +101,8 @@ public class DiDiClient {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
 
-            // 3.返回失败，无需重试
-            log.error("无需重试 调用滴滴短信流量接口结果：{}", JSON.toJSONString(smsResponseTO));
-            return new Result().setCode(ResultCode.FAIL.getValue());
+            // 3.返回成功，无需重试
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(smsResponseTO.getData()).setMessage(smsResponseTO.getErrorMessage());
         } catch (Exception e) {
             // 4.异常，需要重试
             log.error("调用滴滴短信流量接口异常" + e.getMessage(), e);
@@ -145,7 +135,7 @@ public class DiDiClient {
                     MediaType.APPLICATION_JSON_UTF8_VALUE,
                     JSON.toJSONString(smsReqVO), islogs.get(0), islogs.get(1));
 
-            // httpcode不为200，需要重试
+            // 1.httpcode不为200，需要重试
             if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
                 if (!islogs.get(1)) {
                     log.error("调用滴滴触达成功接口异常-请求参数:{};返回:{}", JSON.toJSONString(smsReqVO), JSON.toJSONString(resMap));
@@ -156,15 +146,6 @@ public class DiDiClient {
             // 解析返回结果
             DiDiResponseTO smsResponseTO = JSON.parseObject(resMap.get("content"), DiDiResponseTO.class);
 
-            // 1.errorCode=10000，返回成功
-            if ("10000".equals(smsResponseTO.getErrorCode())) {
-                return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(smsResponseTO.getData()).setMessage(smsResponseTO.getErrorMessage());
-            }
-
-            if (!islogs.get(1)) {
-                log.error("调用滴滴触达成功接口异常-请求参数:{};返回:{}", JSON.toJSONString(smsReqVO), JSON.toJSONString(resMap));
-            }
-
             // 2.errorCode=20000，需要重试
             if ("20000".equals(smsResponseTO.getErrorCode())) {
                 if (!islogs.get(1)) {
@@ -173,9 +154,8 @@ public class DiDiClient {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
 
-            // 3.返回失败，无需重试
-            log.error("无需重试 调用滴滴触达成功接口结果：{}", JSON.toJSONString(smsResponseTO));
-            return new Result().setCode(ResultCode.FAIL.getValue());
+            // 3.返回成功，无需重试
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(smsResponseTO.getData()).setMessage(smsResponseTO.getErrorMessage());
         } catch (Exception e) {
             // 4.异常，需要重试
             log.error("调用滴滴触达成功接口异常" + e.getMessage(), e);
@@ -197,7 +177,7 @@ public class DiDiClient {
             HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(smsReqVO, jmassSUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,
                     JSON.toJSONString(smsReqVO), islogs.get(0), islogs.get(1));
 
-            // httpcode不为200，需要重试
+            // 1.httpcode不为200，需要重试
             if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
                 if (!islogs.get(1)) {
                     log.error("调用滴滴联合建模接口异常-请求参数:{};返回:{}", JSON.toJSONString(smsReqVO), JSON.toJSONString(resMap));
@@ -208,15 +188,6 @@ public class DiDiClient {
             // 解析返回结果
             DiDiJPassResponseTO jPassResponseTO = JSON.parseObject(resMap.get("content"), DiDiJPassResponseTO.class);
 
-            // 1.errorCode=10000，返回成功
-            if ("10000".equals(jPassResponseTO.getErrorCode())) {
-                return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(jPassResponseTO.getData()).setMessage(jPassResponseTO.getErrorMessage());
-            }
-
-            if (!islogs.get(1)) {
-                log.error("调用滴滴联合建模接口异常-请求参数:{};返回:{}", JSON.toJSONString(smsReqVO), JSON.toJSONString(resMap));
-            }
-
             // 2.errorCode=20000，需要重试
             if ("20000".equals(jPassResponseTO.getErrorCode())) {
                 if (!islogs.get(1)) {
@@ -225,9 +196,8 @@ public class DiDiClient {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
 
-            // 3.返回失败，无需重试
-            log.error("无需重试 调用滴滴联合建模接口结果：{}", JSON.toJSONString(jPassResponseTO));
-            return new Result().setCode(ResultCode.FAIL.getValue());
+            // 3.返回成功，无需重试
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(jPassResponseTO.getData()).setMessage(jPassResponseTO.getErrorMessage());
         } catch (Exception e) {
             // 4.异常，需要重试
             log.error("调用滴滴短信流量接口异常" + e.getMessage(), e);
