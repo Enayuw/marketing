@@ -609,5 +609,10 @@ public class MarketingCommonConfig {
      * 分期乐推送电销配置 场景：手机号推送去重天数 {"usertType":30}
      */
     private HashMap<String,Long> fenqiHappyPushDassConfig;
+
+    /**
+     * 对客作业配置 {"test":{"isThread":true,"threadNum":10,"isPause":false}}
+     */
+    private HashMap<String,JSONObject> customerJobConfig;
 }
 

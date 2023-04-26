@@ -31,6 +31,16 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
 
 
     /**
+     * 是否暂停
+     *
+     * @return
+     */
+    public Boolean isPause() {
+        return false;
+    }
+
+
+    /**
      * 获取线程数
      *
      * @return
@@ -86,8 +96,9 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
      * 该方法返回Result对象
      * 先去执行自定义执行方法
      * 如自定义方法未实现 则执行该模板流程
-     *  需注意 未开启多线成执行，getInputData，processData，resultAction 有异常，将退出执行，执行结果返回false
-     *        开启多线成，线程内的异常只会记录日志 并不会阻断流程
+     * 需注意 未开启多线成执行，getInputData，processData，resultAction 有异常，将退出执行，执行结果返回false
+     * 开启多线成，线程内的异常只会记录日志 并不会阻断流程
+     *
      * @param condition
      * @return
      */
@@ -112,22 +123,30 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
                 if (ResultCode.FAIL.getValue().equals(inputRes.getCode())) {
                     break;
                 }
+                if (isPause()) {
+                    System.out.println("主线程暂停");
+                    break;
+                }
                 condition = inputRes.getData().getInDatacondition();
                 List inputDataList = inputRes.getData().getInputDataList();
                 if (isThread() && pool != null) {
                     pool.submit(() -> {
                         try {
-                            Result<List<O>> outRes = processData(inputDataList);
-                            if (ResultCode.SUCCESS.getValue().equals(outRes.getCode())) {
-                                List data = outRes.getData();
-                                Result result = resultAction(data);
-                                if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                                    res.setCode(ResultCode.FAIL.getValue());
-                                    log.warn(res.getMessage());
+                            if (!isPause()) {
+                                Result<List<O>> outRes = processData(inputDataList);
+                                if (ResultCode.SUCCESS.getValue().equals(outRes.getCode())) {
+                                    List data = outRes.getData();
+                                    Result result = resultAction(data);
+                                    if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                                        res.setCode(ResultCode.FAIL.getValue());
+                                        log.warn(res.getMessage());
+                                    }
                                 }
+                            }else{
+                                System.out.println("线程暂停");
                             }
-                        }catch (Exception ex){
-                            log.error(ex.getMessage(),ex);
+                        } catch (Exception ex) {
+                            log.error(ex.getMessage(), ex);
                         }
                     });
                 } else {
@@ -158,7 +177,7 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
             log.warn("执行结束 执行id：{}，执行耗时：{}", id, System.currentTimeMillis() - start);
             return res;
         } catch (Exception ex) {
-            log.error("执行异常："+ex.getMessage(), ex);
+            log.error("执行异常：" + ex.getMessage(), ex);
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
         }
     }
