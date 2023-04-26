@@ -32,6 +32,7 @@ import com.br.marketing.service.IMarketingDataValidService;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.util.PeriodOfValidityHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -142,7 +143,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         AssertResult.assertResult(dataValidConfigByType);
         List<MarketingDataValidConfig> validConfigs = dataValidConfigByType.getData();
         Map<String, Integer> userTypeDays = validConfigs.stream().collect(Collectors.toMap(MarketingDataValidConfig::getUserType
-                , t -> dataLoadingHandlerService.periodOfValidityDay(t.getValidDays())));
+                , t -> PeriodOfValidityHelper.getPeriodOfValidityDay(t.getValidDays())));
 
         Map<String, MarketingSyncUser> syncUserMapNew = inList.stream().filter(l -> syncUserMap.containsKey(
                 cellMap.get(l.getMobileMd5()))).collect(Collectors.toMap(d -> d.getMobileMd5() + d.getBizDate()
