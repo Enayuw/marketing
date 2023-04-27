@@ -2,10 +2,11 @@ package com.br.marketing.client.didi;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.client.didi.input.DiDiJmassRequestTO;
 import com.br.marketing.client.didi.input.DiDiReachRequestTO;
 import com.br.marketing.client.didi.input.DiDiReqVO;
 import com.br.marketing.client.didi.input.DiDiSmsRequestTO;
-import com.br.marketing.client.didi.output.DiDiJPassResponseTO;
+import com.br.marketing.client.didi.output.DiDiJMassResponseTO;
 import com.br.marketing.client.didi.output.DiDiResponseTO;
 import com.br.marketing.client.didi.utils.MD5Util;
 import com.br.marketing.common.commondto.Result;
@@ -173,8 +174,11 @@ public class DiDiClient {
             HashMap<String, List<Boolean>> isLog = getIsLog();
             List<Boolean> islogs = isLog.get(PUSH_JMASS);
 
+            DiDiJmassRequestTO jmassRequestTO = new DiDiJmassRequestTO();
+            jmassRequestTO.setSign(smsReqVO.getCustMobileMd5());
+
             // 发送请求
-            HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(smsReqVO, jmassSUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,
+            HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(jmassRequestTO, jmassSUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,
                     JSON.toJSONString(smsReqVO), islogs.get(0), islogs.get(1));
 
             // 1.httpcode不为200，需要重试
@@ -186,10 +190,10 @@ public class DiDiClient {
             }
 
             // 解析返回结果
-            DiDiJPassResponseTO jPassResponseTO = JSON.parseObject(resMap.get("content"), DiDiJPassResponseTO.class);
+            DiDiJMassResponseTO jMassResponseTO = JSON.parseObject(resMap.get("content"), DiDiJMassResponseTO.class);
 
             // 2.errorCode=20000，需要重试
-            if ("20000".equals(jPassResponseTO.getErrorCode())) {
+            if ("20000".equals(jMassResponseTO.getErrorCode())) {
                 if (!islogs.get(1)) {
                     log.error("调用滴滴联合建模接口异常-请求参数:{};返回:{}", JSON.toJSONString(smsReqVO), JSON.toJSONString(resMap));
                 }
@@ -197,7 +201,7 @@ public class DiDiClient {
             }
 
             // 3.返回成功，无需重试
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(jPassResponseTO.getData()).setMessage(jPassResponseTO.getErrorMessage());
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(jMassResponseTO.getData()).setMessage(jMassResponseTO.getErrorMessage());
         } catch (Exception e) {
             // 4.异常，需要重试
             log.error("调用滴滴短信流量接口异常" + e.getMessage(), e);
