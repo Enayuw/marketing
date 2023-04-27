@@ -23,4 +23,8 @@ public class MarketingSyncCondition extends InputDataCondition {
      * 执行日期集合：精确到天
      */
     private List<String> executeDateList;
+    /**
+     * 场景 userType
+     */
+    private String userType;
 }
