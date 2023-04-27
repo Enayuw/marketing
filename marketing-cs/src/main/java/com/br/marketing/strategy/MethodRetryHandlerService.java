@@ -13,6 +13,7 @@ import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
+import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
 import com.br.marketing.client.dassservice.output.DassExportAdapterDTO;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleDTO;
@@ -201,6 +202,42 @@ public class MethodRetryHandlerService {
             saveBizLog(dassImportAdapDTO.getExtendInfo(), InterfaceHandlerEnum.ARTIFICIAL_REAL_TIME_USERDATA.getCode(),
                     dassImportAdapDTO.getTransferInfoId());
             return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
+
+    /**
+     * 调用Dass接口
+     * 调用成功，将该批数据记录到数据库中以便数据对比
+     *
+     * @param realTimeUserDataDTO
+     * @return
+     */
+    @RetryMethod(isOrNoDbRetry = true)
+    public Result callDassRealTimeLog(RealTimeUserDataDTO realTimeUserDataDTO, Integer retry) {
+
+        Result<JSONObject> result = dassServiceClient.postRealTimeUserData(realTimeUserDataDTO.getDassSingleImportAdapDTO());
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            Integer code = result.getData().getInteger("code");
+            if(new Integer(0).equals(code)) {
+                saveBizLog(realTimeUserDataDTO.getDassSingleImportAdapDTO().getExtendInfo(), InterfaceHandlerEnum.ARTIFICIAL_REAL_TIME_LOG.getCode(),
+                        realTimeUserDataDTO.getDassSingleImportAdapDTO().getTransferInfoId());
+                PhoneSaleExtendInfo phoneSaleExtendInfo = realTimeUserDataDTO.getPhoneSaleExtendInfo();
+                PhoneSaleExtendInfo update = new PhoneSaleExtendInfo();
+                update.setPushDxTime(new Date());
+                update.setId(phoneSaleExtendInfo.getId());
+                update.setPStatus(2);
+                phoneSaleExtendInfoMapper.updateByPrimaryKeySelective(update);
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
+            }else{
+                PhoneSaleExtendInfo phoneSaleExtendInfo = realTimeUserDataDTO.getPhoneSaleExtendInfo();
+                PhoneSaleExtendInfo update = new PhoneSaleExtendInfo();
+                update.setPushDxTime(new Date());
+                update.setId(phoneSaleExtendInfo.getId());
+                update.setPStatus(3);
+                phoneSaleExtendInfoMapper.updateByPrimaryKeySelective(update);
+            }
         }
         log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());

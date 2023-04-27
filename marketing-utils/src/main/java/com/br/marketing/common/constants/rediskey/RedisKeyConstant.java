@@ -40,6 +40,8 @@ public class RedisKeyConstant {
 
     public static final String shuhePushDxSingleMutex = prefix.concat("shuhe:pushdx:singleMutex");
 
+    public static final String fenqiHappyPushDx = prefix.concat("fenqiHappy:pushdx");
+
     public static final String taskGetLock = prefix.concat("tasklock");
 
     /**

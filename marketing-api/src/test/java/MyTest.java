@@ -1,4 +1,5 @@
 
+import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +33,18 @@ public class MyTest {
         LocalDate now = LocalDate.now();
         long days = startDate.until(now, ChronoUnit.DAYS);
         System.out.println(days);
+    }
+
+    @Test
+    public void testaesde(){
+        try {
+            String s = AESUtil.aesDecrypt("2teLt5s8LnvmmLLzEYukRV8qcOc1tKK0EUx2J+eyu1A=", "ovksl39fcl13m9dF");
+            String s1 = AESUtil.aesDecrypt("18822755986", "ovksl39fcl13m9dF");
+            System.out.println(s);
+            System.out.println(s1);
+        }catch (Exception ex){
+
+        }
     }
 
     @Test
