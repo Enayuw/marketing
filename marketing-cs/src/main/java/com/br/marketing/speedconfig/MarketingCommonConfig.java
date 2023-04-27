@@ -625,8 +625,24 @@ public class MarketingCommonConfig {
     private HashMap<String,Long> fenqiHappyPushDassConfig;
 
     /**
+     * 滴滴联合建模执行时间
+     */
+    private String didiModelingExecTime;
+
+    /**
+     * 滴滴联合建模线程数
+     */
+    private String didiModelingThreadNum;
+
+    /**
      * 众安明细推送配置{"userType":{"isPush":"1/0","channelCode":"****"}}
      */
     private HashMap<String,JSONObject> zhongAnDetailPush;
+
+    /**
+     * 滴滴联合建模任务开关
+     * true 打开，false 关闭执行
+     */
+    private Boolean didiModelingDataSwitch;
 }
 
