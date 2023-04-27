@@ -23,17 +23,17 @@ import java.util.Date;
  */
 @Service
 @Slf4j
-public class DidiCallRecordInsertDBImpl implements AssembleData<DidiDataDTO> {
+public class DidiCallRecordInsertDBImpl implements AssembleData<DidiCallRecord> {
     @Override
-    public DidiDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+    public DidiCallRecord assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         CallRecordBO cbo = (CallRecordBO) transmitFact;
-        DidiDataDTO didiDataDTO = new DidiDataDTO();
-        didiDataDTO.setCustNum(cbo.getCaseNum());
-        didiDataDTO.setApiCode(cbo.getApiCode());
-        didiDataDTO.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
-        didiDataDTO.setStatus(0);
-        didiDataDTO.setCreateTime(new Date());
-        return didiDataDTO;
+        DidiCallRecord didiCallRecord = new DidiCallRecord();
+        didiCallRecord.setCustNum(cbo.getCaseNum());
+        didiCallRecord.setApiCode(cbo.getApiCode());
+        didiCallRecord.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
+        didiCallRecord.setStatus(0);
+        didiCallRecord.setCreateTime(new Date());
+        return didiCallRecord;
     }
 
     @Override

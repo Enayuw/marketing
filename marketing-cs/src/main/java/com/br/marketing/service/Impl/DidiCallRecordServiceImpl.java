@@ -1,9 +1,6 @@
 package com.br.marketing.service.Impl;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.RedisService;
 import com.br.marketing.client.didi.DiDiClient;
 import com.br.marketing.client.didi.input.DiDiReqVO;
 import com.br.marketing.client.didi.output.DiDiResponseTO;
@@ -14,28 +11,23 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.DidiCallRecordMapper;
-import com.br.marketing.mapper.DidiCallRecordMapperBase;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.service.DidiCallRecordService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.google.common.collect.Lists;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.velocity.runtime.directive.Foreach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author GuangChao.Zhang
@@ -70,22 +62,18 @@ public class DidiCallRecordServiceImpl implements DidiCallRecordService {
             // 创建线程池
             ThreadPoolExecutor didiCallRecordThread = BrExecutors.getThreadPool(marketingCommonConfig.getDidiCollRecordThread(), marketingCommonConfig.getDidiCollRecordThread());
             pushDate.forEach(date -> {
-                boolean actionMark = true;
-                // 根据id匹配 进行数据查询 每批次查询 5000
                 Long minId = null;
-                AtomicInteger failNum = new AtomicInteger(0);
-                while (actionMark) {
-                    DidiCallRecordExample didiCallRecordExample = new DidiCallRecordExample();
-                    didiCallRecordExample.createCriteria()
-                            .andCreateDateIn(pushDate)
-                            .andStatusEqualTo(0)
-                            .andIdGreaterThan(minId)
-                            .andLimit(2000);
-                    List<DidiCallRecord> didiCallRecords = didiCallRecordMapper.selectByExample(didiCallRecordExample);
-                    if (didiCallRecords.size() == 0) {
-                        actionMark = false;
-                        continue;
-                    }
+                DidiCallRecordExample didiCallRecordExample = new DidiCallRecordExample();
+                didiCallRecordExample.setOrderByClause("id asc");
+                DidiCallRecordExample.Criteria criteria = didiCallRecordExample.createCriteria();
+                criteria.andCreateDateIn(pushDate).andStatusEqualTo(0);
+                if(minId!=null){
+                    criteria.andIdGreaterThan(minId);
+                }
+                criteria.andLimit(2000);
+                List<DidiCallRecord> didiCallRecords = didiCallRecordMapper.selectByExample(didiCallRecordExample);
+
+                while (didiCallRecords.size()>0) {
                     // 更新minId 为当前集合最大的id
                     minId = didiCallRecords.get(didiCallRecords.size() - 1).getId();
                     for (DidiCallRecord didiCallRecord : didiCallRecords) {
@@ -93,7 +81,6 @@ public class DidiCallRecordServiceImpl implements DidiCallRecordService {
                     }
                 }
             });
-
             didiCallRecordThread.shutdown();
             try {
                 while (!didiCallRecordThread.awaitTermination(10L, TimeUnit.SECONDS)) {
@@ -101,6 +88,7 @@ public class DidiCallRecordServiceImpl implements DidiCallRecordService {
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
+
         }
     }
 
