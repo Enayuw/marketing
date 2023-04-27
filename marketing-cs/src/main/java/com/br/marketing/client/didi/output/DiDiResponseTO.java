@@ -9,7 +9,7 @@ public class DiDiResponseTO {
     private ResResult data;
 
     @Data
-    class ResResult {
-        private boolean result;
+    public class ResResult {
+        private Boolean result;
     }
 }

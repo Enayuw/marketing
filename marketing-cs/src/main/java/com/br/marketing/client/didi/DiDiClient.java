@@ -103,7 +103,7 @@ public class DiDiClient {
             }
 
             // 3.返回成功，无需重试
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(smsResponseTO.getData()).setMessage(smsResponseTO.getErrorMessage());
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(smsResponseTO);
         } catch (Exception e) {
             // 4.异常，需要重试
             log.error("调用滴滴短信流量接口异常" + e.getMessage(), e);
@@ -156,7 +156,7 @@ public class DiDiClient {
             }
 
             // 3.返回成功，无需重试
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(smsResponseTO.getData()).setMessage(smsResponseTO.getErrorMessage());
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(smsResponseTO);
         } catch (Exception e) {
             // 4.异常，需要重试
             log.error("调用滴滴触达成功接口异常" + e.getMessage(), e);
@@ -201,7 +201,7 @@ public class DiDiClient {
             }
 
             // 3.返回成功，无需重试
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(jMassResponseTO.getData()).setMessage(jMassResponseTO.getErrorMessage());
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(jMassResponseTO);
         } catch (Exception e) {
             // 4.异常，需要重试
             log.error("调用滴滴短信流量接口异常" + e.getMessage(), e);
