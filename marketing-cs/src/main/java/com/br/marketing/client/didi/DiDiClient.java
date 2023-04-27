@@ -65,7 +65,7 @@ public class DiDiClient {
      * 短信流量准入接口
      * @return
      */
-    public Result pushSmsTrafficAccess(DiDiReqVO smsReqVO) {
+    public Result<DiDiResponseTO> pushSmsTrafficAccess(DiDiReqVO smsReqVO) {
         try {
             // 获取是否记录日志
             HashMap<String, List<Boolean>> isLog = getIsLog();
@@ -115,7 +115,7 @@ public class DiDiClient {
      * 触达成功接口
      * @return
      */
-    public Result pushReachSuccess(DiDiReqVO smsReqVO) {
+    public Result<DiDiResponseTO> pushReachSuccess(DiDiReqVO smsReqVO) {
         try {
             // 获取是否记录日志
             HashMap<String, List<Boolean>> isLog = getIsLog();
@@ -168,7 +168,7 @@ public class DiDiClient {
      * 联合建模接口
      * @return
      */
-    public Result pushJMASS(DiDiReqVO smsReqVO) {
+    public Result<DiDiJMassResponseTO> pushJMASS(DiDiReqVO smsReqVO) {
         try {
             // 获取是否记录日志
             HashMap<String, List<Boolean>> isLog = getIsLog();
