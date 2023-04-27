@@ -623,5 +623,10 @@ public class MarketingCommonConfig {
      * 分期乐推送电销配置 场景：手机号推送去重天数 {"usertType":30}
      */
     private HashMap<String,Long> fenqiHappyPushDassConfig;
+
+    /**
+     * 众安明细推送配置{"userType":{"isPush":"1/0","channelCode":"****"}}
+     */
+    private HashMap<String,JSONObject> zhongAnDetailPush;
 }
 
