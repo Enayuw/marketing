@@ -323,4 +323,6 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     List<TransferOfCnIdVO> getTransferReqDateAndIdByPage(@Param("tCid") String tcId, @Param("apiCode") String apiCode
             , @Param("requestDate") String requestDate, @Param("minId") Long minId);
+
+    List<MarketingTransferSyncUser> getDidiTransferData(@Param("tCid") String tcId, @Param("apiCode") String apiCode, @Param("custNum") String custNum);
 }

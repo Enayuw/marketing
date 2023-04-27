@@ -624,6 +624,12 @@ public class MarketingCommonConfig {
      */
     private HashMap<String,Long> fenqiHappyPushDassConfig;
 
+
+    /**
+     * 滴滴推送通话明细线程数
+     */
+    private Integer didiCollRecordThread;
+
     /**
      * 滴滴联合建模执行时间
      */

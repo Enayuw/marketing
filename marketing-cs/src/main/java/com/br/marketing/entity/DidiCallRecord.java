@@ -1,0 +1,162 @@
+package com.br.marketing.entity;
+
+
+import java.util.Date;
+
+public class DidiCallRecord {
+    /**
+     * 
+     */
+    private Long id;
+
+    /**
+     * 客服case_num加密电话
+     */
+    private String cell;
+
+    /**
+     * 上传表中用户为一编号 md5手机号
+     */
+    private String custNum;
+
+    /**
+     * 
+     */
+    private String apiCode;
+
+    /**
+     * 推送状态 0 待推送 1 成功  2 异常
+     */
+    private Integer status;
+
+    /**
+     * 创建日期
+     */
+    private Integer createDate;
+
+    /**
+     * 1 代表 TRUE，0 代表 FALSE
+     */
+    private Boolean result;
+
+    /**
+     * 返回错误码
+     */
+    private String errorCode;
+
+    /**
+     * 返回错误信息
+     */
+    private String errorMessage;
+
+    /**
+     * 系统逻辑记录，失效 或者重复
+     */
+    private String sysMessage;
+
+    /**
+     * 
+     */
+    private Date createTime;
+
+    /**
+     * 
+     */
+    private Date updateTime;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getCell() {
+        return cell;
+    }
+
+    public void setCell(String cell) {
+        this.cell = cell == null ? null : cell.trim();
+    }
+
+    public String getCustNum() {
+        return custNum;
+    }
+
+    public void setCustNum(String custNum) {
+        this.custNum = custNum == null ? null : custNum.trim();
+    }
+
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public Integer getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Integer createDate) {
+        this.createDate = createDate;
+    }
+
+    public Boolean getResult() {
+        return result;
+    }
+
+    public void setResult(Boolean result) {
+        this.result = result;
+    }
+
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public void setErrorCode(String errorCode) {
+        this.errorCode = errorCode == null ? null : errorCode.trim();
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage == null ? null : errorMessage.trim();
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public String getSysMessage() {
+        return sysMessage;
+    }
+
+    public void setSysMessage(String sysMessage) {
+        this.sysMessage = sysMessage == null ? null : sysMessage.trim();
+    }
+}

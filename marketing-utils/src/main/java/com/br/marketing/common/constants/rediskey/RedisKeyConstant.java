@@ -83,6 +83,10 @@ public class RedisKeyConstant {
      * 携程拨打数据推送缓存锁  key
      */
     public static final String pushXieChengSmsCollidingLock = prefix.concat("xieCheng:pushXieChengSmsColliding");
+    /**
+     * 滴滴拨打数据推送缓存锁  key
+     */
+    public static final String pushDidiCollRecordLock = prefix.concat("didi:pushDidiCollRecord");
 
     /**
      * 分发数据日志锁
