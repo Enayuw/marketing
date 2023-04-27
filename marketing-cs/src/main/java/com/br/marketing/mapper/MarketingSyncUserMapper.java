@@ -196,4 +196,6 @@ public interface MarketingSyncUserMapper {
     List<MarketingSyncUser> getNewSyncUserByCustNumtikv_(@Param("apiCode") String apiCode, @Param("custNums") List<String> custNums, @Param("dateBegin") String dateBegin, @Param("dateEnd") String dateEnd);
 
     String getMinAppletDate(@Param("apiCode") String apiCode);
+
+    List<MarketingSyncUser> getCellByAppletDateAndUserType(@Param("apiCode") String apiCode,  @Param("appletDate")String executeDate,  @Param("minId")Long minId,@Param("userType") String userType);
 }

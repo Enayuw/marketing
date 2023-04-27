@@ -598,4 +598,22 @@
         where status = 1
           and is_repeat in (1, 2);
     </select>
+    <select id="getCellByAppletDateAndUserType" resultType="com.br.marketing.entity.MarketingSyncUser">
+
+        select * from b_marketing_sync_${apiCode}
+        <where>
+            <if test="apiCode != null">
+                AND api_code =#{apiCode}
+            </if>
+            <if test="minId != null and minId >0">
+                AND id >=#{minId}
+            </if>
+            AND applet_date = #{executeDate}
+            And user_type = #{userType}
+            AND status=1
+            group by cell
+            order by id asc limit 2000;
+        </where>
+
+    </select>
 </mapper>
