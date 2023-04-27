@@ -605,6 +605,20 @@ public class MarketingCommonConfig {
      * 众安转化数据提取时间
      */
     private String zhongAnFileExecTime;
+
+    /**
+     * 众安撞库要推送的userType
+     */
+    private List<String> zhongAnZkUserType;
+
+
+    /**
+     * 众安撞库userType对应的channelCode配置
+     */
+    private Map<String, String> ZhongAnZkUserTypeChannelCode;
+
+
+
     /**
      * 分期乐推送电销配置 场景：手机号推送去重天数 {"usertType":30}
      */
