@@ -6,7 +6,7 @@ import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.didi.DiDiClient;
 import com.br.marketing.client.didi.input.DiDiReqVO;
-import com.br.marketing.client.zhongan.output.ZkReponseVO;
+import com.br.marketing.client.didi.output.DiDiJMassResponseTO;
 import com.br.marketing.client.zhongan.utils.Md5OfZanUtils;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -177,15 +177,16 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
             String decodeCell = BrCipherMaker.getInstance().decode(t.getCell());
             DiDiReqVO diDiReqVO = new DiDiReqVO();
             diDiReqVO.setCustMobileMd5(Md5OfZanUtils.getMD5(decodeCell));
-            Result<ZkReponseVO> result = diDiClient.pushJMASS(diDiReqVO);
+            Result<DiDiJMassResponseTO> result = diDiClient.pushJMASS(diDiReqVO);
             //需要重试加入重试表
             if (result.getCode().equals(ResultCode.INTERNAL_SERVER_ERROR.getValue())) {
                 retryDataList.add(t);
             }
             if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
                 TransferDataItemDTO transferDataItemDTO = new TransferDataItemDTO();
+                String data = result.getData().getData();
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("data", result.getData());
+                jsonObject.put("data", data);
                 transferDataItemDTO.setCustNum(t.getCustNum());
                 transferDataItemDTO.setUserType("1");
                 transferDataItemDTO.setReserveField1(jsonObject.toString());

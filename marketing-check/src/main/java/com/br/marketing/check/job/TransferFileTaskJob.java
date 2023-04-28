@@ -231,6 +231,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByHaierService,marketingCommonConfig.getHaierApiCodes())
                 // 国美转化数据提取
                 .addBind(transferToFileByGomeService,marketingCommonConfig.getGomeApiCodes())
+                // 滴滴转化数据提取
+                .addBind(transferToFileByGomeService,marketingCommonConfig.getGomeApiCodes())
                 .build();
     }
 

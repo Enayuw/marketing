@@ -650,5 +650,10 @@ public class MarketingCommonConfig {
      * true 打开，false 关闭执行
      */
     private Boolean didiModelingDataSwitch;
+
+    /**
+     * 滴滴数据提取apiCode集合
+     */
+    private List<String> didiApiCodes;
 }
 
