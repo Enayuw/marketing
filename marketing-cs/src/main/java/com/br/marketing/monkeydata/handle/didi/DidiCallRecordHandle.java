@@ -1,5 +1,6 @@
-package com.br.marketing.service.Impl;
+package com.br.marketing.monkeydata.handle.didi;
 
+import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.didi.DiDiClient;
 import com.br.marketing.client.didi.input.DiDiReqVO;
@@ -12,17 +13,17 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.DidiCallRecordMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.service.DidiCallRecordService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-
+import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -38,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class DidiCallRecordServiceImpl implements DidiCallRecordService {
+public class DidiCallRecordHandle {
 
     private final MarketingCommonConfig marketingCommonConfig;
 
@@ -46,17 +47,14 @@ public class DidiCallRecordServiceImpl implements DidiCallRecordService {
 
     private final RedisChgService redisChgService;
 
-    private final MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
-
     private final MarketingSyncUserMapper marketingSyncUserMapper;
 
     private final TransferDataValidityPeriodService transferDataValidityPeriodService;
 
-    private final DiDiClient diDiClient;
+    private final MethodRetryHandlerService methodRetryHandlerService;
     private final static String JOB = "job";
 
-    @Override
-    public void pushDidiCallRecord(List<Integer> pushDate, String sourceType) {
+    public void pushDidiCallRecord(List<String> pushDate, String sourceType) {
         //sourceType ="job" 是定时任务   "mq" 是实时发送
         if (JOB.equals(sourceType)) {
             // 创建线程池
@@ -66,7 +64,7 @@ public class DidiCallRecordServiceImpl implements DidiCallRecordService {
                 DidiCallRecordExample didiCallRecordExample = new DidiCallRecordExample();
                 didiCallRecordExample.setOrderByClause("id asc");
                 DidiCallRecordExample.Criteria criteria = didiCallRecordExample.createCriteria();
-                criteria.andCreateDateIn(pushDate).andStatusEqualTo(0);
+                criteria.andCreateDateEqualTo(Integer.valueOf(date)).andStatusEqualTo(0);
                 if(minId!=null){
                     criteria.andIdGreaterThan(minId);
                 }
@@ -125,17 +123,22 @@ public class DidiCallRecordServiceImpl implements DidiCallRecordService {
                 if(newValidityPeriodData!=null){
                     didiCallRecord.setCell(newValidityPeriodData.getCell());
                     // 调接口推送
-                    Result<DiDiResponseTO> resResultResult = didiPushData(custNum);
+                    Result<DiDiResponseTO> resResultResult = methodRetryHandlerService.didiPushData(custNum,0);
                     if(resResultResult.getCode().equals(ResultCode.SUCCESS.getValue())){
                         DiDiResponseTO diDiResponseTO = resResultResult.getData();
                         DiDiResponseTO.ResResult data = diDiResponseTO.getData();
                         Boolean result = data.getResult();
                         String errorMessage = diDiResponseTO.getErrorMessage();
                         String errorCode = diDiResponseTO.getErrorCode();
+                        didiCallRecord.setStatus(1);
                         didiCallRecord.setResult(result);
                         didiCallRecord.setErrorCode(errorCode);
                         didiCallRecord.setErrorMessage(errorMessage);
+                    }else {
+                        didiCallRecord.setStatus(3);
+                        didiCallRecord.setSysMessage("非200,20000异常");
                     }
+
                 }else {
                     didiCallRecord.setStatus(2);
                     didiCallRecord.setSysMessage("数据失效");
@@ -153,10 +156,5 @@ public class DidiCallRecordServiceImpl implements DidiCallRecordService {
         }
     }
 
-    @RetryMethod(retryNowNum = 3)
-    private Result<DiDiResponseTO> didiPushData(String mobidlMd5){
-        DiDiReqVO diDiReqVO = new DiDiReqVO();
-        diDiReqVO.setCustMobileMd5(mobidlMd5);
-       return diDiClient.pushReachSuccess(diDiReqVO);
-    }
+
 }

@@ -15,6 +15,9 @@ import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
 import com.br.marketing.client.dassservice.output.DassExportAdapterDTO;
+import com.br.marketing.client.didi.DiDiClient;
+import com.br.marketing.client.didi.input.DiDiReqVO;
+import com.br.marketing.client.didi.output.DiDiResponseTO;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleSoleDTO;
@@ -128,6 +131,8 @@ public class MethodRetryHandlerService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    private DiDiClient diDiClient;
 
     /**
      *
@@ -659,5 +664,18 @@ public class MethodRetryHandlerService {
         }
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
+
+    /**
+     * 滴滴通话明细推送
+     * @param mobidlMd5
+     * @param retry
+     * @return
+     */
+    @RetryMethod(retryNowNum = 3,isOrNoDbRetry = true)
+    public Result<DiDiResponseTO> didiPushData(String mobidlMd5, Integer retry){
+        DiDiReqVO diDiReqVO = new DiDiReqVO();
+        diDiReqVO.setCustMobileMd5(mobidlMd5);
+        return diDiClient.pushReachSuccess(diDiReqVO);
     }
 }

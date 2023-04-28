@@ -631,6 +631,10 @@ public class MarketingCommonConfig {
     private Integer didiCollRecordThread;
 
     /**
+     * 滴滴推送通话明细执行时间
+     */
+    private String didiCollRecordExecTime;
+    /**
      * 滴滴联合建模执行时间
      */
     private String didiModelingExecTime;

@@ -2,8 +2,8 @@ package com.br.marketing.monkey.job.didi;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.mapper.DidiCallRecordMapper;
 import com.br.marketing.mapper.XieChengDataMapper;
+import com.br.marketing.monkeydata.handle.didi.DidiCallRecordHandle;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -14,6 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.br.marketing.common.utils.MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE;
@@ -27,50 +31,35 @@ import static com.br.marketing.common.utils.MQConstants.ROUTING_KEY_UNIVERSAL_SF
 @Slf4j
 public class DidiCallingRecordJob extends AbstractSimpleElasticJob {
 
-    @Autowired
-    RabbitMqProducter producter;
-    @Resource
-    private XieChengDataMapper xieChengDataMap;
-
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private DidiCallRecordMapper didiCallRecordMapper;
+    private DidiCallRecordHandle didiCallRecordHandle;
 
+    private final static String DIDICOLLRECORDEXECTIME = "21:00";
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
 
         String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
+        List<String> sendDateLists = new ArrayList<>();
         if (StringUtils.isNotBlank(jobParameter)) {
-            List<String> sendDateLists = Splitter.on(",").splitToList(jobParameter);
-        }else {
-            //didiCallRecordMapper.
-        }
-
-
-
-
-
-        while (Boolean.FALSE.equals(marketingCommonConfig.getXieChengCallingRecordSwitch())) {
-            List<String> localIds = xieChengDataMap.selectLocalIdByNotSend();
-            if (localIds.isEmpty()) {
-                break;
+            sendDateLists = Splitter.on(",").splitToList(jobParameter);
+            didiCallRecordHandle.pushDidiCallRecord(sendDateLists, "job");
+        } else {
+            if (!LocalTime.now().isBefore(getSendTime())) {
+                sendDateLists.add(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE));
+                didiCallRecordHandle.pushDidiCallRecord(sendDateLists, "job");
             }
-            localIds.stream().forEach(localId -> {
-                JSONObject msg = new JSONObject();
-                msg.put("localId", localId);
-                msg.put("type", 2);
-                producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE
-                        , msg.toJSONString());
-            });
-            try {
-                Thread.sleep(marketingCommonConfig.getXieChengCallingRecordSleep());
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+
         }
+    }
 
-
+    /**
+     * 判断当前时间是否大于21点
+     */
+    private LocalTime getSendTime() {
+        DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
+        return LocalTime.parse(marketingCommonConfig.getDidiCollRecordExecTime()==null?DIDICOLLRECORDEXECTIME:marketingCommonConfig.getDidiCollRecordExecTime(), timeFormat);
     }
 }

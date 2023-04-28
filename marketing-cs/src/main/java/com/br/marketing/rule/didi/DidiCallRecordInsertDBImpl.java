@@ -1,11 +1,8 @@
 package com.br.marketing.rule.didi;
 
 import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.dto.DidiDataDTO;
-import com.br.marketing.dto.XieChengDataDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.DidiCallRecord;
-import com.br.marketing.entity.XieChengData;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
