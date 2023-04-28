@@ -1,8 +1,6 @@
 package com.br.marketing.monkey.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.br.marketing.client.didi.DiDiClient;
-import com.br.marketing.client.didi.input.DiDiReqVO;
 import com.br.marketing.client.zhongan.ZhongAnClient;
 import com.br.marketing.client.zhongan.input.ZaMarketDataDTO;
 import com.br.marketing.client.zhongan.input.ZaMarketDetail;
@@ -30,8 +28,6 @@ public class TstController {
 
     @Autowired
     ZhongAnClient zhongAnClient;
-    @Autowired
-    DiDiClient diDiClient;
 
     @Autowired
     IMonkeyDataHandle zhongAnHandleImpl;
@@ -131,44 +127,5 @@ public class TstController {
     public String testReq(){
         log.error("test");
         return "testReq";
-    }
-
-    @GetMapping("/pushSmsTrafficAccess")
-    public String pushSmsTrafficAccess(String mobile) {
-
-        DiDiReqVO reqVO = new DiDiReqVO();
-        reqVO.setCustMobileMd5(Md5OfZanUtils.getMD5(mobile));
-
-        long start = System.currentTimeMillis();
-        Result result = diDiClient.pushSmsTrafficAccess(reqVO);
-        long end = System.currentTimeMillis() - start;
-
-        return "手机号：" + mobile + "====滴滴短信流量准入接口返回结果：" + JSON.toJSONString(result) + "====耗时：" + end;
-    }
-
-    @GetMapping("/pushReachSuccess")
-    public String pushReachSuccess(String mobile) {
-
-        DiDiReqVO reqVO = new DiDiReqVO();
-        reqVO.setCustMobileMd5(Md5OfZanUtils.getMD5(mobile));
-
-        long start = System.currentTimeMillis();
-        Result result = diDiClient.pushReachSuccess(reqVO);
-        long end = System.currentTimeMillis() - start;
-
-        return "手机号：" + mobile + "====滴滴触达成功接口返回结果：" + JSON.toJSONString(result) + "====耗时：" + end;
-    }
-
-    @GetMapping("/pushJMASS")
-    public String pushJMASS(String mobile) {
-
-        DiDiReqVO reqVO = new DiDiReqVO();
-        reqVO.setCustMobileMd5(Md5OfZanUtils.getMD5(mobile));
-
-        long start = System.currentTimeMillis();
-        Result result = diDiClient.pushJMASS(reqVO);
-        long end = System.currentTimeMillis() - start;
-
-        return "手机号：" + mobile + "====滴滴联合建模接口返回结果：" + JSON.toJSONString(result) + "====耗时：" + end;
     }
 }
