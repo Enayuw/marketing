@@ -37,7 +37,7 @@ public class DidiCallingRecordJob extends AbstractSimpleElasticJob {
     @Resource
     private DidiCallRecordHandle didiCallRecordHandle;
 
-    private final static String DIDICOLLRECORDEXECTIME = "21:00";
+    private final static String DIDICOLLRECORDEXECTIME = "21:00:00";
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
 
@@ -60,6 +60,6 @@ public class DidiCallingRecordJob extends AbstractSimpleElasticJob {
      */
     private LocalTime getSendTime() {
         DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
-        return LocalTime.parse(marketingCommonConfig.getDidiCollRecordExecTime()==null?DIDICOLLRECORDEXECTIME:marketingCommonConfig.getDidiCollRecordExecTime(), timeFormat);
+        return LocalTime.parse(marketingCommonConfig.getDidiCallRecordExecTime()==null?DIDICOLLRECORDEXECTIME:marketingCommonConfig.getDidiCallRecordExecTime(), timeFormat);
     }
 }

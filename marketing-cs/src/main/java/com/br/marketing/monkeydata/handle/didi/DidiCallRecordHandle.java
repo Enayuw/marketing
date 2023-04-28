@@ -58,20 +58,19 @@ public class DidiCallRecordHandle {
         //sourceType ="job" 是定时任务   "mq" 是实时发送
         if (JOB.equals(sourceType)) {
             // 创建线程池
-            ThreadPoolExecutor didiCallRecordThread = BrExecutors.getThreadPool(marketingCommonConfig.getDidiCollRecordThread(), marketingCommonConfig.getDidiCollRecordThread());
+            ThreadPoolExecutor didiCallRecordThread = BrExecutors.getThreadPool(marketingCommonConfig.getDidiCallRecordThread(), marketingCommonConfig.getDidiCallRecordThread());
             pushDate.forEach(date -> {
                 Long minId = null;
                 DidiCallRecordExample didiCallRecordExample = new DidiCallRecordExample();
-                didiCallRecordExample.setOrderByClause("id asc");
+                didiCallRecordExample.setOrderByClause("id asc limit 2000");
                 DidiCallRecordExample.Criteria criteria = didiCallRecordExample.createCriteria();
                 criteria.andCreateDateEqualTo(Integer.valueOf(date)).andStatusEqualTo(0);
                 if(minId!=null){
                     criteria.andIdGreaterThan(minId);
                 }
-                criteria.andLimit(2000);
                 List<DidiCallRecord> didiCallRecords = didiCallRecordMapper.selectByExample(didiCallRecordExample);
 
-                while (didiCallRecords.size()>0) {
+                while (didiCallRecords.size()>0 && marketingCommonConfig.isDidiCallRecordSwitch()) {
                     // 更新minId 为当前集合最大的id
                     minId = didiCallRecords.get(didiCallRecords.size() - 1).getId();
                     for (DidiCallRecord didiCallRecord : didiCallRecords) {
@@ -135,7 +134,7 @@ public class DidiCallRecordHandle {
                         didiCallRecord.setErrorCode(errorCode);
                         didiCallRecord.setErrorMessage(errorMessage);
                     }else {
-                        didiCallRecord.setStatus(3);
+                        didiCallRecord.setStatus(2);
                         didiCallRecord.setSysMessage("非200,20000异常");
                     }
 

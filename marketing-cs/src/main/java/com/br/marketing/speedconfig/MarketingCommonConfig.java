@@ -628,12 +628,17 @@ public class MarketingCommonConfig {
     /**
      * 滴滴推送通话明细线程数
      */
-    private Integer didiCollRecordThread;
+    private Integer didiCallRecordThread;
 
     /**
      * 滴滴推送通话明细执行时间
      */
-    private String didiCollRecordExecTime;
+    private String didiCallRecordExecTime;
+    /**
+     * 滴滴推送明细开关
+     */
+    private boolean didiCallRecordSwitch;
+
     /**
      * 滴滴联合建模执行时间
      */

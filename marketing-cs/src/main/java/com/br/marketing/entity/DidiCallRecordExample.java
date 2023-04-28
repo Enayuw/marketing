@@ -883,10 +883,7 @@ public class DidiCallRecordExample {
             addCriterion("sys_message not between", value1, value2, "sysMessage");
             return (Criteria) this;
         }
-        public Criteria andLimit(Integer size) {
-            addCriterion("limit "+size);
-            return (Criteria) this;
-        }
+
     }
 
     public static class Criteria extends GeneratedCriteria {
