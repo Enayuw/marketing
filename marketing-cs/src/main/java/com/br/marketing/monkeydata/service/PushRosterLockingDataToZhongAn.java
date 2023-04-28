@@ -252,9 +252,9 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             notValidConfigData.add(next);
             return null;
         }
-        Result validByThreeType = iMarketingDataValidService.isValidByThreeType(userTypeDay, syncUser);
+        Boolean validByThreeType = iMarketingDataValidService.isValidByThreeType(userTypeDay, syncUser);
         // 不在有效期内
-        if (!ResultCode.SUCCESS.getValue().equals(validByThreeType.getCode())) {
+        if (!validByThreeType) {
             notValidity.add(next);
             return null;
         }
