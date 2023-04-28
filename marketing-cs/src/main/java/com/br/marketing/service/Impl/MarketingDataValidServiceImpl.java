@@ -42,16 +42,16 @@ public class MarketingDataValidServiceImpl implements IMarketingDataValidService
     }
 
     @Override
-    public Result isValidByThreeType(Map<String, Integer> userTypeTN, MarketingSyncUser syncUser) {
+    public Boolean isValidByThreeType(Map<String, Integer> userTypeTN, MarketingSyncUser syncUser) {
         Integer day = userTypeTN.get(syncUser.getUserType());
         if(day == null){
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该场景未配置T+N有效期");
+            return Boolean.FALSE;
         }
         Boolean periodOfValidity = marketingSyncUserService.isPeriodOfValidity(new Date(), day, syncUser.getAppletTime());
         if(periodOfValidity){
-            return new Result().setCode(ResultCode.SUCCESS.getValue());
+            return Boolean.TRUE;
         }else{
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该数据已失效");
+            return Boolean.FALSE;
         }
     }
 }

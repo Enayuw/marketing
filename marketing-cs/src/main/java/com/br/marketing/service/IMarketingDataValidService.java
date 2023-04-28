@@ -24,5 +24,5 @@ public interface IMarketingDataValidService {
      * @param syncUser 待运营数据
      * @return
      */
-    Result isValidByThreeType(Map<String,Integer> userTypeTN, MarketingSyncUser syncUser);
+    Boolean isValidByThreeType(Map<String,Integer> userTypeTN, MarketingSyncUser syncUser);
 }
