@@ -66,6 +66,12 @@ public class DiDiClient {
      * @return
      */
     public Result<DiDiResponseTO> pushSmsTrafficAccess(DiDiReqVO smsReqVO) {
+        // 获取挡板开关
+        if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_SMS_TRAFFIC_ACCESS)) {
+            DiDiResponseTO mock = JSON.parseObject("{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"result\":true}}", DiDiResponseTO.class);
+            return new Result<>().setCode(1).setDate(mock);
+        }
+
         try {
             // 获取是否记录日志
             HashMap<String, List<Boolean>> isLog = getIsLog();
@@ -116,6 +122,12 @@ public class DiDiClient {
      * @return
      */
     public Result<DiDiResponseTO> pushReachSuccess(DiDiReqVO smsReqVO) {
+        // 获取挡板开关
+        if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_REACH_SUCCESS)) {
+            DiDiResponseTO mock = JSON.parseObject("{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"result\":true}}", DiDiResponseTO.class);
+            return new Result<>().setCode(1).setDate(mock);
+        }
+
         try {
             // 获取是否记录日志
             HashMap<String, List<Boolean>> isLog = getIsLog();
@@ -169,6 +181,12 @@ public class DiDiClient {
      * @return
      */
     public Result<DiDiJMassResponseTO> pushJMASS(DiDiReqVO smsReqVO) {
+        // 获取挡板开关
+        if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_JMASS)) {
+            DiDiJMassResponseTO mock = JSON.parseObject("{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":\"11111\"}", DiDiJMassResponseTO.class);
+            return new Result<>().setCode(1).setDate(mock);
+        }
+
         try {
             // 获取是否记录日志
             HashMap<String, List<Boolean>> isLog = getIsLog();
@@ -178,7 +196,8 @@ public class DiDiClient {
             jmassRequestTO.setSign(smsReqVO.getCustMobileMd5());
 
             // 发送请求
-            HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(jmassRequestTO, jmassSUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,
+            HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(jmassRequestTO, jmassSUrl, isProxy,
+                    MediaType.APPLICATION_JSON_UTF8_VALUE,
                     JSON.toJSONString(smsReqVO), islogs.get(0), islogs.get(1));
 
             // 1.httpcode不为200，需要重试

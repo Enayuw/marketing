@@ -655,5 +655,12 @@ public class MarketingCommonConfig {
      * 滴滴数据提取apiCode集合
      */
     private List<String> didiApiCodes;
+
+    /**
+     * 滴滴接口挡板开关
+     * true 打开挡板，false 关闭挡板
+     * {"pushSmsTrafficAccess":true,"pushReachSuccess":true,"pushJMASS":true}
+     */
+    private Map<String, Boolean> didiMockSwitch;
 }
 
