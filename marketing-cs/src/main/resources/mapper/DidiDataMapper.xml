@@ -16,4 +16,10 @@
         </foreach>
         ) t where num = 1
     </select>
+    <select id="getPushDateByLocalId" resultType="java.lang.String">
+        select push_date
+        from b_didi_data
+        where local_id = #{localId} and push_status = 2 and is_marketing = 1
+        group by push_date
+    </select>
 </mapper>

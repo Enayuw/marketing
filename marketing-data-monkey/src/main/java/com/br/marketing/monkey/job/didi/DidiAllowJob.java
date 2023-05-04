@@ -1,12 +1,18 @@
 package com.br.marketing.monkey.job.didi;
+import java.util.Date;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
+import com.br.marketing.entity.MarketingDataValidConfig;
+import com.br.marketing.entity.MarketingDataValidConfigExample;
+import com.br.marketing.mapper.DidiDataMapper;
 import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.monkeydata.entity.didi.DiDiAllowCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import com.br.marketing.monkeydata.handle.didi.DidiCallRecordHandle;
@@ -24,10 +30,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 
 @Component
@@ -39,6 +42,12 @@ public class DidiAllowJob extends AbstractSimpleElasticJob {
 
     @Autowired
     IMonkeyDataHandle diDiAllowHandle;
+
+    @Resource
+    DidiDataMapper didiDataMapper;
+
+    @Resource
+    MarketingDataValidConfigMapper dataValidConfigMapper;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
@@ -62,6 +71,30 @@ public class DidiAllowJob extends AbstractSimpleElasticJob {
                 updaEntity.setId(localFile.getId());
                 updaEntity.setPushStatus("4");
                 localFileMapper.updateByPrimaryKeySelective(updaEntity);
+            }
+
+            List<String> pushDates = didiDataMapper.getPushDateByLocalId(localFile.getId());
+            MarketingDataValidConfigExample configExample = new MarketingDataValidConfigExample();
+            configExample.createCriteria().andApiCodeEqualTo(localFile.getApiCode())
+                    .andValidTypeEqualTo(1)
+                    .andAppletDateIn(pushDates)
+                    .andIsDelEqualTo(Constants.DATA_VALID);
+            List<MarketingDataValidConfig> validConfigs = dataValidConfigMapper.selectByExample(configExample);
+            for (String pushDate : pushDates) {
+                String endDate = LocalDate.parse(pushDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")).plusDays(30L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                Optional<MarketingDataValidConfig> first = validConfigs.stream().filter(t -> t.getAppletDate().equals(pushDate)).findFirst();
+                if(!first.isPresent()){
+                    MarketingDataValidConfig marketingDataValidConfig = new MarketingDataValidConfig();
+                    marketingDataValidConfig.setApiCode(apiCode);
+                    marketingDataValidConfig.setAppletDate(pushDate);
+                    marketingDataValidConfig.setUserType("1");
+                    marketingDataValidConfig.setValidStartDate(pushDate);
+                    marketingDataValidConfig.setValidEndDate(endDate);
+                    marketingDataValidConfig.setValidType(1);
+                    marketingDataValidConfig.setCreateTime(new Date());
+                    marketingDataValidConfig.setIsDel(Constants.DATA_VALID);
+                    dataValidConfigMapper.insertSelective(marketingDataValidConfig);
+                }
             }
         }
     }
