@@ -439,6 +439,10 @@ public class MarketingCommonConfig {
      */
     private Integer threadNumSftpToDbByCommon;
 
+    /**
+     * 入库条数
+     */
+    private Integer dataNumSftpToDbByCommon;
 
     /**
      * 拍拍贷老客推电销去重时间天数
