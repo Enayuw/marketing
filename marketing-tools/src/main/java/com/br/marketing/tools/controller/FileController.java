@@ -1,5 +1,6 @@
 package com.br.marketing.tools.controller;
 
+import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.utils.BrExecutors;
 import lombok.extern.slf4j.Slf4j;
@@ -158,24 +159,24 @@ public class FileController {
                                 sb.append(split[1].trim());
                                 sb.append(",");
                                 sb.append(split[2].trim());
-                                sb.append(",");
-                                sb.append(split[3].trim());
-                                sb.append(",");
-                                sb.append(split[4].trim());
+//                                sb.append(",");
+//                                sb.append(split[3].trim());
+//                                sb.append(",");
+//                                sb.append(split[4].trim());
                                 sb.append("\r\n");
-                                writer.append(content);
+                                writer.append(sb.toString());
                             }else{
                                 String[] split = content.split("\t");
                                 StringBuilder sb = new StringBuilder();
                                 sb.append(split[0].trim());
                                 sb.append(",");
-                                sb.append(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(split[1].trim()).getBytes()));
+                                sb.append(Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(split[1].trim())));
                                 sb.append(",");
                                 sb.append(concent(split[2]));
-                                sb.append(",");
-                                sb.append(concent(split[3]));
-                                sb.append(",");
-                                sb.append(concent(split[4]));
+//                                sb.append(",");
+//                                sb.append(concent(split[3]));
+//                                sb.append(",");
+//                                sb.append(concent(split[4]));
                                 sb.append("\r\n");
                                 writer.append(sb.toString());
                             }

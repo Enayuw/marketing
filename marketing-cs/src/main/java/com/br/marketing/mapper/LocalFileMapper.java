@@ -31,4 +31,6 @@ public interface LocalFileMapper extends LocalFileMapperBase {
     void updateUploadStartTimeById(@Param("ids") List<Long> ids, @Param("date") Date date);
 
     LocalFile getByPrimaryKey(@Param("id") Long id);
+
+    List<LocalFile> getLocalFileByPushNoOrError(@Param("apiCode") String apiCode,@Param("fileType") String fileType);
 }

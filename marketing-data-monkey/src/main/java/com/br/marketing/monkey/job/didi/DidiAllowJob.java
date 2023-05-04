@@ -1,0 +1,68 @@
+package com.br.marketing.monkey.job.didi;
+
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.SftpFileTypeEnum;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.LocalFile;
+import com.br.marketing.entity.LocalFileExample;
+import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.monkeydata.entity.didi.DiDiAllowCondition;
+import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
+import com.br.marketing.monkeydata.handle.didi.DidiCallRecordHandle;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
+import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.google.common.base.Splitter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+
+
+@Component
+@Slf4j
+public class DidiAllowJob extends AbstractSimpleElasticJob {
+
+    @Resource
+    LocalFileMapper localFileMapper;
+
+    @Autowired
+    IMonkeyDataHandle diDiAllowHandle;
+
+    @Override
+    public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
+        Date from = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
+        String apiCode = StringUtils.isNotBlank(jobParameter) ? jobParameter :"";
+        List<LocalFile> localFiles = localFileMapper.getLocalFileByPushNoOrError(apiCode,SftpFileTypeEnum.DD.getValue());
+        for (LocalFile localFile : localFiles) {
+            DiDiAllowCondition condition = new DiDiAllowCondition();
+            condition.setPageSize(2000);
+            condition.setLocalId(localFile.getId());
+            Result action = diDiAllowHandle.action(condition);
+            if(ResultCode.FAIL.getValue().equals(action.getCode())){
+                LocalFile updaEntity = new LocalFile();
+                updaEntity.setId(localFile.getId());
+                updaEntity.setPushStatus("3");
+                localFileMapper.updateByPrimaryKeySelective(updaEntity);
+            }
+            if(ResultCode.SUCCESS.getValue().equals(action.getCode())){
+                LocalFile updaEntity = new LocalFile();
+                updaEntity.setId(localFile.getId());
+                updaEntity.setPushStatus("4");
+                localFileMapper.updateByPrimaryKeySelective(updaEntity);
+            }
+        }
+    }
+}

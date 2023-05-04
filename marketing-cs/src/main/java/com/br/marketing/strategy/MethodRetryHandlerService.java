@@ -37,9 +37,11 @@ import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.DiDiAllowMarketingEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.monkeydata.service.PushRosterLockingDataToZhongAn;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.vo.DiDiAllowReqDTO;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -130,6 +132,9 @@ public class MethodRetryHandlerService {
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    DidiDataMapper didiDataMapper;
 
     @Resource
     private DiDiClient diDiClient;
@@ -677,5 +682,35 @@ public class MethodRetryHandlerService {
         DiDiReqVO diDiReqVO = new DiDiReqVO();
         diDiReqVO.setCustMobileMd5(mobidlMd5);
         return diDiClient.pushReachSuccess(diDiReqVO);
+    }
+
+    @RetryMethod(retryNowNum = 1)
+    public Result<Boolean> didiAllow(DiDiAllowReqDTO dto,Integer retry){
+        DiDiReqVO diDiReqVO = new DiDiReqVO();
+        diDiReqVO.setCustMobileMd5(dto.getMobile());
+        Result<DiDiResponseTO> diDiResponseTOResult = diDiClient.pushSmsTrafficAccess(diDiReqVO);
+        DidiData updateEntity = new DidiData();
+        updateEntity.setId(dto.getId());
+        updateEntity.setPushStatus(2);
+        if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(diDiResponseTOResult.getCode())){
+            updateEntity.setPushStatus(3);
+            didiDataMapper.updateByPrimaryKeySelective(updateEntity);
+            return new Result<Boolean>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+        DiDiResponseTO data = diDiResponseTOResult.getData();
+        Boolean res = Boolean.FALSE;
+        if(data.getData() !=null && data.getData().getResult()){
+            res = Boolean.TRUE;
+            updateEntity.setIsMarketing(DiDiAllowMarketingEnum.YES.getValue());
+            didiDataMapper.updateByPrimaryKeySelective(updateEntity);
+        }else if(data.getData() !=null && !data.getData().getResult()){
+            updateEntity.setIsMarketing(DiDiAllowMarketingEnum.NO.getValue());
+            didiDataMapper.updateByPrimaryKeySelective(updateEntity);
+        }else{
+            updateEntity.setIsMarketing(DiDiAllowMarketingEnum.NOKNOW.getValue());
+            updateEntity.setDataMessage(data== null?"":JSON.toJSONString(data));
+            didiDataMapper.updateByPrimaryKeySelective(updateEntity);
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
     }
 }

@@ -79,6 +79,14 @@
         from b_local_file
         where id = #{id}
     </select>
+    <select id="getLocalFileByPushNoOrError" resultType="com.br.marketing.entity.LocalFile">
+        select *
+        from b_local_file
+        where api_code = #{apiCode}
+        and file_type = #{fileType}
+        and status = 2 and (push_status is null or push_status = '3')
+        order by create_time asc
+    </select>
 
 
 </mapper>
