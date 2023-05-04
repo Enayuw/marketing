@@ -395,6 +395,7 @@ public class SftpToDbByCommonService {
                 updateFile.setComplete("3");
             }
             updateFile.setErrorActualNumber(errorMark.get());
+            updateFile.setStatus("2");
             localFileMapper.updateByPrimaryKeySelective(updateFile);
             if (StringUtils.isNotBlank(fileDbConfig.getRouteKey())) {
                 producter.send(fileDbConfig.getRouteKey(), localFile.getId().toString());
