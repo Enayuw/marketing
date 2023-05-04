@@ -17,8 +17,11 @@
         left join b_call_record b on a.case_num = b.case_num and a.create_time = b.create_time
     </select>
 
-    <select id="getBlackListSettikv_" resultType="java.lang.String">
-        select case_num from b_call_record
+    <select id="getBlackListSettikv_" resultType="com.br.marketing.entity.CallRecord">
+        select
+           case_num as caseNum
+           ,call_start_time as callStartTime
+        from b_call_record
         where call_status='12' and
         <foreach collection="custNumMap.entrySet()" open="(" close=")" separator=" or " index="key" item="val">
             (case_num = '${key}' and <![CDATA[ call_start_time >= '${val} 00:00:00' ]]>

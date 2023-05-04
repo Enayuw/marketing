@@ -82,16 +82,8 @@ public class ZhongAnPushBlackDataServiceImpl implements ZhongAnPushBlackDataServ
                     log.error("众安推送黑名单，上传数据解析查询异常", e);
                 }
             }
-            int periodDay = 30;
-            //默认30天
-            if (StringUtils.isNotEmpty(marketingCommonConfig.getZhongAnPushBlackDataPeriod())) {
-                periodDay = Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackDataPeriod());
-            }
-            String appletDateStart = LocalDateTime.now().minusDays(periodDay).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             MarketingSyncCondition marketingSyncCondition = new MarketingSyncCondition();
             marketingSyncCondition.setApiCode(apiCode);
-            marketingSyncCondition.setAppletDateStart(appletDateStart);
-            marketingSyncCondition.setAppletDateEnd(recordDate);
             zhongAnPushBlackDataHandle.action(marketingSyncCondition);
             yiXinTransferService.updateFrontDataStatus(frontId, 2);
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate("众安推送黑名单至客服任务完成");

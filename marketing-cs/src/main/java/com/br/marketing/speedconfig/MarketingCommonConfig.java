@@ -605,6 +605,20 @@ public class MarketingCommonConfig {
      * 众安转化数据提取时间
      */
     private String zhongAnFileExecTime;
+
+    /**
+     * 众安撞库要推送的userType
+     */
+    private List<String> zhongAnZkUserType;
+
+
+    /**
+     * 众安撞库userType对应的channelCode配置
+     */
+    private Map<String, String> ZhongAnZkUserTypeChannelCode;
+
+
+
     /**
      * 分期乐推送电销配置 场景：手机号推送去重天数 {"usertType":30}
      */
@@ -614,5 +628,53 @@ public class MarketingCommonConfig {
      * 对客作业配置 {"test":{"isThread":true,"threadNum":10,"isPause":false}}
      */
     private HashMap<String,JSONObject> customerJobConfig;
+
+
+    /**
+     * 滴滴推送通话明细线程数
+     */
+    private Integer didiCallRecordThread;
+
+    /**
+     * 滴滴推送通话明细执行时间
+     */
+    private String didiCallRecordExecTime;
+    /**
+     * 滴滴推送明细开关
+     */
+    private boolean didiCallRecordSwitch;
+
+    /**
+     * 滴滴联合建模执行时间
+     */
+    private String didiModelingExecTime;
+
+    /**
+     * 滴滴联合建模线程数
+     */
+    private String didiModelingThreadNum;
+
+    /**
+     * 众安明细推送配置{"userType":{"isPush":"1/0","channelCode":"****"}}
+     */
+    private HashMap<String,JSONObject> zhongAnDetailPush;
+
+    /**
+     * 滴滴联合建模任务开关
+     * true 打开，false 关闭执行
+     */
+    private Boolean didiModelingDataSwitch;
+
+    /**
+     * 滴滴数据提取apiCode集合
+     */
+    private List<String> didiApiCodes;
+
+    /**
+     * 滴滴接口挡板开关
+     * true 打开挡板，false 关闭挡板
+     * {"pushSmsTrafficAccess":true,"pushReachSuccess":true,"pushJMASS":true}
+     */
+    private Map<String, Boolean> didiMockSwitch;
 }
 

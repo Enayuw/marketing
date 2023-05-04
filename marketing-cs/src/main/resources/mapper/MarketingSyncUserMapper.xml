@@ -457,7 +457,7 @@
     </select>
 
     <select id="getCellByCellAndMaxAppletTime" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select t1.cell,cust_num,applet_date,applet_time,create_time,cus_batch
+        select t1.cell,t1.user_type,cust_num,applet_date,applet_time,create_time,cus_batch
         from b_marketing_sync_${apiCode} t1,
         (select cell,max(applet_time) as appletTime
         from b_marketing_sync_${apiCode}
@@ -485,7 +485,7 @@
         </where>
     </select>
 
-    <select id="getSyncUserByAppletDate" resultType="com.br.marketing.entity.MarketingSyncUser">
+    <select id="getSyncUserByAppletDateAndUserType" resultType="com.br.marketing.entity.MarketingSyncUser">
         select * from b_marketing_sync_${apiCode}
         <where>
             <if test="apiCode != null">
@@ -495,13 +495,14 @@
                 AND id >=#{minId}
             </if>
             AND applet_date = #{executeDate}
+            And user_type = #{userType}
             AND status=1
             order by id asc limit 2000;
         </where>
     </select>
 
 
-    <select id="getAppletDate" resultType="java.lang.String">
+    <select id="getAppletDateByUserType" resultType="java.lang.String">
         select applet_date from b_marketing_sync_${apiCode}
         <where>
             <if test="apiCode != null">
@@ -509,6 +510,7 @@
             </if>
             <![CDATA[ AND applet_date >= #{startDate} and applet_date < #{endDate} ]]>
             AND status=1
+            And user_type = #{userType}
             group by applet_date
             order by applet_date asc
         </where>
@@ -595,5 +597,23 @@
         from b_marketing_sync_${apiCode}
         where status = 1
           and is_repeat in (1, 2);
+    </select>
+    <select id="getCellByAppletDateAndUserType" resultType="com.br.marketing.entity.MarketingSyncUser">
+
+        select * from b_marketing_sync_${apiCode}
+        <where>
+            <if test="apiCode != null">
+                AND api_code =#{apiCode}
+            </if>
+            <if test="minId != null and minId >0">
+                AND id >=#{minId}
+            </if>
+            AND applet_date = #{executeDate}
+            And user_type = #{userType}
+            AND status=1
+            group by cell
+            order by id asc limit 2000;
+        </where>
+
     </select>
 </mapper>

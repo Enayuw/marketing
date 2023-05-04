@@ -20,7 +20,8 @@ public enum InterfaceHandlerEnum {
     ARTIFICIAL_IBU_BATCH_DATA(16, "人工IBU批量接口"),
     CUSTOMER_TRANSFER_SOLE(17, "客服转化去重"),
     INIT_TO_POLICY_SOLE(18, "推送决策去重接口"),
-    ARTIFICIAL_REAL_TIME_LOG(19, "人工实时推送并且记录日志");
+    ARTIFICIAL_REAL_TIME_LOG(19, "人工实时推送并且记录日志"),
+    DIDI_CALL_RECORD_INSERT_DB(20, "滴滴通话明细保存到滴滴销数据表");
 
     InterfaceHandlerEnum(Integer code, String name) {
         this.code = code;

@@ -4,10 +4,7 @@ package com.br.marketing.mapper;
 import com.br.marketing.entity.CallRecord;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public interface CallRecordMapper extends CallRecordMapperBase {
     List<CallRecord> getLastCallRecordByCustNum(@Param("custNums") Collection<String> custNums, @Param("cid") String cid);
@@ -18,5 +15,5 @@ public interface CallRecordMapper extends CallRecordMapperBase {
      *
      * @param custNumMap key custNum;value bizDate
      */
-    Set<String> getBlackListSettikv_(@Param("custNumMap") Map<String, String> custNumMap, @Param("apiCode") String apiCode);
+    List<CallRecord> getBlackListSettikv_(@Param("custNumMap") Map<String, String> custNumMap, @Param("apiCode") String apiCode);
 }

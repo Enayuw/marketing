@@ -1,14 +1,17 @@
 package com.br.marketing.monkey.job;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.entity.ZhonganRosterLockingData;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.monkeydata.service.PushRosterLockingDataToZhongAn;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -36,6 +39,8 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
     @Resource
     private LocalFileMapper localFileMapper;
 
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
@@ -49,6 +54,11 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             }
         }
         String bizDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+
+        HashMap<String, JSONObject> zhongAnDetailPush = marketingCommonConfig.getZhongAnDetailPush();
+        if (zhongAnDetailPush == null) {
+            return;
+        }
 
         Page2Condition<ZhonganRosterLockingData> data = new Page2Condition<>();
         data.setPageIndex(0);
