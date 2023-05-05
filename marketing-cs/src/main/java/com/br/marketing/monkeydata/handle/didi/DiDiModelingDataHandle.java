@@ -109,6 +109,7 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
         List<MarketingDataValidConfig> configList = findConfigByBetweenDate(inputData.getApiCode(), date);
         List<String> appletDateList = configList.stream().map(marketingDataValidConfig -> marketingDataValidConfig.getAppletDate()).collect(Collectors.toList());
         inputData.setExecuteDateList(appletDateList);
+        Set<String> CellSets = new HashSet<>();
         for (; ; ) {
             if (StringUtils.isNotEmpty(marketingCommonConfig.getDidiModelingThreadNum())) {
                 pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getDidiModelingThreadNum()));
@@ -120,6 +121,8 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
                 break;
             }
             List<MarketingSyncUser> inputDataList = inputRes.getData().getInputDataList();
+            //数据去重
+            inputDataList.removeIf(marketingSyncUser -> !CellSets.add(marketingSyncUser.getCell()));
             inputDataList.add(null);
             pool.execute(() -> {
                 try {
