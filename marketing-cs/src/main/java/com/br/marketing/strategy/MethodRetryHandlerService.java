@@ -701,6 +701,7 @@ public class MethodRetryHandlerService {
         Boolean res = Boolean.FALSE;
         if(data.getData() !=null && data.getData().getResult()){
             res = Boolean.TRUE;
+            updateEntity.setPushDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             updateEntity.setIsMarketing(DiDiAllowMarketingEnum.YES.getValue());
             didiDataMapper.updateByPrimaryKeySelective(updateEntity);
         }else if(data.getData() !=null && !data.getData().getResult()){
