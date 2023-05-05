@@ -675,6 +675,11 @@ public class MarketingCommonConfig {
     private List<String> didiApiCodes;
 
     /**
+     * 滴滴联合建模数据提取时间
+     */
+    private String didiModeingFileExecTime;
+
+    /**
      * 滴滴接口挡板开关
      * true 打开挡板，false 关闭挡板
      * {"pushSmsTrafficAccess":true,"pushReachSuccess":true,"pushJMASS":true}

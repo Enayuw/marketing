@@ -608,7 +608,7 @@
             <if test="minId != null and minId >0">
                 AND id >=#{minId}
             </if>
-            AND applet_date = #{executeDate}
+            AND applet_date = #{appletDate}
             And user_type = #{userType}
             AND status=1
             group by cell
