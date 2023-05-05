@@ -6,10 +6,8 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.LocalFile;
-import com.br.marketing.entity.LocalFileExample;
-import com.br.marketing.entity.MarketingDataValidConfig;
-import com.br.marketing.entity.MarketingDataValidConfigExample;
+import com.br.marketing.entity.*;
+import com.br.marketing.enums.DiDiAllowMarketingEnum;
 import com.br.marketing.mapper.DidiDataMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
@@ -56,23 +54,43 @@ public class DidiAllowJob extends AbstractSimpleElasticJob {
         String apiCode = StringUtils.isNotBlank(jobParameter) ? jobParameter :"";
         List<LocalFile> localFiles = localFileMapper.getLocalFileByPushNoOrError(apiCode,SftpFileTypeEnum.DD.getValue());
         for (LocalFile localFile : localFiles) {
+            //创建修改的文件对象
+            LocalFile updaEntity = new LocalFile();
+            updaEntity.setId(localFile.getId());
+
             DiDiAllowCondition condition = new DiDiAllowCondition();
             condition.setPageSize(2000);
             condition.setLocalId(localFile.getId());
+            if(localFile.getPushStartTime() == null){
+                updaEntity.setPushStartTime(new Date());
+            }
+            //执行撞库逻辑
             Result action = diDiAllowHandle.action(condition);
+
+            //region 更新文件表
+            DidiDataExample dataExample = new DidiDataExample();
+            dataExample.createCriteria()
+                    .andLocalIdEqualTo(localFile.getId())
+                    .andPushStatusEqualTo(2)
+                    .andStatusEqualTo(1)
+                    .andIsMarketingEqualTo(DiDiAllowMarketingEnum.YES.getValue());
+            int successNum = didiDataMapper.countByExample(dataExample);
+            DidiDataExample allExample = new DidiDataExample();
+            allExample.createCriteria()
+                    .andLocalIdEqualTo(localFile.getId());
+            int allNum = didiDataMapper.countByExample(allExample);
+            updaEntity.setPushNumber(successNum);
+            updaEntity.setErrorActualNumber(allNum - successNum);
             if(ResultCode.FAIL.getValue().equals(action.getCode())){
-                LocalFile updaEntity = new LocalFile();
-                updaEntity.setId(localFile.getId());
                 updaEntity.setPushStatus("3");
-                localFileMapper.updateByPrimaryKeySelective(updaEntity);
             }
             if(ResultCode.SUCCESS.getValue().equals(action.getCode())){
-                LocalFile updaEntity = new LocalFile();
-                updaEntity.setId(localFile.getId());
                 updaEntity.setPushStatus("4");
-                localFileMapper.updateByPrimaryKeySelective(updaEntity);
             }
+            localFileMapper.updateByPrimaryKeySelective(updaEntity);
+            //endregion
 
+            //region 生成有效期配置记录
             List<String> pushDates = didiDataMapper.getPushDateByLocalId(localFile.getId());
             MarketingDataValidConfigExample configExample = new MarketingDataValidConfigExample();
             configExample.createCriteria().andApiCodeEqualTo(localFile.getApiCode())
@@ -96,6 +114,7 @@ public class DidiAllowJob extends AbstractSimpleElasticJob {
                     dataValidConfigMapper.insertSelective(marketingDataValidConfig);
                 }
             }
+            //endregion
         }
     }
 }

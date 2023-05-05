@@ -145,7 +145,7 @@ public class DiDiAllowHandle  extends IMonkeyDataHandle<DidiData, DiDiProcessDat
         List<DiDiProcessData> diDiProcessDatas = new ArrayList<>();
         for (DidiData data : inList) {
             DidiData firstData = firstDiDi.get(data.getCell());
-            if(firstData != null && firstData.getId() != data.getId()){
+            if(firstData != null && !firstData.getId().equals(data.getId())){
                 diDiProcessDatas.add(new DiDiProcessData(1,null,data));
                 continue;
             }
@@ -174,7 +174,7 @@ public class DiDiAllowHandle  extends IMonkeyDataHandle<DidiData, DiDiProcessDat
         String apiCode = didi.getApiCode();
         List<Long> moreIds = new ArrayList<>();
         StringBuilder validSql = new StringBuilder();
-        validSql.append("update b_didi_data set status = 4,");
+        validSql.append("update b_didi_data set status = 4,is_marketing = 1");
         StringBuilder pushDateSql = new StringBuilder();
         pushDateSql.append("push_date = case id ");
         StringBuilder pushDateWhereSql = new StringBuilder();
@@ -212,7 +212,7 @@ public class DiDiAllowHandle  extends IMonkeyDataHandle<DidiData, DiDiProcessDat
             update.setStatus(3);
             DidiDataExample didiDataExample = new DidiDataExample();
             didiDataExample.createCriteria().andIdIn(moreIds);
-            didiDataMapper.updateByExample(update,didiDataExample);
+            didiDataMapper.updateByExampleSelective(update,didiDataExample);
         }
 
         if(validMark){
