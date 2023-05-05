@@ -104,9 +104,9 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
     @Override
     public Result customizedAction(MarketingSyncCondition inputData) {
         Result res = new Result();
-        String now = LocalDate.now().toString();
+        String date = LocalDate.now().minusDays(1).toString();
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(100, 100, 100);
-        List<MarketingDataValidConfig> configList = findConfigByBetweenDate(inputData.getApiCode(), now);
+        List<MarketingDataValidConfig> configList = findConfigByBetweenDate(inputData.getApiCode(), date);
         List<String> appletDateList = configList.stream().map(marketingDataValidConfig -> marketingDataValidConfig.getAppletDate()).collect(Collectors.toList());
         inputData.setExecuteDateList(appletDateList);
         for (; ; ) {
