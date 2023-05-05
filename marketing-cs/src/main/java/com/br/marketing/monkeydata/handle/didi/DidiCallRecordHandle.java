@@ -61,22 +61,27 @@ public class DidiCallRecordHandle {
             ThreadPoolExecutor didiCallRecordThread = BrExecutors.getThreadPool(marketingCommonConfig.getDidiCallRecordThread(), marketingCommonConfig.getDidiCallRecordThread());
             pushDate.forEach(date -> {
                 Long minId = null;
-                DidiCallRecordExample didiCallRecordExample = new DidiCallRecordExample();
-                didiCallRecordExample.setOrderByClause("id asc limit 2000");
-                DidiCallRecordExample.Criteria criteria = didiCallRecordExample.createCriteria();
-                criteria.andCreateDateEqualTo(Integer.valueOf(date)).andStatusEqualTo(0);
-                if(minId!=null){
-                    criteria.andIdGreaterThan(minId);
-                }
-                List<DidiCallRecord> didiCallRecords = didiCallRecordMapper.selectByExample(didiCallRecordExample);
 
-                while (didiCallRecords.size()>0 && marketingCommonConfig.isDidiCallRecordSwitch()) {
+
+                while ( marketingCommonConfig.isDidiCallRecordSwitch()){
+                    DidiCallRecordExample didiCallRecordExample = new DidiCallRecordExample();
+                    didiCallRecordExample.setOrderByClause("id asc limit 2000");
+                    DidiCallRecordExample.Criteria criteria = didiCallRecordExample.createCriteria();
+                    criteria.andCreateDateEqualTo(Integer.valueOf(date)).andStatusEqualTo(0);
+                    if(minId!=null){
+                        criteria.andIdGreaterThan(minId);
+                    }
+                    List<DidiCallRecord> didiCallRecords = didiCallRecordMapper.selectByExample(didiCallRecordExample);
+                    if(didiCallRecords.size()==0){
+                        break;
+                    }
                     // 更新minId 为当前集合最大的id
                     minId = didiCallRecords.get(didiCallRecords.size() - 1).getId();
                     for (DidiCallRecord didiCallRecord : didiCallRecords) {
                         didiCallRecordThread.submit(() -> pushDidiCallRecordData(didiCallRecord));
                     }
                 }
+
             });
             didiCallRecordThread.shutdown();
             try {
@@ -112,13 +117,15 @@ public class DidiCallRecordHandle {
                     .andStatusEqualTo(1)
                     .andCreateDateEqualTo(createDate);
             if (didiCallRecordMapper.countByExample(didiCallRecordExample)==0) {
-                MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode, custNum);
+                //MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode, custNum);
                 MarketingTransferSyncUser marketingTransferSyncUser = new MarketingTransferSyncUser();
-                marketingTransferSyncUser.setApiCode(marketingSyncUser.getApiCode());
-                marketingTransferSyncUser.setUserType(marketingSyncUser.getUserType());
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                marketingTransferSyncUser.setApiCode(apiCode);
+                //marketingTransferSyncUser.setUserType(marketingSyncUser.getUserType());
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                marketingTransferSyncUser.setRequestData( sdf.format(new Date()));
+                marketingTransferSyncUser.setCustNum(custNum);
                 // 判断是否有效
-                MarketingSyncUser newValidityPeriodData = transferDataValidityPeriodService.getNewValidityPeriodData(marketingTransferSyncUser, sdf.format(new Date()));
+                MarketingSyncUser newValidityPeriodData = transferDataValidityPeriodService.getNewValidityPeriodData(marketingTransferSyncUser,null);
                 if(newValidityPeriodData!=null){
                     didiCallRecord.setCell(newValidityPeriodData.getCell());
                     // 调接口推送
@@ -154,6 +161,7 @@ public class DidiCallRecordHandle {
             log.error("滴滴接口推送异常", e);
         }
     }
+
 
 
 }
