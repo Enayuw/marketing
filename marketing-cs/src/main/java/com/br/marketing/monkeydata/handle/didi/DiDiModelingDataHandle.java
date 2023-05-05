@@ -13,6 +13,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.*;
@@ -103,9 +104,9 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
     @Override
     public Result customizedAction(MarketingSyncCondition inputData) {
         Result res = new Result();
-        String now = LocalDate.now().toString();
+        String date = LocalDate.now().minusDays(1).toString();
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(100, 100, 100);
-        List<MarketingDataValidConfig> configList = findConfigByBetweenDate(inputData.getApiCode(), now);
+        List<MarketingDataValidConfig> configList = findConfigByBetweenDate(inputData.getApiCode(), date);
         List<String> appletDateList = configList.stream().map(marketingDataValidConfig -> marketingDataValidConfig.getAppletDate()).collect(Collectors.toList());
         inputData.setExecuteDateList(appletDateList);
         for (; ; ) {
@@ -120,11 +121,15 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
             }
             List<MarketingSyncUser> inputDataList = inputRes.getData().getInputDataList();
             inputDataList.add(null);
-            pool.submit(() -> {
-                Result result = resultAction(inputDataList);
-                if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                    res.setCode(ResultCode.FAIL.getValue());
-                    log.warn(res.getMessage());
+            pool.execute(() -> {
+                try {
+                    Result result = resultAction(inputDataList);
+                    if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                        res.setCode(ResultCode.FAIL.getValue());
+                        log.warn(res.getMessage());
+                    }
+                } catch (Exception ex) {
+                    log.error("滴滴联合建模调用异常", ex);
                 }
             });
         }
@@ -145,8 +150,8 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
      */
     private List<MarketingDataValidConfig> findConfigByBetweenDate(String apiCode, String date) {
         MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
-        example.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo("1").andValidStartDateGreaterThanOrEqualTo(date)
-                .andValidEndDateLessThanOrEqualTo(date).andIsDelEqualTo(1);
+        example.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo("1").andValidStartDateLessThanOrEqualTo(date)
+                .andValidEndDateGreaterThanOrEqualTo(date).andIsDelEqualTo(1);
         example.setOrderByClause("create_time desc, update_time desc");
         return marketingDataValidConfigMapper.selectByExample(example);
     }
@@ -216,6 +221,7 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
         TransferDataDTO transferDataDTO = new TransferDataDTO();
         transferDataDTO.setDataItems(transferDataItemDTOS);
         transferDataDTO.setRequestId(UUID.randomUUID().toString());
+        RuntimeDataContext.initData();
         pushRuleService.insertTransferData(dataList.get(0).getApiCode(), JSON.toJSONString(transferDataDTO));
         return new Result<>().setCode(ResultCode.SUCCESS.getValue());
     }

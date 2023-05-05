@@ -1,4 +1,4 @@
-package com.br.marketing.monkey.job;
+package com.br.marketing.monkey.job.didi;
 
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
