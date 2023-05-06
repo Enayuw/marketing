@@ -75,12 +75,8 @@ public class DidiAllowJob extends AbstractSimpleElasticJob {
                     .andStatusEqualTo(1)
                     .andIsMarketingEqualTo(DiDiAllowMarketingEnum.YES.getValue());
             int successNum = didiDataMapper.countByExample(dataExample);
-            DidiDataExample allExample = new DidiDataExample();
-            allExample.createCriteria()
-                    .andLocalIdEqualTo(localFile.getId());
-            int allNum = didiDataMapper.countByExample(allExample);
             updaEntity.setPushNumber(successNum);
-            updaEntity.setErrorActualNumber(allNum - successNum);
+            updaEntity.setPushEndTime(new Date());
             if(ResultCode.FAIL.getValue().equals(action.getCode())){
                 updaEntity.setPushStatus("3");
             }

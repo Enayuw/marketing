@@ -174,9 +174,9 @@ public class DiDiAllowHandle  extends IMonkeyDataHandle<DidiData, DiDiProcessDat
         String apiCode = didi.getApiCode();
         List<Long> moreIds = new ArrayList<>();
         StringBuilder validSql = new StringBuilder();
-        validSql.append("update b_didi_data set status = 4,is_marketing = 1");
+        validSql.append("update b_didi_data set status = 4,is_marketing = 1,");
         StringBuilder pushDateSql = new StringBuilder();
-        pushDateSql.append("push_date = case id ");
+        pushDateSql.append("push_date = (case id ");
         StringBuilder pushDateWhereSql = new StringBuilder();
         pushDateWhereSql.append(" where id in ( ");
         Boolean validMark = Boolean.FALSE;
@@ -216,7 +216,7 @@ public class DiDiAllowHandle  extends IMonkeyDataHandle<DidiData, DiDiProcessDat
         }
 
         if(validMark){
-            String fieldSql = pushDateSql.append(" end").toString();
+            String fieldSql = pushDateSql.append(" end)").toString();
             String whereSql = pushDateWhereSql.toString().substring(0, pushDateWhereSql.toString().length() - 1).concat(")");
             String updateSql = validSql.append(fieldSql).append(whereSql).toString();
             didiDataMapper.updateMarketingBatch(updateSql.toString());
