@@ -611,7 +611,6 @@
             AND applet_date = #{appletDate}
             And user_type = #{userType}
             AND status=1
-            group by cell
             order by id asc limit 2000;
         </where>
 
