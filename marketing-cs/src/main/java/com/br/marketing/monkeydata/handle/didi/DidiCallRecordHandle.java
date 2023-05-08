@@ -160,14 +160,4 @@ public class DidiCallRecordHandle {
             log.error("滴滴接口推送异常", e);
         }
     }
-
-    public static void main(String[] args) {
-        String s = "";
-        Boolean result = null;
-        if(s!=null && StringUtils.isNotBlank(s)){
-            System.out.println(123);
-        }
-
-    }
-
 }
