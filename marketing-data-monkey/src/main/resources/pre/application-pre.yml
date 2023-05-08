@@ -174,7 +174,7 @@ api:
   didi:
     baseUrl: https://admarketing-manhattan.xiaojukeji.com
     smsUrl: ${api.didi.baseUrl}/crow/collision/bairong
-    reachUrl: ${api.didi.baseUrl}/crow/user/success/bairong
+    reachUrl: ${api.didi.baseUrl}/crow000/user/success/bairong
     jmassSUrl: ${api.didi.baseUrl}/model/sample/bairong
     token: DK&SgWl!fZ%WVSXe
     scas: "0001"
