@@ -2,6 +2,7 @@ package com.br.marketing.monkeydata.handle.didi;
 
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.didi.output.DiDiResponseTO;
+import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -18,6 +19,7 @@ import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.CharSequenceUtils;
+import org.apache.poi.ss.formula.functions.Now;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -153,6 +155,7 @@ public class DidiCallRecordHandle {
                 didiCallRecord.setSysMessage("数据重复");
             }
             // 处理返回结果
+            didiCallRecord.setUpdateTime(new Date());
             didiCallRecordMapper.updateByPrimaryKeySelective(didiCallRecord);
             // 解锁
             redisChgService.unlock(key, value);
