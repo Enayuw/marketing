@@ -677,7 +677,7 @@ public class MethodRetryHandlerService {
      * @param retry
      * @return
      */
-    @RetryMethod(retryNowNum = 3,isOrNoDbRetry = true)
+    @RetryMethod(isOrNoDbRetry = true)
     public Result<DiDiResponseTO> didiPushData(String mobidlMd5, Integer retry){
         DiDiReqVO diDiReqVO = new DiDiReqVO();
         diDiReqVO.setCustMobileMd5(mobidlMd5);
