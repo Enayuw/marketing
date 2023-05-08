@@ -6,6 +6,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.DidiCallRecord;
 import com.br.marketing.entity.DidiCallRecordExample;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -16,6 +17,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.CharSequenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -127,7 +129,10 @@ public class DidiCallRecordHandle {
                     if(resResultResult.getCode().equals(ResultCode.SUCCESS.getValue())){
                         DiDiResponseTO diDiResponseTO = resResultResult.getData();
                         DiDiResponseTO.ResResult data = diDiResponseTO.getData();
-                        Boolean result = data.getResult();
+                        Boolean result = null;
+                        if(data !=null){
+                            result = data.getResult();
+                        }
                         String errorMessage = diDiResponseTO.getErrorMessage();
                         String errorCode = diDiResponseTO.getErrorCode();
                         didiCallRecord.setStatus(1);
@@ -156,6 +161,13 @@ public class DidiCallRecordHandle {
         }
     }
 
+    public static void main(String[] args) {
+        String s = "";
+        Boolean result = null;
+        if(s!=null && StringUtils.isNotBlank(s)){
+            System.out.println(123);
+        }
 
+    }
 
 }
