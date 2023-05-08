@@ -1,29 +1,27 @@
 package com.br.marketing.monkeydata.handle.didi;
 
-import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.didi.DiDiClient;
-import com.br.marketing.client.didi.input.DiDiReqVO;
 import com.br.marketing.client.didi.output.DiDiResponseTO;
-import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.*;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.DidiCallRecord;
+import com.br.marketing.entity.DidiCallRecordExample;
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.mapper.DidiCallRecordMapper;
-import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.CharSequenceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -46,8 +44,6 @@ public class DidiCallRecordHandle {
     private final DidiCallRecordMapper didiCallRecordMapper;
 
     private final RedisChgService redisChgService;
-
-    private final MarketingSyncUserMapper marketingSyncUserMapper;
 
     private final TransferDataValidityPeriodService transferDataValidityPeriodService;
 
@@ -133,7 +129,10 @@ public class DidiCallRecordHandle {
                     if(resResultResult.getCode().equals(ResultCode.SUCCESS.getValue())){
                         DiDiResponseTO diDiResponseTO = resResultResult.getData();
                         DiDiResponseTO.ResResult data = diDiResponseTO.getData();
-                        Boolean result = data.getResult();
+                        Boolean result = null;
+                        if(data !=null){
+                            result = data.getResult();
+                        }
                         String errorMessage = diDiResponseTO.getErrorMessage();
                         String errorCode = diDiResponseTO.getErrorCode();
                         didiCallRecord.setStatus(1);
@@ -161,7 +160,4 @@ public class DidiCallRecordHandle {
             log.error("滴滴接口推送异常", e);
         }
     }
-
-
-
 }

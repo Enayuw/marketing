@@ -1,16 +1,12 @@
 package com.br.marketing.monkey.job.didi;
 
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.monkeydata.handle.didi.DidiCallRecordHandle;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -19,8 +15,6 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.br.marketing.common.utils.MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE;
 
 /**
  * @author GuangChao.Zhang
