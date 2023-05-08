@@ -755,7 +755,7 @@ public class MethodRetryHandlerService {
                         didiCallRecord.setErrorMessage(errorMessage);
                     }else {
                         didiCallRecord.setStatus(2);
-                        didiCallRecord.setSysMessage("非200,20000异常");
+                        didiCallRecord.setSysMessage("非500异常");
                     }
 
                 }else {
