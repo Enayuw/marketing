@@ -66,12 +66,6 @@ public class DiDiClient {
      * @return
      */
     public Result<DiDiResponseTO> pushSmsTrafficAccess(DiDiReqVO smsReqVO) {
-        // 获取挡板开关
-        if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_SMS_TRAFFIC_ACCESS)) {
-            DiDiResponseTO mock = JSON.parseObject("{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"result\":true}}", DiDiResponseTO.class);
-            return new Result<>().setCode(1).setDate(mock);
-        }
-
         try {
             // 获取是否记录日志
             HashMap<String, List<Boolean>> isLog = getIsLog();
@@ -85,9 +79,16 @@ public class DiDiClient {
             String signature = getSignature(smsReqVO.getCustMobileMd5(), timestamp);
             smsRequestTO.setSignature(signature);
 
-            // 发送请求
-            HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(smsRequestTO, smsUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,
-                    JSON.toJSONString(smsReqVO), islogs.get(0), islogs.get(1));
+            HashMap<String, String> resMap = new HashMap<>();
+            // 获取挡板开关
+            if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_SMS_TRAFFIC_ACCESS)) {
+                resMap.put("content", "{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"result\":true}}");
+                resMap.put("httpcode", "200");
+            } else {
+                // 发送请求
+                resMap = httpProxyClient.sendByCodeWithLog(smsRequestTO, smsUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,
+                        JSON.toJSONString(smsReqVO), islogs.get(0), islogs.get(1));
+            }
 
             // 1.httpcode不为200，需要重试
             if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
@@ -137,10 +138,17 @@ public class DiDiClient {
             reachRequestTO.setScas(scas);
             reachRequestTO.setChannelId(channelId);
 
-            // 发送请求
-            HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(reachRequestTO, reachUrl, isProxy,
-                    MediaType.APPLICATION_JSON_UTF8_VALUE,
-                    JSON.toJSONString(smsReqVO), islogs.get(0), islogs.get(1));
+            HashMap<String, String> resMap = new HashMap<>();
+            // 获取挡板开关
+            if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_REACH_SUCCESS)) {
+                resMap.put("content", "{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"result\":true}}");
+                resMap.put("httpcode", "200");
+            } else {
+                // 发送请求
+                resMap = httpProxyClient.sendByCodeWithLog(reachRequestTO, reachUrl, isProxy,
+                        MediaType.APPLICATION_JSON_UTF8_VALUE,
+                        JSON.toJSONString(smsReqVO), islogs.get(0), islogs.get(1));
+            }
 
             // 1.httpcode不为200，需要重试
             if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
@@ -150,16 +158,8 @@ public class DiDiClient {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
 
-            DiDiResponseTO smsResponseTO;
-            // 获取挡板开关
-            if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_REACH_SUCCESS)) {
-                smsResponseTO = JSON.parseObject("{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"result\":true}}", DiDiResponseTO.class);
-//                return new Result<>().setCode(1).setDate(mock);
-            } else {
-                // 解析返回结果
-                smsResponseTO = JSON.parseObject(resMap.get("content"), DiDiResponseTO.class);
-            }
-
+            // 解析返回结果
+            DiDiResponseTO smsResponseTO = JSON.parseObject(resMap.get("content"), DiDiResponseTO.class);
 
             // 2.errorCode=20000，需要重试
             if ("20000".equals(smsResponseTO.getErrorCode())) {
@@ -183,12 +183,6 @@ public class DiDiClient {
      * @return
      */
     public Result<DiDiJMassResponseTO> pushJMASS(DiDiReqVO smsReqVO) {
-        // 获取挡板开关
-        if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_JMASS)) {
-            DiDiJMassResponseTO mock = JSON.parseObject("{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":\"11111\"}", DiDiJMassResponseTO.class);
-            return new Result<>().setCode(1).setDate(mock);
-        }
-
         try {
             // 获取是否记录日志
             HashMap<String, List<Boolean>> isLog = getIsLog();
@@ -197,10 +191,17 @@ public class DiDiClient {
             DiDiJmassRequestTO jmassRequestTO = new DiDiJmassRequestTO();
             jmassRequestTO.setSign(smsReqVO.getCustMobileMd5());
 
-            // 发送请求
-            HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(jmassRequestTO, jmassSUrl, isProxy,
-                    MediaType.APPLICATION_JSON_UTF8_VALUE,
-                    JSON.toJSONString(smsReqVO), islogs.get(0), islogs.get(1));
+            HashMap<String, String> resMap = new HashMap<>();
+            // 获取挡板开关
+            if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_JMASS)) {
+                resMap.put("content", "{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":\"11111\"}");
+                resMap.put("httpcode", "200");
+            } else {
+                // 发送请求
+                resMap = httpProxyClient.sendByCodeWithLog(jmassRequestTO, jmassSUrl, isProxy,
+                        MediaType.APPLICATION_JSON_UTF8_VALUE,
+                        JSON.toJSONString(smsReqVO), islogs.get(0), islogs.get(1));
+            }
 
             // 1.httpcode不为200，需要重试
             if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
