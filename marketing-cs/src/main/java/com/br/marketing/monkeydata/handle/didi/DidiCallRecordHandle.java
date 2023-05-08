@@ -2,6 +2,7 @@ package com.br.marketing.monkeydata.handle.didi;
 
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.didi.output.DiDiResponseTO;
+import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -18,6 +19,7 @@ import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.CharSequenceUtils;
+import org.apache.poi.ss.formula.functions.Now;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,9 +45,6 @@ public class DidiCallRecordHandle {
 
     private final DidiCallRecordMapper didiCallRecordMapper;
 
-    private final RedisChgService redisChgService;
-
-    private final TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     private final MethodRetryHandlerService methodRetryHandlerService;
     private final static String JOB = "job";
@@ -74,7 +73,7 @@ public class DidiCallRecordHandle {
                     // 更新minId 为当前集合最大的id
                     minId = didiCallRecords.get(didiCallRecords.size() - 1).getId();
                     for (DidiCallRecord didiCallRecord : didiCallRecords) {
-                        didiCallRecordThread.submit(() -> pushDidiCallRecordData(didiCallRecord));
+                        didiCallRecordThread.submit(() ->   methodRetryHandlerService.didiPushData(didiCallRecord,0));
                     }
                 }
 
@@ -87,77 +86,6 @@ public class DidiCallRecordHandle {
                 log.error(ex.getMessage(), ex);
             }
 
-        }
-    }
-
-    public void pushDidiCallRecordData(DidiCallRecord didiCallRecord) {
-
-
-        try {
-            String custNum = didiCallRecord.getCustNum();
-            String apiCode = didiCallRecord.getApiCode();
-            Integer createDate = didiCallRecord.getCreateDate();
-            Date createTime = didiCallRecord.getCreateTime();
-            // 获取redis 锁
-            String key = RedisKeyConstant.pushDidiCollRecordLock.concat(":")
-                    .concat(apiCode)
-                    .concat(custNum);
-            String value = UUID.randomUUID().toString();
-
-            redisChgService.lock(key, value);
-
-            //查询当天是否推送过
-            DidiCallRecordExample didiCallRecordExample = new DidiCallRecordExample();
-            didiCallRecordExample.createCriteria()
-                    .andCustNumEqualTo(custNum)
-                    .andStatusEqualTo(1)
-                    .andCreateDateEqualTo(createDate);
-            if (didiCallRecordMapper.countByExample(didiCallRecordExample)==0) {
-                //MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode, custNum);
-                MarketingTransferSyncUser marketingTransferSyncUser = new MarketingTransferSyncUser();
-                marketingTransferSyncUser.setApiCode(apiCode);
-                //marketingTransferSyncUser.setUserType(marketingSyncUser.getUserType());
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                marketingTransferSyncUser.setRequestData( sdf.format(new Date()));
-                marketingTransferSyncUser.setCustNum(custNum);
-                // 判断是否有效
-                MarketingSyncUser newValidityPeriodData = transferDataValidityPeriodService.getNewValidityPeriodData(marketingTransferSyncUser,null);
-                if(newValidityPeriodData!=null){
-                    didiCallRecord.setCell(newValidityPeriodData.getCell());
-                    // 调接口推送
-                    Result<DiDiResponseTO> resResultResult = methodRetryHandlerService.didiPushData(custNum,0);
-                    if(resResultResult.getCode().equals(ResultCode.SUCCESS.getValue())){
-                        DiDiResponseTO diDiResponseTO = resResultResult.getData();
-                        DiDiResponseTO.ResResult data = diDiResponseTO.getData();
-                        Boolean result = null;
-                        if(data !=null){
-                            result = data.getResult();
-                        }
-                        String errorMessage = diDiResponseTO.getErrorMessage();
-                        String errorCode = diDiResponseTO.getErrorCode();
-                        didiCallRecord.setStatus(1);
-                        didiCallRecord.setResult(result);
-                        didiCallRecord.setErrorCode(errorCode);
-                        didiCallRecord.setErrorMessage(errorMessage);
-                    }else {
-                        didiCallRecord.setStatus(2);
-                        didiCallRecord.setSysMessage("非200,20000异常");
-                    }
-
-                }else {
-                    didiCallRecord.setStatus(2);
-                    didiCallRecord.setSysMessage("数据失效");
-                }
-            }else {
-                didiCallRecord.setStatus(2);
-                didiCallRecord.setSysMessage("数据重复");
-            }
-            // 处理返回结果
-            didiCallRecordMapper.updateByPrimaryKeySelective(didiCallRecord);
-            // 解锁
-            redisChgService.unlock(key, value);
-        } catch (Exception e) {
-            log.error("滴滴接口推送异常", e);
         }
     }
 }

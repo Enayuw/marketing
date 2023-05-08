@@ -125,6 +125,9 @@ public class DiDiAllowHandle  extends IMonkeyDataHandle<DidiData, DiDiProcessDat
         if(ResultCode.SUCCESS.getValue().equals(dataValidConfigByType.getCode())){
             List<MarketingDataValidConfig> validConfigs = dataValidConfigByType.getData();
             for (MarketingDataValidConfig validConfig : validConfigs) {
+                if(!"1".equals(validConfig.getUserType())){
+                    continue;
+                }
                 if(validConfig.getValidStartDate().compareTo(nowDay)<=0
                         && validConfig.getValidEndDate().compareTo(nowDay)>=0){
                     uploadDates.add(validConfig.getAppletDate());
@@ -144,16 +147,19 @@ public class DiDiAllowHandle  extends IMonkeyDataHandle<DidiData, DiDiProcessDat
         }
         List<DiDiProcessData> diDiProcessDatas = new ArrayList<>();
         for (DidiData data : inList) {
+            //文件内重复数据判断
             DidiData firstData = firstDiDi.get(data.getCell());
             if(firstData != null && !firstData.getId().equals(data.getId())){
                 diDiProcessDatas.add(new DiDiProcessData(1,null,data));
                 continue;
             }
+            //有效期数据判断
             DidiData marketingData = marketingDiDi.get(data.getCell());
             if(marketingData!=null){
                 diDiProcessDatas.add(new DiDiProcessData(2,marketingData.getPushDate(),data));
                 continue;
             }
+            //调用准入接口
             Result<Boolean> booleanResult = methodRetryHandlerService.didiAllow(new DiDiAllowReqDTO(data.getCell(), data.getId()),null);
             if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(booleanResult.getCode())){
                 diDiProcessDatas.add(new DiDiProcessData(5,null,data));
