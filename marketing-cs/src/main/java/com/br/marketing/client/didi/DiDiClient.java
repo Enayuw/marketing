@@ -122,12 +122,6 @@ public class DiDiClient {
      * @return
      */
     public Result<DiDiResponseTO> pushReachSuccess(DiDiReqVO smsReqVO) {
-        // 获取挡板开关
-        if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_REACH_SUCCESS)) {
-            DiDiResponseTO mock = JSON.parseObject("{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"result\":true}}", DiDiResponseTO.class);
-            return new Result<>().setCode(1).setDate(mock);
-        }
-
         try {
             // 获取是否记录日志
             HashMap<String, List<Boolean>> isLog = getIsLog();
@@ -156,8 +150,16 @@ public class DiDiClient {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
 
-            // 解析返回结果
-            DiDiResponseTO smsResponseTO = JSON.parseObject(resMap.get("content"), DiDiResponseTO.class);
+            DiDiResponseTO smsResponseTO;
+            // 获取挡板开关
+            if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_REACH_SUCCESS)) {
+                smsResponseTO = JSON.parseObject("{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"result\":true}}", DiDiResponseTO.class);
+//                return new Result<>().setCode(1).setDate(mock);
+            } else {
+                // 解析返回结果
+                smsResponseTO = JSON.parseObject(resMap.get("content"), DiDiResponseTO.class);
+            }
+
 
             // 2.errorCode=20000，需要重试
             if ("20000".equals(smsResponseTO.getErrorCode())) {
