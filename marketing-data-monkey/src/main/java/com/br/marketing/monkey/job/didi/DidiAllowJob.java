@@ -88,7 +88,7 @@ public class DidiAllowJob extends AbstractSimpleElasticJob {
             //更新任务
             Result<TransferActionFront> transferActionFrontResult = iJobManagerService.updateJobStatus(allowExecute.getData(), ResultCode.SUCCESS.getValue().equals(action.getCode()));
             if(ResultCode.SUCCESS.getValue().equals(transferActionFrontResult.getCode())){
-                updaEntity.setPushStatus("4");
+                updaEntity.setPushStatus("2");
             }else{
                 if ("1".equals(transferActionFrontResult.getMessage())) {
                     updaEntity.setPushStatus("3");

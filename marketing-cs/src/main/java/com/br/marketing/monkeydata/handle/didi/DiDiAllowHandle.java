@@ -87,7 +87,7 @@ public class DiDiAllowHandle  extends IMonkeyDataHandle<DidiData, DiDiProcessDat
     @Override
     public Result<IterationResult<DidiData, DiDiAllowCondition>> getInputData(DiDiAllowCondition condition) {
         DidiDataExample example = new DidiDataExample();
-        example.setOrderByClause(" id asc");
+        example.setOrderByClause(" id asc limit ".concat(condition.getPageSize().toString()));
         DidiDataExample.Criteria criteria = example.createCriteria();
         if(condition.getDataId() !=null){
             criteria.andIdGreaterThan(condition.getDataId());
