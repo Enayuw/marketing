@@ -92,16 +92,23 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
 
     public Thread listenThreadPool(String taskId,ThreadPoolExecutor threadPoolExecutor){
         Thread thread = new Thread(() -> {
-            log.warn(String.format("任务：%s 的线程池运行状态 " +
-                            "活动线程数：%d" +
-                            "，核心线程数：%d" +
-                            "，最大线程数：%d" +
-                            "，队列量：%d"
-                    , taskId
-                    , threadPoolExecutor.getActiveCount()
-                    , threadPoolExecutor.getCorePoolSize()
-                    , threadPoolExecutor.getMaximumPoolSize()
-                    , threadPoolExecutor.getQueue().size()));
+            while (true){
+                log.warn(String.format("任务：%s 的线程池运行状态 " +
+                                "活动线程数：%d" +
+                                "，核心线程数：%d" +
+                                "，最大线程数：%d" +
+                                "，队列量：%d"
+                        , taskId
+                        , threadPoolExecutor.getActiveCount()
+                        , threadPoolExecutor.getCorePoolSize()
+                        , threadPoolExecutor.getMaximumPoolSize()
+                        , threadPoolExecutor.getQueue().size()));
+                try {
+                    Thread.sleep(60000L);
+                } catch (InterruptedException e) {
+                    log.warn(String.format("任务监听线程：%s 收到中断信号",taskId));
+                }
+            }
         });
         thread.start();
         return thread;
