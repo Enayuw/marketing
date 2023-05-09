@@ -221,11 +221,13 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
             retryMainLog.setRetryMaxNum(3);
             retryMainLogMapper.insertSelective(retryMainLog);
         }
-        TransferDataDTO transferDataDTO = new TransferDataDTO();
-        transferDataDTO.setDataItems(transferDataItemDTOS);
-        transferDataDTO.setRequestId(UUID.randomUUID().toString());
-        RuntimeDataContext.initData();
-        pushRuleService.insertTransferData(dataList.get(0).getApiCode(), JSON.toJSONString(transferDataDTO));
+        if (!CollectionUtils.isEmpty(transferDataItemDTOS)) {
+            TransferDataDTO transferDataDTO = new TransferDataDTO();
+            transferDataDTO.setDataItems(transferDataItemDTOS);
+            transferDataDTO.setRequestId(UUID.randomUUID().toString());
+            RuntimeDataContext.initData();
+            pushRuleService.insertTransferData(dataList.get(0).getApiCode(), JSON.toJSONString(transferDataDTO));
+        }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue());
     }
 }
