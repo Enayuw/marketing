@@ -706,7 +706,8 @@ public class MethodRetryHandlerService {
             String value = UUID.randomUUID().toString();
 
             redisChgService.lock(key, value);
-
+            DidiCallRecord updateDidiCallRecord = new DidiCallRecord();
+            updateDidiCallRecord.setId(didiCallRecord.getId());
             //查询当天是否推送过
             DidiCallRecordExample didiCallRecordExample = new DidiCallRecordExample();
             didiCallRecordExample.createCriteria()
@@ -714,27 +715,25 @@ public class MethodRetryHandlerService {
                     .andStatusEqualTo(1)
                     .andCreateDateEqualTo(createDate);
             if (didiCallRecordMapper.countByExample(didiCallRecordExample)==0) {
-                //MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode, custNum);
                 MarketingTransferSyncUser marketingTransferSyncUser = new MarketingTransferSyncUser();
                 marketingTransferSyncUser.setApiCode(apiCode);
-                //marketingTransferSyncUser.setUserType(marketingSyncUser.getUserType());
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 marketingTransferSyncUser.setRequestData( sdf.format(new Date()));
                 marketingTransferSyncUser.setCustNum(custNum);
                 // 判断是否有效
                 MarketingSyncUser newValidityPeriodData = transferDataValidityPeriodService.getNewValidityPeriodData(marketingTransferSyncUser,null);
                 if(newValidityPeriodData!=null){
-                    didiCallRecord.setCell(newValidityPeriodData.getCell());
+                    updateDidiCallRecord.setCell(newValidityPeriodData.getCell());
 
                     // 调接口推送
                     DiDiReqVO diDiReqVO = new DiDiReqVO();
                     diDiReqVO.setCustMobileMd5(custNum);
                     Result<DiDiResponseTO> resResultResult = diDiClient.pushReachSuccess(diDiReqVO);
                     if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(resResultResult.getCode())){
-                        didiCallRecord.setStatus(2);
-                        didiCallRecord.setSysMessage("重试数据");
-                        didiCallRecord.setUpdateTime(new Date());
-                        didiCallRecordMapper.updateByPrimaryKeySelective(didiCallRecord);
+                        updateDidiCallRecord.setStatus(2);
+                        updateDidiCallRecord.setSysMessage("重试数据");
+                        updateDidiCallRecord.setUpdateTime(new Date());
+                        didiCallRecordMapper.updateByPrimaryKeySelective(updateDidiCallRecord);
                         // 解锁
                         redisChgService.unlock(key, value);
                         return new Result<Boolean>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
@@ -749,26 +748,26 @@ public class MethodRetryHandlerService {
                         }
                         String errorMessage = diDiResponseTO.getErrorMessage();
                         String errorCode = diDiResponseTO.getErrorCode();
-                        didiCallRecord.setStatus(1);
-                        didiCallRecord.setResult(result);
-                        didiCallRecord.setErrorCode(errorCode);
-                        didiCallRecord.setErrorMessage(errorMessage);
+                        updateDidiCallRecord.setStatus(1);
+                        updateDidiCallRecord.setResult(result);
+                        updateDidiCallRecord.setErrorCode(errorCode);
+                        updateDidiCallRecord.setErrorMessage(errorMessage);
                     }else {
-                        didiCallRecord.setStatus(2);
-                        didiCallRecord.setSysMessage("非500异常");
+                        updateDidiCallRecord.setStatus(2);
+                        updateDidiCallRecord.setSysMessage("非500异常");
                     }
 
                 }else {
-                    didiCallRecord.setStatus(2);
-                    didiCallRecord.setSysMessage("数据失效");
+                    updateDidiCallRecord.setStatus(2);
+                    updateDidiCallRecord.setSysMessage("数据失效");
                 }
             }else {
-                didiCallRecord.setStatus(2);
-                didiCallRecord.setSysMessage("数据重复");
+                updateDidiCallRecord.setStatus(2);
+                updateDidiCallRecord.setSysMessage("数据重复");
             }
             // 处理返回结果
-            didiCallRecord.setUpdateTime(new Date());
-            didiCallRecordMapper.updateByPrimaryKeySelective(didiCallRecord);
+            updateDidiCallRecord.setUpdateTime(new Date());
+            didiCallRecordMapper.updateByPrimaryKeySelective(updateDidiCallRecord);
             // 解锁
             redisChgService.unlock(key, value);
         } catch (Exception e) {
