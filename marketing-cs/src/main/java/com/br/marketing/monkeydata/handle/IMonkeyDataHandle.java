@@ -90,6 +90,28 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
         return null;
     }
 
+    public Thread listenThreadPool(String taskId,ThreadPoolExecutor threadPoolExecutor){
+        Thread thread = new Thread(() -> {
+            log.warn(String.format("任务：%s 的线程池运行状态 " +
+                            "活动线程数：%d" +
+                            "，核心线程数：%d" +
+                            "，最大线程数：%d" +
+                            "，队列量：%d"
+                    , taskId
+                    , threadPoolExecutor.getActiveCount()
+                    , threadPoolExecutor.getCorePoolSize()
+                    , threadPoolExecutor.getMaximumPoolSize()
+                    , threadPoolExecutor.getQueue().size()));
+        });
+        thread.start();
+        return thread;
+    };
+
+    public void removelistenThreadPool(Thread thread){
+        if(thread!=null){
+            thread.interrupt();
+        }
+    };
 
     /**
      * 调用入口
@@ -114,8 +136,10 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
             }
             Result res = new Result();
             ThreadPoolExecutor pool = null;
+            Thread threadReport = null;
             if (isThread()) {
                 pool = BrExecutors.getThreadPool(getThread(), getThread());
+                threadReport = listenThreadPool(id, pool);
             }
             res.setCode(ResultCode.SUCCESS.getValue());
             for (; ; ) {
@@ -173,6 +197,7 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
                 } catch (Exception ex) {
                     log.error(ex.getMessage(), ex);
                 }
+                removelistenThreadPool(threadReport);
             }
             log.warn("执行结束 执行id：{}，执行耗时：{}", id, System.currentTimeMillis() - start);
             return res;
