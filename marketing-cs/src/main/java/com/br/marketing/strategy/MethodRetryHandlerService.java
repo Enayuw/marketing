@@ -715,10 +715,8 @@ public class MethodRetryHandlerService {
                     .andStatusEqualTo(1)
                     .andCreateDateEqualTo(createDate);
             if (didiCallRecordMapper.countByExample(didiCallRecordExample)==0) {
-                //MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode, custNum);
                 MarketingTransferSyncUser marketingTransferSyncUser = new MarketingTransferSyncUser();
                 marketingTransferSyncUser.setApiCode(apiCode);
-                //marketingTransferSyncUser.setUserType(marketingSyncUser.getUserType());
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 marketingTransferSyncUser.setRequestData( sdf.format(new Date()));
                 marketingTransferSyncUser.setCustNum(custNum);
