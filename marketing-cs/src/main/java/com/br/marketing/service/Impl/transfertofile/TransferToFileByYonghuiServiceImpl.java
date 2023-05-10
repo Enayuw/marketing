@@ -57,6 +57,12 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
 
     private final static String TABLE_HEAD_TRANSFER = "custNum,userType,registerTime,ifLogin,loginTime,ifApply,applyDt,applyResult,auditTime,auditAmount,applyLoan,applyLoanTime,applyLoanAmount,ifLent,lentTime,lentAmount";
 
+    /**
+     * 2023-05-10 18:50
+     * 指定日期提取参数格式：
+     * apiCode#yyyy-MM-dd
+     * eg:7492900#2023-05-09
+     */
     @Override
     public String isMyParam(String apiCode, String jobParameter) {
         if (jobParameter.contains(apiCode)) {
@@ -77,8 +83,12 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
         String extractTime = StringUtils.isBlank(marketingCommonConfig.getYonghuiTransferExtractTime())
                 ? EXECUTE_TIME : marketingCommonConfig.getYonghuiTransferExtractTime();
         LocalTime localTime = LocalTime.parse(extractTime);
-        if (LocalTime.now().isAfter(localTime)) {
-            String dateyyyymmddStr = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        boolean isParam = org.apache.commons.lang3.StringUtils.isNotBlank(myParam);
+        // 指定日期提取时不限制时间
+        if (LocalTime.now().isAfter(localTime) || isParam) {
+            // 指定日期提取，生成指定日期的记录，不是当天的记录
+            String dateyyyymmddStr = isParam ? myParam.replace("-", "")
+                    : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
             taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(dateyyyymmddStr)
                     .andFileTypeEqualTo(1);
