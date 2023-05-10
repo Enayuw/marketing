@@ -90,35 +90,41 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
         return null;
     }
 
-    public Thread listenThreadPool(String taskId,ThreadPoolExecutor threadPoolExecutor){
+    public Thread listenThreadPool(String taskId, ThreadPoolExecutor threadPoolExecutor) {
         Thread thread = new Thread(() -> {
-            while (true){
-                log.warn(String.format("任务：%s 的线程池运行状态 " +
-                                "活动线程数：%d" +
-                                "，核心线程数：%d" +
-                                "，最大线程数：%d" +
-                                "，队列量：%d"
-                        , taskId
-                        , threadPoolExecutor.getActiveCount()
-                        , threadPoolExecutor.getCorePoolSize()
-                        , threadPoolExecutor.getMaximumPoolSize()
-                        , threadPoolExecutor.getQueue().size()));
-                try {
+            try {
+                while (true) {
+                    log.warn(String.format("任务：%s 的线程池运行状态 " +
+                                    "活动线程数：%d" +
+                                    "，核心线程数：%d" +
+                                    "，最大线程数：%d" +
+                                    "，队列量：%d"
+                            , taskId
+                            , threadPoolExecutor.getActiveCount()
+                            , threadPoolExecutor.getCorePoolSize()
+                            , threadPoolExecutor.getMaximumPoolSize()
+                            , threadPoolExecutor.getQueue().size()));
+
                     Thread.sleep(60000L);
-                } catch (InterruptedException e) {
-                    log.warn(String.format("任务监听线程：%s 收到中断信号",taskId));
+
                 }
+            } catch (InterruptedException e) {
+                log.warn(String.format("任务监听线程：%s 收到中断信号", taskId));
             }
         });
         thread.start();
         return thread;
-    };
+    }
 
-    public void removelistenThreadPool(Thread thread){
-        if(thread!=null){
+    ;
+
+    public void removelistenThreadPool(Thread thread) {
+        if (thread != null) {
             thread.interrupt();
         }
-    };
+    }
+
+    ;
 
     /**
      * 调用入口
@@ -173,7 +179,7 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
                                         log.warn(res.getMessage());
                                     }
                                 }
-                            }else{
+                            } else {
                                 System.out.println("线程暂停");
                             }
                         } catch (Exception ex) {
