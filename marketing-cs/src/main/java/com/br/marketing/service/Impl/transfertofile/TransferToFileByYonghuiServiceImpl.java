@@ -6,7 +6,6 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserExample;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.entity.TransferFileTaskExample;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
@@ -143,13 +142,13 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
         String tcId = tableCreateService.getTcId(apiCode);
         int page = 0;
         int totalSize = 0;
-        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
-        example.createCriteria().andApiCodeEqualTo(apiCode)
-                .andRequestDataEqualTo(requestDate);
-        example.settCid(tcId);
+        MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
+        syncUser.setRequestData(requestDate);
+        syncUser.settCid(tcId);
+        syncUser.setApiCode(apiCode);
         for (; ; ) {
-            example.setOrderByClause("id limit " + (page * 2000) + ",2000");
-            List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper.selectByExample(example);
+            List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper
+                    .findTransferByApiCodeAndCreateTimePage(syncUser, null, null, null, page * 2000, 2000);
             if (CollectionUtils.isEmpty(transferOrderInsertTime)) {
                 break;
             }
