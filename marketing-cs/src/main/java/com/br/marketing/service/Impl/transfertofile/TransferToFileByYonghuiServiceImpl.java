@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.TransferFileTask;
@@ -28,6 +29,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 永辉转化数据提取
@@ -137,15 +140,17 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
     }
 
     private void writeTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask
-            , String requestDate) throws IOException {
+            , String requestDate) {
         long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         int page = 0;
         int totalSize = 0;
+        long timeout = 5L;
         MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
         syncUser.setRequestData(requestDate);
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
         for (; ; ) {
             List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper
                     .findTransferByApiCodeAndCreateTimePage(syncUser, null, null, null, page * 2000, 2000);
@@ -153,38 +158,53 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
                 break;
             }
             page++;
-            for (MarketingTransferSyncUser transferFilterData : transferOrderInsertTime) {
-                StringBuilder sb = new StringBuilder();
-                String reserveField1 = transferFilterData.getReserveField1();
-                String applyLoan = null;
-                String applyLoanTime = null;
-                String applyLoanAmount = null;
-                if (org.apache.commons.lang3.StringUtils.isNotBlank(reserveField1)) {
-                    JSONObject jsonObject = JSON.parseObject(reserveField1);
-                    applyLoan = jsonObject.getString("applyLoan");
-                    applyLoanTime = jsonObject.getString("applyLoanTime");
-                    applyLoanAmount = jsonObject.getString("applyLoanAmount");
+            threadPool.submit(() -> {
+                for (MarketingTransferSyncUser transferFilterData : transferOrderInsertTime) {
+                    StringBuilder sb = new StringBuilder();
+                    String reserveField1 = transferFilterData.getReserveField1();
+                    String applyLoan = null;
+                    String applyLoanTime = null;
+                    String applyLoanAmount = null;
+                    if (org.apache.commons.lang3.StringUtils.isNotBlank(reserveField1)) {
+                        JSONObject jsonObject = JSON.parseObject(reserveField1);
+                        applyLoan = jsonObject.getString("applyLoan");
+                        applyLoanTime = jsonObject.getString("applyLoanTime");
+                        applyLoanAmount = jsonObject.getString("applyLoanAmount");
+                    }
+                    sb.append(emptyDefault(transferFilterData.getCustNum())).append(",");
+                    sb.append(emptyDefault(transferFilterData.getUserType())).append(",");
+                    sb.append(removeMillisecond(emptyDefault(transferFilterData.getRegisterTime()))).append(",");
+                    sb.append(removeMillisecond(emptyDefault(transferFilterData.getIfLogin()))).append(",");
+                    sb.append(removeMillisecond(emptyDefault(transferFilterData.getLoginTime()))).append(",");
+                    sb.append(emptyDefault(transferFilterData.getIfApply())).append(",");
+                    sb.append(removeMillisecond(emptyDefault(transferFilterData.getApplyDt()))).append(",");
+                    sb.append(emptyDefault(transferFilterData.getApplyResult())).append(",");
+                    sb.append(removeMillisecond(emptyDefault(transferFilterData.getAuditTime()))).append(",");
+                    sb.append(emptyDefault(transferFilterData.getAuditAmount())).append(",");
+                    sb.append(emptyDefault(applyLoan)).append(",");
+                    sb.append(removeMillisecond(emptyDefault(applyLoanTime))).append(",");
+                    sb.append(emptyDefault(applyLoanAmount)).append(",");
+                    sb.append(emptyDefault(transferFilterData.getIfLent())).append(",");
+                    sb.append(removeMillisecond(emptyDefault(transferFilterData.getLentTime()))).append(",");
+                    sb.append(emptyDefault(transferFilterData.getLentAmount()));
+                    sb.append("\r\n");
+                    try {
+                        fw.append(sb.toString());
+                    } catch (IOException e) {
+                        log.error(e.getMessage(), e);
+                    }
                 }
-                sb.append(emptyDefault(transferFilterData.getCustNum())).append(",");
-                sb.append(emptyDefault(transferFilterData.getUserType())).append(",");
-                sb.append(removeMillisecond(emptyDefault(transferFilterData.getRegisterTime()))).append(",");
-                sb.append(removeMillisecond(emptyDefault(transferFilterData.getIfLogin()))).append(",");
-                sb.append(removeMillisecond(emptyDefault(transferFilterData.getLoginTime()))).append(",");
-                sb.append(emptyDefault(transferFilterData.getIfApply())).append(",");
-                sb.append(removeMillisecond(emptyDefault(transferFilterData.getApplyDt()))).append(",");
-                sb.append(emptyDefault(transferFilterData.getApplyResult())).append(",");
-                sb.append(removeMillisecond(emptyDefault(transferFilterData.getAuditTime()))).append(",");
-                sb.append(emptyDefault(transferFilterData.getAuditAmount())).append(",");
-                sb.append(emptyDefault(applyLoan)).append(",");
-                sb.append(removeMillisecond(emptyDefault(applyLoanTime))).append(",");
-                sb.append(emptyDefault(applyLoanAmount)).append(",");
-                sb.append(emptyDefault(transferFilterData.getIfLent())).append(",");
-                sb.append(removeMillisecond(emptyDefault(transferFilterData.getLentTime()))).append(",");
-                sb.append(emptyDefault(transferFilterData.getLentAmount()));
-                sb.append("\r\n");
-                fw.append(sb.toString());
-            }
+            });
             totalSize = totalSize + transferOrderInsertTime.size();
+        }
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(timeout, TimeUnit.SECONDS)) {
+            }
+        } catch (InterruptedException e) {
+            log.error(e.getMessage(), e);
+            threadPool.shutdownNow();
+            transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
         }
         saveUpdateTask(transferFileTask, totalSize);
         log.warn("永辉转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
