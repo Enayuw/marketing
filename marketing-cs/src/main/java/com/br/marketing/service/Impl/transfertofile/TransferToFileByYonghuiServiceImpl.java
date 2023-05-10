@@ -210,6 +210,12 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
         threadPool.shutdown();
         try {
             while (!threadPool.awaitTermination(timeout, TimeUnit.SECONDS)) {
+                if (log.isInfoEnabled()) {
+                    long taskCount = threadPool.getTaskCount();
+                    long completedTaskCount = threadPool.getCompletedTaskCount();
+                    log.info("永辉转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
+                            , taskCount, completedTaskCount, taskCount - completedTaskCount);
+                }
             }
         } catch (InterruptedException e) {
             log.error(e.getMessage(), e);
