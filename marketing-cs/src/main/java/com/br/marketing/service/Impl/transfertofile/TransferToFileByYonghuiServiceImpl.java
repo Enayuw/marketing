@@ -160,7 +160,7 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
         syncUser.setRequestData(requestDate);
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10, 1);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(25, 25, 1);
         for (; ; ) {
             List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper
                     .findTransferByApiCodeAndCreateTimePage(syncUser, null, null, null, page * 2000, 2000);
