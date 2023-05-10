@@ -729,6 +729,7 @@ public class MethodRetryHandlerService {
                     DiDiReqVO diDiReqVO = new DiDiReqVO();
                     diDiReqVO.setCustMobileMd5(custNum);
                     Result<DiDiResponseTO> resResultResult = diDiClient.pushReachSuccess(diDiReqVO);
+                    // 500 异常需要进入阶梯重试
                     if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(resResultResult.getCode())){
                         updateDidiCallRecord.setStatus(2);
                         updateDidiCallRecord.setSysMessage("重试数据");
@@ -738,6 +739,7 @@ public class MethodRetryHandlerService {
                         redisChgService.unlock(key, value);
                         return new Result<Boolean>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
                     }
+                    // 成功则更新数据状态
                     if(resResultResult.getCode().equals(ResultCode.SUCCESS.getValue())){
                         res = Boolean.TRUE;
                         DiDiResponseTO diDiResponseTO = resResultResult.getData();
