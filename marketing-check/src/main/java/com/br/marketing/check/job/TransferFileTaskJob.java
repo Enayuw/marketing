@@ -12,7 +12,7 @@ import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.mapper.SyncLogMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
-import com.br.marketing.service.Impl.*;
+import com.br.marketing.service.Impl.SftpInnerServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.*;
 import com.br.marketing.service.TransferToFileByTongChengServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -128,6 +128,13 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     private TransferToFileByHaierServiceImpl transferToFileByHaierService;
 
 
+    /**
+     * 永辉
+     */
+    @Resource
+    private TransferToFileByYonghuiServiceImpl transferToFileByYonghuiService;
+
+
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         String jobParameter = context.getJobParameter();
@@ -226,11 +233,13 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByPPDOldService, marketingCommonConfig.getPPDOldTransferFileApiCodes())
                 // 桔子转化数据提取
                 .addBind(orangeService, marketingCommonConfig.getOrangeTransferFileApiCodes())
-                .addBind(transferToFileByYouMeDService,marketingCommonConfig.getYouMeDApiCodes())
+                .addBind(transferToFileByYouMeDService, marketingCommonConfig.getYouMeDApiCodes())
                 // 海尔转化数据提取
-                .addBind(transferToFileByHaierService,marketingCommonConfig.getHaierApiCodes())
+                .addBind(transferToFileByHaierService, marketingCommonConfig.getHaierApiCodes())
                 // 国美转化数据提取
-                .addBind(transferToFileByGomeService,marketingCommonConfig.getGomeApiCodes())
+                .addBind(transferToFileByGomeService, marketingCommonConfig.getGomeApiCodes())
+                // 永辉转化数据提取
+                .addBind(transferToFileByYonghuiService, marketingCommonConfig.getYonghuiTransferExtractApiCodes())
                 .build();
     }
 

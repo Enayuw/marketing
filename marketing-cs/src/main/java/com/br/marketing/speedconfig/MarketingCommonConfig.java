@@ -618,15 +618,24 @@ public class MarketingCommonConfig {
     private Map<String, String> ZhongAnZkUserTypeChannelCode;
 
 
-
     /**
      * 分期乐推送电销配置 场景：手机号推送去重天数 {"usertType":30}
      */
-    private HashMap<String,Long> fenqiHappyPushDassConfig;
+    private HashMap<String, Long> fenqiHappyPushDassConfig;
 
     /**
      * 众安明细推送配置{"userType":{"isPush":"1/0","channelCode":"****"}}
      */
-    private HashMap<String,JSONObject> zhongAnDetailPush;
+    private HashMap<String, JSONObject> zhongAnDetailPush;
+
+
+    /**
+     * 永辉化数据提取apiCode
+     */
+    private List<String> yonghuiTransferExtractApiCodes;
+    /**
+     * 永辉转化数据提取时间
+     */
+    private String yonghuiTransferExtractTime;
 }
 
