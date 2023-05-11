@@ -224,7 +224,7 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
         if (!CollectionUtils.isEmpty(transferDataItemDTOS)) {
             TransferDataDTO transferDataDTO = new TransferDataDTO();
             transferDataDTO.setDataItems(transferDataItemDTOS);
-            transferDataDTO.setRequestId(UUID.randomUUID().toString());
+            transferDataDTO.setRequestId(apiCode.concat("_").concat(LocalDate.now().toString()).concat("_").concat(UUID.randomUUID().toString()));
             RuntimeDataContext.initData();
             pushRuleService.insertTransferData(dataList.get(0).getApiCode(), JSON.toJSONString(transferDataDTO));
         }
