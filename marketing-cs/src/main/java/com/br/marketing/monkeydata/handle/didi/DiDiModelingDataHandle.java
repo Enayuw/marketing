@@ -163,7 +163,6 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
     public Result resultAction(List<MarketingSyncUser> dataList) {
 
         //获取到apiCode
-        //重试参数apicode-1
         //重试方法 这里反序列化过来的不是 MarketingSyncUser类型
         if (!(dataList.get(0) instanceof MarketingSyncUser)) {
             List<MarketingSyncUser> list = new ArrayList<>();
@@ -221,6 +220,7 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
             retryMainLog.setRetryMaxNum(3);
             retryMainLogMapper.insertSelective(retryMainLog);
         }
+        //落转化表
         if (!CollectionUtils.isEmpty(transferDataItemDTOS)) {
             TransferDataDTO transferDataDTO = new TransferDataDTO();
             transferDataDTO.setDataItems(transferDataItemDTOS);
