@@ -2,13 +2,17 @@ package com.br.marketing.service.Impl.transfertofile;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.Sha256Util;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.entity.TransferFileTaskExample;
+import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
@@ -26,11 +30,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 永辉转化数据提取
@@ -54,8 +57,10 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
     private TableCreateServiceImpl tableCreateService;
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+    @Resource
+    private MarketingSyncUserMapper marketingSyncUserMapper;
 
-    private final static String TABLE_HEAD_TRANSFER = "custNum,userType,registerTime,ifLogin,loginTime,ifApply,applyDt,applyResult,auditTime,auditAmount,applyLoan,applyLoanTime,applyLoanAmount,ifLent,lentTime,lentAmount";
+    private final static String TABLE_HEAD_TRANSFER = "custNum,userType,registerTime,ifLogin,loginTime,ifApply,applyDt,applyResult,auditTime,auditAmount,applyLoan,applyLoanTime,applyLoanAmount,ifLent,lentTime,lentAmount,cell";
 
     /**
      * 2023-05-10 18:50
@@ -160,7 +165,7 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
         syncUser.setRequestData(requestDate);
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(25, 25, 1);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
         for (; ; ) {
             List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper
                     .findTransferByApiCodeAndCreateTimePage(syncUser, null, null, null, page * 2000, 2000);
@@ -169,6 +174,10 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
             }
             page++;
             threadPool.submit(() -> {
+                Set<String> custNumSet = transferOrderInsertTime.parallelStream()
+                        .map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+                Map<String, String> cellMap = marketingSyncUserMapper.getCellLastByCustNums(apiCode, custNumSet)
+                        .parallelStream().collect(Collectors.toMap(MarketingSyncUser::getCustNum, MarketingSyncUser::getCell));
                 for (MarketingTransferSyncUser transferFilterData : transferOrderInsertTime) {
                     StringBuilder sb = new StringBuilder();
                     String reserveField1 = transferFilterData.getReserveField1();
@@ -196,7 +205,10 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
                     sb.append(emptyDefault(applyLoanAmount)).append(",");
                     sb.append(emptyDefault(transferFilterData.getIfLent())).append(",");
                     sb.append(removeMillisecond(emptyDefault(transferFilterData.getLentTime()))).append(",");
-                    sb.append(emptyDefault(transferFilterData.getLentAmount()));
+                    sb.append(emptyDefault(transferFilterData.getLentAmount())).append(",");
+                    sb.append(cellMap.containsKey(transferFilterData.getCustNum())
+                            ? Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(
+                            cellMap.get(transferFilterData.getCustNum()))) : "");
                     sb.append("\r\n");
                     try {
                         fw.append(sb.toString());
@@ -217,13 +229,14 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
                             , taskCount, completedTaskCount, taskCount - completedTaskCount);
                 }
             }
+            saveUpdateTask(transferFileTask, totalSize);
+            log.warn("永辉转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode
+                    , System.currentTimeMillis() - start, totalSize);
         } catch (InterruptedException e) {
-            log.error(e.getMessage(), e);
+            log.error("永辉转化数据提取-本地文件生成失败！" + e.getMessage(), e);
             threadPool.shutdownNow();
             transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
         }
-        saveUpdateTask(transferFileTask, totalSize);
-        log.warn("永辉转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
 
     private void saveUpdateTask(TransferFileTask transferFileTask, int totalSize) {
