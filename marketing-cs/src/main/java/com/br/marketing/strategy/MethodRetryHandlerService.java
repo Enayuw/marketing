@@ -721,7 +721,7 @@ public class MethodRetryHandlerService {
                 marketingTransferSyncUser.setRequestData( sdf.format(new Date()));
                 marketingTransferSyncUser.setCustNum(custNum);
                 // 判断是否有效
-                MarketingSyncUser newValidityPeriodData = transferDataValidityPeriodService.getNewValidityPeriodData(marketingTransferSyncUser,null);
+                MarketingSyncUser newValidityPeriodData = transferDataValidityPeriodService.getMarketingSyncUserDidi(marketingTransferSyncUser,null);
                 if(newValidityPeriodData!=null){
                     updateDidiCallRecord.setCell(newValidityPeriodData.getCell());
 

@@ -43,8 +43,6 @@ public class DidiCallRecordHandle {
             ThreadPoolExecutor didiCallRecordThread = BrExecutors.getThreadPool(marketingCommonConfig.getDidiCallRecordThread(), marketingCommonConfig.getDidiCallRecordThread());
             pushDate.forEach(date -> {
                 Long minId = null;
-
-
                 while ( marketingCommonConfig.isDidiCallRecordSwitch()){
                     DidiCallRecordExample didiCallRecordExample = new DidiCallRecordExample();
                     didiCallRecordExample.setOrderByClause("id asc limit 2000");
