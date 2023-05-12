@@ -778,7 +778,6 @@ public class MethodRetryHandlerService {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
     }
 
-    @RetryMethod(retryNowNum = 1)
     public Result<Boolean> didiAllow(DiDiAllowReqDTO dto,Integer retry){
         DiDiReqVO diDiReqVO = new DiDiReqVO();
         diDiReqVO.setCustMobileMd5(dto.getMobile());

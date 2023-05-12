@@ -15,6 +15,7 @@ import com.br.marketing.monkeydata.entity.didi.DiDiAllowCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import com.br.marketing.service.IJobManagerService;
 import com.br.marketing.service.Impl.jobmanager.JobManagerServiceImpl;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,9 @@ public class DidiAllowJob extends AbstractSimpleElasticJob {
 
     @Resource
     MarketingDataValidConfigMapper dataValidConfigMapper;
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
 
     @Autowired
     @Qualifier("jobManagerByDidiServiceImpl")
@@ -100,6 +104,7 @@ public class DidiAllowJob extends AbstractSimpleElasticJob {
             //endregion
 
             //region 生成有效期配置记录
+            Long validDays = marketingCommonConfig.getDidiValidDays()!=null && marketingCommonConfig.getDidiValidDays()>0 ?marketingCommonConfig.getDidiValidDays()-1L:29L;
             List<String> pushDates = didiDataMapper.getPushDateByLocalId(localFile.getId());
             if(pushDates.size()>0){
                 MarketingDataValidConfigExample configExample = new MarketingDataValidConfigExample();
@@ -109,7 +114,7 @@ public class DidiAllowJob extends AbstractSimpleElasticJob {
                         .andIsDelEqualTo(Constants.DATA_VALID);
                 List<MarketingDataValidConfig> validConfigs = dataValidConfigMapper.selectByExample(configExample);
                 for (String pushDate : pushDates) {
-                    String endDate = LocalDate.parse(pushDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")).plusDays(30L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                    String endDate = LocalDate.parse(pushDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")).plusDays(validDays).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                     Optional<MarketingDataValidConfig> first = validConfigs.stream().filter(t -> t.getAppletDate().equals(pushDate)).findFirst();
                     if(!first.isPresent()){
                         MarketingDataValidConfig marketingDataValidConfig = new MarketingDataValidConfig();

@@ -13,6 +13,7 @@ import com.br.marketing.enums.JobStatusEnum;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.service.IJobManagerService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,9 @@ public class JobManagerByDidiServiceImpl implements IJobManagerService {
 
     @Autowired
     LocalFileMapper localFileMapper;
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
 
     /**
      * 滴滴作业准入判断
@@ -91,9 +95,7 @@ public class JobManagerByDidiServiceImpl implements IJobManagerService {
                 return new Result<>().setCode(ResultCode.FAIL.getValue());
             }
             Integer num = Integer.valueOf(split[1]);
-            if(num<3){
-                num = num+1;
-            }
+            num = num+1;
             TransferActionFront updateEntity = new TransferActionFront();
             updateEntity.setId(actionFront.getId());
             updateEntity.setRemark(file.getId().toString().concat("-").concat(num.toString()));
@@ -123,7 +125,8 @@ public class JobManagerByDidiServiceImpl implements IJobManagerService {
         }else{
             String[] split = task.getRemark().split("-");
             Integer num = Integer.valueOf(split[1]);
-            if(num>=3){
+            Integer didiAllowRetryNum = marketingCommonConfig.getDidiAllowRetryNum()!=null?marketingCommonConfig.getDidiAllowRetryNum():3;
+            if(num>=didiAllowRetryNum){
                 updateEntity.setStatus(JobStatusEnum.RETRY_FAIL.getValue());
                 isRetry = Boolean.FALSE;
             }else{

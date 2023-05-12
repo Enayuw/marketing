@@ -685,5 +685,15 @@ public class MarketingCommonConfig {
      * {"pushSmsTrafficAccess":true,"pushReachSuccess":true,"pushJMASS":true}
      */
     private Map<String, Boolean> didiMockSwitch;
+
+    /**
+     * 滴滴准入重试次数
+     */
+    private Integer didiAllowRetryNum;
+
+    /**
+     * 滴滴有效期天数
+     */
+    private Long didiValidDays;
 }
 
