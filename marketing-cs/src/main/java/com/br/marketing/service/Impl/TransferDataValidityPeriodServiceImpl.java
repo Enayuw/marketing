@@ -770,6 +770,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     /**
      * shijian
      */
+    @Override
     public MarketingSyncUser getMarketingSyncUserDidi(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate) {
         MarketingSyncUser marketingSyncUser = null;
         // 1. 查询配置表
