@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
+import com.br.common.util.MD5Utils;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
@@ -23,6 +24,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
@@ -206,9 +208,8 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
                     sb.append(emptyDefault(transferFilterData.getIfLent())).append(",");
                     sb.append(removeMillisecond(emptyDefault(transferFilterData.getLentTime()))).append(",");
                     sb.append(emptyDefault(transferFilterData.getLentAmount())).append(",");
-                    sb.append(cellMap.containsKey(transferFilterData.getCustNum())
-                            ? Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(
-                            cellMap.get(transferFilterData.getCustNum()))) : "");
+                    sb.append(cellMap.containsKey(transferFilterData.getCustNum()) ? MD5Utils.cell32(
+                            BrCipherMaker.getInstance().decode(cellMap.get(transferFilterData.getCustNum()))) : "");
                     sb.append("\r\n");
                     try {
                         fw.append(sb.toString());
