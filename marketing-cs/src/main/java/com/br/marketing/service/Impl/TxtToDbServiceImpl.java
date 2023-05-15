@@ -172,7 +172,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
             Integer successNum = 0;
             for (int i = 0; i < address.size(); i++) {
                 String s = address.get(i);
-                if (!"extend".equals(s)) {
+                if (!"extend".equals(s) && StringUtils.isNotBlank(fieldAllHm.get(s))) {
                     insertFields.append(fieldAllHm.get(s)).append(",");
                 }
             }
