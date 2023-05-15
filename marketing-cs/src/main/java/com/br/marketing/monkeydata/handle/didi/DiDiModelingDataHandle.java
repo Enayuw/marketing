@@ -189,11 +189,13 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
             if (result.getCode().equals(ResultCode.INTERNAL_SERVER_ERROR.getValue())) {
                 retryDataList.add(t);
             }
+            JSONObject json = JSON.parseObject(t.getReserveField1());
             if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
                 TransferDataItemDTO transferDataItemDTO = new TransferDataItemDTO();
                 String data = result.getData().getData();
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("data", data);
+                jsonObject.put("extend", json.getString("extend"));
                 transferDataItemDTO.setCustNum(t.getCustNum());
                 transferDataItemDTO.setUserType("1");
                 transferDataItemDTO.setReserveField1(jsonObject.toString());

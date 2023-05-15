@@ -615,4 +615,14 @@
         </where>
 
     </select>
+
+
+    <select id="getSyncUserByAppletDatePage" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where applet_date = #{appletDate}
+          And user_type = #{userType}
+          AND status = 1
+        order by applet_time desc, id desc limit #{limitStart}, 2000;
+    </select>
 </mapper>
