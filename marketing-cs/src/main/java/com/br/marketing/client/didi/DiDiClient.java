@@ -204,7 +204,7 @@ public class DiDiClient {
             HashMap<String, String> resMap = new HashMap<>();
             // 获取挡板开关
             if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_JMASS)) {
-                resMap.put("content", "{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":\"11111\"}");
+                resMap.put("content", "{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":\"\"}");
                 resMap.put("httpcode", "200");
             } else {
                 // 发送请求
