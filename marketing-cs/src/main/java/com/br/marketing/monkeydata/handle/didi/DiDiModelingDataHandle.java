@@ -195,7 +195,7 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
                 TransferDataItemDTO transferDataItemDTO = new TransferDataItemDTO();
                 String data = result.getData().getData();
                 if (StringUtils.isEmpty(data)) {
-                    log.warn(AlertLog.buildErrorMessage("63000", "滴滴联合建模接口返回data为空，custNum=" + t.getCustNum()));
+                    log.error("滴滴联合建模接口返回data为空，custNum=",  t.getCustNum());
                 }
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("data", data);

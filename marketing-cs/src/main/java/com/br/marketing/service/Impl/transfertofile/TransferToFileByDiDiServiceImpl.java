@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl.transfertofile;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
@@ -162,6 +163,9 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
                         if(StringUtils.isNotBlank(transferSyncUser.getReserveField1())) {
                             JSONObject jsonObject = JSON.parseObject(transferSyncUser.getReserveField1());
                             data = jsonObject.getString("data");
+                            if(StringUtils.isEmpty(data)){
+                                log.error("滴滴联合建模接口返回data为空，custNum=",  marketingSyncUser.getCustNum());
+                            }
                             extend = jsonObject.getString("extend");
                         }
                     }
