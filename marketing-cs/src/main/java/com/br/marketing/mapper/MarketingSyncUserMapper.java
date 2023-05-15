@@ -198,4 +198,8 @@ public interface MarketingSyncUserMapper {
     String getMinAppletDate(@Param("apiCode") String apiCode);
 
     List<MarketingSyncUser> getCellByAppletDateAndUserType(@Param("apiCode") String apiCode,  @Param("appletDate")String executeDate,  @Param("minId")Long minId,@Param("userType") String userType);
+
+    List<MarketingSyncUser> getSyncUserByAppletDatePage(@Param("apiCode") String apiCode,  @Param("appletDate")String executeDate, @Param("userType") String userType, @Param("limitStart") Integer limitStart);
+
+
 }

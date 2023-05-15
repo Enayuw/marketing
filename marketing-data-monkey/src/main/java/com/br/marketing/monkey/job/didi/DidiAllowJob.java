@@ -59,7 +59,7 @@ public class DidiAllowJob extends AbstractSimpleElasticJob {
         String actionDay = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Date from = Date.from(now.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
-        String apiCode = StringUtils.isNotBlank(jobParameter) ? jobParameter :"";
+        String apiCode = StringUtils.isNotBlank(jobParameter) ? jobParameter :"3710083";
         List<LocalFile> localFiles = localFileMapper.getLocalFileByPushNoOrError(apiCode,SftpFileTypeEnum.DD.getValue());
         for (LocalFile localFile : localFiles) {
             Result<TransferActionFront> allowExecute = iJobManagerService.isAllowExecute(apiCode, 2, actionDay, localFile);
