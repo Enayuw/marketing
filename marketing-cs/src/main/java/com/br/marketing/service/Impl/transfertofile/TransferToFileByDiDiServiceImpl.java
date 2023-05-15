@@ -159,9 +159,11 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
                     String data = "", extend = "";
                     if (transferDataMap.containsKey(marketingSyncUser.getCustNum())) {
                         MarketingTransferSyncUser transferSyncUser = transferDataMap.get(marketingSyncUser.getCustNum()).stream().filter(marketingTransferSyncUser -> marketingTransferSyncUser.getCustNum().equals(custNum)).findAny().orElse(null);
-                        JSONObject jsonObject = JSON.parseObject(transferSyncUser.getReserveField1());
-                        data = jsonObject.getString("data");
-                        extend = jsonObject.getString("extend");
+                        if(StringUtils.isNotBlank(transferSyncUser.getReserveField1())) {
+                            JSONObject jsonObject = JSON.parseObject(transferSyncUser.getReserveField1());
+                            data = jsonObject.getString("data");
+                            extend = jsonObject.getString("extend");
+                        }
                     }
                     StringBuilder sb = new StringBuilder();
                     sb.append(marketingSyncUser.getCustNum().concat(","));
