@@ -224,7 +224,6 @@ public class HttpProxyClient {
 			res.put("httpcode",String.valueOf(statusCode));
 			String result = EntityUtils.toString(response.getEntity(),CHARSET_UTF8);
 			res.put("content",result);
-			interfaceLog.setExpire(String.valueOf(end-start));
 			interfaceLog.setResult(result);
 			interfaceLog.setHttpCode(statusCode);
 			post.releaseConnection();
@@ -300,7 +299,6 @@ public class HttpProxyClient {
 			res.put("httpcode",String.valueOf(statusCode));
 			String result = EntityUtils.toString(response.getEntity(),CHARSET_UTF8);
 			res.put("content",result);
-			interfaceLog.setExpire(String.valueOf(end-start));
 			interfaceLog.setResult(result);
 			interfaceLog.setHttpCode(statusCode);
 			post.releaseConnection();
