@@ -7,6 +7,7 @@ import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.DidiData;
@@ -204,6 +205,14 @@ public class DiDiAllowHandle  extends IMonkeyDataHandle<DidiData, DiDiProcessDat
                     marketingPreUserDetailDTO.setCell(diDiProcessData.getCell());
                     JSONObject rf = new JSONObject();
                     rf.put("userType","1");
+                    if (StringUtils.isNotBlank(diDiProcessData.getExtend())) {
+                        try {
+                            JSONObject jsonObject = JSON.parseObject(diDiProcessData.getExtend());
+                            rf.putAll(jsonObject);
+                        }catch (Exception ex){
+                            rf.put("tmpKey",diDiProcessData.getExtend());
+                        }
+                    }
                     marketingPreUserDetailDTO.setReserveField1(rf.toJSONString());
                     syncUsers.add(marketingPreUserDetailDTO);
                     break;
