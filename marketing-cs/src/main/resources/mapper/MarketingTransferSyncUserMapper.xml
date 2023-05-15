@@ -509,4 +509,16 @@
         </if>
         order by id asc limit 2000;
     </select>
+
+    <select id="getTransferByCustNumOrderDatatikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+    select * from (
+    select *,row_number() over(partition by cust_num order by create_time desc) as num
+    from b_marketing_transfer_sync_${tCid}
+    where
+    cust_num in
+    <foreach collection="custNums" item="c" separator="," open="(" close=")">
+        #{c}
+    </foreach>
+    ) t where num = 1
+    </select>
 </mapper>

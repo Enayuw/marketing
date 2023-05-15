@@ -7,6 +7,8 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
+import com.br.marketing.mapper.MarketingDataValidConfigMapper;
+import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
@@ -24,6 +26,7 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -51,6 +54,12 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
 
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+
+    @Autowired
+    private MarketingDataValidConfigMapper marketingDataValidConfigMapper;
+
+    @Resource
+    private MarketingSyncUserMapper marketingSyncUserMapper;
 
     @Override
     public String isMyParam(String apiCode, String jobParameter) {
@@ -107,7 +116,7 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file), "UTF-8"));) {
-            fw.append("custNum,data");
+            fw.append("custNum,data,extend");
             fw.append("\r\n");
             writeDiDiTransferToFile(fw, apiCode, transferFileTask);
         } catch (Exception ex) {
@@ -121,33 +130,48 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
         Long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         int totalSize = 0;
-        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
-        example.createCriteria().andApiCodeEqualTo(apiCode);
-        example.setOrderByClause("create_time desc limit 1");
-        example.settCid(tcId);
-        List<MarketingTransferSyncUser> transferList = marketingTransferSyncUserMapper.selectByExample(example);
-        String requestDate = transferList.get(0).getRequestData();
-        Long minId = null;
-        Boolean isContiue = Boolean.TRUE;
-        while (isContiue) {
-            //查询最新一天的全量转化数据
-            List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.getTransferByRequestDate(tcId, apiCode, requestDate, minId);
-            if (marketingTransferSyncUsers.size() <= 0) {
-                isContiue = Boolean.FALSE;
-                continue;
-            }
-            minId = marketingTransferSyncUsers.get(marketingTransferSyncUsers.size() - 1).getId() + 1;
-            for (MarketingTransferSyncUser transferSyncUser : marketingTransferSyncUsers) {
+        List<MarketingDataValidConfig> configList = findConfigByBetweenDate(apiCode, LocalDate.now().minusDays(1).toString());
+        List<String> appletDateList = configList.stream().map(marketingDataValidConfig -> marketingDataValidConfig.getAppletDate()).collect(Collectors.toList());
+        Set<String> CustNumSets = new HashSet<>();
+        for (String appleDate : appletDateList) {
+            Integer page = 0;
+            Boolean mark = Boolean.TRUE;
+            while (mark) {
+                Result<List<MarketingSyncUser>> syncUserOrderData = getSyncUserOrderData(apiCode, appleDate, page);
+                if (!ResultCode.SUCCESS.getValue().equals(syncUserOrderData.getCode())) {
+                    mark = Boolean.FALSE;
+                    continue;
+                }
+                page++;
+                List<MarketingSyncUser> marketingSyncUsers = syncUserOrderData.getData();
+                //custNum去重
+                marketingSyncUsers.removeIf(marketingSyncUser -> !CustNumSets.add(marketingSyncUser.getCustNum()));
+                //获取最新的转化数据
+                List<String> CustNums = marketingSyncUsers.stream().map(MarketingSyncUser::getCustNum).collect(Collectors.toList());
+                List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getTransferByCustNumOrderDatatikv_(tcId, CustNums);
+                Map<String, List<MarketingTransferSyncUser>> transferDataMap = marketingTransferSyncUserList.stream().collect(
+                        Collectors.groupingBy(MarketingTransferSyncUser::getCustNum));
+                for (MarketingSyncUser marketingSyncUser : marketingSyncUsers) {
+                    String custNum = marketingSyncUser.getCustNum();
+                    String data = "", extend = "";
+                    if (transferDataMap.containsKey(marketingSyncUser.getCustNum())) {
+                        MarketingTransferSyncUser transferSyncUser = transferDataMap.get(marketingSyncUser.getCustNum()).stream().filter(marketingTransferSyncUser -> marketingTransferSyncUser.getCustNum().equals(custNum)).findAny().orElse(null);
+                        JSONObject jsonObject = JSON.parseObject(transferSyncUser.getReserveField1());
+                        data = jsonObject.getString("data");
+                        extend = jsonObject.getString("extend");
+                    }
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(marketingSyncUser.getCustNum().concat(","));
+                    sb.append((StringUtils.isNotEmpty(data) ? data : "").concat(","));
+                    sb.append((StringUtils.isNotEmpty(extend) ? extend : "").concat(","));
+                    sb.append("\r\n");
+                    fw.append(sb.toString());
+                }
+                totalSize = totalSize + marketingSyncUsers.size();
 
-                JSONObject jsonObject = JSON.parseObject(transferSyncUser.getReserveField1());
-                StringBuilder sb = new StringBuilder();
-                sb.append(transferSyncUser.getCustNum().concat(","));
-                sb.append(jsonObject.getString("data"));
-                sb.append("\r\n");
-                fw.append(sb.toString());
             }
-            totalSize = totalSize + marketingTransferSyncUsers.size();
         }
+
         TransferFileTask updatetask = new TransferFileTask();
         updatetask.setId(transferFileTask.getId());
         updatetask.setStatus(2);
@@ -157,6 +181,7 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
         updatetask.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
         log.warn("滴滴转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
+
     }
 
 
@@ -164,5 +189,34 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String concat = apiCode.concat("_").concat(yyyyMMdd).concat("_").concat(contextId.toString());
         return concat;
+    }
+
+
+    /**
+     * apicode有效期配置
+     * userType = 1
+     */
+    private List<MarketingDataValidConfig> findConfigByBetweenDate(String apiCode, String date) {
+        MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo("1").andValidStartDateLessThanOrEqualTo(date)
+                .andValidEndDateGreaterThanOrEqualTo(date).andIsDelEqualTo(1);
+        example.setOrderByClause("applet_date desc");
+        return marketingDataValidConfigMapper.selectByExample(example);
+    }
+
+    /**
+     * 获取上传数据
+     * 按照createtime排序
+     *
+     * @param pageIndex
+     * @return
+     */
+    private Result<List<MarketingSyncUser>> getSyncUserOrderData(String apiCode, String requestDate, Integer pageIndex) {
+        Integer limitStart = pageIndex * 2000;
+        List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByAppletDatePage(apiCode, requestDate, "1", limitStart);
+        if (marketingSyncUserList.size() <= 0) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue());
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(marketingSyncUserList);
     }
 }
