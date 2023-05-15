@@ -147,6 +147,9 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
                 //custNum去重
                 marketingSyncUsers.removeIf(marketingSyncUser -> !CustNumSets.add(marketingSyncUser.getCustNum()));
                 //获取最新的转化数据
+                if(CollectionUtils.isEmpty(marketingSyncUsers)){
+                    continue;
+                }
                 List<String> CustNums = marketingSyncUsers.stream().map(MarketingSyncUser::getCustNum).collect(Collectors.toList());
                 List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getTransferByCustNumOrderDatatikv_(tcId, CustNums);
                 Map<String, List<MarketingTransferSyncUser>> transferDataMap = marketingTransferSyncUserList.stream().collect(
