@@ -2,6 +2,7 @@ package com.br.marketing.monkeydata.handle.didi;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.didi.DiDiClient;
@@ -194,7 +195,7 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
                 TransferDataItemDTO transferDataItemDTO = new TransferDataItemDTO();
                 String data = result.getData().getData();
                 if (StringUtils.isEmpty(data)) {
-                    log.error("滴滴联合建模接口返回data为空，custNum={},cell={}", t.getCustNum(), t.getCell());
+                    log.warn(AlertLog.buildErrorMessage("63000", "滴滴联合建模接口返回data为空，custNum=" + t.getCustNum()));
                 }
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("data", data);
