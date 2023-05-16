@@ -196,4 +196,12 @@ public interface MarketingSyncUserMapper {
     List<MarketingSyncUser> getNewSyncUserByCustNumtikv_(@Param("apiCode") String apiCode, @Param("custNums") List<String> custNums, @Param("dateBegin") String dateBegin, @Param("dateEnd") String dateEnd);
 
     String getMinAppletDate(@Param("apiCode") String apiCode);
+
+    /**
+     * 2023-05-12 15:57
+     * 根据案件编号获取最新手机号
+     */
+    List<MarketingSyncUser> getCellLastByCustNums(@Param("apiCode") String apiCode
+            , @Param("custNums") Set<String> custNumSet);
+
 }
