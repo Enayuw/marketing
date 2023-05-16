@@ -165,7 +165,7 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
                             JSONObject jsonObject = JSON.parseObject(transferSyncUser.getReserveField1());
                             data = jsonObject.getString("data");
                             if(StringUtils.isEmpty(data)){
-                                String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode(), "滴滴联合建模接口返回data为空，custNum="+custNum);
+                                String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_DIDI.getCode(), "滴滴联合建模接口返回data为空，custNum="+custNum);
                                 log.warn(msg);
                             }
                             extend = jsonObject.getString("extend");
