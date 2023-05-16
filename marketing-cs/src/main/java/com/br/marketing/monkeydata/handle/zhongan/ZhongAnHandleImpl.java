@@ -8,6 +8,8 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.monkeydata.entity.IterationResult;
 import com.br.marketing.monkeydata.entity.commonobj.PageCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
@@ -19,7 +21,26 @@ public class ZhongAnHandleImpl extends IMonkeyDataHandle<MarketingSyncUser, Mark
 
     @Override
     public Boolean isThread() {
-        return true;
+        return marketingCommonConfig.getCustomerJobConfig().get("7410437").getBoolean("isThread") != null
+                ? marketingCommonConfig.getCustomerJobConfig().get("7410437").getBoolean("isThread")
+                :super.isThread();
+    }
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
+    @Override
+    public Boolean isPause() {
+        return marketingCommonConfig.getCustomerJobConfig().get("7410437").getBoolean("isPause") != null
+                ? marketingCommonConfig.getCustomerJobConfig().get("7410437").getBoolean("isPause")
+                :super.isPause();
+    }
+
+    @Override
+    public Integer getThread() {
+        return marketingCommonConfig.getCustomerJobConfig().get("7410437").getInteger("threadNum") != null
+                ? marketingCommonConfig.getCustomerJobConfig().get("7410437").getInteger("threadNum")
+                :super.getThread();
     }
 
     @Override
@@ -55,6 +76,11 @@ public class ZhongAnHandleImpl extends IMonkeyDataHandle<MarketingSyncUser, Mark
 
     @Override
     public Result resultAction(List<MarketingTransferSyncUser> outputDataList) {
+        try {
+            Thread.sleep(5000L);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         System.out.println(JSON.toJSONString(outputDataList));
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }

@@ -204,4 +204,10 @@ public interface MarketingSyncUserMapper {
     List<MarketingSyncUser> getCellLastByCustNums(@Param("apiCode") String apiCode
             , @Param("custNums") Set<String> custNumSet);
 
+
+    List<MarketingSyncUser> getCellByAppletDateAndUserType(@Param("apiCode") String apiCode,  @Param("appletDate")String executeDate,  @Param("minId")Long minId,@Param("userType") String userType);
+
+    List<MarketingSyncUser> getSyncUserByAppletDatePage(@Param("apiCode") String apiCode,  @Param("appletDate")String executeDate, @Param("userType") String userType, @Param("limitStart") Integer limitStart);
+
+
 }

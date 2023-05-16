@@ -27,6 +27,12 @@ public interface TransferDataValidityPeriodService {
 
     /**
      * (T+N),(T,N)
+     * 判断转化数据是否在有效期内,在的话返回最新一条上传数据，不在返回可空(滴滴专用)
+     */
+    MarketingSyncUser getMarketingSyncUserDidi(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate);
+
+    /**
+     * (T+N),(T,N)
      * 判断转化数据是否在有效期内,在的话返回最新一条上传数据，返回带电话的转化数据不在返回可空
      */
     MarketingTransferSyncUserCell getNewValidityPeriodTransferData(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate);

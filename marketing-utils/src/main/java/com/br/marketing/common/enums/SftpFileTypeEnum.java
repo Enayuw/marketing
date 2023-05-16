@@ -6,6 +6,12 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum SftpFileTypeEnum {
-    SEVEN("qiqi"),DX("dianxiao"),HLBYTRANSFORM("hl_transform"),SHBYTRANSFORM("sh_transform"),DXTRANSFORM("dx_transform"),DXIBU("dx_ibu");
+    SEVEN("qiqi")
+    ,DX("dianxiao")
+    ,HLBYTRANSFORM("hl_transform")
+    ,SHBYTRANSFORM("sh_transform")
+    ,DXTRANSFORM("dx_transform")
+    ,DXIBU("dx_ibu")
+    ,DD("didi");
    private String value;
 }

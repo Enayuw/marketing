@@ -26,7 +26,9 @@ public enum AlarmSendCodeEnum {
     //萨摩耶转化数据报警，手机号缺失,阶梯推送
     EXCEPTION_SAMOYE("62001", "samoyeCommonly"),
     //画像返回98,阶梯推送
-    EXCEPTION_HUAX("62002", "huaxiangCommonly")
+    EXCEPTION_HUAX("62002", "huaxiangCommonly"),
+    //滴滴联合建模,阶梯推送
+    EXCEPTION_DIDI("62003", "didiCommonly")
     ;
 
     /**

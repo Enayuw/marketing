@@ -1,5 +1,7 @@
 package com.br.marketing.check.service.Impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.AlarmApiClient;
@@ -24,6 +26,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.base.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -308,42 +311,67 @@ public class SftpToDbByCommonService {
 
         String filepath = context.getLocalTxtFilePath().concat(context.getTxtFileName());
         AtomicInteger errorMark = new AtomicInteger(0);
+        AtomicInteger success = new AtomicInteger(0);
         try (
                 FileReader read = new FileReader(filepath);
                 BufferedReader br = new BufferedReader(read);) {
-            String row;
             Integer line = 1;
             Integer threadNum = 20;
             if (marketingCommonConfig.getThreadNumSftpToDbByCommon() != null && marketingCommonConfig.getThreadNumSftpToDbByCommon() > 0) {
                 threadNum = marketingCommonConfig.getThreadNumSftpToDbByCommon();
             }
+            Integer dataNum = 50;
+            if (marketingCommonConfig.getDataNumSftpToDbByCommon() != null && marketingCommonConfig.getDataNumSftpToDbByCommon() > 0) {
+                dataNum = marketingCommonConfig.getDataNumSftpToDbByCommon();
+            }
             log.warn("SftpToDbByCommonJob入库线程数：" + threadNum);
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
-            while ((row = br.readLine()) != null) {
-                String trim = row.trim();
-                TxtToDbDTO txtToDbDTO = new TxtToDbDTO();
-                txtToDbDTO.setLine(line);
-                txtToDbDTO.setApiCode(localFile.getApiCode());
-                txtToDbDTO.setLocalId(localFile.getId());
-                txtToDbDTO.setContent(trim);
-                txtToDbDTO.setAddress(address);
-                txtToDbDTO.setFieldAll(fieldAllSet);
-                txtToDbDTO.setFieldAllHm(fieldAllHm);
-                txtToDbDTO.setFieldMust(fieldMustSet);
-                txtToDbDTO.setErrorMsg(errorMsg.toString());
-                txtToDbDTO.setExtSetField(extSetField);
-                txtToDbDTO.setDbName(fileDbConfig.getDbName());
-                if (StringUtils.isNotEmpty(row) && StringUtils.isNotEmpty(trim)) {
-                    if (line > 1) {
-                        threadPool.submit(() -> {
-                            Result apply = fuc.apply(txtToDbDTO);
-                            if (!ResultCode.SUCCESS.getValue().equals(apply.getCode())) {
-                                errorMark.getAndIncrement();
-                            }
-                        });
+            Integer hasNum = 0;
+            HashMap<Integer,String> datasHp = new HashMap<>();
+            Boolean readFile = Boolean.TRUE;
+            while (readFile) {
+                String row = br.readLine();
+                if(line == 1){
+                    line++;
+                    continue;
+                }
+                if(row == null){
+                    readFile = Boolean.FALSE;
+                }else{
+                    String trim = row.trim();
+                    if (StringUtils.isNotEmpty(row) && StringUtils.isNotEmpty(trim)) {
+                        datasHp.put(line,trim);
+                        hasNum++;
                     }
                 }
-                line++;
+                if((!readFile && datasHp.size()>0) || dataNum==hasNum){
+                    TxtToDbDTO txtToDbDTO = new TxtToDbDTO();
+                    HashMap<Integer, String> threadDatas = new HashMap<>();
+                    threadDatas.putAll(datasHp);
+                    txtToDbDTO.setDatas(threadDatas);
+                    txtToDbDTO.setApiCode(localFile.getApiCode());
+                    txtToDbDTO.setLocalId(localFile.getId());
+                    txtToDbDTO.setAddress(address);
+                    txtToDbDTO.setFieldAll(fieldAllSet);
+                    txtToDbDTO.setFieldAllHm(fieldAllHm);
+                    txtToDbDTO.setFieldMust(fieldMustSet);
+                    txtToDbDTO.setErrorMsg(errorMsg.toString());
+                    txtToDbDTO.setExtSetField(extSetField);
+                    txtToDbDTO.setDbName(fileDbConfig.getDbName());
+                    threadPool.submit(() -> {
+                        Result apply = fuc.apply(txtToDbDTO);
+                        if (ResultCode.SUCCESS.getValue().equals(apply.getCode())) {
+                            JSONObject jsonObject = JSON.parseObject(apply.getMessage());
+                            errorMark.getAndAdd(jsonObject.getInteger("errorNum"));
+                            success.getAndAdd(jsonObject.getInteger("successNum"));
+                        }
+                    });
+                    hasNum = 0;
+                    datasHp.clear();
+                }
+                if(row !=null){
+                    line++;
+                }
             }
             /**
              * 等待所有任务都执行完成
@@ -367,6 +395,7 @@ public class SftpToDbByCommonService {
                 updateFile.setComplete("3");
             }
             updateFile.setErrorActualNumber(errorMark.get());
+            updateFile.setStatus("2");
             localFileMapper.updateByPrimaryKeySelective(updateFile);
             if (StringUtils.isNotBlank(fileDbConfig.getRouteKey())) {
                 producter.send(fileDbConfig.getRouteKey(), localFile.getId().toString());

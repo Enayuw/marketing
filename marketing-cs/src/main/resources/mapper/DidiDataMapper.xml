@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.DidiDataMapper" >
+    <update id="updateMarketingBatch">
+        ${sql}
+    </update>
+
+    <select id="getFirstDidiByFiletikv_" resultType="com.br.marketing.entity.DidiData">
+        select * from (
+        select *,row_number() over(partition by cell order by create_time,id) as num
+        from b_didi_data
+        where local_id = #{localId}
+        and cell in
+        <foreach collection="cells" item="c" separator="," open="(" close=")">
+            #{c}
+        </foreach>
+        ) t where num = 1
+    </select>
+    <select id="getPushDateByLocalId" resultType="java.lang.String">
+        select push_date
+        from b_didi_data
+        where local_id = #{localId} and push_status = 2 and is_marketing = 1
+        group by push_date
+    </select>
+</mapper>

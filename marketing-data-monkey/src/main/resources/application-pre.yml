@@ -167,6 +167,15 @@ api:
     rsapKey: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCVuaxc7ZznPdvsH0nhd2eQ/uhu/LewJqUVMvdYUKwXPxzGBUz8cVKyltwpMJ03uMPx+RStWnkWcmCSeQdqiw27FtaPELOxxQQc06OGBXfp5R86MKp2+bkdPRSkpUKK2X8vCyiopQojBXbaVzRUwjPPsQAsDinCGkSUirWETxfCxwIDAQAB
     xdCode: 07brdyy01
     bxCode: 3360001
+  didi:
+    baseUrl: https://admarketing-manhattan.xiaojukeji.com
+    smsUrl: ${api.didi.baseUrl}/crow/collision/bairong
+    reachUrl: ${api.didi.baseUrl}/crow/user/success/bairong
+    jmassSUrl: ${api.didi.baseUrl}/model/sample/bairong
+    token: DK&SgWl!fZ%WVSXe
+    scas: "0001"
+    channelId: 3140738836439875
+    isProxy: false
 spring:
   rabbitmq:
     addresses: delivery-rabbitmq-cluster-01.brapp.com:5672

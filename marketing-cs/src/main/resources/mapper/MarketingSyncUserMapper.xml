@@ -612,4 +612,31 @@
         ) as a
         left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and a.applet_time = b.applet_time
     </select>
+
+    <select id="getCellByAppletDateAndUserType" resultType="com.br.marketing.entity.MarketingSyncUser">
+
+        select * from b_marketing_sync_${apiCode}
+        <where>
+            <if test="apiCode != null">
+                AND api_code =#{apiCode}
+            </if>
+            <if test="minId != null and minId >0">
+                AND id >=#{minId}
+            </if>
+            AND applet_date = #{appletDate}
+            And user_type = #{userType}
+            AND status=1
+            order by id asc limit 2000;
+        </where>
+
+    </select>
+
+    <select id="getSyncUserByAppletDatePage" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where applet_date = #{appletDate}
+          And user_type = #{userType}
+          AND status = 1
+        order by applet_time desc, id desc limit #{limitStart}, 2000;
+    </select>
 </mapper>

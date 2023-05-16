@@ -3,6 +3,7 @@ package com.br.marketing.strategy;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.ZaMarketDataBO;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.PushBlackListResponse;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
@@ -15,6 +16,9 @@ import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
 import com.br.marketing.client.dassservice.output.DassExportAdapterDTO;
+import com.br.marketing.client.didi.DiDiClient;
+import com.br.marketing.client.didi.input.DiDiReqVO;
+import com.br.marketing.client.didi.output.DiDiResponseTO;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleSoleDTO;
@@ -30,13 +34,17 @@ import com.br.marketing.common.annoation.DistributeLog;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.DiDiAllowMarketingEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.monkeydata.service.PushRosterLockingDataToZhongAn;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.vo.DiDiAllowReqDTO;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +54,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -128,6 +137,20 @@ public class MethodRetryHandlerService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    DidiDataMapper didiDataMapper;
+
+    @Resource
+    private DiDiClient diDiClient;
+
+    @Resource
+    private  RedisChgService redisChgService;
+
+    @Resource
+    private DidiCallRecordMapper didiCallRecordMapper;
+
+    @Resource
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     /**
      *
@@ -659,5 +682,129 @@ public class MethodRetryHandlerService {
         }
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
+
+    /**
+     * 滴滴通话明细推送
+     * @param didiCallRecord
+     * @param retry
+     * @return
+     */
+    @RetryMethod(isOrNoDbRetry = true)
+    public  Result<Boolean> didiPushData(DidiCallRecord didiCallRecord, Integer retry){
+
+        Boolean res = Boolean.FALSE;
+        try {
+            String custNum = didiCallRecord.getCustNum();
+            String apiCode = didiCallRecord.getApiCode();
+            Integer createDate = didiCallRecord.getCreateDate();
+            Date createTime = didiCallRecord.getCreateTime();
+            // 获取redis 锁
+            String key = RedisKeyConstant.pushDidiCollRecordLock.concat(":")
+                    .concat(apiCode)
+                    .concat(custNum);
+            String value = UUID.randomUUID().toString();
+
+            redisChgService.lock(key, value);
+            DidiCallRecord updateDidiCallRecord = new DidiCallRecord();
+            updateDidiCallRecord.setId(didiCallRecord.getId());
+            //查询当天是否推送过
+            DidiCallRecordExample didiCallRecordExample = new DidiCallRecordExample();
+            didiCallRecordExample.createCriteria()
+                    .andCustNumEqualTo(custNum)
+                    .andStatusEqualTo(1)
+                    .andCreateDateEqualTo(createDate);
+            if (didiCallRecordMapper.countByExample(didiCallRecordExample)==0) {
+                MarketingTransferSyncUser marketingTransferSyncUser = new MarketingTransferSyncUser();
+                marketingTransferSyncUser.setApiCode(apiCode);
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                marketingTransferSyncUser.setRequestData( sdf.format(new Date()));
+                marketingTransferSyncUser.setCustNum(custNum);
+                // 判断是否有效
+                MarketingSyncUser newValidityPeriodData = transferDataValidityPeriodService.getMarketingSyncUserDidi(marketingTransferSyncUser,null);
+                if(newValidityPeriodData!=null){
+                    updateDidiCallRecord.setCell(newValidityPeriodData.getCell());
+
+                    // 调接口推送
+                    DiDiReqVO diDiReqVO = new DiDiReqVO();
+                    diDiReqVO.setCustMobileMd5(custNum);
+                    Result<DiDiResponseTO> resResultResult = diDiClient.pushReachSuccess(diDiReqVO);
+                    // 500 异常需要进入阶梯重试
+                    if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(resResultResult.getCode())){
+                        updateDidiCallRecord.setStatus(2);
+                        updateDidiCallRecord.setSysMessage("重试数据");
+                        updateDidiCallRecord.setUpdateTime(new Date());
+                        didiCallRecordMapper.updateByPrimaryKeySelective(updateDidiCallRecord);
+                        // 解锁
+                        redisChgService.unlock(key, value);
+                        return new Result<Boolean>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+                    }
+                    // 成功则更新数据状态
+                    if(resResultResult.getCode().equals(ResultCode.SUCCESS.getValue())){
+                        res = Boolean.TRUE;
+                        DiDiResponseTO diDiResponseTO = resResultResult.getData();
+                        DiDiResponseTO.ResResult data = diDiResponseTO.getData();
+                        Boolean result = null;
+                        if(data !=null){
+                            result = data.getResult();
+                        }
+                        String errorMessage = diDiResponseTO.getErrorMessage();
+                        String errorCode = diDiResponseTO.getErrorCode();
+                        updateDidiCallRecord.setStatus(1);
+                        updateDidiCallRecord.setResult(result);
+                        updateDidiCallRecord.setErrorCode(errorCode);
+                        updateDidiCallRecord.setErrorMessage(errorMessage);
+                    }else {
+                        updateDidiCallRecord.setStatus(2);
+                        updateDidiCallRecord.setSysMessage("非500异常");
+                    }
+
+                }else {
+                    updateDidiCallRecord.setStatus(2);
+                    updateDidiCallRecord.setSysMessage("数据失效");
+                }
+            }else {
+                updateDidiCallRecord.setStatus(2);
+                updateDidiCallRecord.setSysMessage("数据重复");
+            }
+            // 处理返回结果
+            updateDidiCallRecord.setUpdateTime(new Date());
+            didiCallRecordMapper.updateByPrimaryKeySelective(updateDidiCallRecord);
+            // 解锁
+            redisChgService.unlock(key, value);
+        } catch (Exception e) {
+            log.error("滴滴接口推送异常", e);
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
+    }
+
+    public Result<Boolean> didiAllow(DiDiAllowReqDTO dto,Integer retry){
+        DiDiReqVO diDiReqVO = new DiDiReqVO();
+        diDiReqVO.setCustMobileMd5(dto.getMobile());
+        Result<DiDiResponseTO> diDiResponseTOResult = diDiClient.pushSmsTrafficAccess(diDiReqVO);
+        DidiData updateEntity = new DidiData();
+        updateEntity.setId(dto.getId());
+        updateEntity.setPushStatus(2);
+        if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(diDiResponseTOResult.getCode())){
+            updateEntity.setPushStatus(3);
+            didiDataMapper.updateByPrimaryKeySelective(updateEntity);
+            return new Result<Boolean>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+        DiDiResponseTO data = diDiResponseTOResult.getData();
+        Boolean res = Boolean.FALSE;
+        if(data.getData() !=null && data.getData().getResult()){
+            res = Boolean.TRUE;
+            updateEntity.setPushDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            updateEntity.setIsMarketing(DiDiAllowMarketingEnum.YES.getValue());
+            didiDataMapper.updateByPrimaryKeySelective(updateEntity);
+        }else if(data.getData() !=null && !data.getData().getResult()){
+            updateEntity.setIsMarketing(DiDiAllowMarketingEnum.NO.getValue());
+            didiDataMapper.updateByPrimaryKeySelective(updateEntity);
+        }else{
+            updateEntity.setIsMarketing(DiDiAllowMarketingEnum.NOKNOW.getValue());
+            updateEntity.setDataMessage(data== null?"":JSON.toJSONString(data));
+            didiDataMapper.updateByPrimaryKeySelective(updateEntity);
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
     }
 }

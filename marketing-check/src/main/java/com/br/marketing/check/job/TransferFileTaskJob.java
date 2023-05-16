@@ -115,6 +115,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Autowired
     private TransferToFileByGomeServiceImpl transferToFileByGomeService;
 
+    @Autowired
+    private TransferToFileByDiDiServiceImpl transferToFileByDiDiService;
+
     /**
      * 桔子
      */
@@ -240,6 +243,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByGomeService, marketingCommonConfig.getGomeApiCodes())
                 // 永辉转化数据提取
                 .addBind(transferToFileByYonghuiService, marketingCommonConfig.getYonghuiTransferExtractApiCodes())
+                // 滴滴转化数据提取
+                .addBind(transferToFileByDiDiService,marketingCommonConfig.getDidiApiCodes())
                 .build();
     }
 
