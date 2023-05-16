@@ -67,14 +67,14 @@ public class DiDiClient {
      */
     public Result<DiDiResponseTO> pushSmsTrafficAccess(DiDiReqVO smsReqVO) {
 
-        if("4422e2da50db10f8375baf36b19c4113".equals(smsReqVO.getCustMobileMd5())||"a9cd0a1156768417143d154c2f181c06".equals(smsReqVO.getCustMobileMd5())){
-            return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
-        }
-
-        if("2d3e557b00820dc73d0cc71cfd91f75b".equals(smsReqVO.getCustMobileMd5())){
-            DiDiResponseTO mock = JSON.parseObject("{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"result\":false}}", DiDiResponseTO.class);
-            return new Result<>().setCode(1).setDate(mock);
-        }
+//        if("4422e2da50db10f8375baf36b19c4113".equals(smsReqVO.getCustMobileMd5())||"a9cd0a1156768417143d154c2f181c06".equals(smsReqVO.getCustMobileMd5())){
+//            return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+//        }
+//
+//        if("2d3e557b00820dc73d0cc71cfd91f75b".equals(smsReqVO.getCustMobileMd5())){
+//            DiDiResponseTO mock = JSON.parseObject("{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"result\":false}}", DiDiResponseTO.class);
+//            return new Result<>().setCode(1).setDate(mock);
+//        }
 
         try {
             // 获取是否记录日志
