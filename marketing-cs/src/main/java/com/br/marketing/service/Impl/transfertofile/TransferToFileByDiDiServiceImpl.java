@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
@@ -164,7 +165,8 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
                             JSONObject jsonObject = JSON.parseObject(transferSyncUser.getReserveField1());
                             data = jsonObject.getString("data");
                             if(StringUtils.isEmpty(data)){
-                                log.error("滴滴联合建模接口返回data为空，custNum={}",  custNum);
+                                String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode(), "滴滴联合建模接口返回data为空，custNum="+custNum);
+                                log.warn(msg);
                             }
                             extend = jsonObject.getString("extend");
                         }
