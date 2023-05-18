@@ -27,7 +27,7 @@ public class PrometheusMonitorUtils {
     /**
      * 统计转化接口Cid维度请求和
      */
-    public static final String COUNT_TRANSFER_API_REQUEST_CID_METRIC_NAME = "countUploadApiRequestApiCodeMetricName";
+    public static final String COUNT_TRANSFER_API_REQUEST_CID_METRIC_NAME = "countTransferApiRequestCidMetricName";
 
 
 }
