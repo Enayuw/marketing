@@ -549,6 +549,7 @@ public class MethodRetryHandlerService {
         // TODO: 2023-05-18 测试结束后需要删除和恢复
         int tt = (SECURE_RANDOM.nextInt(110) + 170);
         Result<?> zhongAnResult = new Result<>();
+        zhongAnResult.setCode(1);
         try {
             TimeUnit.MILLISECONDS.sleep(tt);
         } catch (InterruptedException e) {
