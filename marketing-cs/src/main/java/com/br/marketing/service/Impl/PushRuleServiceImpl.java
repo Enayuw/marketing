@@ -2,10 +2,12 @@ package com.br.marketing.service.Impl;
 
 import IceInternal.Ex;
 import com.alibaba.fastjson.*;
+import com.br.cloud.counter.BrCounter;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
@@ -1127,6 +1129,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                         errorSize++;
                         errorBuild.add(result.getData());
                     }
+                    //上传请求监控统计
+                    BrCounter.count(PrometheusMonitorUtils.COUNT_UPLOAD_API_REQUEST_APICODE_METRIC_NAME,apiCode,PrometheusMonitorUtils.UPLOAD_API_KEY);
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                 }
@@ -1394,9 +1398,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                         errorSize++;
                         errorBuild.add(result.getData());
                     }
+
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                 }
+                //转化请求监控统计
+                BrCounter.count(PrometheusMonitorUtils.COUNT_TRANSFER_API_REQUEST_CID_METRIC_NAME,tcid,PrometheusMonitorUtils.TRANSFER_API_KEY);
             }
         }
         MarketingTransferInfo updateSyncInfo = new MarketingTransferInfo();

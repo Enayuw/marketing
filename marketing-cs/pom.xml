@@ -216,6 +216,11 @@
             <version>1.0.6</version>
             <classifier>shaded</classifier>
         </dependency>
+        <dependency>
+            <groupId>com.br.cloud</groupId>
+            <artifactId>spring_boot_exporter</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
