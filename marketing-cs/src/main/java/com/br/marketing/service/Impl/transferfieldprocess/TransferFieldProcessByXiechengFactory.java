@@ -16,7 +16,14 @@ public class TransferFieldProcessByXiechengFactory implements TransferFieldProce
 
     @Override
     public void fieldProcess(MarketingTransferSyncUser transferSyncUser) {
-        if(StringUtils.isNotBlank(transferSyncUser.getCustNum()) && transferSyncUser.getCustNum().length() > 18){
+        Boolean isBlack = Boolean.FALSE;
+        if (StringUtils.isNotBlank(transferSyncUser.getReserveField1())&&transferSyncUser.getReserveField1().contains("isBlack")) {
+            JSONObject extendJb = JSONObject.parseObject(transferSyncUser.getReserveField1());
+            if ("1".equals(extendJb.getString("isBlack"))) {
+                isBlack = Boolean.TRUE;
+            }
+        }
+        if(!isBlack && StringUtils.isNotBlank(transferSyncUser.getCustNum()) && transferSyncUser.getCustNum().length() > 18){
             String initCustNum = transferSyncUser.getCustNum();
             String newCustNum = transferSyncUser.getCustNum().substring(18);
             transferSyncUser.setCustNum(newCustNum);
