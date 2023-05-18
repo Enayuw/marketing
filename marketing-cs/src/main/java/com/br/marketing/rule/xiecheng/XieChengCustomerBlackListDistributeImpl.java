@@ -7,8 +7,10 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -21,6 +23,10 @@ import org.springframework.util.StringUtils;
 @Service
 @Slf4j
 public class XieChengCustomerBlackListDistributeImpl implements AssembleData<BlackDetailDTO> {
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
     @Override
     public BlackDetailDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser transferSyncUser = (MarketingTransferSyncUser) transmitFact;
@@ -30,7 +36,6 @@ public class XieChengCustomerBlackListDistributeImpl implements AssembleData<Bla
         String phone = RpcClientProxy.decode(transferSyncUser.getCustNum(), "cell", "sha", "");
         blackDetailDTO.setPhone(phone);
 
-        context.setApiCode("3710078");
         return blackDetailDTO;
     }
 
@@ -57,7 +62,7 @@ public class XieChengCustomerBlackListDistributeImpl implements AssembleData<Bla
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_BLACK_LIST.getCode();
+        return InterfaceHandlerEnum.XIECHENG_CUSTOMER_BLACKLIST_DISTRIBUTE.getCode();
     }
 
     @Override

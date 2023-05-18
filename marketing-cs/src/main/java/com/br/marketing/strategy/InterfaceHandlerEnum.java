@@ -21,7 +21,9 @@ public enum InterfaceHandlerEnum {
     CUSTOMER_TRANSFER_SOLE(17, "客服转化去重"),
     INIT_TO_POLICY_SOLE(18, "推送决策去重接口"),
     ARTIFICIAL_REAL_TIME_LOG(19, "人工实时推送并且记录日志"),
-    DIDI_CALL_RECORD_INSERT_DB(20, "滴滴通话明细保存到滴滴销数据表");
+    DIDI_CALL_RECORD_INSERT_DB(20, "滴滴通话明细保存到滴滴销数据表"),
+    XIECHENG_CUSTOMER_BLACKLIST_DISTRIBUTE(21, "携程推送客服黑名单(分发)");
+
 
     InterfaceHandlerEnum(Integer code, String name) {
         this.code = code;

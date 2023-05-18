@@ -704,5 +704,10 @@ public class MarketingCommonConfig {
      * 滴滴有效期天数
      */
     private Long didiValidDays;
+
+    /**
+     * 携程apiCode:推送客服黑名单apiCode(分发)
+     */
+    private String xiechengBlackListDistributeApiCode;
 }
 
