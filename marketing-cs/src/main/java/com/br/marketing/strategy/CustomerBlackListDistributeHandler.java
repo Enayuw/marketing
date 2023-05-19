@@ -9,7 +9,9 @@ import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -34,27 +36,34 @@ import java.util.List;
  * 　　┗┓┓┏━┳┓┏┛
  * 　　　┃┫┫　┃┫┫
  * 　　　┗┻┛　┗┻┛
- *
- * @Description : 客服黑名单接口处理类
+ * @Description : 推送客服黑名单Handler(支持一个apicode分发到多个apicode)
  * ---------------------------------
- * @Author : jilong.xu
- * @Date : Create in 2022/2/28 18:08
+ * @Author : hong.chen
+ * @Date : Create in 2022/5/19 18:08
  */
 @Slf4j
 @Service
-public class XieChengBlackListDistributeHandler extends AbstractExternalInterfaceHandler<BlackDetailDTO> {
-
+public class CustomerBlackListDistributeHandler extends AbstractExternalInterfaceHandler<BlackDetailDTO> {
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
 
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
 
     @Override
     public JSONObject call(List<BlackDetailDTO> blackDetailDTOList, ProcessHandlerContext context) {
-        realAction(blackDetailDTOList,context,null);
+        if (context == null) {
+            return null;
+        }
+
+        List<String> apiCodes = marketingCommonConfig.getCustomerBlackListApiCodes().get(context.getApiCode());
+        for (String apiCode : apiCodes) {
+            realAction(blackDetailDTOList, context, null, apiCode);
+        }
         return null;
     }
 
-    private void realAction(List<BlackDetailDTO> blackDetailDTOList, ProcessHandlerContext context,String type){
+    private void realAction(List<BlackDetailDTO> blackDetailDTOList, ProcessHandlerContext context, String type, String apiCode) {
         /**
          * 客服黑名单接口 每500条数据一个批次
          */
@@ -72,23 +81,22 @@ public class XieChengBlackListDistributeHandler extends AbstractExternalInterfac
             jsondata.setMethod("blackData");
             jsondata.setData(subList);
             ReqBlackPhoneDTO dto = new ReqBlackPhoneDTO();
-            dto.setApiCode("7410951");
+            dto.setApiCode(apiCode);
             dto.setJsonData(JSON.toJSONString(jsondata));
             ReqBlackPhoneParentDTO parentDTO = new ReqBlackPhoneParentDTO();
             parentDTO.setDto(dto);
             parentDTO.setBlackDetailDTOList(subList);
             parentDTO.setTransferInfoId(context.getTransferInfoId());
             parentDTO.setExtendInfo(type);
-            Result<String> callBalckResult = methodRetryHandlerService.callCustomerBlack(parentDTO,0);
+            Result<String> callBalckResult = methodRetryHandlerService.callCustomerBlack(parentDTO, 0);
             if (!ResultCode.SUCCESS.getValue().equals(callBalckResult.getCode())) {
                 log.error(String.format("推送黑名单报错：%s", callBalckResult.getData()));
             }
-
         }
     }
 
     @Override
     public InterfaceHandlerEnum handlerEnum() {
-        return InterfaceHandlerEnum.XIECHENG_CUSTOMER_BLACKLIST_DISTRIBUTE;
+        return InterfaceHandlerEnum.CUSTOMER_BLACKLIST_DISTRIBUTE;
     }
 }
