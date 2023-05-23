@@ -196,6 +196,9 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
                     continue;
                 }
                 cell = jsonObject.getString("initCustNum");
+                if (StringUtils.isBlank(cell)) {
+                    continue;
+                }
             } catch (Exception e) {
                 log.warn(e.getMessage(), e);
                 continue;
