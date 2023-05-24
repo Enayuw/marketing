@@ -129,10 +129,8 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
             param.setBizDate(bizDate);
             int pageIndex = condition.getPageIndex();
             for (; ; ) {
-                long t1 = System.currentTimeMillis();
                 final List<ZhonganRosterLockingData> listPage = zhonganRosterLockingDataMapper.findPartColumnListPage(
                         param, pageIndex, condition.getPageSize());
-                log.warn("customizedAction$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$:" + (System.currentTimeMillis() - t1));
                 if (CollectionUtils.isEmpty(listPage) || listPage.size() < condition.getPageSize()) {
                     break;
                 }
@@ -203,7 +201,6 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
 
     @Override
     public Result<List<ZhonganRosterLockingDataBO>> processData(List<ZhonganRosterLockingData> inList) {
-        long t1 = System.currentTimeMillis();
         Result<List<ZhonganRosterLockingDataBO>> result = new Result<>();
         result.setCode(ResultCode.FAIL.getValue());
         ZhonganRosterLockingData data = inList.get(0);
@@ -298,8 +295,6 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
         if (CollectionUtils.isEmpty(list)) {
             return result;
         }
-        long t2 = System.currentTimeMillis();
-        log.warn("processData###########################:" + (t2 - t1));
         Result<?> resultAction = resultAction(list);
         result.setCode(resultAction.getCode());
         return result;
@@ -397,8 +392,6 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-
-
                 return false;
             }).map(ZhonganRosterLockingData::getMobileMd5).collect(Collectors.toSet());
 
@@ -465,26 +458,8 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
         zhonganRosterLockingDataMapper.updateByExampleSelective(data, example);
     }
 
-    /**
-     * 2022/11/19 10:55
-     * 更新数据状态
-     */
-    @Deprecated
-    private void updatePushStatus(List<ZhonganRosterLockingData> dataList
-            , int updateStatus
-            , String apiCode
-            , String tag
-            , String dateStr) {
-        if (CollectionUtils.isEmpty(dataList)) {
-            return;
-        }
-        zhonganRosterLockingDataMapper.updatePushStatusOrStatus(apiCode, null, updateStatus
-                , 1, tag, dataList, dateStr, new Date());
-    }
-
     @Override
     public Result<?> resultAction(List<ZhonganRosterLockingDataBO> outputDataList) {
-        long t1 = System.currentTimeMillis();
         Result<Object> result = new Result<>();
         if (CollectionUtils.isEmpty(outputDataList)) {
             result.setCode(ResultCode.FAIL.getValue());
@@ -525,7 +500,6 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
             }
         }
         result.setCode(ResultCode.SUCCESS.getValue());
-        log.warn("resultAction$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$:" + (System.currentTimeMillis() - t1));
         return result;
     }
 
