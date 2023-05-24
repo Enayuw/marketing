@@ -135,7 +135,7 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
                     break;
                 }
                 pageIndex++;
-                setThreadNumber(pool);
+                setThreadNumber(pool, condition.getParam().getTag());
                 distinctMobile(listPage, bloomFilter);
                 list.add(pool.submit(() -> processData(listPage)));
             }
@@ -412,7 +412,8 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
         Iterator<Map.Entry<String, String>> iterator = custNumMap.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, String> ob = iterator.next();
-            if (nowDay.equals(ob.getValue()) && custNumCache.contains(ob.getKey())) {
+            Boolean sismember = redisChgService.sismember(RedisKeyConstant.zhongAnblackCusNumToday, ob.getKey());
+            if (nowDay.equals(ob.getValue()) && sismember) {
                 iterator.remove();
                 custNumBlackListSet.add(ob.getKey() + nowDay);
             }
@@ -523,8 +524,12 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
      * 2022/11/22 17:40
      * 配置线程
      */
-    private void setThreadNumber(ThreadPoolExecutor pool) {
-        List<Integer> zhongAnPushTreadPoolSize = marketingCommonConfig.getZhongAnPushTreadPoolSize();
+    private void setThreadNumber(ThreadPoolExecutor pool, String tag) {
+        Map<String, List<Integer>> zhongAnPushTreadPoolMap = marketingCommonConfig.getZhongAnPushTreadPoolSize();
+        List<Integer> zhongAnPushTreadPoolSize = zhongAnPushTreadPoolMap.get(tag);
+        if (zhongAnPushTreadPoolSize == null) {
+            zhongAnPushTreadPoolSize = zhongAnPushTreadPoolMap.get("other");
+        }
         int size = zhongAnPushTreadPoolSize == null ? 0 : zhongAnPushTreadPoolSize.size();
         int poolSize;
         int pushPoolSize;
