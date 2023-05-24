@@ -54,12 +54,10 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
-import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
@@ -532,10 +530,6 @@ public class MethodRetryHandlerService {
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
-
-    // TODO: 2023-05-18 测试结束后需要删除
-    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-
     /**
      * 推送众安接口
      *
@@ -545,16 +539,7 @@ public class MethodRetryHandlerService {
     @RetryMethod(retryNowNum = 1, isOrNoDbRetry = true)
     public Result<?> callZhongAnData(ZaMarketDataBO bo, Integer retry) {
         Result<Object> result = new Result<>();
-//        Result<?> zhongAnResult = zhongAnClient.pushDetail(bo.getDataDTO());
-        // TODO: 2023-05-18 测试结束后需要删除和恢复
-        int tt = (SECURE_RANDOM.nextInt(110) + 170);
-        Result<?> zhongAnResult = new Result<>();
-        zhongAnResult.setCode(1);
-        try {
-            TimeUnit.MILLISECONDS.sleep(tt);
-        } catch (InterruptedException e) {
-            log.error(e.getMessage(), e);
-        }
+        Result<?> zhongAnResult = zhongAnClient.pushDetail(bo.getDataDTO());
         switch (zhongAnResult.getCode()) {
             case 500:
                 // 已推送,未成功,需要重试
