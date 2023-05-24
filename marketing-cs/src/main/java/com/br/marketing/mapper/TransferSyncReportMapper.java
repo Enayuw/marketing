@@ -42,7 +42,7 @@ public interface TransferSyncReportMapper extends TransferSyncReportMapperBase {
             , @Param("dateStr") String dateStr, @Param("userType") String userType);
 
 
-    List<String> requestDatetiflash_(@Param("tCid") String tCid, @Param("apiCode") String apiCode
+    List<String> requestDatetikv_(@Param("tCid") String tCid, @Param("apiCode") String apiCode
             , @Param("startDate") String startDate,@Param("endDate") String endDate, @Param("userType") String userType);
 
     /**
