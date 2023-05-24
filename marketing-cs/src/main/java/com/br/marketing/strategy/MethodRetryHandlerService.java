@@ -41,7 +41,7 @@ import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.DiDiAllowMarketingEnum;
 import com.br.marketing.mapper.*;
-import com.br.marketing.monkeydata.service.PushRosterLockingDataToZhongAn;
+import com.br.marketing.monkeydata.handle.zhongan.PushRosterLockingDataToZhongAnHandle;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.DiDiAllowReqDTO;
@@ -122,7 +122,7 @@ public class MethodRetryHandlerService {
     private ZhonganRosterLockingDataMapper zhonganRosterLockingDataMapper;
 
     @Resource
-    private PushRosterLockingDataToZhongAn rosterLockingDataToZhongAn;
+    private PushRosterLockingDataToZhongAnHandle rosterLockingDataToZhongAn;
 
     @Resource
     ZhonganMarketingBanMapper zhonganMarketingBanMapper;
@@ -656,9 +656,18 @@ public class MethodRetryHandlerService {
     }
 
     private void updatePushStatus(ZaMarketDataBO bo, Integer updatePushStatus, Integer updateStatus) {
-        zhonganRosterLockingDataMapper.updatePushStatusOrStatus(bo.getApiCode(), updatePushStatus, updateStatus
-                , null, bo.getTag(), bo.getList(), LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-                , new Date());
+        if (CollectionUtils.isEmpty(bo.getIds())) {
+            return;
+        }
+        ZhonganRosterLockingData data = new ZhonganRosterLockingData();
+        if (updateStatus != null) {
+            data.setStatus(updateStatus);
+        }
+        data.setPushStatus(updatePushStatus);
+        data.setUpdateTime(new Date());
+        ZhonganRosterLockingDataExample example = new ZhonganRosterLockingDataExample();
+        example.createCriteria().andIdIn(bo.getIds());
+        zhonganRosterLockingDataMapper.updateByExampleSelective(data, example);
     }
 
     /**
