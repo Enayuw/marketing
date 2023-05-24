@@ -5,7 +5,7 @@ import com.br.marketing.entity.ZhonganRosterLockingData;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
-import com.br.marketing.monkeydata.service.PushRosterLockingDataToZhongAn;
+import com.br.marketing.monkeydata.handle.zhongan.PushRosterLockingDataToZhongAnHandle;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -31,7 +31,7 @@ import java.util.*;
 public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
 
     @Resource
-    private PushRosterLockingDataToZhongAn rosterLockingDataToZhongAn;
+    private PushRosterLockingDataToZhongAnHandle rosterLockingDataToZhongAn;
 
     @Resource
     private ZhonganRosterLockingDataMapper zhonganRosterLockingDataMapper;
@@ -46,14 +46,21 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         long start = System.currentTimeMillis();
         List<String> list = new ArrayList<>(Collections.singletonList("3710048"));
+        String bizDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+        List<String> dateList = new ArrayList<>(Collections.singletonList(bizDate));
         String parameter = shardingContext.getJobParameter();
         if (StringUtils.isNotEmpty(parameter)) {
             StringTokenizer string = new StringTokenizer(parameter, ",");
             while (string.hasMoreTokens()) {
-                list.add(string.nextToken());
+                String[] split = string.nextToken().split("#");
+                list.add(split[0]);
+                if (split.length > 1) {
+                    dateList.add(split[1]);
+                    return;
+                }
+                dateList.add(bizDate);
             }
         }
-        String bizDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
 
         HashMap<String, JSONObject> zhongAnDetailPush = marketingCommonConfig.getZhongAnDetailPush();
         if (zhongAnDetailPush == null) {
@@ -63,7 +70,10 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
         Page2Condition<ZhonganRosterLockingData> data = new Page2Condition<>();
         data.setPageIndex(0);
         data.setPageSize(2000);
+        int i = 0;
         for (String apiCode : list) {
+            bizDate = dateList.get(i);
+            ++i;
             List<Long> sftpFileIdList = zhonganRosterLockingDataMapper.getSftpFileIdList(apiCode, bizDate);
             if (!CollectionUtils.isEmpty(sftpFileIdList)) {
                 localFileMapper.updateUploadStartTimeById(sftpFileIdList, new Date());
