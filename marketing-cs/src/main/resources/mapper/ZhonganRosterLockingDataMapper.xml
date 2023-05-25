@@ -38,7 +38,11 @@
             <if test="data.pushStatus!=null and data.pushStatus!=''">
                 and push_status=${data.pushStatus}
             </if>
-            and status=1 order by id limit ${pageNo * pageSize},${pageSize}) t2 where t1.id=t2.id
+            and status=1
+            <if test="data.id!=null and data.id!=''">
+                and id>${data.id}
+            </if>
+            order by id limit ${pageNo * pageSize},${pageSize}) t2 where t1.id=t2.id
         </where>
     </select>
 

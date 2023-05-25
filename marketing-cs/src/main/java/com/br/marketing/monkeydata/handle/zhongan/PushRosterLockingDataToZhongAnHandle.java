@@ -134,7 +134,9 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
                 if (CollectionUtils.isEmpty(listPage) || listPage.size() < condition.getPageSize()) {
                     break;
                 }
-                pageIndex++;
+//                pageIndex++;
+                ZhonganRosterLockingData data = listPage.get(listPage.size() - 1);
+                param.setId(data.getId());
                 setThreadNumber(pool, condition.getParam().getTag());
                 distinctMobile(listPage, bloomFilter);
                 list.add(pool.submit(() -> processData(listPage)));
@@ -184,11 +186,11 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
             ZhonganRosterLockingData next = iterator.next();
             if (bloomFilter.mightContain(next.getMobileMd5())) {
                 ZhonganRosterLockingDataExample example = new ZhonganRosterLockingDataExample();
-                example.createCriteria().andStatusEqualTo(1)
+                example.createCriteria().andStatusEqualTo(1).andPushStatusEqualTo(2)
                         .andApiCodeEqualTo(next.getApiCode()).andBizDateEqualTo(next.getBizDate())
                         .andTagEqualTo(next.getTag()).andMobileMd5EqualTo(next.getMobileMd5());
                 int count = zhonganRosterLockingDataMapper.countByExample(example);
-                if (count < 2) {
+                if (count < 1) {
                     bloomFilter.put(next.getMobileMd5());
                 } else {
                     ids.add(next.getId());
