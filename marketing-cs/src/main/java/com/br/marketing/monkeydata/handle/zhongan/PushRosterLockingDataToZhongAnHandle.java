@@ -131,7 +131,7 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
             for (; ; ) {
                 final List<ZhonganRosterLockingData> listPage = zhonganRosterLockingDataMapper.findPartColumnListPage(
                         param, pageIndex, condition.getPageSize());
-                if (CollectionUtils.isEmpty(listPage) || listPage.size() < condition.getPageSize()) {
+                if (CollectionUtils.isEmpty(listPage)) {
                     break;
                 }
 //                pageIndex++;
