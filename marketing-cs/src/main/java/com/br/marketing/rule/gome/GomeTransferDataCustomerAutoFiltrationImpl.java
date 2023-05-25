@@ -79,7 +79,7 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
             GomeRuleCollectDataImpl.GomeRuleNecessaryData ruleNecessaryData =
                     (GomeRuleCollectDataImpl.GomeRuleNecessaryData) context.getRuleNecessaryData();
             if (ruleNecessaryData.getSyncUserValidityPeriodMap().get(transfer.getCustNum()) != null) {
-                return actionA(transfer) || actionB(transfer) || actionC(transfer);
+                return actionD(transfer);
             }
         }
         return false;
@@ -103,7 +103,9 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
     private boolean actionC(MarketingTransferSyncUser transfer) {
         return StringUtils.isNotEmpty(transfer.getUnlentAmount()) && Double.parseDouble(transfer.getUnlentAmount()) >= 0;
     }
-
+    private boolean actionD(MarketingTransferSyncUser transfer) {
+        return ("1").equals(transfer.getIfApply());
+    }
     @Override
     public String label() {
         return "Gome_TransferData_Customer_Auto_Filtration";
