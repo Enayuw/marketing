@@ -101,6 +101,7 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             List<TransferActionFront> actionFrontList = getActionFront(apiCode, bizDate);
             if (actionFrontList.size() > 0) {
                 log.warn("{}【名单锁定推送众安】该任务今日已经推送", apiCode);
+                continue;
             }
             Long frontId = yiXinTransferService.saveFrontData(apiCode, bizDate, 3);
             List<Long> sftpFileIdList = zhonganRosterLockingDataMapper.getSftpFileIdList(apiCode, bizDate);
