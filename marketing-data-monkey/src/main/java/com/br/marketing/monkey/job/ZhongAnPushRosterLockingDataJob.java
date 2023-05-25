@@ -2,6 +2,7 @@ package com.br.marketing.monkey.job;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.entity.TransferActionFrontExample;
 import com.br.marketing.entity.ZhonganRosterLockingData;
@@ -120,14 +121,29 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             yiXinTransferService.updateFrontDataStatus(frontId, 2);
             rosterLockingDataToZhongAn.localFilePushStatis(apiCode, bizDate);
         }
+        String timeStr = "23:40:00";
         // 清理缓存
-//        List<String> custNumCache = redisChgService.srandmember(RedisKeyConstant.zhongAnblackCusNumToday,50000);
-//        while (custNumCache != null && custNumCache.size() > 1) {
-//            redisChgService.srem(RedisKeyConstant.zhongAnblackCusNumToday, custNumCache.toArray(new String[0]));
-//        }
+        if (LocalTime.now().isAfter(LocalTime.parse(timeStr))) {
+            popCache(RedisKeyConstant.zhongAnblackCusNumToday, 5000);
+        }
         long end = System.currentTimeMillis();
         log.warn("【名单锁定推送众安】调度结束apiCodes:{},bizDate:{}，耗时:{}", Arrays.toString(list.toArray())
                 , Arrays.toString(dateList.toArray()), end - start);
+    }
+
+    /**
+     * 2023-05-25 18:03
+     * 清理缓存
+     */
+    private void popCache(String key, int count) {
+        try {
+            Set<String> custNumCache = redisChgService.spop(key, count);
+            if (custNumCache != null && custNumCache.size() > 1) {
+                popCache(key, count);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     private void action(String tag, String apiCode, String bizDate, Page2Condition<ZhonganRosterLockingData> data) {

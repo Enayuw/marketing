@@ -153,6 +153,15 @@ public class RedisChgService {
     }
 
     /**
+     * 2022/11/17 15:53
+     * 移除集合中的指定 key 的一个或多个随机元素，移除后会返回移除的元素
+     */
+    public Set<String> spop(String key, int count) {
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
+        return jedis.spop(key, count);
+    }
+
+    /**
      * 2022/9/1 17:55
      * 获取set元素中的个数
      */
