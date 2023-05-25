@@ -80,7 +80,7 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
                 list.add(split[0]);
                 if (split.length > 1) {
                     dateList.add(split[1]);
-                    return;
+                    continue;
                 }
                 dateList.add(bizDate);
             }
