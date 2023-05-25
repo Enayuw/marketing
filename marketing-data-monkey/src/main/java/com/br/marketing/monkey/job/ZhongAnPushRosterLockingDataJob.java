@@ -68,11 +68,11 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             log.warn("【名单锁定推送众安】未到配置的运行时间:{}", zhongAnRosterLockingTime);
             return;
         }
+        String parameter = shardingContext.getJobParameter();
         long start = System.currentTimeMillis();
         List<String> list = new ArrayList<>(Collections.singletonList("3710048"));
         String bizDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
         List<String> dateList = new ArrayList<>(Collections.singletonList(bizDate));
-        String parameter = shardingContext.getJobParameter();
         if (StringUtils.isNotEmpty(parameter)) {
             StringTokenizer string = new StringTokenizer(parameter, ",");
             while (string.hasMoreTokens()) {
@@ -100,7 +100,7 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             //查询推送记录
             List<TransferActionFront> actionFrontList = getActionFront(apiCode, bizDate);
             if (actionFrontList.size() > 0) {
-                log.warn("{}【名单锁定推送众安】该任务今日已经推送", apiCode);
+                log.warn("api_code:{},biz_date:{}【名单锁定推送众安】该任务今日已经推送", apiCode, bizDate);
                 continue;
             }
             Long frontId = yiXinTransferService.saveFrontData(apiCode, bizDate, 3);
@@ -111,12 +111,12 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             long startcg = System.currentTimeMillis();
             action("CG", apiCode, bizDate, data);
             long endcg = System.currentTimeMillis();
-            log.warn("{}【CG名单锁定推送众安】结束，耗时:{}", apiCode, endcg - startcg);
+            log.warn("api_code:{},biz_date:{}【CG名单锁定推送众安】结束，耗时:{}", apiCode, bizDate, endcg - startcg);
 
             long startmg = System.currentTimeMillis();
             action("MG", apiCode, bizDate, data);
             long endmg = System.currentTimeMillis();
-            log.warn("{}【MG名单锁定推送众安】结束，耗时:{}", apiCode, endmg - startmg);
+            log.warn("api_code:{},biz_date:{}【MG名单锁定推送众安】结束，耗时:{}", apiCode, bizDate, endmg - startmg);
             yiXinTransferService.updateFrontDataStatus(frontId, 2);
             rosterLockingDataToZhongAn.localFilePushStatis(apiCode, bizDate);
         }
@@ -126,7 +126,8 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
 //            redisChgService.srem(RedisKeyConstant.zhongAnblackCusNumToday, custNumCache.toArray(new String[0]));
 //        }
         long end = System.currentTimeMillis();
-        log.warn("【名单锁定推送众安】调度结束，耗时:{}", end - start);
+        log.warn("【名单锁定推送众安】调度结束apiCodes:{},bizDate:{}，耗时:{}", Arrays.toString(list.toArray())
+                , Arrays.toString(dateList.toArray()), end - start);
     }
 
     private void action(String tag, String apiCode, String bizDate, Page2Condition<ZhonganRosterLockingData> data) {
