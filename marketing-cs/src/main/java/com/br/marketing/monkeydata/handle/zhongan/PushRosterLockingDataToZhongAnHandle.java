@@ -525,7 +525,7 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
      * 配置线程
      */
     private void setThreadNumber(ThreadPoolExecutor pool, String tag) {
-        Map<String, List<Integer>> zhongAnPushTreadPoolMap = marketingCommonConfig.getZhongAnPushTreadPoolSize();
+        Map<String, List<Integer>> zhongAnPushTreadPoolMap = marketingCommonConfig.getZhongAnPushTreadPoolSizeMap();
         List<Integer> zhongAnPushTreadPoolSize = zhongAnPushTreadPoolMap.get(tag);
         if (zhongAnPushTreadPoolSize == null) {
             zhongAnPushTreadPoolSize = zhongAnPushTreadPoolMap.get("other");

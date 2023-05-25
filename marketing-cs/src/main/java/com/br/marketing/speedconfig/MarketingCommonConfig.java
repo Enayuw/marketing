@@ -365,9 +365,15 @@ public class MarketingCommonConfig {
     private Map<String, String> zhongAnPeriodOfValidityDay;
 
     /**
-     * 众安名单锁定推送数据线程池配置,eg：{"CG":[25,50],"MG":[25,50],"other":[25,50]},25为业务线程数据，50为推送线程数
+     * 众安名单锁定推送数据线程池配置,eg：[25,50],25为核心线程数，50为最大线程数
      */
-    private HashMap<String, List<Integer>> zhongAnPushTreadPoolSize;
+    @Deprecated
+    private List<Integer> zhongAnPushTreadPoolSize;
+
+    /**
+     * 众安名单锁定推送数据线程池配置,eg：{"CG":[50,100],"MG":[50,100],"other":[1,20]},50为业务线程数据，100为推送线程数
+     */
+    private HashMap<String, List<Integer>> zhongAnPushTreadPoolSizeMap;
 
     /**
      * 众安推送锁定名单推送时间
