@@ -367,7 +367,7 @@ public class MarketingCommonConfig {
     /**
      * 众安名单锁定推送数据线程池配置,eg：{"CG":[25,50],"MG":[25,50],"other":[25,50]},25为业务线程数据，50为推送线程数
      */
-    private Map<String, List<Integer>> zhongAnPushTreadPoolSize;
+    private HashMap<String, List<Integer>> zhongAnPushTreadPoolSize;
 
     /**
      * 众安推送锁定名单推送时间
