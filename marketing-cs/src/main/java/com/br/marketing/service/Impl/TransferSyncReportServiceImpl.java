@@ -83,7 +83,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                             .plusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                     List<String> requestDateList = new ArrayList<>();
                     try {
-                        requestDateList = smy ? Arrays.asList(startDate) : transferSyncReportMapper.requestDatetiflash_(tCid, apiCode, startDate, endDate, userType);
+                        requestDateList = smy ? Arrays.asList(startDate) : transferSyncReportMapper.requestDatetikv_(tCid, apiCode, startDate, endDate, userType);
                     } catch (Exception ex) {
                         continue;
                     }
