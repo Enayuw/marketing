@@ -102,7 +102,7 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             if (actionFrontList.size() > 0) {
                 log.warn("{}【名单锁定推送众安】该任务今日已经推送", apiCode);
             }
-            Long frontId = yiXinTransferService.saveFrontData(apiCode, bizDate, 1);
+            Long frontId = yiXinTransferService.saveFrontData(apiCode, bizDate, 3);
             List<Long> sftpFileIdList = zhonganRosterLockingDataMapper.getSftpFileIdList(apiCode, bizDate);
             if (!CollectionUtils.isEmpty(sftpFileIdList)) {
                 localFileMapper.updateUploadStartTimeById(sftpFileIdList, new Date());
@@ -144,7 +144,7 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
         TransferActionFrontExample.Criteria criteria = example.createCriteria();
         criteria.andApiCodeEqualTo(apiCode)
                 .andActionDataEqualTo(bizDate)
-                .andActionTypeEqualTo(1)
+                .andActionTypeEqualTo(3)
                 .andIsDelEqualTo(1);
         return transferActionFrontMapper.selectByExample(example);
     }
