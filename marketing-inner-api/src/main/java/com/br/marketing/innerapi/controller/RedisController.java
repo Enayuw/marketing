@@ -98,8 +98,20 @@ public class RedisController {
     }
 
 
+    @GetMapping("getSet")
+    public Long getSet(@RequestParam("count") Integer count) {
+        List<String> set = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            set.add(UUID.randomUUID().toString());
+        }
+        final Long sadd = redisChgService.scard(RedisKeyConstant.zhongAnblackCusNumToday);
+        log.warn("{}查询到{}共：{}", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), DateTimeFormatter.ISO_LOCAL_DATE_TIME, sadd);
+        return sadd;
+    }
+
     @GetMapping("pushSet")
-    public Long pushSet(@RequestParam("count") Integer count) {
+    public Long pushSet(@RequestParam(value = "count", defaultValue = "3000000") Integer count
+            , @RequestParam(value = "count", defaultValue = "1800") Long seconds) {
         List<String> set = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             set.add(UUID.randomUUID().toString());
