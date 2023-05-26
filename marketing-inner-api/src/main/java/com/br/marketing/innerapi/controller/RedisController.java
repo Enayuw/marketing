@@ -6,17 +6,24 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.UserCenterHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("redis")
@@ -89,5 +96,42 @@ public class RedisController {
     public String getSpeedInfo() {
         return marketingCommonConfig.toString();
     }
+
+
+    @GetMapping("pushSet")
+    public Long pushSet(@RequestParam("count") Integer count) {
+        List<String> set = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            set.add(UUID.randomUUID().toString());
+        }
+        final Long sadd = redisChgService.sadd(RedisKeyConstant.zhongAnblackCusNumToday, set);
+        log.warn("{}已添加：{}", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), sadd);
+        redisChgService.expire(RedisKeyConstant.zhongAnblackCusNumToday, 1800);
+        return sadd;
+    }
+
+
+    @GetMapping("clearSet")
+    public String clearSet(@RequestParam("count") Integer count) {
+        popCache(RedisKeyConstant.zhongAnblackCusNumToday, count);
+        return "success";
+    }
+
+
+    /**
+     * 2023-05-25 18:03
+     * 清理缓存
+     */
+    private void popCache(String key, int count) {
+        try {
+            Set<String> custNumCache = redisChgService.spop(key, count);
+            if (custNumCache != null && custNumCache.size() > 1) {
+                popCache(key, count);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
 
 }
