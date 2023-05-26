@@ -41,7 +41,6 @@ import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.DiDiAllowMarketingEnum;
 import com.br.marketing.mapper.*;
-import com.br.marketing.monkeydata.handle.zhongan.PushRosterLockingDataToZhongAnHandle;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.DiDiAllowReqDTO;
@@ -118,9 +117,6 @@ public class MethodRetryHandlerService {
 
     @Resource
     private ZhonganRosterLockingDataMapper zhonganRosterLockingDataMapper;
-
-    @Resource
-    private PushRosterLockingDataToZhongAnHandle rosterLockingDataToZhongAn;
 
     @Resource
     ZhonganMarketingBanMapper zhonganMarketingBanMapper;
@@ -553,10 +549,6 @@ public class MethodRetryHandlerService {
                 updatePushStatus(bo, 2, null);
         }
         result.setCode(zhongAnResult.getCode());
-        if (retry != null) {
-            rosterLockingDataToZhongAn.localFilePushStatis(bo.getApiCode()
-                    , LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
-        }
         return result;
     }
 
