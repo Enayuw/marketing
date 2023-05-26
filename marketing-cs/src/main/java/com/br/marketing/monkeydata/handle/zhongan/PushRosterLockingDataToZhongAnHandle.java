@@ -122,12 +122,13 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
         ZhonganRosterLockingData lockingData = condition.getParam();
         Set<String> bizDates = zhonganRosterLockingDataMapper.getBizDateListtikv_(lockingData);
         List<Future<Result<List<ZhonganRosterLockingDataBO>>>> list = new ArrayList<>();
+        int pageIndex = condition.getPageIndex();
         for (String bizDate : bizDates) {
             BloomFilter<CharSequence> bloomFilter = BloomFilter.create(Funnels.stringFunnel(StandardCharsets.UTF_8)
                     , 100_0000, 0.01);
             ZhonganRosterLockingData param = condition.getParam();
             param.setBizDate(bizDate);
-            int pageIndex = condition.getPageIndex();
+            param.setId(null);
             for (; ; ) {
                 final List<ZhonganRosterLockingData> listPage = zhonganRosterLockingDataMapper.findPartColumnListPage(
                         param, pageIndex, condition.getPageSize());
