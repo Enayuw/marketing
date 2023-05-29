@@ -182,9 +182,15 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
 
     private void distinctMobile(List<ZhonganRosterLockingData> listPage, BloomFilter<CharSequence> bloomFilter) {
         List<Long> ids = new ArrayList<>();
+        // 组内去重
+        Set<String> mobile = new HashSet<>(2000);
         final Iterator<ZhonganRosterLockingData> iterator = listPage.iterator();
         while (iterator.hasNext()) {
             ZhonganRosterLockingData next = iterator.next();
+            if (!mobile.add(next.getMobileMd5())) {
+                iterator.remove();
+                continue;
+            }
             if (bloomFilter.mightContain(next.getMobileMd5())) {
                 ZhonganRosterLockingDataExample example = new ZhonganRosterLockingDataExample();
                 example.createCriteria().andStatusEqualTo(1)
