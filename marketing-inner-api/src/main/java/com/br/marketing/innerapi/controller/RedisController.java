@@ -20,10 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("redis")
@@ -111,14 +108,14 @@ public class RedisController {
 
     @GetMapping("pushSet")
     public Long pushSet(@RequestParam(value = "count", defaultValue = "3000000") Integer count
-            , @RequestParam(value = "count", defaultValue = "1800") Long seconds) {
+            , @RequestParam(value = "count", defaultValue = "1800") int seconds) {
         List<String> set = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             set.add(UUID.randomUUID().toString());
         }
         final Long sadd = redisChgService.sadd(RedisKeyConstant.zhongAnblackCusNumToday, set);
         log.warn("{}已添加：{}", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), sadd);
-        redisChgService.expire(RedisKeyConstant.zhongAnblackCusNumToday, 1800);
+        redisChgService.expire(RedisKeyConstant.zhongAnblackCusNumToday, seconds);
         return sadd;
     }
 
@@ -138,6 +135,7 @@ public class RedisController {
         try {
             Set<String> custNumCache = redisChgService.spop(key, count);
             if (custNumCache != null && custNumCache.size() > 1) {
+                log.warn(Arrays.toString(custNumCache.toArray()));
                 popCache(key, count);
             }
         } catch (Exception e) {
