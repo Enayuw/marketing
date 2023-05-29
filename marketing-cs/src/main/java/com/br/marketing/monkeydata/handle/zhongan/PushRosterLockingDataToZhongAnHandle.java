@@ -188,6 +188,7 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
         while (iterator.hasNext()) {
             ZhonganRosterLockingData next = iterator.next();
             if (!mobile.add(next.getMobileMd5())) {
+                ids.add(next.getId());
                 iterator.remove();
                 continue;
             }
