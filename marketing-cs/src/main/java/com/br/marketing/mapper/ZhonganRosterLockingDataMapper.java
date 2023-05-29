@@ -104,4 +104,13 @@ public interface ZhonganRosterLockingDataMapper extends ZhonganRosterLockingData
     List<ZhonganRosterLockingData> findPartColumnListPage(@Param("data") ZhonganRosterLockingData data
             , @Param("pageNo") int pageNo
             , @Param("pageSize") int pageSize);
+
+    /**
+     * 2023/05/29 14:56
+     * 获取主键
+     *
+     * @return List
+     */
+    List<ZhonganRosterLockingData> getDuplicateMobileMd5List(@Param("apiCode") String apiCode
+            , @Param("dateStr") String dateStr, @Param("tag") String tag, @Param("mobileMd5") String mobileMd5);
 }

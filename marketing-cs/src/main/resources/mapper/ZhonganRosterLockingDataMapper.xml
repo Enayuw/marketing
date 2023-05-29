@@ -199,4 +199,14 @@
         group by tag
         order by tag;
     </select>
+
+    <select id="getDuplicateMobileMd5List" resultType="com.br.marketing.entity.ZhonganRosterLockingData">
+        select id, push_status
+        from b_zhongan_roster_locking_data
+        where api_code = '${apiCode}'
+          and biz_date = '${dateStr}'
+          and tag = '${tag}'
+          and mobile_md5 = '${mobileMd5}'
+          and status = 1
+    </select>
 </mapper>
