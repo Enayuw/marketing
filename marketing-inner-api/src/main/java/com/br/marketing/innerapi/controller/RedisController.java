@@ -98,7 +98,7 @@ public class RedisController {
     @GetMapping("getSet")
     public Long getSet() {
         final Long sadd = redisChgService.scard(RedisKeyConstant.zhongAnblackCusNumToday);
-        log.warn("{}查询到{}共：{}", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), DateTimeFormatter.ISO_LOCAL_DATE_TIME, sadd);
+        log.warn("{}查询到{}共：{}", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).toString(), RedisKeyConstant.zhongAnblackCusNumToday, sadd);
         return sadd;
     }
 
@@ -106,13 +106,18 @@ public class RedisController {
     public Long pushSet(@RequestParam(value = "count", defaultValue = "300000") Integer count
             , @RequestParam(value = "seconds", defaultValue = "1800") int seconds) {
         List<String> set = new ArrayList<>();
+        long nn = 0;
         for (int i = 0; i < count; i++) {
             set.add(UUID.randomUUID().toString());
+            if (set.size() > 50000) {
+                final Long sadd = redisChgService.sadd(RedisKeyConstant.zhongAnblackCusNumToday, set);
+                nn += sadd;
+                set.clear();
+            }
+            log.warn("{}已添加：{}", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), nn);
         }
-        final Long sadd = redisChgService.sadd(RedisKeyConstant.zhongAnblackCusNumToday, set);
-        log.warn("{}已添加：{}", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), sadd);
         redisChgService.expire(RedisKeyConstant.zhongAnblackCusNumToday, seconds);
-        return sadd;
+        return nn;
     }
 
 
