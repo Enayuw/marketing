@@ -201,7 +201,7 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
                 } else if (size > 1) {
                     List<ZhonganRosterLockingData> collect = list.stream().filter(l -> !l.getPushStatus().equals(1))
                             .collect(Collectors.toList());
-                    if (collect.size() > 0) {
+                    if (collect.size() > 0 || ids.contains(next.getId())) {
                         iterator.remove();
                     } else {
                         List<Long> idd = list.stream().map(ZhonganRosterLockingData::getId)
