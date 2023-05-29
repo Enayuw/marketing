@@ -103,7 +103,7 @@ public class RedisController {
     }
 
     @GetMapping("pushSet")
-    public Long pushSet(@RequestParam(value = "count", defaultValue = "3000000") Integer count
+    public Long pushSet(@RequestParam(value = "count", defaultValue = "300000") Integer count
             , @RequestParam(value = "seconds", defaultValue = "1800") int seconds) {
         List<String> set = new ArrayList<>();
         for (int i = 0; i < count; i++) {
