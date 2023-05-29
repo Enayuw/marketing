@@ -187,16 +187,32 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
             ZhonganRosterLockingData next = iterator.next();
             if (bloomFilter.mightContain(next.getMobileMd5())) {
                 ZhonganRosterLockingDataExample example = new ZhonganRosterLockingDataExample();
-                example.createCriteria().andStatusEqualTo(1).andPushStatusEqualTo(2)
+                example.createCriteria().andStatusEqualTo(1)
                         .andApiCodeEqualTo(next.getApiCode()).andBizDateEqualTo(next.getBizDate())
                         .andTagEqualTo(next.getTag()).andMobileMd5EqualTo(next.getMobileMd5());
-                int count = zhonganRosterLockingDataMapper.countByExample(example);
-                if (count < 1) {
+                List<ZhonganRosterLockingData> list = zhonganRosterLockingDataMapper.getDuplicateMobileMd5List(
+                        next.getApiCode(), next.getBizDate(), next.getTag(), next.getMobileMd5());
+                int size = list.size();
+                if (size == 1) {
+                    if (list.get(0).getId().equals(next.getId())) {
+                        continue;
+                    }
                     bloomFilter.put(next.getMobileMd5());
+                } else if (size > 1) {
+                    List<ZhonganRosterLockingData> collect = list.stream().filter(l -> !l.getPushStatus().equals(1))
+                            .collect(Collectors.toList());
+                    if (collect.size() > 0) {
+                        iterator.remove();
+                    } else {
+                        List<Long> idd = list.stream().map(ZhonganRosterLockingData::getId)
+                                .filter(id -> !id.equals(next.getId())).collect(Collectors.toList());
+                        ids.addAll(idd);
+                    }
                 } else {
-                    ids.add(next.getId());
-                    iterator.remove();
+                    bloomFilter.put(next.getMobileMd5());
                 }
+            } else {
+                bloomFilter.put(next.getMobileMd5());
             }
         }
         updatePushStatusById(ids, 6);
