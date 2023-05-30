@@ -105,7 +105,7 @@
     <select id="getSftpFilePushSuccessSum" resultType="com.br.marketing.dto.SftpFilePushSuccessDTO">
         select count(*) as number, t.local_id as localId
         from (
-                 select mobile_md5, local_id
+                 select mobile_md5, local_id, biz_date
                  from b_zhongan_roster_locking_data
                  WHERE api_code = '${apiCode}'
                    and <![CDATA[ update_time >= '${dateStr}' ]]>
@@ -113,7 +113,7 @@
                    and push_status = 2
                    and status = 1
                    and data_source = 1
-                 group by mobile_md5, local_id) as t
+                 group by mobile_md5, local_id, biz_date) as t
         group by t.local_id
     </select>
 
