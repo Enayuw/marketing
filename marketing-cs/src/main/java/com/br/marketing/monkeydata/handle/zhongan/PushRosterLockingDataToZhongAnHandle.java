@@ -125,7 +125,7 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
         int pageIndex = condition.getPageIndex();
         for (String bizDate : bizDates) {
             BloomFilter<CharSequence> bloomFilter = BloomFilter.create(Funnels.stringFunnel(StandardCharsets.UTF_8)
-                    , 100_0000, 0.01);
+                    , 250_0000, 0.01);
             ZhonganRosterLockingData param = condition.getParam();
             param.setBizDate(bizDate);
             param.setId(null);
