@@ -88,8 +88,6 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
     @Resource
     private IMarketingDataValidService iMarketingDataValidService;
 
-    private volatile ThreadPoolExecutor pushPool;
-
 
     @Override
     public Result<IterationResult<ZhonganRosterLockingData, Page2Condition<ZhonganRosterLockingData>>> getInputData(
@@ -120,7 +118,7 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
         Result<?> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(2, 2, 10);
-        pushPool = BrExecutors.getThreadPool(24, 24, new SynchronousQueue<>());
+        final ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(24, 24, new SynchronousQueue<>());
         ZhonganRosterLockingData lockingData = condition.getParam();
         Set<String> bizDates = zhonganRosterLockingDataMapper.getBizDateListtikv_(lockingData);
         List<Future<Result<List<ZhonganRosterLockingDataBO>>>> list = new ArrayList<>();
@@ -139,9 +137,9 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
                 }
                 ZhonganRosterLockingData data = listPage.get(listPage.size() - 1);
                 param.setId(data.getId());
-                setThreadNumber(pool, condition.getParam().getTag());
+                setThreadNumber(pool, condition.getParam().getTag(), pushPool);
                 distinctMobile(listPage, bloomFilter);
-                list.add(pool.submit(() -> processData(listPage)));
+                list.add(pool.submit(() -> processData(listPage, pushPool)));
             }
         }
         for (Future<Result<List<ZhonganRosterLockingDataBO>>> future : list) {
@@ -174,7 +172,6 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
             while (!pushPool.awaitTermination(10, TimeUnit.SECONDS)) {
                 long completedTask2Count = pushPool.getCompletedTaskCount();
                 if (taskCount == completedTask2Count) {
-                    pushPool = null;
                     result.setCode(ResultCode.FAIL.getValue());
                     break;
                 }
@@ -234,6 +231,11 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
 
     @Override
     public Result<List<ZhonganRosterLockingDataBO>> processData(List<ZhonganRosterLockingData> inList) {
+        return null;
+    }
+
+    public Result<List<ZhonganRosterLockingDataBO>> processData(List<ZhonganRosterLockingData> inList
+            , ThreadPoolExecutor pushPool) {
         Result<List<ZhonganRosterLockingDataBO>> result = new Result<>();
         result.setCode(ResultCode.FAIL.getValue());
         ZhonganRosterLockingData data = inList.get(0);
@@ -328,7 +330,7 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
         if (CollectionUtils.isEmpty(list)) {
             return result;
         }
-        Result<?> resultAction = resultAction(list);
+        Result<?> resultAction = resultAction(list, pushPool);
         result.setCode(resultAction.getCode());
         return result;
     }
@@ -493,6 +495,10 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
 
     @Override
     public Result<?> resultAction(List<ZhonganRosterLockingDataBO> outputDataList) {
+        return null;
+    }
+
+    public Result<?> resultAction(List<ZhonganRosterLockingDataBO> outputDataList, ThreadPoolExecutor pushPool) {
         Result<Object> result = new Result<>();
         if (CollectionUtils.isEmpty(outputDataList)) {
             result.setCode(ResultCode.FAIL.getValue());
@@ -556,7 +562,7 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
      * 2022/11/22 17:40
      * 配置线程
      */
-    private void setThreadNumber(ThreadPoolExecutor pool, String tag) {
+    private void setThreadNumber(ThreadPoolExecutor pool, String tag, ThreadPoolExecutor pushPool) {
         Map<String, List<Integer>> zhongAnPushTreadPoolMap = marketingCommonConfig.getZhongAnPushTreadPoolSizeMap();
         List<Integer> zhongAnPushTreadPoolSize = zhongAnPushTreadPoolMap.get(tag);
         if (zhongAnPushTreadPoolSize == null) {
