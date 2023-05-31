@@ -715,5 +715,11 @@ public class MarketingCommonConfig {
      * 滴滴有效期天数
      */
     private Long didiValidDays;
+
+    /**
+     * 推送客服黑名单apiCode(一对多分发)
+     * customerBlackListApiCodes={"3710058":["3710058","3710078"],"7410950":["7410950","7410951"]}
+     */
+    private HashMap<String, List<String>> customerBlackListApiCodes;
 }
 

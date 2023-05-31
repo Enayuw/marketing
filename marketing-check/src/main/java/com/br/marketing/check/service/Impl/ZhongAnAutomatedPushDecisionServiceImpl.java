@@ -22,6 +22,7 @@ import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.strategy.PolicySoleHandler;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -65,6 +66,8 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
 
     @Resource
     private PolicySoleHandler policySoleHandler;
+
+    private static final List<String> eventTypes = Lists.newArrayList("LOGIN","APP_LAUNCH");
 
     @Override
     public CustomerPushDecisionActionEnum customerAction() {
@@ -180,7 +183,7 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             }
             try {
                 JSONObject jsonObject = JSON.parseObject(reserveField1);
-                if (!"LOGIN".equals(jsonObject.get("eventType")) || validityPeriodUserTypeMap == null) {
+                if (!eventTypes.contains(jsonObject.get("eventType")) || validityPeriodUserTypeMap == null) {
                     continue;
                 }
                 // 有效期判断
@@ -193,6 +196,9 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
                     continue;
                 }
                 cell = jsonObject.getString("initCustNum");
+                if (StringUtils.isBlank(cell)) {
+                    continue;
+                }
             } catch (Exception e) {
                 log.warn(e.getMessage(), e);
                 continue;
