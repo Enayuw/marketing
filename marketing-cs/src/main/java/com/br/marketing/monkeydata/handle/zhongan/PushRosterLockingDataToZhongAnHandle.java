@@ -208,23 +208,17 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
                     if (list.get(0).getId().equals(next.getId())) {
                         continue;
                     }
-                    bloomFilter.put(next.getMobileMd5());
                 } else if (size > 1) {
-                    List<ZhonganRosterLockingData> collect = list.stream().filter(l -> !l.getPushStatus().equals(1))
-                            .collect(Collectors.toList());
+                    List<ZhonganRosterLockingData> collect = list.parallelStream().filter(
+                            l -> l.getId().equals(next.getId())).collect(Collectors.toList());
                     if (collect.size() > 0 || ids.contains(next.getId())) {
                         iterator.remove();
-                    } else {
-                        List<Long> idd = list.stream().map(ZhonganRosterLockingData::getId)
-                                .filter(id -> !id.equals(next.getId())).collect(Collectors.toList());
-                        ids.addAll(idd);
+                        ids.add(next.getId());
+                        continue;
                     }
-                } else {
-                    bloomFilter.put(next.getMobileMd5());
                 }
-            } else {
-                bloomFilter.put(next.getMobileMd5());
             }
+            bloomFilter.put(next.getMobileMd5());
         }
         updatePushStatusById(ids, 6);
     }
