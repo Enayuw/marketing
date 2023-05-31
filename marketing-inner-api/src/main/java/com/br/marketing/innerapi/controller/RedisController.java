@@ -6,7 +6,6 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -17,10 +16,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
 
 @RestController
 @RequestMapping("redis")
@@ -94,55 +89,5 @@ public class RedisController {
         return marketingCommonConfig.toString();
     }
 
-
-    @GetMapping("getSet")
-    public Long getSet() {
-        final Long sadd = redisChgService.scard(RedisKeyConstant.zhongAnblackCusNumToday);
-        log.warn("{}查询到{}共：{}", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).toString(), RedisKeyConstant.zhongAnblackCusNumToday, sadd);
-        return sadd;
-    }
-
-    @GetMapping("pushSet")
-    public Long pushSet(@RequestParam(value = "count", defaultValue = "300000") Integer count
-            , @RequestParam(value = "seconds", defaultValue = "1800") int seconds) {
-        List<String> set = new ArrayList<>();
-        long nn = 0;
-        for (int i = 0; i < count; i++) {
-            set.add(UUID.randomUUID().toString());
-            if (set.size() > 50000) {
-                final Long sadd = redisChgService.sadd(RedisKeyConstant.zhongAnblackCusNumToday, set);
-                nn += sadd;
-                set.clear();
-            }
-            log.warn("{}已添加：{}", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), nn);
-        }
-        redisChgService.expire(RedisKeyConstant.zhongAnblackCusNumToday, seconds);
-        return nn;
-    }
-
-
-    @GetMapping("clearSet")
-    public String clearSet(@RequestParam("count") Integer count) {
-        popCache(RedisKeyConstant.zhongAnblackCusNumToday, count);
-        return "success";
-    }
-
-
-    /**
-     * 2023-05-25 18:03
-     * 清理缓存
-     */
-    private void popCache(String key, int count) {
-        try {
-            Set<String> custNumCache = redisChgService.spop(key, count);
-            if (custNumCache != null && custNumCache.size() > 1) {
-                log.warn(Arrays.toString(custNumCache.toArray()));
-                popCache(key, count);
-            }
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
-    }
-
-
+    
 }
