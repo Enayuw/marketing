@@ -88,7 +88,7 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
     @Resource
     private IMarketingDataValidService iMarketingDataValidService;
 
-    private ThreadPoolExecutor pushPool;
+    private volatile ThreadPoolExecutor pushPool;
 
 
     @Override
@@ -117,6 +117,8 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
 
     @Override
     public Result<?> customizedAction(Page2Condition<ZhonganRosterLockingData> condition) {
+        Result<?> result = new Result<>();
+        result.setCode(ResultCode.SUCCESS.getValue());
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(2, 2, 10);
         pushPool = BrExecutors.getThreadPool(24, 24, new SynchronousQueue<>());
         ZhonganRosterLockingData lockingData = condition.getParam();
@@ -135,7 +137,6 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
                 if (CollectionUtils.isEmpty(listPage)) {
                     break;
                 }
-//                pageIndex++;
                 ZhonganRosterLockingData data = listPage.get(listPage.size() - 1);
                 param.setId(data.getId());
                 setThreadNumber(pool, condition.getParam().getTag());
@@ -149,6 +150,7 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 log.error(e.getMessage(), e);
                 future.cancel(true);
+                result.setCode(ResultCode.FAIL.getValue());
             }
         }
         long taskCount = -1;
@@ -157,12 +159,14 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
             while (!pool.awaitTermination(30, TimeUnit.SECONDS)) {
                 long completedTask2Count = pool.getCompletedTaskCount();
                 if (taskCount == completedTask2Count) {
+                    result.setCode(ResultCode.FAIL.getValue());
                     break;
                 }
                 taskCount = completedTask2Count;
             }
         } catch (InterruptedException e) {
             log.error(e.getMessage(), e);
+            result.setCode(ResultCode.FAIL.getValue());
         }
         taskCount = -1;
         pushPool.shutdown();
@@ -170,14 +174,17 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
             while (!pushPool.awaitTermination(10, TimeUnit.SECONDS)) {
                 long completedTask2Count = pushPool.getCompletedTaskCount();
                 if (taskCount == completedTask2Count) {
+                    pushPool = null;
+                    result.setCode(ResultCode.FAIL.getValue());
                     break;
                 }
                 taskCount = completedTask2Count;
             }
         } catch (InterruptedException e) {
             log.error(e.getMessage(), e);
+            result.setCode(ResultCode.FAIL.getValue());
         }
-        return new Result<>();
+        return result;
     }
 
     private void distinctMobile(List<ZhonganRosterLockingData> listPage, BloomFilter<CharSequence> bloomFilter) {

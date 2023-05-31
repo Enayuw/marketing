@@ -2,6 +2,8 @@ package com.br.marketing.monkey.job;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.entity.TransferActionFrontExample;
@@ -100,25 +102,34 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             ++i;
             //查询推送记录
             List<TransferActionFront> actionFrontList = getActionFront(apiCode, bizDate);
+            Long frontId;
             if (actionFrontList.size() > 0) {
-                log.warn("api_code:{},biz_date:{}【名单锁定推送众安】该任务今日已经推送", apiCode, bizDate);
-                continue;
+                TransferActionFront actionFront = actionFrontList.get(0);
+                if (2 == actionFront.getStatus()) {
+                    log.warn("api_code:{},biz_date:{}【名单锁定推送众安】该任务今日已经推送", apiCode, bizDate);
+                    continue;
+                } else {
+                    frontId = actionFront.getId();
+                }
+            } else {
+                frontId = yiXinTransferService.saveFrontData(apiCode, bizDate, 3);
             }
-            Long frontId = yiXinTransferService.saveFrontData(apiCode, bizDate, 3);
             List<Long> sftpFileIdList = zhonganRosterLockingDataMapper.getSftpFileIdList(apiCode, bizDate);
             if (!CollectionUtils.isEmpty(sftpFileIdList)) {
                 localFileMapper.updateUploadStartTimeById(sftpFileIdList, new Date());
             }
             long startcg = System.currentTimeMillis();
-            action("CG", apiCode, bizDate, data);
+            Result<?> cg = action("CG", apiCode, bizDate, data);
             long endcg = System.currentTimeMillis();
             log.warn("api_code:{},biz_date:{}【CG名单锁定推送众安】结束，耗时:{}", apiCode, bizDate, endcg - startcg);
 
             long startmg = System.currentTimeMillis();
-            action("MG", apiCode, bizDate, data);
+            Result<?> mg = action("MG", apiCode, bizDate, data);
             long endmg = System.currentTimeMillis();
             log.warn("api_code:{},biz_date:{}【MG名单锁定推送众安】结束，耗时:{}", apiCode, bizDate, endmg - startmg);
-            yiXinTransferService.updateFrontDataStatus(frontId, 2);
+            if (ResultCode.SUCCESS.getValue().equals(cg.getCode()) && ResultCode.SUCCESS.getValue().equals(mg.getCode())) {
+                yiXinTransferService.updateFrontDataStatus(frontId, 2);
+            }
             rosterLockingDataToZhongAn.localFilePushStatis(apiCode, bizDate);
         }
         String timeStr = "23:40:00";
@@ -146,14 +157,14 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
         }
     }
 
-    private void action(String tag, String apiCode, String bizDate, Page2Condition<ZhonganRosterLockingData> data) {
+    private Result<?> action(String tag, String apiCode, String bizDate, Page2Condition<ZhonganRosterLockingData> data) {
         ZhonganRosterLockingData zhonganRosterLockingData = new ZhonganRosterLockingData();
         zhonganRosterLockingData.setApiCode(apiCode);
         zhonganRosterLockingData.setTag(tag);
         zhonganRosterLockingData.setBizDate(bizDate);
         zhonganRosterLockingData.setPushStatus(1);
         data.setParam(zhonganRosterLockingData);
-        rosterLockingDataToZhongAn.action(data);
+        return rosterLockingDataToZhongAn.action(data);
     }
 
 
