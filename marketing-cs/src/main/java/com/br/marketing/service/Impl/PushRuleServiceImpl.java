@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl;
 
 import IceInternal.Ex;
 import com.alibaba.fastjson.*;
+
 import com.br.cloud.counter.BrCounter;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
@@ -1075,6 +1076,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                     Long et1 = null;
                     Long et2 = null;
                     marketingSyncUserMapper.insertMarketingSyncUser(marketingSyncUser);
+                    //上传请求监控统计
+                    BrCounter.count(PrometheusMonitorUtils.COUNT_UPLOAD_API_REQUEST_APICODE_METRIC_NAME,apiCode,marketingSyncUser.getUserType());
                     et1 = System.currentTimeMillis() - st1;
                     if (ResultCode.SUCCESS.getValue().equals(soleConfig.getCode())) {
                         Long st2 = System.currentTimeMillis();
@@ -1129,8 +1132,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                         errorSize++;
                         errorBuild.add(result.getData());
                     }
-                    //上传请求监控统计
-                    BrCounter.count(PrometheusMonitorUtils.COUNT_UPLOAD_API_REQUEST_APICODE_METRIC_NAME,apiCode,PrometheusMonitorUtils.UPLOAD_API_KEY);
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                 }
@@ -1368,6 +1369,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 //                }
                 try {
                     marketingTransferSyncUserMapper.insertSelective(transferSyncUser);
+                    //转化请求监控统
+                    //是否影响性能待观察
+                    BrCounter.count(PrometheusMonitorUtils.COUNT_TRANSFER_API_REQUEST_CID_METRIC_NAME,transferSyncUser.getApiCode(),transferSyncUser.getUserType());
                 } catch (Exception ex) {
                     MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
                     errorDetailVO.setCustNum(transferDataItemDTO.getCustNum());
@@ -1402,8 +1406,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                 }
-                //转化请求监控统计
-                BrCounter.count(PrometheusMonitorUtils.COUNT_TRANSFER_API_REQUEST_CID_METRIC_NAME,tcid,PrometheusMonitorUtils.TRANSFER_API_KEY);
             }
         }
         MarketingTransferInfo updateSyncInfo = new MarketingTransferInfo();

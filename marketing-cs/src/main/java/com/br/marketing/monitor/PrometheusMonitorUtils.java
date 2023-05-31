@@ -10,16 +10,6 @@ public class PrometheusMonitorUtils {
 
 
     /**
-     * 上传接口
-     */
-    public static final String UPLOAD_API_KEY = "upload-api";
-
-    /**
-     * 转化接口
-     */
-    public static final String TRANSFER_API_KEY = "transfer-api";
-
-    /**
      * 统计上传接口ApiCode维度请求和
      */
     public static final String COUNT_UPLOAD_API_REQUEST_APICODE_METRIC_NAME = "countUploadApiRequestApiCodeMetricName";
@@ -28,6 +18,52 @@ public class PrometheusMonitorUtils {
      * 统计转化接口Cid维度请求和
      */
     public static final String COUNT_TRANSFER_API_REQUEST_CID_METRIC_NAME = "countTransferApiRequestCidMetricName";
+
+
+    /**
+     * 电销批量接口调用请求
+     */
+
+    public static final String COUNT_DAAS_BATCH_USERDATA_METRIC_NAME = "countDaasBatchUserDataMetricName";
+
+    /**
+     * 电销单条接口调用请求
+     */
+    public static final String COUNT_DAAS_SINGLE_USERDATA_METRIC_NAME = "countDaasSingleUserDataMetricName";
+
+    /**
+     * 电销黑名单接口调用请求
+     */
+    public static final String COUNT_DAAS_BLACK_DATA_METRIC_NAME = "countDaasBlackDataMetricName";
+
+    /**
+     * 电销转化接口调用请求
+     */
+    public static final String COUNT_DAAS_TRANSFER_METRIC_NAME = "countDaasTransferDataMetricName";
+
+    /**
+     * 电销Ibu接口调用请求
+     */
+    public static final String COUNT_DAAS_IBU_DATA_METRIC_NAME = "countDaasIbuDataMetricName";
+
+    /**
+     * 客服转化接口调用请求
+     */
+    public static final String COUNT_ROBOTAI_TRANSFER_METRIC_NAME = "countRobotAITransferDataMetricName";
+
+    /**
+     * 客服黑名单接口调用请求
+     */
+    public static final String COUNT_ROBOTAI_BLACK_METRIC_NAME = "countRobotAIBlackDataMetricName";
+
+    /**
+     * 决策接口调用请求
+     */
+    public static final String COUNT_POLICY_API_METRIC_NAME = "countPolicyAPIMetricName";
+
+
+
+
 
 
 }

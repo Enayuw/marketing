@@ -3,6 +3,7 @@ package com.br.marketing.client.dassservice;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.cloud.counter.BrCounter;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportAdapHaluoDTO;
@@ -21,6 +22,7 @@ import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
+import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -160,6 +162,9 @@ public class DassServiceClient {
             interfaceLog.setResult(hashMap.get("content"));
             interfaceLog.setExpire(String.valueOf(end - start));
             if (Integer.valueOf(200).equals(code)) {
+                //调用数量监控
+                BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_BATCH_USERDATA_METRIC_NAME,dto.getPhoneSaleExtendInfos().get(0).getApiCode(),"batchUserData-api",
+                        dtos.size());
                 result.setCode(ResultCode.SUCCESS.getValue());
             } else {
                 result.setCode(ResultCode.FAIL.getValue());
@@ -210,6 +215,10 @@ public class DassServiceClient {
                     result.setCode(ResultCode.SUCCESS.getValue());
                     result.setDate(JSON.parseObject(content, new TypeReference<PushBlackListResponse>() {
                     }.getType()));
+
+                    //调用数量监控
+                    BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_BLACK_DATA_METRIC_NAME,list.get(0).getApiCode(),"blackData-api",
+                            list.size());
                 } else {
                     result.setCode(ResultCode.FAIL.getValue());
                     result.setMessage(content);
@@ -382,6 +391,9 @@ public class DassServiceClient {
                 return result;
             }
             result.setCode(ResultCode.SUCCESS.getValue()).setDate(respStr);
+            //调用数量监控
+            BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_TRANSFER_METRIC_NAME,dassTransferDataAdapDTO.getPhoneSaleExtendInfoList().get(0).getApiCode(),"transferData-api",
+                    dassTransferDataDTOList.size());
         } else {
             result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
         }

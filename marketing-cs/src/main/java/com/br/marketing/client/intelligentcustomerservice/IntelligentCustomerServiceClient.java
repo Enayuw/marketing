@@ -3,6 +3,7 @@ package com.br.marketing.client.intelligentcustomerservice;
 import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.counter.BrCounter;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.net.ApiCallerUtil;
 import com.br.marketing.common.commondto.Result;
@@ -12,6 +13,7 @@ import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import com.br.marketing.entity.CustomerInfoPushLog;
 import com.br.marketing.mapper.CustomerInfoPushLogMapper;
 import com.br.marketing.mapper.InterfaceLogMapper;
+import com.br.marketing.monitor.PrometheusMonitorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +78,9 @@ public class IntelligentCustomerServiceClient {
             }
             if ("00".equals(jsonObject.getString("code"))) {
                 result.setCode(ResultCode.SUCCESS.getValue());
+                //调用数量监控
+                BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME,dto.getApiCode(),"policy-api",
+                        pushNum);
             } else {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
             }

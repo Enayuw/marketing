@@ -2,6 +2,7 @@ package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.counter.BrCounter;
 import com.br.marketing.bo.ZaMarketDataBO;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
@@ -41,6 +42,7 @@ import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.DiDiAllowMarketingEnum;
 import com.br.marketing.mapper.*;
+import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.monkeydata.service.PushRosterLockingDataToZhongAn;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -525,6 +527,9 @@ public class MethodRetryHandlerService {
             if (infoId != null) {
                 saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(), infoId);
             }
+            //调用数量监控
+            BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME,dto.getPushMarketingUserDTO().getApiCode(),"policy-api",
+                    ids.size());
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
@@ -678,6 +683,9 @@ public class MethodRetryHandlerService {
             if(ids!=null && ids.size()>0){
                 saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY_SOLE.getCode(), soleDTO.getInfoId());
             }
+            //调用数量监控
+            BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME,soleDTO.getApiCode(),"policy-api",
+                    ids.size());
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
