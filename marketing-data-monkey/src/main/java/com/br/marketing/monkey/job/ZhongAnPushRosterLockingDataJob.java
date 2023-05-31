@@ -61,6 +61,7 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
     private TransferActionFrontMapper transferActionFrontMapper;
 
     private final static String EXECUTE_TIME = "21:00:00";
+    private final static String CLEAR_REDIS_TIME = "23:40:00";
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
@@ -132,10 +133,9 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             }
             rosterLockingDataToZhongAn.localFilePushStatis(apiCode, bizDate);
         }
-        String timeStr = "23:40:00";
         // 清理缓存
-        if (LocalTime.now().isAfter(LocalTime.parse(timeStr))) {
-            popCache(RedisKeyConstant.zhongAnblackCusNumToday, 5000);
+        if (LocalTime.now().isAfter(LocalTime.parse(CLEAR_REDIS_TIME))) {
+            popCache(RedisKeyConstant.zhongAnblackCusNumToday, 3000);
         }
         long end = System.currentTimeMillis();
         log.warn("【名单锁定推送众安】调度结束apiCodes:{},bizDate:{}，耗时:{}", Arrays.toString(list.toArray())
