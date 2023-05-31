@@ -88,7 +88,7 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
     @Resource
     private IMarketingDataValidService iMarketingDataValidService;
 
-    private static volatile ThreadPoolExecutor pushPool;
+    private ThreadPoolExecutor pushPool;
 
 
     @Override
@@ -117,8 +117,8 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
 
     @Override
     public Result<?> customizedAction(Page2Condition<ZhonganRosterLockingData> condition) {
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(50, 50, 10);
-        pushPool = BrExecutors.getThreadPool(100, 100, new SynchronousQueue<>());
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(2, 2, 10);
+        pushPool = BrExecutors.getThreadPool(24, 24, new SynchronousQueue<>());
         ZhonganRosterLockingData lockingData = condition.getParam();
         Set<String> bizDates = zhonganRosterLockingDataMapper.getBizDateListtikv_(lockingData);
         List<Future<Result<List<ZhonganRosterLockingDataBO>>>> list = new ArrayList<>();
