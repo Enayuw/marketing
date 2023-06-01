@@ -1,6 +1,7 @@
 package com.br.marketing.monkeydata.handle.zhongan;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.ZaMarketDataBO;
@@ -13,6 +14,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.SftpFilePushSuccessDTO;
 import com.br.marketing.entity.*;
@@ -88,6 +90,8 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
     @Resource
     private IMarketingDataValidService iMarketingDataValidService;
 
+    private static final String TITLE = "众安锁定名单推送告警";
+
 
     @Override
     public Result<IterationResult<ZhonganRosterLockingData, Page2Condition<ZhonganRosterLockingData>>> getInputData(
@@ -146,7 +150,8 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
             try {
                 future.get(1, TimeUnit.MINUTES);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                log.error(e.getMessage(), e);
+                log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
+                        , TITLE), e);
                 future.cancel(true);
                 result.setCode(ResultCode.FAIL.getValue());
             }
@@ -163,7 +168,8 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
                 taskCount = completedTask2Count;
             }
         } catch (InterruptedException e) {
-            log.error(e.getMessage(), e);
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
+                    , TITLE), e);
             result.setCode(ResultCode.FAIL.getValue());
         }
         taskCount = -1;
@@ -178,7 +184,8 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
                 taskCount = completedTask2Count;
             }
         } catch (InterruptedException e) {
-            log.error(e.getMessage(), e);
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
+                    , TITLE), e);
             result.setCode(ResultCode.FAIL.getValue());
         }
         return result;
