@@ -21,8 +21,6 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
 
     Logger log = LoggerFactory.getLogger(IMonkeyDataHandle.class);
 
-    ThreadLocal<MonkeyContext> threadLocal = new ThreadLocal<>();
-
     /**
      * 是否开启多线程
      *
@@ -166,9 +164,9 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
                 condition = inputRes.getData().getInDatacondition();
                 List inputDataList = inputRes.getData().getInputDataList();
                 if (isThread() && pool != null) {
-                    Object context =  MonkeyContext.getProcessContext();
+//                    Object context =  MonkeyContext.getProcessContext();
                     pool.submit(() -> {
-                        MonkeyContext.setProcessContext(context);
+//                        MonkeyContext.setProcessContext(context);
                         try {
                             if (!isPause()) {
                                 Result<List<O>> outRes = processData(inputDataList);
@@ -184,10 +182,10 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
                                 System.out.println("线程暂停");
                             }
                         } catch (Exception ex) {
-                            MonkeyContext.clearProcessContext();
+//                            MonkeyContext.clearProcessContext();
                             log.error(ex.getMessage(), ex);
                         }
-                        MonkeyContext.clearProcessContext();
+//                        MonkeyContext.clearProcessContext();
                     });
                 } else {
                     Result<List<O>> outRes = processData(inputDataList);
@@ -215,7 +213,7 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
                 }
                 removelistenThreadPool(threadReport);
             }
-            MonkeyContext.clearProcessContext();
+//            MonkeyContext.clearProcessContext();
             log.warn("执行结束 执行id：{}，执行耗时：{}", id, System.currentTimeMillis() - start);
             return res;
         } catch (Exception ex) {
