@@ -152,7 +152,6 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
                         , TITLE), e);
-                future.cancel(true);
                 result.setCode(ResultCode.FAIL.getValue());
             }
         }
