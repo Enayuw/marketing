@@ -126,7 +126,7 @@ public class PeriodOfValidityHelper {
             LocalDate lastLocalDate = localDate.plusMonths(day).with(TemporalAdjusters.lastDayOfMonth());
             return Long.valueOf(localDate.until(lastLocalDate, ChronoUnit.DAYS)).intValue();
         } else {
-            throw new IllegalArgumentException("有效期格式错误，无法解析配置内容为:" + periodOfValidityStr);
+            throw new IllegalArgumentException("有效期格式错误，无法解析配置内容:" + periodOfValidityStr);
         }
     }
 }

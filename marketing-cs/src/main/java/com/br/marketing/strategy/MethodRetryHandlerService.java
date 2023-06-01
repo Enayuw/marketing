@@ -41,7 +41,6 @@ import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.DiDiAllowMarketingEnum;
 import com.br.marketing.mapper.*;
-import com.br.marketing.monkeydata.service.PushRosterLockingDataToZhongAn;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.DiDiAllowReqDTO;
@@ -118,9 +117,6 @@ public class MethodRetryHandlerService {
 
     @Resource
     private ZhonganRosterLockingDataMapper zhonganRosterLockingDataMapper;
-
-    @Resource
-    private PushRosterLockingDataToZhongAn rosterLockingDataToZhongAn;
 
     @Resource
     ZhonganMarketingBanMapper zhonganMarketingBanMapper;
@@ -530,7 +526,6 @@ public class MethodRetryHandlerService {
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
-
     /**
      * 推送众安接口
      *
@@ -554,10 +549,6 @@ public class MethodRetryHandlerService {
                 updatePushStatus(bo, 2, null);
         }
         result.setCode(zhongAnResult.getCode());
-        if (retry != null) {
-            rosterLockingDataToZhongAn.localFilePushStatis(bo.getApiCode()
-                    , LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
-        }
         return result;
     }
 
@@ -642,9 +633,18 @@ public class MethodRetryHandlerService {
     }
 
     private void updatePushStatus(ZaMarketDataBO bo, Integer updatePushStatus, Integer updateStatus) {
-        zhonganRosterLockingDataMapper.updatePushStatusOrStatus(bo.getApiCode(), updatePushStatus, updateStatus
-                , null, bo.getTag(), bo.getList(), LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-                , new Date());
+        if (CollectionUtils.isEmpty(bo.getIds())) {
+            return;
+        }
+        ZhonganRosterLockingData data = new ZhonganRosterLockingData();
+        if (updateStatus != null) {
+            data.setStatus(updateStatus);
+        }
+        data.setPushStatus(updatePushStatus);
+        data.setUpdateTime(new Date());
+        ZhonganRosterLockingDataExample example = new ZhonganRosterLockingDataExample();
+        example.createCriteria().andIdIn(bo.getIds());
+        zhonganRosterLockingDataMapper.updateByExampleSelective(data, example);
     }
 
     /**

@@ -9,6 +9,7 @@ import com.br.marketing.client.zhongan.output.ZkReponseVO;
 import com.br.marketing.client.zhongan.utils.Md5OfZanUtils;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.monkeydata.entity.commonobj.MonkeyContext;
 import com.br.marketing.monkeydata.entity.commonobj.PageCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import lombok.extern.slf4j.Slf4j;
@@ -90,6 +91,7 @@ public class TstController {
     public String testInterface(){
         PageCondition pageCondition = new PageCondition();
         pageCondition.setPageIndex(1);
+        MonkeyContext.setProcessContext("123");
         zhongAnHandleImpl.action(pageCondition);
         return "123";
     }

@@ -367,7 +367,18 @@ public class MarketingCommonConfig {
     /**
      * 众安名单锁定推送数据线程池配置,eg：[25,50],25为核心线程数，50为最大线程数
      */
+    @Deprecated
     private List<Integer> zhongAnPushTreadPoolSize;
+
+    /**
+     * 众安名单锁定推送数据线程池配置,eg：{"CG":[50,100],"MG":[50,100],"other":[1,20]},50为业务线程数据，100为推送线程数
+     */
+    private HashMap<String, List<Integer>> zhongAnPushTreadPoolSizeMap;
+
+    /**
+     * 众安推送锁定名单推送时间
+     */
+    private String zhongAnRosterLockingTime;
 
     /**
      * 跑分分组分位值

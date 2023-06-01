@@ -16,6 +16,7 @@ public class ZaMarketDataBO {
     private String apiCode;
     private String tag;
     private List<ZhonganRosterLockingData> list;
+    private List<Long> ids;
 
     public ZaMarketDataBO(ZaMarketDataDTO dataDTO, String apiCode, String tag) {
         this.dataDTO = dataDTO;
@@ -23,11 +24,12 @@ public class ZaMarketDataBO {
         this.tag = tag;
     }
 
-    public ZaMarketDataBO(ZaMarketDataDTO dataDTO, String apiCode, String tag, List<ZhonganRosterLockingData> list) {
+
+    public ZaMarketDataBO(ZaMarketDataDTO dataDTO, String apiCode, String tag, List<Long> ids) {
         this.dataDTO = dataDTO;
         this.apiCode = apiCode;
         this.tag = tag;
-        this.list = list;
+        this.ids = ids;
     }
 
     public ZaMarketDataBO() {
@@ -63,5 +65,13 @@ public class ZaMarketDataBO {
 
     public void setList(List<ZhonganRosterLockingData> list) {
         this.list = list;
+    }
+
+    public List<Long> getIds() {
+        return ids;
+    }
+
+    public void setIds(List<Long> ids) {
+        this.ids = ids;
     }
 }

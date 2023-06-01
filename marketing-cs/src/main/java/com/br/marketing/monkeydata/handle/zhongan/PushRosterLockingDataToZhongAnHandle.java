@@ -1,6 +1,7 @@
-package com.br.marketing.monkeydata.service;
+package com.br.marketing.monkeydata.handle.zhongan;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.ZaMarketDataBO;
@@ -13,7 +14,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
-import com.br.marketing.common.exception.BusinessException;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.SftpFilePushSuccessDTO;
 import com.br.marketing.entity.*;
@@ -26,7 +27,6 @@ import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import com.br.marketing.monkeydata.query.ZhongAnCellZkDateQuery;
 import com.br.marketing.monkeydata.query.ZhongAnMobileMd5BizDateQuery;
-import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.IMarketingDataValidService;
 import com.br.marketing.service.IMarketingSyncUserService;
@@ -35,12 +35,14 @@ import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.util.PeriodOfValidityHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import shaded.com.google.common.hash.BloomFilter;
+import shaded.com.google.common.hash.Funnels;
 
 import javax.annotation.Resource;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -59,7 +61,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRosterLockingData
+public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<ZhonganRosterLockingData
         , ZhonganRosterLockingDataBO, Page2Condition<ZhonganRosterLockingData>> {
     @Resource
     private ZhonganRosterLockingDataMapper zhonganRosterLockingDataMapper;
@@ -77,9 +79,6 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
     private RedisChgService redisChgService;
 
     @Resource
-    private DataLoadingHandlerService dataLoadingHandlerService;
-
-    @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
@@ -88,10 +87,11 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
     @Resource
     private ZhonganMarketingBanMapper zhonganMarketingBanMapper;
 
-    @Autowired
-    IMarketingDataValidService iMarketingDataValidService;
+    @Resource
+    private IMarketingDataValidService iMarketingDataValidService;
 
-    private static final ThreadPoolExecutor POOL = BrExecutors.getThreadPool(15, 20);
+    private static final String TITLE = "众安锁定名单推送告警";
+
 
     @Override
     public Result<IterationResult<ZhonganRosterLockingData, Page2Condition<ZhonganRosterLockingData>>> getInputData(
@@ -118,14 +118,129 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
     }
 
     @Override
-    public Result<List<ZhonganRosterLockingDataBO>> processData(List<ZhonganRosterLockingData> inList)
-            throws IllegalAccessException {
+    public Result<?> customizedAction(Page2Condition<ZhonganRosterLockingData> condition) {
+        Result<?> result = new Result<>();
+        result.setCode(ResultCode.SUCCESS.getValue());
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(2, 2, 10);
+        final ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(24, 24, new SynchronousQueue<>());
+        ZhonganRosterLockingData lockingData = condition.getParam();
+        Set<String> bizDates = zhonganRosterLockingDataMapper.getBizDateListtikv_(lockingData);
+        List<Future<Result<List<ZhonganRosterLockingDataBO>>>> list = new ArrayList<>();
+        int pageIndex = condition.getPageIndex();
+        for (String bizDate : bizDates) {
+            BloomFilter<CharSequence> bloomFilter = BloomFilter.create(Funnels.stringFunnel(StandardCharsets.UTF_8)
+                    , 250_0000, 0.01);
+            ZhonganRosterLockingData param = condition.getParam();
+            param.setBizDate(bizDate);
+            param.setId(null);
+            for (; ; ) {
+                final List<ZhonganRosterLockingData> listPage = zhonganRosterLockingDataMapper.findPartColumnListPage(
+                        param, pageIndex, condition.getPageSize());
+                if (CollectionUtils.isEmpty(listPage)) {
+                    break;
+                }
+                ZhonganRosterLockingData data = listPage.get(listPage.size() - 1);
+                param.setId(data.getId());
+                setThreadNumber(pool, condition.getParam().getTag(), pushPool);
+                distinctMobile(listPage, bloomFilter);
+                list.add(pool.submit(() -> processData(listPage, pushPool)));
+            }
+        }
+        for (Future<Result<List<ZhonganRosterLockingDataBO>>> future : list) {
+            try {
+                future.get(1, TimeUnit.MINUTES);
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
+                        , TITLE), e);
+                result.setCode(ResultCode.FAIL.getValue());
+            }
+        }
+        long taskCount = -1;
+        pool.shutdown();
+        try {
+            while (!pool.awaitTermination(30, TimeUnit.SECONDS)) {
+                long completedTask2Count = pool.getCompletedTaskCount();
+                if (taskCount == completedTask2Count) {
+                    result.setCode(ResultCode.FAIL.getValue());
+                    break;
+                }
+                taskCount = completedTask2Count;
+            }
+        } catch (InterruptedException e) {
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
+                    , TITLE), e);
+            result.setCode(ResultCode.FAIL.getValue());
+        }
+        taskCount = -1;
+        pushPool.shutdown();
+        try {
+            while (!pushPool.awaitTermination(10, TimeUnit.SECONDS)) {
+                long completedTask2Count = pushPool.getCompletedTaskCount();
+                if (taskCount == completedTask2Count) {
+                    result.setCode(ResultCode.FAIL.getValue());
+                    break;
+                }
+                taskCount = completedTask2Count;
+            }
+        } catch (InterruptedException e) {
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
+                    , TITLE), e);
+            result.setCode(ResultCode.FAIL.getValue());
+        }
+        return result;
+    }
+
+    private void distinctMobile(List<ZhonganRosterLockingData> listPage, BloomFilter<CharSequence> bloomFilter) {
+        List<Long> ids = new ArrayList<>();
+        // 组内去重
+        Set<String> mobile = new HashSet<>(2000);
+        final Iterator<ZhonganRosterLockingData> iterator = listPage.iterator();
+        while (iterator.hasNext()) {
+            ZhonganRosterLockingData next = iterator.next();
+            if (!mobile.add(next.getMobileMd5())) {
+                ids.add(next.getId());
+                iterator.remove();
+                continue;
+            }
+            if (bloomFilter.mightContain(next.getMobileMd5())) {
+                ZhonganRosterLockingDataExample example = new ZhonganRosterLockingDataExample();
+                example.createCriteria().andStatusEqualTo(1)
+                        .andApiCodeEqualTo(next.getApiCode()).andBizDateEqualTo(next.getBizDate())
+                        .andTagEqualTo(next.getTag()).andMobileMd5EqualTo(next.getMobileMd5());
+                List<ZhonganRosterLockingData> list = zhonganRosterLockingDataMapper.getDuplicateMobileMd5List(
+                        next.getApiCode(), next.getBizDate(), next.getTag(), next.getMobileMd5());
+                int size = list.size();
+                if (size == 1) {
+                    if (list.get(0).getId().equals(next.getId())) {
+                        continue;
+                    }
+                } else if (size > 1) {
+                    List<ZhonganRosterLockingData> collect = list.parallelStream().filter(
+                            l -> l.getId().equals(next.getId())).collect(Collectors.toList());
+                    if (collect.size() > 0 || ids.contains(next.getId())) {
+                        iterator.remove();
+                        ids.add(next.getId());
+                        continue;
+                    }
+                }
+            }
+            bloomFilter.put(next.getMobileMd5());
+        }
+        updatePushStatusById(ids, 6);
+    }
+
+    @Override
+    public Result<List<ZhonganRosterLockingDataBO>> processData(List<ZhonganRosterLockingData> inList) {
+        return null;
+    }
+
+    public Result<List<ZhonganRosterLockingDataBO>> processData(List<ZhonganRosterLockingData> inList
+            , ThreadPoolExecutor pushPool) {
         Result<List<ZhonganRosterLockingDataBO>> result = new Result<>();
         result.setCode(ResultCode.FAIL.getValue());
         ZhonganRosterLockingData data = inList.get(0);
         String apiCode = data.getApiCode();
         String tag = data.getTag();
-        String dateStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
         Map<String, String> cellMap = md5ToLogMap(inList);
         Set<String> mobileMd5Set = new HashSet<>(cellMap.values());
         Map<String, MarketingSyncUser> syncUserMap = marketingSyncUserService.getCellByCellAndMaxAppletTimeMap(apiCode
@@ -133,70 +248,68 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         boolean emptyBool = CollectionUtils.isEmpty(syncUserMap);
         if (emptyBool) {
             log.warn("tag:{},apiCode{},未获取到上传数据！", tag, apiCode);
+            List<Long> ids = inList.parallelStream().map(ZhonganRosterLockingData::getId).collect(Collectors.toList());
             // 未获取到上传数据
-            updatePushStatus(inList, 3, apiCode, tag, dateStr);
+            updatePushStatusById(ids, 3);
             return result;
         }
-
         HashMap<String, JSONObject> zhongAnDetailPush = marketingCommonConfig.getZhongAnDetailPush();
         Result<List<MarketingDataValidConfig>> dataValidConfigByType = iMarketingDataValidService.getDataValidConfigByType(apiCode, 3);
         AssertResult.assertResult(dataValidConfigByType);
         List<MarketingDataValidConfig> validConfigs = dataValidConfigByType.getData();
         Map<String, Integer> userTypeDays = validConfigs.stream().collect(Collectors.toMap(MarketingDataValidConfig::getUserType
                 , t -> PeriodOfValidityHelper.getPeriodOfValidityDay(t.getValidDays())));
-
         Map<String, MarketingSyncUser> syncUserMapNew = inList.stream().filter(l -> syncUserMap.containsKey(
-                cellMap.get(l.getMobileMd5()))).collect(Collectors.toMap(d -> d.getMobileMd5() + d.getBizDate()
+                cellMap.get(l.getMobileMd5()))).collect(Collectors.toConcurrentMap(d -> d.getMobileMd5() + d.getBizDate()
                 , l -> syncUserMap.get(cellMap.get(l.getMobileMd5()))));
-
         Iterator<ZhonganRosterLockingData> iterator = inList.iterator();
         List<ZhonganRosterLockingDataBO> list = new ArrayList<>();
         //失效集合
-        List<ZhonganRosterLockingData> notValidity = new ArrayList<>();
+        List<Long> notValidity = new ArrayList<>();
         //没有匹配上传数据集合
-        List<ZhonganRosterLockingData> notUploadData = new ArrayList<>();
+        List<Long> notUploadData = new ArrayList<>();
         //未配置有效期配置的数据
-        List<ZhonganRosterLockingData> notValidConfigData = new ArrayList<>();
+        List<Long> notValidConfigData = new ArrayList<>();
         //无需推送场景集合
-        List<ZhonganRosterLockingData> notPushData = new ArrayList<>();
+        List<Long> notPushData = new ArrayList<>();
         MarketingSyncUser syncUser;
         switch (tag) {
             case "CG":
                 // 对照组
                 Set<String> cellZkDateMap = getMarketingBanMap(apiCode, inList, cellMap);
-                List<ZhonganRosterLockingData> notMarketingList = new ArrayList<>();
+                List<Long> notMarketingList = new ArrayList<>();
                 while (iterator.hasNext()) {
                     ZhonganRosterLockingData next = iterator.next();
                     if ((syncUser = isPush(syncUserMapNew, userTypeDays, zhongAnDetailPush, next, notValidity, notUploadData, notPushData, notValidConfigData)) != null) {
                         String cell = cellMap.getOrDefault(next.getMobileMd5(), "");
                         if (cellZkDateMap.contains(cell + next.getBizDate())) {
                             // 不营销
-                            notMarketingList.add(next);
+                            notMarketingList.add(next.getId());
                             continue;
                         }
                         list.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
                     }
                 }
-                updatePushStatus(notMarketingList, 7, apiCode, tag, dateStr);
+                updatePushStatusById(notMarketingList, 7);
                 break;
             case "MG":
                 // 营销组
-                Set<String> custNumBlackListSet = mgFilterCgPush(inList, syncUserMapNew, apiCode, tag, dateStr, userTypeDays);
+                Set<String> custNumBlackListSet = mgFilterCgPush(inList, syncUserMapNew, apiCode, userTypeDays);
                 iterator = inList.iterator();
-                List<ZhonganRosterLockingData> hitBlackList = new ArrayList<>();
+                List<Long> hitBlackList = new ArrayList<>();
                 while (iterator.hasNext()) {
                     ZhonganRosterLockingData next = iterator.next();
                     if ((syncUser = isPush(syncUserMapNew, userTypeDays, zhongAnDetailPush, next, notValidity, notUploadData, notPushData, notValidConfigData)) != null) {
                         // 判断黑名单
                         if (custNumBlackListSet.contains(syncUser.getCustNum() + next.getBizDate())) {
                             // 命中黑名单
-                            hitBlackList.add(next);
+                            hitBlackList.add(next.getId());
                             continue;
                         }
                         list.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
                     }
                 }
-                updatePushStatus(hitBlackList, 5, apiCode, tag, dateStr);
+                updatePushStatusById(hitBlackList, 5);
                 break;
             default:
                 while (iterator.hasNext()) {
@@ -204,21 +317,21 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                     String key = next.getMobileMd5() + next.getBizDate();
                     MarketingSyncUser user = syncUserMapNew.get(key);
                     if (ObjectUtils.isEmpty(user)) {
-                        notUploadData.add(next);
+                        notUploadData.add(next.getId());
                     } else {
                         list.add(new ZhonganRosterLockingDataBO(next, user, apiCode, tag));
                     }
                 }
         }
-        updatePushStatus(notValidity, 4, apiCode, tag, dateStr);
-        updatePushStatus(notUploadData, 3, apiCode, tag, dateStr);
-        updatePushStatus(notPushData, 8, apiCode, tag, dateStr);
-        updatePushStatus(notValidConfigData, 9, apiCode, tag, dateStr);
+        updatePushStatusById(notValidity, 4);
+        updatePushStatusById(notUploadData, 3);
+        updatePushStatusById(notPushData, 8);
+        updatePushStatusById(notValidConfigData, 9);
         if (CollectionUtils.isEmpty(list)) {
             return result;
         }
-        result.setCode(ResultCode.SUCCESS.getValue());
-        result.setDate(list);
+        Result<?> resultAction = resultAction(list, pushPool);
+        result.setCode(resultAction.getCode());
         return result;
     }
 
@@ -230,32 +343,32 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             , Map<String, Integer> userTypeDay
             , HashMap<String, JSONObject> pushConfig
             , ZhonganRosterLockingData next
-            , List<ZhonganRosterLockingData> notValidity
-            , List<ZhonganRosterLockingData> notUploadData
-            , List<ZhonganRosterLockingData> noPushData
-            , List<ZhonganRosterLockingData> notValidConfigData) {
+            , List<Long> notValidity
+            , List<Long> notUploadData
+            , List<Long> noPushData
+            , List<Long> notValidConfigData) {
         String mobileMd5 = next.getMobileMd5();
         String key = mobileMd5 + next.getBizDate();
         // 未获取到上传数据
         if (!syncUserMapNew.containsKey(key)) {
-            notUploadData.add(next);
+            notUploadData.add(next.getId());
             return null;
         }
         MarketingSyncUser syncUser = syncUserMapNew.get(key);
         JSONObject push = pushConfig.get(syncUser.getUserType());
         // 未配置可推送
         if (push == null || !"1".equals(push.getString("isPush"))) {
-            noPushData.add(next);
+            noPushData.add(next.getId());
             return null;
         }
         if (userTypeDay.get(syncUser.getUserType()) == null) {
-            notValidConfigData.add(next);
+            notValidConfigData.add(next.getId());
             return null;
         }
         Boolean validByThreeType = iMarketingDataValidService.isValidByThreeType(userTypeDay, syncUser);
         // 不在有效期内
         if (!validByThreeType) {
-            notValidity.add(next);
+            notValidity.add(next.getId());
             return null;
         }
         return syncUser;
@@ -268,8 +381,6 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
     private Set<String> mgFilterCgPush(List<ZhonganRosterLockingData> inList
             , Map<String, MarketingSyncUser> syncUserMapNew
             , String apiCode
-            , String tag
-            , String dateStr
             , Map<String, Integer> userTypeDays) {
         Map<String, String> custNumMap = new ConcurrentHashMap<>(1024);
         Map<String, PeriodOfValidityBO> custDayMap = new HashMap<>();
@@ -282,10 +393,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                     }
                     MarketingSyncUser syncUser = syncUserMapNew.get(l.getMobileMd5() + l.getBizDate());
                     Integer integer = userTypeDays.get(syncUser.getUserType());
-                    if (integer == null) {
-                        return false;
-                    }
-                    return true;
+                    return integer != null;
                 })
                 .map(l -> {
                     MarketingSyncUser syncUser = syncUserMapNew.get(l.getMobileMd5() + l.getBizDate());
@@ -319,45 +427,31 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-
-
                 return false;
-            }).map(t -> t.getMobileMd5()).collect(Collectors.toSet());
+            }).map(ZhonganRosterLockingData::getMobileMd5).collect(Collectors.toSet());
 
             // 过滤CG组是否已经推送过
             List<ZhonganRosterLockingData> list = inList.stream().filter(
                     l -> cgMobileMd5Set.contains(l.getMobileMd5())).collect(Collectors.toList());
             // 去掉CG组已推送
             inList.removeAll(list);
+            List<Long> collect = list.parallelStream().map(ZhonganRosterLockingData::getId).collect(Collectors.toList());
             // 重复数据
-            updatePushStatus(list, 6, apiCode, tag, dateStr);
+            updatePushStatusById(collect, 6);
         }
 
         if (CollectionUtils.isEmpty(inList)) {
             return Collections.emptySet();
         }
-//        Set<String> custNumSet = syncUserMapNew.values().parallelStream().map(MarketingSyncUser::getCustNum)
-//                .collect(Collectors.toSet());
-        Set<String> custNumCache = redisChgService.smembers(RedisKeyConstant.zhongAnblackCusNumToday);
         Iterator<Map.Entry<String, String>> iterator = custNumMap.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, String> ob = iterator.next();
-            if (nowDay.equals(ob.getValue()) && custNumCache.contains(ob.getKey())) {
+            Boolean sismember = redisChgService.sismember(RedisKeyConstant.zhongAnblackCusNumToday, ob.getKey());
+            if (nowDay.equals(ob.getValue()) && sismember) {
                 iterator.remove();
                 custNumBlackListSet.add(ob.getKey() + nowDay);
             }
         }
-//        Set<String> custNumBlackListSet = new HashSet<>(custNumSet);
-//        custNumBlackListSet.retainAll(custNumCache);
-//        custNumSet.removeAll(custNumBlackListSet);
-//        if (CollectionUtils.isEmpty(custNumSet)) {
-//            return custNumBlackListSet;
-//        }
-//        Set<String> set = custNumMap.keySet();
-//        set.retainAll(custNumSet);
-//        if (CollectionUtils.isEmpty(custNumMap)) {
-//            return custNumBlackListSet;
-//        }
         if (!CollectionUtils.isEmpty(custNumMap)) {
             List<CallRecord> blackListSettikv_ = callRecordMapper.getBlackListSettikv_(custNumMap, apiCode);
             if (!CollectionUtils.isEmpty(blackListSettikv_)) {
@@ -387,37 +481,39 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
      * 2022/11/19 10:55
      * 更新数据状态
      */
-    private void updatePushStatus(List<ZhonganRosterLockingData> dataList
-            , int updateStatus
-            , String apiCode
-            , String tag
-            , String dateStr) {
-        if (CollectionUtils.isEmpty(dataList)) {
+    private void updatePushStatusById(List<Long> ids, int updateStatus) {
+        if (CollectionUtils.isEmpty(ids)) {
             return;
         }
-        zhonganRosterLockingDataMapper.updatePushStatusOrStatus(apiCode, null, updateStatus
-                , 1, tag, dataList, dateStr, new Date());
+        ZhonganRosterLockingData data = new ZhonganRosterLockingData();
+        data.setStatus(updateStatus);
+        data.setUpdateTime(new Date());
+        ZhonganRosterLockingDataExample example = new ZhonganRosterLockingDataExample();
+        example.createCriteria().andIdIn(ids).andStatusEqualTo(1);
+        zhonganRosterLockingDataMapper.updateByExampleSelective(data, example);
     }
 
     @Override
     public Result<?> resultAction(List<ZhonganRosterLockingDataBO> outputDataList) {
+        return null;
+    }
+
+    public Result<?> resultAction(List<ZhonganRosterLockingDataBO> outputDataList, ThreadPoolExecutor pushPool) {
         Result<Object> result = new Result<>();
         if (CollectionUtils.isEmpty(outputDataList)) {
             result.setCode(ResultCode.FAIL.getValue());
             return result;
         }
         HashMap<String, JSONObject> zhongAnDetailPush = marketingCommonConfig.getZhongAnDetailPush();
-        CompletionService<Result<?>> completionService = getCompletionService();
-        boolean isUseThreadPool = completionService != null;
         int size = outputDataList.size();
         int pushSize = 100;
         int count = 0;
         List<ZaMarketDetail> list = new ArrayList<>();
-        List<ZhonganRosterLockingData> dataList = new ArrayList<>();
+        List<Long> ids = new ArrayList<>();
         for (ZhonganRosterLockingDataBO bo : outputDataList) {
             ZaMarketDetail detail = new ZaMarketDetail();
             ZhonganRosterLockingData data = bo.getData();
-            dataList.add(data);
+            ids.add(data.getId());
             MarketingSyncUser syncUser = bo.getSyncUser();
             String channelCode = "MG".equals(data.getTag()) || "CG".equals(data.getTag())
                     ? zhongAnDetailPush.get(syncUser.getUserType()).getString("channelCode")
@@ -430,35 +526,16 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
             list.add(detail);
             count++;
             if (list.size() == pushSize || size == count) {
-                if (isUseThreadPool) {
-                    List<ZaMarketDetail> finalList = list;
-                    List<ZhonganRosterLockingData> finalDataList = dataList;
-                    completionService.submit(() -> {
-                        ZaMarketDataDTO dataDTO = new ZaMarketDataDTO();
-                        dataDTO.setData(finalList);
-                        return methodRetryHandlerService.callZhongAnData(new ZaMarketDataBO(dataDTO
-                                , bo.getApiCode(), bo.getTag(), finalDataList), null);
-                    });
-                    list = new ArrayList<>();
-                    dataList = new ArrayList<>();
-                } else {
+                List<ZaMarketDetail> finalList = list;
+                List<Long> finalDataList = ids;
+                pushPool.execute(() -> {
                     ZaMarketDataDTO dataDTO = new ZaMarketDataDTO();
-                    dataDTO.setData(list);
+                    dataDTO.setData(finalList);
                     methodRetryHandlerService.callZhongAnData(new ZaMarketDataBO(dataDTO
-                            , bo.getApiCode(), bo.getTag(), dataList), null);
-                    list.clear();
-                    dataList.clear();
-                }
-            }
-        }
-        if (isUseThreadPool) {
-            try {
-                int pageTotal = size % pushSize == 0 ? size / pushSize : (size / pushSize + 1);
-                for (; pageTotal > 0; pageTotal--) {
-                    completionService.take().get(10, TimeUnit.SECONDS);
-                }
-            } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                log.error(e.getMessage(), e);
+                            , bo.getApiCode(), bo.getTag(), finalDataList), null);
+                });
+                list = new ArrayList<>();
+                ids = new ArrayList<>();
             }
         }
         result.setCode(ResultCode.SUCCESS.getValue());
@@ -475,7 +552,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
     private Map<String, String> md5ToLogMap(List<ZhonganRosterLockingData> inList) {
         return inList.parallelStream().collect(Collectors.collectingAndThen(
                 Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ZhonganRosterLockingData::getMobileMd5)))
-                , ArrayList::new)).stream().collect(Collectors.toMap(ZhonganRosterLockingData::getMobileMd5, d -> {
+                , ArrayList::new)).stream().collect(Collectors.toConcurrentMap(ZhonganRosterLockingData::getMobileMd5, d -> {
             String query = RpcClientProxy.decode(d.getMobileMd5(), "cell", "md5", "");
             return StringUtils.isBlank(query) ? d.getMobileMd5() : BrCipherMaker.getInstance().encode(query);
         }, (v1, v2) -> v1));
@@ -485,38 +562,40 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
      * 2022/11/22 17:40
      * 配置线程
      */
-    private CompletionService<Result<?>> getCompletionService() {
-        List<Integer> zhongAnPushTreadPoolSize = marketingCommonConfig.getZhongAnPushTreadPoolSize();
+    private void setThreadNumber(ThreadPoolExecutor pool, String tag, ThreadPoolExecutor pushPool) {
+        Map<String, List<Integer>> zhongAnPushTreadPoolMap = marketingCommonConfig.getZhongAnPushTreadPoolSizeMap();
+        List<Integer> zhongAnPushTreadPoolSize = zhongAnPushTreadPoolMap.get(tag);
         if (zhongAnPushTreadPoolSize == null) {
-            return null;
+            zhongAnPushTreadPoolSize = zhongAnPushTreadPoolMap.get("other");
         }
-        CompletionService<Result<?>> service = new ExecutorCompletionService<>(POOL);
-        int size = zhongAnPushTreadPoolSize.size();
-        int corePoolSize;
-        int maximumPoolSize;
+        int size = zhongAnPushTreadPoolSize == null ? 0 : zhongAnPushTreadPoolSize.size();
+        int poolSize;
+        int pushPoolSize;
         if (size == 1) {
-            Integer poolSize = zhongAnPushTreadPoolSize.get(0);
-            if (ObjectUtils.isEmpty(poolSize) || poolSize < 1) {
-                return service;
+            Integer poolSizeNew = zhongAnPushTreadPoolSize.get(0);
+            if (ObjectUtils.isEmpty(poolSizeNew) || poolSizeNew < 1) {
+                return;
             }
-            corePoolSize = poolSize;
-            maximumPoolSize = poolSize;
+            poolSize = poolSizeNew;
+            pushPoolSize = poolSizeNew;
         } else if (size > 1) {
-            Integer corePoolSizeNew = zhongAnPushTreadPoolSize.get(0);
-            Integer maximumPoolSizeNew = zhongAnPushTreadPoolSize.get(0);
-            if (ObjectUtils.isEmpty(corePoolSizeNew) || ObjectUtils.isEmpty(maximumPoolSizeNew)
-                    || corePoolSizeNew < 1 || maximumPoolSizeNew < 1) {
-                return service;
+            Integer poolSizeNew = zhongAnPushTreadPoolSize.get(0);
+            Integer pushPoolSizeNew = zhongAnPushTreadPoolSize.get(1);
+            if (ObjectUtils.isEmpty(poolSizeNew) || poolSizeNew < 1) {
+                poolSizeNew = Runtime.getRuntime().availableProcessors() * 10;
             }
-            corePoolSize = corePoolSizeNew;
-            maximumPoolSize = maximumPoolSizeNew;
+            if (ObjectUtils.isEmpty(pushPoolSizeNew) || pushPoolSizeNew < 1) {
+                pushPoolSizeNew = Runtime.getRuntime().availableProcessors() * 10;
+            }
+            poolSize = poolSizeNew;
+            pushPoolSize = pushPoolSizeNew;
         } else {
-            return service;
+            return;
         }
-        int maxPoolSize = 1000;
-        POOL.setCorePoolSize(Math.min(corePoolSize, maxPoolSize));
-        POOL.setMaximumPoolSize(Math.min(maximumPoolSize, maxPoolSize));
-        return service;
+        pool.setCorePoolSize(poolSize);
+        pool.setMaximumPoolSize(poolSize);
+        pushPool.setCorePoolSize(pushPoolSize);
+        pushPool.setMaximumPoolSize(pushPoolSize);
     }
 
     /**
@@ -558,7 +637,7 @@ public class PushRosterLockingDataToZhongAn extends IMonkeyDataHandle<ZhonganRos
         Integer count = zhonganRosterLockingDataMapper.countByExample(lockingDataExample);
         LocalFile localFile = new LocalFile();
         LocalFile localFileOld = localFileMapper.getByPrimaryKey(localId);
-        if (count != null && !count.equals(localFileOld.getPushNumber())) {
+        if (!count.equals(localFileOld.getPushNumber())) {
             localFile.setPushNumber(count);
             localFile.setId(localId);
             localFile.setPushEndTime(new Date());
