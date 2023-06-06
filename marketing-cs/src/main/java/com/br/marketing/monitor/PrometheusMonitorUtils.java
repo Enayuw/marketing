@@ -61,6 +61,11 @@ public class PrometheusMonitorUtils {
      */
     public static final String COUNT_POLICY_API_METRIC_NAME = "countPolicyAPIMetricName";
 
+    /**
+     * 跑分接口调用请求
+     */
+    public static final String COUNT_CORE_SCORE_API_METRIC_NAME = "countCoreScoreAPIMetricName";
+
 
 
 

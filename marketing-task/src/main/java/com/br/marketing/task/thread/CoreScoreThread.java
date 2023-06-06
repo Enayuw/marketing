@@ -3,6 +3,7 @@ package com.br.marketing.task.thread;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.counter.BrCounter;
 import com.br.common.encryption.BrCipherMaker;
 import com.br.common.util.StringUtils;
 import com.br.marketing.client.ProFieldsClient;
@@ -13,6 +14,7 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
+import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.task.Scheduler;
@@ -412,6 +414,8 @@ public class CoreScoreThread implements Callable<String> {
     private void dealResult(String s, Writer fw, String apiCode, MarketingSyncUser blu) throws IOException {
         try {
             if (VaildHxResultUtil.isPass(s, meal, apiCode, redisChgService, blu, errorList, noflagproductlist, flagProductList)) {
+                //跑分请求监控统计
+                BrCounter.count(PrometheusMonitorUtils.COUNT_CORE_SCORE_API_METRIC_NAME,apiCode,blu.getUserType());
                 JSONObject resultJson = JSONObject.parseObject(s);
                 if (fw != null) {
                     ResultUtil.generateFile(resultJson, strategyId
