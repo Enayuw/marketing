@@ -70,7 +70,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
-    public static final String ZHUANHUA_COLUMU_NAME = "custNum,cell,userType,createTime,bizType,eventTime,eventType";
+    public static final String ZHUANHUA_COLUMU_NAME = "custNum,cell,userType,createTime,bizType,eventTime,eventType,amountStatus,highApplyStatus";
 
     @Resource
     TransferDataValidityPeriodService validityPeriodService;
