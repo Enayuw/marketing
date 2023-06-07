@@ -179,13 +179,11 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
                     StringBuilder sb = new StringBuilder();
                     sb.append(marketingSyncUser.getCustNum().concat(","));
                     sb.append((StringUtils.isNotEmpty(data) ? data : "").concat(","));
-                    sb.append((StringUtils.isNotEmpty(extend) ? extend : "").concat(","));
-                    sb.append(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()).getBytes()));
+                    sb.append((StringUtils.isNotEmpty(extend) ? extend : ""));
                     sb.append("\r\n");
                     fw.append(sb.toString());
+                    totalSize++;
                 }
-                totalSize = totalSize + marketingSyncUsers.size();
-
             }
         }
 
