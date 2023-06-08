@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl.transfertofile;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -22,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
@@ -168,18 +170,20 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
                                 String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_DIDI.getCode(), "滴滴联合建模接口返回data为空，custNum="+custNum);
                                 log.warn(msg);
                             }
+                            if ("00000".equals(data) || "0".equals(data)) {
+                                continue;
+                            }
                             extend = jsonObject.getString("extend");
                         }
                     }
                     StringBuilder sb = new StringBuilder();
                     sb.append(marketingSyncUser.getCustNum().concat(","));
                     sb.append((StringUtils.isNotEmpty(data) ? data : "").concat(","));
-                    sb.append((StringUtils.isNotEmpty(extend) ? extend : "").concat(","));
+                    sb.append((StringUtils.isNotEmpty(extend) ? extend : ""));
                     sb.append("\r\n");
                     fw.append(sb.toString());
+                    totalSize++;
                 }
-                totalSize = totalSize + marketingSyncUsers.size();
-
             }
         }
 
