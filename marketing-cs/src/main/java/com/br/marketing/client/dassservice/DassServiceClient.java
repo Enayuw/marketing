@@ -295,6 +295,8 @@ public class DassServiceClient {
                 return result;
             }
             result.setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.parseObject(respStr));
+            //调用数量监控
+            BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_SINGLE_USERDATA_METRIC_NAME,dassSingleImportDataDTO.getOrgname(),"DaasRealTimeData-api");
         } else {
             result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
         }
@@ -392,7 +394,7 @@ public class DassServiceClient {
             }
             result.setCode(ResultCode.SUCCESS.getValue()).setDate(respStr);
             //调用数量监控
-            BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_TRANSFER_METRIC_NAME,dassTransferDataAdapDTO.getPhoneSaleExtendInfoList().get(0).getApiCode(),"transferData-api",
+            BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_TRANSFER_METRIC_NAME,dassTransferDataDTOList.get(0).getOrgName(),"transferData-api",
                     dassTransferDataDTOList.size());
         } else {
             result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
