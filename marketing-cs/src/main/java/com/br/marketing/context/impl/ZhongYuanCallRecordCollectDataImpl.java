@@ -6,6 +6,7 @@ import com.br.marketing.context.RuleNecessaryData;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.MarketingSyncUser;
 import lombok.Data;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
  * @author Guo Zeqiang
  * @dateTime 2023-06-08 18:13
  */
+@Service
 public class ZhongYuanCallRecordCollectDataImpl extends CommonMethodHandlerService {
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
