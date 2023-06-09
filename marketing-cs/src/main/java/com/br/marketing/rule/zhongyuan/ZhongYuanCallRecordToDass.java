@@ -14,6 +14,7 @@ import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -26,6 +27,7 @@ import java.util.Map;
  * @author Guo Zeqiang
  * @dateTime 2023-06-08 16:44
  */
+@Service
 public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUserDataDTO> {
 
     @Value("${api.dass.aesKey:00}")
