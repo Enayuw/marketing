@@ -44,8 +44,7 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
             return null;
         }
         BatchRealTimeUserDataDTO dataDTO = new BatchRealTimeUserDataDTO();
-        dataDTO.setDassImportDataDTO(packageDassImportData(marketingSyncUser));
-        dataDTO.getDassImportDataDTO().setId(dto.getId());
+        dataDTO.setDassImportDataDTO(packageDassImportData(dto, marketingSyncUser));
         dataDTO.setPhoneSaleExtendInfo(packagePhoneSaleExtendInfo(dto, marketingSyncUser));
         return dataDTO;
     }
@@ -68,7 +67,7 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
         return phoneSaleExtendInfo;
     }
 
-    private DassImportDataDTO packageDassImportData(MarketingSyncUser marketingSyncUser) {
+    private DassImportDataDTO packageDassImportData(CallRecordBO dto, MarketingSyncUser marketingSyncUser) {
         String phone = AESUtil.aesEncrypty(BrCipherMaker.getInstance().decode(
                 marketingSyncUser.getCell()), aesKey);
         DassImportDataDTO batchImportData = new DassImportDataDTO();
@@ -77,6 +76,8 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
         batchImportData.setPhone(phone);
         batchImportData.setUserType("2");
         batchImportData.setSource("30");
+        batchImportData.setUid(dto.getCaseNum());
+        batchImportData.setId(dto.getId());
         return batchImportData;
     }
 
