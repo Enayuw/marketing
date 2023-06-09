@@ -6,7 +6,7 @@ import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataD
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.ZhongYuanCallRecordCollectDataImpl;
+import com.br.marketing.context.impl.ZhongYuanRuleCollectDataImpl;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
@@ -36,9 +36,9 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
     @Override
     public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         CallRecordBO dto = (CallRecordBO) transmitFact;
-        ZhongYuanCallRecordCollectDataImpl.ZhongYuanRuleNecessaryData ruleNecessaryData =
-                (ZhongYuanCallRecordCollectDataImpl.ZhongYuanRuleNecessaryData) context.getRuleNecessaryData();
-        Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
+        ZhongYuanRuleCollectDataImpl.ZhongYuanRuleNecessaryData ruleNecessaryData =
+                (ZhongYuanRuleCollectDataImpl.ZhongYuanRuleNecessaryData) context.getRuleNecessaryData();
+        Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCallRecordCustomerMap();
         MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, dto.getCaseNum());
         if (marketingSyncUser == null) {
             return null;
@@ -101,6 +101,6 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
 
     @Override
     public Integer ruleDataCollection() {
-        return RuleDataCollectionEnum.ZHONGYUAN_CALL_RECORD_DATA_COLLECTION.getCode();
+        return RuleDataCollectionEnum.ZHONGYUAN_DATA_COLLECTION.getCode();
     }
 }
