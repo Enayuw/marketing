@@ -8,18 +8,15 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.rule.AssembleData;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Date;
 
 /**
  * @Description : 中原消金电销自动化过滤
@@ -55,7 +52,7 @@ public class ZhongYuanArtificialTransferAutoFilterToDass implements AssembleData
             if (StringUtils.hasText(reserveField1)) {
                 JSONObject json = JSON.parseObject(reserveField1);
                 Integer isBlack = json.getInteger("isBlack");
-                return  1 == isBlack;
+                return isBlack != null && 1 == isBlack;
             }
         }
         return Boolean.FALSE;
