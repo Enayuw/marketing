@@ -47,7 +47,7 @@ public class ZhongYuanRuleCollectDataImpl extends CommonMethodHandlerService {
 
     @Override
     public RuleDataCollectionEnum label() {
-        return RuleDataCollectionEnum.HAI_ER_RULE_DATA_COLLECTION;
+        return RuleDataCollectionEnum.ZHONGYUAN_DATA_COLLECTION;
     }
 
 
