@@ -48,14 +48,17 @@ public class ZhongYuanArtificialTransferAutoFilterToDass implements AssembleData
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
-        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        String reserveField1 = transfer.getReserveField1();
-        if (StringUtils.hasText(reserveField1)) {
-            JSONObject json = JSON.parseObject(reserveField1);
-            Integer isBlack = json.getInteger("isBlack");
-            return  1 == isBlack;
+        if (transmitFact instanceof MarketingTransferSyncUser) {
+            //转化数据上传接口命中isBlack=1的数据
+            MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+            String reserveField1 = transfer.getReserveField1();
+            if (StringUtils.hasText(reserveField1)) {
+                JSONObject json = JSON.parseObject(reserveField1);
+                Integer isBlack = json.getInteger("isBlack");
+                return  1 == isBlack;
+            }
         }
-        return false;
+        return Boolean.FALSE;
     }
 
     @Override
