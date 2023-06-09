@@ -22,10 +22,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
- * @Description : 拍拍贷电销转化接口
+ * @Description : 中原消金电销自动化过滤
  * ---------------------------------
- * @Author : lizhen
- * @Date : Create in 2022/4/21 10:19
+ * @Author : zgc
+ * @Date : Create in 2023/6/08 17:19
  */
 @Service
 public class ZhongYuanArtificialTransferAutoFilterToDass implements AssembleData<DassAssembleTransferDataDTO> {
@@ -62,6 +62,7 @@ public class ZhongYuanArtificialTransferAutoFilterToDass implements AssembleData
     public String label() {
         return "ZhongYuan_Artificial_TransferAutoFilter";
     }
+
 
     @Override
     public Integer dataDirection() {
