@@ -71,7 +71,7 @@ public class ZhongYuanTransferToDaas implements AssembleData<BatchRealTimeUserDa
         phoneSaleExtendInfo.setType(transfer.getType());
         phoneSaleExtendInfo.setPushDxTime(new Date());
         phoneSaleExtendInfo.setSourceId(transfer.getId());
-
+        phoneSaleExtendInfo.setStatus("b");
         return phoneSaleExtendInfo;
 
 
@@ -88,6 +88,7 @@ public class ZhongYuanTransferToDaas implements AssembleData<BatchRealTimeUserDa
         batchImportData.setUserType("1");
         batchImportData.setSource("30");
         batchImportData.setId(transfer.getId());
+        batchImportData.setUid(transfer.getCustNum());
         return batchImportData;
     }
 
