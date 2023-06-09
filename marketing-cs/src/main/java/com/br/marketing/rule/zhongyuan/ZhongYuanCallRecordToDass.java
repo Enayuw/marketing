@@ -74,7 +74,7 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
         batchImportData.setName("1");
         batchImportData.setOrgname("zhongyuanxj");
         batchImportData.setPhone(phone);
-        batchImportData.setUserType("1");
+        batchImportData.setUserType("2");
         batchImportData.setSource("30");
         return batchImportData;
     }
