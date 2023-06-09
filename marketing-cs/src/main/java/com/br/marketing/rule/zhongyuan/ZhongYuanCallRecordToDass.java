@@ -45,7 +45,7 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
         }
         BatchRealTimeUserDataDTO dataDTO = new BatchRealTimeUserDataDTO();
         dataDTO.setDassImportDataDTO(packageDassImportData(marketingSyncUser));
-        dataDTO.getDassImportDataDTO().setId(dataDTO.getDassImportDataDTO().getId());
+        dataDTO.getDassImportDataDTO().setId(dto.getId());
         dataDTO.setPhoneSaleExtendInfo(packagePhoneSaleExtendInfo(dto, marketingSyncUser));
         return dataDTO;
     }
