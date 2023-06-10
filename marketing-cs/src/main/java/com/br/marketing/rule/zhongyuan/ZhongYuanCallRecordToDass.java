@@ -64,6 +64,7 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
         phoneSaleExtendInfo.setCreateTime(new Date());
         phoneSaleExtendInfo.setPushDxTime(new Date());
         phoneSaleExtendInfo.setSourceId(dto.getId());
+        phoneSaleExtendInfo.setCell(marketingSyncUser.getCell());
         return phoneSaleExtendInfo;
     }
 
