@@ -47,8 +47,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Slf4j
 public class HttpProxyClient {
 	private static final String CHARSET_UTF8 = "UTF-8";
-	@Value("${otherConfig.proxy.proxy_host_zw:00}")
+	@Value("${otherConfig.proxy.proxy_host:00}")
 	private  String  proxyHost;
+	@Value("${otherConfig.proxy.proxy_host_zw:00}")
+	private  String  proxyHostZW;
 	@Value("${otherConfig.proxy.proxy_port:00}")
 	private  int proxyPort;
 	@Value("${otherConfig.proxy.proxy_username:00}")
@@ -101,7 +103,7 @@ public class HttpProxyClient {
 	 * @return String 返回信息
 	 */
 	public  String send(String param, String url,Boolean isPorxy) {
-		HttpClient httpClient =getHttpClient(isPorxy);
+		HttpClient httpClient =getHttpClient(isPorxy,null);
 		try {
 			HttpPost post = new HttpPost(url);
 			HttpEntity requestEntity = new StringEntity(param, CHARSET_UTF8);
@@ -170,17 +172,33 @@ public class HttpProxyClient {
 		return sendByCodePool(param,url,isPorxy,mediaType,extendInfo,isDbLog,isFileLog);
 	}
 
-	public  HashMap<String,String> sendByCode(Object param, String url, Boolean isPorxy, String mediaType,String extendInfo) {
-		return sendByCode(param,url,isPorxy,mediaType,extendInfo,true,false);
+	public  HashMap<String,String> sendByCodeZw(Object param, String url, Boolean isPorxy, String mediaType,String extendInfo) {
+		return sendByCode(param,url,isPorxy,mediaType,extendInfo,true,false,1);
 	}
 
-	private  HashMap<String,String> sendByCode(Object param, String url, Boolean isPorxy, String mediaType,String extendInfo,Boolean isDbLog,Boolean isFileLog) {
+	public  HashMap<String,String> sendByCode(Object param, String url, Boolean isPorxy, String mediaType,String extendInfo) {
+		return sendByCode(param,url,isPorxy,mediaType,extendInfo,true,false,null);
+	}
+
+	/**
+	 * 调用接口的核心方法
+	 * @param param 参数
+	 * @param url 请求地址
+	 * @param isPorxy 是否通过代理访问
+	 * @param mediaType 数据格式
+	 * @param extendInfo 扩展信息
+	 * @param isDbLog 日志是否存储在db中
+	 * @param isFileLog 日志是否存储在log中
+	 * @param proxyType 代理的机房 1-兆维代理；2-亦庄代理；
+	 * @return
+	 */
+	private  HashMap<String,String> sendByCode(Object param, String url, Boolean isPorxy, String mediaType,String extendInfo,Boolean isDbLog,Boolean isFileLog,Integer proxyType) {
 		InterfaceLog interfaceLog = new InterfaceLog();
 		interfaceLog.setExtendInfo(extendInfo);
 		interfaceLog.setRequestId(UUID.randomUUID().toString());
 		interfaceLog.setUrl(url);
 		interfaceLog.setCreateTime(new Date());
-		HttpClient httpClient =getHttpClient(isPorxy);
+		HttpClient httpClient =getHttpClient(isPorxy,proxyType);
 		HashMap<String,String> res = new HashMap<>();
 		Long start = System.currentTimeMillis();
 		try {
@@ -211,7 +229,7 @@ public class HttpProxyClient {
 			if(isPorxy){
 				AuthCache authCache = new BasicAuthCache();
 				AuthScheme authScheme = new BasicScheme(ChallengeState.PROXY);
-				authCache.put(new HttpHost(proxyHost, proxyPort),authScheme);
+				authCache.put(new HttpHost(Integer.valueOf(1).equals(proxyType)?proxyHostZW:proxyHost, proxyPort),authScheme);
 				HttpContext httpContext = new BasicHttpContext();
 				httpContext.setAttribute(ClientContext.AUTH_CACHE,authCache);
 				response = httpClient.execute(post,httpContext);
@@ -329,9 +347,13 @@ public class HttpProxyClient {
 	 * @param isProxy 是否代理
 	 * @return HttpClient httpClient
 	 */
-	public  HttpClient getHttpClient(Boolean isProxy) {
+	public  HttpClient getHttpClient(Boolean isProxy,Integer proxyType) {
 		if(isProxy) {
-			return getHttpClientZw();
+			if(new Integer(1).equals(proxyType)){
+				return getHttpClientZw();
+			}else{
+				return getHttpClientSimple();
+			}
 		}else {
 			CloseableHttpClient httpClient = HttpClientBuilder.create().setConnectionManager(HTTP_CLIENT_POOL).build();
 			return httpClient;
@@ -360,7 +382,7 @@ public class HttpProxyClient {
 	 */
 	public  HttpClient getHttpClientZw()   {
 		// 设置代理HttpHost
-		HttpHost proxy = new HttpHost(proxyHost, proxyPort );
+		HttpHost proxy = new HttpHost(proxyHostZW, proxyPort );
 		// 设置认证
 		CredentialsProvider provider = new BasicCredentialsProvider();
 
@@ -371,6 +393,18 @@ public class HttpProxyClient {
 		return httpClient;
 	}
 
+	public  HttpClient getHttpClientSimple()   {
+		// 设置代理HttpHost
+		HttpHost proxy = new HttpHost(proxyHost, proxyPort);
+		// 设置认证
+		CredentialsProvider provider = new BasicCredentialsProvider();
+
+		provider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials(userName, password));
+
+		CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(provider).build();
+
+		return httpClient;
+	}
 	/**
 	 * 配置信息
 	 * @param isProxy 是否代理

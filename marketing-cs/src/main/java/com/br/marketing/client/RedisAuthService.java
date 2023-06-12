@@ -22,37 +22,37 @@ public class RedisAuthService {
     private static final Long LOCK_WAIT_THRESHOLD = 3000L;
 
     public void set(String key, String value, String typeNo) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         jedis.set(getUnionKey(key, typeNo), value);
     }
     public void set(String key, String typeNo, int seconds){
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         jedis.set(getUnionKey(key, typeNo),"0","NX", "EX", seconds);
     }
 
 
     public void set(String key, String value) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         jedis.set(key, value);
     }
     public void setex(String key, String value,int seconds) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         jedis.setex(key,seconds,value);
     }
     public void set(String key, String value, Integer period, String typeNo) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         jedis.setex(getUnionKey(key, typeNo), period, value);
 
     }
 
     public void set(String key, Map<String, String> value, String typeNo) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         jedis.hmset(getUnionKey(key, typeNo), value);
 
     }
 
     public void set(String key, Map<String, String> value, Integer period, String typeNo) {
-        JedisCluster jedis =MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis =MultiRedisClusterUtil.createJedisCluster("2");
         String unionKey = getUnionKey(key, typeNo);
         jedis.hmset(unionKey, value);
         jedis.expire(unionKey, period);
@@ -60,32 +60,32 @@ public class RedisAuthService {
     }
 
     public void set(String key, List<String> value, String typeNo) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         String unionKey = getUnionKey(key, typeNo);
         jedis.rpush(unionKey, list2array(value));
     }
 
     public void set(String key, List<String> value, Integer period, String typeNo) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         String unionKey = getUnionKey(key, typeNo);
         jedis.rpush(unionKey, list2array(value));
         jedis.expire(unionKey, period);
     }
 
     public String get(String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         String str = jedis.get(key);
         return str;
     }
 
     public String get(String key, String typeNo) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         String str = jedis.get(getUnionKey(key, typeNo));
         return str;
     }
 
     public List<String> mgetValueByField(String key, String typeNo, String... fields) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         String unionKey = getUnionKey(key, typeNo);
         List<String> str = jedis.hmget(unionKey, fields);
         return str;
@@ -95,14 +95,14 @@ public class RedisAuthService {
 
     //删除key
     public long del(String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         long size = jedis.del(key);
         return size;
     }
 
     //删除key
     public long del(String key, String typeNo) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         long size = jedis.del(getUnionKey(key, typeNo));
         return size;
     }
@@ -128,7 +128,7 @@ public class RedisAuthService {
     }
 
     public boolean exists(String key, String typeNo) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         boolean flag = jedis.exists(getUnionKey(key, typeNo));
         return flag;
     }
@@ -138,14 +138,14 @@ public class RedisAuthService {
     }
 
     public String type(String key, String typeNo) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         String type = jedis.type(getUnionKey(key, typeNo));
         return type;
     }
 
 
     public Long sadd(String key, String... member) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         Long count = jedis.sadd(key, member);
         return count;
     }
@@ -155,7 +155,7 @@ public class RedisAuthService {
     }
 
     public Set<String> smembers(String key, String typeNo) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         Set<String> members = jedis.smembers(getUnionKey(key, typeNo));
         return members;
     }
@@ -170,19 +170,19 @@ public class RedisAuthService {
     }
 
     public Long expire(String key, String typeNo, int seconds) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         Long result = jedis.expire(getUnionKey(key, typeNo), seconds);
         return result;
     }
 
     public String hget(String hkey, String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         String result = jedis.hget(hkey, key);
         return result;
     }
 
     public long hset(String hkey, String key, String value) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         long result = jedis.hset(hkey, key, value);
         return result;
     }
@@ -197,7 +197,7 @@ public class RedisAuthService {
     }
 
     public long hdel(String hkey, String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         long result = jedis.hdel(hkey, key);
         return result;
     }
@@ -207,26 +207,26 @@ public class RedisAuthService {
     }
 
     public long setnx(String key, String value) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         //1:成功  0：失败
         long result = jedis.setnx(key, value);
         return result;
     }
 
     public long setnx(String key, String typeNo, String value) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         long result = jedis.setnx(getUnionKey(key, typeNo), value);
         return result;
     }
 
     public String getSet(String key, String newValue) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         String result = jedis.getSet(key, newValue);
         return result;
     }
 
     public String getSet(String key, String typeNo, String newValue) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         String result = jedis.getSet(getUnionKey(key, typeNo), newValue);
         return result;
     }
@@ -240,13 +240,13 @@ public class RedisAuthService {
      */
     public Long incr(String key) {
         String redisKey = "10000" + "_" + key;
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         Long count = jedis.incr(redisKey);
         return count;
     }
 
     public Long incrBy(String key, String typeNo, long number) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         Long count = jedis.incrBy(getUnionKey(key, typeNo), number);
         return count;
     }
@@ -254,7 +254,7 @@ public class RedisAuthService {
 
 
     public boolean lock(String lockKey, String requestId, long milliseconds) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         String result = jedis.set(lockKey, requestId, "NX", "PX", milliseconds);
         if (LOCK_SUCCESS.equals(result)) {
             return true;
@@ -268,7 +268,7 @@ public class RedisAuthService {
      * @return
      */
     public boolean unlock(String lockKey, String requestId) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("4");
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
         String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
         Object result = jedis.eval(script, Collections.singletonList(lockKey), Collections.singletonList(requestId));
 

@@ -103,7 +103,7 @@ public class TstController {
             threadPool.submit(()->
                     {
                         RuntimeException runtimeException = new RuntimeException("url=https://finance-gateway-pop.diandian.com.cn/fcpGateway param=ZhongAnRequestDTO(apiKey=zadpreloan.nexusmetric.07brdyy01, reqNo=22684673dbda48d9be5b73459ff741ff, reqDate=2023-03-29, gatewayVersion=1.0.0, bizParam=XjY5R26rHuFEbLq3pQi5lvshWdtfn09hz0XKPNG2uwqvliIfgDqYL9UDxnfcB9/1QkioxYm2mC82Xd7B9sIR0xGei1KIZgEKsiwlXlZEaE2/rQCX8fs43hIDPHAGn1hfLuGfeku1V11EZUa0BVV0d/ibXHQLY633r03cc+QTYEs=, sign=9c67bee0e3b7990d7f40c8e5e05c26e7)\n" +
-                                "org.apache.http.conn.HttpHostConnectException: Connect to 192.168.22.169:3128 [/192.168.22.169] failed: Connection timed out (Connection timed out)");
+                                "org.apache.http.conn.HttpHostConnectException: Connect to squid-proxy2.brapp.com:3128 [/squid-proxy2.brapp.com] failed: Connection timed out (Connection timed out)");
                         log.error("url={} param={}","https://finance-gateway-pop.diandian.com.cn/fcpGateway","ZhongAnRequestDTO(apiKey=zadpreloan.nexusmetric.07brdyy01, reqNo=22684673dbda48d9be5b73459ff741ff, reqDate=2023-03-29, gatewayVersion=1.0.0, bizParam=XjY5R26rHuFEbLq3pQi5lvshWdtfn09hz0XKPNG2uwqvliIfgDqYL9UDxnfcB9/1QkioxYm2mC82Xd7B9sIR0xGei1KIZgEKsiwlXlZEaE2/rQCX8fs43hIDPHAGn1hfLuGfeku1V11EZUa0BVV0d/ibXHQLY633r03cc+QTYEs=, sign=9c67bee0e3b7990d7f40c8e5e05c26e7)",runtimeException);
                     });
         }

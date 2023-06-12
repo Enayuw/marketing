@@ -40,7 +40,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.innerapi.MarketingInnerApiApplication;
-import com.br.marketing.client.RedisService;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailVariablesDTO;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -193,28 +192,6 @@ public class redis {
         }
     }
 
-    @Resource
-    RedisService redisService;
-//
-    @Test
-    public void test(){
-       // String s = redisService.get("redisProduct_loan_5200156_ApplyLoanInterval_V1.0");
-        String s = redisService.get("productionMng-allProductions");
-        JSONArray array=new JSONArray();
-        List<ProInSys> proInSys = JSONArray.parseArray(s, ProInSys.class);
-        Iterator<ProInSys> iterator = proInSys.iterator();
-        while (iterator.hasNext()){
-            ProInSys pro=iterator.next();
-            if(pro.getBusinessTypeCode().indexOf(Constants.LOAN_BUSINESSTYPECODE)==-1){
-                iterator.remove();
-            }
-        }
-        if(proInSys.size()>0){
-            String json= JSONObject.toJSONString(proInSys);
-            array=JSONArray.parseArray(json);
-        }
-        System.out.println(array);
-    }
 
     @Autowired
     RedisChgService redisChgService;

@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class DefaultBeanConfigure {
 
-    @Value("${otherConfig.proxy.proxy_host_zw:00}")
+    @Value("${otherConfig.proxy.proxy_host:00}")
     private  String  proxyHost;
     @Value("${otherConfig.proxy.proxy_port:00}")
     private  int proxyPort;

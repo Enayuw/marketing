@@ -46,7 +46,7 @@ public class HaloApiSend {
         httpPost.setEntity(httpEntity);
         RequestConfig requestConfig = haloApiParam.getHttpProxyClient().getRequestConfig(haloApiParam.getIsProxy());
         httpPost.setConfig(requestConfig);
-        HttpClient httpClient = haloApiParam.getHttpProxyClient().getHttpClient(haloApiParam.getIsProxy());
+        HttpClient httpClient = haloApiParam.getHttpProxyClient().getHttpClient(haloApiParam.getIsProxy(),null);
         HttpResponse response = null;
         try {
             response = httpClient.execute(httpPost);

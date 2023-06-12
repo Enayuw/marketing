@@ -721,5 +721,10 @@ public class MarketingCommonConfig {
      * customerBlackListApiCodes={"3710058":["3710058","3710078"],"7410950":["7410950","7410951"]}
      */
     private HashMap<String, List<String>> customerBlackListApiCodes;
+
+    /**
+     * 迁移配置 key-功能项；value-具体的值；{"jobToEngineRoom":"1(开启)/0（关闭）"}
+     */
+    private HashMap<String,String> moveConfig;
 }
 

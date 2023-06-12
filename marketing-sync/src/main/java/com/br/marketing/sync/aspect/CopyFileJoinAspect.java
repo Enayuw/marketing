@@ -3,7 +3,6 @@ package com.br.marketing.sync.aspect;
 import com.br.common.validator.DateUtils;
 import com.br.marketing.client.BaseFtpClient;
 import com.br.marketing.client.FtpClient;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.Constants;

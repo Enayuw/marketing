@@ -3,7 +3,6 @@ package com.br.marketing.check.job;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.service.Impl.*;
 import com.br.marketing.check.utils.SftpToDbUtils;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
@@ -50,8 +49,6 @@ public class SftpToDbByDxIbuDataJob extends AbstractSimpleElasticJob {
     MarketingTaskMapper marketingTaskMapper;
     @Resource
     MarketingTaskExtendMapper marketingTaskExtendMapper;
-    @Resource
-    RedisChgService redisChgService;
     @Resource
     MarketingUserMapper marketingUserMapper;
     @Resource

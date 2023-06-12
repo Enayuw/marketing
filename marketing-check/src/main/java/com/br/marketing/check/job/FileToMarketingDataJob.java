@@ -25,7 +25,6 @@ import com.br.marketing.check.service.Impl.DeleteService;
 import com.br.marketing.check.service.Impl.FileCheckServiceImpl;
 import com.br.marketing.check.service.Impl.SftpToDbService;
 import com.br.marketing.check.utils.SftpToDbUtils;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
