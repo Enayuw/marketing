@@ -128,7 +128,7 @@ public class HttpProxyClient {
 	 * @return String 返回信息
 	 */
 	public  HashMap<String,String> sendByCode(String param, String url,Boolean isPorxy) {
-		HttpClient httpClient =getHttpClient(isPorxy);
+		HttpClient httpClient =getHttpClient(isPorxy,null);
 		HashMap<String,String> res = new HashMap<>();
 		try {
 			HttpPost post = new HttpPost(url);
