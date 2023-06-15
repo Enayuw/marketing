@@ -38,7 +38,7 @@
 
     <!-- 2023-06-15 11:23 发送告警的日志模板 -->
     <property name="ALARM_ERROR_PATTERN"
-              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [${POD_NAME}] [%thread] %-5level [%logger]-ALERT_LEVEL:ERROR ERROR_CODE:60000 SUBJECT:营销平台${APP_NAME}服务发生严重错误告警 MESSAGE:%msg%n"/>
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [${POD_NAME}] [%thread] %-5level [%logger] -ALERT_LEVEL:ERROR ERROR_CODE:60000 SUBJECT:营销平台${APP_NAME}服务发生严重错误告警 MESSAGE:%msg%n"/>
 
     <appender name="ALARM_ERROR_ROLLING_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_HOME}/${POD_NAME}-alarm.log</file>
