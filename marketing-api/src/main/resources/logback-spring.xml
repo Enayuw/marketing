@@ -42,8 +42,7 @@
         <appender-ref ref="RollingFile"/>
         <queueSize>512</queueSize>
     </appender>
-    2023-06-15 17:33:45.893 [marketing-api-5b679c45d8-2rlg2] [http-nio-80-exec-1] WARN  [com.br.marketing.client.AlarmApiClient] -ALERT_LEVEL:WARN ERROR_CODE:62001 SUBJECT:【预发】marketing-api-5b679c45d8-2rlg2客服接口返回警示信息 MESSAGE:客服接口返回错误列表数据：{"unsuccessfulData":[{"dataId":"774939","message":"phone 参数缺失"}]}
-    2023-06-15 17:10:25.795 [marketing-api-6c8d867f4b-txzmt] [http-nio-80-exec-5] ERROR [com.br.marketing.api.aspect.ErrorControllerAspect] -ALERT_LEVEL:ERROR ERROR_CODE:60000 SUBJECT:营销平台marketing-api服务发生严重错误告警 MESSAGE:环境：pre
+
     <!-- 2023-06-15 11:23 发送告警的日志模板 -->
     <property name="ALARM_ERROR_PATTERN"
               value="%d{yyyy-MM-dd HH:mm:ss.SSS} [${POD_NAME}] [%thread] %-5level [%logger] -ALERT_LEVEL:ERROR ERROR_CODE:60000 SUBJECT:营销平台${APP_NAME}服务发生严重错误告警 MESSAGE:%msg%n"/>
