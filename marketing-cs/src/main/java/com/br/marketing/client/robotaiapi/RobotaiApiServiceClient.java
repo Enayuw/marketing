@@ -69,7 +69,7 @@ public class RobotaiApiServiceClient {
             return result;
         }catch (Exception ex){
             log.warn(ex.getMessage(), ex);
-            alarmApiClient.sendAlarm(ex.getMessage(), "", AlarmSendCodeEnum.ERROR_UNKNOWN.getCode());
+            alarmApiClient.sendAlarm(ex.getMessage(), "调用客服接口异常", AlarmSendCodeEnum.ERROR_UNKNOWN.getCode());
             TransferRobotOutboundVO<UnsuccessfulData> result = new TransferRobotOutboundVO();
             result.setCode("9999");
             result.setMessage(ex.getMessage());
@@ -92,7 +92,7 @@ public class RobotaiApiServiceClient {
             return result;
         }catch (Exception ex){
             log.warn(ex.getMessage(), ex);
-            alarmApiClient.sendAlarm(ex.getMessage(), "", AlarmSendCodeEnum.ERROR_UNKNOWN.getCode());
+            alarmApiClient.sendAlarm(ex.getMessage(), "调用客服接口异常", AlarmSendCodeEnum.ERROR_UNKNOWN.getCode());
             TransferRobotOutboundVO<TransferRobotDataVO> result = new TransferRobotOutboundVO();
             result.setCode("9999");
             result.setMessage(ex.getMessage());
