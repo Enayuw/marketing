@@ -29,5 +29,5 @@ public interface YiXinProcessGetBaseDataService {
      * @param actionType c d e f g h i
      * @return
      */
-    List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_B(String actionType);
+    List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_C_to_I(String actionType);
 }

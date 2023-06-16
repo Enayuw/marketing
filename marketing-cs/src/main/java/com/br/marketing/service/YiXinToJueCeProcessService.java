@@ -12,37 +12,6 @@ public interface YiXinToJueCeProcessService {
     /**
      * 宜信推决策情况 a
      */
-    void  doProcess_A();
-    /**
-     * 宜信推决策情况 b
-     */
-    void  doProcess_B();
-    /**
-     * 宜信推决策情况 c
-     */
-    void  doProcess_C();
-    /**
-     * 宜信推决策情况 d
-     */
-    void  doProcess_D();
-    /**
-     * 宜信推决策情况 e
-     */
-    void  doProcess_E();
-    /**
-     * 宜信推决策情况 f
-     */
-    void  doProcess_F();
-    /**
-     * 宜信推决策情况 g
-     */
-    void  doProcess_G();
-    /**
-     * 宜信推决策情况 h
-     */
-    void  doProcess_H();
-    /**
-     * 宜信推决策情况 i
-     */
-    void  doProcess_I();
+    void  doProcess(String actionType);
+
 }

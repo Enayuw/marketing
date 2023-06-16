@@ -22,7 +22,7 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     }
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_B(String actionType) {
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_C_to_I(String actionType) {
         return null;
     }
 }

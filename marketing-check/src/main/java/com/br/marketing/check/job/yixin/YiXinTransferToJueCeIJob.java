@@ -1,19 +1,14 @@
 package com.br.marketing.check.job.yixin;
 
 
-import com.alibaba.fastjson.JSON;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.service.IYiXinTransferService;
 import com.br.marketing.service.YiXinToJueCeProcessService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
-import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,19 +20,23 @@ import java.util.List;
 @Slf4j
 public class YiXinTransferToJueCeIJob extends AbstractSimpleElasticJob {
 
+    private static final List<String> actonTypeList = new ArrayList<String>(){
+        {
+            add("A");
+            add("B");
+            add("C");
+            add("D");
+            add("E");
+            add("F");
+            add("G");
+            add("H");
+            add("I");
+        }
+    };
     @Resource
     private YiXinToJueCeProcessService yiXinToJueCeProcessService;
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        yiXinToJueCeProcessService.doProcess_A();
-        yiXinToJueCeProcessService.doProcess_B();
-        yiXinToJueCeProcessService.doProcess_C();
-        yiXinToJueCeProcessService.doProcess_D();
-        yiXinToJueCeProcessService.doProcess_E();
-        yiXinToJueCeProcessService.doProcess_F();
-        yiXinToJueCeProcessService.doProcess_G();
-        yiXinToJueCeProcessService.doProcess_H();
-        yiXinToJueCeProcessService.doProcess_I();
-
+        actonTypeList.forEach(e-> yiXinToJueCeProcessService.doProcess(e));
     }
 }
