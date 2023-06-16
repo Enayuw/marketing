@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
+ * 宜信基础剔除规则实现类
  * @author GuangChao.Zhang
  * @version 1.0
  * @date 2023/6/16 17:33

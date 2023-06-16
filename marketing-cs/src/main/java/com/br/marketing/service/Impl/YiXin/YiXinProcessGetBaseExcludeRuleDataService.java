@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl.YiXin;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 
 /**
+ * 宜信基础剔除规则接口
  * @author GuangChao.Zhang
  * @version 1.0
  * @date 2023/6/16 17:29

@@ -5,6 +5,7 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import java.util.List;
 
 /**
+ * 宜信基础数据获取接口
  * @author GuangChao.Zhang
  * @version 1.0
  * @date 2023/6/16 17:38
