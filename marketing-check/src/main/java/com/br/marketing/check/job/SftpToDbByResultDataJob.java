@@ -10,6 +10,7 @@ import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IApiToDbService;
+import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.ITxtToDbService;
 import com.br.marketing.service.Impl.ValidDataAlarmServiceImpl;
 import com.br.marketing.service.SyncConfigService;
@@ -107,6 +108,8 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
+    @Autowired
+    ICompatibleService iCompatibleService;
 
     /**
      * 1、先从customer读取客户
@@ -124,7 +127,8 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
-        List<String> apiCodes = marketingCustomers.stream().map(t -> t.getApiCode()).collect(Collectors.toList());
+        List<String> apiCodes = marketingCustomers.stream().filter(t->iCompatibleService.isAction(t.getExtendConfigInfo()))
+                .map(t -> t.getApiCode()).collect(Collectors.toList());
         SyncConfigExample syncConfigExample = new SyncConfigExample();
         syncConfigExample.createCriteria().andApiCodeIn(apiCodes).andStatusEqualTo(1).andDataTypeEqualTo(3).andTypeEqualTo(1);
         List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);

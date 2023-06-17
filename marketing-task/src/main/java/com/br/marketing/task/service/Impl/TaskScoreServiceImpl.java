@@ -316,7 +316,7 @@ public class TaskScoreServiceImpl {
         String dateAddYyMmDd = DateHelper.getDateAddYyMmDd(0);
         String s = dateAddYyMmDd + num.toString();
         String row = null;
-        int currentPage = Integer.parseInt(s);
+        Integer currentPage = Integer.parseInt(s);
         try (FileReader read = new FileReader(errorFile);
              BufferedReader br = new BufferedReader(read);) {
             List<MarketingSyncUser> list = new ArrayList<>();
@@ -525,7 +525,7 @@ public class TaskScoreServiceImpl {
             Result<List<String>> dataCondition = scoreRuleConfigService.getDataCondition(marketingTaskExtend, blt, day);
             AssertResult.assertResult(dataCondition);
             List<String> conditionDatas = dataCondition.getData();
-            int currentPage = 1;
+            Integer currentPage = 1;
             Integer sumNum = 0;
             long startTime = System.currentTimeMillis();
             //是否是预览跑分

@@ -12,6 +12,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.TransferSyncReportMapper;
 import com.br.marketing.mapper.VariableDicMapper;
+import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.TransferSyncReportService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.MarketingSyncReportNumVO;
@@ -54,6 +55,9 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
+    
+    @Autowired
+    ICompatibleService iCompatibleService;
 
     @Override
     public void reportProcess(Set<String> dateStrSet, int shardingTotalCount, List<Integer> shardingItems) {
@@ -72,6 +76,10 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                 : marketingCommonConfig.getSaMoYeTransferFileApiCodes();
         for (String dateStr : dateStrSet) {
             for (MarketingCustomer customer : customers) {
+                Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo());
+                if(!action){
+                    continue;
+                }
                 String apiCode = customer.getApiCode();
                 String tCid = Optional.ofNullable(customer.getCid()).orElse(other).replace("-", other);
                 boolean smy = smyApiCodes.contains(apiCode);

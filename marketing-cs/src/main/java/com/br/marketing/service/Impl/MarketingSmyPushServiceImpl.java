@@ -67,9 +67,9 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
     private String aesKey;
 
     @Override
-    public void pushSmyUploadDataToDaas() {
+    public void pushSmyUploadDataToDaas(String apiCode) {
         //7410437 为测试apiCode
-        List<MarketingSyncUser> marketingSyncUserList = marketingSyncInfoMapper.getSmyDataByGroupType("3710013", "S09");
+        List<MarketingSyncUser> marketingSyncUserList = marketingSyncInfoMapper.getSmyDataByGroupType(StringUtils.isBlank(apiCode) ? "3710013" : apiCode, "S09");
         List<BatchRealTimeUserDataDTO> subList = new ArrayList<>();
         marketingSyncUserList.stream().forEach(msu -> {
             DassImportDataDTO dassImportDataDTO = new DassImportDataDTO();
@@ -79,7 +79,7 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
             dassImportDataDTO.setName("1");
             dassImportDataDTO.setOrgname("samoye");
             String cell = BrCipherMaker.getInstance().decode(msu.getCell());
-            dassImportDataDTO.setPhone( AESUtil.aesEncrypty(cell, aesKey));
+            dassImportDataDTO.setPhone(AESUtil.aesEncrypty(cell, aesKey));
             dassImportDataDTO.setUserType("1");
 //            dassImportDataDTO.setRecvData();
 //            dassImportDataDTO.setRecvVars();
@@ -103,9 +103,9 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
     }
 
     @Override
-    public void pushSmyTransferDataToDaas() {
+    public void pushSmyTransferDataToDaas(String apiCode) {
         //7410437 为测试apiCode
-        List<MarketingTransferCell> marketingTransferInfoList = marketingTransferInfoMapper.getSmyTransferDataByGroupType("3710013", "S09");
+        List<MarketingTransferCell> marketingTransferInfoList = marketingTransferInfoMapper.getSmyTransferDataByGroupType(StringUtils.isBlank(apiCode) ? "3710013" : apiCode, "S09");
         List<DassTransferDataDTO> dassTransferDataDTOList = new ArrayList<>();
         marketingTransferInfoList.stream().forEach(transfer -> {
             DassTransferDataDTO dassTransferDataDTO = new DassTransferDataDTO();
@@ -114,7 +114,7 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
             dassTransferDataDTO.setSource("23");
             dassTransferDataDTO.setUserType("1");
             String cell = BrCipherMaker.getInstance().decode(transfer.getCell());
-            dassTransferDataDTO.setPhone( cell);
+            dassTransferDataDTO.setPhone(cell);
             dassTransferDataDTO.setPhone(transfer.getCell());
             dassTransferDataDTO.setOrgName("samoye");
             dassTransferDataDTO.setIfTransform("1");
@@ -124,6 +124,7 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
         smyTransferPushDaas(dassTransferDataDTOList);
 
     }
+
     public void smyPushDaas(List<BatchRealTimeUserDataDTO> batchRealTimeUserDataDTOList) {
         /**
          * 批量人工推电销接口 每1000条数据一个批次
@@ -140,17 +141,18 @@ public class MarketingSmyPushServiceImpl implements MarketingSmyPushService {
             }
             DassImportAdapDTO dassImportAdapDTO = new DassImportAdapDTO();
 
-            List<DassImportDataDTO> dataDTOS = subList.stream().map(batchData->batchData.getDassImportDataDTO()).collect(Collectors.toList());
-            List<PhoneSaleExtendInfo> phoneSaleExtendInfos = subList.stream().map(batchData->batchData.getPhoneSaleExtendInfo())
-                    .filter(item-> StringUtils.isNotEmpty(item)).collect(Collectors.toList());
+            List<DassImportDataDTO> dataDTOS = subList.stream().map(batchData -> batchData.getDassImportDataDTO()).collect(Collectors.toList());
+            List<PhoneSaleExtendInfo> phoneSaleExtendInfos = subList.stream().map(batchData -> batchData.getPhoneSaleExtendInfo())
+                    .filter(item -> StringUtils.isNotEmpty(item)).collect(Collectors.toList());
             dassImportAdapDTO.setList(dataDTOS);
             dassImportAdapDTO.setPhoneSaleExtendInfos(phoneSaleExtendInfos);
-            if (!CollectionUtils.isEmpty(phoneSaleExtendInfos)){
+            if (!CollectionUtils.isEmpty(phoneSaleExtendInfos)) {
                 phoneSaleExtendInfoMapper.saveBatch(dassImportAdapDTO.getPhoneSaleExtendInfos());
             }
             methodRetryHandlerService.smyCallDassRealTimeBatchData(dassImportAdapDTO, 0);
         }
     }
+
     public void smyTransferPushDaas(List<DassTransferDataDTO> transferData) {
         /**
          * 萨摩耶转化数据剔除 每500条数据一个批次
