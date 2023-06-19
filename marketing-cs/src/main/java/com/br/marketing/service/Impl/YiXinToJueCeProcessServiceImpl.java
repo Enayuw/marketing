@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,47 +31,73 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     //Todo 1. 查询 a 情况基础数据
     //     2. 数据剔除
     //     3. 数据组装推送
-        List<MarketingTransferSyncUser> marketingTransferSyncUserList;
+        List<MarketingTransferSyncUser> marketingTransferSyncUserList = new ArrayList<>();
         int index=0;
         switch (actionType){
             // a 情况推送
             case "A":
-                while (true){
-                    marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_A(index);
-                    index = marketingTransferSyncUserList.size()-1;
-                    if (marketingTransferSyncUserList.size()==0){
-                        break;
-                    }
-                    marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_A(e)));
-                }
+                marketingTransferSyncUserList = getMarketingTransferSyncUsers_A(index);
                 break;
            // b 情况推送
             case "B":
-                while (true){
-                    marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_B(index);
-                    index = marketingTransferSyncUserList.size()-1;
-                    if(marketingTransferSyncUserList.size()==0){
-                        break;
-                    }
-                    marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_B(e)));
-                }
+                marketingTransferSyncUserList = getMarketingTransferSyncUsers_B(index);
                 break;
            // c~i 情况推送
+            case "C":
+            case "D":
+            case "E":
+            case "F":
+            case "G":
+            case "H":
+            case "I":
+                marketingTransferSyncUserList = getMarketingTransferSyncUsers_C_to_I(actionType, index);
+                break;
             default:
-                while (true){
-                    marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_C_to_I(actionType,index);
-                    index = marketingTransferSyncUserList.size()-1;
-                    if(marketingTransferSyncUserList.size()==0){
-                        break;
-                    }
-                    marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_C_to_I(e)));
-                }
                 break;
         }
-        if(marketingTransferSyncUserList!=null && marketingTransferSyncUserList.size()>0){
+        if(marketingTransferSyncUserList.size()>0){
             // 调用推送决策接口
         }
 
+    }
+
+    private List<MarketingTransferSyncUser> getMarketingTransferSyncUsers_C_to_I(String actionType, int index) {
+        List<MarketingTransferSyncUser> marketingTransferSyncUserList;
+        while (true){
+            marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_C_to_I(actionType, index);
+            index = marketingTransferSyncUserList.size()-1;
+            if(marketingTransferSyncUserList.size()==0){
+                break;
+            }
+            marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_C_to_I(e)));
+        }
+        return marketingTransferSyncUserList;
+    }
+
+    private List<MarketingTransferSyncUser> getMarketingTransferSyncUsers_B(int index) {
+        List<MarketingTransferSyncUser> marketingTransferSyncUserList;
+        while (true){
+            marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_B(index);
+            index = marketingTransferSyncUserList.size()-1;
+            if(marketingTransferSyncUserList.size()==0){
+                break;
+            }
+            marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_B(e)));
+        }
+        return marketingTransferSyncUserList;
+    }
+
+    private List<MarketingTransferSyncUser> getMarketingTransferSyncUsers_A(int index) {
+        List<MarketingTransferSyncUser> marketingTransferSyncUserList;
+        while (true){
+            marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_A(index);
+            index = marketingTransferSyncUserList.size()-1;
+            if (marketingTransferSyncUserList.size()==0){
+                break;
+            }
+            marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_A(e)));
+        }
+        return marketingTransferSyncUserList;
     }
 
 }
