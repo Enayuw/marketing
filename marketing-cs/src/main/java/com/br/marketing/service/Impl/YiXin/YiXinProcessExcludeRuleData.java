@@ -2,7 +2,6 @@ package com.br.marketing.service.Impl.YiXin;
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -24,7 +23,7 @@ public class YiXinProcessExcludeRuleData {
     /**
      * 情况 a 判断剔除
      *
-     * @return
+     * @return 是否剔除，true 剔除  false  不剔除
      */
     public Boolean action_A(MarketingTransferSyncUser marketingTransferSyncUser) {
         return yiXinProcessGetBaseExcludeRuleDataService.excludeRuleFirst(marketingTransferSyncUser)
@@ -36,7 +35,7 @@ public class YiXinProcessExcludeRuleData {
     /**
      * 情况 b 判断剔除
      *
-     * @return
+     * @return 是否剔除，true 剔除  false  不剔除
      */
     public Boolean action_B(MarketingTransferSyncUser marketingTransferSyncUser) {
 
@@ -49,7 +48,7 @@ public class YiXinProcessExcludeRuleData {
     /**
      * 情况 c~i 判断剔除
      *
-     * @return
+     * @return 是否剔除，true 剔除  false  不剔除
      */
     public Boolean action_C_to_I(MarketingTransferSyncUser marketingTransferSyncUser) {
         return yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSecond(marketingTransferSyncUser)

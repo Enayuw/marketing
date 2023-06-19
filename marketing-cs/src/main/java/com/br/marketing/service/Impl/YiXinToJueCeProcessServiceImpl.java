@@ -5,11 +5,9 @@ import com.br.marketing.service.Impl.YiXin.YiXinProcessExcludeRuleData;
 import com.br.marketing.service.Impl.YiXin.YiXinProcessGetBaseDataService;
 import com.br.marketing.service.YiXinToJueCeProcessService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.annotations.Case;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,19 +19,7 @@ import java.util.List;
 @Service
 @Slf4j
 public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessService {
-    private static List<String> actonTypeList = new ArrayList<String>(){
-        {
-            add("A");
-            add("B");
-            add("C");
-            add("D");
-            add("E");
-            add("F");
-            add("G");
-            add("H");
-            add("I");
-        }
-    };
+
     @Resource
     private YiXinProcessGetBaseDataService yiXinProcessGetBaseDataService;
 
@@ -45,7 +31,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     //     2. 数据剔除
     //     3. 数据组装推送
         List<MarketingTransferSyncUser> marketingTransferSyncUserList;
-        Integer index=0;
+        int index=0;
         switch (actionType){
             // a 情况推送
             case "A":
@@ -77,7 +63,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                     if(marketingTransferSyncUserList.size()==0){
                         break;
                     }
-                    marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_B(e)));
+                    marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_C_to_I(e)));
                 }
                 break;
         }
