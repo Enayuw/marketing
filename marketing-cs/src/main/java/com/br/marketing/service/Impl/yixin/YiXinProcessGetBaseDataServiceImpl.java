@@ -16,17 +16,17 @@ import java.util.List;
 @Slf4j
 public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDataService{
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_A(Integer idIndex) {
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_A(Long idIndex) {
         return null;
     }
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_B(Integer idIndex) {
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_B(Long idIndex) {
         return null;
     }
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_C_to_I(String actionType,Integer idIndex) {
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_C_to_I(String actionType,Long idIndex) {
         return null;
     }
 }

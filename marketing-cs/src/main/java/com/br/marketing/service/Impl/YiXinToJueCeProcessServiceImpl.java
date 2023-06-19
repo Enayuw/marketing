@@ -13,6 +13,7 @@ import java.util.List;
 
 /**
  * 宜信推决策流程
+ *
  * @author GuangChao.Zhang
  * @version 1.0
  * @date 2023/6/16 17:23
@@ -26,23 +27,22 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
     @Resource
     private YiXinProcessExcludeRuleData yiXinProcessExcludeRuleData;
+
     @Override
     public void doProcess(String actionType) {
-    //Todo 1. 查询 a 情况基础数据
-    //     2. 数据剔除
-    //     3. 数据组装推送
-        List<MarketingTransferSyncUser> marketingTransferSyncUserList = new ArrayList<>();
-        int index=0;
-        switch (actionType){
+        //Todo 1. 查询 a 情况基础数据
+        //     2. 数据剔除
+        //     3. 数据组装推送
+        switch (actionType) {
             // a 情况推送
             case "A":
-                marketingTransferSyncUserList = getMarketingTransferSyncUsers_A(index);
+                pushMarketingTransferSyncUsers_A();
                 break;
-           // b 情况推送
+            // b 情况推送
             case "B":
-                marketingTransferSyncUserList = getMarketingTransferSyncUsers_B(index);
+                pushMarketingTransferSyncUsers_B();
                 break;
-           // c~i 情况推送
+            // c~i 情况推送
             case "C":
             case "D":
             case "E":
@@ -50,54 +50,61 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             case "G":
             case "H":
             case "I":
-                marketingTransferSyncUserList = getMarketingTransferSyncUsers_C_to_I(actionType, index);
+                getMarketingTransferSyncUsers_C_to_I(actionType);
                 break;
             default:
                 break;
         }
-        if(marketingTransferSyncUserList.size()>0){
-            // 调用推送决策接口
-        }
 
     }
 
-    private List<MarketingTransferSyncUser> getMarketingTransferSyncUsers_C_to_I(String actionType, int index) {
-        List<MarketingTransferSyncUser> marketingTransferSyncUserList;
-        while (true){
-            marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_C_to_I(actionType, index);
-            index = marketingTransferSyncUserList.size()-1;
-            if(marketingTransferSyncUserList.size()==0){
+    private void getMarketingTransferSyncUsers_C_to_I(String actionType) {
+        Long minId = null;;
+        while (true) {
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_C_to_I(actionType, minId);
+            minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
+            if (marketingTransferSyncUserList.size() == 0) {
                 break;
             }
             marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_C_to_I(e)));
+            if (marketingTransferSyncUserList.size() > 0) {
+                // 调用推送决策接口
+            }
+
         }
-        return marketingTransferSyncUserList;
+
     }
 
-    private List<MarketingTransferSyncUser> getMarketingTransferSyncUsers_B(int index) {
-        List<MarketingTransferSyncUser> marketingTransferSyncUserList;
-        while (true){
-            marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_B(index);
-            index = marketingTransferSyncUserList.size()-1;
-            if(marketingTransferSyncUserList.size()==0){
+    private void pushMarketingTransferSyncUsers_B() {
+        Long minId = null;;
+        while (true) {
+            List<MarketingTransferSyncUser>  marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_B(minId);
+            minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
+            if (marketingTransferSyncUserList.size() == 0) {
                 break;
             }
             marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_B(e)));
+            if (marketingTransferSyncUserList.size() > 0) {
+                // 调用推送决策接口
+            }
         }
-        return marketingTransferSyncUserList;
     }
 
-    private List<MarketingTransferSyncUser> getMarketingTransferSyncUsers_A(int index) {
-        List<MarketingTransferSyncUser> marketingTransferSyncUserList;
-        while (true){
-            marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_A(index);
-            index = marketingTransferSyncUserList.size()-1;
-            if (marketingTransferSyncUserList.size()==0){
+
+    private void pushMarketingTransferSyncUsers_A() {
+        Long minId = null;;
+        while (true) {
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_A(minId);
+            minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
+            if (marketingTransferSyncUserList.size() == 0) {
                 break;
             }
             marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_A(e)));
+            if (marketingTransferSyncUserList.size() > 0) {
+                // 调用推送决策接口
+            }
         }
-        return marketingTransferSyncUserList;
+
     }
 
 }

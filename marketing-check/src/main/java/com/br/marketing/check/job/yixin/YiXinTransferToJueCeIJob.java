@@ -53,7 +53,7 @@ public class YiXinTransferToJueCeIJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext context) {
         // 黑名单接口是否推送完成
         // 当前时间是否>11 点 2 者满足其一就推送
-        Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd("apiCode",
+        Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd(marketingCommonConfig.getYiXinGetTransferBlackListToJueCeApiCode(),
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         int hour = LocalDateTime.now().getHour();
         if (pushBlackPhoneEnd || hour >= 11) {
