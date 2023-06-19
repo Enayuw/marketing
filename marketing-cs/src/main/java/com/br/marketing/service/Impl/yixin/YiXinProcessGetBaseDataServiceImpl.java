@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl.yixin;
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUserCell;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -8,7 +9,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * 宜信基础数据实现类
@@ -35,8 +42,8 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
 
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_B(String cid,Long idIndex) {
-
-        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B(cid, marketingCommonConfig.getYiXinTransferToJueCeApiCode(), idIndex);
+        String requestDate = LocalDateTime.now().minus(30,ChronoUnit.DAYS).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B(cid, marketingCommonConfig.getYiXinTransferToJueCeApiCode(), idIndex, requestDate);
     }
 
     @Override
