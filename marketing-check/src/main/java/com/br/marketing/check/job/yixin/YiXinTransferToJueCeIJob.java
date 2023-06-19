@@ -1,13 +1,20 @@
 package com.br.marketing.check.job.yixin;
 
 
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.service.YiXinToJueCeProcessService;
+import com.br.marketing.service.ZnkfPushService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,8 +42,23 @@ public class YiXinTransferToJueCeIJob extends AbstractSimpleElasticJob {
     };
     @Resource
     private YiXinToJueCeProcessService yiXinToJueCeProcessService;
+
+    @Resource
+    private ZnkfPushService znkfPushService;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        actonTypeList.forEach(e-> yiXinToJueCeProcessService.doProcess(e));
+        // 黑名单接口是否推送完成
+        // 当前时间是否>11 点 2 者满足其一就推送
+        Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd("apiCode",
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        int hour = LocalDateTime.now().getHour();
+        if (pushBlackPhoneEnd || hour >= 11) {
+            actonTypeList.forEach(e-> yiXinToJueCeProcessService.doProcess(e));
+        }
     }
 }
+

@@ -1,6 +1,5 @@
 package com.br.marketing.service;
 
-import com.br.marketing.entity.MarketingTransferSyncUser;
 
 /**
  * 宜信转化数据推决策主流程
@@ -10,7 +9,7 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
  */
 public interface YiXinToJueCeProcessService {
     /**
-     * 宜信推决策情况 a
+     * 宜信推决策do方法
      */
     void  doProcess(String actionType);
 
