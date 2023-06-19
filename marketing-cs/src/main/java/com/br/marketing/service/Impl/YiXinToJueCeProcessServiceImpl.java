@@ -4,6 +4,7 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.service.Impl.yixin.YiXinProcessExcludeRuleData;
 import com.br.marketing.service.Impl.yixin.YiXinProcessGetBaseDataService;
 import com.br.marketing.service.YiXinToJueCeProcessService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -28,19 +29,25 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     @Resource
     private YiXinProcessExcludeRuleData yiXinProcessExcludeRuleData;
 
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     @Override
-    public void doProcess(String actionType) {
+    public void doProcess(String actionType,String tcId) {
         //Todo 1. 查询 a 情况基础数据
         //     2. 数据剔除
         //     3. 数据组装推送
         switch (actionType) {
             // a 情况推送
             case "A":
-                pushMarketingTransferSyncUsers_A();
+                pushMarketingTransferSyncUsers_A(tcId);
                 break;
             // b 情况推送
             case "B":
-                pushMarketingTransferSyncUsers_B();
+                pushMarketingTransferSyncUsers_B(tcId);
                 break;
             // c~i 情况推送
             case "C":
@@ -50,18 +57,20 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             case "G":
             case "H":
             case "I":
-                getMarketingTransferSyncUsers_C_to_I(actionType);
+                getMarketingTransferSyncUsers_C_to_I(actionType,tcId);
                 break;
             default:
+                log.warn("宜信转化数据推决策类型异常");
                 break;
         }
 
     }
 
-    private void getMarketingTransferSyncUsers_C_to_I(String actionType) {
-        Long minId = null;;
+    private void getMarketingTransferSyncUsers_C_to_I(String actionType,String tcId) {
+        Long minId = null;
+
         while (true) {
-            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_C_to_I(actionType, minId);
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_C_to_I(tcId,actionType, minId);
             minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             if (marketingTransferSyncUserList.size() == 0) {
                 break;
@@ -75,10 +84,11 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
     }
 
-    private void pushMarketingTransferSyncUsers_B() {
-        Long minId = null;;
+    private void pushMarketingTransferSyncUsers_B(String tcId) {
+        Long minId = null;
         while (true) {
-            List<MarketingTransferSyncUser>  marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_B(minId);
+
+            List<MarketingTransferSyncUser>  marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_B(tcId,minId);
             minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             if (marketingTransferSyncUserList.size() == 0) {
                 break;
@@ -91,10 +101,10 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     }
 
 
-    private void pushMarketingTransferSyncUsers_A() {
-        Long minId = null;;
+    private void pushMarketingTransferSyncUsers_A(String tcId) {
+        Long minId = null;
         while (true) {
-            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_A(minId);
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_A(tcId,minId);
             minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             if (marketingTransferSyncUserList.size() == 0) {
                 break;

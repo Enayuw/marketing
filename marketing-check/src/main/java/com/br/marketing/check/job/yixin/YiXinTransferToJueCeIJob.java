@@ -1,18 +1,17 @@
 package com.br.marketing.check.job.yixin;
 
 
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.YiXinToJueCeProcessService;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -49,6 +48,8 @@ public class YiXinTransferToJueCeIJob extends AbstractSimpleElasticJob {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         // 黑名单接口是否推送完成
@@ -56,8 +57,9 @@ public class YiXinTransferToJueCeIJob extends AbstractSimpleElasticJob {
         Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd(marketingCommonConfig.getYiXinGetTransferBlackListToJueCeApiCode(),
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         int hour = LocalDateTime.now().getHour();
+        String tcId = tableCreateService.getTcId(marketingCommonConfig.getYiXinTransferToJueCeApiCode());
         if (pushBlackPhoneEnd || hour >= 11) {
-            actonTypeList.forEach(e-> yiXinToJueCeProcessService.doProcess(e));
+            actonTypeList.forEach(e-> yiXinToJueCeProcessService.doProcess(e,tcId));
         }
     }
 }

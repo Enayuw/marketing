@@ -11,6 +11,6 @@ public interface YiXinToJueCeProcessService {
     /**
      * 宜信推决策do方法
      */
-    void  doProcess(String actionType);
+    void  doProcess(String actionType,String tcId);
 
 }

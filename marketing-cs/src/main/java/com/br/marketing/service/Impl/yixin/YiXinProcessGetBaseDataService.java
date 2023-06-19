@@ -18,7 +18,7 @@ public interface YiXinProcessGetBaseDataService {
      * @param idIndex 循环查询的最大 id
      * @return 转化数据列表
      */
-    List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_A(Long idIndex);
+    List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_A(String cid,Long idIndex);
 
     /**
      * 情况 b 基础数据获取接口
@@ -26,7 +26,7 @@ public interface YiXinProcessGetBaseDataService {
      * @param idIndex 循环查询的最大 id
      * @return 转化数据列表
      */
-    List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_B(Long idIndex);
+    List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_B(String cid,Long idIndex);
 
     /**
      * 情况 c~i 基础数据获取接口
@@ -35,5 +35,5 @@ public interface YiXinProcessGetBaseDataService {
      * @param idIndex 循环查询的最大 id
      * @return 转化数据列表
      */
-    List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_C_to_I(String actionType,Long idIndex);
+    List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_C_to_I(String cid,String actionType,Long idIndex);
 }

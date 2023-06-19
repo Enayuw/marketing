@@ -521,4 +521,9 @@
     </foreach>
     ) t where num = 1
     </select>
+    <select id="getYxTransferByApiCode_B" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+
+    </select>
+
+
 </mapper>
