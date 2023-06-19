@@ -1,4 +1,4 @@
-package com.br.marketing.service.Impl.YiXin;
+package com.br.marketing.service.Impl.yixin;
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
 

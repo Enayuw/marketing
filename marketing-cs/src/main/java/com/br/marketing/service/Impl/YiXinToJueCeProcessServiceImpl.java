@@ -1,8 +1,8 @@
 package com.br.marketing.service.Impl;
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.service.Impl.YiXin.YiXinProcessExcludeRuleData;
-import com.br.marketing.service.Impl.YiXin.YiXinProcessGetBaseDataService;
+import com.br.marketing.service.Impl.yixin.YiXinProcessExcludeRuleData;
+import com.br.marketing.service.Impl.yixin.YiXinProcessGetBaseDataService;
 import com.br.marketing.service.YiXinToJueCeProcessService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
