@@ -1,6 +1,8 @@
 package com.br.marketing.service.Impl.YiXin;
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -10,6 +12,8 @@ import java.util.List;
  * @version 1.0
  * @date 2023/6/16 17:39
  */
+@Service
+@Slf4j
 public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDataService{
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_A() {

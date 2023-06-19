@@ -46,14 +46,17 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     //     3. 数据组装推送
         List<MarketingTransferSyncUser> marketingTransferSyncUserList;
         switch (actionType){
+            // a 情况推送
             case "A":
                 marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_A();
                 marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_A(e)));
                 break;
+           // b 情况推送
             case "B":
                 marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_B();
                 marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_B(e)));
                 break;
+           // c~i 情况推送
             default:
                 marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_C_to_I(actionType);
                 marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_C_to_I(e)));

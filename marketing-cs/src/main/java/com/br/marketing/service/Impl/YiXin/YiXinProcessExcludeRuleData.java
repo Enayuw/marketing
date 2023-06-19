@@ -1,7 +1,9 @@
 package com.br.marketing.service.Impl.YiXin;
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
@@ -12,7 +14,8 @@ import javax.annotation.Resource;
  * @version 1.0
  * @date 2023/6/16 17:27
  */
-@Component
+@Service
+@Slf4j
 public class YiXinProcessExcludeRuleData {
 
     @Resource
