@@ -522,14 +522,17 @@
     ) t where num = 1
     </select>
     <select id="getYxTransferByApiCode_B" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-        select b.* from  (select *,MAX(insert_time) as insertTime from b_marketing_transfer_sync_${tCid}
-                        where  api_code = #{apiCode}
-                    <if test="minId != null and minId >0">
-                        and id > #{minId}
-                    </if>
-                     and json_extract(reserve_field1,"$.transformType")  !=1request_data = #{requestDate} and  type =12  group by cust_num) b
-            left join b_marketing_transfer_sync_${tCid} a on a.cust_num = b.cust_num and a.insert_time = b.insertTime limit 10000
-
+        Select b.*
+        From (select a.* , row_number() over(partition by insert_time order by id asc) as rn
+        From b_marketing_transfer_sync_${tCid} a
+        where api_code =#{apiCode}
+        <if test="minId != null and minId >0">
+                and id > #{minId}
+        </if>
+        and (json_extract(reserve_field1,"$.transformType") !=1 or json_extract(reserve_field1,"$.transformType") is null)
+        and request_data = #{requestDate}
+        and type =12 ) b
+        Where b.rn = 1 limit 10000;
     </select>
 
 
