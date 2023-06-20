@@ -16,6 +16,7 @@ import com.br.marketing.service.YiXinToJueCeProcessService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -157,10 +158,45 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      */
     private void pushJc(String actionType, List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists) {
         String apiCodeJc = marketingCommonConfig.getYiXinTransferToJueCeApiCode();
-        ArrayList<DataJoinLogDTO> logList = new ArrayList<>();
-        ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
+        // 2000 拆分一组
+        List<List<MarketingTransferSyncUserCell>> partition = ListUtils.partition(marketingTransferSyncUserCellLists, 2000);
+        partition.forEach(marketingTransferSyncUserCells->{
+            ArrayList<DataJoinLogDTO> logList = new ArrayList<>();
+            ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
+            // 决策数据初始化 pushs
+            pushDataInit(actionType, apiCodeJc, marketingTransferSyncUserCells, logList, pushs);
+            // 封装重试参数
+            PolicyRetryByRuleSoleDTO retryByRuleDTO = getPolicyRetryByRuleSoleDTO(actionType, apiCodeJc, logList, pushs);
+            // 推送决策方法
+            methodRetryHandlerService.callPolicySoleData(retryByRuleDTO, 0);
+        });
 
-        marketingTransferSyncUserCellLists.forEach(marketingTransferSyncUserCell -> {
+    }
+
+    private PolicyRetryByRuleSoleDTO getPolicyRetryByRuleSoleDTO(String actionType, String apiCodeJc, ArrayList<DataJoinLogDTO> logList, ArrayList<PushMarketingUserDetailDTO> pushs) {
+        PolicyRetryByRuleSoleDTO retryByRuleDTO = new PolicyRetryByRuleSoleDTO();
+        retryByRuleDTO.setApiCode(apiCodeJc);
+        retryByRuleDTO.setBatchNumber(DateFormatUtils.format(new Date(), "yyyyMMdd") + apiCodeJc + actionType);
+        retryByRuleDTO.setStrategyCode(marketingCommonConfig.getYxXinToJueCeStrategyMap().get(apiCodeJc));
+        retryByRuleDTO.setData(pushs);
+        retryByRuleDTO.setDetailLogList(logList);
+        //传参去重
+        retryByRuleDTO.setIsSole(true);
+        if (actionType.equals("a")) {
+            // a 情况 7 天配置
+
+            //2-根据apicode cell,status 维度去重
+            retryByRuleDTO.setSoleField(3);
+
+        }else {
+            // 1-apiCode,cell
+            retryByRuleDTO.setSoleField(2);
+        }
+        return retryByRuleDTO;
+    }
+
+    private void pushDataInit(String actionType, String apiCodeJc, List<MarketingTransferSyncUserCell> marketingTransferSyncUserCells, ArrayList<DataJoinLogDTO> logList, ArrayList<PushMarketingUserDetailDTO> pushs) {
+        marketingTransferSyncUserCells.forEach(marketingTransferSyncUserCell -> {
                     PushMarketingUserDetailDTO marketingUserDetailDTO = new PushMarketingUserDetailDTO();
                     marketingUserDetailDTO.setCaseNumber(marketingTransferSyncUserCell.getCustNum());
                     // log解密  md5加密
@@ -174,25 +210,6 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                             , null, DistributeSourceTypeEnum.TRANSFER, actionType, null));
                 }
         );
-
-        PolicyRetryByRuleSoleDTO retryByRuleDTO = new PolicyRetryByRuleSoleDTO();
-        retryByRuleDTO.setApiCode(apiCodeJc);
-        retryByRuleDTO.setBatchNumber(DateFormatUtils.format(new Date(), "yyyyMMdd") + apiCodeJc + actionType);
-        retryByRuleDTO.setStrategyCode(marketingCommonConfig.getYxXinToJueCeStrategyMap().get(apiCodeJc));
-        retryByRuleDTO.setData(pushs);
-        retryByRuleDTO.setDetailLogList(logList);
-        //传参去重
-        retryByRuleDTO.setIsSole(true);
-        //2-根据apicode cell,status 维度去重
-        retryByRuleDTO.setSoleField(3);
-        switch (actionType){
-            case "a":
-                break;
-            default:
-                retryByRuleDTO.setSoleDay(1);
-                break;
-        }
-        methodRetryHandlerService.callPolicySoleData(retryByRuleDTO, 0);
     }
 
     private JSONObject variablesInit(MarketingTransferSyncUserCell marketingTransferSyncUserCell, String cell, String actionType) {
