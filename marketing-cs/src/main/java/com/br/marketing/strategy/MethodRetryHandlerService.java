@@ -27,6 +27,7 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
+import com.br.marketing.client.robotaiapi.output.TransferRobotDataVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.client.zhongan.ZhongAnClient;
@@ -303,9 +304,9 @@ public class MethodRetryHandlerService {
      * @return
      */
     @RetryMethod(isOrNoDbRetry = true)
-    public Result<TransferRobotOutboundVO<UnsuccessfulData>> callCustomerTransfer(TransferRobotOutboundDTO robotOutboundDTO, Integer retry) {
-        TransferRobotOutboundVO<UnsuccessfulData> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
-        if (!"9999".equals(transferRobotOutboundVO.getCode())) {
+    public Result<TransferRobotOutboundVO<TransferRobotDataVO>> callCustomerTransfer(TransferRobotOutboundDTO robotOutboundDTO, Integer retry) {
+        TransferRobotOutboundVO<TransferRobotDataVO> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
+        if (!"9999".equals(transferRobotOutboundVO.getCode()) && getAllSuccessful(transferRobotOutboundVO)) {
             List<ConversionData> conversionData = robotOutboundDTO.getJsonData().getConversionData();
             Set<String> set = conversionData.stream().map(ConversionData::getDataId).collect(Collectors.toSet());
             saveBizLog(String.join(",", set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), robotOutboundDTO.getTransferInfoId());
@@ -324,7 +325,7 @@ public class MethodRetryHandlerService {
      */
     @RetryMethod(isOrNoDbRetry = true)
     @DistributeLog
-    public Result<TransferRobotOutboundVO<UnsuccessfulData>> callCustomerTransfer(TransferRobotOutboundSoleDTO robotOutboundDTO, Integer retry) {
+    public Result<TransferRobotOutboundVO<TransferRobotDataVO>> callCustomerTransfer(TransferRobotOutboundSoleDTO robotOutboundDTO, Integer retry) {
         if(robotOutboundDTO.getData().size()<=0){
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         }
@@ -332,8 +333,8 @@ public class MethodRetryHandlerService {
         transferRobotOutboundDTO.setTransferInfoId(robotOutboundDTO.getTransferInfoId());
         transferRobotOutboundDTO.setApiCode(robotOutboundDTO.getApiCode());
         transferRobotOutboundDTO.setJsonData(new TransferJsonDataDTO(robotOutboundDTO.getData(),robotOutboundDTO.getLast()));
-        TransferRobotOutboundVO<UnsuccessfulData> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(transferRobotOutboundDTO);
-        if (!"9999".equals(transferRobotOutboundVO.getCode())) {
+        TransferRobotOutboundVO<TransferRobotDataVO> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(transferRobotOutboundDTO);
+        if (!"9999".equals(transferRobotOutboundVO.getCode()) && getAllSuccessful(transferRobotOutboundVO)) {
             Set<Long> set = robotOutboundDTO.getDetailLogList().stream().map(DataDistributeDetailLog::getSourceId).collect(toSet());
             saveBizLog(Joiner.on(",").join(set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), robotOutboundDTO.getTransferInfoId());
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(transferRobotOutboundVO);
@@ -343,6 +344,14 @@ public class MethodRetryHandlerService {
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
     }
 
+    private static Boolean getAllSuccessful(TransferRobotOutboundVO<TransferRobotDataVO> transferRobotOutboundVO) {
+        // 当unsuccessfulData数组中有值时，需要重试
+        Boolean allSuccessful = Boolean.FALSE;
+        if (null != transferRobotOutboundVO.getData() && CollectionUtils.isEmpty(transferRobotOutboundVO.getData().getUnsuccessfulData())) {
+            allSuccessful = Boolean.TRUE;
+        }
+        return allSuccessful;
+    }
 
     void saveBizLog(String data, Integer handlerEnum, Long infoId) {
         DataCompare dataCompare = new DataCompare(data, handlerEnum, infoId);

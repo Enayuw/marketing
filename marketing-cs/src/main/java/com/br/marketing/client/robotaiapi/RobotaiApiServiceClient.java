@@ -69,7 +69,6 @@ public class RobotaiApiServiceClient {
             return result;
         }catch (Exception ex){
             log.warn(ex.getMessage(), ex);
-            alarmApiClient.sendAlarm(ex.getMessage(), "", AlarmSendCodeEnum.ERROR_UNKNOWN.getCode());
             TransferRobotOutboundVO<UnsuccessfulData> result = new TransferRobotOutboundVO();
             result.setCode("9999");
             result.setMessage(ex.getMessage());
@@ -77,7 +76,7 @@ public class RobotaiApiServiceClient {
         }
     }
 
-    public TransferRobotOutboundVO<UnsuccessfulData> pushRobotai(TransferRobotOutboundDTO dto){
+    public TransferRobotOutboundVO<TransferRobotDataVO> pushRobotai(TransferRobotOutboundDTO dto){
         dto.getJsonData().setPlatApiCode(customerServiceApiCode);
         try{
             ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate,interfaceLogMapper,logDbpool)
@@ -87,13 +86,12 @@ public class RobotaiApiServiceClient {
             if(!Integer.valueOf(200).equals(transfer.getHttpCode())){
                 throw new RuntimeException("客服中心：".concat(String.valueOf(transfer.getHttpCode())));
             }
-            TransferRobotOutboundVO<UnsuccessfulData> result = JSON.parseObject(transfer.getResult()
-                    ,new TypeReference<TransferRobotOutboundVO>(){}.getType());
+            TransferRobotOutboundVO<TransferRobotDataVO> result = JSON.parseObject(transfer.getResult()
+                    ,new TypeReference<TransferRobotOutboundVO<TransferRobotDataVO>>(){}.getType());
             return result;
         }catch (Exception ex){
             log.warn(ex.getMessage(), ex);
-            alarmApiClient.sendAlarm(ex.getMessage(), "", AlarmSendCodeEnum.ERROR_UNKNOWN.getCode());
-            TransferRobotOutboundVO<UnsuccessfulData> result = new TransferRobotOutboundVO();
+            TransferRobotOutboundVO<TransferRobotDataVO> result = new TransferRobotOutboundVO();
             result.setCode("9999");
             result.setMessage(ex.getMessage());
             return result;
