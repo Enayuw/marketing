@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -30,14 +32,17 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
-
-
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_A(String cid,Long idIndex) {
-        return null;
+        // todo
+        // 取apicode
+        String apiCode = "";
+        // 获取前一天的日期
+        String yesterday = LocalDate.now().minusDays(1).toString();
+        return marketingTransferSyncUserMapper.getYxTransferByApiCode_A(cid,apiCode,yesterday,idIndex);
     }
 
     @Override

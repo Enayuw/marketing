@@ -331,4 +331,9 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     List<MarketingTransferSyncUser> getYxTransferByApiCode_B(@Param("tCid") String tcId,@Param("apiCode") String apiCode,@Param("minId") Long minId, @Param("requestData") String requestData);
 
+    List<MarketingTransferSyncUser> getYxTransferByApiCode_A(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("yesterday") String yesterday
+            , @Param("minId") Long minId);
+
+    int get_ExcludeRuleFirst_YxTransferByApiCode_A(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("today") String today, @Param("cust_num") String cust_num);
+
 }

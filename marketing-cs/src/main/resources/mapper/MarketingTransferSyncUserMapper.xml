@@ -530,10 +530,34 @@
                 and id > #{minId}
         </if>
         and (json_extract(reserve_field1,"$.transformType") !=1 or json_extract(reserve_field1,"$.transformType") is null)
-        and request_data = #{requestDate}
+        and request_data = #{requestData}
         and type =12 ) b
         Where b.rn = 1 limit 10000;
     </select>
 
+    <select id="getYxTransferByApiCode_A" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select b.*
+                from (select id, max(insert_time) as insert_time
+                      from b_marketing_transfer_sync_${cid}
+                where request_data = #{yesterday}
+                  and api_code = #{apiCode}
+                  and json_extract(reserve_field1,'$.transformType') = '1'
+                  and json_extract(reserve_field1,'$.liveType') in (4, 6)
+        <if test="minId != null and minId > 0">
+            and id > #{minId}
+        </if>
+        group by cust_num limit 20000) as a
+                left join b_marketing_transfer_sync_${cid} b on a.id = b.id;
+    </select>
+
+    <select id="get_ExcludeRuleFirst_YxTransferByApiCode_A" resultType="java.lang.Integer">
+        select count(1)
+        from b_marketing_transfer_sync_${cid}
+        where request_data = #{today}
+          and api_code = #{apiCode}
+          and json_extract(reserve_field1, '$.transformType') != '1'
+          and type != 13
+          and cust_num = #{cust_num};
+    </select>
 
 </mapper>
