@@ -734,5 +734,10 @@ public class MarketingCommonConfig {
      * 宜信推决策 apiCode 配置 推决策数据集 apiCode
      */
     private String yiXinTransferToJueCeApiCode;
+
+    /**
+     * 宜信转化数据推决策策略编号设置
+     */
+    private Map<String, String> yxXinToJueCeStrategyMap;
 }
 
