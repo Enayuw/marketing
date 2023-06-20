@@ -1,6 +1,7 @@
 package com.br.marketing.check.job.yixin;
 
 
+import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.YiXinToJueCeProcessService;
 import com.br.marketing.service.ZnkfPushService;
@@ -11,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -50,6 +50,9 @@ public class YiXinTransferToJueCeIJob extends AbstractSimpleElasticJob {
 
     @Resource
     private TableCreateServiceImpl tableCreateService;
+
+    @Resource
+    private MarketingTransferInfoMapper marketingTransferInfoMapper;
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         // 黑名单接口是否推送完成
@@ -58,6 +61,8 @@ public class YiXinTransferToJueCeIJob extends AbstractSimpleElasticJob {
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         int hour = LocalDateTime.now().getHour();
         String tcId = tableCreateService.getTcId(marketingCommonConfig.getYiXinTransferToJueCeApiCode());
+
+
         if (pushBlackPhoneEnd || hour >= 11) {
             actonTypeList.forEach(e-> yiXinToJueCeProcessService.doProcess(e,tcId));
         }

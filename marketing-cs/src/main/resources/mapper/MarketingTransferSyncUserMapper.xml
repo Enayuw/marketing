@@ -523,7 +523,7 @@
     </select>
     <select id="getYxTransferByApiCode_B" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         Select b.*
-        From (select a.* , row_number() over(partition by insert_time order by id asc) as rn
+        From (select a.* , row_number() over(partition by cust_num order by insert_time desc) as rn
         From b_marketing_transfer_sync_${tCid} a
         where api_code =#{apiCode}
         <if test="minId != null and minId >0">
@@ -532,7 +532,7 @@
         and (json_extract(reserve_field1,"$.transformType") !=1 or json_extract(reserve_field1,"$.transformType") is null)
         and request_data = #{requestData}
         and type =12 ) b
-        Where b.rn = 1 limit 10000;
+        Where b.rn = 1 limit 10000 ;
     </select>
 
     <select id="getYxTransferByApiCode_A" resultType="com.br.marketing.entity.MarketingTransferSyncUser">

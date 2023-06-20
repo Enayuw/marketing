@@ -48,7 +48,7 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_B(String cid,Long idIndex) {
         String requestDate = LocalDateTime.now().minus(30,ChronoUnit.DAYS).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B(cid, marketingCommonConfig.getYiXinTransferToJueCeApiCode(), idIndex, requestDate);
+        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B(cid, marketingCommonConfig.getYiXinGetTransferToJueCeApiCode(), idIndex, requestDate);
     }
 
     @Override
