@@ -575,5 +575,12 @@
           and cust_num = #{cust_num}
           and case_effective = '0';
     </select>
+    <select id="getYiXinMin_B_to_C_to_I" resultType="java.lang.Long">
+        select min(id)
+        from b_marketing_transfer_sync_${cid}
+        where api_code = #{apiCode}
+          and request_data = #{requestData}
+          and type = #{actionType};
+    </select>
 
 </mapper>

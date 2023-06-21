@@ -6,6 +6,7 @@ import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.statement.create.table.Index;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -47,13 +48,17 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
 
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_B(String cid,Long idIndex) {
+        String  apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         String requestDate = LocalDate.now().minusDays(30).toString();
-        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_I(cid, marketingCommonConfig.getYiXinGetTransferToJueCeApiCode(), idIndex, requestDate, "12");
+        idIndex = idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_B_to_C_to_I(cid, apiCode, requestDate, "12") : idIndex;
+        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_I(cid, apiCode, idIndex, requestDate, "12");
     }
 
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_C_to_I(String cid,String actionType,Long idIndex) {
         String requestDate = LocalDate.now().toString();
-        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_I(cid, marketingCommonConfig.getYiXinGetTransferToJueCeApiCode(), idIndex, requestDate, actionType);
+        String  apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        idIndex = idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_B_to_C_to_I(cid,apiCode,requestDate,actionType) : idIndex;
+        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_I(cid, apiCode, idIndex, requestDate, actionType);
     }
 }

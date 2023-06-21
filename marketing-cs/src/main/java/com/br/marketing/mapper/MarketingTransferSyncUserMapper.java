@@ -340,4 +340,5 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     int get_ExcludeRuleSecond_YxTransferByApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("cust_num") String cust_num);
 
+    Long getYiXinMin_B_to_C_to_I(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("requestData") String requestData, @Param("actionType") String actionType);
 }
