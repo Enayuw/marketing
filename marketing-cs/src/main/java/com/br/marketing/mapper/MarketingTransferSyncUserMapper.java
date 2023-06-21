@@ -329,7 +329,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     List<MarketingTransferSyncUser> getTransferByCustNumOrderDatatikv_(@Param("tCid") String tcId,@Param("custNums") List<String> custNums);
 
-    List<MarketingTransferSyncUser> getYxTransferByApiCode_B(@Param("tCid") String tcId,@Param("apiCode") String apiCode,@Param("minId") Long minId, @Param("requestData") String requestData);
+    List<MarketingTransferSyncUser> getYxTransferByApiCode_B_to_C_to_I(@Param("tCid") String tcId,@Param("apiCode") String apiCode,@Param("minId") Long minId, @Param("requestData") String requestData,@Param("actionType") String actionType);
 
     List<MarketingTransferSyncUser> getYxTransferByApiCode_A(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("yesterday") String yesterday
             , @Param("minId") Long minId);

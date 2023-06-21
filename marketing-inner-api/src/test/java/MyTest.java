@@ -656,12 +656,14 @@ public class MyTest {
 
     @Test
     public void testSm3() throws IOException {
-        String nn = Sm3Util.getSM3Value("wzq" + "9a3a4beb9508b71114ac8346122067250d205c5b123b6be277e72245ac39738b");
-        System.out.println(nn.toLowerCase());
-        String mm = nn.toLowerCase() + "dyih";
-        String sm3Value = Sm3Util.getSM3Value(mm).toLowerCase();
-        //String sm3Value =  Sm3Util.getSM3Value("b42b692a53777f13a894a881b24492fe86e06838ae23e91ac9f2ba43050bc448dyih");
-        System.out.println(sm3Value);
+//        String nn = Sm3Util.getSM3Value("wzq" + "9a3a4beb9508b71114ac8346122067250d205c5b123b6be277e72245ac39738b");
+//        System.out.println(nn.toLowerCase());
+//        String mm = nn.toLowerCase() + "dyih";
+//        String sm3Value = Sm3Util.getSM3Value(mm).toLowerCase();
+//        //String sm3Value =  Sm3Util.getSM3Value("b42b692a53777f13a894a881b24492fe86e06838ae23e91ac9f2ba43050bc448dyih");
+//        System.out.println(sm3Value);
+        LocalDate date = LocalDate.now();
+        System.out.println(date);
     }
 
 

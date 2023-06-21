@@ -9,6 +9,7 @@ import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.service.Impl.yixin.YiXinProcessExcludeRuleData;
 import com.br.marketing.service.Impl.yixin.YiXinProcessGetBaseDataService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
@@ -55,6 +56,8 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
+
+
     @Override
     public void doProcess(String actionType, String tcId) {
         switch (actionType) {
@@ -84,6 +87,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * @param tcId cid
      */
     private void getMarketingTransferSyncUsers_C_to_I(String actionType, String tcId) {
+
         Long minId = null;
         while (true) {
             List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_C_to_I(tcId, actionType, minId);
