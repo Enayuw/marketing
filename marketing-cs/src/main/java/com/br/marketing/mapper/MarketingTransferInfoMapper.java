@@ -38,4 +38,9 @@ public interface MarketingTransferInfoMapper extends MarketingTransferInfoMapper
 
     @Select("select bt.*,bs.cell from b_marketing_transfer_${apiCode} bt left join b_marketing_sync_${apiCode} bs on bt.cust_num = bs.cust_num where TO_DAYS(bt.create_time) = TO_DAYS(NOW()) and  bt.group_type = #{groupType} and bt.reserve_field1 =1")
     List<MarketingTransferCell> getSmyTransferDataByGroupType(@Param("apiCode") String apiCode, @Param("groupType") String groupType);
+
+
+
+    @Select("SELECT count(1) FROM b_marketing_transfer_info WHERE  api_code=#{apiCode} and date_format(create_time,'%Y-%m-%d') = str_to_date(#{createTime},'%Y-%m-%d') and last=#{last}")
+    List<Long> countByApiCodAndLastOne(@Param("apiCode") String apiCode, @Param("createTime") Date createTime, @Param("last") String last);
 }
