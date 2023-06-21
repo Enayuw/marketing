@@ -42,5 +42,5 @@ public interface MarketingTransferInfoMapper extends MarketingTransferInfoMapper
 
 
     @Select("SELECT count(1) FROM b_marketing_transfer_info WHERE  api_code=#{apiCode} and date_format(create_time,'%Y-%m-%d') = str_to_date(#{createTime},'%Y-%m-%d') and last=#{last}")
-    List<Long> countByApiCodAndLastOne(@Param("apiCode") String apiCode, @Param("createTime") Date createTime, @Param("last") String last);
+    int  countByApiCodAndLastOne(@Param("apiCode") String apiCode, @Param("createTime") Date createTime, @Param("last") String last);
 }
