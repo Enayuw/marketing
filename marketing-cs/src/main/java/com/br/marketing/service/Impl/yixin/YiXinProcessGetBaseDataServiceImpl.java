@@ -1,24 +1,17 @@
 package com.br.marketing.service.Impl.yixin;
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserCell;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import net.sf.jsqlparser.statement.create.table.Index;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * 宜信基础数据实现类
@@ -40,10 +33,14 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_A(String cid,Long idIndex) {
         // todo
         // 取apicode
-        String apiCode = "";
+        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        if (StringUtils.isBlank(apiCode)) {
+            log.error("宜信推送决策未配置apicode");
+            return Collections.emptyList();
+        }
         // 获取前一天的日期
         String yesterday = LocalDate.now().minusDays(1).toString();
-        return marketingTransferSyncUserMapper.getYxTransferByApiCode_A(cid,apiCode,yesterday,idIndex);
+        return marketingTransferSyncUserMapper.getYxTransferByApiCode_A(cid, apiCode, yesterday, idIndex);
     }
 
     @Override
