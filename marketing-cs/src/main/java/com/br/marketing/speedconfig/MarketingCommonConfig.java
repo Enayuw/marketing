@@ -723,15 +723,12 @@ public class MarketingCommonConfig {
     private HashMap<String, List<String>> customerBlackListApiCodes;
 
     /**
-     * 宜信推决策 apiCode 配置 转化数据获取 apiCode
+     * 宜信推决策 查询转化数据的 apiCode
      */
     private String yiXinGetTransferToJueCeApiCode;
+
     /**
-     * 宜信推决策 apiCode 配置 黑名单 blackList数据获取 apiCode
-     */
-    private String yiXinGetTransferBlackListToJueCeApiCode;
-    /**
-     * 宜信推决策 apiCode 配置 推决策数据集 apiCode
+     * 宜信推决策  推决策数据集的 apiCode
      */
     private String yiXinTransferToJueCeApiCode;
 

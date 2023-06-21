@@ -13,11 +13,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -29,7 +27,7 @@ import java.util.List;
 @Slf4j
 public class YiXinTransferToJueCeIJob extends AbstractSimpleElasticJob {
 
-    private static final List<String> actonTypeList = new ArrayList<String>(){
+    private static final List<String> actonTypeList = new ArrayList<String>() {
         {
             add("A");
             add("B");
@@ -56,28 +54,30 @@ public class YiXinTransferToJueCeIJob extends AbstractSimpleElasticJob {
 
     @Resource
     private MarketingTransferInfoMapper marketingTransferInfoMapper;
+
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        String apiCodeBlack = marketingCommonConfig.getYiXinGetTransferBlackListToJueCeApiCode();
-        String apiCodeToJueCe =marketingCommonConfig.getYiXinTransferToJueCeApiCode();
-        String apiCodeTransfer = marketingCommonConfig.getYiXinGetTransferBlackListToJueCeApiCode();
-        if (StringUtils.isBlank(apiCodeBlack) || StringUtils.isBlank(apiCodeToJueCe) ||StringUtils.isBlank(apiCodeTransfer) ) {
-            log.error("宜信推送决策未配置apiCode");
-        }
+        String apiCodeTransfer = checkApiCode();
         // 黑名单接口是否推送完成
         // 当前时间是否>11 点 2 者满足其一就推送
-        Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd(apiCodeBlack,
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-        int hour = LocalDateTime.now().getHour();
-        String tcId = tableCreateService.getTcId(apiCodeToJueCe);
-        if(marketingTransferInfoMapper.countByApiCodAndLastOne(apiCodeTransfer, new Date(), "1")>0){
-            if (pushBlackPhoneEnd || hour >= 11) {
-                actonTypeList.forEach(e-> yiXinToJueCeProcessService.doProcess(e,tcId));
+        Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd(apiCodeTransfer, LocalDate.now().toString());
+        // 判断当天转化数据是否传输完成
+        if (marketingTransferInfoMapper.countByApiCodAndLastOne(apiCodeTransfer, LocalDate.now().toString(), "1") > 0) {
+            if (pushBlackPhoneEnd || LocalDateTime.now().getHour() >= 11) {
+                actonTypeList.forEach(e -> yiXinToJueCeProcessService.doProcess(e, tableCreateService.getTcId(apiCodeTransfer)));
             }
-        }else {
+        } else {
             log.error("宜信转化数据没有上传完成！");
         }
 
+    }
+
+    private String checkApiCode() {
+        String apiCodeTransfer = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        if (StringUtils.isBlank(apiCodeTransfer)) {
+            log.error("宜信推送决策未配置apiCode");
+        }
+        return apiCodeTransfer;
     }
 }
 

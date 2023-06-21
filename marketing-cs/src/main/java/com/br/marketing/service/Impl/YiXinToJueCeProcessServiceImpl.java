@@ -185,16 +185,8 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         retryByRuleDTO.setDetailLogList(logList);
         //传参去重
         retryByRuleDTO.setIsSole(true);
-        if (actionType.equals("a")) {
-            // a 情况 7 天配置
-
-            //2-根据apicode cell,status 维度去重
-            retryByRuleDTO.setSoleField(3);
-
-        }else {
-            // 1-apiCode,cell
-            retryByRuleDTO.setSoleField(2);
-        }
+        // 1-apiCode,cell
+        retryByRuleDTO.setSoleField(2);
         return retryByRuleDTO;
     }
 
