@@ -65,8 +65,8 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
     @Override
     public Boolean excludeRuleThird(MarketingTransferSyncUser marketingTransferSyncUser) {
         // 剔除3天内,eg: 当前为01-04，3天内为 01-01至01-03
-        Date dateStart = Date.from(LocalDate.now().minusDays(4).atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Date dateEnd = Date.from(LocalDate.now().minusDays(1).atTime(23, 59, 59, 999)
+        Date dateStart = Date.from(LocalDate.now().minusDays(3).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date dateEnd = Date.from(LocalDate.now().minusDays(1).atTime(23, 59, 59, 999999999)
                 .atZone(ZoneId.systemDefault()).toInstant());
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
@@ -110,10 +110,11 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         list.add(marketingTransferSyncUser);
         Map<String, String> blackByTransfer = iDxService.getBlackByTransfer(list
                 , apiCode).getData();
-        if (CollectionUtils.isEmpty(blackByTransfer) || !blackByTransfer.containsKey(marketingTransferSyncUser.getId())) {
+        if (CollectionUtils.isEmpty(blackByTransfer)
+                || !blackByTransfer.containsKey(marketingTransferSyncUser.getId().toString())) {
             return false;
         }
-        String blackFlag = blackByTransfer.get(marketingTransferSyncUser.getId());
+        String blackFlag = blackByTransfer.get(marketingTransferSyncUser.getId().toString());
         return "Y".equals(blackFlag);
     }
 }
