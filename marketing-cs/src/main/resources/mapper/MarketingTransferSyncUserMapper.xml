@@ -537,17 +537,16 @@
 
     <select id="getYxTransferByApiCode_A" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select b.*
-                from (select id, max(insert_time) as insert_time
-                      from b_marketing_transfer_sync_${cid}
+                from (select a.*, row_number() over (partition by cust_num order by insert_time desc) as rn
+                      from b_marketing_transfer_sync_${cid} a
                 where request_data = #{yesterday}
                   and api_code = #{apiCode}
-                  and json_extract(reserve_field1,'$.transformType') = '1'
-                  and json_extract(reserve_field1,'$.liveType') in (4, 6)
         <if test="minId != null and minId > 0">
             and id > #{minId}
         </if>
-        group by cust_num limit 10000) as a
-                left join b_marketing_transfer_sync_${cid} b on a.id = b.id;
+        and json_extract(reserve_field1, '$.transformType') = '1'
+        and json_extract(reserve_field1, '$.liveType') in (4, 6)) as b
+                where b.rn = 1 limit 10000;
     </select>
 
     <select id="get_ExcludeRuleFirst_YxTransferByApiCode" resultType="java.lang.Integer">
