@@ -4,13 +4,10 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import net.sf.jsqlparser.statement.create.table.Index;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,7 +32,7 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         // 获取前一天的日期yyyy-MM-dd
         String yesterday = LocalDate.now().minusDays(1).toString();
-        idIndex = idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_B_to_C_to_I(cid, apiCode, yesterday, null) : idIndex;
+        idIndex = idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_A_to_B_to_C_to_I(cid, apiCode, yesterday, null) : idIndex;
         return marketingTransferSyncUserMapper.getYxTransferByApiCode_A(cid, apiCode, yesterday, idIndex);
     }
 
@@ -43,7 +40,7 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_B(String cid, Long idIndex) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         String requestDate = LocalDate.now().minusDays(30).toString();
-        idIndex = idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_B_to_C_to_I(cid, apiCode, requestDate, "12") : idIndex;
+        idIndex = idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_A_to_B_to_C_to_I(cid, apiCode, requestDate, "12") : idIndex;
         return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_I(cid, apiCode, idIndex, requestDate, "12");
     }
 
@@ -51,7 +48,7 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_C_to_I(String cid, String actionType, Long idIndex) {
         String requestDate = LocalDate.now().toString();
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
-        idIndex = idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_B_to_C_to_I(cid, apiCode, requestDate, actionType) : idIndex;
+        idIndex = idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_A_to_B_to_C_to_I(cid, apiCode, requestDate, actionType) : idIndex;
         return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_I(cid, apiCode, idIndex, requestDate, actionType);
     }
 }
