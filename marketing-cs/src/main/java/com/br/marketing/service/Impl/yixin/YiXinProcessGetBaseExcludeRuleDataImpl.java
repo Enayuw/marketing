@@ -64,9 +64,9 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
 
     @Override
     public Boolean excludeRuleThird(MarketingTransferSyncUser marketingTransferSyncUser) {
-        // 剔除3天内,eg: 当前为01-04，3天内为 01-01至01-03
-        Date dateStart = Date.from(LocalDate.now().minusDays(3).atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Date dateEnd = Date.from(LocalDate.now().minusDays(1).atTime(23, 59, 59, 999999999)
+        // 剔除3天内,eg: 当前为01-04，3天内为 01-02至01-04
+        Date dateStart = Date.from(LocalDate.now().minusDays(2).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date dateEnd = Date.from(LocalDate.now().atTime(23, 59, 59, 999999999)
                 .atZone(ZoneId.systemDefault()).toInstant());
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
