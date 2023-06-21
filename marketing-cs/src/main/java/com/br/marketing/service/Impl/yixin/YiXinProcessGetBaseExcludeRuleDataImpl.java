@@ -34,12 +34,13 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         if (StringUtils.isEmpty(marketingTransferSyncUser.getCustNum())) {
             return true;
         }
+
         // 取apicode
         String apiCode = "";
         String tcId = tableCreateService.getTcId(apiCode);
-        // 获取前一天的日期
+        // 获取当天的日期
         String today = LocalDate.now().toString();
-        int count = marketingTransferSyncUserMapper.get_ExcludeRuleFirst_YxTransferByApiCode_A(tcId, apiCode,
+        int count = marketingTransferSyncUserMapper.get_ExcludeRuleFirst_YxTransferByApiCode(tcId, apiCode,
                 today, marketingTransferSyncUser.getCustNum());
         return count > 0;
     }
@@ -47,7 +48,15 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
     @Override
     public Boolean excludeRuleSecond(MarketingTransferSyncUser marketingTransferSyncUser) {
         // todo
-        return "0".equals(marketingTransferSyncUser.getCaseEffective());
+        if (StringUtils.isEmpty(marketingTransferSyncUser.getCustNum())) {
+            return true;
+        }
+
+        // 取apicode
+        String apiCode = "";
+        String tcId = tableCreateService.getTcId(apiCode);
+        int count = marketingTransferSyncUserMapper.get_ExcludeRuleSecond_YxTransferByApiCode(tcId, apiCode, marketingTransferSyncUser.getCustNum());
+        return count > 0;
     }
 
     @Override
@@ -63,7 +72,19 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
     @Override
     public Boolean excludeRuleFifth(MarketingTransferSyncUser marketingTransferSyncUser) {
         // todo
-        return null;
+        if (StringUtils.isEmpty(marketingTransferSyncUser.getCustNum())) {
+            return true;
+        }
+
+        // 取apicode
+        String apiCode = "";
+        String tcId = tableCreateService.getTcId(apiCode);
+        // 获取当天的日期
+        String today = LocalDate.now().toString();
+        String minus30Days = LocalDate.now().minusDays(30).toString();
+        int count = marketingTransferSyncUserMapper.get_ExcludeRuleFifth_YxTransferByApiCode(tcId, apiCode,
+                today, minus30Days, marketingTransferSyncUser.getCustNum());
+        return count > 0;
     }
 
     @Override

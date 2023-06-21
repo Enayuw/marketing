@@ -550,7 +550,7 @@
                 left join b_marketing_transfer_sync_${cid} b on a.id = b.id;
     </select>
 
-    <select id="get_ExcludeRuleFirst_YxTransferByApiCode_A" resultType="java.lang.Integer">
+    <select id="get_ExcludeRuleFirst_YxTransferByApiCode" resultType="java.lang.Integer">
         select count(1)
         from b_marketing_transfer_sync_${cid}
         where request_data = #{today}
@@ -558,6 +558,23 @@
           and json_extract(reserve_field1, '$.transformType') != '1'
           and type != 13
           and cust_num = #{cust_num};
+    </select>
+
+    <select id="get_ExcludeRuleFifth_YxTransferByApiCode" resultType="java.lang.Integer">
+        select count(1)
+        from b_marketing_transfer_sync_${cid}
+        where api_code = #{apiCode}
+          and type != 12
+          and cust_num = #{cust_num}
+          and request_data between #{minus30Days} and #{today};
+    </select>
+
+    <select id="get_ExcludeRuleSecond_YxTransferByApiCode" resultType="java.lang.Integer">
+        select count(1)
+        from b_marketing_transfer_sync_${cid}
+        where api_code = #{apiCode}
+          and cust_num = #{cust_num}
+          and case_effective = '0';
     </select>
 
 </mapper>
