@@ -15,6 +15,7 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -62,10 +63,14 @@ public class YiXinTransferToJueCeIJob extends AbstractSimpleElasticJob {
         int hour = LocalDateTime.now().getHour();
         String tcId = tableCreateService.getTcId(marketingCommonConfig.getYiXinTransferToJueCeApiCode());
 
-
-        if (pushBlackPhoneEnd || hour >= 11) {
-            actonTypeList.forEach(e-> yiXinToJueCeProcessService.doProcess(e,tcId));
+        if(marketingTransferInfoMapper.countByApiCodAndLastOne(marketingCommonConfig.getYiXinGetTransferBlackListToJueCeApiCode(), new Date(), "1")>0){
+            if (pushBlackPhoneEnd || hour >= 11) {
+                actonTypeList.forEach(e-> yiXinToJueCeProcessService.doProcess(e,tcId));
+            }
+        }else {
+            log.error("宜信转化数据没有上传完成！");
         }
+
     }
 }
 
