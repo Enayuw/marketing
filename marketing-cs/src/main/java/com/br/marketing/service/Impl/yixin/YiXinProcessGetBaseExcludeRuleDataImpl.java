@@ -6,15 +6,20 @@ import com.br.marketing.entity.PhoneSaleExtendInfoExample;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.mapper.PhoneSaleMapper;
+import com.br.marketing.service.IDxService;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 宜信基础剔除规则实现类
@@ -36,6 +41,8 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
     private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
     @Resource
     private PhoneSaleMapper phoneSaleMapper;
+    @Resource
+    private IDxService iDxService;
 
     @Override
     public Boolean excludeRuleFirst(MarketingTransferSyncUser marketingTransferSyncUser) {
@@ -57,19 +64,21 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
 
     @Override
     public Boolean excludeRuleThird(MarketingTransferSyncUser marketingTransferSyncUser) {
+        // 剔除3天内,eg: 当前为01-04，3天内为 01-01至01-03
         Date dateStart = Date.from(LocalDate.now().minusDays(4).atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date dateEnd = Date.from(LocalDate.now().minusDays(1).atTime(23, 59, 59, 999)
                 .atZone(ZoneId.systemDefault()).toInstant());
+        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
         example.createCriteria().andCustNumEqualTo(marketingTransferSyncUser.getCustNum())
-                .andApiCodeEqualTo(marketingTransferSyncUser.getApiCode())
+                .andApiCodeEqualTo(apiCode)
                 .andPushDxTimeBetween(dateStart, dateEnd);
         int count = phoneSaleExtendInfoMapper.countByExample(example);
         if (count > 0) {
             return true;
         }
         PhoneSaleExample example1 = new PhoneSaleExample();
-        example1.createCriteria().andApiCodeEqualTo(marketingTransferSyncUser.getApiCode())
+        example1.createCriteria().andApiCodeEqualTo(apiCode)
                 .andUidEqualTo(marketingTransferSyncUser.getCustNum())
                 .andCreateTimeBetween(dateStart, dateEnd);
         int num = phoneSaleMapper.countByExample(example1);
@@ -96,6 +105,15 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
 
     @Override
     public Boolean excludeRuleSixth(MarketingTransferSyncUser marketingTransferSyncUser) {
-        return null;
+        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        List<MarketingTransferSyncUser> list = new ArrayList<>();
+        list.add(marketingTransferSyncUser);
+        Map<String, String> blackByTransfer = iDxService.getBlackByTransfer(list
+                , apiCode).getData();
+        if (CollectionUtils.isEmpty(blackByTransfer) || !blackByTransfer.containsKey(marketingTransferSyncUser.getId())) {
+            return false;
+        }
+        String blackFlag = blackByTransfer.get(marketingTransferSyncUser.getId());
+        return "Y".equals(blackFlag);
     }
 }
