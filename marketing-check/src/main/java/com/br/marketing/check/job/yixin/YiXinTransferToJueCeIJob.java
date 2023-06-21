@@ -9,12 +9,14 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -56,14 +58,19 @@ public class YiXinTransferToJueCeIJob extends AbstractSimpleElasticJob {
     private MarketingTransferInfoMapper marketingTransferInfoMapper;
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
+        String apiCodeBlack = marketingCommonConfig.getYiXinGetTransferBlackListToJueCeApiCode();
+        String apiCodeToJueCe =marketingCommonConfig.getYiXinTransferToJueCeApiCode();
+        String apiCodeTransfer = marketingCommonConfig.getYiXinGetTransferBlackListToJueCeApiCode();
+        if (StringUtils.isBlank(apiCodeBlack) || StringUtils.isBlank(apiCodeToJueCe) ||StringUtils.isBlank(apiCodeTransfer) ) {
+            log.error("宜信推送决策未配置apiCode");
+        }
         // 黑名单接口是否推送完成
         // 当前时间是否>11 点 2 者满足其一就推送
-        Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd(marketingCommonConfig.getYiXinGetTransferBlackListToJueCeApiCode(),
+        Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd(apiCodeBlack,
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         int hour = LocalDateTime.now().getHour();
-        String tcId = tableCreateService.getTcId(marketingCommonConfig.getYiXinTransferToJueCeApiCode());
-
-        if(marketingTransferInfoMapper.countByApiCodAndLastOne(marketingCommonConfig.getYiXinGetTransferBlackListToJueCeApiCode(), new Date(), "1")>0){
+        String tcId = tableCreateService.getTcId(apiCodeToJueCe);
+        if(marketingTransferInfoMapper.countByApiCodAndLastOne(apiCodeTransfer, new Date(), "1")>0){
             if (pushBlackPhoneEnd || hour >= 11) {
                 actonTypeList.forEach(e-> yiXinToJueCeProcessService.doProcess(e,tcId));
             }
