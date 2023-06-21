@@ -1,13 +1,20 @@
 package com.br.marketing.service.Impl.yixin;
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.PhoneSaleExample;
+import com.br.marketing.entity.PhoneSaleExtendInfoExample;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
+import com.br.marketing.mapper.PhoneSaleMapper;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 
 /**
  * 宜信基础剔除规则实现类
@@ -17,12 +24,18 @@ import java.time.LocalDate;
  */
 @Service
 @Slf4j
-public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBaseExcludeRuleDataService{
+public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBaseExcludeRuleDataService {
 
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
+    @Resource
+    private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
+    @Resource
+    private PhoneSaleMapper phoneSaleMapper;
 
     @Override
     public Boolean excludeRuleFirst(MarketingTransferSyncUser marketingTransferSyncUser) {
@@ -44,7 +57,23 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
 
     @Override
     public Boolean excludeRuleThird(MarketingTransferSyncUser marketingTransferSyncUser) {
-        return null;
+        Date dateStart = Date.from(LocalDate.now().minusDays(4).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date dateEnd = Date.from(LocalDate.now().minusDays(1).atTime(23, 59, 59, 999)
+                .atZone(ZoneId.systemDefault()).toInstant());
+        PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
+        example.createCriteria().andCustNumEqualTo(marketingTransferSyncUser.getCustNum())
+                .andApiCodeEqualTo(marketingTransferSyncUser.getApiCode())
+                .andPushDxTimeBetween(dateStart, dateEnd);
+        int count = phoneSaleExtendInfoMapper.countByExample(example);
+        if (count > 0) {
+            return true;
+        }
+        PhoneSaleExample example1 = new PhoneSaleExample();
+        example1.createCriteria().andApiCodeEqualTo(marketingTransferSyncUser.getApiCode())
+                .andUidEqualTo(marketingTransferSyncUser.getCustNum())
+                .andCreateTimeBetween(dateStart, dateEnd);
+        int num = phoneSaleMapper.countByExample(example1);
+        return num > 0;
     }
 
     @Override
