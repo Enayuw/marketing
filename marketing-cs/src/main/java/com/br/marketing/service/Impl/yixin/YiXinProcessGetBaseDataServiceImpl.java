@@ -32,26 +32,32 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_A(String cid,Long idIndex) {
         // todo
         // 取apicode
-        String apiCode = "";
+        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        if (StringUtils.isBlank(apiCode)) {
+            log.error("宜信推送决策未配置apicode");
+            return Collections.emptyList();
+        }
         // 获取前一天的日期
         String yesterday = LocalDate.now().minusDays(1).toString();
-        return marketingTransferSyncUserMapper.getYxTransferByApiCode_A(cid,apiCode,yesterday,idIndex);
+        return marketingTransferSyncUserMapper.getYxTransferByApiCode_A(cid, apiCode, yesterday, idIndex);
     }
 
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_B(String cid,Long idIndex) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         if (StringUtils.isBlank(apiCode)) {
+            log.error("宜信推送决策未配置apicode");
             return Collections.emptyList();
         }
         String requestDate = LocalDate.now().minusDays(30).toString();
-        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_I(cid, marketingCommonConfig.getYiXinGetTransferToJueCeApiCode(), idIndex, requestDate, "12");
+        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_I(cid, apiCode, idIndex, requestDate, "12");
     }
 
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_C_to_I(String cid, String actionType, Long idIndex) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         if (StringUtils.isBlank(apiCode)) {
+            log.error("宜信推送决策未配置apicode");
             return Collections.emptyList();
         }
         String requestDate = LocalDate.now().toString();
