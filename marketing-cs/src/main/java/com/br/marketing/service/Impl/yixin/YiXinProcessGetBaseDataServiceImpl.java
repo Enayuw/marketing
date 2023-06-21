@@ -47,12 +47,13 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
 
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_B(String cid,Long idIndex) {
-        String requestDate = LocalDateTime.now().minus(30,ChronoUnit.DAYS).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B(cid, marketingCommonConfig.getYiXinGetTransferToJueCeApiCode(), idIndex, requestDate);
+        String requestDate = LocalDate.now().minusDays(30).toString();
+        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_I(cid, marketingCommonConfig.getYiXinGetTransferToJueCeApiCode(), idIndex, requestDate, "12");
     }
 
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_C_to_I(String cid,String actionType,Long idIndex) {
-        return null;
+        String requestDate = LocalDate.now().toString();
+        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_I(cid, marketingCommonConfig.getYiXinGetTransferToJueCeApiCode(), idIndex, requestDate, actionType);
     }
 }
