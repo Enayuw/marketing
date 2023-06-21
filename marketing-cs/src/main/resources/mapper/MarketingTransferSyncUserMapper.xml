@@ -546,7 +546,7 @@
         <if test="minId != null and minId > 0">
             and id > #{minId}
         </if>
-        group by cust_num limit 20000) as a
+        group by cust_num limit 10000) as a
                 left join b_marketing_transfer_sync_${cid} b on a.id = b.id;
     </select>
 
