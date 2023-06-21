@@ -1,23 +1,16 @@
 package com.br.marketing.service.Impl.yixin;
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserCell;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * 宜信基础数据实现类
@@ -47,13 +40,21 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
 
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_B(String cid,Long idIndex) {
+        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        if (StringUtils.isBlank(apiCode)) {
+            return Collections.emptyList();
+        }
         String requestDate = LocalDate.now().minusDays(30).toString();
         return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_I(cid, marketingCommonConfig.getYiXinGetTransferToJueCeApiCode(), idIndex, requestDate, "12");
     }
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_C_to_I(String cid,String actionType,Long idIndex) {
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_C_to_I(String cid, String actionType, Long idIndex) {
+        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        if (StringUtils.isBlank(apiCode)) {
+            return Collections.emptyList();
+        }
         String requestDate = LocalDate.now().toString();
-        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_I(cid, marketingCommonConfig.getYiXinGetTransferToJueCeApiCode(), idIndex, requestDate, actionType);
+        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_I(cid, apiCode, idIndex, requestDate, actionType);
     }
 }
