@@ -1,9 +1,7 @@
 package com.br.marketing.service.Impl.yixin;
 
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,36 +23,21 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-    @Resource
-    private TableCreateServiceImpl tableCreateService;
 
     @Override
     public Boolean excludeRuleFirst(MarketingTransferSyncUser marketingTransferSyncUser) {
-        // todo
-        if (StringUtils.isEmpty(marketingTransferSyncUser.getCustNum())) {
-            return true;
-        }
-
-        // 取apicode
-        String apiCode = "";
-        String tcId = tableCreateService.getTcId(apiCode);
-        // 获取当天的日期
+        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        // 获取当天的日期yyyy-MM-dd
         String today = LocalDate.now().toString();
-        int count = marketingTransferSyncUserMapper.get_ExcludeRuleFirst_YxTransferByApiCode(tcId, apiCode,
+        int count = marketingTransferSyncUserMapper.get_ExcludeRuleFirst_YxTransferByApiCode(marketingTransferSyncUser.gettCid(), apiCode,
                 today, marketingTransferSyncUser.getCustNum());
         return count > 0;
     }
 
     @Override
     public Boolean excludeRuleSecond(MarketingTransferSyncUser marketingTransferSyncUser) {
-        // todo
-        if (StringUtils.isEmpty(marketingTransferSyncUser.getCustNum())) {
-            return true;
-        }
-
-        // 取apicode
-        String apiCode = "";
-        String tcId = tableCreateService.getTcId(apiCode);
+        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        String tcId = marketingTransferSyncUser.gettCid();
         int count = marketingTransferSyncUserMapper.get_ExcludeRuleSecond_YxTransferByApiCode(tcId, apiCode, marketingTransferSyncUser.getCustNum());
         return count > 0;
     }
@@ -71,16 +54,11 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
 
     @Override
     public Boolean excludeRuleFifth(MarketingTransferSyncUser marketingTransferSyncUser) {
-        // todo
-        if (StringUtils.isEmpty(marketingTransferSyncUser.getCustNum())) {
-            return true;
-        }
-
-        // 取apicode
-        String apiCode = "";
-        String tcId = tableCreateService.getTcId(apiCode);
-        // 获取当天的日期
+        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        String tcId = marketingTransferSyncUser.gettCid();
+        // 获取当天的日期yyyy-MM-dd
         String today = LocalDate.now().toString();
+        // 获取30天之前的日期yyyy-MM-dd
         String minus30Days = LocalDate.now().minusDays(30).toString();
         int count = marketingTransferSyncUserMapper.get_ExcludeRuleFifth_YxTransferByApiCode(tcId, apiCode,
                 today, minus30Days, marketingTransferSyncUser.getCustNum());

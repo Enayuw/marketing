@@ -32,12 +32,10 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
 
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_A(String cid, Long idIndex) {
-        // todo
-        // 取apicode
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
-
-        // 获取前一天的日期
+        // 获取前一天的日期yyyy-MM-dd
         String yesterday = LocalDate.now().minusDays(1).toString();
+        idIndex = idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_B_to_C_to_I(cid, apiCode, yesterday, null) : idIndex;
         return marketingTransferSyncUserMapper.getYxTransferByApiCode_A(cid, apiCode, yesterday, idIndex);
     }
 
