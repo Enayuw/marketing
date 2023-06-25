@@ -1907,11 +1907,19 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                                 activity = YiXinUtils.getActivity(jsonObject.getString("rate"));
                                 String raiseLimiSuccess = jsonObject.getString("raiseLimiSuccess");
                                 String raiseLimiType = jsonObject.getString("raiseLimiType");
+                                String availableAmount = jsonObject.getString("availableAmount");
+                                String recommendType = jsonObject.getString("recommendType");
                                 if (StringUtils.isNotBlank(raiseLimiSuccess)) {
                                     extend.put("raiseLimiSuccess", raiseLimiSuccess);
                                 }
                                 if (StringUtils.isNotBlank(raiseLimiType)) {
                                     extend.put("raiseLimiType", raiseLimiType);
+                                }
+                                if (StringUtils.isNotBlank(availableAmount)) {
+                                    extend.put("availableAmount", availableAmount);
+                                }
+                                if (StringUtils.isNotBlank(recommendType)) {
+                                    extend.put("recommendType", recommendType);
                                 }
                             }
                             CallRecord _callRecord = new CallRecord();

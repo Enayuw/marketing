@@ -144,11 +144,19 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
                     JSONObject extend = new JSONObject();
                     String raiseLimiSuccess = json.getString("raiseLimiSuccess");
                     String raiseLimiType = json.getString("raiseLimiType");
+                    String availableAmount = json.getString("availableAmount");
+                    String recommendType = json.getString("recommendType");
                     if (!StringUtils.isEmpty(raiseLimiType)) {
                         extend.put("raiseLimiType", raiseLimiType);
                     }
                     if (!StringUtils.isEmpty(raiseLimiSuccess)) {
                         extend.put("raiseLimiSuccess", raiseLimiSuccess);
+                    }
+                    if (!StringUtils.isEmpty(availableAmount)) {
+                        extend.put("availableAmount", availableAmount);
+                    }
+                    if (!StringUtils.isEmpty(recommendType)) {
+                        extend.put("recommendType", recommendType);
                     }
                     batchImportData.setExtend(extend.keySet().size() > 0 ? JSON.toJSONString(extend) : null);
                 }

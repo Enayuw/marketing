@@ -10,17 +10,15 @@ public class YiXinUtils {
             case "13":
                 return "21";
             case "15":
-                return "";
+                return "31";
             case "23":
-                return "";
+                return "32";
             case "6":
-                return "";
+                return "33";
             case "8":
-                return "29";
             case "20":
-                return "";
             case "21":
-                return "";
+                return "29";
             case "0":
                 return "0";
             case "25":
