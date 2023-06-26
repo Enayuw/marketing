@@ -18,7 +18,7 @@ public interface YiXinProcessGetBaseDataService {
      * @param idIndex 循环查询的最大 id
      * @return 转化数据列表
      */
-    List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_A(String cid,Long idIndex);
+    List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_A(String cid,String type,Long idIndex);
 
     /**
      * 情况 b 基础数据获取接口
@@ -26,14 +26,14 @@ public interface YiXinProcessGetBaseDataService {
      * @param idIndex 循环查询的最大 id
      * @return 转化数据列表
      */
-    List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_B(String cid,Long idIndex);
+    List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_B(String cid,String type,Long idIndex);
 
     /**
      * 情况 c~i 基础数据获取接口
      * T 日的转化数据 transformType!=1 并且 type=(13,23,20,21,8,15,6) 并且根据 insertTime 取最新的一条数据。
-     * @param actionType c d e f g h i
+     * @param type 13 23 25
      * @param idIndex 循环查询的最大 id
      * @return 转化数据列表
      */
-    List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_C_to_I(String cid,String actionType,Long idIndex);
+    List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_C_to_I(String cid,String type,Long idIndex);
 }

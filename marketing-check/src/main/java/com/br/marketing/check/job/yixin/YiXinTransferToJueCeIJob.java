@@ -15,8 +15,9 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @Author 张广超
@@ -26,20 +27,22 @@ import java.util.List;
 @Component
 @Slf4j
 public class YiXinTransferToJueCeIJob extends AbstractSimpleElasticJob {
+    /**
+     * actionType  A
+     * type  13 23 8
+     */
+    private static final TreeMap<String, String> actonTypeTree = new TreeMap<String, String>() {{
+    put("A",null);
+    put("B","12");
+    put("C","13");
+    put("D","23");
+    put("E","20");
+    put("F","21");
+    put("G","8");
+    put("H","15");
+    put("I","6");
+}};
 
-    private static final List<String> actonTypeList = new ArrayList<String>() {
-        {
-            add("A");
-            add("B");
-            add("C");
-            add("D");
-            add("E");
-            add("F");
-            add("G");
-            add("H");
-            add("I");
-        }
-    };
     @Resource
     private YiXinToJueCeProcessService yiXinToJueCeProcessService;
 
@@ -64,7 +67,7 @@ public class YiXinTransferToJueCeIJob extends AbstractSimpleElasticJob {
         // 判断当天转化数据是否传输完成
         if (marketingTransferInfoMapper.countByApiCodAndLastOne(apiCodeTransfer, LocalDate.now().toString(), "1") > 0) {
             if (pushBlackPhoneEnd || LocalDateTime.now().getHour() >= 11) {
-                actonTypeList.forEach(e -> yiXinToJueCeProcessService.doProcess(e, tableCreateService.getTcId(apiCodeTransfer)));
+                yiXinToJueCeProcessService.doProcess(actonTypeTree, tableCreateService.getTcId(apiCodeTransfer));
             }
         } else {
             log.error("宜信转化数据没有上传完成！");

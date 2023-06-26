@@ -1,6 +1,8 @@
 package com.br.marketing.service;
 
 
+import java.util.TreeMap;
+
 /**
  * 宜信转化数据推决策主流程
  * @author GuangChao.Zhang
@@ -11,6 +13,6 @@ public interface YiXinToJueCeProcessService {
     /**
      * 宜信推决策do方法
      */
-    void  doProcess(String actionType,String tcId);
+    void  doProcess(TreeMap<String, String> actionTypeTree, String tcId);
 
 }

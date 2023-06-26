@@ -23,10 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -57,98 +54,112 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
 
+    private final  static int  PARTITION = 2000;
+
 
     @Override
-    public void doProcess(String actionType, String tcId) {
-        switch (actionType) {
-            case "A":
-                pushMarketingTransferSyncUsers_A(actionType,tcId);
-                break;
-            case "B":
-                pushMarketingTransferSyncUsers_B(actionType,tcId);
-                break;
-            case "C":
-            case "D":
-            case "E":
-            case "F":
-            case "G":
-            case "H":
-            case "I":
-                getMarketingTransferSyncUsers_C_to_I(actionType, tcId);
-                break;
-            default:
-                log.warn("宜信转化数据推决策类型异常");
-                break;
-        }
-
-    }
-    /**
-     * 情况 c~i
-     * @param tcId cid
-     */
-    private void getMarketingTransferSyncUsers_C_to_I(String actionType, String tcId) {
-
-        Long minId = null;
-        while (true) {
-            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_C_to_I(tcId, actionType, minId);
-            if (marketingTransferSyncUserList.size() == 0) {
-                break;
+    public void doProcess(TreeMap<String, String> actionTypeTree, String tcId) {
+        actionTypeTree.forEach((k,v)->{
+            switch (k) {
+                case "A":
+                    pushMarketingTransferSyncUsers_A(k,v,tcId);
+                    break;
+                case "B":
+                    pushMarketingTransferSyncUsers_B(k,v,tcId);
+                    break;
+                case "C":
+                case "D":
+                case "E":
+                case "F":
+                case "G":
+                case "H":
+                case "I":
+                    getMarketingTransferSyncUsers_C_to_I(k,v, tcId);
+                    break;
+                default:
+                    log.warn("宜信转化数据推决策类型异常");
+                    break;
             }
-            // 2000 拆分一组
-            List<List<MarketingTransferSyncUser>> partitionSyncUser = ListUtils.partition(marketingTransferSyncUserList, 20000);
-            minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
-            partitionSyncUser.forEach(e->{
-                yiXinProcessExcludeRuleData.action_C_to_I(e);
-                if (CollectionUtils.isNotEmpty(e)) {
-                    pushJc(actionType, getMarketingTransferSyncUserCells(e));
-                }
-            });
-        }
-    }
-    /**
-     * 情况 b
-     * @param tcId cid
-     */
-    private void pushMarketingTransferSyncUsers_B(String actionType,String tcId) {
-        Long minId = null;
-        while (true) {
-            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_B(tcId, minId);
-            if (marketingTransferSyncUserList.size() == 0) {
-                break;
-            }
-            // 2000 拆分一组
-            List<List<MarketingTransferSyncUser>> partitionSyncUser = ListUtils.partition(marketingTransferSyncUserList, 20000);
-            minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
-            partitionSyncUser.forEach(e->{
-                yiXinProcessExcludeRuleData.action_B(e);
-                if (CollectionUtils.isNotEmpty(e)) {
-                    pushJc(actionType, getMarketingTransferSyncUserCells(e));
-                }
-            });
-        }
-    }
+        });
 
 
+    }
     /**
      * 情况 a
      * @param tcId cid
      */
-    private void pushMarketingTransferSyncUsers_A(String actionType,String tcId) {
-        Long minId = null;
+    private void pushMarketingTransferSyncUsers_A(String actionType,String type,String tcId) {
+        Long idIndex = null;
         while (true) {
-            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_A(tcId, minId);
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_A(tcId,type, idIndex);
             if (marketingTransferSyncUserList.size() == 0) {
                 break;
             }
-            // 2000 拆分一组
-            List<List<MarketingTransferSyncUser>> partitionSyncUser = ListUtils.partition(marketingTransferSyncUserList, 20000);
+            idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
+            List<List<MarketingTransferSyncUser>> partitionSyncUser = getPartitionSyncUser(marketingTransferSyncUserList);
             partitionSyncUser.forEach(e->{
                 yiXinProcessExcludeRuleData.action_A(e);
-                if (CollectionUtils.isNotEmpty(e)) {
-                    pushJc(actionType, getMarketingTransferSyncUserCells(e));
-                }
+                pushToJueCe(actionType, e);
             });
-            minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
+
+        }
+    }
+
+
+    /**
+     * 情况 b
+     * @param tcId cid
+     */
+    private void pushMarketingTransferSyncUsers_B(String actionType,String type,String tcId) {
+        Long idIndex = null;
+        while (true) {
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_B(tcId, type,idIndex);
+            if (marketingTransferSyncUserList.size() == 0) {
+                break;
+            }
+            idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
+            List<List<MarketingTransferSyncUser>> partitionSyncUser = getPartitionSyncUser(marketingTransferSyncUserList);
+            partitionSyncUser.forEach(e->{
+                yiXinProcessExcludeRuleData.action_B(e);
+                pushToJueCe(actionType, e);
+            });
+        }
+    }
+
+    /**
+     * 情况 c~i
+     * @param tcId cid
+     */
+    private void getMarketingTransferSyncUsers_C_to_I(String actionType,String type, String tcId) {
+
+        Long idIndex = null;
+        while (true) {
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_C_to_I(tcId,type, idIndex);
+            if (marketingTransferSyncUserList.size() == 0) {
+                break;
+            }
+            idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
+            List<List<MarketingTransferSyncUser>> partitionSyncUser = getPartitionSyncUser(marketingTransferSyncUserList);
+            partitionSyncUser.forEach(e->{
+                yiXinProcessExcludeRuleData.action_C_to_I(e);
+                pushToJueCe(actionType, e);
+            });
+        }
+    }
+
+    private static List<List<MarketingTransferSyncUser>> getPartitionSyncUser(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+        // 2000 拆分一组
+        List<List<MarketingTransferSyncUser>> partitionSyncUser = ListUtils.partition(marketingTransferSyncUserList, PARTITION);
+        return partitionSyncUser;
+    }
+
+
+
+
+
+    private void pushToJueCe(String actionType, List<MarketingTransferSyncUser> e) {
+        if (CollectionUtils.isNotEmpty(e)) {
+            pushJc(actionType, getMarketingTransferSyncUserCells(e));
         }
     }
 

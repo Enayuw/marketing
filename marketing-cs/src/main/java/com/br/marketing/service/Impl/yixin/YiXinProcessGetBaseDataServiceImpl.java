@@ -28,54 +28,32 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     private MarketingCommonConfig marketingCommonConfig;
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_A(String cid, Long idIndex) {
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_A(String cid, String type,Long idIndex) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         // 获取前一天的日期yyyy-MM-dd
         String yesterday = LocalDate.now().minusDays(1).toString();
-        idIndex = idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_A_to_B_to_C_to_I(cid, apiCode, yesterday, null) : idIndex;
+        idIndex = getIdIndex(cid, idIndex, yesterday, apiCode, type);
         return marketingTransferSyncUserMapper.getYxTransferByApiCode_Atikv_(cid, apiCode, yesterday, idIndex);
     }
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_B(String cid, Long idIndex) {
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_B(String cid,String type, Long idIndex) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         String requestDate = LocalDate.now().minusDays(30).toString();
-        idIndex = idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_A_to_B_to_C_to_I(cid, apiCode, requestDate, "12") : idIndex;
+        idIndex = getIdIndex(cid, idIndex, requestDate, apiCode, type);
         return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_Itikv_(cid, apiCode, idIndex, requestDate, "12");
     }
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_C_to_I(String cid, String actionType, Long idIndex) {
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_C_to_I(String cid,String type, Long idIndex) {
         String requestDate = LocalDate.now().toString();
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
-
-        String type = "";
-        switch (actionType) {
-            case "C":
-                type = "13";
-                break;
-            case "D":
-                type = "23";
-                break;
-            case "E":
-                type = "20";
-                break;
-            case "F":
-                type = "21";
-                break;
-            case "G":
-                type = "8";
-                break;
-            case "H":
-                type = "15";
-                break;
-            case "I":
-                type = "6";
-                break;
-            default:
-                break;
-        }
-        idIndex = idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_A_to_B_to_C_to_I(cid, apiCode, requestDate, type) : idIndex;
+        idIndex = getIdIndex(cid, idIndex, requestDate, apiCode, type);
         return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_Itikv_(cid, apiCode, idIndex, requestDate, type);
+    }
+
+    private Long getIdIndex(String cid, Long idIndex, String requestDate, String apiCode, String type) {
+        idIndex = idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_A_to_B_to_C_to_I(cid, apiCode, requestDate, type) : idIndex;
+        return idIndex;
     }
 }
