@@ -98,7 +98,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             List<List<MarketingTransferSyncUser>> partitionSyncUser = getPartitionSyncUser(marketingTransferSyncUserList);
             partitionSyncUser.forEach(e->{
-                yiXinProcessExcludeRuleData.action_A(e);
+                yiXinProcessExcludeRuleData.excludeAction_A(e);
                 pushToJueCe(actionType, e);
             });
 
@@ -120,7 +120,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             List<List<MarketingTransferSyncUser>> partitionSyncUser = getPartitionSyncUser(marketingTransferSyncUserList);
             partitionSyncUser.forEach(e->{
-                yiXinProcessExcludeRuleData.action_B(e);
+                yiXinProcessExcludeRuleData.excludeAction_B(e);
                 pushToJueCe(actionType, e);
             });
         }
@@ -141,7 +141,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             List<List<MarketingTransferSyncUser>> partitionSyncUser = getPartitionSyncUser(marketingTransferSyncUserList);
             partitionSyncUser.forEach(e->{
-                yiXinProcessExcludeRuleData.action_C_to_I(e);
+                yiXinProcessExcludeRuleData.excludeAction_C_to_I(e);
                 pushToJueCe(actionType, e);
             });
         }
