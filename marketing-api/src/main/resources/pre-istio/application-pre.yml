@@ -40,7 +40,7 @@ spring:
       password: strategy_distribute
       publisher-confirms: true
       publisher-returns: true
-      virtual-host: marketing-flow-default
+      virtual-host: marketing-flow-default-yz
     listener:
       retry:
         enabled: true

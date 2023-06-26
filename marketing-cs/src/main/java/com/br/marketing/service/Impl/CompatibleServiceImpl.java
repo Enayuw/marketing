@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.common.enums.ClusterEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -29,7 +30,7 @@ public class CompatibleServiceImpl implements ICompatibleService {
             return true;
         }
 
-        if ("k8s-prod-c".equals(clusterConfig) || "k8s-prod-d".equals(clusterConfig)) {
+        if (ClusterEnum.CLUSTER_PROD_C.getName().equals(clusterConfig) || ClusterEnum.CLUSTER_PROD_D.getName().equals(clusterConfig)) {
             if (StringUtils.isBlank(config)) {
                 return false;
             }

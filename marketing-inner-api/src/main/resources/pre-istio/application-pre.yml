@@ -93,7 +93,7 @@ spring:
       password: strategy_distribute
       publisher-confirms: true
       publisher-returns: true
-      virtual-host: marketing-flow-default
+      virtual-host: marketing-flow-default-yz
     secondary:
       addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
       username: strategy_distribute
