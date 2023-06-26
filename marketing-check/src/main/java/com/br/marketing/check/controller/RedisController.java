@@ -65,18 +65,7 @@ public class RedisController {
 
     @GetMapping("get2")
     public String get2(String key) {
-//        Hasher hasher =  Hashing.md5().newHasher().putString(zklist, Charsets.UTF_8).putString(namespace, Charsets.UTF_8);
-//        if (digest.isPresent()) {
-//            hasher.putString(digest.get(), Charsets.UTF_8);
-//        }
-//        HashCode hashCode = hasher.hash();
-//        if (registryCenterMap.containsKey(hashCode)) {
-//            return registryCenterMap.get(hashCode);
-//        }
         ZookeeperConfiguration zkConfig = new ZookeeperConfiguration(zklist, namespace);
-//        if (digest.isPresent()) {
-//            zkConfig.setDigest(digest.get());
-//        }
         CoordinatorRegistryCenter result = new ZookeeperRegistryCenter(zkConfig);
         result.init();
         TreeCache treeCache = (TreeCache) result.getRawCache("/");
