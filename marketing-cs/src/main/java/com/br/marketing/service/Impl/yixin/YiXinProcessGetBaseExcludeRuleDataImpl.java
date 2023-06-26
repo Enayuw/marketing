@@ -49,17 +49,20 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         // 获取当天的日期yyyy-MM-dd
         String today = LocalDate.now().toString();
-        int count = marketingTransferSyncUserMapper.get_ExcludeRuleFirst_YxTransferByApiCode(marketingTransferSyncUser.gettCid(), apiCode,
-                today, marketingTransferSyncUser.getCustNum());
-        return count > 0;
+        List<String> custNums = marketingTransferSyncUser.stream().map(m -> m.getCustNum()).collect(Collectors.toList());
+        List<MarketingTransferSyncUser> excludeList = marketingTransferSyncUserMapper.get_ExcludeRuleFirst_YxTransferByApiCode(marketingTransferSyncUser.get(0).gettCid(), apiCode,today, custNums);
+        Set<String> excludeSet = excludeList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        marketingTransferSyncUser.removeIf(t -> excludeSet.contains(t));
     }
 
     @Override
     public void excludeRuleSecond(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
-        String tcId = marketingTransferSyncUser.gettCid();
-        int count = marketingTransferSyncUserMapper.get_ExcludeRuleSecond_YxTransferByApiCode(tcId, apiCode, marketingTransferSyncUser.getCustNum());
-        return count > 0;
+        String tcId = marketingTransferSyncUser.get(0).gettCid();
+        Set<String> set = marketingTransferSyncUser.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        List<MarketingTransferSyncUser> resultFilter = marketingTransferSyncUserMapper.getByInCustAndCaseEffective(tcId, apiCode, set);
+        Set<String> custNumFilter = resultFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        marketingTransferSyncUser.removeIf(t -> custNumFilter.contains(t));
     }
 
     @Override
@@ -103,14 +106,15 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
     @Override
     public void excludeRuleFifth(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
-        String tcId = marketingTransferSyncUser.gettCid();
         // 获取当天的日期yyyy-MM-dd
         String today = LocalDate.now().toString();
         // 获取30天之前的日期yyyy-MM-dd
         String minus30Days = LocalDate.now().minusDays(30).toString();
-        int count = marketingTransferSyncUserMapper.get_ExcludeRuleFifth_YxTransferByApiCode(tcId, apiCode,
-                today, minus30Days, marketingTransferSyncUser.getCustNum());
-        return count > 0;
+        List<String> custNums = marketingTransferSyncUser.stream().map(m -> m.getCustNum()).collect(Collectors.toList());
+        List<MarketingTransferSyncUser> excludeList = marketingTransferSyncUserMapper.get_ExcludeRuleFifth_YxTransferByApiCode(marketingTransferSyncUser.get(0).gettCid(), apiCode,
+                today, minus30Days, custNums);
+        Set<String> excludeSet = excludeList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        marketingTransferSyncUser.removeIf(t -> excludeSet.contains(t));
     }
 
     @Override

@@ -334,9 +334,9 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     List<MarketingTransferSyncUser> getYxTransferByApiCode_Atikv_(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("yesterday") String yesterday
             , @Param("minId") Long minId);
 
-    int get_ExcludeRuleFirst_YxTransferByApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("today") String today, @Param("cust_num") String cust_num);
+    List<MarketingTransferSyncUser> get_ExcludeRuleFirst_YxTransferByApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("today") String today, @Param("custNums") List<String> custNums);
 
-    int get_ExcludeRuleFifth_YxTransferByApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("today") String today, @Param("minus30Days") String minus30Days, @Param("cust_num") String cust_num);
+    List<MarketingTransferSyncUser> get_ExcludeRuleFifth_YxTransferByApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("today") String today, @Param("minus30Days") String minus30Days, @Param("custNums") List<String> custNums);
 
     int get_ExcludeRuleSecond_YxTransferByApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("cust_num") String cust_num);
 

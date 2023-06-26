@@ -549,23 +549,29 @@
                 where b.rn = 1 limit 10000;
     </select>
 
-    <select id="get_ExcludeRuleFirst_YxTransferByApiCode" resultType="java.lang.Integer">
-        select count(1)
+    <select id="get_ExcludeRuleFirst_YxTransferByApiCode" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
         from b_marketing_transfer_sync_${cid}
         where request_data = #{today}
           and api_code = #{apiCode}
           and json_extract(reserve_field1, '$.transformType') != '1'
           and type != 13
-          and cust_num = #{cust_num};
+          and cust_num in
+          <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+          </foreach>;
     </select>
 
     <select id="get_ExcludeRuleFifth_YxTransferByApiCode" resultType="java.lang.Integer">
-        select count(1)
+        select *
         from b_marketing_transfer_sync_${cid}
         where api_code = #{apiCode}
           and type != 12
-          and cust_num = #{cust_num}
-          and request_data between #{minus30Days} and #{today};
+          and request_data between #{minus30Days} and #{today}
+          and cust_num in
+          <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+          </foreach>;
     </select>
 
     <select id="get_ExcludeRuleSecond_YxTransferByApiCode" resultType="java.lang.Integer">
