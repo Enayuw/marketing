@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl.yixin;
 
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExample;
 import com.br.marketing.entity.PhoneSaleExtendInfoExample;
@@ -9,17 +11,15 @@ import com.br.marketing.mapper.PhoneSaleMapper;
 import com.br.marketing.service.IDxService;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 宜信基础剔除规则实现类
@@ -68,21 +68,32 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         Date dateStart = Date.from(LocalDate.now().minusDays(2).atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date dateEnd = Date.from(LocalDate.now().atTime(23, 59, 59, 999999999)
                 .atZone(ZoneId.systemDefault()).toInstant());
+        List<String> custNums = marketingTransferSyncUser.parallelStream().map(MarketingTransferSyncUser::getCustNum)
+                .collect(Collectors.toList());
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
-        example.createCriteria().andCustNumEqualTo(marketingTransferSyncUser.getCustNum())
+        example.createCriteria().andCustNumIn(custNums)
                 .andApiCodeEqualTo(apiCode)
                 .andPushDxTimeBetween(dateStart, dateEnd);
-        int count = phoneSaleExtendInfoMapper.countByExample(example);
-        if (count > 0) {
-            return true;
+        example.setDistinct(true);
+        final Set<String> custNumSet = phoneSaleExtendInfoMapper.selectCustNumByExample(example);
+        if (custNumSet.size() > 0) {
+            marketingTransferSyncUser.removeIf(next -> custNumSet.contains(next.getCustNum()));
         }
+        if (marketingTransferSyncUser.size() < 1) {
+            return;
+        }
+        custNums = marketingTransferSyncUser.parallelStream().map(MarketingTransferSyncUser::getCustNum)
+                .collect(Collectors.toList());
         PhoneSaleExample example1 = new PhoneSaleExample();
         example1.createCriteria().andApiCodeEqualTo(apiCode)
-                .andUidEqualTo(marketingTransferSyncUser.getCustNum())
+                .andUidIn(custNums)
                 .andCreateTimeBetween(dateStart, dateEnd);
-        int num = phoneSaleMapper.countByExample(example1);
-        return num > 0;
+        example1.setDistinct(true);
+        final Set<String> uidSet = phoneSaleMapper.selectUidByExample(example1);
+        if (uidSet.size() > 0) {
+            marketingTransferSyncUser.removeIf(next -> uidSet.contains(next.getCustNum()));
+        }
     }
 
     @Override
@@ -106,15 +117,16 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
     @Override
     public void excludeRuleSixth(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
-        List<MarketingTransferSyncUser> list = new ArrayList<>();
-        list.add(marketingTransferSyncUser);
-        Map<String, String> blackByTransfer = iDxService.getBlackByTransfer(list
-                , apiCode).getData();
-        if (CollectionUtils.isEmpty(blackByTransfer)
-                || !blackByTransfer.containsKey(marketingTransferSyncUser.getId().toString())) {
-            return false;
+        List<List<MarketingTransferSyncUser>> list = Lists.partition(marketingTransferSyncUser, 500);
+        final Map<String, String> blackMap = new HashMap<>(marketingTransferSyncUser.size());
+        for (List<MarketingTransferSyncUser> transferSyncUsers : list) {
+            Result<Map<String, String>> result = iDxService.getBlackByTransfer(transferSyncUsers, apiCode);
+            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                blackMap.putAll(result.getData());
+            }
         }
-        String blackFlag = blackByTransfer.get(marketingTransferSyncUser.getId().toString());
-        return "Y".equals(blackFlag);
+        final String defaultValue = "N";
+        marketingTransferSyncUser.removeIf(next -> "Y".equals(
+                blackMap.getOrDefault(next.getId().toString(), defaultValue)));
     }
 }
