@@ -61,10 +61,10 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     public void doProcess(String actionType, String tcId) {
         switch (actionType) {
             case "A":
-                pushMarketingTransferSyncUsers_A(tcId);
+                pushMarketingTransferSyncUsers_A(actionType,tcId);
                 break;
             case "B":
-                pushMarketingTransferSyncUsers_B(tcId);
+                pushMarketingTransferSyncUsers_B(actionType,tcId);
                 break;
             case "C":
             case "D":
@@ -93,30 +93,37 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             if (marketingTransferSyncUserList.size() == 0) {
                 break;
             }
+            // 2000 拆分一组
+            List<List<MarketingTransferSyncUser>> partitionSyncUser = ListUtils.partition(marketingTransferSyncUserList, 20000);
             minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
-            marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_C_to_I(e)));
-            if (marketingTransferSyncUserList.size() > 0) {
-                pushJc(actionType, getMarketingTransferSyncUserCells(marketingTransferSyncUserList));
-            }
+            partitionSyncUser.forEach(e->{
+                List<MarketingTransferSyncUser> marketingTransferSyncUsers = yiXinProcessExcludeRuleData.action_C_to_I(e);
+                if (marketingTransferSyncUsers.size() > 0) {
+                    pushJc(actionType, getMarketingTransferSyncUserCells(marketingTransferSyncUserList));
+                }
+            });
         }
     }
     /**
      * 情况 b
      * @param tcId cid
      */
-    private void pushMarketingTransferSyncUsers_B(String tcId) {
+    private void pushMarketingTransferSyncUsers_B(String actionType,String tcId) {
         Long minId = null;
         while (true) {
             List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_B(tcId, minId);
             if (marketingTransferSyncUserList.size() == 0) {
                 break;
             }
+            // 2000 拆分一组
+            List<List<MarketingTransferSyncUser>> partitionSyncUser = ListUtils.partition(marketingTransferSyncUserList, 20000);
             minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
-            marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_B(e)));
-            if (marketingTransferSyncUserList.size() > 0) {
-                // 调用推送决策接口
-                pushJc("b", getMarketingTransferSyncUserCells(marketingTransferSyncUserList));
-            }
+            partitionSyncUser.forEach(e->{
+                List<MarketingTransferSyncUser> marketingTransferSyncUsers = yiXinProcessExcludeRuleData.action_B(e);
+                if (marketingTransferSyncUsers.size() > 0) {
+                    pushJc(actionType, getMarketingTransferSyncUserCells(marketingTransferSyncUserList));
+                }
+            });
         }
     }
 
@@ -125,18 +132,22 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * 情况 a
      * @param tcId cid
      */
-    private void pushMarketingTransferSyncUsers_A(String tcId) {
+    private void pushMarketingTransferSyncUsers_A(String actionType,String tcId) {
         Long minId = null;
         while (true) {
             List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_A(tcId, minId);
             if (marketingTransferSyncUserList.size() == 0) {
                 break;
             }
+            // 2000 拆分一组
+            List<List<MarketingTransferSyncUser>> partitionSyncUser = ListUtils.partition(marketingTransferSyncUserList, 20000);
+            partitionSyncUser.forEach(e->{
+                List<MarketingTransferSyncUser> marketingTransferSyncUsers = yiXinProcessExcludeRuleData.action_A(e);
+                if (marketingTransferSyncUsers.size() > 0) {
+                    pushJc(actionType, getMarketingTransferSyncUserCells(marketingTransferSyncUserList));
+                }
+            });
             minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
-            marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_A(e)));
-            if (marketingTransferSyncUserList.size() > 0) {
-                pushJc("a", getMarketingTransferSyncUserCells(marketingTransferSyncUserList));
-            }
         }
     }
 

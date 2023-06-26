@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * 宜信推送决策情况 a~i 组装剔除逻辑
@@ -25,11 +26,12 @@ public class YiXinProcessExcludeRuleData {
      *
      * @return 是否剔除，true 剔除  false  不剔除
      */
-    public Boolean action_A(MarketingTransferSyncUser marketingTransferSyncUser) {
-        return yiXinProcessGetBaseExcludeRuleDataService.excludeRuleFirst(marketingTransferSyncUser)
-                || yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSecond(marketingTransferSyncUser)
-                || yiXinProcessGetBaseExcludeRuleDataService.excludeRuleThird(marketingTransferSyncUser)
-                || yiXinProcessGetBaseExcludeRuleDataService.excludeRuleFourth(marketingTransferSyncUser);
+    public List<MarketingTransferSyncUser> action_A(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+        List<MarketingTransferSyncUser> marketingTransferSyncUsers = yiXinProcessGetBaseExcludeRuleDataService.excludeRuleFirst(marketingTransferSyncUserList);
+        List<MarketingTransferSyncUser> marketingTransferSyncUsers1 = yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSecond(marketingTransferSyncUsers);
+        List<MarketingTransferSyncUser> marketingTransferSyncUsers2 = yiXinProcessGetBaseExcludeRuleDataService.excludeRuleThird(marketingTransferSyncUsers1);
+        return yiXinProcessGetBaseExcludeRuleDataService.excludeRuleFourth(marketingTransferSyncUsers2);
+
     }
 
     /**
@@ -37,12 +39,12 @@ public class YiXinProcessExcludeRuleData {
      *
      * @return 是否剔除，true 剔除  false  不剔除
      */
-    public Boolean action_B(MarketingTransferSyncUser marketingTransferSyncUser) {
-
-        return yiXinProcessGetBaseExcludeRuleDataService.excludeRuleFifth(marketingTransferSyncUser)
-                || yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSecond(marketingTransferSyncUser)
-                || yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSixth(marketingTransferSyncUser)
-                || yiXinProcessGetBaseExcludeRuleDataService.excludeRuleThird(marketingTransferSyncUser);
+    public List<MarketingTransferSyncUser> action_B(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
+        List<MarketingTransferSyncUser> marketingTransferSyncUsers = yiXinProcessGetBaseExcludeRuleDataService.excludeRuleFifth(marketingTransferSyncUser);
+        List<MarketingTransferSyncUser> marketingTransferSyncUsers1 = yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSecond(marketingTransferSyncUsers);
+        List<MarketingTransferSyncUser> marketingTransferSyncUsers2 = yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSixth(marketingTransferSyncUsers1);
+        List<MarketingTransferSyncUser> marketingTransferSyncUsers3 = yiXinProcessGetBaseExcludeRuleDataService.excludeRuleThird(marketingTransferSyncUsers2);
+        return marketingTransferSyncUsers3;
     }
 
     /**
@@ -50,9 +52,11 @@ public class YiXinProcessExcludeRuleData {
      *
      * @return 是否剔除，true 剔除  false  不剔除
      */
-    public Boolean action_C_to_I(MarketingTransferSyncUser marketingTransferSyncUser) {
-        return yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSecond(marketingTransferSyncUser)
-                || yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSixth(marketingTransferSyncUser)
-                || yiXinProcessGetBaseExcludeRuleDataService.excludeRuleThird(marketingTransferSyncUser);
+    public List<MarketingTransferSyncUser> action_C_to_I(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
+        List<MarketingTransferSyncUser> marketingTransferSyncUsers = yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSecond(marketingTransferSyncUser);
+        List<MarketingTransferSyncUser> marketingTransferSyncUsers1 = yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSixth(marketingTransferSyncUsers);
+        List<MarketingTransferSyncUser> marketingTransferSyncUsers2 = yiXinProcessGetBaseExcludeRuleDataService.excludeRuleThird(marketingTransferSyncUsers1);
+        return marketingTransferSyncUsers2;
+
     }
 }
