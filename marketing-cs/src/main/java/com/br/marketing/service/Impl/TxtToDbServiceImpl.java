@@ -23,6 +23,7 @@ import com.br.marketing.service.ITxtToDbService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.utils.Sets;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -1824,7 +1825,9 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         //根据custNum获取最新上传数据
                         Map<String, List<MarketingSyncUser>> syncUser = syncUserMapper.getSyncUserLastByCustNums(apiCode, custNums)
                                 .stream().collect(Collectors.groupingBy(MarketingSyncUser::getCustNum));
-
+                        //获取caseEffective=0的案件
+                        Set<String> caseEffectiveCust=transferSyncUserMapper.getByInCustAndCaseEffective(tcId,apiCode, new HashSet<>(custNums))
+                                .stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
                         //获取最新通话记录
                         Map<String, List<CallRecord>> callrecord = callRecordMapper.getLastCallRecordByCustNum(custNums, cid)
                                 .stream().collect(Collectors.groupingBy(CallRecord::getCaseNum));
@@ -1856,6 +1859,13 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                             }
                             if (custNumByPhoneDx != null && custNumByPhoneDx.contains(uid)) {
                                 computeSale.setDataMessage("命中7天内实时数据");
+                                computeSale.setStatus(2);
+                                phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
+                                errorNum.getAndIncrement();
+                                continue;
+                            }
+                            if (caseEffectiveCust != null && caseEffectiveCust.contains(uid)) {
+                                computeSale.setDataMessage("命中caseEffective等于0的数据");
                                 computeSale.setStatus(2);
                                 phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
                                 errorNum.getAndIncrement();

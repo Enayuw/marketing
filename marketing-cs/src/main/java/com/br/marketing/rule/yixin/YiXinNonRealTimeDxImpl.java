@@ -13,16 +13,21 @@ import com.br.marketing.context.impl.YiXinRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Resource;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +44,9 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
 
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
+
+    @Resource
+    MarketingTransferSyncUserMapper transferSyncUserMapper;
 
     @Override
     public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -82,8 +90,13 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
                 || !(context.getRuleNecessaryData() instanceof YiXinRuleCollectDataImpl.YiXinRuleNecessaryData)) {
             return Boolean.FALSE;
         }
-        if(!context.getMqFact().getSource().equals(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode())){
+        if (!context.getMqFact().getSource().equals(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode())) {
             return Boolean.FALSE;
+        }
+        List<MarketingTransferSyncUser> caseEffectiveCust = transferSyncUserMapper.getByInCustAndCaseEffective(transfer.gettCid(), transfer.getApiCode(), Sets.newHashSet(transfer.getCustNum()));
+        if (!CollectionUtils.isEmpty(caseEffectiveCust)) {
+            log.warn("id:{} cust_num:{}caseEffetive=0 剔除", transfer.getId(), transfer.getCustNum());
+            return false;
         }
         return Boolean.TRUE;
     }
