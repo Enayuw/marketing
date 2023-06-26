@@ -16,6 +16,7 @@ import com.br.marketing.service.YiXinToJueCeProcessService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.springframework.stereotype.Service;
@@ -97,9 +98,9 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             List<List<MarketingTransferSyncUser>> partitionSyncUser = ListUtils.partition(marketingTransferSyncUserList, 20000);
             minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             partitionSyncUser.forEach(e->{
-                List<MarketingTransferSyncUser> marketingTransferSyncUsers = yiXinProcessExcludeRuleData.action_C_to_I(e);
-                if (marketingTransferSyncUsers.size() > 0) {
-                    pushJc(actionType, getMarketingTransferSyncUserCells(marketingTransferSyncUserList));
+                yiXinProcessExcludeRuleData.action_C_to_I(e);
+                if (CollectionUtils.isNotEmpty(e)) {
+                    pushJc(actionType, getMarketingTransferSyncUserCells(e));
                 }
             });
         }
@@ -119,9 +120,9 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             List<List<MarketingTransferSyncUser>> partitionSyncUser = ListUtils.partition(marketingTransferSyncUserList, 20000);
             minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             partitionSyncUser.forEach(e->{
-                List<MarketingTransferSyncUser> marketingTransferSyncUsers = yiXinProcessExcludeRuleData.action_B(e);
-                if (marketingTransferSyncUsers.size() > 0) {
-                    pushJc(actionType, getMarketingTransferSyncUserCells(marketingTransferSyncUserList));
+                yiXinProcessExcludeRuleData.action_B(e);
+                if (CollectionUtils.isNotEmpty(e)) {
+                    pushJc(actionType, getMarketingTransferSyncUserCells(e));
                 }
             });
         }
@@ -142,9 +143,9 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             // 2000 拆分一组
             List<List<MarketingTransferSyncUser>> partitionSyncUser = ListUtils.partition(marketingTransferSyncUserList, 20000);
             partitionSyncUser.forEach(e->{
-                List<MarketingTransferSyncUser> marketingTransferSyncUsers = yiXinProcessExcludeRuleData.action_A(e);
-                if (marketingTransferSyncUsers.size() > 0) {
-                    pushJc(actionType, getMarketingTransferSyncUserCells(marketingTransferSyncUserList));
+                yiXinProcessExcludeRuleData.action_A(e);
+                if (CollectionUtils.isNotEmpty(e)) {
+                    pushJc(actionType, getMarketingTransferSyncUserCells(e));
                 }
             });
             minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();

@@ -45,7 +45,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
     private IDxService iDxService;
 
     @Override
-    public List<MarketingTransferSyncUser> excludeRuleFirst(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
+    public void excludeRuleFirst(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         // 获取当天的日期yyyy-MM-dd
         String today = LocalDate.now().toString();
@@ -55,7 +55,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
     }
 
     @Override
-    public List<MarketingTransferSyncUser> excludeRuleSecond(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
+    public void excludeRuleSecond(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         String tcId = marketingTransferSyncUser.gettCid();
         int count = marketingTransferSyncUserMapper.get_ExcludeRuleSecond_YxTransferByApiCode(tcId, apiCode, marketingTransferSyncUser.getCustNum());
@@ -63,7 +63,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
     }
 
     @Override
-    public List<MarketingTransferSyncUser> excludeRuleThird(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
+    public void excludeRuleThird(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
         // 剔除3天内,eg: 当前为01-04，3天内为 01-02至01-04
         Date dateStart = Date.from(LocalDate.now().minusDays(2).atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date dateEnd = Date.from(LocalDate.now().atTime(23, 59, 59, 999999999)
@@ -86,12 +86,12 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
     }
 
     @Override
-    public List<MarketingTransferSyncUser> excludeRuleFourth(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
+    public void excludeRuleFourth(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
         return null;
     }
 
     @Override
-    public List<MarketingTransferSyncUser> excludeRuleFifth(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
+    public void excludeRuleFifth(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         String tcId = marketingTransferSyncUser.gettCid();
         // 获取当天的日期yyyy-MM-dd
@@ -104,7 +104,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
     }
 
     @Override
-    public List<MarketingTransferSyncUser> excludeRuleSixth(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
+    public void excludeRuleSixth(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         List<MarketingTransferSyncUser> list = new ArrayList<>();
         list.add(marketingTransferSyncUser);
