@@ -90,10 +90,10 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         Long minId = null;
         while (true) {
             List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_C_to_I(tcId, actionType, minId);
-            minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             if (marketingTransferSyncUserList.size() == 0) {
                 break;
             }
+            minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_C_to_I(e)));
             if (marketingTransferSyncUserList.size() > 0) {
                 pushJc(actionType, getMarketingTransferSyncUserCells(marketingTransferSyncUserList));
@@ -108,10 +108,10 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         Long minId = null;
         while (true) {
             List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_B(tcId, minId);
-            minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             if (marketingTransferSyncUserList.size() == 0) {
                 break;
             }
+            minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_B(e)));
             if (marketingTransferSyncUserList.size() > 0) {
                 // 调用推送决策接口
@@ -129,10 +129,10 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         Long minId = null;
         while (true) {
             List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_A(tcId, minId);
-            minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             if (marketingTransferSyncUserList.size() == 0) {
                 break;
             }
+            minId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             marketingTransferSyncUserList.removeIf((e -> yiXinProcessExcludeRuleData.action_A(e)));
             if (marketingTransferSyncUserList.size() > 0) {
                 pushJc("a", getMarketingTransferSyncUserCells(marketingTransferSyncUserList));
@@ -185,8 +185,16 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         retryByRuleDTO.setDetailLogList(logList);
         //传参去重
         retryByRuleDTO.setIsSole(true);
-        // 1-apiCode,cell
-        retryByRuleDTO.setSoleField(2);
+        if("a".equals(actionType)){
+            // apiCode,cell,status
+            retryByRuleDTO.setSoleField(3);
+            // 周一的数据 周日推送判断的范围是周二到周日。
+            retryByRuleDTO.setSoleDay(6);
+        }else {
+            // apiCode,cell
+            retryByRuleDTO.setSoleField(2);
+        }
+
         return retryByRuleDTO;
     }
 

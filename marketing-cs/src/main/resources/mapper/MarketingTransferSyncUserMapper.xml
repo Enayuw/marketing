@@ -521,7 +521,7 @@
     </foreach>
     ) t where num = 1
     </select>
-    <select id="getYxTransferByApiCode_B_to_C_to_I" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+    <select id="getYxTransferByApiCode_B_to_C_to_Itikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         Select b.*
         From (select a.* , row_number() over(partition by cust_num order by insert_time desc) as rn
         From b_marketing_transfer_sync_${tCid} a
@@ -531,11 +531,11 @@
         </if>
         and (json_extract(reserve_field1,"$.transformType") !=1 or json_extract(reserve_field1,"$.transformType") is null)
         and request_data = #{requestData}
-        and type =#{actionType} ) b
+        and type =#{type} ) b
         Where b.rn = 1 limit 20000 ;
     </select>
 
-    <select id="getYxTransferByApiCode_A" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+    <select id="getYxTransferByApiCode_Atikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select b.*
                 from (select a.*, row_number() over (partition by cust_num order by insert_time desc) as rn
                       from b_marketing_transfer_sync_${cid} a
@@ -582,7 +582,7 @@
                 where api_code = #{apiCode}
                   and request_data = #{requestData}
         <if test="actionType != null and actionType != ''">
-            and type = #{actionType};
+            and type = #{type};
         </if>
     </select>
 

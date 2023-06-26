@@ -33,7 +33,7 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
         // 获取前一天的日期yyyy-MM-dd
         String yesterday = LocalDate.now().minusDays(1).toString();
         idIndex = idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_A_to_B_to_C_to_I(cid, apiCode, yesterday, null) : idIndex;
-        return marketingTransferSyncUserMapper.getYxTransferByApiCode_A(cid, apiCode, yesterday, idIndex);
+        return marketingTransferSyncUserMapper.getYxTransferByApiCode_Atikv_(cid, apiCode, yesterday, idIndex);
     }
 
     @Override
@@ -41,7 +41,7 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         String requestDate = LocalDate.now().minusDays(30).toString();
         idIndex = idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_A_to_B_to_C_to_I(cid, apiCode, requestDate, "12") : idIndex;
-        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_I(cid, apiCode, idIndex, requestDate, "12");
+        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_Itikv_(cid, apiCode, idIndex, requestDate, "12");
     }
 
     @Override
@@ -49,6 +49,6 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
         String requestDate = LocalDate.now().toString();
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         idIndex = idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_A_to_B_to_C_to_I(cid, apiCode, requestDate, actionType) : idIndex;
-        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_I(cid, apiCode, idIndex, requestDate, actionType);
+        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_Itikv_(cid, apiCode, idIndex, requestDate, actionType);
     }
 }
