@@ -48,7 +48,34 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_C_to_I(String cid, String actionType, Long idIndex) {
         String requestDate = LocalDate.now().toString();
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
-        idIndex = idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_A_to_B_to_C_to_I(cid, apiCode, requestDate, actionType) : idIndex;
-        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_Itikv_(cid, apiCode, idIndex, requestDate, actionType);
+
+        String type = "";
+        switch (actionType) {
+            case "C":
+                type = "13";
+                break;
+            case "D":
+                type = "23";
+                break;
+            case "E":
+                type = "20";
+                break;
+            case "F":
+                type = "21";
+                break;
+            case "G":
+                type = "8";
+                break;
+            case "H":
+                type = "15";
+                break;
+            case "I":
+                type = "6";
+                break;
+            default:
+                break;
+        }
+        idIndex = idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_A_to_B_to_C_to_I(cid, apiCode, requestDate, type) : idIndex;
+        return marketingTransferSyncUserMapper.getYxTransferByApiCode_B_to_C_to_Itikv_(cid, apiCode, idIndex, requestDate, type);
     }
 }

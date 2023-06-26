@@ -531,7 +531,7 @@
         </if>
         and (json_extract(reserve_field1,"$.transformType") !=1 or json_extract(reserve_field1,"$.transformType") is null)
         and request_data = #{requestData}
-        and type =#{type} ) b
+        and type =#{type}  order by a.id  asc) b
         Where b.rn = 1 limit 20000 ;
     </select>
 
@@ -545,7 +545,7 @@
             and id > #{minId}
         </if>
         and json_extract(reserve_field1, '$.transformType') = '1'
-        and json_extract(reserve_field1, '$.liveType') in (4, 6)) as b
+        and json_extract(reserve_field1, '$.liveType') in (4, 6)  order by a.id  asc) as b
                 where b.rn = 1 limit 10000;
     </select>
 
@@ -577,11 +577,11 @@
     </select>
 
     <select id="getYiXinMin_A_to_B_to_C_to_I" resultType="java.lang.Long">
-        select min(id)
+        select max(id)
         from b_marketing_transfer_sync_${cid}
                 where api_code = #{apiCode}
-                  and request_data = #{requestData}
-        <if test="actionType != null and actionType != ''">
+                  and  #{requestData} > request_data
+        <if test="type != null and type != ''">
             and type = #{type};
         </if>
     </select>
