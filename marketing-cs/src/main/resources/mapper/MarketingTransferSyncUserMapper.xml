@@ -555,7 +555,7 @@
         where request_data = #{today}
           and api_code = #{apiCode}
           and json_extract(reserve_field1, '$.transformType') != '1'
-          and type != 13
+          and type != '13'
           and cust_num in
           <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
             #{custNum}
@@ -577,7 +577,7 @@
         select cust_num
         from b_marketing_transfer_sync_${cid}
         where api_code = #{apiCode}
-          and type != 12
+          and type != '12'
           and request_data between #{minus30Days} and #{today}
           and cust_num in
           <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
