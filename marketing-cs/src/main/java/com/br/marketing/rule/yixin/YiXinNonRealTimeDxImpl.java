@@ -26,10 +26,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 非实时转化数据推送客服
@@ -93,7 +90,10 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         if (!context.getMqFact().getSource().equals(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode())) {
             return Boolean.FALSE;
         }
-        List<MarketingTransferSyncUser> caseEffectiveCust = transferSyncUserMapper.getByInCustAndCaseEffective(transfer.gettCid(), transfer.getApiCode(), Sets.newHashSet(transfer.getCustNum()));
+        String tCid = transfer.gettCid();
+        String apiCode = transfer.getApiCode();
+        Set<String> custNums = Sets.newHashSet(transfer.getCustNum());
+        List caseEffectiveCust = transferSyncUserMapper.getByInCustAndCaseEffective(tCid, apiCode,custNums);
         if (!CollectionUtils.isEmpty(caseEffectiveCust)) {
             log.warn("id:{} cust_num:{}caseEffetive=0 剔除", transfer.getId(), transfer.getCustNum());
             return false;

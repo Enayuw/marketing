@@ -215,7 +215,10 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
                 log.warn("id:{} cust_num:{}不满足当天推送条件", transfer.getId(), transfer.getCustNum());
                 return false;
             }
-            List<MarketingTransferSyncUser> caseEffectiveCust = transferSyncUserMapper.getByInCustAndCaseEffective(transfer.gettCid(), transfer.getApiCode(), Sets.newHashSet(transfer.getCustNum()));
+            String tCid = transfer.gettCid();
+            String apiCode = transfer.getApiCode();
+            Set<String> custNums = Sets.newHashSet(transfer.getCustNum());
+            List caseEffectiveCust = transferSyncUserMapper.getByInCustAndCaseEffective(tCid, apiCode,custNums);
             if (!CollectionUtils.isEmpty(caseEffectiveCust)) {
                 log.warn("id:{} cust_num:{}caseEffetive=0 剔除", transfer.getId(), transfer.getCustNum());
                 return false;
