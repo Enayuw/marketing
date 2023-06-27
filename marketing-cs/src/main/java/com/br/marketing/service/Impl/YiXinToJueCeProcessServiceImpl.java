@@ -149,8 +149,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
     private static List<List<MarketingTransferSyncUser>> getPartitionSyncUser(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
         // 2000 拆分一组
-        List<List<MarketingTransferSyncUser>> partitionSyncUser = ListUtils.partition(marketingTransferSyncUserList, PARTITION);
-        return partitionSyncUser;
+        return ListUtils.partition(marketingTransferSyncUserList, PARTITION);
     }
 
 
