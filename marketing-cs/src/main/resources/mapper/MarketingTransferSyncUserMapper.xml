@@ -521,7 +521,7 @@
     </foreach>
     ) t where num = 1
     </select>
-    <select id="getYxTransferByApiCode_B_to_C_to_Itikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+    <select id="getYxTransferByApiCodeBtoCtoItikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         Select b.*
         From (select a.* , row_number() over(partition by cust_num order by insert_time desc) as rn
         From b_marketing_transfer_sync_${tCid} a
@@ -549,7 +549,7 @@
                 where b.rn = 1 limit 10000;
     </select>
 
-    <select id="get_ExcludeRuleFirst_YxTransferByApiCode" resultType="java.lang.String">
+    <select id="getExcludeRuleFirstYxTransferByApiCode" resultType="java.lang.String">
         select cust_num
         from b_marketing_transfer_sync_${cid}
         where request_data = #{today}
@@ -562,7 +562,7 @@
           </foreach>;
     </select>
 
-    <select id="get_ExcludeRuleSecond_YxTransferByApiCode" resultType="java.lang.String">
+    <select id="getExcludeRuleSecondYxTransferByApiCode" resultType="java.lang.String">
         select cust_num
         from b_marketing_transfer_sync_${cid}
         where api_code = #{apiCode}
@@ -573,19 +573,19 @@
           </foreach>;
     </select>
 
-    <select id="get_ExcludeRuleFifth_YxTransferByApiCode" resultType="java.lang.String">
+    <select id="getExcludeRuleFifthYxTransferByApiCode" resultType="java.lang.String">
         select cust_num
         from b_marketing_transfer_sync_${cid}
         where api_code = #{apiCode}
           and type != '12'
-          and request_data between #{minus30Days} and #{today}
+          and request_data between #{before} and #{today}
           and cust_num in
           <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
             #{custNum}
           </foreach>;
     </select>
 
-    <select id="getYiXinMin_A_to_B_to_C_to_I" resultType="java.lang.Long">
+    <select id="getYiXinMinAtoBtoCtoI" resultType="java.lang.Long">
         select min(id)
         from b_marketing_transfer_sync_${cid}
                 where api_code = #{apiCode}

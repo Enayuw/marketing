@@ -329,16 +329,20 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     List<MarketingTransferSyncUser> getTransferByCustNumOrderDatatikv_(@Param("tCid") String tcId,@Param("custNums") List<String> custNums);
 
-    List<MarketingTransferSyncUser> getYxTransferByApiCode_B_to_C_to_Itikv_(@Param("tCid") String tcId,@Param("apiCode") String apiCode, @Param("requestData") String requestData,@Param("type") String type,@Param("minId") Long minId);
+    List<MarketingTransferSyncUser> getYxTransferByApiCodeBtoCtoItikv_(@Param("tCid") String tcId,@Param("apiCode") String apiCode, @Param("requestData") String requestData,@Param("type") String type,@Param("minId") Long minId);
 
-    List<MarketingTransferSyncUser> getYxTransferByApiCode_Atikv_(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("yesterday") String yesterday
+    List<MarketingTransferSyncUser> getYxTransferByApiCode_Atikv_(@Param("cid") String cid, @Param("apiCode") String apiCode,
+                                                                  @Param("yesterday") String yesterday
             , @Param("minId") Long minId);
 
-    List<String> get_ExcludeRuleFirst_YxTransferByApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("today") String today, @Param("custNums") List<String> custNums);
+    List<String> getExcludeRuleFirstYxTransferByApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("today") String today,
+                                                        @Param("custNums") List<String> custNums);
 
-    List<String> get_ExcludeRuleSecond_YxTransferByApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("custNums") Set<String> custNums);
+    List<String> getExcludeRuleSecondYxTransferByApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode,
+                                                         @Param("custNums") Set<String> custNums);
 
-    List<String> get_ExcludeRuleFifth_YxTransferByApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("today") String today, @Param("minus30Days") String minus30Days, @Param("custNums") List<String> custNums);
+    List<String> getExcludeRuleFifthYxTransferByApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("today") String today,
+                                                        @Param("before") String before, @Param("custNums") List<String> custNums);
 
-    Long getYiXinMin_A_to_B_to_C_to_I(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("requestData") String requestData, @Param("type") String type);
+    Long getYiXinMinAtoBtoCtoI(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("requestData") String requestData, @Param("type") String type);
 }

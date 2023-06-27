@@ -26,7 +26,7 @@ public class YiXinProcessExcludeRuleData {
      * 情况 a 判断剔除
      *
      */
-    public void excludeAction_A(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+    public void excludeActionA(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
         if(CollectionUtils.isNotEmpty(marketingTransferSyncUserList)){
             yiXinProcessGetBaseExcludeRuleDataService.excludeRuleFirst(marketingTransferSyncUserList);
         }
@@ -43,7 +43,7 @@ public class YiXinProcessExcludeRuleData {
      * 情况 b 判断剔除
      *
      */
-    public void excludeAction_B(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+    public void excludeActionB(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
         if(CollectionUtils.isNotEmpty(marketingTransferSyncUserList)){
             yiXinProcessGetBaseExcludeRuleDataService.excludeRuleFifth(marketingTransferSyncUserList);
         }
@@ -62,7 +62,7 @@ public class YiXinProcessExcludeRuleData {
      * 情况 c~i 判断剔除
      *
      */
-    public void excludeAction_C_to_I(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+    public void excludeActionCtoI(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
         if(CollectionUtils.isNotEmpty(marketingTransferSyncUserList)){
             yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSecond(marketingTransferSyncUserList);
         }
