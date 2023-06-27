@@ -53,12 +53,12 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
 
-    private final static int PARTITION = 2000;
+    private static final  int PARTITION = 2000;
 
 
     @Override
     public void doProcess(TreeMap<String, String> actionTypeTree, String tcId) {
-        actionTypeTree.forEach((k, v) -> {
+        actionTypeTree.forEach((String k, String v) -> {
             switch (k) {
                 case "A":
                     pushMarketingTransferSyncUsersA(k, v, tcId);
@@ -91,9 +91,10 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     private void pushMarketingTransferSyncUsersA(String actionType, String type, String tcId) {
         Long idIndex = null;
         while (true) {
-            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListA(tcId,
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList =
+                    yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListA(tcId,
                     type, idIndex);
-            if (marketingTransferSyncUserList.size() == 0) {
+            if (marketingTransferSyncUserList.isEmpty()) {
                 break;
             }
             idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
@@ -114,9 +115,10 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     private void pushMarketingTransferSyncUsersB(String actionType, String type, String tcId) {
         Long idIndex = null;
         while (true) {
-            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListB(tcId,
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList =
+                    yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListB(tcId,
                     type, idIndex);
-            if (marketingTransferSyncUserList.size() == 0) {
+            if (marketingTransferSyncUserList.isEmpty()) {
                 break;
             }
             idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
@@ -138,7 +140,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         while (true) {
             List<MarketingTransferSyncUser> marketingTransferSyncUserList =
                     yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListCtoI(tcId, type, idIndex);
-            if (marketingTransferSyncUserList.size() == 0) {
+            if (marketingTransferSyncUserList.isEmpty()) {
                 break;
             }
             idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
@@ -196,7 +198,9 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
     }
 
-    private PolicyRetryByRuleSoleDTO getPolicyRetryByRuleSoleDTO(String actionType, String apiCodeJc, ArrayList<DataJoinLogDTO> logList,
+    private PolicyRetryByRuleSoleDTO getPolicyRetryByRuleSoleDTO(String actionType,
+                                                                 String apiCodeJc,
+                                                                 ArrayList<DataJoinLogDTO> logList,
                                                                  ArrayList<PushMarketingUserDetailDTO> pushs) {
         PolicyRetryByRuleSoleDTO retryByRuleDTO = new PolicyRetryByRuleSoleDTO();
         retryByRuleDTO.setApiCode(apiCodeJc);
@@ -205,7 +209,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         retryByRuleDTO.setData(pushs);
         retryByRuleDTO.setDetailLogList(logList);
         //传参去重
-        retryByRuleDTO.setIsSole(true);
+        retryByRuleDTO.setIsSole(Boolean.TRUE);
         if ("a".equals(actionType)) {
             // apiCode,cell,status
             retryByRuleDTO.setSoleField(3);
@@ -219,8 +223,11 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         return retryByRuleDTO;
     }
 
-    private void pushDataInit(String actionType, String apiCodeJc, List<MarketingTransferSyncUserCell> marketingTransferSyncUserCells,
-                              ArrayList<DataJoinLogDTO> logList, ArrayList<PushMarketingUserDetailDTO> pushs) {
+    private void pushDataInit(String actionType,
+                              String apiCodeJc,
+                              List<MarketingTransferSyncUserCell> marketingTransferSyncUserCells,
+                              ArrayList<DataJoinLogDTO> logList,
+                              ArrayList<PushMarketingUserDetailDTO> pushs) {
         marketingTransferSyncUserCells.forEach(marketingTransferSyncUserCell -> {
                     PushMarketingUserDetailDTO marketingUserDetailDTO = new PushMarketingUserDetailDTO();
                     marketingUserDetailDTO.setCaseNumber(marketingTransferSyncUserCell.getCustNum());

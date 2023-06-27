@@ -50,7 +50,10 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         String today = LocalDate.now().toString();
         List<String> custNums = marketingTransferSyncUser.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
         List<String> excludeList =
-                marketingTransferSyncUserMapper.getExcludeRuleFirstYxTransferByApiCode(marketingTransferSyncUser.get(0).gettCid(), apiCode, today,
+                marketingTransferSyncUserMapper.getExcludeRuleFirstYxTransferByApiCode(
+                        marketingTransferSyncUser.get(0).gettCid(),
+                        apiCode,
+                        today,
                         custNums);
         if (CollectionUtils.isEmpty(excludeList)) {
             return;
@@ -118,8 +121,12 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         String before = LocalDate.now().minusDays(29).toString();
         List<String> custNums = marketingTransferSyncUser.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
         List<String> excludeList =
-                marketingTransferSyncUserMapper.getExcludeRuleFifthYxTransferByApiCode(marketingTransferSyncUser.get(0).gettCid(), apiCode,
-                today, before, custNums);
+                marketingTransferSyncUserMapper.getExcludeRuleFifthYxTransferByApiCode(
+                        marketingTransferSyncUser.get(0).gettCid(),
+                        apiCode,
+                        today,
+                        before,
+                        custNums);
         if (CollectionUtils.isEmpty(excludeList)) {
             return;
         }

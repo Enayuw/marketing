@@ -28,10 +28,6 @@ import java.util.TreeMap;
 public class YiXinTransferToJueCeJob extends AbstractSimpleElasticJob {
     private static final TreeMap<String, String> ACTONTYPETREE = new TreeMap<>();
 
-    /**
-     * actionType  A
-     * type  13 23 8
-     */
     static {
         ACTONTYPETREE.put("A", null);
         ACTONTYPETREE.put("B", "12");
