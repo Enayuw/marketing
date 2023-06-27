@@ -578,7 +578,7 @@
         from b_marketing_transfer_sync_${cid}
         where api_code = #{apiCode}
           and type != '12'
-          and request_data between #{minus30Days} and #{today}
+          and request_data between #{before} and #{today}
           and cust_num in
           <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
             #{custNum}

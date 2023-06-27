@@ -342,7 +342,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                          @Param("custNums") Set<String> custNums);
 
     List<String> getExcludeRuleFifthYxTransferByApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("today") String today,
-                                                        @Param("minus30Days") String minus30Days, @Param("custNums") List<String> custNums);
+                                                        @Param("before") String before, @Param("custNums") List<String> custNums);
 
     Long getYiXinMinAtoBtoCtoI(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("requestData") String requestData, @Param("type") String type);
 }
