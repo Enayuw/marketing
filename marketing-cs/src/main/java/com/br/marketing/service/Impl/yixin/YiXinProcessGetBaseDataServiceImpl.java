@@ -37,7 +37,8 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
                         cid,
                         apiCode,
                         yesterday,
-                        getIdIndex(cid, idIndex, yesterday, apiCode, type)
+                        idIndex
+//                        getIdIndex(cid, idIndex, yesterday, apiCode, type)
                 );
     }
 
@@ -51,7 +52,8 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
                         apiCode,
                         requestDate,
                         type,
-                        getIdIndex(cid, idIndex, requestDate, apiCode, type)
+                        idIndex
+//                        getIdIndex(cid, idIndex, requestDate, apiCode, type)
                 );
     }
 
@@ -65,7 +67,8 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
                         apiCode,
                         requestDate,
                         type,
-                        getIdIndex(cid, idIndex, requestDate, apiCode, type)
+                        idIndex
+//                        getIdIndex(cid, idIndex, requestDate, apiCode, type)
                 );
     }
 
