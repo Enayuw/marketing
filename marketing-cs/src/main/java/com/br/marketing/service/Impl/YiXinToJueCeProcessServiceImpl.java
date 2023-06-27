@@ -259,6 +259,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             case "h":
                 JSONObject parseh = JSONObject.parseObject(marketingTransferSyncUserCell.getReserveField1());
                 jsonObject.put("availableAmount", parseh.get("availableAmount"));
+                break;
             default:
                 break;
         }
