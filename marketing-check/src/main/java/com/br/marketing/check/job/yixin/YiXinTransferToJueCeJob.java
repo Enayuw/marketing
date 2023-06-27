@@ -24,22 +24,22 @@ import java.util.*;
  **/
 @Component
 @Slf4j
-public class YiXinTransferToJueCeIJob extends AbstractSimpleElasticJob {
+public class YiXinTransferToJueCeJob extends AbstractSimpleElasticJob {
     /**
      * actionType  A
      * type  13 23 8
      */
     private static final TreeMap<String, String> actonTypeTree = new TreeMap<String, String>() {{
-    put("A",null);
-    put("B","12");
-    put("C","13");
-    put("D","23");
-    put("E","20");
-    put("F","21");
-    put("G","8");
-    put("H","15");
-    put("I","6");
-}};
+        put("A", null);
+        put("B", "12");
+        put("C", "13");
+        put("D", "23");
+        put("E", "20");
+        put("F", "21");
+        put("G", "8");
+        put("H", "15");
+        put("I", "6");
+    }};
 
     @Resource
     private YiXinToJueCeProcessService yiXinToJueCeProcessService;
