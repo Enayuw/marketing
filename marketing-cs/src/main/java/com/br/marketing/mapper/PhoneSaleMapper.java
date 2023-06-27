@@ -15,5 +15,5 @@ public interface PhoneSaleMapper extends PhoneSaleMapperBase {
      * 2023-06-26 17:40
      * 根据条件获取uid集合
      */
-    List<String> selectUidByExample(PhoneSaleExample example);
+    List<String> selectUidByExample(@Param("example") PhoneSaleExample example);
 }
