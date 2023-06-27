@@ -562,7 +562,7 @@
           </foreach>;
     </select>
 
-    <select id="get_ExcludeRuleFifth_YxTransferByApiCode" resultType="java.lang.Integer">
+    <select id="get_ExcludeRuleFifth_YxTransferByApiCode" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select *
         from b_marketing_transfer_sync_${cid}
         where api_code = #{apiCode}
@@ -572,14 +572,6 @@
           <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
             #{custNum}
           </foreach>;
-    </select>
-
-    <select id="get_ExcludeRuleSecond_YxTransferByApiCode" resultType="java.lang.Integer">
-        select count(1)
-        from b_marketing_transfer_sync_${cid}
-        where api_code = #{apiCode}
-          and cust_num = #{cust_num}
-          and case_effective = '0';
     </select>
 
     <select id="getYiXinMin_A_to_B_to_C_to_I" resultType="java.lang.Long">
