@@ -146,6 +146,6 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
      * 2023-06-26 17:34
      * 根据条件获取案件编号集合
      */
-    Set<String> selectCustNumByExample(PhoneSaleExtendInfoExample example);
+    List<String> selectCustNumByExample(PhoneSaleExtendInfoExample example);
 
 }

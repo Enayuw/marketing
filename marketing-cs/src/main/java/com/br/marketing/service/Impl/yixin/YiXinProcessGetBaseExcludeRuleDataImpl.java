@@ -79,7 +79,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
                 .andApiCodeEqualTo(apiCode)
                 .andPushDxTimeBetween(dateStart, dateEnd);
         example.setDistinct(true);
-        final Set<String> custNumSet = phoneSaleExtendInfoMapper.selectCustNumByExample(example);
+        final List<String> custNumSet = phoneSaleExtendInfoMapper.selectCustNumByExample(example);
         if (custNumSet.size() > 0) {
             marketingTransferSyncUser.removeIf(next -> custNumSet.contains(next.getCustNum()));
         }
@@ -93,7 +93,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
                 .andUidIn(custNums)
                 .andCreateTimeBetween(dateStart, dateEnd);
         example1.setDistinct(true);
-        final Set<String> uidSet = phoneSaleMapper.selectUidByExample(example1);
+        final List<String> uidSet = phoneSaleMapper.selectUidByExample(example1);
         if (uidSet.size() > 0) {
             marketingTransferSyncUser.removeIf(next -> uidSet.contains(next.getCustNum()));
         }

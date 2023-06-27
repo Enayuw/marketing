@@ -6,7 +6,6 @@ import com.br.marketing.entity.PhoneSaleExample;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
-import java.util.Set;
 
 public interface PhoneSaleMapper extends PhoneSaleMapperBase {
 
@@ -16,5 +15,5 @@ public interface PhoneSaleMapper extends PhoneSaleMapperBase {
      * 2023-06-26 17:40
      * 根据条件获取uid集合
      */
-    Set<String> selectUidByExample(PhoneSaleExample example);
+    List<String> selectUidByExample(PhoneSaleExample example);
 }
