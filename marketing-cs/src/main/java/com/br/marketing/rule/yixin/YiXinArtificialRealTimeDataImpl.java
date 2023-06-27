@@ -168,12 +168,6 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-         /*
-            20230616 添加caseeffective!=0的条件
-          */
-        if ("0".equals(transfer.getCaseEffective())) {
-            return false;
-        }
         String reserveField1 = transfer.getReserveField1();
         if (StringUtils.hasText(reserveField1)){
             YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
