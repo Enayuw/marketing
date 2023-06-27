@@ -49,7 +49,9 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         // 获取当天的日期yyyy-MM-dd
         String today = LocalDate.now().toString();
         List<String> custNums = marketingTransferSyncUser.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
-        List<String> excludeList = marketingTransferSyncUserMapper.getExcludeRuleFirstYxTransferByApiCode(marketingTransferSyncUser.get(0).gettCid(), apiCode,today, custNums);
+        List<String> excludeList =
+                marketingTransferSyncUserMapper.getExcludeRuleFirstYxTransferByApiCode(marketingTransferSyncUser.get(0).gettCid(), apiCode, today,
+                        custNums);
         if (CollectionUtils.isEmpty(excludeList)) {
             return;
         }
@@ -115,7 +117,8 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         // 获取29天之前的日期yyyy-MM-dd (请求时间为T-30日的转化数据取transformType为非1的type=12根据inserTime取最新的custNum，且该custNum在[T-29,T]该transformType为非1的custNum无其他type)
         String before = LocalDate.now().minusDays(29).toString();
         List<String> custNums = marketingTransferSyncUser.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
-        List<String> excludeList = marketingTransferSyncUserMapper.getExcludeRuleFifthYxTransferByApiCode(marketingTransferSyncUser.get(0).gettCid(), apiCode,
+        List<String> excludeList =
+                marketingTransferSyncUserMapper.getExcludeRuleFifthYxTransferByApiCode(marketingTransferSyncUser.get(0).gettCid(), apiCode,
                 today, before, custNums);
         if (CollectionUtils.isEmpty(excludeList)) {
             return;
