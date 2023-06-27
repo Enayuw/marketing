@@ -529,7 +529,7 @@
         <if test="minId != null and minId >0">
                 and id > #{minId}
         </if>
-        and (json_extract(reserve_field1,"$.transformType") !=1 or json_extract(reserve_field1,"$.transformType") is null)
+        and (json_extract(reserve_field1,"$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
         and request_data = #{requestData}
         and type =#{type}  order by a.id  asc) b
         Where b.rn = 1 limit 20000 ;
