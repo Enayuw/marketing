@@ -201,7 +201,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     private PolicyRetryByRuleSoleDTO getPolicyRetryByRuleSoleDTO(String actionType, String apiCodeJc, ArrayList<DataJoinLogDTO> logList, ArrayList<PushMarketingUserDetailDTO> pushs) {
         PolicyRetryByRuleSoleDTO retryByRuleDTO = new PolicyRetryByRuleSoleDTO();
         retryByRuleDTO.setApiCode(apiCodeJc);
-        retryByRuleDTO.setBatchNumber(DateFormatUtils.format(new Date(), "yyyyMMdd") + apiCodeJc + actionType);
+        retryByRuleDTO.setBatchNumber(DateFormatUtils.format(new Date(), "yyyyMMdd")+"_" +actionType.toLowerCase() +"_"+  apiCodeJc);
         retryByRuleDTO.setStrategyCode(marketingCommonConfig.getYxXinToJueCeStrategyMap().get(apiCodeJc));
         retryByRuleDTO.setData(pushs);
         retryByRuleDTO.setDetailLogList(logList);
@@ -245,6 +245,8 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         switch (actionType) {
             case "d":
                 jsonObject.put("unlentAmount", marketingTransferSyncUserCell.getUnlentAmount());
+                JSONObject parsed = JSONObject.parseObject(marketingTransferSyncUserCell.getReserveField1());
+                jsonObject.put("availableAmount",parsed.get("availableAmount"));
                 break;
             case "e":
             case "f":
@@ -252,7 +254,11 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 JSONObject parse = JSONObject.parseObject(marketingTransferSyncUserCell.getReserveField1());
                 jsonObject.put("raiseLimiType", parse.get("raiseLimiType"));
                 jsonObject.put("raiseLimiSuccess", parse.get("raiseLimiSuccess"));
+                jsonObject.put("recommendType", parse.get("recommendType"));
                 break;
+            case "h":
+                JSONObject parseh = JSONObject.parseObject(marketingTransferSyncUserCell.getReserveField1());
+                jsonObject.put("availableAmount", parseh.get("availableAmount"));
             default:
                 break;
         }
