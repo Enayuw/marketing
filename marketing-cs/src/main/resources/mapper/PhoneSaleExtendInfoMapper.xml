@@ -276,7 +276,7 @@
 
     </select>
 
-    <select id="selectCustNumByExample" resultType="java.lang.String"
+    <select id="selectCustNumByExampletikv_" resultType="java.lang.String"
             parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample">
         select
         <if test="example.distinct">

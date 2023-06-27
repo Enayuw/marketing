@@ -43,7 +43,7 @@
         order by id asc limit 1000;
     </select>
 
-    <select id="selectUidByExample" resultType="java.lang.String"
+    <select id="selectUidByExampletikv_" resultType="java.lang.String"
             parameterType="com.br.marketing.entity.PhoneSaleExample">
         select
         <if test="distinct">
