@@ -535,7 +535,7 @@
         Where b.rn = 1  and b.type =#{type}  limit 20000 ;
     </select>
 
-    <select id="getYxTransferByApiCode_Atikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+    <select id="getYxTransferByApiCodeAtikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select b.*
                 from (select a.*, row_number() over (partition by cust_num order by insert_time desc) as rn
                       from b_marketing_transfer_sync_${cid} a

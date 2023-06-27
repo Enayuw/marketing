@@ -32,7 +32,7 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         // 获取前一天的日期yyyy-MM-dd
         return marketingTransferSyncUserMapper
-                .getYxTransferByApiCode_Atikv_(
+                .getYxTransferByApiCodeAtikv_(
                         cid,
                         apiCode,
                         LocalDate.now().minusDays(1).toString(),

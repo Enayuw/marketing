@@ -185,11 +185,11 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         String apiCodeJc = marketingCommonConfig.getYiXinTransferToJueCeApiCode();
         // 2000 拆分一组
         List<List<MarketingTransferSyncUserCell>> partition = ListUtils.partition(marketingTransferSyncUserCellLists, 2000);
-        partition.forEach(marketingTransferSyncUserCells -> {
+        partition.forEach((List<MarketingTransferSyncUserCell> m)  -> {
             ArrayList<DataJoinLogDTO> logList = new ArrayList<>();
             ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
             // 决策数据初始化 pushs
-            pushDataInit(actionType, apiCodeJc, marketingTransferSyncUserCells, logList, pushs);
+            pushDataInit(actionType, apiCodeJc, m, logList, pushs);
             // 封装重试参数
             PolicyRetryByRuleSoleDTO retryByRuleDTO = getPolicyRetryByRuleSoleDTO(actionType, apiCodeJc, logList, pushs);
             // 推送决策方法
@@ -228,17 +228,17 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                               List<MarketingTransferSyncUserCell> marketingTransferSyncUserCells,
                               ArrayList<DataJoinLogDTO> logList,
                               ArrayList<PushMarketingUserDetailDTO> pushs) {
-        marketingTransferSyncUserCells.forEach(marketingTransferSyncUserCell -> {
+        marketingTransferSyncUserCells.forEach( (MarketingTransferSyncUserCell m) -> {
                     PushMarketingUserDetailDTO marketingUserDetailDTO = new PushMarketingUserDetailDTO();
-                    marketingUserDetailDTO.setCaseNumber(marketingTransferSyncUserCell.getCustNum());
+                    marketingUserDetailDTO.setCaseNumber(m.getCustNum());
                     // log解密  md5加密
-                    String cell = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(marketingTransferSyncUserCell.getCell()).getBytes());
+                    String cell = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(m.getCell()).getBytes());
                     marketingUserDetailDTO.setPhone(cell);
-                    marketingUserDetailDTO.setVariables(variablesInit(marketingTransferSyncUserCell, cell, actionType));
+                    marketingUserDetailDTO.setVariables(variablesInit(m, cell, actionType));
                     pushs.add(marketingUserDetailDTO);
                     // 把封装的日志插入到数组中
                     logList.add(methodRetryHandlerService.dataJoinLogFix(marketingUserDetailDTO, DistributeTypeEnum.POLICYDATA
-                            , apiCodeJc, marketingTransferSyncUserCell.getCustNum(), marketingTransferSyncUserCell.getCell()
+                            , apiCodeJc, m.getCustNum(), m.getCell()
                             , null, DistributeSourceTypeEnum.TRANSFER, actionType, null));
                 }
         );

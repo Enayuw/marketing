@@ -335,7 +335,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                        @Param("type") String type,
                                                                        @Param("minId") Long minId);
 
-    List<MarketingTransferSyncUser> getYxTransferByApiCode_Atikv_(@Param("cid") String cid,
+    List<MarketingTransferSyncUser> getYxTransferByApiCodeAtikv_(@Param("cid") String cid,
                                                                   @Param("apiCode") String apiCode,
                                                                   @Param("yesterday") String yesterday,
                                                                   @Param("minId") Long minId);
