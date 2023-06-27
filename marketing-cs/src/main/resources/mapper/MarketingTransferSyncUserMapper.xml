@@ -521,7 +521,7 @@
     </foreach>
     ) t where num = 1
     </select>
-    <select id="getYxTransferByApiCode_B_to_C_to_Itikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+    <select id="getYxTransferByApiCodeBtoCtoItikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         Select b.*
         From (select a.* , row_number() over(partition by cust_num order by insert_time desc) as rn
         From b_marketing_transfer_sync_${tCid} a
@@ -585,7 +585,7 @@
           </foreach>;
     </select>
 
-    <select id="getYiXinMin_A_to_B_to_C_to_I" resultType="java.lang.Long">
+    <select id="getYiXinMinAtoBtoCtoI" resultType="java.lang.Long">
         select min(id)
         from b_marketing_transfer_sync_${cid}
                 where api_code = #{apiCode}

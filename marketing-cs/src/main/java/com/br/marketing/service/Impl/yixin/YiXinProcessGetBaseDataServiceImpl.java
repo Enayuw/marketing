@@ -28,7 +28,7 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     private MarketingCommonConfig marketingCommonConfig;
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_A(String cid, String type,Long idIndex) {
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String cid, String type,Long idIndex) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         // 获取前一天的日期yyyy-MM-dd
         String yesterday = LocalDate.now().minusDays(1).toString();
@@ -42,11 +42,11 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     }
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_B(String cid,String type, Long idIndex) {
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListB(String cid,String type, Long idIndex) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         String requestDate = LocalDate.now().minusDays(30).toString();
         return marketingTransferSyncUserMapper
-                .getYxTransferByApiCode_B_to_C_to_Itikv_(
+                .getYxTransferByApiCodeBtoCtoItikv_(
                         cid,
                         apiCode,
                         requestDate,
@@ -56,11 +56,11 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     }
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList_C_to_I(String cid,String type, Long idIndex) {
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCtoI(String cid,String type, Long idIndex) {
         String requestDate = LocalDate.now().toString();
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         return marketingTransferSyncUserMapper
-                .getYxTransferByApiCode_B_to_C_to_Itikv_(
+                .getYxTransferByApiCodeBtoCtoItikv_(
                         cid,
                         apiCode,
                         requestDate,
@@ -70,6 +70,6 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     }
 
     private Long getIdIndex(String cid, Long idIndex, String requestDate, String apiCode, String type) {
-        return idIndex == null ? marketingTransferSyncUserMapper.getYiXinMin_A_to_B_to_C_to_I(cid, apiCode, requestDate, type) : idIndex;
+        return idIndex == null ? marketingTransferSyncUserMapper.getYiXinMinAtoBtoCtoI(cid, apiCode, requestDate, type) : idIndex;
     }
 }

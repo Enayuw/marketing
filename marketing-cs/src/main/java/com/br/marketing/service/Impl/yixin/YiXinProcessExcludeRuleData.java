@@ -62,7 +62,7 @@ public class YiXinProcessExcludeRuleData {
      * 情况 c~i 判断剔除
      *
      */
-    public void excludeAction_C_to_I(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+    public void excludeActionCtoI(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
         if(CollectionUtils.isNotEmpty(marketingTransferSyncUserList)){
             yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSecond(marketingTransferSyncUserList);
         }

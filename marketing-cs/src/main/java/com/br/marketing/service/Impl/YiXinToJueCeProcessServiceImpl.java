@@ -62,10 +62,10 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         actionTypeTree.forEach((k,v)->{
             switch (k) {
                 case "A":
-                    pushMarketingTransferSyncUsers_A(k,v,tcId);
+                    pushMarketingTransferSyncUsersA(k,v,tcId);
                     break;
                 case "B":
-                    pushMarketingTransferSyncUsers_B(k,v,tcId);
+                    pushMarketingTransferSyncUsersB(k,v,tcId);
                     break;
                 case "C":
                 case "D":
@@ -74,7 +74,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 case "G":
                 case "H":
                 case "I":
-                    getMarketingTransferSyncUsers_C_to_I(k,v, tcId);
+                    getMarketingTransferSyncUsersCtoI(k,v, tcId);
                     break;
                 default:
                     log.warn("宜信转化数据推决策类型异常");
@@ -88,10 +88,10 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * 情况 a
      * @param tcId cid
      */
-    private void pushMarketingTransferSyncUsers_A(String actionType,String type,String tcId) {
+    private void pushMarketingTransferSyncUsersA(String actionType,String type,String tcId) {
         Long idIndex = null;
         while (true) {
-            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_A(tcId,type, idIndex);
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListA(tcId,type, idIndex);
             if (marketingTransferSyncUserList.size() == 0) {
                 break;
             }
@@ -110,10 +110,10 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * 情况 b
      * @param tcId cid
      */
-    private void pushMarketingTransferSyncUsers_B(String actionType,String type,String tcId) {
+    private void pushMarketingTransferSyncUsersB(String actionType,String type,String tcId) {
         Long idIndex = null;
         while (true) {
-            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_B(tcId, type,idIndex);
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListB(tcId, type,idIndex);
             if (marketingTransferSyncUserList.size() == 0) {
                 break;
             }
@@ -130,18 +130,18 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * 情况 c~i
      * @param tcId cid
      */
-    private void getMarketingTransferSyncUsers_C_to_I(String actionType,String type, String tcId) {
+    private void getMarketingTransferSyncUsersCtoI(String actionType,String type, String tcId) {
 
         Long idIndex = null;
         while (true) {
-            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserList_C_to_I(tcId,type, idIndex);
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList = yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListCtoI(tcId,type, idIndex);
             if (marketingTransferSyncUserList.size() == 0) {
                 break;
             }
             idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             List<List<MarketingTransferSyncUser>> partitionSyncUser = getPartitionSyncUser(marketingTransferSyncUserList);
             partitionSyncUser.forEach(e->{
-                yiXinProcessExcludeRuleData.excludeAction_C_to_I(e);
+                yiXinProcessExcludeRuleData.excludeActionCtoI(e);
                 pushToJueCe(actionType, e);
             });
         }

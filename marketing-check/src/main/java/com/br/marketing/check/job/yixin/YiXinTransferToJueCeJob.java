@@ -15,7 +15,8 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.TreeMap;
+
 
 /**
  * @Author 张广超
@@ -25,21 +26,23 @@ import java.util.*;
 @Component
 @Slf4j
 public class YiXinTransferToJueCeJob extends AbstractSimpleElasticJob {
+    private static final TreeMap<String, String> ACTONTYPETREE = new TreeMap<>();
+
     /**
      * actionType  A
      * type  13 23 8
      */
-    private static final TreeMap<String, String> actonTypeTree = new TreeMap<String, String>() {{
-        put("A", null);
-        put("B", "12");
-        put("C", "13");
-        put("D", "23");
-        put("E", "20");
-        put("F", "21");
-        put("G", "8");
-        put("H", "15");
-        put("I", "6");
-    }};
+    static {
+        ACTONTYPETREE.put("A", null);
+        ACTONTYPETREE.put("B", "12");
+        ACTONTYPETREE.put("C", "13");
+        ACTONTYPETREE.put("D", "23");
+        ACTONTYPETREE.put("E", "20");
+        ACTONTYPETREE.put("F", "21");
+        ACTONTYPETREE.put("G", "8");
+        ACTONTYPETREE.put("H", "15");
+        ACTONTYPETREE.put("I", "6");
+    }
 
     @Resource
     private YiXinToJueCeProcessService yiXinToJueCeProcessService;
@@ -65,7 +68,7 @@ public class YiXinTransferToJueCeJob extends AbstractSimpleElasticJob {
         // 判断当天转化数据是否传输完成
         if (marketingTransferInfoMapper.countByApiCodAndLastOne(apiCodeTransfer, LocalDate.now().toString(), "1") > 0) {
             if (pushBlackPhoneEnd || LocalDateTime.now().getHour() >= 11) {
-                yiXinToJueCeProcessService.doProcess(actonTypeTree, tableCreateService.getTcId(apiCodeTransfer));
+                yiXinToJueCeProcessService.doProcess(ACTONTYPETREE, tableCreateService.getTcId(apiCodeTransfer));
             }
         } else {
             log.error("宜信转化数据没有上传完成！");
@@ -80,5 +83,8 @@ public class YiXinTransferToJueCeJob extends AbstractSimpleElasticJob {
         }
         return apiCodeTransfer;
     }
+
+
+
 }
 
