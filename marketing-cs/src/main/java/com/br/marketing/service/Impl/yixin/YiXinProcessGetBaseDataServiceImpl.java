@@ -31,13 +31,12 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String cid, String type,Long idIndex) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         // 获取前一天的日期yyyy-MM-dd
-        String yesterday = LocalDate.now().minusDays(1).toString();
         return marketingTransferSyncUserMapper
                 .getYxTransferByApiCode_Atikv_(
                         cid,
                         apiCode,
-                        yesterday,
-                        getIdIndex(cid, idIndex, yesterday, apiCode, type)
+                        LocalDate.now().minusDays(1).toString(),
+                        getIdIndex(cid, idIndex, LocalDate.now().minusDays(2).toString(), apiCode, type)
                 );
     }
 
@@ -49,23 +48,30 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
                 .getYxTransferByApiCodeBtoCtoItikv_(
                         cid,
                         apiCode,
-                        requestDate,
+                        LocalDate.now().minusDays(30).toString(),
                         type,
-                        getIdIndex(cid, idIndex, requestDate, apiCode, type)
+                        getIdIndex(cid,
+                                idIndex,
+                                LocalDate.now().minusDays(31).toString(),
+                                apiCode,
+                                type)
                 );
     }
 
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCtoI(String cid,String type, Long idIndex) {
-        String requestDate = LocalDate.now().toString();
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         return marketingTransferSyncUserMapper
                 .getYxTransferByApiCodeBtoCtoItikv_(
                         cid,
                         apiCode,
-                        requestDate,
+                        LocalDate.now().toString(),
                         type,
-                        getIdIndex(cid, idIndex, requestDate, apiCode, type)
+                        getIdIndex(cid,
+                                idIndex,
+                                LocalDate.now().minusDays(1).toString(),
+                                apiCode,
+                                type)
                 );
     }
 
