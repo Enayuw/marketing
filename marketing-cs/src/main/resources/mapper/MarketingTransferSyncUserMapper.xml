@@ -549,8 +549,8 @@
                 where b.rn = 1 limit 10000;
     </select>
 
-    <select id="get_ExcludeRuleFirst_YxTransferByApiCode" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-        select *
+    <select id="get_ExcludeRuleFirst_YxTransferByApiCode" resultType="java.lang.String">
+        select cust_num
         from b_marketing_transfer_sync_${cid}
         where request_data = #{today}
           and api_code = #{apiCode}
@@ -562,8 +562,19 @@
           </foreach>;
     </select>
 
-    <select id="get_ExcludeRuleFifth_YxTransferByApiCode" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-        select *
+    <select id="get_ExcludeRuleSecond_YxTransferByApiCode" resultType="java.lang.String">
+        select cust_num
+        from b_marketing_transfer_sync_${cid}
+        where api_code = #{apiCode}
+          and case_effective = '0'
+          and cust_num in
+          <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+          </foreach>;
+    </select>
+
+    <select id="get_ExcludeRuleFifth_YxTransferByApiCode" resultType="java.lang.String">
+        select cust_num
         from b_marketing_transfer_sync_${cid}
         where api_code = #{apiCode}
           and type != 12
