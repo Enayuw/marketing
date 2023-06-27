@@ -49,7 +49,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         // 获取当天的日期yyyy-MM-dd
         String today = LocalDate.now().toString();
         List<String> custNums = marketingTransferSyncUser.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
-        List<String> excludeList = marketingTransferSyncUserMapper.get_ExcludeRuleFirst_YxTransferByApiCode(marketingTransferSyncUser.get(0).gettCid(), apiCode,today, custNums);
+        List<String> excludeList = marketingTransferSyncUserMapper.getExcludeRuleFirstYxTransferByApiCode(marketingTransferSyncUser.get(0).gettCid(), apiCode,today, custNums);
         if (CollectionUtils.isEmpty(excludeList)) {
             return;
         }
@@ -63,7 +63,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         String tcId = marketingTransferSyncUser.get(0).gettCid();
         Set<String> set = marketingTransferSyncUser.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-        List<String> resultFilter = marketingTransferSyncUserMapper.get_ExcludeRuleSecond_YxTransferByApiCode(tcId, apiCode, set);
+        List<String> resultFilter = marketingTransferSyncUserMapper.getExcludeRuleSecondYxTransferByApiCode(tcId, apiCode, set);
         if (CollectionUtils.isEmpty(resultFilter)) {
             return;
         }
@@ -115,7 +115,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         // 获取30天之前的日期yyyy-MM-dd
         String minus30Days = LocalDate.now().minusDays(30).toString();
         List<String> custNums = marketingTransferSyncUser.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
-        List<String> excludeList = marketingTransferSyncUserMapper.get_ExcludeRuleFifth_YxTransferByApiCode(marketingTransferSyncUser.get(0).gettCid(), apiCode,
+        List<String> excludeList = marketingTransferSyncUserMapper.getExcludeRuleFifthYxTransferByApiCode(marketingTransferSyncUser.get(0).gettCid(), apiCode,
                 today, minus30Days, custNums);
         if (CollectionUtils.isEmpty(excludeList)) {
             return;

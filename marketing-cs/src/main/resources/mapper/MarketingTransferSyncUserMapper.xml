@@ -549,7 +549,7 @@
                 where b.rn = 1 limit 10000;
     </select>
 
-    <select id="get_ExcludeRuleFirst_YxTransferByApiCode" resultType="java.lang.String">
+    <select id="getExcludeRuleFirstYxTransferByApiCode" resultType="java.lang.String">
         select cust_num
         from b_marketing_transfer_sync_${cid}
         where request_data = #{today}
@@ -562,7 +562,7 @@
           </foreach>;
     </select>
 
-    <select id="get_ExcludeRuleSecond_YxTransferByApiCode" resultType="java.lang.String">
+    <select id="getExcludeRuleSecondYxTransferByApiCode" resultType="java.lang.String">
         select cust_num
         from b_marketing_transfer_sync_${cid}
         where api_code = #{apiCode}
@@ -573,7 +573,7 @@
           </foreach>;
     </select>
 
-    <select id="get_ExcludeRuleFifth_YxTransferByApiCode" resultType="java.lang.String">
+    <select id="getExcludeRuleFifthYxTransferByApiCode" resultType="java.lang.String">
         select cust_num
         from b_marketing_transfer_sync_${cid}
         where api_code = #{apiCode}
