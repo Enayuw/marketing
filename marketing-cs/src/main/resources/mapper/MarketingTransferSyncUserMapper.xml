@@ -545,7 +545,7 @@
             and id > #{minId}
         </if>
         and json_extract(reserve_field1, '$.transformType') = '1'
-        and json_extract(reserve_field1, '$.liveType') in (4, 6)  order by a.id  asc) as b
+        and json_extract(reserve_field1, '$.liveType') in ('4', '6')  order by a.id  asc) as b
                 where b.rn = 1 limit 10000;
     </select>
 

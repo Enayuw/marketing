@@ -14,6 +14,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -51,9 +52,12 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         String today = LocalDate.now().toString();
         List<String> custNums = marketingTransferSyncUser.stream().map(m -> m.getCustNum()).collect(Collectors.toList());
         List<MarketingTransferSyncUser> excludeList = marketingTransferSyncUserMapper.get_ExcludeRuleFirst_YxTransferByApiCode(marketingTransferSyncUser.get(0).gettCid(), apiCode,today, custNums);
+        if (CollectionUtils.isEmpty(excludeList)) {
+            return;
+        }
         // custNum去重
         Set<String> excludeSet = excludeList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-        marketingTransferSyncUser.removeIf(t -> excludeSet.contains(t));
+        marketingTransferSyncUser.removeIf(t -> excludeSet.contains(t.getCustNum()));
     }
 
     @Override
@@ -62,9 +66,12 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         String tcId = marketingTransferSyncUser.get(0).gettCid();
         Set<String> set = marketingTransferSyncUser.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
         List<MarketingTransferSyncUser> resultFilter = marketingTransferSyncUserMapper.getByInCustAndCaseEffective(tcId, apiCode, set);
+        if (CollectionUtils.isEmpty(resultFilter)) {
+            return;
+        }
         // custNum去重
         Set<String> custNumFilter = resultFilter.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-        marketingTransferSyncUser.removeIf(t -> custNumFilter.contains(t));
+        marketingTransferSyncUser.removeIf(t -> custNumFilter.contains(t.getCustNum()));
     }
 
     @Override
@@ -115,9 +122,12 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         List<String> custNums = marketingTransferSyncUser.stream().map(m -> m.getCustNum()).collect(Collectors.toList());
         List<MarketingTransferSyncUser> excludeList = marketingTransferSyncUserMapper.get_ExcludeRuleFifth_YxTransferByApiCode(marketingTransferSyncUser.get(0).gettCid(), apiCode,
                 today, minus30Days, custNums);
+        if (CollectionUtils.isEmpty(excludeList)) {
+            return;
+        }
         // custNum去重
         Set<String> excludeSet = excludeList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-        marketingTransferSyncUser.removeIf(t -> excludeSet.contains(t));
+        marketingTransferSyncUser.removeIf(t -> excludeSet.contains(t.getCustNum()));
     }
 
     @Override
