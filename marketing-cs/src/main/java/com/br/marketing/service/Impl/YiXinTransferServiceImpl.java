@@ -461,7 +461,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                 .andApiCodeEqualTo(apiCode)
                 .andStatusEqualTo(1)
                 .andCreateTimeGreaterThanOrEqualTo(startDate)
-                .andCreateTimeLessThan(endDate);
+                .andCreateTimeLessThan(marketingTransferInfos.get(0).getCreateTime());
         int statusIngs = transferInfoMapper.countByExample(statusExample);
         if (statusIngs > 0) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("数据还未解析完");
