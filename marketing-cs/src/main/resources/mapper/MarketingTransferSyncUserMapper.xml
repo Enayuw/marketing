@@ -586,10 +586,10 @@
     </select>
 
     <select id="getYiXinMin_A_to_B_to_C_to_I" resultType="java.lang.Long">
-        select max(id)
+        select min(id)
         from b_marketing_transfer_sync_${cid}
                 where api_code = #{apiCode}
-                  and  #{requestData} > request_data
+                  and  #{requestData} = request_data
         <if test="type != null and type != ''">
             and type = #{type};
         </if>
