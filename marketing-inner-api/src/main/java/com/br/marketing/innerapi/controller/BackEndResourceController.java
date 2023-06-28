@@ -1,8 +1,13 @@
 package com.br.marketing.innerapi.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.entity.XieChengData;
 import com.br.marketing.innerapi.service.ResourceAllocationService;
+import com.br.marketing.mapper.XieChengDataMapper;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.ICustomerConfigService;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -12,6 +17,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
+
+import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
+
+import static com.br.marketing.common.utils.MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE;
 
 @RestController
 @RequestMapping(value = "/backend/resource")
@@ -81,5 +93,51 @@ public class BackEndResourceController {
     public ApiResult updateEncryptyType(@RequestParam("apiCode") String apiCode, @RequestParam("type") Integer type){
         Result result = iCustomerConfigService.updateEncryptyType(apiCode, type);
         return new ApiResult().fromResult(result,1);
+    }
+
+
+    @Resource
+    private RabbitMqProducter producter;
+
+    @Resource
+    XieChengDataMapper xieChengDataMapper;
+
+    /**
+     * 携程通话明细回调广告上报压测接口
+     * @return
+     */
+    @GetMapping("/pushMq")
+    public String pushMq(){
+
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
+        Boolean mark = Boolean.TRUE;
+        Long localId = null;
+        while (mark){
+            List<XieChengData> datas = xieChengDataMapper.getByCellTodayAndLocalId(20230628, localId);
+            if(datas.size()<=0){
+                mark = Boolean.FALSE;
+                continue;
+            }
+            localId = datas.get(datas.size()-1).getLocalId();
+            threadPool.submit(()->{
+                for (XieChengData data : datas) {
+                    JSONObject msg = new JSONObject();
+                    msg.put("localId", data.getLocalId());
+                    msg.put("type", 2);
+                    producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE
+                            , msg.toJSONString());
+                }
+            });
+
+        }
+        threadPool.shutdown();
+        while (!threadPool.isTerminated()) {
+            try {
+                Thread.sleep(1000);
+            }catch (Exception ex){
+                ex.printStackTrace();
+            }
+        }
+        return "ok";
     }
 }

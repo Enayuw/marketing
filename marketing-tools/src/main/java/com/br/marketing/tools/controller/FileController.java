@@ -151,28 +151,32 @@ public class FileController {
                     Integer threaNum = rownum;
                     mergeExecutor.submit(()->{
                         try {
+                            String decode = BrCipherMaker.getInstance().decode(content.trim());
+                            if(decode.equals(content.trim())){
+                                log.error("错误数据");
+                            }
                             if(new Integer(1).equals(threaNum)){
-                                String[] split = content.split(",");
+//                                String[] split = content.split(",");
                                 StringBuilder sb = new StringBuilder();
-                                sb.append(split[0].trim());
-                                sb.append(",");
-                                sb.append(split[1].trim());
-                                sb.append(",");
-                                sb.append(split[2].trim());
+                                sb.append(DigestUtils.md5DigestAsHex(decode.getBytes()));
 //                                sb.append(",");
-//                                sb.append(split[3].trim());
+//                                sb.append(split[1].trim());
 //                                sb.append(",");
-//                                sb.append(split[4].trim());
+//                                sb.append(split[2].trim());
+////                                sb.append(",");
+////                                sb.append(split[3].trim());
+////                                sb.append(",");
+////                                sb.append(split[4].trim());
                                 sb.append("\r\n");
                                 writer.append(sb.toString());
                             }else{
-                                String[] split = content.split(",");
+//                                String[] split = content.split(",");
                                 StringBuilder sb = new StringBuilder();
-                                sb.append(concent(split[0].trim()));
-                                sb.append(",");
-                                sb.append(concent(split[1].trim()));
-                                sb.append(",");
-                                sb.append(concent(split[2]));
+                                sb.append(DigestUtils.md5DigestAsHex(decode.getBytes()));
+//                                sb.append(",");
+//                                sb.append(concent(split[1].trim()));
+//                                sb.append(",");
+//                                sb.append(concent(split[2]));
 //                                sb.append(",");
 //                                sb.append(concent(split[3]));
 //                                sb.append(",");
