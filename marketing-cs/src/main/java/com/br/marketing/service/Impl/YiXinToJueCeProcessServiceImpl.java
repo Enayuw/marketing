@@ -6,6 +6,7 @@ import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRul
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailDTO;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
+import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
@@ -211,14 +212,14 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         retryByRuleDTO.setDetailLogList(logList);
         //传参去重
         retryByRuleDTO.setIsSole(Boolean.TRUE);
-        if ("a".equals(actionType)) {
+        if ("A".equals(actionType)) {
             // apiCode,cell,status
-            retryByRuleDTO.setSoleField(3);
+            retryByRuleDTO.setSoleField(SoleFieldEnum.CUST_NUM_STATUS_SOLE.getValue());
             // 周一的数据 周日推送判断的范围是周二到周日。
             retryByRuleDTO.setSoleDay(6);
         } else {
             // apiCode,custNum
-            retryByRuleDTO.setSoleField(1);
+            retryByRuleDTO.setSoleField(SoleFieldEnum.CUST_NUM_SOLE.getValue());
         }
 
         return retryByRuleDTO;
