@@ -527,9 +527,9 @@ public class MethodRetryHandlerService {
             if (infoId != null) {
                 saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(), infoId);
             }
-            //调用数量监控
+            /*//调用数量监控
             BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME,dto.getPushMarketingUserDTO().getApiCode(),"policy-api",
-                    ids.size());
+                    ids.size());*/
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
@@ -683,9 +683,9 @@ public class MethodRetryHandlerService {
             if(ids!=null && ids.size()>0){
                 saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY_SOLE.getCode(), soleDTO.getInfoId());
             }
-            //调用数量监控
+            /*//调用数量监控
             BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME,soleDTO.getApiCode(),"policy-api",
-                    ids.size());
+                    ids.size());*/
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
