@@ -1,6 +1,7 @@
 package com.br.marketing.speedconfig;
 
 import com.alibaba.fastjson.JSON;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
@@ -27,9 +28,6 @@ import java.util.regex.Pattern;
 public class SpeedConfig implements ISpeedAppendPipeline {
 
     final static String _regexOfannotation = "^#.*$";
-
-    @Autowired
-    AlarmApiClient alarmClient;
 
     @Bean(name = "speedMgrBean", destroyMethod = "destroy")
     public SpeedMgrBean speedMgrBean() {
@@ -96,7 +94,8 @@ public class SpeedConfig implements ISpeedAppendPipeline {
                     field.setAccessible(true);
                     assignmentFieldValue(config, field, fieldValue);
                 } catch (NoSuchFieldException e) {
-                    alarmClient.sendAlarm("该服务Speed配置不存在字段:".concat(fieldNm), "marketingCommonConfig提示", AlarmSendCodeEnum.EXCEPTION_SPEEDCOMMONCONFIG.getCode());
+                    String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_SPEEDCOMMONCONFIG.getCode(), "该服务Speed配置不存在字段:".concat(fieldNm), "marketingCommonConfig提示");
+                    log.warn(msg);
                 } catch (IllegalAccessException e) {
                     log.error(e.getMessage(),e);
                 } catch (Exception ex){

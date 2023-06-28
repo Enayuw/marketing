@@ -30,7 +30,7 @@ public enum AlarmSendCodeEnum {
     //滴滴联合建模,阶梯推送
     EXCEPTION_DIDI("62003", "didiCommonly"),
     //滴滴联合建模,阶梯推送
-    EXCEPTION_SPEEDCOMMONCONFIG("62003", "marketingCommonConfigAlarm"),
+    EXCEPTION_SPEEDCOMMONCONFIG("62004", "marketingCommonConfigAlarm"),
     ;
 
     /**
