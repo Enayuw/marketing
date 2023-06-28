@@ -217,8 +217,8 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             // 周一的数据 周日推送判断的范围是周二到周日。
             retryByRuleDTO.setSoleDay(6);
         } else {
-            // apiCode,cell
-            retryByRuleDTO.setSoleField(2);
+            // apiCode,custNum
+            retryByRuleDTO.setSoleField(1);
         }
 
         return retryByRuleDTO;

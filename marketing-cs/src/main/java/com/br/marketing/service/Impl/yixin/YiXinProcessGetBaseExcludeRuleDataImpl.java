@@ -111,6 +111,10 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         }
     }
 
+    @Override
+    public void excludeRuleFourth(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
+
+    }
 
     @Override
     public void excludeRuleFifth(List<MarketingTransferSyncUser> marketingTransferSyncUser) {

@@ -29,7 +29,11 @@ public interface YiXinProcessGetBaseExcludeRuleDataService {
      */
     void excludeRuleThird(List<MarketingTransferSyncUser> marketingTransferSyncUsers);
 
-
+    /**
+     * 7 天内 当前 custNum a 情况 是否推送过 如果满足 不推
+     * @param marketingTransferSyncUser 转化数据集合
+     */
+    void excludeRuleFourth(List<MarketingTransferSyncUser> marketingTransferSyncUser);
     /**
      * custNum 在 30 天内有 type != 12
      * @param marketingTransferSyncUsers 转化数据集合
