@@ -34,9 +34,6 @@ public class YiXinProcessExcludeRuleData {
             yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSecond(marketingTransferSyncUserList);
         }
         if(CollectionUtils.isNotEmpty(marketingTransferSyncUserList)){
-            yiXinProcessGetBaseExcludeRuleDataService.excludeRuleFourth(marketingTransferSyncUserList);
-        }
-        if(CollectionUtils.isNotEmpty(marketingTransferSyncUserList)){
             yiXinProcessGetBaseExcludeRuleDataService.excludeRuleThird(marketingTransferSyncUserList);
         }
     }
