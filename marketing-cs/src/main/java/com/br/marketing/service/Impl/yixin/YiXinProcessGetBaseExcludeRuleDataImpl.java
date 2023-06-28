@@ -44,14 +44,14 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
     private IDxService iDxService;
 
     @Override
-    public void excludeRuleFirst(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
+    public void excludeRuleFirst(List<MarketingTransferSyncUser> marketingTransferSyncUsers) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         // 获取当天的日期yyyy-MM-dd
         String today = LocalDate.now().toString();
-        List<String> custNums = marketingTransferSyncUser.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
+        List<String> custNums = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
         List<String> excludeList =
                 marketingTransferSyncUserMapper.getExcludeRuleFirstYxTransferByApiCode(
-                        marketingTransferSyncUser.get(0).gettCid(),
+                        marketingTransferSyncUsers.get(0).gettCid(),
                         apiCode,
                         today,
                         custNums);
@@ -60,30 +60,30 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         }
         // custNum去重
         Set<String> excludeSet = excludeList.stream().collect(Collectors.toSet());
-        marketingTransferSyncUser.removeIf(t -> excludeSet.contains(t.getCustNum()));
+        marketingTransferSyncUsers.removeIf(t -> excludeSet.contains(t.getCustNum()));
     }
 
     @Override
-    public void excludeRuleSecond(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
+    public void excludeRuleSecond(List<MarketingTransferSyncUser> marketingTransferSyncUsers) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
-        String tcId = marketingTransferSyncUser.get(0).gettCid();
-        Set<String> set = marketingTransferSyncUser.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        String tcId = marketingTransferSyncUsers.get(0).gettCid();
+        Set<String> set = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
         List<String> resultFilter = marketingTransferSyncUserMapper.getExcludeRuleSecondYxTransferByApiCode(tcId, apiCode, set);
         if (CollectionUtils.isEmpty(resultFilter)) {
             return;
         }
         // custNum去重
         Set<String> custNumFilter = resultFilter.stream().collect(Collectors.toSet());
-        marketingTransferSyncUser.removeIf(t -> custNumFilter.contains(t.getCustNum()));
+        marketingTransferSyncUsers.removeIf(t -> custNumFilter.contains(t.getCustNum()));
     }
 
     @Override
-    public void excludeRuleThird(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
+    public void excludeRuleThird(List<MarketingTransferSyncUser> marketingTransferSyncUsers) {
         // 剔除3天内,eg: 当前为01-04，3天内为 01-01至01-03
         Date dateStart = Date.from(LocalDate.now().minusDays(3).atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date dateEnd = Date.from(LocalDate.now().minusDays(1).atTime(23, 59, 59, 999999999)
                 .atZone(ZoneId.systemDefault()).toInstant());
-        List<String> custNums = marketingTransferSyncUser.parallelStream().map(MarketingTransferSyncUser::getCustNum)
+        List<String> custNums = marketingTransferSyncUsers.parallelStream().map(MarketingTransferSyncUser::getCustNum)
                 .collect(Collectors.toList());
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
@@ -93,12 +93,12 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         example.setDistinct(true);
         final List<String> custNumSet = phoneSaleExtendInfoMapper.selectCustNumByExampletikv_(example);
         if (custNumSet.size() > 0) {
-            marketingTransferSyncUser.removeIf(next -> custNumSet.contains(next.getCustNum()));
+            marketingTransferSyncUsers.removeIf(next -> custNumSet.contains(next.getCustNum()));
         }
-        if (marketingTransferSyncUser.size() < 1) {
+        if (marketingTransferSyncUsers.size() < 1) {
             return;
         }
-        custNums = marketingTransferSyncUser.parallelStream().map(MarketingTransferSyncUser::getCustNum)
+        custNums = marketingTransferSyncUsers.parallelStream().map(MarketingTransferSyncUser::getCustNum)
                 .collect(Collectors.toList());
         PhoneSaleExample example1 = new PhoneSaleExample();
         example1.createCriteria().andApiCodeEqualTo(apiCode)
@@ -107,26 +107,26 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         example1.setDistinct(true);
         final List<String> uidSet = phoneSaleMapper.selectUidByExampletikv_(example1);
         if (uidSet.size() > 0) {
-            marketingTransferSyncUser.removeIf(next -> uidSet.contains(next.getCustNum()));
+            marketingTransferSyncUsers.removeIf(next -> uidSet.contains(next.getCustNum()));
         }
     }
 
     @Override
-    public void excludeRuleFourth(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
+    public void excludeRuleFourth(List<MarketingTransferSyncUser> marketingTransferSyncUsers) {
 
     }
 
     @Override
-    public void excludeRuleFifth(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
+    public void excludeRuleFifth(List<MarketingTransferSyncUser> marketingTransferSyncUsers) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         // 获取当天的日期yyyy-MM-dd
         String today = LocalDate.now().toString();
         // 获取29天之前的日期yyyy-MM-dd (请求时间为T-30日的转化数据取transformType为非1的type=12根据inserTime取最新的custNum，且该custNum在[T-29,T]该transformType为非1的custNum无其他type)
         String before = LocalDate.now().minusDays(29).toString();
-        List<String> custNums = marketingTransferSyncUser.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
+        List<String> custNums = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
         List<String> excludeList =
                 marketingTransferSyncUserMapper.getExcludeRuleFifthYxTransferByApiCode(
-                        marketingTransferSyncUser.get(0).gettCid(),
+                        marketingTransferSyncUsers.get(0).gettCid(),
                         apiCode,
                         today,
                         before,
@@ -136,14 +136,14 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         }
         // custNum去重
         Set<String> excludeSet = excludeList.stream().collect(Collectors.toSet());
-        marketingTransferSyncUser.removeIf(t -> excludeSet.contains(t.getCustNum()));
+        marketingTransferSyncUsers.removeIf(t -> excludeSet.contains(t.getCustNum()));
     }
 
     @Override
-    public void excludeRuleSixth(List<MarketingTransferSyncUser> marketingTransferSyncUser) {
+    public void excludeRuleSixth(List<MarketingTransferSyncUser> marketingTransferSyncUsers) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
-        List<List<MarketingTransferSyncUser>> list = Lists.partition(marketingTransferSyncUser, 500);
-        final Map<String, String> blackMap = new HashMap<>(marketingTransferSyncUser.size());
+        List<List<MarketingTransferSyncUser>> list = Lists.partition(marketingTransferSyncUsers, 500);
+        final Map<String, String> blackMap = new HashMap<>(marketingTransferSyncUsers.size());
         for (List<MarketingTransferSyncUser> transferSyncUsers : list) {
             Result<Map<String, String>> result = iDxService.getBlackByTransfer(transferSyncUsers, apiCode);
             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -151,7 +151,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
             }
         }
         final String defaultValue = "N";
-        marketingTransferSyncUser.removeIf(next -> "Y".equals(
+        marketingTransferSyncUsers.removeIf(next -> "Y".equals(
                 blackMap.getOrDefault(next.getId().toString(), defaultValue)));
     }
 }
