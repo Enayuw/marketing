@@ -65,9 +65,11 @@ public class YiXinTransferToJueCeJob extends AbstractSimpleElasticJob {
         if (marketingTransferInfoMapper.countByApiCodAndLastOne(apiCodeTransfer, LocalDate.now().toString(), "1") > 0) {
             if (pushBlackPhoneEnd || LocalDateTime.now().getHour() >= 11) {
                 yiXinToJueCeProcessService.doProcess(ACTONTYPETREE, tableCreateService.getTcId(apiCodeTransfer));
+            }else {
+                log.warn("未查询到黑名单结束标识！");
             }
         } else {
-            log.error("宜信转化数据没有上传完成！");
+            log.warn("宜信转化数据没有上传完成！");
         }
 
     }
