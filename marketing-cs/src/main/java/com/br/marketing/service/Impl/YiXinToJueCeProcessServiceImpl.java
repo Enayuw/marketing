@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -233,13 +233,9 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                     PushMarketingUserDetailDTO marketingUserDetailDTO = new PushMarketingUserDetailDTO();
                     marketingUserDetailDTO.setCaseNumber(m.getCustNum());
                     // log解密  md5加密
-            String cell = null;
-            try {
-                cell = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(m.getCell()).getBytes("UTF-8"));
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
-            }
-            marketingUserDetailDTO.setPhone(cell);
+                    String cell = DigestUtils.md5DigestAsHex(
+                            BrCipherMaker.getInstance().decode(m.getCell()).getBytes(StandardCharsets.UTF_8));
+                    marketingUserDetailDTO.setPhone(cell);
                     marketingUserDetailDTO.setVariables(variablesInit(m, cell, actionType));
                     pushs.add(marketingUserDetailDTO);
                     // 把封装的日志插入到数组中
