@@ -578,7 +578,8 @@
         select b.cust_num
         FROM (select a.*, row_number() over (partition by cust_num,request_data order by create_time desc) as rn
               FROM b_marketing_transfer_sync_793 a
-              WHERE json_extract(reserve_field1, '$.transformType') != '1' and request_data between #{before}
+              WHERE (json_extract(reserve_field1, '$.transformType') != '1' or json_extract(reserve_field1,'$.transformType') is null)
+                and request_data between #{before}
                 and #{today}
                 and api_code = #{apiCode}) as b
                 WHERE b.rn = 1
