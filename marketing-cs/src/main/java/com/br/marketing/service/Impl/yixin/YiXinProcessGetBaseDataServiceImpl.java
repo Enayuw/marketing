@@ -36,7 +36,8 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
                         cid,
                         apiCode,
                         LocalDate.now().minusDays(1).toString(),
-                        getIdIndex(cid, idIndex, LocalDate.now().minusDays(2).toString(), apiCode, type)
+                        idIndex
+//                        getIdIndex(cid, idIndex, LocalDate.now().minusDays(2).toString(), apiCode, type)
                 );
     }
 
@@ -49,11 +50,12 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
                         apiCode,
                         LocalDate.now().minusDays(30).toString(),
                         type,
-                        getIdIndex(cid,
-                                idIndex,
-                                LocalDate.now().minusDays(31).toString(),
-                                apiCode,
-                                type)
+                        idIndex
+//                        getIdIndex(cid,
+//                                idIndex,
+//                                LocalDate.now().minusDays(31).toString(),
+//                                apiCode,
+//                                type)
                 );
     }
 
@@ -66,11 +68,12 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
                         apiCode,
                         LocalDate.now().toString(),
                         type,
-                        getIdIndex(cid,
-                                idIndex,
-                                LocalDate.now().minusDays(1).toString(),
-                                apiCode,
-                                type)
+                        idIndex
+//                        getIdIndex(cid,
+//                                idIndex,
+//                                LocalDate.now().minusDays(1).toString(),
+//                                apiCode,
+//                                type)
                 );
     }
 
