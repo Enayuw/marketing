@@ -215,8 +215,8 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         if ("A".equals(actionType)) {
             // apiCode,cell,status
             retryByRuleDTO.setSoleField(SoleFieldEnum.CUST_NUM_STATUS_SOLE.getValue());
-            // 周一的数据 周日推送判断的范围是周二到周日。
-            retryByRuleDTO.setSoleDay(6);
+            // 周一的数据 下周一推送判断的范围是周一到周日。
+            retryByRuleDTO.setSoleDay(7);
         } else {
             // apiCode,custNum
             retryByRuleDTO.setSoleField(SoleFieldEnum.CUST_NUM_SOLE.getValue());
