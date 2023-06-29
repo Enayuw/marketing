@@ -550,8 +550,8 @@
                   and b.json_extract(reserve_field1, '$.liveType') in ('4', '6') limit 10000;
     </select>
 
-    <select id="getExcludeRuleFirstYxTransferByApiCode" resultType="java.lang.String">
-        select cust_num
+    <select id="getExcludeRuleFirstYxTransferByApiCodetikv_" resultType="java.lang.String">
+        select distinct cust_num
         from b_marketing_transfer_sync_${cid}
         where request_data = #{today}
           and api_code = #{apiCode}
@@ -563,8 +563,8 @@
           </foreach>;
     </select>
 
-    <select id="getExcludeRuleSecondYxTransferByApiCode" resultType="java.lang.String">
-        select cust_num
+    <select id="getExcludeRuleSecondYxTransferByApiCodetikv_" resultType="java.lang.String">
+        select distinct cust_num
         from b_marketing_transfer_sync_${cid}
         where api_code = #{apiCode}
           and case_effective = '0'
@@ -574,8 +574,8 @@
           </foreach>;
     </select>
 
-    <select id="getExcludeRuleFifthYxTransferByApiCode" resultType="java.lang.String">
-        select cust_num
+    <select id="getExcludeRuleFifthYxTransferByApiCodetikv_" resultType="java.lang.String">
+        select distinct cust_num
         from b_marketing_transfer_sync_${cid}
         where api_code = #{apiCode}
           and type != '12'

@@ -340,19 +340,19 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                   @Param("yesterday") String yesterday,
                                                                   @Param("minId") Long minId);
 
-    List<String> getExcludeRuleFirstYxTransferByApiCode(@Param("cid") String cid,
-                                                        @Param("apiCode") String apiCode,
-                                                        @Param("today") String today,
-                                                        @Param("custNums") List<String> custNums);
+    List<String> getExcludeRuleFirstYxTransferByApiCodetikv_(@Param("cid") String cid,
+                                                             @Param("apiCode") String apiCode,
+                                                             @Param("today") String today,
+                                                             @Param("custNums") List<String> custNums);
 
-    List<String> getExcludeRuleSecondYxTransferByApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode,
-                                                         @Param("custNums") Set<String> custNums);
+    List<String> getExcludeRuleSecondYxTransferByApiCodetikv_(@Param("cid") String cid, @Param("apiCode") String apiCode,
+                                                              @Param("custNums") Set<String> custNums);
 
-    List<String> getExcludeRuleFifthYxTransferByApiCode(@Param("cid") String cid,
-                                                        @Param("apiCode") String apiCode,
-                                                        @Param("today") String today,
-                                                        @Param("before") String before,
-                                                        @Param("custNums") List<String> custNums);
+    List<String> getExcludeRuleFifthYxTransferByApiCodetikv_(@Param("cid") String cid,
+                                                             @Param("apiCode") String apiCode,
+                                                             @Param("today") String today,
+                                                             @Param("before") String before,
+                                                             @Param("custNums") List<String> custNums);
 
     Long getYiXinMinAtoBtoCtoI(@Param("cid") String cid,
                                @Param("apiCode") String apiCode,

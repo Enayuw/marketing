@@ -50,17 +50,16 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         String today = LocalDate.now().toString();
         List<String> custNums = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
         List<String> excludeList =
-                marketingTransferSyncUserMapper.getExcludeRuleFirstYxTransferByApiCode(
+                marketingTransferSyncUserMapper.getExcludeRuleFirstYxTransferByApiCodetikv_(
                         marketingTransferSyncUsers.get(0).gettCid(),
                         apiCode,
                         today,
                         custNums);
+        log.warn("宜信推送决策,符合剔除条件:在T日转化的数据中transformType!=1且type!=13的基础数据,custNum集合为{}", Arrays.toString(excludeList.toArray()));
         if (CollectionUtils.isEmpty(excludeList)) {
             return;
         }
-        // custNum去重
-        Set<String> excludeSet = excludeList.stream().collect(Collectors.toSet());
-        marketingTransferSyncUsers.removeIf(t -> excludeSet.contains(t.getCustNum()));
+        marketingTransferSyncUsers.removeIf(t -> excludeList.contains(t.getCustNum()));
     }
 
     @Override
@@ -68,13 +67,12 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         String tcId = marketingTransferSyncUsers.get(0).gettCid();
         Set<String> set = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-        List<String> resultFilter = marketingTransferSyncUserMapper.getExcludeRuleSecondYxTransferByApiCode(tcId, apiCode, set);
+        List<String> resultFilter = marketingTransferSyncUserMapper.getExcludeRuleSecondYxTransferByApiCodetikv_(tcId, apiCode, set);
+        log.warn("宜信推送决策,符合剔除条件:在T日转化的数据中caseEffective=0的基础数据,custNum集合为{}", Arrays.toString(resultFilter.toArray()));
         if (CollectionUtils.isEmpty(resultFilter)) {
             return;
         }
-        // custNum去重
-        Set<String> custNumFilter = resultFilter.stream().collect(Collectors.toSet());
-        marketingTransferSyncUsers.removeIf(t -> custNumFilter.contains(t.getCustNum()));
+        marketingTransferSyncUsers.removeIf(t -> resultFilter.contains(t.getCustNum()));
     }
 
     @Override
@@ -125,18 +123,17 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         String before = LocalDate.now().minusDays(29).toString();
         List<String> custNums = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
         List<String> excludeList =
-                marketingTransferSyncUserMapper.getExcludeRuleFifthYxTransferByApiCode(
+                marketingTransferSyncUserMapper.getExcludeRuleFifthYxTransferByApiCodetikv_(
                         marketingTransferSyncUsers.get(0).gettCid(),
                         apiCode,
                         today,
                         before,
                         custNums);
+        log.warn("宜信推送决策,符合剔除条件:custNum在30天内有type!=12的基础数据,custNum集合为{}", Arrays.toString(excludeList.toArray()));
         if (CollectionUtils.isEmpty(excludeList)) {
             return;
         }
-        // custNum去重
-        Set<String> excludeSet = excludeList.stream().collect(Collectors.toSet());
-        marketingTransferSyncUsers.removeIf(t -> excludeSet.contains(t.getCustNum()));
+        marketingTransferSyncUsers.removeIf(t -> excludeList.contains(t.getCustNum()));
     }
 
     @Override
