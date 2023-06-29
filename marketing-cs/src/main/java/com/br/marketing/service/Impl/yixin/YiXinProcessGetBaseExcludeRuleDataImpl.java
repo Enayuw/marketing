@@ -122,18 +122,15 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         // 获取29天之前的日期yyyy-MM-dd (请求时间为T-30日的转化数据取transformType为非1的type=12根据inserTime取最新的custNum，且该custNum在[T-29,T]该transformType为非1的custNum无其他type)
         String before = LocalDate.now().minusDays(29).toString();
         List<String> custNums = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
-        List<String> excludeList =
-                marketingTransferSyncUserMapper.getExcludeRuleFifthYxTransferByApiCodetikv_(
+        List<String> includeList =
+                marketingTransferSyncUserMapper.getRuleFifthYxTransferByApiCodetikv_(
                         marketingTransferSyncUsers.get(0).gettCid(),
                         apiCode,
                         today,
                         before,
                         custNums);
-        log.warn("宜信推送决策,符合剔除条件:custNum在30天内有type!=12的基础数据,custNum集合为{}", Arrays.toString(excludeList.toArray()));
-        if (CollectionUtils.isEmpty(excludeList)) {
-            return;
-        }
-        marketingTransferSyncUsers.removeIf(t -> excludeList.contains(t.getCustNum()));
+        log.warn("宜信推送决策,符合推送条件:custNum在30天内有type!=12的基础数据,custNum集合为{}", Arrays.toString(includeList.toArray()));
+        marketingTransferSyncUsers.removeIf(t -> ! includeList.contains(t.getCustNum()));
     }
 
     @Override

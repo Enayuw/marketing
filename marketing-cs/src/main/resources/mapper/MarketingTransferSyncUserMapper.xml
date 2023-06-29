@@ -574,16 +574,19 @@
           </foreach>;
     </select>
 
-    <select id="getExcludeRuleFifthYxTransferByApiCodetikv_" resultType="java.lang.String">
-        select distinct cust_num
-        from b_marketing_transfer_sync_${cid}
-        where api_code = #{apiCode}
-          and type != '12'
-          and request_data between #{before} and #{today}
-          and cust_num in
-          <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+    <select id="getRuleFifthYxTransferByApiCodetikv_" resultType="java.lang.String">
+        select b.*
+        FROM (select a.*, row_number() over (partition by cust_num,request_data order by create_time desc) as rn
+              FROM b_marketing_transfer_sync_793 a
+              WHERE json_extract(reserve_field1, '$.transformType') != '1' and request_data between #{before}
+                and #{today}
+                and api_code = #{apiCode}) as b
+                WHERE b.rn = 1
+                  and (b.type = 12 or b.type = null)
+                  and cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
             #{custNum}
-          </foreach>;
+        </foreach>;
     </select>
 
     <select id="getYiXinMinAtoBtoCtoI" resultType="java.lang.Long">
