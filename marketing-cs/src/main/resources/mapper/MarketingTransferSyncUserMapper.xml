@@ -555,7 +555,7 @@
         from b_marketing_transfer_sync_${cid}
         where request_data = #{today}
           and api_code = #{apiCode}
-          and json_extract(reserve_field1, '$.transformType') != '1'
+          and (json_extract(reserve_field1, '$.transformType') != '1' or json_extract(reserve_field1,'$.transformType') is null)
           and type != '13'
           and cust_num in
           <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
