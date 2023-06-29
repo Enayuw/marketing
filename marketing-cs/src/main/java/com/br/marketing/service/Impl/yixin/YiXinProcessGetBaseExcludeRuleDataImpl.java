@@ -83,7 +83,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         Date dateStart = Date.from(LocalDate.now().minusDays(3).atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date dateEnd = Date.from(LocalDate.now().minusDays(1).atTime(23, 59, 59, 999999999)
                 .atZone(ZoneId.systemDefault()).toInstant());
-        List<String> custNums = marketingTransferSyncUsers.parallelStream().map(MarketingTransferSyncUser::getCustNum)
+        List<String> custNums = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum)
                 .collect(Collectors.toList());
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
@@ -98,7 +98,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         if (marketingTransferSyncUsers.size() < 1) {
             return;
         }
-        custNums = marketingTransferSyncUsers.parallelStream().map(MarketingTransferSyncUser::getCustNum)
+        custNums = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum)
                 .collect(Collectors.toList());
         PhoneSaleExample example1 = new PhoneSaleExample();
         example1.createCriteria().andApiCodeEqualTo(apiCode)
