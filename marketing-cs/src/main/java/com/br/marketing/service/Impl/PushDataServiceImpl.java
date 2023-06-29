@@ -1332,10 +1332,8 @@ public class PushDataServiceImpl implements PushDataService {
             resultData.setId(xieChengData.getId());
 
             //查询投诉退订
-            XiechengSmsQuitDataExample quitDataExample = new XiechengSmsQuitDataExample();
-            quitDataExample.createCriteria().andCipherMobileEqualTo(sha256Tel).andStatusEqualTo(Constants.DATA_VALID);
-            List<XiechengSmsQuitData> xiechengSmsQuitData = xiechengSmsQuitDataMapper.selectByExample(quitDataExample);
-            if (xiechengSmsQuitData.size() > 0) {
+            Integer xiechengSmsQuitDataSize = xiechengSmsQuitDataMapper.getCountSmsQuitDataByMobile(sha256Tel);
+            if (xiechengSmsQuitDataSize > 0) {
                 resultData.setStatus(2);
                 resultData.setDataMessage("命中投诉退订数据");
                 xieChengDataMapper.updateByPrimaryKeySelective(resultData);

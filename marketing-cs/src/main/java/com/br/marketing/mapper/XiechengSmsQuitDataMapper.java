@@ -10,4 +10,5 @@ public interface XiechengSmsQuitDataMapper extends XiechengSmsQuitDataMapperBase
 
     List<XiechengSmsQuitData> getSmsQuitData(@Param("localId") Long localId, @Param("dataId")  Long dataId);
 
+    Integer getCountSmsQuitDataByMobile(@Param("mobile") String mobile);
 }
