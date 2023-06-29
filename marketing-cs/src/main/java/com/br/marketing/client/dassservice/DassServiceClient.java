@@ -163,7 +163,7 @@ public class DassServiceClient {
             interfaceLog.setExpire(String.valueOf(end - start));
             if (Integer.valueOf(200).equals(code)) {
                 //调用数量监控
-                BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_BATCH_USERDATA_METRIC_NAME,dto.getPhoneSaleExtendInfos().get(0).getApiCode(),"batchUserData-api",
+                BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_BATCH_USERDATA_METRIC_NAME,dto.getList().get(0).getOrgname(),"batchUserData-api",
                         dtos.size());
                 result.setCode(ResultCode.SUCCESS.getValue());
             } else {
