@@ -265,7 +265,7 @@
 	<select id="selectSyncUserByCustNum" resultType="com.br.marketing.entity.MarketingSyncUser">
         select *
         from  b_marketing_sync_${apiCode}
-        where cust_num = #{custNum} limit 1
+        where cust_num = #{custNum} and status = 1 order by applet_time desc limit 1
     </select>
     <insert id="insertLoanUser" parameterType="map">
 		INSERT INTO b_marketing_user (`api_code`,
