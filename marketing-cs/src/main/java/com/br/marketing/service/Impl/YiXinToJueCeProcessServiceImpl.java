@@ -253,20 +253,20 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         jsonObject.put("cell", cell);
         jsonObject.put("userType", marketingTransferSyncUserCell.getUserType());
         switch (actionType) {
-            case "d":
+            case "D":
                 jsonObject.put("unlentAmount", marketingTransferSyncUserCell.getUnlentAmount());
                 JSONObject parsed = JSONObject.parseObject(marketingTransferSyncUserCell.getReserveField1());
                 jsonObject.put("availableAmount", parsed.get("availableAmount"));
                 break;
-            case "e":
-            case "f":
-            case "g":
+            case "E":
+            case "F":
+            case "G":
                 JSONObject parse = JSONObject.parseObject(marketingTransferSyncUserCell.getReserveField1());
                 jsonObject.put("raiseLimiType", parse.get("raiseLimiType"));
                 jsonObject.put("raiseLimiSuccess", parse.get("raiseLimiSuccess"));
                 jsonObject.put("recommendType", parse.get("recommendType"));
                 break;
-            case "h":
+            case "H":
                 JSONObject parseh = JSONObject.parseObject(marketingTransferSyncUserCell.getReserveField1());
                 jsonObject.put("availableAmount", parseh.get("availableAmount"));
                 break;
