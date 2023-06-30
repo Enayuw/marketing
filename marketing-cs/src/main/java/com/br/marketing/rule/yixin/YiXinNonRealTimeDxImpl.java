@@ -60,10 +60,10 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         if(StringUtils.isEmpty(cell)){
             return null;
         }
-        String phone = AESUtil.aesEncrypty(cell, aesKey);
+        //String phone = AESUtil.aesEncrypty(cell, aesKey);
         MarketingSyncUser syncUser = new MarketingSyncUser();
         BeanUtils.copyProperties(marketingSyncUser,syncUser);
-        syncUser.setCell(phone);
+        //syncUser.setCell(phone);
         List<String> grades = callRecordMap.get(transfer.getCustNum());
         String grade = (grades != null && grades.size() > 0) ? grades.get(0) : "";
         BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
@@ -129,7 +129,9 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         batchImportData.setName(name);
         batchImportData.setOrgname("yixin");
         // 根据custNum取上传接口最新的cell转aes加密
-        batchImportData.setPhone(syncUser.getCell());
+        String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
+        String phone = AESUtil.aesEncrypty(cell, aesKey);
+        batchImportData.setPhone(phone);
         batchImportData.setUid(transfer.getCustNum());
         batchImportData.setUserType("A");
         batchImportData.setSource("16");
