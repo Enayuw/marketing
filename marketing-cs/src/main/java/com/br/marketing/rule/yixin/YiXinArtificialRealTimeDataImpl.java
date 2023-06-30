@@ -109,6 +109,7 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
         phoneSaleExtendInfo.setPushDxTime(new Date());
         phoneSaleExtendInfo.setTransformType("1");
         phoneSaleExtendInfo.setSourceId(transfer.getId());
+        phoneSaleExtendInfo.setCell(marketingSyncUser.getCell());
 
         return phoneSaleExtendInfo;
     }

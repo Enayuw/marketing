@@ -196,6 +196,7 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         phoneSaleExtendInfo.setPushDxTime(new Date());
         phoneSaleExtendInfo.setTransformType("0");
         phoneSaleExtendInfo.setSourceId(transfer.getId());
+        phoneSaleExtendInfo.setCell(syncUser.getCell());
         return phoneSaleExtendInfo;
     }
 }
