@@ -10,26 +10,32 @@ import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
+import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.service.Impl.yixin.YiXinProcessExcludeRuleData;
 import com.br.marketing.service.Impl.yixin.YiXinProcessGetBaseDataService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.YiXinToJueCeProcessService;
+import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * 宜信推决策流程
+ *
  * @author GuangChao.Zhang
  * @version 1.0
  * @date 2023/6/16 17:23
@@ -54,19 +60,36 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
+    @Resource
+    private MarketingTransferInfoMapper marketingTransferInfoMapper;
 
-    private static final  int PARTITION = 2000;
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
+
+    @Resource
+    private ZnkfPushService znkfPushService;
+    private static final int PARTITION = 2000;
 
 
     @Override
-    public void doProcess(TreeMap<String, String> actionTypeTree, String tcId) {
+    public void doProcess(TreeMap<String, String> actionTypeTree) {
+        String apiCodeTransfer = checkApiCode();
+        Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd(apiCodeTransfer, LocalDate.now().toString());
+
+        if (!pushBlackPhoneEnd && LocalDateTime.now().getHour() < 11) {
+            log.warn("未查询到黑名单结束标识！");
+            return;
+        }
+        String tcId = tableCreateService.getTcId(apiCodeTransfer);
         actionTypeTree.forEach((String k, String v) -> {
             switch (k) {
                 case "A":
                     pushMarketingTransferSyncUsersA(k, v, tcId);
                     break;
                 case "B":
-                    pushMarketingTransferSyncUsersB(k, v, tcId);
+                    if (isTransferLast(apiCodeTransfer)) {
+                        pushMarketingTransferSyncUsersB(k, v, tcId);
+                    }
                     break;
                 case "C":
                 case "D":
@@ -75,7 +98,9 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 case "G":
                 case "H":
                 case "I":
-                    getMarketingTransferSyncUsersCtoI(k, v, tcId);
+                    if (isTransferLast(apiCodeTransfer)) {
+                        pushMarketingTransferSyncUsersCtoI(k, v, tcId);
+                    }
                     break;
                 default:
                     log.warn("宜信转化数据推决策类型异常");
@@ -86,8 +111,21 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
     }
 
+    private boolean isTransferLast(String apiCodeTransfer) {
+        return marketingTransferInfoMapper.countByApiCodAndLastOne(apiCodeTransfer, LocalDate.now().toString(), "1") > 0;
+    }
+
+    private String checkApiCode() {
+        String apiCodeTransfer = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        if (StringUtils.isBlank(apiCodeTransfer)) {
+            log.error("宜信推送决策未配置apiCode");
+        }
+        return apiCodeTransfer;
+    }
+
     /**
      * 情况 a
+     *
      * @param tcId cid
      */
     private void pushMarketingTransferSyncUsersA(String actionType, String type, String tcId) {
@@ -95,7 +133,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         while (true) {
             List<MarketingTransferSyncUser> marketingTransferSyncUserList =
                     yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListA(tcId,
-                    type, idIndex);
+                            type, idIndex);
             if (marketingTransferSyncUserList.isEmpty()) {
                 break;
             }
@@ -108,6 +146,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
     /**
      * 情况 b
+     *
      * @param tcId cid
      */
     private void pushMarketingTransferSyncUsersB(String actionType, String type, String tcId) {
@@ -115,7 +154,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         while (true) {
             List<MarketingTransferSyncUser> marketingTransferSyncUserList =
                     yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListB(tcId,
-                    type, idIndex);
+                            type, idIndex);
             if (marketingTransferSyncUserList.isEmpty()) {
                 break;
             }
@@ -127,9 +166,10 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
     /**
      * 情况 c~i
+     *
      * @param tcId cid
      */
-    private void getMarketingTransferSyncUsersCtoI(String actionType, String type, String tcId) {
+    private void pushMarketingTransferSyncUsersCtoI(String actionType, String type, String tcId) {
 
         Long idIndex = null;
         while (true) {
@@ -158,6 +198,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
     /**
      * 获取上传数据最新的一条数据
+     *
      * @param marketingTransferSyncUserList 转化数据
      * @return 最新的数据
      */
@@ -170,6 +211,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
     /**
      * 推送决策逻辑
+     *
      * @param actionType                         情况说明
      * @param marketingTransferSyncUserCellLists 带电话的转化数据
      */
@@ -177,7 +219,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         String apiCodeJc = marketingCommonConfig.getYiXinTransferToJueCeApiCode();
         // 2000 拆分一组
         List<List<MarketingTransferSyncUserCell>> partition = ListUtils.partition(marketingTransferSyncUserCellLists, 2000);
-        partition.forEach((List<MarketingTransferSyncUserCell> m)  -> {
+        partition.forEach((List<MarketingTransferSyncUserCell> m) -> {
             ArrayList<DataJoinLogDTO> logList = new ArrayList<>();
             ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
             // 决策数据初始化 pushs
@@ -220,7 +262,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                               List<MarketingTransferSyncUserCell> marketingTransferSyncUserCells,
                               ArrayList<DataJoinLogDTO> logList,
                               ArrayList<PushMarketingUserDetailDTO> pushs) {
-        marketingTransferSyncUserCells.forEach( (MarketingTransferSyncUserCell m) -> {
+        marketingTransferSyncUserCells.forEach((MarketingTransferSyncUserCell m) -> {
                     PushMarketingUserDetailDTO marketingUserDetailDTO = new PushMarketingUserDetailDTO();
                     marketingUserDetailDTO.setCaseNumber(m.getCustNum());
                     // log解密  md5加密
@@ -257,6 +299,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 jsonObject.put("recommendType", parse.get("recommendType"));
                 break;
             case "H":
+            case "I":
                 JSONObject parseh = JSONObject.parseObject(marketingTransferSyncUserCell.getReserveField1());
                 jsonObject.put("availableAmount", parseh.get("availableAmount"));
                 break;

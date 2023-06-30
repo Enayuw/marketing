@@ -43,45 +43,18 @@ public class YiXinTransferToJueCeJob extends AbstractSimpleElasticJob {
     @Resource
     private YiXinToJueCeProcessService yiXinToJueCeProcessService;
 
-    @Resource
-    private ZnkfPushService znkfPushService;
+
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
-    @Resource
-    private TableCreateServiceImpl tableCreateService;
 
-    @Resource
-    private MarketingTransferInfoMapper marketingTransferInfoMapper;
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        String apiCodeTransfer = checkApiCode();
-        // 黑名单接口是否推送完成
-        // 当前时间是否>11 点 2 者满足其一就推送
-        Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd(apiCodeTransfer, LocalDate.now().toString());
-        // 判断当天转化数据是否传输完成
-        if (marketingTransferInfoMapper.countByApiCodAndLastOne(apiCodeTransfer, LocalDate.now().toString(), "1") > 0) {
-            if (pushBlackPhoneEnd || LocalDateTime.now().getHour() >= 11) {
-                yiXinToJueCeProcessService.doProcess(ACTONTYPETREE, tableCreateService.getTcId(apiCodeTransfer));
-            }else {
-                log.warn("未查询到黑名单结束标识！");
-            }
-        } else {
-            log.warn("宜信转化数据没有上传完成！");
-        }
+        yiXinToJueCeProcessService.doProcess(ACTONTYPETREE);
 
     }
-
-    private String checkApiCode() {
-        String apiCodeTransfer = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
-        if (StringUtils.isBlank(apiCodeTransfer)) {
-            log.error("宜信推送决策未配置apiCode");
-        }
-        return apiCodeTransfer;
-    }
-
 
 
 }
