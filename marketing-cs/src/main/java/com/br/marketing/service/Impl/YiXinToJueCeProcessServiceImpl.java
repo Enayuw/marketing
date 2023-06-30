@@ -100,12 +100,8 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 break;
             }
             idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
-            List<List<MarketingTransferSyncUser>> partitionSyncUser = getPartitionSyncUser(marketingTransferSyncUserList);
-            partitionSyncUser.forEach((List<MarketingTransferSyncUser> e) -> {
-                yiXinProcessExcludeRuleData.excludeActionA(e);
-                pushToJueCe(actionType, e);
-            });
-
+            yiXinProcessExcludeRuleData.excludeActionA(marketingTransferSyncUserList);
+            pushToJueCe(actionType, marketingTransferSyncUserList);
         }
     }
 
