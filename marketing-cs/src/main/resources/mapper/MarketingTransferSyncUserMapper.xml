@@ -532,7 +532,7 @@
         and (json_extract(reserve_field1,"$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
         and request_data = #{requestData}
         order by a.id  asc) b
-        Where b.rn = 1  and b.type =#{type}  limit 20000 ;
+        Where b.rn = 1  and b.type =#{type}  limit 2000 ;
     </select>
 
     <select id="getYxTransferByApiCodeAtikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
@@ -547,7 +547,7 @@
         and json_extract(reserve_field1, '$.transformType') = '1'
                 order by a.id asc) as b
                 where b.rn = 1
-                  and b.json_extract(reserve_field1, '$.liveType') in ('4', '6') limit 10000;
+                  and b.json_extract(reserve_field1, '$.liveType') in ('4', '6') limit 2000;
     </select>
 
     <select id="getExcludeRuleFirstYxTransferByApiCodetikv_" resultType="java.lang.String">
