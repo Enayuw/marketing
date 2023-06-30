@@ -585,6 +585,7 @@
         and api_code = #{apiCode}) tt1
         where rn = 1
         and tt1.type != '12'
+        and length(trim(tt1.type)) > 0
         and tt1.type is not null
         <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
             #{custNum}
