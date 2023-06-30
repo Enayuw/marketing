@@ -7,6 +7,7 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
@@ -31,6 +32,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -131,6 +134,9 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     private void pushMarketingTransferSyncUsersA(String actionType, String type, String tcId) {
         Long idIndex = null;
         while (true) {
+            // 创建线程池
+            ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(10, 10);
+
             List<MarketingTransferSyncUser> marketingTransferSyncUserList =
                     yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListA(tcId,
                             type, idIndex);
@@ -138,12 +144,21 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 break;
             }
             idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
-            yiXinProcessExcludeRuleData.excludeActionA(marketingTransferSyncUserList);
-            pushToJueCe(actionType, marketingTransferSyncUserList);
+            xieChengSmsCollidingThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
+            try {
+                while (!xieChengSmsCollidingThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                }
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
+
         }
     }
 
-
+    private void threadDoProcess(List<MarketingTransferSyncUser> marketingTransferSyncUserList,String actionType){
+        yiXinProcessExcludeRuleData.excludeActionA(marketingTransferSyncUserList);
+        pushToJueCe(actionType, marketingTransferSyncUserList);
+    }
     /**
      * 情况 b
      *
