@@ -583,7 +583,7 @@
                 and #{today}
                 and api_code = #{apiCode}) as b
                 WHERE b.rn = 1
-                  and (b.type = 12 or b.type = null)
+                  and (b.type = 12 or b.type is null or length(trim(b.type)) = 0)
                   and cust_num in
         <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
             #{custNum}
