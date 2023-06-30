@@ -133,9 +133,9 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      */
     private void pushMarketingTransferSyncUsersA(String actionType, String type, String tcId) {
         Long idIndex = null;
+        // 创建线程池
+        ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(10, 10);
         while (true) {
-            // 创建线程池
-            ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(10, 10);
 
             List<MarketingTransferSyncUser> marketingTransferSyncUserList =
                     yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListA(tcId,
@@ -145,13 +145,12 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             }
             idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             xieChengSmsCollidingThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
-            try {
-                while (!xieChengSmsCollidingThread.awaitTermination(10L, TimeUnit.SECONDS)) {
-                }
-            } catch (Exception ex) {
-                log.error(ex.getMessage(), ex);
+        }
+        try {
+            while (!xieChengSmsCollidingThread.awaitTermination(10L, TimeUnit.SECONDS)) {
             }
-
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
         }
     }
 
