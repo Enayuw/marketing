@@ -157,7 +157,7 @@ api:
     isProxy: 1
   dass:
     baseUrl: http://testdaas.huiyunai.com
-    postHermesUserData: ${api.dass.baseUrl}/csos-daas/call/postHermesUserData
+    postHermesUserData: ${api.dass.baseUrl}/csos-daas/call/postHermesUserData11
     postBlackList: ${api.dass.baseUrl}/csos-daas/call/postBlackList # 黑名单数据推送
     postRealTimeUserData: ${api.dass.baseUrl}/csos-daas/call/postRealTimeUserData # 实时单条用户名单数据推送
     postTransferData: ${api.dass.baseUrl}/csos-daas/call/postDealData # 转化数据推送
