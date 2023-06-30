@@ -134,9 +134,8 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     private void pushMarketingTransferSyncUsersA(String actionType, String type, String tcId) {
         Long idIndex = null;
         // 创建线程池
-        ThreadPoolExecutor xieChengSmsCollidingThread = BrExecutors.getThreadPool(10, 10);
+        ThreadPoolExecutor yiXinToJueCeThread = BrExecutors.getThreadPool(10, 10);
         while (true) {
-
             List<MarketingTransferSyncUser> marketingTransferSyncUserList =
                     yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListA(tcId,
                             type, idIndex);
@@ -144,10 +143,10 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 break;
             }
             idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
-            xieChengSmsCollidingThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
+            yiXinToJueCeThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
         }
         try {
-            while (!xieChengSmsCollidingThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+            while (!yiXinToJueCeThread.awaitTermination(10L, TimeUnit.SECONDS)) {
             }
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
@@ -155,7 +154,25 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     }
 
     private void threadDoProcess(List<MarketingTransferSyncUser> marketingTransferSyncUserList,String actionType){
-        yiXinProcessExcludeRuleData.excludeActionA(marketingTransferSyncUserList);
+        switch (actionType){
+            case "A":
+                yiXinProcessExcludeRuleData.excludeActionA(marketingTransferSyncUserList);
+                break;
+            case "B":
+                yiXinProcessExcludeRuleData.excludeActionB(marketingTransferSyncUserList);
+                break;
+            case "C":
+            case "D":
+            case "E":
+            case "F":
+            case "G":
+            case "H":
+            case "I":
+                yiXinProcessExcludeRuleData.excludeActionCtoI(marketingTransferSyncUserList);
+                break;
+            default:
+                break;
+        }
         pushToJueCe(actionType, marketingTransferSyncUserList);
     }
     /**
@@ -165,6 +182,8 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      */
     private void pushMarketingTransferSyncUsersB(String actionType, String type, String tcId) {
         Long idIndex = null;
+        // 创建线程池
+        ThreadPoolExecutor yiXinToJueCeThread = BrExecutors.getThreadPool(10, 10);
         while (true) {
             List<MarketingTransferSyncUser> marketingTransferSyncUserList =
                     yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListB(tcId,
@@ -173,8 +192,13 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 break;
             }
             idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
-            yiXinProcessExcludeRuleData.excludeActionB(marketingTransferSyncUserList);
-            pushToJueCe(actionType, marketingTransferSyncUserList);
+            yiXinToJueCeThread.submit(()->threadDoProcess(marketingTransferSyncUserList,actionType));
+        }
+        try {
+            while (!yiXinToJueCeThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
         }
     }
 
@@ -186,6 +210,8 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     private void pushMarketingTransferSyncUsersCtoI(String actionType, String type, String tcId) {
 
         Long idIndex = null;
+        // 创建线程池
+        ThreadPoolExecutor yiXinToJueCeThread = BrExecutors.getThreadPool(10, 10);
         while (true) {
             List<MarketingTransferSyncUser> marketingTransferSyncUserList =
                     yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListCtoI(tcId, type, idIndex);
@@ -193,8 +219,13 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 break;
             }
             idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
-            yiXinProcessExcludeRuleData.excludeActionCtoI(marketingTransferSyncUserList);
-            pushToJueCe(actionType, marketingTransferSyncUserList);
+            yiXinToJueCeThread.submit(()->threadDoProcess(marketingTransferSyncUserList,actionType));
+        }
+        try {
+            while (!yiXinToJueCeThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
         }
     }
 
