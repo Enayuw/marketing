@@ -130,7 +130,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
                         before,
                         custNums);
         log.warn("宜信推送决策,符合推送条件:custNum在30天内有type!=12的基础数据,custNum集合为{}", Arrays.toString(includeList.toArray()));
-        marketingTransferSyncUsers.removeIf(t -> ! includeList.contains(t.getCustNum()));
+        marketingTransferSyncUsers.removeIf(t ->  includeList.contains(t.getCustNum()));
     }
 
     @Override
