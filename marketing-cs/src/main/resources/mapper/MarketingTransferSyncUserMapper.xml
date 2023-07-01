@@ -577,10 +577,10 @@
     <select id="getRuleFifthYxTransferByApiCodetikv_" resultType="java.lang.String">
         select  distinct b.cust_num from (
         select t1.*,row_number() over(partition by cust_num,request_data order by insert_time desc) as rn
-        from b_marketing_transfer_sync_793 t1
+        from b_marketing_transfer_sync_${cid} t1
         where request_data between #{before}
         and request_data #{today}
-        and ( json_extract(reserve_field1, '$.transformType') != '1'
+        and (json_extract(reserve_field1, '$.transformType') != '1'
         or json_extract(reserve_field1, '$.transformType') is null)
         and api_code = #{apiCode}) tt1
         where rn = 1
