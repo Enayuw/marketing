@@ -154,8 +154,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         }
 
         long end = System.currentTimeMillis();
-        log.warn("宜信推送决策,剔除条件:custNum在30天内有type!=12的基础数据,单次耗时：{}", end - start);
-        log.warn("宜信推送决策,符合剔除条件:custNum在30天内有type!=12的基础数据,custNum集合为{}", Arrays.toString(custNumExcludeList.toArray()));
+        log.warn("宜信推送决策,剔除处理:custNum在30天内有type!=12的基础数据。单次处理耗时：{}ms,剔除的custNum集合为{}", end - start, Arrays.toString(custNumExcludeList.toArray()));
         marketingTransferSyncUsers.removeIf(t -> custNumExcludeList.contains(t.getCustNum()));
     }
 
