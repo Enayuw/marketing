@@ -736,5 +736,10 @@ public class MarketingCommonConfig {
      * 宜信转化数据推决策策略编号设置
      */
     private Map<String, String> yxXinToJueCeStrategyMap;
+
+    /**
+     * 宜信推决策，剔除规则5，每批次查询数量n。（对应线程池核心线程数=2000/n)
+     */
+    private Integer yiXinExcludeRuleFifthPerGroupSize;
 }
 

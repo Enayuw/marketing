@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.yixin;
 
+import cn.hutool.core.collection.ConcurrentHashSet;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
@@ -13,6 +14,7 @@ import com.br.marketing.service.IDxService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -127,35 +129,58 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         List<String> custNums = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
 
+        // 2000条数据拆分后每组数量
+        Integer perGroupSize = marketingCommonConfig.getYiXinExcludeRuleFifthPerGroupSize();
+        // 核心线程数
+        Integer threadPoolSize = 2000/perGroupSize;
+
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusDays(29);
 
-        // 创建线程池
+        // 创建线程池，30天并发处理
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(30, 30);
-        List<Callable<List<String>>> tasks = new ArrayList<>();
+
+        // 剔除结果集合
+        Set<String> custNumExcludeSet = new ConcurrentHashSet<>();
+
         // 提交查询任务给线程池
         for (LocalDate date = startDate; date.isBefore(endDate.plusDays(1)); date = date.plusDays(1)) {
             final String queryDate = date.toString();
-            tasks.add(() -> queryDataByDate(cid, apiCode, queryDate, custNums));
+            pool.submit(() -> {
+                // 再创建线程池，2000条custNum并发处理
+                ThreadPoolExecutor innerPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
+                List<Callable<List<String>>> tasks = new ArrayList<>();
+                // 将custNums拆分成100组，每组20个
+                List<List<String>> custNumGroups = ListUtils.partition(custNums, perGroupSize);
+                for (List<String> custNumGroup : custNumGroups) {
+                    tasks.add(() -> queryDataByDate(cid, apiCode, queryDate, custNumGroup));
+                }
+
+                // 执行任务并等待所有任务执行完成，并汇总结果
+                try {
+                    List<Future<List<String>>> futures = innerPool.invokeAll(tasks);
+                    for (Future<List<String>> future : futures) {
+                        custNumExcludeSet.addAll(future.get());
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    log.error(e.getMessage(), e);
+                } finally {
+                    innerPool.shutdown();
+                }
+            });
         }
 
-        Set<String> custNumExcludeList = new HashSet<>();
-
-        // 执行任务并等待所有任务执行完成，并汇总结果
+        pool.shutdown();
         try {
-            List<Future<List<String>>> futures = pool.invokeAll(tasks);
-            for (Future<List<String>> future : futures) {
-                custNumExcludeList.addAll(future.get());
+            while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
             }
-        } catch (InterruptedException | ExecutionException e) {
-            log.error(e.getMessage(), e);
-        } finally {
-            pool.shutdown();
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
         }
 
         long end = System.currentTimeMillis();
-        log.warn("宜信推送决策,剔除处理:custNum在30天内有type!=12的基础数据。单次处理耗时：{}ms,剔除的custNum集合为{}", end - start, Arrays.toString(custNumExcludeList.toArray()));
-        marketingTransferSyncUsers.removeIf(t -> custNumExcludeList.contains(t.getCustNum()));
+        log.warn("宜信推送决策,剔除处理:custNum在30天内有type!=12的基础数据。单次处理耗时：{}ms,剔除的custNum集合为{}", end - start, Arrays.toString(custNumExcludeSet.toArray()));
+        marketingTransferSyncUsers.removeIf(t -> custNumExcludeSet.contains(t.getCustNum()));
     }
 
     private List<String> queryDataByDate(String cid, String apiCode, String queryDate, List<String> custNums) {
