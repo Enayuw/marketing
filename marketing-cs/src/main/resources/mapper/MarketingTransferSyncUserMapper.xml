@@ -575,7 +575,7 @@
     </select>
 
     <select id="getRuleFifthYxTransferByApiCodetikv_" resultType="java.lang.String">
-        select  distinct b.cust_num from (
+        select distinct b.cust_num from (
         select t1.*,row_number() over(partition by cust_num,request_data order by insert_time desc) as rn
         from b_marketing_transfer_sync_${cid} t1
         where request_data between #{before}
@@ -587,6 +587,7 @@
         and tt1.type != '12'
         and length(trim(tt1.type)) > 0
         and tt1.type is not null
+        and cust_num in
         <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
             #{custNum}
         </foreach>
