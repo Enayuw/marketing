@@ -575,22 +575,22 @@
     </select>
 
     <select id="getRuleFifthYxTransferByApiCodetikv_" resultType="java.lang.String">
-        select distinct b.cust_num from (
+        select distinct tt1.cust_num from (
         select t1.*,row_number() over(partition by cust_num,request_data order by insert_time desc) as rn
         from b_marketing_transfer_sync_${cid} t1
-        where request_data between #{before}
-        and request_data #{today}
+        where request_data = #{queryDate}
         and (json_extract(reserve_field1, '$.transformType') != '1'
         or json_extract(reserve_field1, '$.transformType') is null)
-        and api_code = #{apiCode}) tt1
-        where rn = 1
-        and tt1.type != '12'
-        and length(trim(tt1.type)) > 0
-        and tt1.type is not null
+        and api_code = #{apiCode}
         and cust_num in
         <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
             #{custNum}
         </foreach>
+        ) tt1
+        where rn = 1
+        and tt1.type != '12'
+        and length(trim(tt1.type)) > 0
+        and tt1.type is not null;
     </select>
 
     <select id="getYiXinMinAtoBtoCtoI" resultType="java.lang.Long">

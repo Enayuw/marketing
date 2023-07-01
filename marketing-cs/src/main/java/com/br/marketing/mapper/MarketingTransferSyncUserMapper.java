@@ -350,8 +350,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     List<String> getRuleFifthYxTransferByApiCodetikv_(@Param("cid") String cid,
                                                       @Param("apiCode") String apiCode,
-                                                      @Param("today") String today,
-                                                      @Param("before") String before,
+                                                      @Param("queryDate") String queryDate,
                                                       @Param("custNums") List<String> custNums);
 
     Long getYiXinMinAtoBtoCtoI(@Param("cid") String cid,
