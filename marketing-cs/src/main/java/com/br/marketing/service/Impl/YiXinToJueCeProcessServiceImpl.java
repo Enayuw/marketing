@@ -145,6 +145,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             yiXinToJueCeThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
         }
+        yiXinToJueCeThread.shutdown();
         try {
             while (!yiXinToJueCeThread.awaitTermination(10L, TimeUnit.SECONDS)) {
             }
@@ -194,6 +195,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             yiXinToJueCeThread.submit(()->threadDoProcess(marketingTransferSyncUserList,actionType));
         }
+        yiXinToJueCeThread.shutdown();
         try {
             while (!yiXinToJueCeThread.awaitTermination(10L, TimeUnit.SECONDS)) {
             }
@@ -221,6 +223,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             yiXinToJueCeThread.submit(()->threadDoProcess(marketingTransferSyncUserList,actionType));
         }
+        yiXinToJueCeThread.shutdown();
         try {
             while (!yiXinToJueCeThread.awaitTermination(10L, TimeUnit.SECONDS)) {
             }
