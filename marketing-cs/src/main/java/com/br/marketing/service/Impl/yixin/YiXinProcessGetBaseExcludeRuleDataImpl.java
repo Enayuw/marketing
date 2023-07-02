@@ -131,8 +131,10 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
 
         // 2000条数据拆分后每组数量
         Integer perGroupSize = marketingCommonConfig.getYiXinExcludeRuleFifthPerGroupSize();
-        // 核心线程数
-        Integer threadPoolSize = 2000/perGroupSize;
+        // 将custNums拆分成100组，每组20个
+        final List<List<String>> custNumGroups = ListUtils.partition(custNums, perGroupSize);
+        // 分组数=线程数
+        Integer threadPoolSize = custNumGroups.size();
 
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusDays(29);
@@ -150,8 +152,6 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
                 // 再创建线程池，2000条custNum并发处理
                 ThreadPoolExecutor innerPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
                 List<Callable<List<String>>> tasks = new ArrayList<>();
-                // 将custNums拆分成100组，每组20个
-                List<List<String>> custNumGroups = ListUtils.partition(custNums, perGroupSize);
                 for (List<String> custNumGroup : custNumGroups) {
                     tasks.add(() -> queryDataByDate(cid, apiCode, queryDate, custNumGroup));
                 }
