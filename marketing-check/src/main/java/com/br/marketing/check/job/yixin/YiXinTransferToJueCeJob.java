@@ -45,8 +45,7 @@ public class YiXinTransferToJueCeJob extends AbstractSimpleElasticJob {
 
 
 
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
+
 
 
 
