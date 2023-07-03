@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleSoleDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailDTO;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
@@ -11,6 +13,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
+import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.service.Impl.yixin.YiXinProcessExcludeRuleData;
 import com.br.marketing.service.Impl.yixin.YiXinProcessGetBaseDataService;
@@ -71,17 +74,34 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
     @Resource
     private ZnkfPushService znkfPushService;
+
+    @Resource
+    private JobManager jobManager;
+
     private static final int PARTITION = 2000;
 
 
     @Override
-    public void doProcess(TreeMap<String, String> actionTypeTree) {
+    public Result doProcess(TreeMap<String, String> actionTypeTree) {
         String apiCodeTransfer = checkApiCode();
+        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        Result<TransferActionFront> frontData = jobManager.getFrontData(apiCode, LocalDate.now().toString(), 3);
+        if(!ResultCode.SUCCESS.getValue().equals(frontData.getCode())){
+            return new Result().setCode(ResultCode.FAIL.getValue());
+        }
+        Long jobId  = 0L;
+        TransferActionFront actionFront = frontData.getData();
+        if(actionFront ==null){
+            jobId = jobManager.saveFrontData(apiCode, LocalDate.now().toString(), 3);
+        }else{
+            jobId = actionFront.getId();
+        }
+
         Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd(apiCodeTransfer, LocalDate.now().toString());
 
         if (!pushBlackPhoneEnd && LocalDateTime.now().getHour() < 11) {
             log.warn("未查询到黑名单结束标识！");
-            return;
+            return new Result().setCode(ResultCode.FAIL.getValue());
         }
         String tcId = tableCreateService.getTcId(apiCodeTransfer);
         actionTypeTree.forEach((String k, String v) -> {
@@ -110,8 +130,8 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                     break;
             }
         });
-
-
+        jobManager.updateFrontDataStatus(jobId,2);
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
     private boolean isTransferLast(String apiCodeTransfer) {
