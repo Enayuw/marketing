@@ -4,6 +4,7 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -28,7 +29,7 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     private MarketingCommonConfig marketingCommonConfig;
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String cid, String type,Long idIndex) {
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String cid, String type, Integer pageNum) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         // 获取前一天的日期yyyy-MM-dd
         return marketingTransferSyncUserMapper
@@ -36,13 +37,12 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
                         cid,
                         apiCode,
                         LocalDate.now().minusDays(1).toString(),
-                        idIndex
-//                        getIdIndex(cid, idIndex, LocalDate.now().minusDays(2).toString(), apiCode, type)
+                        pageNum
                 );
     }
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListB(String cid,String type, Long idIndex) {
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListB(String cid,String type, Integer pageNum) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         return marketingTransferSyncUserMapper
                 .getYxTransferByApiCodeBtoCtoItikv_(
@@ -50,17 +50,12 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
                         apiCode,
                         LocalDate.now().minusDays(30).toString(),
                         type,
-                        idIndex
-//                        getIdIndex(cid,
-//                                idIndex,
-//                                LocalDate.now().minusDays(31).toString(),
-//                                apiCode,
-//                                type)
+                        pageNum
                 );
     }
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCtoI(String cid,String type, Long idIndex) {
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCtoI(String cid,String type, Integer pageNum) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         return marketingTransferSyncUserMapper
                 .getYxTransferByApiCodeBtoCtoItikv_(
@@ -68,12 +63,7 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
                         apiCode,
                         LocalDate.now().toString(),
                         type,
-                        idIndex
-//                        getIdIndex(cid,
-//                                idIndex,
-//                                LocalDate.now().minusDays(1).toString(),
-//                                apiCode,
-//                                type)
+                        pageNum
                 );
     }
 

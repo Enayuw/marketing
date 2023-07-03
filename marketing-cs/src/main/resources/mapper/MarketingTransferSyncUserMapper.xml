@@ -512,7 +512,7 @@
 
     <select id="getTransferByCustNumOrderDatatikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
     select * from (
-    select *,row_number() over(partition by cust_num order by create_time desc) as num
+    select *,row_number() over(partition by cust_num order by create_time,id desc) as num
     from b_marketing_transfer_sync_${tCid}
     where
     cust_num in
@@ -523,31 +523,22 @@
     </select>
     <select id="getYxTransferByApiCodeBtoCtoItikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         Select b.*
-        From (select a.* , row_number() over(partition by cust_num order by insert_time desc) as rn
-        From b_marketing_transfer_sync_${tCid} a
-        where api_code =#{apiCode}
-        <if test="minId != null and minId >0">
-                and id > #{minId}
-        </if>
-        and (json_extract(reserve_field1,"$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
-        and request_data = #{requestData}
-        order by a.id  asc) b
-        Where b.rn = 1  and b.type =#{type}  limit 2000 ;
+        From (select a.* , row_number() over(partition by cust_num order by insert_time desc,id ) as rn
+            From b_marketing_transfer_sync_${tCid} a
+            where api_code =#{apiCode}
+            and (json_extract(reserve_field1,"$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
+            and request_data = #{requestData}) b
+        Where b.rn = 1  and b.type =#{type}  limit #{pageNum}, 2000 ;
     </select>
 
     <select id="getYxTransferByApiCodeAtikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select b.*
-                from (select a.*, row_number() over (partition by cust_num order by create_time desc) as rn
-                      from b_marketing_transfer_sync_${cid} a
-                where request_data = #{yesterday}
-                  and api_code = #{apiCode}
-        <if test="minId != null and minId > 0">
-            and id > #{minId}
-        </if>
-        and json_extract(reserve_field1, '$.transformType') = '1'
-                order by a.id asc) as b
-                where b.rn = 1
-                  and b.json_extract(reserve_field1, '$.liveType') in ('4', '6') limit 2000;
+        from (select a.*, row_number() over (partition by cust_num order by create_time desc,id) as rn
+            from b_marketing_transfer_sync_${cid} a
+            where request_data = #{yesterday}
+            and api_code = #{apiCode}
+            and json_extract(reserve_field1, '$.transformType') = '1') as b
+        where b.rn = 1 and b.json_extract(reserve_field1, '$.liveType') in ('4', '6') limit  #{pageNum}, 2000;
     </select>
 
     <select id="getExcludeRuleFirstYxTransferByApiCodetikv_" resultType="java.lang.String">

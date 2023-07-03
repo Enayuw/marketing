@@ -4,6 +4,7 @@ package com.br.marketing.mapper;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.vo.TransferOfCnIdVO;
 import com.br.marketing.vo.TransferOfRdRFVO;
+import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
@@ -333,12 +334,12 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                        @Param("apiCode") String apiCode,
                                                                        @Param("requestData") String requestData,
                                                                        @Param("type") String type,
-                                                                       @Param("minId") Long minId);
+                                                                       @Param("pageNum") Integer pageNum);
 
     List<MarketingTransferSyncUser> getYxTransferByApiCodeAtikv_(@Param("cid") String cid,
                                                                   @Param("apiCode") String apiCode,
                                                                   @Param("yesterday") String yesterday,
-                                                                  @Param("minId") Long minId);
+                                                                 @Param("pageNum") Integer pageNum);
 
     List<String> getExcludeRuleFirstYxTransferByApiCodetikv_(@Param("cid") String cid,
                                                              @Param("apiCode") String apiCode,

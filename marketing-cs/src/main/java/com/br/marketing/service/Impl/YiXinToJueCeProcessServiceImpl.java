@@ -86,14 +86,14 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         String apiCodeTransfer = checkApiCode();
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         Result<TransferActionFront> frontData = jobManager.getFrontData(apiCode, LocalDate.now().toString(), 3);
-        if(!ResultCode.SUCCESS.getValue().equals(frontData.getCode())){
+        if (!ResultCode.SUCCESS.getValue().equals(frontData.getCode())) {
             return new Result().setCode(ResultCode.FAIL.getValue());
         }
-        Long jobId  = 0L;
+        Long jobId = 0L;
         TransferActionFront actionFront = frontData.getData();
-        if(actionFront ==null){
+        if (actionFront == null) {
             jobId = jobManager.saveFrontData(apiCode, LocalDate.now().toString(), 3);
-        }else{
+        } else {
             jobId = actionFront.getId();
         }
 
@@ -130,7 +130,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                     break;
             }
         });
-        jobManager.updateFrontDataStatus(jobId,2);
+        jobManager.updateFrontDataStatus(jobId, 2);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
@@ -152,18 +152,18 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * @param tcId cid
      */
     private void pushMarketingTransferSyncUsersA(String actionType, String type, String tcId) {
-        Long idIndex = null;
+        Integer pageNum = 0;
         // 创建线程池
         ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
         while (true) {
             initThreadPoolParam(yiXinToJueCeThread);
             List<MarketingTransferSyncUser> marketingTransferSyncUserList =
                     yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListA(tcId,
-                            type, idIndex);
+                            type, pageNum);
             if (marketingTransferSyncUserList.isEmpty()) {
                 break;
             }
-            idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
+            pageNum = pageNum + 2000;
             yiXinToJueCeThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
         }
         yiXinToJueCeThread.shutdown();
@@ -175,8 +175,68 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         }
     }
 
-    private void threadDoProcess(List<MarketingTransferSyncUser> marketingTransferSyncUserList,String actionType){
-        switch (actionType){
+    /**
+     * 情况 b
+     *
+     * @param tcId cid
+     */
+    private void pushMarketingTransferSyncUsersB(String actionType, String type, String tcId) {
+        Integer pageNum = 0;
+        // 创建线程池
+        ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
+
+        while (true) {
+            initThreadPoolParam(yiXinToJueCeThread);
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList =
+                    yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListB(tcId,
+                            type, pageNum);
+            if (marketingTransferSyncUserList.isEmpty()) {
+                break;
+            }
+            pageNum = pageNum + 2000;
+            yiXinToJueCeThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
+        }
+        yiXinToJueCeThread.shutdown();
+        try {
+            while (!yiXinToJueCeThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+    }
+
+
+    /**
+     * 情况 c~i
+     *
+     * @param tcId cid
+     */
+    private void pushMarketingTransferSyncUsersCtoI(String actionType, String type, String tcId) {
+
+        Integer pageNum = 0;
+        // 创建线程池
+        ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
+        while (true) {
+            initThreadPoolParam(yiXinToJueCeThread);
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList =
+                    yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListCtoI(tcId, type, pageNum);
+            if (marketingTransferSyncUserList.isEmpty()) {
+                break;
+            }
+            pageNum = pageNum + 2000;
+            yiXinToJueCeThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
+        }
+        yiXinToJueCeThread.shutdown();
+        try {
+            while (!yiXinToJueCeThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+    }
+
+    private void threadDoProcess(List<MarketingTransferSyncUser> marketingTransferSyncUserList, String actionType) {
+        switch (actionType) {
             case "A":
                 yiXinProcessExcludeRuleData.excludeActionA(marketingTransferSyncUserList);
                 break;
@@ -197,63 +257,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         }
         pushToJueCe(actionType, marketingTransferSyncUserList);
     }
-    /**
-     * 情况 b
-     *
-     * @param tcId cid
-     */
-    private void pushMarketingTransferSyncUsersB(String actionType, String type, String tcId) {
-        Long idIndex = null;
-        // 创建线程池
-        ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
-        while (true) {
-            initThreadPoolParam(yiXinToJueCeThread);
-            List<MarketingTransferSyncUser> marketingTransferSyncUserList =
-                    yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListB(tcId,
-                            type, idIndex);
-            if (marketingTransferSyncUserList.isEmpty()) {
-                break;
-            }
-            idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
-            yiXinToJueCeThread.submit(()->threadDoProcess(marketingTransferSyncUserList,actionType));
-        }
-        yiXinToJueCeThread.shutdown();
-        try {
-            while (!yiXinToJueCeThread.awaitTermination(10L, TimeUnit.SECONDS)) {
-            }
-        } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
-        }
-    }
 
-    /**
-     * 情况 c~i
-     *
-     * @param tcId cid
-     */
-    private void pushMarketingTransferSyncUsersCtoI(String actionType, String type, String tcId) {
-
-        Long idIndex = null;
-        // 创建线程池
-        ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
-        while (true) {
-            initThreadPoolParam(yiXinToJueCeThread);
-            List<MarketingTransferSyncUser> marketingTransferSyncUserList =
-                    yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListCtoI(tcId, type, idIndex);
-            if (marketingTransferSyncUserList.isEmpty()) {
-                break;
-            }
-            idIndex = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
-            yiXinToJueCeThread.submit(()->threadDoProcess(marketingTransferSyncUserList,actionType));
-        }
-        yiXinToJueCeThread.shutdown();
-        try {
-            while (!yiXinToJueCeThread.awaitTermination(10L, TimeUnit.SECONDS)) {
-            }
-        } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
-        }
-    }
 
     private void initThreadPoolParam(ThreadPoolExecutor yiXinToJueCeThread) {
         yiXinToJueCeThread.setCorePoolSize(marketingCommonConfig.getYiXinToJueCeTpNum());
