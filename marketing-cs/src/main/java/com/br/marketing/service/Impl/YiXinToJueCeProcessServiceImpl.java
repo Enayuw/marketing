@@ -261,13 +261,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     }
 
     private ThreadPoolExecutor getYiXinToJueCeThread() {
-        ThreadPoolExecutor yiXinToJueCeThread = BrExecutors.getThreadPool(marketingCommonConfig.getYiXinToJueCeTpNum(), marketingCommonConfig.getYiXinToJueCeTpNum());
-        return yiXinToJueCeThread;
-    }
-
-    private static List<List<MarketingTransferSyncUser>> getPartitionSyncUser(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
-        // 2000 拆分一组
-        return ListUtils.partition(marketingTransferSyncUserList, PARTITION);
+        return BrExecutors.getThreadPool(marketingCommonConfig.getYiXinToJueCeTpNum(), marketingCommonConfig.getYiXinToJueCeTpNum());
     }
 
 
