@@ -1,7 +1,11 @@
 package com.br.marketing.check.job.yixin;
 
 
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
+import com.br.marketing.service.Impl.JobManager;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.YiXinToJueCeProcessService;
 import com.br.marketing.service.ZnkfPushService;
@@ -10,6 +14,7 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -44,16 +49,12 @@ public class YiXinTransferToJueCeJob extends AbstractSimpleElasticJob {
     private YiXinToJueCeProcessService yiXinToJueCeProcessService;
 
 
-
-
-
-
-
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         yiXinToJueCeProcessService.doProcess(ACTONTYPETREE);
-
     }
+
+
 
 
 }
