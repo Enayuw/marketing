@@ -68,15 +68,53 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
 
     @Override
     public void excludeRuleSecond(List<MarketingTransferSyncUser> marketingTransferSyncUsers) {
+        log.warn("宜信推送决策,符合剔除条件:在T日转化的数据中caseEffective=0的基础数据,剔除前数据量级:{}", marketingTransferSyncUsers.size());
+        long start = System.currentTimeMillis();
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
-        String tcId = marketingTransferSyncUsers.get(0).gettCid();
-        Set<String> set = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-        List<String> resultFilter = marketingTransferSyncUserMapper.getExcludeRuleSecondYxTransferByApiCodetikv_(tcId, apiCode, set);
-        log.warn("宜信推送决策,符合剔除条件:在T日转化的数据中caseEffective=0的基础数据,custNum集合为{}", Arrays.toString(resultFilter.toArray()));
-        if (CollectionUtils.isEmpty(resultFilter)) {
+        String cid = marketingTransferSyncUsers.get(0).gettCid();
+        List<String> custNums = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum)
+                .collect(Collectors.toList());
+
+        // 2000条数据拆分后每组数量
+        Integer perGroupSize = marketingCommonConfig.getYiXinExcludeRuleSecondPerGroupSize();
+        final List<List<String>> custNumGroups = ListUtils.partition(custNums, perGroupSize);
+        // 分组数=线程数
+        Integer threadPoolSize = custNumGroups.size();
+        // 创建线程池
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
+
+        // 剔除结果集合
+        Set<String> custNumExcludeSet = new ConcurrentHashSet<>();
+
+        List<Callable<List<String>>> tasks = new ArrayList<>();
+        // 提交查询任务给线程池
+        for (List<String> custNumGroup : custNumGroups) {
+            tasks.add(() -> queryRuleSecondData(cid, apiCode, custNumGroup));
+        }
+
+        // 执行任务并等待所有任务执行完成，并汇总结果
+        try {
+            List<Future<List<String>>> futures = pool.invokeAll(tasks);
+            for (Future<List<String>> future : futures) {
+                custNumExcludeSet.addAll(future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            log.error(e.getMessage(), e);
+        } finally {
+            pool.shutdown();
+        }
+
+        long end = System.currentTimeMillis();
+        log.warn("宜信推送决策,符合剔除条件:在T日转化的数据中caseEffective=0的基础数据,单次处理耗时：{}ms,custNum集合为{}", end - start, Arrays.toString(custNumExcludeSet.toArray()));
+        if (CollectionUtils.isEmpty(custNumExcludeSet)) {
             return;
         }
-        marketingTransferSyncUsers.removeIf(t -> resultFilter.contains(t.getCustNum()));
+        marketingTransferSyncUsers.removeIf(t -> custNumExcludeSet.contains(t.getCustNum()));
+    }
+
+    private List<String> queryRuleSecondData(String cid, String apiCode, List<String> custNums) {
+        List<String> resultFilter = marketingTransferSyncUserMapper.getExcludeRuleSecondYxTransferByApiCodetikv_(cid, apiCode, custNums);
+        return resultFilter;
     }
 
     @Override
@@ -129,18 +167,19 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         List<String> custNums = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
 
+        Integer outerThreadPoolSize = marketingCommonConfig.getYiXinExcludeRuleFifthThreadNum();
         // 2000条数据拆分后每组数量
         Integer perGroupSize = marketingCommonConfig.getYiXinExcludeRuleFifthPerGroupSize();
         // 将custNums拆分成100组，每组20个
         final List<List<String>> custNumGroups = ListUtils.partition(custNums, perGroupSize);
         // 分组数=线程数
-        Integer threadPoolSize = custNumGroups.size();
+        Integer innerThreadPoolSize = custNumGroups.size();
 
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusDays(29);
 
         // 创建线程池，30天并发处理
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(30, 30);
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(outerThreadPoolSize, outerThreadPoolSize);
 
         // 剔除结果集合
         Set<String> custNumExcludeSet = new ConcurrentHashSet<>();
@@ -150,10 +189,10 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
             final String queryDate = date.toString();
             pool.submit(() -> {
                 // 再创建线程池，2000条custNum并发处理
-                ThreadPoolExecutor innerPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
+                ThreadPoolExecutor innerPool = BrExecutors.getThreadPool(innerThreadPoolSize, innerThreadPoolSize);
                 List<Callable<List<String>>> tasks = new ArrayList<>();
                 for (List<String> custNumGroup : custNumGroups) {
-                    tasks.add(() -> queryDataByDate(cid, apiCode, queryDate, custNumGroup));
+                    tasks.add(() -> queryRuleFifthData(cid, apiCode, queryDate, custNumGroup));
                 }
 
                 // 执行任务并等待所有任务执行完成，并汇总结果
@@ -183,7 +222,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         marketingTransferSyncUsers.removeIf(t -> custNumExcludeSet.contains(t.getCustNum()));
     }
 
-    private List<String> queryDataByDate(String cid, String apiCode, String queryDate, List<String> custNums) {
+    private List<String> queryRuleFifthData(String cid, String apiCode, String queryDate, List<String> custNums) {
         List<String> includeList =
                 marketingTransferSyncUserMapper.getRuleFifthYxTransferByApiCodetikv_(
                         cid,

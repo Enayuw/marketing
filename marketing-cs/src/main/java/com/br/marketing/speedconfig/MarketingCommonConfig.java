@@ -741,5 +741,15 @@ public class MarketingCommonConfig {
      * 宜信推决策，剔除规则5，每批次查询数量n。（对应线程池核心线程数=2000/n)
      */
     private Integer yiXinExcludeRuleFifthPerGroupSize;
+
+    /**
+     * 宜信推决策，剔除规则5，外层线程池按天查询线程数
+     */
+    private Integer yiXinExcludeRuleFifthThreadNum;
+
+    /**
+     * 宜信推决策，剔除规则2，每批次查询数量n。（对应线程池核心线程数=2000/n)
+     */
+    private Integer yiXinExcludeRuleSecondPerGroupSize;
 }
 

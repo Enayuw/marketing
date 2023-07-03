@@ -346,7 +346,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                              @Param("custNums") List<String> custNums);
 
     List<String> getExcludeRuleSecondYxTransferByApiCodetikv_(@Param("cid") String cid, @Param("apiCode") String apiCode,
-                                                              @Param("custNums") Set<String> custNums);
+                                                              @Param("custNums") List<String> custNums);
 
     List<String> getRuleFifthYxTransferByApiCodetikv_(@Param("cid") String cid,
                                                       @Param("apiCode") String apiCode,
