@@ -596,8 +596,7 @@
     <select id="getCountByRequestId" resultType="java.lang.Integer">
         select count(1)
         from b_marketing_transfer_sync_${cid}
-        where api_code = #{apiCode}
-        and request_id = #{requestId}
+        where  request_id = #{requestId}
     </select>
 
 </mapper>
