@@ -538,7 +538,7 @@
             where request_data = #{yesterday}
             and api_code = #{apiCode}
             and json_extract(reserve_field1, '$.transformType') = '1') as b
-        where b.rn = 1 and b.json_extract(reserve_field1, '$.liveType') in ('4', '6') limit  #{pageNum}, 2000;
+        where b.rn = 1 and b.json_extract(reserve_field1, '$.liveType') in ('4', '6') order by create_time desc limit  #{pageNum}, 2000;
     </select>
 
     <select id="getExcludeRuleFirstYxTransferByApiCodetikv_" resultType="java.lang.String">
