@@ -523,7 +523,7 @@
     </select>
     <select id="getYxTransferByApiCodeBtoCtoItikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         Select b.*
-        From (select a.* , row_number() over(partition by cust_num order by insert_time desc,id ) as rn
+        From (select a.* , row_number() over(partition by cust_num order by insert_time desc,id desc) as rn
             From b_marketing_transfer_sync_${tCid} a
             where api_code =#{apiCode}
             and (json_extract(reserve_field1,"$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
@@ -533,7 +533,7 @@
 
     <select id="getYxTransferByApiCodeAtikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select b.*
-        from (select a.*, row_number() over (partition by cust_num order by create_time desc,id) as rn
+        from (select a.*, row_number() over (partition by cust_num order by create_time desc,id desc) as rn
             from b_marketing_transfer_sync_${cid} a
             where request_data = #{yesterday}
             and api_code = #{apiCode}
@@ -592,6 +592,12 @@
         <if test="type != null and type != ''">
             and type = #{type};
         </if>
+    </select>
+    <select id="getCountByRequestId" resultType="java.lang.Integer">
+        select count(1)
+        from b_marketing_transfer_sync_${cid}
+        where api_code = #{apiCode}
+        and request_id = #{requestId}
     </select>
 
 </mapper>

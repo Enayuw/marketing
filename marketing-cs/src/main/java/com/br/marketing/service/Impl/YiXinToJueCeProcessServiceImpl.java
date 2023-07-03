@@ -15,6 +15,7 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.service.Impl.yixin.YiXinProcessExcludeRuleData;
 import com.br.marketing.service.Impl.yixin.YiXinProcessGetBaseDataService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
@@ -78,11 +79,20 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     @Resource
     private JobManager jobManager;
 
-    private static final Integer PARTITION =2000;
+    @Resource
+    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+
+    private static final Integer PARTITION = 2000;
 
     @Override
     public Result doProcess(TreeMap<String, String> actionTypeTree) {
         String apiCodeTransfer = checkApiCode();
+        Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd(apiCodeTransfer, LocalDate.now().toString());
+        if (!pushBlackPhoneEnd && LocalDateTime.now().getHour() < 11) {
+            log.warn("未查询到黑名单结束标识！");
+            return new Result().setCode(ResultCode.FAIL.getValue());
+        }
+
         Result<TransferActionFront> frontData = jobManager.getFrontData(apiCodeTransfer, LocalDate.now().toString(), 3);
         if (!ResultCode.SUCCESS.getValue().equals(frontData.getCode())) {
             return new Result().setCode(ResultCode.FAIL.getValue());
@@ -94,11 +104,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         } else {
             jobId = actionFront.getId();
         }
-        Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd(apiCodeTransfer, LocalDate.now().toString());
-        if (!pushBlackPhoneEnd && LocalDateTime.now().getHour() < 11) {
-            log.warn("未查询到黑名单结束标识！");
-            return new Result().setCode(ResultCode.FAIL.getValue());
-        }
+
         yiXinToJueCeAction(actionTypeTree, apiCodeTransfer);
         jobManager.updateFrontDataStatus(jobId, 2);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
@@ -112,7 +118,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                     pushMarketingTransferSyncUsersA(k, v, tcId);
                     break;
                 case "B":
-                    if (isTransferLast(apiCodeTransfer)) {
+                    if (isTransferLast(tcId, apiCodeTransfer)) {
                         pushMarketingTransferSyncUsersB(k, v, tcId);
                     }
                     break;
@@ -123,7 +129,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 case "G":
                 case "H":
                 case "I":
-                    if (isTransferLast(apiCodeTransfer)) {
+                    if (isTransferLast(tcId, apiCodeTransfer)) {
                         pushMarketingTransferSyncUsersCtoI(k, v, tcId);
                     }
                     break;
@@ -132,10 +138,16 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                     break;
             }
         });
+
     }
 
-    private boolean isTransferLast(String apiCodeTransfer) {
-        return marketingTransferInfoMapper.countByApiCodAndLastOne(apiCodeTransfer, LocalDate.now().toString(), "1") > 0;
+    private boolean isTransferLast(String apiCodeTransfer, String tcid) {
+        // 查询转化数据last =1 的数据是否传输到详情表。2000个
+        String requestId = marketingTransferInfoMapper.countByApiCodAndLastOne(apiCodeTransfer, LocalDate.now().toString(), "1");
+        if (StringUtils.isEmpty(requestId)) {
+            return false;
+        }
+        return marketingTransferSyncUserMapper.getCountByRequestId(requestId, tcid) > 0;
     }
 
     private String checkApiCode() {
@@ -324,7 +336,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         //传参去重
         retryByRuleDTO.setIsSole(Boolean.TRUE);
         if ("A".equals(actionType)) {
-            // apiCode,cell,status
+            // apiCode,cust_num,status
             retryByRuleDTO.setSoleField(SoleFieldEnum.CUST_NUM_STATUS_SOLE.getValue());
             // 周一的数据 下周一推送判断的范围是周一到周日。
             retryByRuleDTO.setSoleDay(7);

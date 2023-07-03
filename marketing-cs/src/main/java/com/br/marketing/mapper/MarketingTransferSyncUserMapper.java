@@ -358,4 +358,6 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                @Param("apiCode") String apiCode,
                                @Param("requestData") String requestData,
                                @Param("type") String type);
+
+    Integer getCountByRequestId(@Param("cid") String cid, @Param("requestId") String requestId );
 }

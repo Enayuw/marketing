@@ -41,6 +41,6 @@ public interface MarketingTransferInfoMapper extends MarketingTransferInfoMapper
 
 
 
-    @Select("SELECT count(1) FROM b_marketing_transfer_info WHERE  api_code=#{apiCode} and create_time >= #{createTime} and last=#{last}")
-    int  countByApiCodAndLastOne(@Param("apiCode") String apiCode, @Param("createTime") String createTime, @Param("last") String last);
+    @Select("SELECT request_id FROM b_marketing_transfer_info WHERE  api_code=#{apiCode} and create_time >= #{createTime} and last=#{last} limit 1")
+    String  countByApiCodAndLastOne(@Param("apiCode") String apiCode, @Param("createTime") String createTime, @Param("last") String last);
 }
