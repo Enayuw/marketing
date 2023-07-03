@@ -134,8 +134,9 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     private void pushMarketingTransferSyncUsersA(String actionType, String type, String tcId) {
         Long idIndex = null;
         // 创建线程池
-        ThreadPoolExecutor yiXinToJueCeThread = BrExecutors.getThreadPool(10, 10);
+        ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
         while (true) {
+            initThreadPoolParam(yiXinToJueCeThread);
             List<MarketingTransferSyncUser> marketingTransferSyncUserList =
                     yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListA(tcId,
                             type, idIndex);
@@ -184,8 +185,9 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     private void pushMarketingTransferSyncUsersB(String actionType, String type, String tcId) {
         Long idIndex = null;
         // 创建线程池
-        ThreadPoolExecutor yiXinToJueCeThread = BrExecutors.getThreadPool(10, 10);
+        ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
         while (true) {
+            initThreadPoolParam(yiXinToJueCeThread);
             List<MarketingTransferSyncUser> marketingTransferSyncUserList =
                     yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListB(tcId,
                             type, idIndex);
@@ -213,8 +215,9 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
         Long idIndex = null;
         // 创建线程池
-        ThreadPoolExecutor yiXinToJueCeThread = BrExecutors.getThreadPool(10, 10);
+        ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
         while (true) {
+            initThreadPoolParam(yiXinToJueCeThread);
             List<MarketingTransferSyncUser> marketingTransferSyncUserList =
                     yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListCtoI(tcId, type, idIndex);
             if (marketingTransferSyncUserList.isEmpty()) {
@@ -230,6 +233,16 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
+    }
+
+    private void initThreadPoolParam(ThreadPoolExecutor yiXinToJueCeThread) {
+        yiXinToJueCeThread.setCorePoolSize(marketingCommonConfig.getYiXinToJueCeTpNum());
+        yiXinToJueCeThread.setMaximumPoolSize(marketingCommonConfig.getYiXinToJueCeTpNum());
+    }
+
+    private ThreadPoolExecutor getYiXinToJueCeThread() {
+        ThreadPoolExecutor yiXinToJueCeThread = BrExecutors.getThreadPool(marketingCommonConfig.getYiXinToJueCeTpNum(), marketingCommonConfig.getYiXinToJueCeTpNum());
+        return yiXinToJueCeThread;
     }
 
     private static List<List<MarketingTransferSyncUser>> getPartitionSyncUser(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
@@ -287,7 +300,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         PolicyRetryByRuleSoleDTO retryByRuleDTO = new PolicyRetryByRuleSoleDTO();
         retryByRuleDTO.setApiCode(apiCodeJc);
         retryByRuleDTO.setBatchNumber(DateFormatUtils.format(new Date(), "yyyyMMdd") + "_" + actionType.toLowerCase() + "_" + apiCodeJc);
-        retryByRuleDTO.setStrategyCode(marketingCommonConfig.getYxXinToJueCeStrategyMap().get(apiCodeJc));
+        retryByRuleDTO.setStrategyCode(marketingCommonConfig.getYiXinToJueCeStrategyMap().get(apiCodeJc));
         retryByRuleDTO.setData(pushs);
         retryByRuleDTO.setDetailLogList(logList);
         //传参去重

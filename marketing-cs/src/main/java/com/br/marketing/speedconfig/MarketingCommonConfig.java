@@ -735,6 +735,11 @@ public class MarketingCommonConfig {
     /**
      * 宜信转化数据推决策策略编号设置
      */
-    private Map<String, String> yxXinToJueCeStrategyMap;
+    private Map<String, String> yiXinToJueCeStrategyMap;
+
+    /**
+     * 宜信推决策线程池线程数量
+     */
+    private Integer yiXinToJueCeTpNum;
 }
 
