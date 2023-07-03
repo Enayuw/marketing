@@ -527,7 +527,7 @@
             From b_marketing_transfer_sync_${tCid} a
             where api_code =#{apiCode}
             and (json_extract(reserve_field1,"$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
-            and request_data = #{requestData}) b
+            and request_data = #{requestData} order by create_time desc ) b
         Where b.rn = 1  and b.type =#{type}  limit #{pageNum}, 2000 ;
     </select>
 
@@ -537,8 +537,8 @@
             from b_marketing_transfer_sync_${cid} a
             where request_data = #{yesterday}
             and api_code = #{apiCode}
-            and json_extract(reserve_field1, '$.transformType') = '1') as b
-        where b.rn = 1 and b.json_extract(reserve_field1, '$.liveType') in ('4', '6') order by create_time desc limit  #{pageNum}, 2000;
+            and json_extract(reserve_field1, '$.transformType') = '1' order by create_time desc ) as b
+        where b.rn = 1 and b.json_extract(reserve_field1, '$.liveType') in ('4', '6') limit  #{pageNum}, 2000;
     </select>
 
     <select id="getExcludeRuleFirstYxTransferByApiCodetikv_" resultType="java.lang.String">
