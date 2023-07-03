@@ -78,31 +78,33 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     @Resource
     private JobManager jobManager;
 
-    private static final int PARTITION = 2000;
-
+    private static final Integer PARTITION =2000;
 
     @Override
     public Result doProcess(TreeMap<String, String> actionTypeTree) {
         String apiCodeTransfer = checkApiCode();
-        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
-        Result<TransferActionFront> frontData = jobManager.getFrontData(apiCode, LocalDate.now().toString(), 3);
+        Result<TransferActionFront> frontData = jobManager.getFrontData(apiCodeTransfer, LocalDate.now().toString(), 3);
         if (!ResultCode.SUCCESS.getValue().equals(frontData.getCode())) {
             return new Result().setCode(ResultCode.FAIL.getValue());
         }
-        Long jobId = 0L;
+        Long jobId;
         TransferActionFront actionFront = frontData.getData();
         if (actionFront == null) {
-            jobId = jobManager.saveFrontData(apiCode, LocalDate.now().toString(), 3);
+            jobId = jobManager.saveFrontData(apiCodeTransfer, LocalDate.now().toString(), 3);
         } else {
             jobId = actionFront.getId();
         }
-
         Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd(apiCodeTransfer, LocalDate.now().toString());
-
         if (!pushBlackPhoneEnd && LocalDateTime.now().getHour() < 11) {
             log.warn("未查询到黑名单结束标识！");
             return new Result().setCode(ResultCode.FAIL.getValue());
         }
+        yiXinToJueCeAction(actionTypeTree, apiCodeTransfer);
+        jobManager.updateFrontDataStatus(jobId, 2);
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    private void yiXinToJueCeAction(TreeMap<String, String> actionTypeTree, String apiCodeTransfer) {
         String tcId = tableCreateService.getTcId(apiCodeTransfer);
         actionTypeTree.forEach((String k, String v) -> {
             switch (k) {
@@ -130,8 +132,6 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                     break;
             }
         });
-        jobManager.updateFrontDataStatus(jobId, 2);
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
     private boolean isTransferLast(String apiCodeTransfer) {
@@ -163,7 +163,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             if (marketingTransferSyncUserList.isEmpty()) {
                 break;
             }
-            pageNum = pageNum + 2000;
+            pageNum = pageNum + PARTITION;
             yiXinToJueCeThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
         }
         yiXinToJueCeThread.shutdown();
@@ -193,7 +193,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             if (marketingTransferSyncUserList.isEmpty()) {
                 break;
             }
-            pageNum = pageNum + 2000;
+            pageNum = pageNum + PARTITION;
             yiXinToJueCeThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
         }
         yiXinToJueCeThread.shutdown();
@@ -223,7 +223,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             if (marketingTransferSyncUserList.isEmpty()) {
                 break;
             }
-            pageNum = pageNum + 2000;
+            pageNum = pageNum + PARTITION;
             yiXinToJueCeThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
         }
         yiXinToJueCeThread.shutdown();
@@ -297,7 +297,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     private void pushJc(String actionType, List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists) {
         String apiCodeJc = marketingCommonConfig.getYiXinTransferToJueCeApiCode();
         // 2000 拆分一组
-        List<List<MarketingTransferSyncUserCell>> partition = ListUtils.partition(marketingTransferSyncUserCellLists, 2000);
+        List<List<MarketingTransferSyncUserCell>> partition = ListUtils.partition(marketingTransferSyncUserCellLists, PARTITION);
         partition.forEach((List<MarketingTransferSyncUserCell> m) -> {
             ArrayList<DataJoinLogDTO> logList = new ArrayList<>();
             ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
