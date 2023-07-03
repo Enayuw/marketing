@@ -73,12 +73,13 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         String tcId = marketingTransferSyncUsers.get(0).gettCid();
         Set<String> set = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
         List<String> resultFilter = marketingTransferSyncUserMapper.getExcludeRuleSecondYxTransferByApiCodetikv_(tcId, apiCode, set);
+
+        log.warn("宜信推送决策,符合剔除条件:在T日转化的数据中caseEffective=0的基础数据。单次处理耗时：{}ms,剔除的custNum集合为{}", System.currentTimeMillis() - start,
+                Arrays.toString(resultFilter.toArray()));
         if (CollectionUtils.isEmpty(resultFilter)) {
             return;
         }
         marketingTransferSyncUsers.removeIf(t -> resultFilter.contains(t.getCustNum()));
-        long end = System.currentTimeMillis();
-        log.warn("宜信推送决策,符合剔除条件:在T日转化的数据中caseEffective=0的基础数据。单次处理耗时：{}ms,剔除的custNum集合为{}", end - start, Arrays.toString(resultFilter.toArray()));
     }
 
     @Override
@@ -159,9 +160,13 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
             pool.shutdown();
         }
 
-        marketingTransferSyncUsers.removeIf(t -> custNumExcludeList.contains(t.getCustNum()));
         long end = System.currentTimeMillis();
         log.warn("宜信推送决策,剔除处理:custNum在30天内有type!=12的基础数据。单次处理耗时：{}ms,剔除的custNum集合为{}", end - start, Arrays.toString(custNumExcludeList.toArray()));
+        if (CollectionUtils.isEmpty(custNumExcludeList)) {
+            return;
+        }
+
+        marketingTransferSyncUsers.removeIf(t -> custNumExcludeList.contains(t.getCustNum()));
     }
 
     private List<String> queryDataByDate(String cid, String apiCode, String queryDate, List<String> custNums) {
