@@ -141,13 +141,13 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
     }
 
-    private boolean isTransferLast(String apiCodeTransfer, String tcid) {
+    private boolean isTransferLast(String tcId,String apiCodeTransfer) {
         // 查询转化数据last =1 的数据是否传输到详情表。2000个
         String requestId = marketingTransferInfoMapper.countByApiCodAndLastOne(apiCodeTransfer, LocalDate.now().toString(), "1");
         if (StringUtils.isEmpty(requestId)) {
             return false;
         }
-        return marketingTransferSyncUserMapper.getCountByRequestId(requestId, tcid) > 0;
+        return marketingTransferSyncUserMapper.getCountByRequestId(requestId, tcId) > 0;
     }
 
     private String checkApiCode() {
