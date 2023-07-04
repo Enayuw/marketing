@@ -156,6 +156,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
             }
         } catch (InterruptedException | ExecutionException e) {
             log.error(e.getMessage(), e);
+            Thread.currentThread().interrupt();
         } finally {
             pool.shutdown();
         }
