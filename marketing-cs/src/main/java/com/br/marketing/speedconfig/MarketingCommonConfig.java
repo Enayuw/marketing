@@ -733,7 +733,7 @@ public class MarketingCommonConfig {
     private String yiXinTransferToJueCeApiCode;
 
     /**
-     * 宜信转化数据推决策策略编号设置
+     * 宜信实时转化数据推决策策略编号设置
      */
     private Map<String, String> yiXinToJueCeStrategyMap;
 

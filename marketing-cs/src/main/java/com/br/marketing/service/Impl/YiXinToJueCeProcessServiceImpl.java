@@ -333,12 +333,12 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         PolicyRetryByRuleSoleDTO retryByRuleDTO = new PolicyRetryByRuleSoleDTO();
         retryByRuleDTO.setApiCode(apiCodeJc);
         retryByRuleDTO.setBatchNumber(DateFormatUtils.format(new Date(), "yyyyMMdd") + "_" + actionType.toLowerCase() + "_" + apiCodeJc);
-        retryByRuleDTO.setStrategyCode(marketingCommonConfig.getYiXinToJueCeStrategyMap().get(apiCodeJc));
         retryByRuleDTO.setData(pushs);
         retryByRuleDTO.setDetailLogList(logList);
         //传参去重
         retryByRuleDTO.setIsSole(Boolean.TRUE);
         if ("A".equals(actionType)) {
+            retryByRuleDTO.setStrategyCode(marketingCommonConfig.getYiXinToJueCeStrategyMap().get(apiCodeJc));
             // apiCode,cust_num,status
             retryByRuleDTO.setSoleField(SoleFieldEnum.CUST_NUM_STATUS_SOLE.getValue());
             // 周一的数据 下周一推送判断的范围是周一到周日。
