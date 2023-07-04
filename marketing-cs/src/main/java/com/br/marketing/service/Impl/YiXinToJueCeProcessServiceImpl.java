@@ -145,9 +145,14 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         // 查询转化数据last =1 的数据是否传输到详情表。2000个
         String requestId = marketingTransferInfoMapper.countByApiCodAndLastOne(apiCodeTransfer, LocalDate.now().toString(), "1");
         if (StringUtils.isEmpty(requestId)) {
+            log.warn("宜信转化数据为传输last1");
             return false;
         }
-        return marketingTransferSyncUserMapper.getCountByRequestId(tcId,requestId) > 0;
+        if(marketingTransferSyncUserMapper.getCountByRequestId(tcId,requestId) == 0){
+            log.warn("宜信转化数据requestId：{},未找到对应的详情数据",requestId);
+            return false;
+        }
+        return true;
     }
 
     private String checkApiCode() {
