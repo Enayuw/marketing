@@ -1,12 +1,16 @@
 package com.br.marketing.speedconfig;
 
 import com.alibaba.fastjson.JSON;
+import com.br.common.log.AlertLog;
+import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.speed.client.SpeedMgrBean;
 import com.br.speed.client.common.append.ISpeedAppendPipeline;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -90,7 +94,8 @@ public class SpeedConfig implements ISpeedAppendPipeline {
                     field.setAccessible(true);
                     assignmentFieldValue(config, field, fieldValue);
                 } catch (NoSuchFieldException e) {
-                    log.error(e.getMessage(),e);
+                    String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_SPEEDCOMMONCONFIG.getCode(), "该服务Speed配置不存在字段:".concat(fieldNm), "marketingCommonConfig提示");
+                    log.warn(msg);
                 } catch (IllegalAccessException e) {
                     log.error(e.getMessage(),e);
                 } catch (Exception ex){

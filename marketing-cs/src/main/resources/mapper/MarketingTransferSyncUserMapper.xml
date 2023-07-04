@@ -521,4 +521,11 @@
     </foreach>
     ) t where num = 1
     </select>
+
+    <select id="getXcTransferNoAdData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tCid}
+        where cust_num = #{custNum}
+        and (reserve_field1->'$.convType' = '106' or reserve_field1->'$.isBlack' = '1') limit 1
+    </select>
 </mapper>

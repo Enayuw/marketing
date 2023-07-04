@@ -29,5 +29,16 @@
 
   </select>
 
+  <select id="getByCellTodayAndLocalId"  resultType="com.br.marketing.entity.XieChengData">
+    select
+      *
+    from b_xiecheng_data
+    where  create_date =#{createDate} and local_id not in (2242481,2242482,2272503)
+    <if test="minlocalId !=null and minlocalId>0">
+      and local_id > #{minlocalId}
+    </if>
+    order by local_id limit 5000;
+
+  </select>
 
 </mapper>

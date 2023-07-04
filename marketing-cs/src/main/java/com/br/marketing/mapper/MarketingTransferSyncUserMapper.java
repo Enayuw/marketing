@@ -329,4 +329,5 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     List<MarketingTransferSyncUser> getTransferByCustNumOrderDatatikv_(@Param("tCid") String tcId,@Param("custNums") List<String> custNums);
 
+    MarketingTransferSyncUser getXcTransferNoAdData(@Param("tCid") String tcId,@Param("custNum") String custNum);
 }
