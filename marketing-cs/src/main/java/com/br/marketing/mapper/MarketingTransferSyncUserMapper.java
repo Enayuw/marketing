@@ -359,5 +359,5 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                @Param("requestData") String requestData,
                                @Param("type") String type);
 
-    Integer getCountByRequestId(@Param("cid") String cid, @Param("requestId") String requestId );
+    Integer getCountByRequestId(@Param("cid") String cId, @Param("requestId") String requestId );
 }

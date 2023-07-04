@@ -147,7 +147,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         if (StringUtils.isEmpty(requestId)) {
             return false;
         }
-        return marketingTransferSyncUserMapper.getCountByRequestId(requestId, tcId) > 0;
+        return marketingTransferSyncUserMapper.getCountByRequestId(tcId,requestId) > 0;
     }
 
     private String checkApiCode() {
