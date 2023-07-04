@@ -67,7 +67,4 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
                 );
     }
 
-    private Long getIdIndex(String cid, Long idIndex, String requestDate, String apiCode, String type) {
-        return idIndex == null ? marketingTransferSyncUserMapper.getYiXinMinAtoBtoCtoI(cid, apiCode, requestDate, type) : idIndex;
-    }
 }

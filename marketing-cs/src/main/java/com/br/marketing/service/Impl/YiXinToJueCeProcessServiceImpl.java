@@ -181,6 +181,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         yiXinToJueCeThread.shutdown();
         try {
             while (!yiXinToJueCeThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("等待线程池结束");
             }
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
@@ -211,6 +212,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         yiXinToJueCeThread.shutdown();
         try {
             while (!yiXinToJueCeThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("等待线程池结束");
             }
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
@@ -241,6 +243,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         yiXinToJueCeThread.shutdown();
         try {
             while (!yiXinToJueCeThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("等待线程池结束");
             }
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
