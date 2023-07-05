@@ -21,18 +21,17 @@ import java.util.List;
 
 /**
  *
- * @Description : 携程客服转化规则
- * http://c.100credit.cn/pages/viewpage.action?pageId=92047371
+ * @Description : 携程自动化过滤推送客服转化一对多分发(3710058推3710058、3710078)
+ * http://c.100credit.cn/pages/viewpage.action?pageId=113828210
  * ---------------------------------
- * @Author : juanjuan.song
- * @Date : Create in 2022/12/05 10:28
- * 客服转化接口案件编号和手机号二选一必填，不满足则接收转化数据失败
+ * @Author : hong.chen
+ * @Date : Create in 2023/07/05 10:28
  */
 @Service
 @Slf4j
-public class XieChengCustomerTransferAImpl implements AssembleData<ConversionData> {
+public class XieChengCustomerTransferDistributeAImpl implements AssembleData<ConversionData> {
 
-    public static final String ONE_TO_ONE = "oneToOne";
+    public static final String ONE_TO_MANY = "oneToMany";
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
@@ -59,15 +58,14 @@ public class XieChengCustomerTransferAImpl implements AssembleData<ConversionDat
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         boolean flag = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
-            //转化数据上传接口命中convType=107的数据
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             String reserveField1 = transfer.getReserveField1();
             if (StringUtils.hasText(reserveField1)) {
                 JSONObject json = JSON.parseObject(reserveField1);
                 Integer convType = json.getInteger("convType");
-//                flag = !StringUtils.isEmpty(convType) && 107 == convType;
+//                flag = !StringUtils.isEmpty(convType) && 106 == convType;
 
-                List<Integer> convTypeList = marketingCommonConfig.getTransferConvTypeConfig().get(transfer.getApiCode()).get(ONE_TO_ONE);
+                List<Integer> convTypeList = marketingCommonConfig.getTransferConvTypeConfig().get(transfer.getApiCode()).get(ONE_TO_MANY);
                 if (convTypeList.contains(convType)) {
                     flag = true;
                 }
@@ -78,12 +76,12 @@ public class XieChengCustomerTransferAImpl implements AssembleData<ConversionDat
 
     @Override
     public String label() {
-        return "XieCheng_TransferData_CustomerTransfer";
+        return "XieCheng_TransferData_CustomerTransfer_distribute";
     }
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_DISTRIBUTE.getCode();
     }
 
     @Override
