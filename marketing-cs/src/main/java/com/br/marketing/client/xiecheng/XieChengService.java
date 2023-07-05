@@ -1,5 +1,6 @@
 package com.br.marketing.client.xiecheng;
 
+import cn.hutool.core.thread.ThreadUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
@@ -157,6 +158,12 @@ public class XieChengService {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
         String content = resMap.get("content");
+
+//        /*范围40到70的随机数*/
+//        int random = (int) (Math.random() * (70 - 40 + 1) + 40);
+//        ThreadUtil.sleep(random);
+//        String content = "{\"code\":0,\"msg\":\"测试效率\",\"data\":[{\"md5Code\":null,\"sha256Code\":\"760a06d2bc9b150d1d5b162e95bed32ed306cd1c2f7417c5e10397715ea165c1\",\"result\":false,\"orgChannel\":\"测试orgChannel\",\"mktLevel\":\"测试orgmktLevel\",\"info\":\"测试info\"}]}";
+
         JSONObject resultJson = JSONObject.parseObject(content);
         Integer code = resultJson.getInteger("code");
         if(code==0){

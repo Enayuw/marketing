@@ -182,7 +182,6 @@ public class PushDataServiceImpl implements PushDataService {
     @Autowired
     MethodRetryHandlerService methodRetryHandlerService;
 
-
     final static DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     private final static int XIECHENGSMSCOLLIDINGPARTATIONNUM = 50;
@@ -1313,41 +1312,77 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     private void pushXieChengData(XieChengData xieChengData, AtomicInteger failNum, CountDownLatch countDownLatch) {
-        countDownLatch.countDown();
-        // 字段修改兼容
-        String sha256Tel = xieChengData.getSha256Tel();
-        xieChengData.setSha256Tel(sha256Tel);
-        // 获取redis 锁
-        String key = RedisKeyConstant.pushXieChengLock.concat(":")
-                .concat(xieChengData.getApiCode())
-                .concat(sha256Tel);
-        String value = UUID.randomUUID().toString();
-        redisChgService.lock(key, value);
-        // 查询到当前电话数据是否推送过。
-        List<XieChengData> xieChengRepeatDatalist = xieChengDataMapper.getByCellToday(sha256Tel);
-        XieChengData resultData = new XieChengData();
-        resultData.setId(xieChengData.getId());
-        if (xieChengRepeatDatalist.isEmpty()) {
-            // 组装 clickId 13位时间戳+ 随机5位数字字母 + sha256tel
-            String clickId = System.currentTimeMillis() + getCode(5) + sha256Tel;
-            xieChengData.setClickId(clickId);
-            // 携程推送
-            Result result = xieChengService.pushXieChengData(xieChengData);
-            if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
-                resultData.setPushStatus(2);
-            } else {
-                resultData.setPushStatus(3);
-                failNum.getAndIncrement();
-            }
-            resultData.setClickId(clickId);
-            resultData.setDataMessage(result.getMessage());
-        } else {
+        try {
+            countDownLatch.countDown();
+
+            String apiCode = xieChengData.getApiCode();
+
+            String tcId = tableCreateService.getTcId(apiCode);
+            // 字段修改兼容
+            String sha256Tel = xieChengData.getSha256Tel();
+            xieChengData.setSha256Tel(sha256Tel);
+            // 获取redis 锁
+            String key = RedisKeyConstant.pushXieChengLock.concat(":")
+                    .concat(apiCode)
+                    .concat(sha256Tel);
+            String value = UUID.randomUUID().toString();
+            redisChgService.lock(key, value);
+
+            XieChengData resultData = new XieChengData();
             resultData.setId(xieChengData.getId());
-            resultData.setStatus(2);
-            resultData.setDataMessage("数据重复未推送");
+
+            //查询投诉退订
+            Integer xiechengSmsQuitDataSize = xiechengSmsQuitDataMapper.getCountSmsQuitDataByMobile(sha256Tel);
+            if (xiechengSmsQuitDataSize > 0) {
+                resultData.setStatus(2);
+                resultData.setDataMessage("命中投诉退订数据");
+                xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                redisChgService.unlock(key, value);
+                return;
+            }
+
+            //查询转化isBlack或者convType=106
+            MarketingTransferSyncUser xcTransferNoAdData = marketingTransferSyncUserMapper.getXcTransferNoAdData(tcId, sha256Tel);
+            if (xcTransferNoAdData != null) {
+                JSONObject jsonObject = JSON.parseObject(xcTransferNoAdData.getReserveField1());
+                if ("1".equals(jsonObject.getString("isBlack"))) {
+                    resultData.setDataMessage("命中黑名单");
+                }
+                if ("106".equals(jsonObject.getString("convType"))) {
+                    resultData.setDataMessage("命中convType106");
+                }
+                resultData.setStatus(2);
+                xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                redisChgService.unlock(key, value);
+                return;
+            }
+
+            // 查询到当前电话数据是否推送过。
+            List<XieChengData> xieChengRepeatDatalist = xieChengDataMapper.getByCellToday(sha256Tel);
+            if (xieChengRepeatDatalist.isEmpty()) {
+                // 组装 clickId 13位时间戳+ 随机5位数字字母 + sha256tel
+                String clickId = System.currentTimeMillis() + getCode(5) + sha256Tel;
+                xieChengData.setClickId(clickId);
+                // 携程推送
+                Result result = xieChengService.pushXieChengData(xieChengData);
+                if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
+                    resultData.setPushStatus(2);
+                } else {
+                    resultData.setPushStatus(3);
+                    failNum.getAndIncrement();
+                }
+                resultData.setClickId(clickId);
+                resultData.setDataMessage(result.getMessage());
+            } else {
+                resultData.setId(xieChengData.getId());
+                resultData.setStatus(2);
+                resultData.setDataMessage("数据重复未推送");
+            }
+            xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+            redisChgService.unlock(key, value);
+        }catch (Exception e){
+            log.error(e.getMessage(),e);
         }
-        xieChengDataMapper.updateByPrimaryKeySelective(resultData);
-        redisChgService.unlock(key, value);
     }
 
     /**
