@@ -512,7 +512,7 @@
 
     <select id="getTransferByCustNumOrderDatatikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
     select * from (
-    select *,row_number() over(partition by cust_num order by create_time,id desc) as num
+    select *,row_number() over(partition by cust_num order by create_time desc) as num
     from b_marketing_transfer_sync_${tCid}
     where
     cust_num in
