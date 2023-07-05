@@ -721,5 +721,30 @@ public class MarketingCommonConfig {
      * customerBlackListApiCodes={"3710058":["3710058","3710078"],"7410950":["7410950","7410951"]}
      */
     private HashMap<String, List<String>> customerBlackListApiCodes;
+
+    /**
+     * 宜信推决策 查询转化数据的 apiCode
+     */
+    private String yiXinGetTransferToJueCeApiCode;
+
+    /**
+     * 宜信推决策  推决策数据集的 apiCode
+     */
+    private String yiXinTransferToJueCeApiCode;
+
+    /**
+     * 宜信实时转化数据推决策策略编号设置
+     */
+    private Map<String, String> yiXinToJueCeStrategyMap;
+
+    /**
+     * 宜信推决策线程池线程数量
+     */
+    private Integer yiXinToJueCeTpNum;
+
+    /**
+     * 宜信推决策，剔除规则5，外层线程池按天查询线程数
+     */
+    private Integer yiXinExcludeRuleFifthThreadNum;
 }
 

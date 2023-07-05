@@ -521,6 +521,84 @@
     </foreach>
     ) t where num = 1
     </select>
+    <select id="getYxTransferByApiCodeBtoCtoItikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        Select b.*
+        From (select a.* , row_number() over(partition by cust_num order by insert_time desc,id desc) as rn
+            From b_marketing_transfer_sync_${tCid} a
+            where api_code =#{apiCode}
+            and (json_extract(reserve_field1,"$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
+            and request_data = #{requestData}  ) b
+        Where b.rn = 1  and b.type =#{type} order by b.id desc limit #{pageNum}, 2000 ;
+    </select>
+
+    <select id="getYxTransferByApiCodeAtikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select b.*
+        from (select a.*, row_number() over (partition by cust_num order by create_time desc,id desc) as rn
+            from b_marketing_transfer_sync_${cid} a
+            where request_data = #{yesterday}
+            and api_code = #{apiCode}
+            and json_extract(reserve_field1, '$.transformType') = '1' ) as b
+        where b.rn = 1 and b.json_extract(reserve_field1, '$.liveType') in ('4', '6') order by b.id desc limit  #{pageNum}, 2000;
+    </select>
+
+    <select id="getExcludeRuleFirstYxTransferByApiCodetikv_" resultType="java.lang.String">
+        select distinct cust_num
+        from b_marketing_transfer_sync_${cid}
+        where request_data = #{today}
+          and api_code = #{apiCode}
+          and (json_extract(reserve_field1, '$.transformType') != '1' or json_extract(reserve_field1,'$.transformType') is null)
+          and type != '13'
+          and cust_num in
+          <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+          </foreach>;
+    </select>
+
+    <select id="getExcludeRuleSecondYxTransferByApiCodetikv_" resultType="java.lang.String">
+        select distinct cust_num
+        from b_marketing_transfer_sync_${cid}
+        where api_code = #{apiCode}
+          and case_effective = '0'
+          and cust_num in
+          <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+          </foreach>;
+    </select>
+
+    <select id="getRuleFifthYxTransferByApiCodetikv_" resultType="java.lang.String">
+        select distinct tt1.cust_num from (
+        select t1.*,row_number() over(partition by cust_num,request_data order by insert_time desc) as rn
+        from b_marketing_transfer_sync_${cid} t1
+        where request_data = #{queryDate}
+        and (json_extract(reserve_field1, '$.transformType') != '1'
+        or json_extract(reserve_field1, '$.transformType') is null)
+        and api_code = #{apiCode}
+        and cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+        ) tt1
+        where rn = 1
+        and tt1.type != '12'
+        and length(trim(tt1.type)) > 0
+        and tt1.type is not null;
+    </select>
+
+    <select id="getYiXinMinAtoBtoCtoI" resultType="java.lang.Long">
+        select max(id)
+        from b_marketing_transfer_sync_${cid}
+                where api_code = #{apiCode}
+                  and request_data = #{requestData}
+        <if test="type != null and type != ''">
+            and type = #{type};
+        </if>
+    </select>
+    <select id="getCountByRequestId" resultType="java.lang.Integer">
+        select count(1)
+        from b_marketing_transfer_sync_${cid}
+        where  request_id = #{requestId}
+    </select>
+
 
     <select id="getXcTransferNoAdData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select *
