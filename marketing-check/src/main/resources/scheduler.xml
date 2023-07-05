@@ -36,7 +36,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
 
     />
     <job:simple id="SftpToDbByDxTransferDataJob"
@@ -51,7 +51,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
     <job:simple id="SftpToDbByDxIbuDataJob"
                 class="com.br.marketing.check.job.SftpToDbByDxIbuDataJob"
@@ -65,7 +65,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
     <job:simple id="SftpToDbByTwoSevenJob"
                 class="com.br.marketing.check.job.SftpToDbByTwoSevenJob"
@@ -79,7 +79,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
     <job:simple id="SftpToDbByCommonJob"
                 class="com.br.marketing.check.job.SftpToDbByCommonJob"
@@ -93,7 +93,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
     <job:simple id="PushHaierJob"
                 class="com.br.marketing.check.job.PushHaierJob"
@@ -107,7 +107,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
     <job:simple id="haierToDxJob"
@@ -122,7 +122,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
     <job:simple id="QueryHaierJob"
@@ -137,7 +137,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
     <job:simple id="RetryCommonServiceJob"
                 class="com.br.marketing.check.job.RetryCommonServiceJob"
@@ -151,7 +151,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
     <job:simple id="TransferFileTaskJob"
                 class="com.br.marketing.check.job.TransferFileTaskJob"
@@ -165,7 +165,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
     <job:simple id="StopTaskBuildJob"
                 class="com.br.marketing.check.job.TaskBuildStopJob"
@@ -179,7 +179,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
     <job:simple id="SftpToDbByCallingJbo"
                 class="com.br.marketing.check.job.SftpToDbByCallingJbo"
@@ -193,7 +193,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
     <!--    <job:simple id="CallingToSendJob"-->
     <!--                class="com.br.marketing.check.job.CallingToSendJob"-->
@@ -207,7 +207,7 @@
     <!--                misfire="false"-->
     <!--                disabled="true"-->
     <!--                overwrite="true"-->
-    <!--                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"-->
+    <!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
     <!--    />-->
     <job:simple id="YiXinTransferToDxJob"
                 class="com.br.marketing.check.job.YiXinTransferToDxJob"
@@ -221,7 +221,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
     <job:simple id="HaluoDassJob"
                 class="com.br.marketing.check.job.HaluoDassJob"
@@ -235,7 +235,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
     <job:simple id="SqlCheckTestJob"
                 class="com.br.marketing.check.job.SqlCheckTestJob"
@@ -249,7 +249,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
     <job:simple id="TaskTransferSyncReportJob"
@@ -264,7 +264,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
     <job:simple id="ShuHeInvalidDataFilterToDaasTransferJob"
@@ -279,7 +279,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
     <job:simple id="taskUploadSyncReportJob"
@@ -294,7 +294,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
     <job:simple id="XieChengSmsDataCollidingToSendJob"
                 class="com.br.marketing.check.job.XieChengSmsDataCollidingToSendJob"
@@ -308,7 +308,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
     <job:simple id="SmyUploadDataToDaasJob"
@@ -323,7 +323,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
     <job:simple id="SmyTransferDataToDaasJob"
                 class="com.br.marketing.check.job.SmyTransferDataToDaasJob"
@@ -337,7 +337,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
     <job:simple id="fileToMarketingDataJob"
                 class="com.br.marketing.check.job.FileToMarketingDataJob"
@@ -351,7 +351,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
     <job:simple id="XieChengCallingRecordJob"
                 class="com.br.marketing.check.job.XieChengCallingRecordJob"
@@ -365,7 +365,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
     <job:simple id="PPDaiOldPeriodicityPushDxJob"
@@ -380,7 +380,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
     <job:simple id="fenqilePeriodPushDecisionJob"
@@ -396,7 +396,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
     <job:simple id="RsToPolicyJob"
                 class="com.br.marketing.check.job.RsToPolicyJob"
@@ -410,7 +410,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
     <job:simple id="OrangeTransferDataPeriodToDassJob"
@@ -425,7 +425,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
     <job:simple id="AutomatedPushDecisionJob"
@@ -440,6 +440,6 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.br.marketing.elasticshard.K8sClusterShardingStrategy"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 </beans>

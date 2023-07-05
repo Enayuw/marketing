@@ -32,7 +32,7 @@ public class CoreScoreThread implements Callable<String> {
     private List<MarketingSyncUser> list;
     private String apiCode;
     private String strategyId;
-    private int currentPage;
+    private Long currentPage;
     private String path;
     private String strategyStr;
     private String message;
@@ -58,7 +58,7 @@ public class CoreScoreThread implements Callable<String> {
     private String part;
 
     public CoreScoreThread(List<MarketingSyncUser> list, Map<String, String> param
-            , int currentPage, boolean firstTime, MarketingCustomer customer, MarketingTask marketingTask
+            , Long currentPage, boolean firstTime, MarketingCustomer customer, MarketingTask marketingTask
             , List<String> noflagproductlist, List<String> flagProductList, MarketingTaskExtend marketingTaskExtend
             , BaseHeadConfigVO baseHeadConfigVO, StrategyProductDetailVO fieldInfo, Boolean isRetry) {
         this.list = list;

@@ -33,4 +33,6 @@ import java.util.List;
  **/
 public interface MergeService {
      List<LoanFile> process(Customer customer);
+
+     List<LoanFile> process(List<LoanFile> fileList, Customer customer);
 }
