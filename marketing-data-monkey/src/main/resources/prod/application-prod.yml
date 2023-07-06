@@ -114,7 +114,6 @@ otherConfig:
     appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
     appName: marketing_query_producer
     destinationName: marketing_query_log
-
 api:
   intelligentCustomerService:
     baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
@@ -189,31 +188,12 @@ api:
     isProxy: true
 spring:
   rabbitmq:
-    zw:
-      addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672
-      username: strategy_distribute
-      password: Rz453hoEjUb37j8v
-      publisher-confirms: true
-      publisher-returns: true
-      virtual-host: marketing-flow
-    yz:
-      addresses: strategy-rabbitmq-yz-01.brapp.com:5672,strategy-rabbitmq-yz-02.brapp.com:5672
-      username: strategy_distribute
-      password: Rz453hoEjUb37j8v
-      publisher-confirms: true
-      publisher-returns: true
-      virtual-host: marketing-flow
-    listener:
-      retry:
-        enabled: true
-        max-attempts: 5
-        initial-interval: 3000
-      acknowledge-mode: manual
-      default-requeue-rejected: false
-      auto-startup: true
-  web:
-    interceptors.enabled: true
-  sql.source: prod
+    addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672
+    username: strategy_distribute
+    password: Rz453hoEjUb37j8v
+    publisher-confirms: true
+    publisher-returns: true
+    virtual-host: marketing-flow
 cluster:
   flag: ${CONF_CLUSTER}
 innerSftp:

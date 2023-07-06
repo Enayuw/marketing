@@ -110,6 +110,8 @@ otherConfig:
     appSecretKey: d42726322ba9bda57b74043be21aa2c4
     appName: marketing_query_producer
     destinationName: marketing_query_log
+cluster:
+  flag: ${CONF_CLUSTER}
 api:
   intelligentCustomerService:
     baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api

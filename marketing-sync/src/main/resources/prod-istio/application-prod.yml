@@ -56,7 +56,8 @@ otherConfig:
   encodeMapping:
         appName: loan-warning
         appSecretKey: a938d0e974746651a11ddcdbcea31404
-
+cluster:
+  flag: ${CONF_CLUSTER}
 #elastic-job配置
 SERVER_LISTS: zk-strategy-01.brapp.com:2181,zk-strategy-02.brapp.com:2181,zk-strategy-03.brapp.com:2181
 NAMESPACE: marketing-job

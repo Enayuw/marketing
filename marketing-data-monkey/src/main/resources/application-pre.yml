@@ -185,6 +185,8 @@ spring:
     publisher-confirms: true
     publisher-returns: true
     virtual-host: marketing-test
+cluster:
+  flag: k8s-prod-a
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置

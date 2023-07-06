@@ -195,6 +195,8 @@ spring:
     publisher-confirms: true
     publisher-returns: true
     virtual-host: marketing-flow
+cluster:
+  flag: ${CONF_CLUSTER}
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置
