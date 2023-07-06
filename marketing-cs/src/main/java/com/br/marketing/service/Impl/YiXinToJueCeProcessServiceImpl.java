@@ -116,7 +116,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         Long jobId;
         TransferActionFront actionFront = frontData.getData();
         if (actionFront == null) {
-            jobId = jobManager.saveFrontData(apiCodeTransfer, LocalDate.now().toString(), 3);
+            jobId = jobManager.saveFrontData(apiCodeTransfer, LocalDate.now().toString(), actionType);
         } else {
             jobId = actionFront.getId();
         }
