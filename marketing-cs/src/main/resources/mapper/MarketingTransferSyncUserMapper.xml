@@ -549,7 +549,7 @@
         from (select a.id,a.cid,a.t_cid,a.api_code,a.cust_num,a.reserve_field1,
                      row_number() over (partition by cust_num order by create_time desc,id desc) as rn
             from b_marketing_transfer_sync_${tCid} a
-            where request_data = #{yesterday}
+            where request_data = #{requestDate}
             and api_code = #{apiCode}
             and cust_num in
             <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
