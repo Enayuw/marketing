@@ -31,13 +31,17 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
 
 
     @Override
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCustNumA(String tCid, String apiCode,  Long indexId,String requestDate) {
+        return marketingTransferSyncUserMapper.getCustNumByIdA(tCid, apiCode,  requestDate, indexId);
+
+    }
+    @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCustNum(String tCid, String apiCode, String type, Long indexId,String requestDate) {
         return marketingTransferSyncUserMapper.getCustNumById(tCid, apiCode, type, requestDate, indexId);
 
     }
-
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String tCid,String apiCode, String type, String requestDate,
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String tCid,String apiCode,  String requestDate,
                                                                              List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
 
         Set<String> custNumSet = getCustNumSet(marketingTransferSyncUserList);

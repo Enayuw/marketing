@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import IceInternal.Ex;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleSoleDTO;
@@ -200,7 +201,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             initThreadPoolParam(yiXinToJueCeThread);
 
             List<MarketingTransferSyncUser> marketingTransferSyncUserListCustNum =
-                    yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListCustNum(tcId,apiCode, type, indexId, requestDate);
+                    yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListCustNumA(tcId,apiCode,  indexId, requestDate);
             if (marketingTransferSyncUserListCustNum.isEmpty()) {
                 break;
             }
@@ -208,7 +209,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
             List<MarketingTransferSyncUser> marketingTransferSyncUserList =
                     yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListA(tcId,apiCode,
-                            type,requestDate, marketingTransferSyncUserListCustNum);
+                            requestDate, marketingTransferSyncUserListCustNum);
             if (marketingTransferSyncUserList.isEmpty()) {
                 break;
             }
@@ -267,67 +268,34 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     }
 
 
-    /**
-     * 情况 c~i
-     *
-     * @param tcId cid
-     */
-    private void pushMarketingTransferSyncUsersCtoI(String actionType, String type, String tcId) {
 
-        Long indexId = null;
-        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
-        String requestDate = LocalDate.now().toString();
-        // 创建线程池
-        ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
-        while (true) {
-            initThreadPoolParam(yiXinToJueCeThread);
-
-            List<MarketingTransferSyncUser> marketingTransferSyncUserListCustNum =
-                    yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListCustNum(tcId,apiCode, type, indexId, requestDate);
-            if (marketingTransferSyncUserListCustNum.isEmpty()) {
-                break;
-            }
-            indexId = marketingTransferSyncUserListCustNum.get(marketingTransferSyncUserListCustNum.size() - 1).getId();
-
-            List<MarketingTransferSyncUser> marketingTransferSyncUserList =
-                    yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListBtoCtoI(tcId,apiCode,
-                            type, requestDate,marketingTransferSyncUserListCustNum);
-            if (marketingTransferSyncUserList.isEmpty()) {
-                break;
-            }
-            yiXinToJueCeThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
-        }
-        yiXinToJueCeThread.shutdown();
-        try {
-            while (!yiXinToJueCeThread.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.info("等待线程池结束");
-            }
-        } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
-        }
-    }
 
     private void threadDoProcess(List<MarketingTransferSyncUser> marketingTransferSyncUserList, String actionType) {
-        switch (actionType) {
-            case "A":
-                yiXinProcessExcludeRuleData.excludeActionA(marketingTransferSyncUserList);
-                break;
-            case "B":
-                yiXinProcessExcludeRuleData.excludeActionB(marketingTransferSyncUserList);
-                break;
-            case "C":
-            case "D":
-            case "E":
-            case "F":
-            case "G":
-            case "H":
-            case "I":
-                yiXinProcessExcludeRuleData.excludeActionCtoI(marketingTransferSyncUserList);
-                break;
-            default:
-                break;
+        try {
+            switch (actionType) {
+                case "A":
+                    yiXinProcessExcludeRuleData.excludeActionA(marketingTransferSyncUserList);
+                    break;
+                case "B":
+                    yiXinProcessExcludeRuleData.excludeActionB(marketingTransferSyncUserList);
+                    break;
+                case "C":
+                case "D":
+                case "E":
+                case "F":
+                case "G":
+                case "H":
+                case "I":
+                    yiXinProcessExcludeRuleData.excludeActionCtoI(marketingTransferSyncUserList);
+                    break;
+                default:
+                    break;
+            }
+            pushToJueCe(actionType, marketingTransferSyncUserList);
+        }catch (Exception e){
+            log.error(e.getMessage(), e);
         }
-        pushToJueCe(actionType, marketingTransferSyncUserList);
+
     }
 
 

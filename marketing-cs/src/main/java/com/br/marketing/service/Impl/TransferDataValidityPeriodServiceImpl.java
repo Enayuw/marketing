@@ -108,7 +108,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         // 1. 查询配置表
 
         List<MarketingDataValidConfig> marketingDataValidConfigs = marketingDataValidConfigMapper.selectInfo(marketingTransferSyncUser.getApiCode(), marketingTransferSyncUser.getUserType());
-        // 获取需要判断的指定日期
+        // 获取需要判断的指定日期x
         requestDate = requestDate == null ? marketingTransferSyncUser.getRequestData() : requestDate;
         LocalDate parse = LocalDate.parse(requestDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
 

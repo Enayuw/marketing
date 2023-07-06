@@ -17,6 +17,7 @@ public interface YiXinProcessGetBaseDataService {
      * 根据id 进行分页
      * 每页查询2000数据
      */
+    List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCustNumA(String tCid,String apiCode,Long indexId,String requestDate);
     List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCustNum(String tCid,String apiCode, String type, Long indexId,String requestDate);
     /**
      * 情况 a 基础数据获取接口
@@ -24,7 +25,7 @@ public interface YiXinProcessGetBaseDataService {
      * 并且根据custNum 过滤
      * @return 转化数据列表
      */
-    List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String cid, String apiCode,String type, String requestDate,List<MarketingTransferSyncUser> marketingTransferSyncUserList);
+    List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String cid, String apiCode,String requestDate,List<MarketingTransferSyncUser> marketingTransferSyncUserList);
 
     /**
      * 情况 b  c~i 基础数据获取接口

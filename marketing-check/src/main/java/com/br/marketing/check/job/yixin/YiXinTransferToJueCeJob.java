@@ -1,6 +1,7 @@
 package com.br.marketing.check.job.yixin;
 
 
+import IceInternal.Ex;
 import com.br.marketing.service.YiXinToJueCeProcessService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -39,7 +40,12 @@ public class YiXinTransferToJueCeJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        yiXinToJueCeProcessService.doProcess(ACTONTYPETREE);
+        try {
+            yiXinToJueCeProcessService.doProcess(ACTONTYPETREE);
+        }catch (Exception e){
+            log.error(e.getMessage(), e);
+        }
+
     }
 
 
