@@ -9,7 +9,10 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 宜信基础数据实现类
@@ -25,46 +28,59 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
+
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String cid, String type, Integer pageNum) {
-        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCustNum(String tCid, String apiCode, String type, Long indexId,String requestDate) {
+        return marketingTransferSyncUserMapper.getCustNumById(tCid, apiCode, type, requestDate, indexId);
+
+    }
+
+    @Override
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String tCid,String apiCode, String type, String requestDate,
+                                                                             List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+
+        Set<String> custNumSet = getCustNumSet(marketingTransferSyncUserList);
         // 获取前一天的日期yyyy-MM-dd
         return marketingTransferSyncUserMapper
                 .getYxTransferByApiCodeAtikv_(
-                        cid,
+                        tCid,
                         apiCode,
-                        LocalDate.now().minusDays(1).toString(),
-                        pageNum
+                        requestDate,
+                        custNumSet
                 );
     }
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListB(String cid,String type, Integer pageNum) {
-        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListBtoCtoI(String tCid,String apiCode, String type, String requestDate,
+                                                                             List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+        Set<String> custNumSet = getCustNumSet(marketingTransferSyncUserList);
         return marketingTransferSyncUserMapper
                 .getYxTransferByApiCodeBtoCtoItikv_(
-                        cid,
+                        tCid,
                         apiCode,
-                        LocalDate.now().minusDays(30).toString(),
+                        requestDate,
                         type,
-                        pageNum
+                        custNumSet
                 );
     }
 
-    @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCtoI(String cid,String type, Integer pageNum) {
-        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
-        return marketingTransferSyncUserMapper
-                .getYxTransferByApiCodeBtoCtoItikv_(
-                        cid,
-                        apiCode,
-                        LocalDate.now().toString(),
-                        type,
-                        pageNum
-                );
+    private static Set<String> getCustNumSet(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+        return marketingTransferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
     }
+
+//    @Override
+//    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCtoI(String tCid,String apiCode, String type, String requestDate,
+//                                                                                List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+//        Set<String> custNumSet = marketingTransferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+//        return marketingTransferSyncUserMapper
+//                .getYxTransferByApiCodeBtoCtoItikv_(
+//                        tCid,
+//                        apiCode,
+//                        requestDate,
+//                        type,
+//                        custNumSet
+//                );
+//    }
 
 }

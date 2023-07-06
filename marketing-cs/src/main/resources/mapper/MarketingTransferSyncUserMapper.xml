@@ -523,22 +523,38 @@
     </select>
     <select id="getYxTransferByApiCodeBtoCtoItikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         Select b.*
-        From (select a.* , row_number() over(partition by cust_num order by insert_time desc,id desc) as rn
+        From (select a.id,a.cid,a.t_cid,a.api_code,a.cust_num,a.reserve_field1 ,
+                     row_number() over(partition by cust_num order by insert_time desc,id desc) as rn
             From b_marketing_transfer_sync_${tCid} a
             where api_code =#{apiCode}
+            and request_data = #{requestData}
+            <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+                #{custNum}
+            </foreach>;
             and (json_extract(reserve_field1,"$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
-            and request_data = #{requestData}  ) b
-        Where b.rn = 1  and b.type =#{type} order by b.id desc limit #{pageNum}, 2000 ;
+           ) b
+        Where b.rn = 1  and b.type =#{type};
     </select>
-
+    <select id="getCustNumById" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select id,cust_num from b_marketing_transfer_sync_${tCid}
+        where request_data = #{requestData} and type = #{type}
+        <if test="id != null and id!=''">
+            and id > #{indexId}
+        </if>
+        order by id asc limit 2000;
+    </select>
     <select id="getYxTransferByApiCodeAtikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select b.*
-        from (select a.*, row_number() over (partition by cust_num order by create_time desc,id desc) as rn
-            from b_marketing_transfer_sync_${cid} a
+        from (select a.id,a.cid,a.t_cid,a.api_code,a.cust_num,a.reserve_field1,
+                     row_number() over (partition by cust_num order by create_time desc,id desc) as rn
+            from b_marketing_transfer_sync_${tCid} a
             where request_data = #{yesterday}
             and api_code = #{apiCode}
+            <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+                #{custNum}
+            </foreach>;
             and json_extract(reserve_field1, '$.transformType') = '1' ) as b
-        where b.rn = 1 and b.json_extract(reserve_field1, '$.liveType') in ('4', '6') order by b.id desc limit  #{pageNum}, 2000;
+        where b.rn = 1 and b.json_extract(reserve_field1, '$.liveType') in ('4', '6');
     </select>
 
     <select id="getExcludeRuleFirstYxTransferByApiCodetikv_" resultType="java.lang.String">

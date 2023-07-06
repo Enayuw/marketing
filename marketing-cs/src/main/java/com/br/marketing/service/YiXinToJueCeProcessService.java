@@ -15,6 +15,6 @@ public interface YiXinToJueCeProcessService {
     /**
      * 宜信推决策do方法
      */
-    Result doProcess(TreeMap<String, String> actionTypeTree);
+    void doProcess(TreeMap<String, String> actionTypeTree);
 
 }
