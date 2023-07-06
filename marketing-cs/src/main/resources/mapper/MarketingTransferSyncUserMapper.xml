@@ -528,6 +528,7 @@
             From b_marketing_transfer_sync_${tCid} a
             where api_code =#{apiCode}
             and request_data = #{requestData}
+            and cust_num in
             <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
                 #{custNum}
             </foreach>;
@@ -550,6 +551,7 @@
             from b_marketing_transfer_sync_${tCid} a
             where request_data = #{yesterday}
             and api_code = #{apiCode}
+            and cust_num in
             <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
                 #{custNum}
             </foreach>;
