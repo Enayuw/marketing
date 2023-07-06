@@ -583,7 +583,7 @@
 
     <select id="getRuleFifthYxTransferByApiCodetikv_" resultType="java.lang.String">
         select distinct tt1.cust_num from (
-        select t1.*,row_number() over(partition by cust_num,request_data order by insert_time desc) as rn
+        select t1.cust_num,row_number() over(partition by cust_num,request_data order by insert_time desc) as rn
         from b_marketing_transfer_sync_${cid} t1
         where request_data = #{queryDate}
         and (json_extract(reserve_field1, '$.transformType') != '1'
