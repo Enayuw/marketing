@@ -537,8 +537,8 @@
     </select>
     <select id="getCustNumById" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select id,cust_num from b_marketing_transfer_sync_${tCid}
-        where request_data = #{requestData} and type = #{type}
-        <if test="id != null and id!=''">
+        where request_data = #{requestData} and type = #{type} and api_code = #{apiCode}
+        <if test="indexId != null and indexId!=''">
             and id > #{indexId}
         </if>
         order by id asc limit 2000;
