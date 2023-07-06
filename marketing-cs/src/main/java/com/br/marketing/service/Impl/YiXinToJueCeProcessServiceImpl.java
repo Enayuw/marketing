@@ -100,7 +100,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     public void doProcess(TreeMap<String, String> actionTypeTree) {
         String apiCodeTransfer = checkApiCode();
         Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd(apiCodeTransfer, LocalDate.now().toString());
-        if (pushBlackPhoneEnd && LocalDateTime.now().getHour() < 11) {
+        if (!pushBlackPhoneEnd && LocalDateTime.now().getHour() < 11) {
             log.warn("未查询到黑名单结束标识！");
             return;
         }
