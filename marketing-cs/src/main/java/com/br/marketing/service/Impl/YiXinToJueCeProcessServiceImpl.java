@@ -160,7 +160,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     }
 
     private void updateActionFront(Result<Long> result) {
-        jobManager.updateFrontDataStatus(result.getData(), 3);
+        jobManager.updateFrontDataStatus(result.getData(), 2);
     }
 
     private boolean isTransferLast(String tcId,String apiCodeTransfer) {
