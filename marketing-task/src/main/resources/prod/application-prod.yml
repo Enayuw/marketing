@@ -107,12 +107,33 @@ otherConfig:
 
 spring:
   rabbitmq:
-    addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672
-    username: strategy_distribute
-    password: Rz453hoEjUb37j8v
-    publisher-confirms: true
-    publisher-returns: true
-    virtual-host: marketing-flow
+    zw:
+      addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672
+      username: strategy_distribute
+      password: Rz453hoEjUb37j8v
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow
+    yz:
+      addresses: strategy-rabbitmq-yz-01.brapp.com:5672,strategy-rabbitmq-yz-02.brapp.com:5672
+      username: strategy_distribute
+      password: Rz453hoEjUb37j8v
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow
+    listener:
+      retry:
+        enabled: true
+        max-attempts: 5
+        initial-interval: 3000
+      acknowledge-mode: manual
+      default-requeue-rejected: false
+      auto-startup: true
+  web:
+    interceptors.enabled: true
+  sql.source: prod
+cluster:
+  flag: ${CONF_CLUSTER}
 
 #elastic-job配置
 SERVER_LISTS: zk-strategy-01.brapp.com:2181,zk-strategy-02.brapp.com:2181,zk-strategy-03.brapp.com:2181
