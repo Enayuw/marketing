@@ -1,6 +1,7 @@
 package com.br.marketing.rule.xiecheng;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.util.List;
 
 /**
  *
@@ -67,10 +67,8 @@ public class XieChengCustomerTransferAImpl implements AssembleData<ConversionDat
                 Integer convType = json.getInteger("convType");
 //                flag = !StringUtils.isEmpty(convType) && 107 == convType;
 
-                List<Integer> convTypeList = marketingCommonConfig.getTransferConvTypeConfig().get(transfer.getApiCode()).get(ONE_TO_ONE);
-                if (convTypeList.contains(convType)) {
-                    flag = true;
-                }
+                JSONArray array = marketingCommonConfig.getTransferConvTypeConfig().get(transfer.getApiCode()).getJSONArray(ONE_TO_ONE);
+                flag = array.contains(convType);
             }
         }
         return flag;
