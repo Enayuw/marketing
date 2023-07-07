@@ -98,7 +98,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     private static final Integer PARTITION = 2000;
 
     @Override
-    public void doProcess(LinkedHashMap<String, String> actionTypeTree) {
+    public void doProcess(LinkedHashMap<String, String> actionTypeLink) {
         String apiCodeTransfer = checkApiCode();
         Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd(apiCodeTransfer, LocalDate.now().toString());
         if (!pushBlackPhoneEnd && LocalDateTime.now().getHour() < 11) {
@@ -106,7 +106,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             return;
         }
 
-        yiXinToJueCeAction(actionTypeTree, apiCodeTransfer);
+        yiXinToJueCeAction(actionTypeLink, apiCodeTransfer);
 
     }
     private  Result<Long> actionFront(String apiCodeTransfer,Integer actionType){
@@ -123,9 +123,9 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(jobId);
     }
-    private void yiXinToJueCeAction(LinkedHashMap<String, String> actionTypeTree, String apiCodeTransfer) {
+    private void yiXinToJueCeAction(LinkedHashMap<String, String> actionTypeLink, String apiCodeTransfer) {
         String tcId = tableCreateService.getTcId(apiCodeTransfer);
-        actionTypeTree.forEach((String k, String v) -> {
+        actionTypeLink.forEach((String k, String v) -> {
             switch (k) {
                 case "A":
                     Result<Long> resultA = actionFront(apiCodeTransfer, ACTONTFROUNTYPETREE.get(k));
