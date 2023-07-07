@@ -534,7 +534,7 @@
         <if test="indexId != null and indexId!=''">
             and b.id > #{indexId}
         </if>
-          and b.type =#{type} order by b.id asc limit 2000;
+          and b.type =#{type} order by b.id asc limit 100000;
     </select>
     <select id="getCustNumByIdA" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select id,cust_num from b_marketing_transfer_sync_${tCid}
@@ -568,7 +568,7 @@
         <if test="indexId != null and indexId!=''">
             and b.id > #{indexId}
         </if>
-          and b.json_extract(reserve_field1, '$.liveType') in ('4', '6') order by b.id asc limit 2000;
+          and b.json_extract(reserve_field1, '$.liveType') in ('4', '6') order by b.id asc limit 100000;
     </select>
 
     <select id="getExcludeRuleFirstYxTransferByApiCodetikv_" resultType="java.lang.String">

@@ -205,6 +205,8 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 break;
             }
             indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
+            List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(marketingTransferSyncUserList, PARTITION);
+            partition.forEach(users->yiXinToJueCeThread.submit(() -> threadDoProcess(users, actionType)));
             yiXinToJueCeThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
         }
         yiXinToJueCeThread.shutdown();
@@ -231,17 +233,18 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         if("B".equals(actionType)){
              requestDate = LocalDate.now().minusDays(30).toString();
         }
-        String finalRequestDate = requestDate;
         while (true) {
             initThreadPoolParam(yiXinToJueCeThread);
 
             List<MarketingTransferSyncUser> marketingTransferSyncUserList =
                     yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListBtoCtoI(tcId,apiCode,
-                            type, finalRequestDate,indexId);
+                            type, requestDate,indexId);
             if(marketingTransferSyncUserList.isEmpty()){
                 break;
             }
-            yiXinToJueCeThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
+            indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
+            List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(marketingTransferSyncUserList, PARTITION);
+            partition.forEach(users->yiXinToJueCeThread.submit(() -> threadDoProcess(users, actionType)));
         }
         yiXinToJueCeThread.shutdown();
         try {
