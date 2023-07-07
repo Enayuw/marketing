@@ -3,6 +3,7 @@ package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.Result;
 
+import java.util.LinkedHashMap;
 import java.util.TreeMap;
 
 /**
@@ -15,6 +16,6 @@ public interface YiXinToJueCeProcessService {
     /**
      * 宜信推决策do方法
      */
-    void doProcess(TreeMap<String, String> actionTypeTree);
+    void doProcess(LinkedHashMap<String, String> actionTypeTree);
 
 }

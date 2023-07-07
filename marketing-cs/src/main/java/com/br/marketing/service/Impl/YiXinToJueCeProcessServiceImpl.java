@@ -98,7 +98,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     private static final Integer PARTITION = 2000;
 
     @Override
-    public void doProcess(TreeMap<String, String> actionTypeTree) {
+    public void doProcess(LinkedHashMap<String, String> actionTypeTree) {
         String apiCodeTransfer = checkApiCode();
         Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd(apiCodeTransfer, LocalDate.now().toString());
         if (!pushBlackPhoneEnd && LocalDateTime.now().getHour() < 11) {
@@ -123,7 +123,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(jobId);
     }
-    private void yiXinToJueCeAction(TreeMap<String, String> actionTypeTree, String apiCodeTransfer) {
+    private void yiXinToJueCeAction(LinkedHashMap<String, String> actionTypeTree, String apiCodeTransfer) {
         String tcId = tableCreateService.getTcId(apiCodeTransfer);
         actionTypeTree.forEach((String k, String v) -> {
             switch (k) {

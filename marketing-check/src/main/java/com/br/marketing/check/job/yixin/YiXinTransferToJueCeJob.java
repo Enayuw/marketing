@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.LinkedHashMap;
 import java.util.TreeMap;
 
 
@@ -20,7 +21,7 @@ import java.util.TreeMap;
 @Component
 @Slf4j
 public class YiXinTransferToJueCeJob extends AbstractSimpleElasticJob {
-    private static final TreeMap<String, String> ACTONTYPETREE = new TreeMap<>();
+    private static final LinkedHashMap<String, String> ACTONTYPETREE = new LinkedHashMap<>();
 
     static {
         ACTONTYPETREE.put("A", null);
