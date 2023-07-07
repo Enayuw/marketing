@@ -192,15 +192,17 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * @param tcId cid
      */
     private void pushMarketingTransferSyncUsersA(String actionType, String type, String tcId) {
-        Long indexId = null;
+        Long indexId = 3000l;
         // 创建线程池
         ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
         String requestDate = LocalDate.now().minusDays(1).toString();
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         while (true) {
             initThreadPoolParam(yiXinToJueCeThread);
+            log.warn("开始时间:{}",LocalDateTime.now());
             List<MarketingTransferSyncUser> marketingTransferSyncUserList =  yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListA(tcId,apiCode,
                     requestDate,indexId);
+            log.warn("结束时间:{}",LocalDateTime.now());
             if(marketingTransferSyncUserList.isEmpty()){
                 break;
             }
@@ -224,7 +226,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * @param tcId cid
      */
     private void getMarketingTransferSyncUserListBtoCtoI(String actionType, String type, String tcId) {
-        Long indexId = null;
+        Long indexId = 3000l;
         // 创建线程池
         ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
         String requestDate = LocalDate.now().toString();
