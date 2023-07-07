@@ -207,7 +207,6 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(marketingTransferSyncUserList, PARTITION);
             partition.forEach(users->yiXinToJueCeThread.submit(() -> threadDoProcess(users, actionType)));
-            yiXinToJueCeThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
         }
         yiXinToJueCeThread.shutdown();
         try {
