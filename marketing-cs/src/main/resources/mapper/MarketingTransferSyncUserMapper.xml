@@ -528,13 +528,13 @@
             From b_marketing_transfer_sync_${tCid} a
             where api_code =#{apiCode}
             and request_data = #{requestData}
-            and cust_num in
-            <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
-                #{custNum}
-            </foreach>
             and (json_extract(reserve_field1,"$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
            ) b
-        Where b.rn = 1  and b.type =#{type};
+        Where b.rn = 1
+        <if test="indexId != null and indexId!=''">
+            and b.id > #{indexId}
+        </if>
+          and b.type =#{type} order by b.id asc limit 2000;
     </select>
     <select id="getCustNumByIdA" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select id,cust_num from b_marketing_transfer_sync_${tCid}
@@ -563,12 +563,12 @@
             from b_marketing_transfer_sync_${tCid} a
             where request_data = #{requestDate}
             and api_code = #{apiCode}
-            and cust_num in
-            <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
-                #{custNum}
-            </foreach>
             and json_extract(reserve_field1, '$.transformType') = '1' ) as b
-        where b.rn = 1 and b.json_extract(reserve_field1, '$.liveType') in ('4', '6');
+        where b.rn = 1
+        <if test="indexId != null and indexId!=''">
+            and b.id > #{indexId}
+        </if>
+          and b.json_extract(reserve_field1, '$.liveType') in ('4', '6') order by b.id asc limit 2000;
     </select>
 
     <select id="getExcludeRuleFirstYxTransferByApiCodetikv_" resultType="java.lang.String">

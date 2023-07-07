@@ -25,7 +25,7 @@ public interface YiXinProcessGetBaseDataService {
      * 并且根据custNum 过滤
      * @return 转化数据列表
      */
-    List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String cid, String apiCode,String requestDate,List<MarketingTransferSyncUser> marketingTransferSyncUserList);
+    List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String cid, String apiCode,String requestDate,Long indexId);
 
     /**
      * 情况 b  c~i 基础数据获取接口
@@ -33,7 +33,7 @@ public interface YiXinProcessGetBaseDataService {
      * T 日的转化数据 transformType!=1 并且 type=(13,23,20,21,8,15,6) 并且根据 insertTime 取最新的一条数据。
      * @return 转化数据列表
      */
-    List<MarketingTransferSyncUser> getMarketingTransferSyncUserListBtoCtoI(String cid, String apiCode,String type, String requestDate,List<MarketingTransferSyncUser> marketingTransferSyncUserList);
+    List<MarketingTransferSyncUser> getMarketingTransferSyncUserListBtoCtoI(String cid, String apiCode,String type, String requestDate,Long indexId);
 
 
 }

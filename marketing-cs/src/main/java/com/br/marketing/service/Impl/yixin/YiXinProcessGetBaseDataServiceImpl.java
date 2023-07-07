@@ -41,31 +41,30 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
 
     }
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String tCid,String apiCode,  String requestDate,
-                                                                             List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String tCid,String apiCode,  String requestDate,Long indexId
+                                                                             ) {
 
-        Set<String> custNumSet = getCustNumSet(marketingTransferSyncUserList);
+//        Set<String> custNumSet = getCustNumSet(marketingTransferSyncUserList);
         // 获取前一天的日期yyyy-MM-dd
         return marketingTransferSyncUserMapper
                 .getYxTransferByApiCodeAtikv_(
                         tCid,
                         apiCode,
                         requestDate,
-                        custNumSet
+                        indexId
                 );
     }
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListBtoCtoI(String tCid,String apiCode, String type, String requestDate,
-                                                                             List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
-        Set<String> custNumSet = getCustNumSet(marketingTransferSyncUserList);
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListBtoCtoI(String tCid,String apiCode, String type, String requestDate,Long indexId) {
+//        Set<String> custNumSet = getCustNumSet(marketingTransferSyncUserList);
         return marketingTransferSyncUserMapper
                 .getYxTransferByApiCodeBtoCtoItikv_(
                         tCid,
                         apiCode,
                         requestDate,
                         type,
-                        custNumSet
+                        indexId
                 );
     }
 

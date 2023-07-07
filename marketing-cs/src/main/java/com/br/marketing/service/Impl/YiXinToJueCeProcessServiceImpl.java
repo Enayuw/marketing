@@ -199,22 +199,13 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         while (true) {
             initThreadPoolParam(yiXinToJueCeThread);
-
-            List<MarketingTransferSyncUser> marketingTransferSyncUserListCustNum =
-                    yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListCustNumA(tcId,apiCode,  indexId, requestDate);
-            if (marketingTransferSyncUserListCustNum.isEmpty()) {
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList =  yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListA(tcId,apiCode,
+                    requestDate,indexId);
+            if(marketingTransferSyncUserList.isEmpty()){
                 break;
             }
-            indexId = marketingTransferSyncUserListCustNum.get(marketingTransferSyncUserListCustNum.size() - 1).getId();
-
-            List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(marketingTransferSyncUserListCustNum, PARTITION);
-            partition.forEach(mus->{
-                List<MarketingTransferSyncUser> marketingTransferSyncUserList =
-                        yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListA(tcId,apiCode,
-                                requestDate, mus);
-                yiXinToJueCeThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
-            });
-
+            indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
+            yiXinToJueCeThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
         }
         yiXinToJueCeThread.shutdown();
         try {
@@ -244,20 +235,13 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         while (true) {
             initThreadPoolParam(yiXinToJueCeThread);
 
-            List<MarketingTransferSyncUser> marketingTransferSyncUserListCustNum =
-                    yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListCustNum(tcId,apiCode, type, indexId, finalRequestDate);
-            if (marketingTransferSyncUserListCustNum.isEmpty()) {
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList =
+                    yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListBtoCtoI(tcId,apiCode,
+                            type, finalRequestDate,indexId);
+            if(marketingTransferSyncUserList.isEmpty()){
                 break;
             }
-            indexId = marketingTransferSyncUserListCustNum.get(marketingTransferSyncUserListCustNum.size() - 1).getId();
-            List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(marketingTransferSyncUserListCustNum, PARTITION);
-            partition.forEach(mus->{
-                List<MarketingTransferSyncUser> marketingTransferSyncUserList =
-                        yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListBtoCtoI(tcId,apiCode,
-                                type, finalRequestDate,mus);
-                yiXinToJueCeThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
-            });
-
+            yiXinToJueCeThread.submit(() -> threadDoProcess(marketingTransferSyncUserList, actionType));
         }
         yiXinToJueCeThread.shutdown();
         try {
