@@ -35,12 +35,5 @@ public interface YiXinProcessGetBaseDataService {
      */
     List<MarketingTransferSyncUser> getMarketingTransferSyncUserListBtoCtoI(String cid, String apiCode,String type, String requestDate,List<MarketingTransferSyncUser> marketingTransferSyncUserList);
 
-    /**
-     * 情况 c~i 基础数据获取接口
-     * T 日的转化数据 transformType!=1 并且 type=(13,23,20,21,8,15,6) 并且根据 insertTime 取最新的一条数据。
-     * @param type 13 23 25
-     * @param idIndex 循环查询的最大 id
-     * @return 转化数据列表
-     */
-//    List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCtoI(String cid, String apiCode,String type, String requestDate,List<MarketingTransferSyncUser> marketingTransferSyncUserList);
+
 }

@@ -73,18 +73,4 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
         return marketingTransferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
     }
 
-//    @Override
-//    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCtoI(String tCid,String apiCode, String type, String requestDate,
-//                                                                                List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
-//        Set<String> custNumSet = marketingTransferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-//        return marketingTransferSyncUserMapper
-//                .getYxTransferByApiCodeBtoCtoItikv_(
-//                        tCid,
-//                        apiCode,
-//                        requestDate,
-//                        type,
-//                        custNumSet
-//                );
-//    }
-
 }
