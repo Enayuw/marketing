@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class CustomerTransferDistributeHandler extends AbstractExternalInterfaceHandler<ConversionData> {
+public class CustomerTransferConvTypeConfigHandler extends AbstractExternalInterfaceHandler<ConversionData> {
 
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
@@ -123,6 +123,6 @@ public class CustomerTransferDistributeHandler extends AbstractExternalInterface
 
     @Override
     public InterfaceHandlerEnum handlerEnum() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_DISTRIBUTE;
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_BY_CONVTYPE;
     }
 }

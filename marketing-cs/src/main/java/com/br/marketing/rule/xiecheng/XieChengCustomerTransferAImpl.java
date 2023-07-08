@@ -88,7 +88,7 @@ public class XieChengCustomerTransferAImpl implements AssembleData<ConversionDat
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_DISTRIBUTE.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_BY_CONVTYPE.getCode();
     }
 
     @Override
