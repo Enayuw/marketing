@@ -723,15 +723,9 @@ public class MarketingCommonConfig {
     private HashMap<String, List<String>> customerBlackListApiCodes;
 
     /**
-     * 推送客服转化apiCode(一对多分发)
-     * customerTransferApiCodes={"3710058":["3710058","3710078"],"7410950":["7410950","7410951"]}
+     * 转化数据的apiCode、convType、推送的apiCode映射关系
+     * pushConvTypeConfig={"3710058":{"106":["3710058","3710078"],"107":["3710058"]},"7412009":{"106":["7412009","7410951"],"107":["7412009"]}}
      */
-    private HashMap<String, List<String>> customerTransferApiCodes;
-
-    /**
-     * 推送客服转化apiCode和convType映射(注意：一对一和一对多convType不能有交集，否则交集的数据会重复推送)
-     * transferConvTypeConfig={"3710058":{"oneToOne":[107],"oneToMany":[106]},"7410950":{"oneToOne":[107],"oneToMany":[106]}}
-     */
-    private HashMap<String, JSONObject> transferConvTypeConfig;
+    private HashMap<String, JSONObject> pushConvTypeConfig;
 }
 

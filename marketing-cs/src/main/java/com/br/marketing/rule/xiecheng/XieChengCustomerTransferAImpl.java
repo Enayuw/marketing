@@ -1,9 +1,9 @@
 package com.br.marketing.rule.xiecheng;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.DateUtils;
+import com.br.marketing.client.robotaiapi.input.ConvTypeConfigConversionData;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.util.Set;
 
 /**
  *
@@ -32,7 +33,6 @@ import javax.annotation.Resource;
 @Slf4j
 public class XieChengCustomerTransferAImpl implements AssembleData<ConversionData> {
 
-    public static final String ONE_TO_ONE = "oneToOne";
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
@@ -40,7 +40,14 @@ public class XieChengCustomerTransferAImpl implements AssembleData<ConversionDat
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
         log.warn("携程推客服转化,apicode={}",transfer.getApiCode());
-        ConversionData conversionData = new ConversionData();
+        ConvTypeConfigConversionData conversionData = new ConvTypeConfigConversionData();
+        // 设置convType
+        String reserveField1 = transfer.getReserveField1();
+        if (StringUtils.hasText(reserveField1)) {
+            JSONObject json = JSON.parseObject(reserveField1);
+            String convType = json.getInteger("convType").toString();
+            conversionData.setConvType(convType);
+        }
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(transfer.getCid());
         conversionData.setInversionStatus("0");
@@ -59,7 +66,6 @@ public class XieChengCustomerTransferAImpl implements AssembleData<ConversionDat
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         boolean flag = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
-            //转化数据上传接口命中convType=107的数据
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             String reserveField1 = transfer.getReserveField1();
             if (StringUtils.hasText(reserveField1)) {
@@ -67,8 +73,9 @@ public class XieChengCustomerTransferAImpl implements AssembleData<ConversionDat
                 Integer convType = json.getInteger("convType");
 //                flag = !StringUtils.isEmpty(convType) && 107 == convType;
 
-                JSONArray array = marketingCommonConfig.getTransferConvTypeConfig().get(transfer.getApiCode()).getJSONArray(ONE_TO_ONE);
-                flag = array.contains(convType);
+                // 从配置中心获取convType
+                Set<String> convTypeSet = marketingCommonConfig.getPushConvTypeConfig().get(transfer.getApiCode()).keySet();
+                flag = !StringUtils.isEmpty(convType) && convTypeSet.contains(convType.toString());
             }
         }
         return flag;
@@ -81,7 +88,7 @@ public class XieChengCustomerTransferAImpl implements AssembleData<ConversionDat
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_DISTRIBUTE.getCode();
     }
 
     @Override
