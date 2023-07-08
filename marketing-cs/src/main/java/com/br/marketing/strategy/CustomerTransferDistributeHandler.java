@@ -66,11 +66,10 @@ public class CustomerTransferDistributeHandler extends AbstractExternalInterface
         Set<Map.Entry<String, Object>> entries = marketingCommonConfig.getPushConvTypeConfig().get(context.getApiCode()).entrySet();
         for (Map.Entry<String, Object> entry : entries) {
             String convType = entry.getKey();
-            List<String> pushApiCodes = (List<String>) entry.getValue();
-
             List<ConvTypeConfigConversionData> dataList = groupByConvDataList.get(convType);
-            // 没有配置convType，则不推送客服
+            // 没有配置数据对应的convType，则不推送客服
             if (CollectionUtils.isEmpty(dataList)) {
+                log.error("携程转化数据推送客服，pushConvTypeConfig配置发生变化");
                 continue;
             }
 
@@ -81,35 +80,45 @@ public class CustomerTransferDistributeHandler extends AbstractExternalInterface
                 return pushData;
             }).collect(Collectors.toList());
 
-            // 每500条数据一个批次
-            int pageSize = 500;
-            int totalCount = pushDataList.size();
-            int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
-            String last = context.getLast();
-            String lastRep;
-            for (int i = 1; i <= pageCount; i++) {
-                List<ConversionData> subList;
-
-                if (i == pageCount) {
-                    subList = pushDataList.subList((i - 1) * pageSize, totalCount);
-                    lastRep = last;
-                } else {
-                    subList = pushDataList.subList((i - 1) * pageSize, pageSize * (i));
-                    lastRep = last != null ? "0" : null;
-                }
-
-                // 同一批次数据，推送多个apiCode
-                for (String pushApiCode : pushApiCodes) {
-                    TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
-                    robotOutboundDTO.setJsonData(new TransferJsonDataDTO(subList, lastRep));
-                    robotOutboundDTO.setTransferInfoId(context.getTransferInfoId());
-                    robotOutboundDTO.setApiCode(pushApiCode);
-                    methodRetryHandlerService.callCustomerTransfer(robotOutboundDTO, 0);
-                }
-            }
+            // 获取该convType下配置的apicode集合
+            List<String> pushApiCodes = (List<String>) entry.getValue();
+            batchData(context, pushApiCodes, pushDataList);
         }
 
         return null;
+    }
+
+    private void batchData(ProcessHandlerContext context, List<String> pushApiCodes, List<ConversionData> pushDataList) {
+        // 每500条数据一个批次
+        int pageSize = 500;
+        int totalCount = pushDataList.size();
+        int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
+        String last = context.getLast();
+        String lastRep;
+        for (int i = 1; i <= pageCount; i++) {
+            List<ConversionData> subList;
+
+            if (i == pageCount) {
+                subList = pushDataList.subList((i - 1) * pageSize, totalCount);
+                lastRep = last;
+            } else {
+                subList = pushDataList.subList((i - 1) * pageSize, pageSize * (i));
+                lastRep = last != null ? "0" : null;
+            }
+
+            assembleAndPushData(context, pushApiCodes, lastRep, subList);
+        }
+    }
+
+    private void assembleAndPushData(ProcessHandlerContext context, List<String> pushApiCodes, String lastRep, List<ConversionData> subList) {
+        // 同一批次数据，推送多个apiCode
+        for (String pushApiCode : pushApiCodes) {
+            TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
+            robotOutboundDTO.setJsonData(new TransferJsonDataDTO(subList, lastRep));
+            robotOutboundDTO.setTransferInfoId(context.getTransferInfoId());
+            robotOutboundDTO.setApiCode(pushApiCode);
+            methodRetryHandlerService.callCustomerTransfer(robotOutboundDTO, 0);
+        }
     }
 
     @Override
