@@ -534,7 +534,7 @@
         <if test="indexId != null and indexId!=''">
             and b.id > #{indexId}
         </if>
-          and b.type =#{type} order by b.id asc limit 50000;
+          and b.type =#{type} order by b.id asc limit #{pageSize};
     </select>
     <select id="getYxTransferByApiCodeAtikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select b.*
@@ -548,7 +548,7 @@
         <if test="indexId != null and indexId!=''">
             and b.id > #{indexId}
         </if>
-          and b.json_extract(reserve_field1, '$.liveType') in ('4', '6') order by b.id asc limit 50000;
+          and b.json_extract(reserve_field1, '$.liveType') in ('4', '6') order by b.id asc limit #{pageSize};
     </select>
 
     <select id="getExcludeRuleFirstYxTransferByApiCodetikv_" resultType="java.lang.String">

@@ -746,5 +746,10 @@ public class MarketingCommonConfig {
      * 宜信推决策，剔除规则5，外层线程池按天查询线程数
      */
     private Integer yiXinExcludeRuleFifthThreadNum;
+
+    /**
+     * 宜信查询基础数据 limit 量级
+     */
+    private Integer yiXinSearchPageSize;
 }
 

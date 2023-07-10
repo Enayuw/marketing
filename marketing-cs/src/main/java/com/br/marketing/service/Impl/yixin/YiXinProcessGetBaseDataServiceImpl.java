@@ -29,7 +29,8 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
 
-
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String tCid,String apiCode,  String requestDate,Long indexId
                                                                              ) {
@@ -40,19 +41,22 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
                         tCid,
                         apiCode,
                         requestDate,
-                        indexId
+                        indexId,
+                        marketingCommonConfig.getYiXinSearchPageSize()
                 );
     }
 
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListBtoCtoI(String tCid,String apiCode, String type, String requestDate,Long indexId) {
+
         return marketingTransferSyncUserMapper
                 .getYxTransferByApiCodeBtoCtoItikv_(
                         tCid,
                         apiCode,
                         requestDate,
                         type,
-                        indexId
+                        indexId,
+                        marketingCommonConfig.getYiXinSearchPageSize()
                 );
     }
 
