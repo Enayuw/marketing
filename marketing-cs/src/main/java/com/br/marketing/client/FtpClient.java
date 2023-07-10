@@ -131,6 +131,9 @@ public class FtpClient extends BaseFtpClient {
      * @param localFile   本地文件路径名称
      */
     public boolean download(String ftpFileName, File localFile)  {
+        if(!localFile.getParentFile().exists()){
+            localFile.getParentFile().mkdirs();
+        }
         try (OutputStream out = new BufferedOutputStream( java.nio.file.Files.newOutputStream(localFile.toPath()));){
             FTPFile[] fileInfoArray = ftp.listFiles(ftpFileName);
             if (fileInfoArray == null || fileInfoArray.length == 0) {
