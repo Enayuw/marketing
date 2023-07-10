@@ -209,7 +209,11 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             }
             indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(marketingTransferSyncUserList, PARTITION);
-            partition.forEach(users->yiXinToJueCeThread.submit(() -> threadDoProcess(users, actionType)));
+            partition.forEach(users->{
+                List<MarketingTransferSyncUser> tpList = new ArrayList<>();
+                tpList.addAll(users);
+                yiXinToJueCeThread.submit(() -> threadDoProcess(tpList, actionType));
+            });
         }
         yiXinToJueCeThread.shutdown();
         try {
@@ -246,7 +250,11 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             }
             indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(marketingTransferSyncUserList, PARTITION);
-            partition.forEach(users->yiXinToJueCeThread.submit(() -> threadDoProcess(users, actionType)));
+            partition.forEach(users->{
+                List<MarketingTransferSyncUser> tpList = new ArrayList<>();
+                tpList.addAll(users);
+                yiXinToJueCeThread.submit(() -> threadDoProcess(tpList, actionType));
+            });
         }
         yiXinToJueCeThread.shutdown();
         try {
