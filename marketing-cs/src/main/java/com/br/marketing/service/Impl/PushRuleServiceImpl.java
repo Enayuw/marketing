@@ -1,12 +1,10 @@
 package com.br.marketing.service.Impl;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.*;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
@@ -47,6 +45,7 @@ import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -80,11 +79,14 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -325,6 +327,8 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     TransferFiledProcessImpl transferFiledProcess;
+
+    private static final Lock LOCK = new ReentrantLock();
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -996,6 +1000,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         long l = System.currentTimeMillis();
         tableCreateService.createMarketingSyncUserTable(marketingSyncInfo.getApiCode());
         ArrayList<Callable<Result<MarketingPreUserErrorDetailVO>>> list = new ArrayList<>();
+        Map<String, MarketingSyncUser> validDateCache = new ConcurrentHashMap<>(16);
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
             //此处会处理三种场景的数据
@@ -1083,6 +1088,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                         log.info(String.format("去重数据：%d,数据入库和去重时间耗时：%d，数据去重时间：%d"
                                 , marketingSyncUser.getId(), et1, et2));
                     }
+                    // 入库成功后将apiCode、userType、appletDate为key，并且唯一,
+                    if (marketingSyncUser.getId() != null) {
+                        String key = apiCode + marketingSyncUser.getUserType() + marketingSyncUser.getAppletDate();
+                        // 缓存最新的原始数据
+                        validDateCache.put(key, marketingSyncUser);
+                    }
                 } catch (Exception ex) {
                     if (ex.getMessage().contains("IDX_taskId_custNum")) {
                         MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
@@ -1132,6 +1143,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
             }
         }
+        // 去设置默认有效期
+        configValidDateDefault(validDateCache, apiCode);
         MarketingSyncInfo updateSyncInfo = new MarketingSyncInfo();
         updateSyncInfo.setId(marketingSyncInfo.getId());
         updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_running);
@@ -1194,6 +1207,56 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
+    }
+
+    /**
+     * 2023-07-05 15:52
+     * 配置默认有效期
+     */
+    private void configValidDateDefault(Map<String, MarketingSyncUser> validDateCache, String apiCode) {
+        Set<String> apiCodes = marketingCommonConfig.getNonConfigValidDefaultApiCodes();
+        if (CollectionUtils.isEmpty(apiCodes)) {
+            return;
+        }
+        try {
+            LOCK.lockInterruptibly();
+            if (apiCodes.contains(apiCode)) {
+                return;
+            }
+            // 遍历缓存中需要设置默认有效期的apiCode与userType
+            try {
+                validDateCache.forEach((key1, value) -> {
+                    LocalDateTime now = LocalDateTime.now();
+                    LocalDateTime localDateTime = now.plusDays(1);
+                    ZonedDateTime zonedDateTime = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault());
+                    String key = RedisKeyConstant.prefix.concat(":valid:lock:") + key1;
+                    boolean lock = false;
+                    try {
+                        // 将主键保存到锁的key中
+                        lock = redisChgService.lock(key, String.valueOf(value.getId())
+                                , ChronoUnit.MILLIS.between(now, zonedDateTime));
+                    } catch (Exception e) {
+                        log.error("设置默认有效期,上锁失败key:" + key + e.getMessage(), e);
+                    }
+                    if (lock) {
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("apiCode", value.getApiCode());
+                        jsonObject.put("userType", value.getUserType());
+                        jsonObject.put("appletDate", StringUtils.isBlank(value.getAppletDate())
+                                ? LocalDate.now().toString() : value.getAppletDate());
+                        try {
+                            producter.send(MQConstants.ROUTING_KEY_MARKETING_CONFIG_DEFAULT_VALID_DATE, jsonObject.toJSONString());
+                        } catch (Exception e) {
+                            log.error("设置默认有效期,发送mq消息内容:" + jsonObject.toJSONString() + e.getMessage(), e);
+                        }
+                    }
+                });
+            } finally {
+                LOCK.unlock();
+            }
+        } catch (InterruptedException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     //ReserveField1DTO中的属性是固定的，无法满足，客户动态增加字段的需求,
