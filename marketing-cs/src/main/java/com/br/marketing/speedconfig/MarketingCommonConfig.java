@@ -746,5 +746,11 @@ public class MarketingCommonConfig {
      * 宜信推决策，剔除规则5，外层线程池按天查询线程数
      */
     private Integer yiXinExcludeRuleFifthThreadNum;
+
+    /**
+     * 2023-07-05 16:04
+     * 非生成默认有效期配置的apiCode集合
+     */
+    private Set<String> nonConfigValidDefaultApiCodes;
 }
 
