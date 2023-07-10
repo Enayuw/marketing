@@ -191,7 +191,7 @@ innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
-NAMESPACE: marketing-dev-job
+NAMESPACE: marketing-local-job
 BASE_SLEEP_TIME_MILLISECONDS: 1000
 MAX_SLEEP_TIME_MILLISECONDS: 3000
 MAX_RETRIES: 3

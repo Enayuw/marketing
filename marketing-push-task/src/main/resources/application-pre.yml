@@ -145,7 +145,7 @@ spring:
     interceptors.enabled: true
   sql.source: prod
 cluster:
-  flag: k8s-prod-a
+  flag: k8s-prod-d
 api:
   bi:
     baseUrl: http://script-govern-pre.100credit.cn

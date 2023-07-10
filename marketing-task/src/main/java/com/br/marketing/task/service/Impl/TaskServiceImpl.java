@@ -107,6 +107,17 @@ public class TaskServiceImpl implements ITaskService {
         }
         List<CustomerScoreRuleVO> data = scoreConfigNow.getData();
         for (CustomerScoreRuleVO datum : data) {
+            MarketingCustomerExample customerExample = new MarketingCustomerExample();
+            customerExample.createCriteria().andApiCodeEqualTo(datum.getApiCode()).andStatusEqualTo(new Byte("1"));
+            List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
+            if(marketingCustomers.size()<0){
+                continue;
+            }
+            MarketingCustomer customer = marketingCustomers.get(0);
+            Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo());
+            if(!action){
+                continue;
+            }
 //            if (datum.getParentId() <= 0) {
                 marketingTaskService.buildScoreTaskOfAuto(datum);
 //            } else {
