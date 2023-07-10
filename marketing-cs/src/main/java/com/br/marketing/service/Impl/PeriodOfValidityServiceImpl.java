@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl;
 
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingDataValidConfigDefaultMapper;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
@@ -301,6 +302,7 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
     @Override
     public Result<Boolean> configValidDateDefault(MarketingSyncUser syncUser) {
         Result<Boolean> result = new Result<>();
+        result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(false);
         String appletDate = syncUser.getAppletDate();
         MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
