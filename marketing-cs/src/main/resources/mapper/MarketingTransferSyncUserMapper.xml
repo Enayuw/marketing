@@ -523,22 +523,32 @@
     </select>
     <select id="getYxTransferByApiCodeBtoCtoItikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         Select b.*
-        From (select a.* , row_number() over(partition by cust_num order by insert_time desc,id desc) as rn
+        From (select a.id,a.cid,a.t_cid,a.api_code,a.cust_num,a.reserve_field1 ,a.type,a.request_data,a.user_type,a.unlent_amount,
+                     row_number() over(partition by cust_num order by insert_time desc,id desc) as rn
             From b_marketing_transfer_sync_${tCid} a
             where api_code =#{apiCode}
+            and request_data = #{requestData}
             and (json_extract(reserve_field1,"$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
-            and request_data = #{requestData}  ) b
-        Where b.rn = 1  and b.type =#{type} order by b.id desc limit #{pageNum}, 2000 ;
+           ) b
+        Where b.rn = 1
+        <if test="indexId != null and indexId!=''">
+            and b.id > #{indexId}
+        </if>
+          and b.type =#{type} order by b.id asc limit #{pageSize};
     </select>
-
     <select id="getYxTransferByApiCodeAtikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select b.*
-        from (select a.*, row_number() over (partition by cust_num order by create_time desc,id desc) as rn
-            from b_marketing_transfer_sync_${cid} a
-            where request_data = #{yesterday}
+        from (select a.id,a.cid,a.t_cid,a.api_code,a.cust_num,a.reserve_field1,a.request_data,a.user_type,a.unlent_amount,
+                     row_number() over (partition by cust_num order by create_time desc,id desc) as rn
+            from b_marketing_transfer_sync_${tCid} a
+            where request_data = #{requestDate}
             and api_code = #{apiCode}
             and json_extract(reserve_field1, '$.transformType') = '1' ) as b
-        where b.rn = 1 and b.json_extract(reserve_field1, '$.liveType') in ('4', '6') order by b.id desc limit  #{pageNum}, 2000;
+        where b.rn = 1
+        <if test="indexId != null and indexId!=''">
+            and b.id > #{indexId}
+        </if>
+          and b.json_extract(reserve_field1, '$.liveType') in ('4', '6') order by b.id asc limit #{pageSize};
     </select>
 
     <select id="getExcludeRuleFirstYxTransferByApiCodetikv_" resultType="java.lang.String">
@@ -566,8 +576,8 @@
     </select>
 
     <select id="getRuleFifthYxTransferByApiCodetikv_" resultType="java.lang.String">
-        select distinct tt1.cust_num from (
-        select t1.*,row_number() over(partition by cust_num,request_data order by insert_time desc) as rn
+        select distinct tt1.cust_num,tt1.type from (
+        select t1.cust_num,t1.type,row_number() over(partition by cust_num,request_data order by insert_time desc) as rn
         from b_marketing_transfer_sync_${cid} t1
         where request_data = #{queryDate}
         and (json_extract(reserve_field1, '$.transformType') != '1'

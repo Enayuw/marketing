@@ -58,7 +58,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
                         apiCode,
                         today,
                         custNums);
-        log.warn("宜信推送决策,符合剔除条件:在T日转化的数据中transformType!=1且type!=13的基础数据,custNum集合为{}", Arrays.toString(excludeList.toArray()));
+        log.warn("宜信推送决策,符合剔除条件:在T日转化的数据中transformType!=1且type!=13的基础数据,剔除的数据量级:{}", excludeList.size());
         if (CollectionUtils.isEmpty(excludeList)) {
             return;
         }
@@ -74,8 +74,8 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         Set<String> set = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
         List<String> resultFilter = marketingTransferSyncUserMapper.getExcludeRuleSecondYxTransferByApiCodetikv_(tcId, apiCode, set);
 
-        log.warn("宜信推送决策,符合剔除条件:在T日转化的数据中caseEffective=0的基础数据。单次处理耗时：{}ms,剔除的custNum集合为{}", System.currentTimeMillis() - start,
-                Arrays.toString(resultFilter.toArray()));
+        log.warn("宜信推送决策,符合剔除条件:在T日转化的数据中caseEffective=0的基础数据。单次处理耗时：{}ms,剔除的数据量级:{}", System.currentTimeMillis() - start,
+                resultFilter.size());
         if (CollectionUtils.isEmpty(resultFilter)) {
             return;
         }
@@ -162,7 +162,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         }
 
         long end = System.currentTimeMillis();
-        log.warn("宜信推送决策,剔除处理:custNum在30天内有type!=12的基础数据。单次处理耗时：{}ms,剔除的custNum集合为{}", end - start, Arrays.toString(custNumExcludeList.toArray()));
+        log.warn("宜信推送决策,剔除处理:custNum在30天内有type!=12的基础数据。单次处理耗时：{}ms,剔除的数据量级:{}", end - start, custNumExcludeList.size());
         if (CollectionUtils.isEmpty(custNumExcludeList)) {
             return;
         }
