@@ -218,7 +218,7 @@ spring:
     interceptors.enabled: true
   sql.source: prod
 cluster:
-  flag: k8s-prod-a
+  flag: k8s-prod-d
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置
