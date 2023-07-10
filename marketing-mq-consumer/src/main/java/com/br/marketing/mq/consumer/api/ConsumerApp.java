@@ -89,7 +89,9 @@ public class ConsumerApp {
      * @param channel 通道
      * @param message 消息体
      */
-    @RabbitListener(queues = MQConstants.MARKETING_CONFIG_DEFAULT_VALID_DATE, containerFactory = "fiveDataContainerFactory")
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_CONFIG_DEFAULT_VALID_DATE, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_CONFIG_DEFAULT_VALID_DATE)}, containerFactory = "fiveDataContainerFactory")
     public void consumerConfigDefaultValidDate(Channel channel, Message message) {
         MarketingSyncUser o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8)
                 , new TypeReference<MarketingSyncUser>() {
