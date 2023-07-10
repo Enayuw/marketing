@@ -69,7 +69,6 @@ public class CustomerTransferConvTypeConfigHandler extends AbstractExternalInter
             List<ConvTypeConfigConversionData> dataList = groupByConvDataList.get(convType);
             // 没有配置数据对应的convType，则不推送客服
             if (CollectionUtils.isEmpty(dataList)) {
-                log.error("携程转化数据推送客服，pushConvTypeConfig配置发生变化");
                 continue;
             }
 
