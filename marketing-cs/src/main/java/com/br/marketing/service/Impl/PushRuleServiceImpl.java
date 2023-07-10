@@ -1230,7 +1230,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     LocalDateTime localDateTime = now.plusDays(1);
                     ZonedDateTime zonedDateTime = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault());
                     String key = RedisKeyConstant.prefix.concat("valid:lock:") + key1;
-                    boolean lock = false;
+                    boolean lock;
                     try {
                         // 将主键保存到锁的key中
                         lock = redisChgService.lock(key, String.valueOf(value.getId())
