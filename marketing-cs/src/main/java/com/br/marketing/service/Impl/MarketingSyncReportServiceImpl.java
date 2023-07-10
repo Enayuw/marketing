@@ -86,6 +86,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         for (Customer customer : customers) {
             Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo());
             if(!action){
+                countDownLatch.countDown();
                 continue;
             }
             threadPool.submit(() -> {
