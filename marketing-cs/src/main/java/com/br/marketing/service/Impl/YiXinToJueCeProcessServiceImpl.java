@@ -200,7 +200,8 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         while (true) {
             initThreadPoolParam(yiXinToJueCeThread);
             log.warn("开始时间:{}",LocalDateTime.now());
-            List<MarketingTransferSyncUser> marketingTransferSyncUserList =  yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListA(tcId,apiCode,
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList =
+                    yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListA(tcId,apiCode,
                     requestDate,indexId);
             log.warn("结束时间:{}",LocalDateTime.now());
             if(marketingTransferSyncUserList.isEmpty()){

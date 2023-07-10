@@ -32,8 +32,10 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String tCid,String apiCode,  String requestDate,Long indexId
-                                                                             ) {
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String tCid,
+                                                                             String apiCode,
+                                                                             String requestDate,
+                                                                             Long indexId ) {
 
         // 获取前一天的日期yyyy-MM-dd
         return marketingTransferSyncUserMapper
@@ -47,7 +49,11 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     }
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListBtoCtoI(String tCid,String apiCode, String type, String requestDate,Long indexId) {
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListBtoCtoI(String tCid,
+                                                                                   String apiCode,
+                                                                                   String type,
+                                                                                   String requestDate,
+                                                                                   Long indexId) {
 
         return marketingTransferSyncUserMapper
                 .getYxTransferByApiCodeBtoCtoItikv_(
