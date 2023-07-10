@@ -31,20 +31,9 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
 
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCustNumA(String tCid, String apiCode,  Long indexId,String requestDate) {
-        return marketingTransferSyncUserMapper.getCustNumByIdA(tCid, apiCode,  requestDate, indexId);
-
-    }
-    @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCustNum(String tCid, String apiCode, String type, Long indexId,String requestDate) {
-        return marketingTransferSyncUserMapper.getCustNumById(tCid, apiCode, type, requestDate, indexId);
-
-    }
-    @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String tCid,String apiCode,  String requestDate,Long indexId
                                                                              ) {
 
-//        Set<String> custNumSet = getCustNumSet(marketingTransferSyncUserList);
         // 获取前一天的日期yyyy-MM-dd
         return marketingTransferSyncUserMapper
                 .getYxTransferByApiCodeAtikv_(
@@ -57,7 +46,6 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
 
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListBtoCtoI(String tCid,String apiCode, String type, String requestDate,Long indexId) {
-//        Set<String> custNumSet = getCustNumSet(marketingTransferSyncUserList);
         return marketingTransferSyncUserMapper
                 .getYxTransferByApiCodeBtoCtoItikv_(
                         tCid,
@@ -68,8 +56,6 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
                 );
     }
 
-    private static Set<String> getCustNumSet(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
-        return marketingTransferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-    }
+
 
 }

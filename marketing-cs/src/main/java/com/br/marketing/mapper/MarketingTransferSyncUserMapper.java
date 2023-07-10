@@ -335,15 +335,6 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                        @Param("requestData") String requestData,
                                                                        @Param("type") String type,
                                                                        @Param("indexId") Long indexId);
-    List<MarketingTransferSyncUser> getCustNumByIdA(@Param("tCid") String tCid,
-                                                   @Param("apiCode") String apiCode,
-                                                   @Param("requestData") String requestData,
-                                                   @Param("indexId") Long indexId);
-    List<MarketingTransferSyncUser> getCustNumById(@Param("tCid") String tCid,
-                                @Param("apiCode") String apiCode,
-                                @Param("type") String type,
-                                @Param("requestData") String requestData,
-                                @Param("indexId") Long indexId);
     List<MarketingTransferSyncUser> getYxTransferByApiCodeAtikv_(@Param("tCid") String tCid,
                                                                  @Param("apiCode") String apiCode,
                                                                  @Param("requestDate") String requestDate,

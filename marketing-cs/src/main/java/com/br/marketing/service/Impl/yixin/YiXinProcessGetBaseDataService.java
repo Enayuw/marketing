@@ -14,12 +14,6 @@ public interface YiXinProcessGetBaseDataService {
 
 
     /**
-     * 根据id 进行分页
-     * 每页查询2000数据
-     */
-    List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCustNumA(String tCid,String apiCode,Long indexId,String requestDate);
-    List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCustNum(String tCid,String apiCode, String type, Long indexId,String requestDate);
-    /**
      * 情况 a 基础数据获取接口
      * T-1 日的转化数据，并且 transformType=1 并且 liveType in (4,6) 并且 custNum 去重，去重后去 inserttime 最新的一条数据。
      * 并且根据custNum 过滤
