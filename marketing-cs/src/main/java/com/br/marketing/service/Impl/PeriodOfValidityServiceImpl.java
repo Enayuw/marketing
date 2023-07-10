@@ -302,8 +302,7 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
     public Result<Boolean> configValidDateDefault(MarketingSyncUser syncUser) {
         Result<Boolean> result = new Result<>();
         result.setDate(false);
-        String appletDate = StringUtils.isBlank(syncUser.getAppletDate())
-                ? LocalDate.now().toString() : syncUser.getAppletDate();
+        String appletDate = syncUser.getAppletDate();
         MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
         example.createCriteria()
                 .andApiCodeEqualTo(syncUser.getApiCode())
