@@ -1,19 +1,19 @@
 package com.br.marketing.service.Impl;
 
 import com.br.marketing.bo.PeriodOfValidityBO;
-import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.MarketingDataValidConfigDefaultMapper;
+import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.util.PeriodOfValidityHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -38,6 +38,12 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
 
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
+
+    @Resource
+    private MarketingDataValidConfigMapper marketingDataValidConfigMapper;
+
+    @Resource
+    private MarketingDataValidConfigDefaultMapper marketingDataValidConfigDefaultMapper;
 
 
     @Override
@@ -291,4 +297,66 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
                 ? (user.getCreateTime() == null
                 ? null : user.getCreateTime()) : user.getAppletTime());
     }
+
+    @Override
+    public Result<Boolean> configValidDateDefault(MarketingSyncUser syncUser) {
+        Result<Boolean> result = new Result<>();
+        result.setDate(false);
+        String appletDate = StringUtils.isBlank(syncUser.getAppletDate())
+                ? LocalDate.now().toString() : syncUser.getAppletDate();
+        MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
+        example.createCriteria()
+                .andApiCodeEqualTo(syncUser.getApiCode())
+                .andUserTypeEqualTo(syncUser.getUserType())
+                .andAppletDateEqualTo(appletDate)
+                .andIsDelEqualTo(1);
+        // 检查db中是否已经存在有效期记录
+        int count = marketingDataValidConfigMapper.countByExample(example);
+        if (count > 0) {
+            return result;
+        }
+        MarketingDataValidConfig newDataValidConfig = new MarketingDataValidConfig();
+        newDataValidConfig.setApiCode(syncUser.getApiCode());
+        newDataValidConfig.setUserType(syncUser.getUserType());
+        newDataValidConfig.setAppletDate(appletDate);
+        newDataValidConfig.setIsDel(1);
+        newDataValidConfig.setValidType(1);
+        newDataValidConfig.setCreateTime(new Date());
+        newDataValidConfig.setUpdateTime(newDataValidConfig.getCreateTime());
+        newDataValidConfig.setValidStartDate(appletDate);
+        MarketingDataValidConfigDefaultExample exampleConfig = new MarketingDataValidConfigDefaultExample();
+        exampleConfig.createCriteria()
+                .andApiCodeEqualTo(syncUser.getApiCode())
+                .andUserTypeEqualTo(syncUser.getUserType())
+                .andIsDelEqualTo(1);
+        exampleConfig.setOrderByClause("create_time DESC limit 1");
+        // 查询默认有效期生成配置表
+        List<MarketingDataValidConfigDefault> configDefaults = marketingDataValidConfigDefaultMapper.selectValidDaysByExample(
+                exampleConfig);
+        Integer days;
+        // 根据配置表计算默认的有效期范围,未在生成配置表中的默认为准永久有效，
+        if (configDefaults.size() < 1 || (days = configDefaults.get(0).getValidDaysDefault()) == null) {
+            // 设置准永久有效，该值可根据数据库中可接受的数据范围设定
+            newDataValidConfig.setValidEndDate("9999-12-31");
+        } else {
+            String newDateStr = LocalDate.parse(appletDate).plusDays(days).toString();
+            if (days > 0) {
+                newDataValidConfig.setValidEndDate(newDateStr);
+            } else {
+                // 为负数时当前日期为生效结束日期
+                newDataValidConfig.setValidEndDate(appletDate);
+                newDataValidConfig.setValidStartDate(newDateStr);
+            }
+        }
+        // 将默认有效期内容持久化到db
+        int i = marketingDataValidConfigMapper.insertSelective(newDataValidConfig);
+        if (i < 1) {
+            log.error("生成默认有效期入库失败！apiCode:{},userType:{},appletDate:{}"
+                    , syncUser.getApiCode(), syncUser.getUserType(), appletDate);
+            result.setDate(true);
+        }
+        return result;
+    }
+
+
 }
