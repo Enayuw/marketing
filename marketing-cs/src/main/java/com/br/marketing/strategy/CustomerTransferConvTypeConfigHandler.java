@@ -61,7 +61,9 @@ public class CustomerTransferConvTypeConfigHandler extends AbstractExternalInter
     public JSONObject call(List<ConversionData> transferList, ProcessHandlerContext context) {
         // 将转化数据根据convType分组
         Map<String, List<ConvTypeConfigConversionData>> groupByConvDataList =
-                transferList.parallelStream().filter(ConvTypeConfigConversionData.class::isInstance).map(ConvTypeConfigConversionData.class::cast).collect(Collectors.groupingBy(t -> t.getConvType()));
+                transferList.parallelStream().filter(ConvTypeConfigConversionData.class::isInstance)
+                        .map(ConvTypeConfigConversionData.class::cast)
+                        .collect(Collectors.groupingBy(t -> t.getConvType()));
 
         Set<Map.Entry<String, Object>> entries = marketingCommonConfig.getPushConvTypeConfig().get(context.getApiCode()).entrySet();
         for (Map.Entry<String, Object> entry : entries) {
@@ -73,7 +75,7 @@ public class CustomerTransferConvTypeConfigHandler extends AbstractExternalInter
             }
 
             // 推送客服之前移除convType
-            List<ConversionData> pushDataList = dataList.stream().map(data -> {
+            List<ConversionData> pushDataList = dataList.stream().map((ConversionData data) -> {
                 ConversionData pushData = new ConversionData();
                 BeanUtils.copyProperties(data, pushData);
                 return pushData;
@@ -91,7 +93,7 @@ public class CustomerTransferConvTypeConfigHandler extends AbstractExternalInter
         // 每500条数据一个批次
         int pageSize = 500;
         int totalCount = pushDataList.size();
-        int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
+        int pageCount = totalCount % pageSize == 0 ? (totalCount / pageSize) : totalCount / pageSize + 1;
         String last = context.getLast();
         String lastRep;
         for (int i = 1; i <= pageCount; i++) {
