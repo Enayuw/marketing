@@ -31,7 +31,6 @@ import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.security.SecureRandom;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -150,12 +149,9 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             log.error("{}_{}未配置场景,配置参数:{}", customerAction(), apiCode, parameter);
             return sum;
         }
-        Map<String, SyncUserValidityPeriodBO> validityPeriodUserTypeMap = null;
-        try {
-            validityPeriodUserTypeMap = transferDataValidityPeriodService.getValidityPeriodUserTypeBatchFirstVersion(
-                    list, apiCode, new Date());
-        } catch (ParseException ignored) {
-        }
+        Map<String, SyncUserValidityPeriodBO> validityPeriodUserTypeMap =
+                transferDataValidityPeriodService.getValidityPeriodUserTypeBatchFirstVersion(
+                        list, apiCode, new Date());
         List<PushMarketingUserDetailByRuleDTO> pushMarketingUserDetailByRuleDTOList = new ArrayList<>();
         for (MarketingTransferSyncUser transferSyncUser : list) {
             String reserveField1 = transferSyncUser.getReserveField1();
