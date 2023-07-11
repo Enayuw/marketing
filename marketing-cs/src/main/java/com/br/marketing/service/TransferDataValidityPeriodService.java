@@ -141,7 +141,7 @@ public interface TransferDataValidityPeriodService {
      * @dateTime 2023-07-11 10:07
      */
     Map<String, SyncUserValidityPeriodBO> getValidityPeriodUserTypeBatchFirstVersion(
-            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj) throws ParseException;
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj);
 
 
 }
