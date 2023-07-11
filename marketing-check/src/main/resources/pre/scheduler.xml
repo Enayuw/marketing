@@ -660,7 +660,7 @@
     />
     <job:simple id="YiXinTransferToJueCeJob"
                 class="com.br.marketing.check.job.yixin.YiXinTransferToJueCeJob"
-                cron="0 0/10 9-23 * * ? *"
+                cron="0 0/10 8-23 * * ? *"
                 description="宜信推决策定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
