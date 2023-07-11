@@ -194,6 +194,7 @@ public class DiDiClient {
      */
     public Result<DiDiJMassResponseTO> pushJMASS(DiDiReqVO smsReqVO) {
         try {
+            jmassSUrl = jmassSUrl.replace("mediaName",smsReqVO.getMediaName());
             // 获取是否记录日志
             HashMap<String, List<Boolean>> isLog = getIsLog();
             List<Boolean> islogs = isLog.get(PUSH_JMASS);

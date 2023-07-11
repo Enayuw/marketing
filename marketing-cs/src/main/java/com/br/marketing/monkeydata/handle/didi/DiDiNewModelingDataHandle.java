@@ -2,7 +2,6 @@ package com.br.marketing.monkeydata.handle.didi;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.didi.DiDiClient;
@@ -17,7 +16,10 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.MarketingDataValidConfig;
+import com.br.marketing.entity.MarketingDataValidConfigExample;
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.RetryMainLog;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.RetryMainLogMapper;
@@ -28,7 +30,7 @@ import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
@@ -39,13 +41,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * @author zhen.li1
- * @date 2023/04/26
- * @desc: 滴滴联合建模数据落转化表处理器
+ * @author lizhen
+ * @Description 滴滴联合建模新接口Job
+ * @Date 2023/07/11 20:15
  */
-@Service
+@Component
 @Slf4j
-public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser, MarketingSyncUser, MarketingSyncCondition> {
+public class DiDiNewModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser, MarketingSyncUser, MarketingSyncCondition> {
 
     @Autowired
     private MarketingDataValidConfigMapper marketingDataValidConfigMapper;
@@ -71,8 +73,8 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
     @Override
     public Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> getInputData(MarketingSyncCondition inputData) {
         //暂停开关
-        if (Boolean.FALSE.equals(marketingCommonConfig.getDidiModelingDataSwitch())) {
-            log.warn("滴滴联合建模任务暂停");
+        if (Boolean.FALSE.equals(marketingCommonConfig.getDidiModelingNewDataSwitch())) {
+            log.warn("滴滴联合建模新接口任务暂停");
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
         List<String> executeDateList = inputData.getExecuteDateList();
@@ -106,15 +108,15 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
     public Result customizedAction(MarketingSyncCondition inputData) {
         Result res = new Result();
         String date = LocalDate.now().minusDays(1).toString();
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(100, 100, 100);
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(50, 50, 50);
         List<MarketingDataValidConfig> configList = findConfigByBetweenDate(inputData.getApiCode(), date);
         List<String> appletDateList = configList.stream().map(marketingDataValidConfig -> marketingDataValidConfig.getAppletDate()).collect(Collectors.toList());
         inputData.setExecuteDateList(appletDateList);
         Set<String> CellSets = new HashSet<>();
         for (; ; ) {
-            if (StringUtils.isNotEmpty(marketingCommonConfig.getDidiModelingThreadNum())) {
-                pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getDidiModelingThreadNum()));
-                pool.setMaximumPoolSize(Integer.valueOf(marketingCommonConfig.getDidiModelingThreadNum()));
+            if (StringUtils.isNotEmpty(marketingCommonConfig.getDidiModelingNewThreadNum())) {
+                pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getDidiModelingNewThreadNum()));
+                pool.setMaximumPoolSize(Integer.valueOf(marketingCommonConfig.getDidiModelingNewThreadNum()));
                 log.warn("滴滴联合建模接口线程调整，corePoolSize={},maxPoolSize={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
             }
             Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> inputRes = getInputData(inputData);
@@ -185,7 +187,7 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
             String decodeCell = BrCipherMaker.getInstance().decode(t.getCell());
             DiDiReqVO diDiReqVO = new DiDiReqVO();
             diDiReqVO.setCustMobileMd5(Md5OfZanUtils.getMD5(decodeCell));
-            diDiReqVO.setMediaName(marketingCommonConfig.getDidiModelingMediaNameMap().get("oldMediaName"));
+            diDiReqVO.setMediaName(marketingCommonConfig.getDidiModelingMediaNameMap().get("newMediaName"));
             Result<DiDiJMassResponseTO> result = diDiClient.pushJMASS(diDiReqVO);
             //需要重试加入重试表
             if (result.getCode().equals(ResultCode.INTERNAL_SERVER_ERROR.getValue())) {
