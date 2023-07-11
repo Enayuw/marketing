@@ -150,12 +150,10 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             log.error("{}_{}未配置场景,配置参数:{}", customerAction(), apiCode, parameter);
             return sum;
         }
-        List<PushMarketingUserDetailDTO> dtoList = new ArrayList<>();
-        List<Long> ids = new ArrayList<>();
-        Map<String, Map<String, SyncUserValidityPeriodBO>> validityPeriodUserTypeMap = null;
+        Map<String, SyncUserValidityPeriodBO> validityPeriodUserTypeMap = null;
         try {
-            validityPeriodUserTypeMap = transferDataValidityPeriodService.getSyncUserValidityPeriodUserTypeMap(
-                    list, apiCode, new Date(),null);
+            validityPeriodUserTypeMap = transferDataValidityPeriodService.getValidityPeriodUserTypeBatchFirstVersion(
+                    list, apiCode, new Date());
         } catch (ParseException ignored) {
         }
         List<PushMarketingUserDetailByRuleDTO> pushMarketingUserDetailByRuleDTOList = new ArrayList<>();
@@ -187,12 +185,8 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
                     continue;
                 }
                 // 有效期判断
-                Map<String, SyncUserValidityPeriodBO> boMap = validityPeriodUserTypeMap.get(transferSyncUser.getCustNum());
+                SyncUserValidityPeriodBO boMap = validityPeriodUserTypeMap.get(transferSyncUser.getCustNum() + userType);
                 if (boMap == null) {
-                    continue;
-                }
-                SyncUserValidityPeriodBO bo = boMap.get(userType);
-                if (bo == null) {
                     continue;
                 }
                 cell = jsonObject.getString("initCustNum");
