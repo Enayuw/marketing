@@ -271,10 +271,25 @@
         <foreach collection="cells" item="item" open="(" close=")" separator=",">
             #{item}
         </foreach>
-        and date_format(now(),"%Y-%m-%d") =  date_format(create_time,"%Y-%m-%d")
+        and date_format(now(),"%Y-%m-%d") = date_format(create_time,"%Y-%m-%d")
 
 
-</select>
+    </select>
 
+    <select id="selectCustNumByExampletikv_" resultType="java.lang.String"
+            parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample">
+        select
+        <if test="example.distinct">
+            distinct
+        </if>
+        cust_num
+        from b_phone_sale_extend_info
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause_Custom"/>
+        </if>
+        <if test="example.orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
 
 </mapper>

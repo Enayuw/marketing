@@ -723,6 +723,36 @@ public class MarketingCommonConfig {
     private HashMap<String, List<String>> customerBlackListApiCodes;
 
     /**
+     * 宜信推决策 查询转化数据的 apiCode
+     */
+    private String yiXinGetTransferToJueCeApiCode;
+
+    /**
+     * 宜信推决策  推决策数据集的 apiCode
+     */
+    private String yiXinTransferToJueCeApiCode;
+
+    /**
+     * 宜信实时转化数据推决策策略编号设置
+     */
+    private Map<String, String> yiXinToJueCeStrategyMap;
+
+    /**
+     * 宜信推决策线程池线程数量
+     */
+    private Integer yiXinToJueCeTpNum;
+
+    /**
+     * 宜信推决策，剔除规则5，外层线程池按天查询线程数
+     */
+    private Integer yiXinExcludeRuleFifthThreadNum;
+
+    /**
+     * 宜信查询基础数据 limit 量级
+     */
+    private Integer yiXinSearchPageSize;
+
+    /**
      * 转化数据的apiCode、convType、推送的apiCode映射关系
      * pushConvTypeConfig={"3710058":{"106":["3710058","3710078"],"107":["3710058"]},"7412009":{"106":["7412009","7410951"],"107":["7412009"]}}
      */

@@ -4,6 +4,7 @@ package com.br.marketing.mapper;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.vo.TransferOfCnIdVO;
 import com.br.marketing.vo.TransferOfRdRFVO;
+import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
@@ -329,5 +330,36 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     List<MarketingTransferSyncUser> getTransferByCustNumOrderDatatikv_(@Param("tCid") String tcId,@Param("custNums") List<String> custNums);
 
+    List<MarketingTransferSyncUser> getYxTransferByApiCodeBtoCtoItikv_(@Param("tCid") String tcId,
+                                                                       @Param("apiCode") String apiCode,
+                                                                       @Param("requestData") String requestData,
+                                                                       @Param("type") String type,
+                                                                       @Param("indexId") Long indexId,
+                                                                       @Param("pageSize") Integer pageSize);
+    List<MarketingTransferSyncUser> getYxTransferByApiCodeAtikv_(@Param("tCid") String tCid,
+                                                                 @Param("apiCode") String apiCode,
+                                                                 @Param("requestDate") String requestDate,
+                                                                 @Param("indexId") Long indexId,
+                                                                 @Param("pageSize") Integer pageSize);
+
+    List<String> getExcludeRuleFirstYxTransferByApiCodetikv_(@Param("cid") String cid,
+                                                             @Param("apiCode") String apiCode,
+                                                             @Param("today") String today,
+                                                             @Param("custNums") List<String> custNums);
+
+    List<String> getExcludeRuleSecondYxTransferByApiCodetikv_(@Param("cid") String cid, @Param("apiCode") String apiCode,
+                                                              @Param("custNums") Set<String> custNums);
+
+    List<String> getRuleFifthYxTransferByApiCodetikv_(@Param("cid") String cid,
+                                                      @Param("apiCode") String apiCode,
+                                                      @Param("queryDate") String queryDate,
+                                                      @Param("custNums") List<String> custNums);
+
+    Long getYiXinMinAtoBtoCtoI(@Param("cid") String cid,
+                               @Param("apiCode") String apiCode,
+                               @Param("requestData") String requestData,
+                               @Param("type") String type);
+
+    Integer getCountByRequestId(@Param("cid") String cId, @Param("requestId") String requestId );
     MarketingTransferSyncUser getXcTransferNoAdData(@Param("tCid") String tcId,@Param("custNum") String custNum);
 }
