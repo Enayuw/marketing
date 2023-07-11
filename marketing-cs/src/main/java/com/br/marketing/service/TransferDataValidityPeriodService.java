@@ -127,4 +127,21 @@ public interface TransferDataValidityPeriodService {
     Result<Date> getValidityBeginOfTn(String apiCode, Date endDate);
 
 
+    /**
+     * 有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
+     *
+     * @param transferSyncUserList 转化数据集合
+     * @param apiCode              客户编号
+     * @param requestDateObj       接收日期，为null时使用转化数据请求日期，
+     *                             支持数据格式 String(yyyy-MM-dd)、Date、LocalDate、LocalDateTime、Long、Calendar,
+     *                             非以上格式时默认当前日期
+     * @return Map key：custNum+userType value：SyncUserValidityPeriodBO
+     * {@linkplain SyncUserValidityPeriodBO MarketingSyncUser PeriodOfValidityBO.Builder}
+     * @author Guo Zeqiang
+     * @dateTime 2023-07-11 10:07
+     */
+    Map<String, SyncUserValidityPeriodBO> getValidityPeriodUserTypeBatchFirstVersion(
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj) throws ParseException;
+
+
 }

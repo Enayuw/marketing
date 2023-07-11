@@ -559,10 +559,10 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     private List<MarketingSyncUser> ttSyncUserLastByInAppletDateAndUserTypeList(
             String apiCode, List<MarketingDataValidConfig> configList
             , List<MarketingTransferSyncUser> transferSyncUserList, final Date requestDate) {
-        final Set<String> userTypeSet = transferSyncUserList.parallelStream().map(
+        final Set<String> userTypeSet = transferSyncUserList.stream().map(
                 MarketingTransferSyncUser::getUserType).collect(Collectors.toSet());
         // 获取包含请求日期的T,T （范围）模式的配置记录
-        List<MarketingDataValidConfig> ttRequestDateDataValidConfigList = configList.parallelStream()
+        List<MarketingDataValidConfig> ttRequestDateDataValidConfigList = configList.stream()
                 .filter(config -> userTypeSet.contains(config.getUserType())
                         && compareRequestDate(config, requestDate)).collect(Collectors.toList());
         // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
@@ -844,6 +844,53 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         return marketingSyncUser;
     }
 
-
-
+    @Override
+    public Map<String, SyncUserValidityPeriodBO> getValidityPeriodUserTypeBatchFirstVersion(
+            List<MarketingTransferSyncUser> transferSyncUserList, final String apiCode, Object requestDateObj)
+            throws ParseException {
+        if (CollectionUtils.isEmpty(transferSyncUserList)) {
+            return Collections.emptyMap();
+        }
+        // apicode+userType有效期配置
+        final List<MarketingDataValidConfig> configList = marketingDataValidConfigMapper.findListByApiCodeAndUserType(
+                apiCode);
+        // 未配置任何有效期
+        if (CollectionUtils.isEmpty(configList)) {
+            return Collections.emptyMap();
+        }
+        Map<String, SyncUserValidityPeriodBO> boMap = new HashMap<>(2048);
+        // 获取转化数据的请求日期
+        getTransferDataRequestDate(transferSyncUserList, requestDateObj).forEach((k, v) -> {
+            // 配置了T,T （范围）模式的情况
+            final Set<String> userTypeSet = transferSyncUserList.stream().map(
+                    MarketingTransferSyncUser::getUserType).collect(Collectors.toSet());
+            // 获取包含请求日期的T,T （范围）模式的配置记录
+            final List<MarketingDataValidConfig> ttRequestDateDataValidConfigList = configList.stream()
+                    .filter(config -> userTypeSet.contains(config.getUserType())
+                            && compareRequestDate(config, k)).collect(Collectors.toList());
+            // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
+            if (ttRequestDateDataValidConfigList.size() > 0) {
+                List<MarketingSyncUser> ttSyncUserLastByInAppletDateList
+                        = marketingSyncUserMapper.getSyncUserLastByInAppletDateUserTypeList(apiCode
+                        , ttRequestDateDataValidConfigList, transferSyncUserList);
+                boMap.putAll(ttSyncUserLastByInAppletDateList.stream().collect(Collectors.toConcurrentMap(
+                        syncUser -> syncUser.getCustNum() + syncUser.getUserType()
+                        , user -> {
+                            // 组装原始数据有效期
+                            SyncUserValidityPeriodBO validityPeriodBO = ttRequestDateDataValidConfigList.stream()
+                                    .map(config -> {
+                                        SyncUserValidityPeriodBO bo = new SyncUserValidityPeriodBO();
+                                        if (user.getUserType().equals(config.getUserType())
+                                                && user.getAppletDate().equals(config.getAppletDate())) {
+                                            packageSyncUserValidityPeriodBO(bo, config);
+                                        }
+                                        return bo;
+                                    }).collect(Collectors.toList()).get(0);
+                            validityPeriodBO.setSyncUser(user);
+                            return validityPeriodBO;
+                        }, this::latestSyncUserValidityPeriodBO)));
+            }
+        });
+        return boMap;
+    }
 }
