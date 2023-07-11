@@ -57,6 +57,14 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     public MarketingSyncUser getNewValidityPeriodData(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate) {
         return getMarketingSyncUser(marketingTransferSyncUser, requestDate);
     }
+    @Override
+    public MarketingSyncUser getNewValidityPeriodDataFirstVersion(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate) {
+        return getMarketingSyncUserFistVersion(marketingTransferSyncUser, requestDate);
+    }
+    @Override
+    public boolean isValidityPeriodFirstVersion(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate) {
+        return getMarketingSyncUserFistVersion(marketingTransferSyncUser, requestDate) != null;
+    }
 
     @Override
     public boolean isValidityPeriod(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate) {
@@ -801,4 +809,41 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         }
         return marketingSyncUser;
     }
+
+    /**
+     * 新版有效期
+     */
+    private MarketingSyncUser getMarketingSyncUserFistVersion(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate) {
+        MarketingSyncUser marketingSyncUser = null;
+        // 1. 查询配置表
+
+        List<MarketingDataValidConfig> marketingDataValidConfigs = marketingDataValidConfigMapper.selectInfoFirstVersion(marketingTransferSyncUser.getApiCode(), marketingTransferSyncUser.getUserType());
+        // 获取需要判断的指定日期
+        requestDate = requestDate == null ? marketingTransferSyncUser.getRequestData() : requestDate;
+        LocalDate parse = LocalDate.parse(requestDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
+
+        // 2. 获取T,N 模式下 有效期范围的规则集合，T，N
+        List<MarketingDataValidConfig> collectRequestDateTN = new ArrayList<>();
+        marketingDataValidConfigs.forEach(mctn -> {
+            String validStartDate = mctn.getValidStartDate();
+            String validEndDate = mctn.getValidEndDate();
+            LocalDate startDate = LocalDate.parse(validStartDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
+            LocalDate endDate = LocalDate.parse(validEndDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
+            if ((startDate.isBefore(parse) || startDate.isEqual(parse))
+                    && (parse.isBefore(endDate) || parse.isEqual(endDate))) {
+                collectRequestDateTN.add(mctn);
+            }
+        });
+
+        // 如果T,N 模式不为空则查询最新一条数据
+        if (collectRequestDateTN.size() > 0) {
+
+            marketingSyncUser = marketingSyncUserMap.selectInAppletDate(collectRequestDateTN, marketingTransferSyncUser);
+        }
+
+        return marketingSyncUser;
+    }
+
+
+
 }
