@@ -751,5 +751,11 @@ public class MarketingCommonConfig {
      * 宜信查询基础数据 limit 量级
      */
     private Integer yiXinSearchPageSize;
+
+    /**
+     * 转化数据的apiCode、convType、推送的apiCode映射关系
+     * pushConvTypeConfig={"3710058":{"106":["3710058","3710078"],"107":["3710058"]},"7412009":{"106":["7412009","7410951"],"107":["7412009"]}}
+     */
+    private HashMap<String, JSONObject> pushConvTypeConfig;
 }
 
