@@ -852,7 +852,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         if (CollectionUtils.isEmpty(transferSyncUserList)) {
             return Collections.emptyMap();
         }
-        // apicode+userType有效期配置
+        // apicode有效期配置
         final List<MarketingDataValidConfig> configList = findConfigAllByApiCodeList(apiCode);
         // 未配置任何有效期
         if (CollectionUtils.isEmpty(configList)) {
