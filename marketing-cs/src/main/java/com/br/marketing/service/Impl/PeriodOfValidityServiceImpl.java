@@ -341,13 +341,7 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
             newDataValidConfig.setValidEndDate("9999-12-31");
         } else {
             String newDateStr = LocalDate.parse(appletDate).plusDays(days).toString();
-            if (days > 0) {
-                newDataValidConfig.setValidEndDate(newDateStr);
-            } else {
-                // 为负数时当前日期为生效结束日期
-                newDataValidConfig.setValidEndDate(appletDate);
-                newDataValidConfig.setValidStartDate(newDateStr);
-            }
+            newDataValidConfig.setValidEndDate(newDateStr);
         }
         // 将默认有效期内容持久化到db
         int i = marketingDataValidConfigMapper.insertSelective(newDataValidConfig);
