@@ -80,8 +80,7 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
         if (now.after(executeTime)) {
             String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
-//            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(1);
-            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd);
+            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(1);
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
             String fileName = String.format("didi_zhuanhua_%s.txt", yyyyMMdd);
             if (CollectionUtils.isEmpty(transferFileTasks)) {
@@ -123,12 +122,76 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
                         new FileOutputStream(file), "UTF-8"));) {
             fw.append("custNum,data,extend");
             fw.append("\r\n");
-            writeDiDiTransferToFile(fw, apiCode, transferFileTask);
+            newWriteDiDiTransferToFile(fw, apiCode, transferFileTask);
         } catch (Exception ex) {
             log.error(ex.getMessage());
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    private void newWriteDiDiTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException {
+        Long start = System.currentTimeMillis();
+        String tcId = tableCreateService.getTcId(apiCode);
+        LocalDate date = LocalDate.now();
+        String today = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        int page = 0;
+        int offset = 2000;
+        int totalSize = 0;
+
+        Boolean mark = Boolean.TRUE;
+        while (mark) {
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getTransferDataByRequestDataAndApiCode(tcId, apiCode, today, page * offset);
+            if (CollectionUtils.isEmpty(marketingTransferSyncUserList)) {
+                mark = Boolean.FALSE;
+                continue;
+            }
+            page++;
+
+            for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUserList) {
+                //可配置的剔除data
+                String reservedField = marketingCommonConfig.getResverfiled1Data();
+                String data = "" , extend = "";
+
+                if(StringUtils.isNotBlank(marketingTransferSyncUser.getReserveField1())) {
+                    JSONObject jsonObject = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
+                    data = jsonObject.getString("data");
+                    if(StringUtils.isEmpty(data)){
+                        String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_DIDI.getCode(), "滴滴联合建模接口返回data为空，custNum="+marketingTransferSyncUser.getCustNum());
+                        log.warn(msg);
+                    }
+                    if (reservedField.isEmpty()){
+                        if ("00000000".equals(data) || "0".equals(data) || reservedField.equals(data)) {
+                            continue;
+                        }
+                    } else {
+                        if ("00000000".equals(data) || "0".equals(data)) {
+                            continue;
+                        }
+                    }
+                    extend = jsonObject.getString("extend");
+                }
+
+                StringBuilder sb = new StringBuilder();
+                sb.append(marketingTransferSyncUser.getCustNum().concat(","));
+                sb.append((StringUtils.isNotEmpty(data) ? data : "").concat(","));
+                sb.append((StringUtils.isNotEmpty(extend) ? extend : ""));
+                sb.append("\r\n");
+                fw.append(sb.toString());
+                totalSize++;
+            }
+        }
+
+        TransferFileTask task = new TransferFileTask();
+        task.setId(transferFileTask.getId());
+        task.setStatus(2);
+        task.setFileName(transferFileTask.getFileName());
+        task.setFilePath(transferFileTask.getFilePath());
+        task.setTaskNumber(totalSize);
+        task.setUpdateTime(new Date());
+        transferFileTaskMapper.updateByPrimaryKeySelective(task);
+        log.warn("滴滴转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
+
     }
 
     private void writeDiDiTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException {
@@ -161,9 +224,7 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
                         Collectors.groupingBy(MarketingTransferSyncUser::getCustNum));
                 for (MarketingSyncUser marketingSyncUser : marketingSyncUsers) {
                     String custNum = marketingSyncUser.getCustNum();
-                    //可配置的剔除data
-                    String reservedField = StringUtils.isBlank(marketingCommonConfig.getResverfiled1Data()) ? "0" : marketingCommonConfig.getResverfiled1Data();
-                    String data = "" , extend = "";
+                    String data = "", extend = "";
                     if (transferDataMap.containsKey(marketingSyncUser.getCustNum())) {
                         MarketingTransferSyncUser transferSyncUser = transferDataMap.get(marketingSyncUser.getCustNum()).stream().filter(marketingTransferSyncUser -> marketingTransferSyncUser.getCustNum().equals(custNum)).findAny().orElse(null);
                         if(StringUtils.isNotBlank(transferSyncUser.getReserveField1())) {
@@ -173,7 +234,7 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
                                 String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_DIDI.getCode(), "滴滴联合建模接口返回data为空，custNum="+custNum);
                                 log.warn(msg);
                             }
-                            if ("00000000".equals(data) || "0".equals(data) || reservedField.equals(data)) {
+                            if ("00000".equals(data) || "0".equals(data)) {
                                 continue;
                             }
                             extend = jsonObject.getString("extend");
