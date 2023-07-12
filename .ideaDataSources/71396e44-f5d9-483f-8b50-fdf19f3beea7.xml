@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataSource name="Marketing">
+  <database-model serializer="dbm" dbms="TIDB" family-id="TIDB" format-version="4.48">
+    <root id="1">
+      <Dbms>TIDB</Dbms>
+      <DefaultCasing>mixed/mixed</DefaultCasing>
+      <DefaultEngine>InnoDB</DefaultEngine>
+      <DefaultTmpEngine>InnoDB</DefaultTmpEngine>
+      <ServerVersion>6.5.3</ServerVersion>
+    </root>
+    <collation id="2" parent="1" name="ascii_bin">
+      <Charset>ascii</Charset>
+      <DefaultForCharset>1</DefaultForCharset>
+    </collation>
+    <collation id="3" parent="1" name="binary">
+      <Charset>binary</Charset>
+      <DefaultForCharset>1</DefaultForCharset>
+    </collation>
+    <collation id="4" parent="1" name="gbk_bin">
+      <Charset>gbk</Charset>
+      <DefaultForCharset>1</DefaultForCharset>
+    </collation>
+    <collation id="5" parent="1" name="latin1_bin">
+      <Charset>latin1</Charset>
+      <DefaultForCharset>1</DefaultForCharset>
+    </collation>
+    <collation id="6" parent="1" name="utf8_bin">
+      <Charset>utf8</Charset>
+      <DefaultForCharset>1</DefaultForCharset>
+    </collation>
+    <collation id="7" parent="1" name="utf8mb4_bin">
+      <Charset>utf8mb4</Charset>
+      <DefaultForCharset>1</DefaultForCharset>
+    </collation>
+    <schema id="8" parent="1" name="INFORMATION_SCHEMA">
+      <CollationName>utf8mb4_bin</CollationName>
+    </schema>
+    <schema id="9" parent="1" name="marketing">
+      <Current>1</Current>
+      <CollationName>utf8mb4_bin</CollationName>
+    </schema>
+    <user id="10" parent="1" name="u_pd_marketing">
+      <Host>172.%.%.%</Host>
+    </user>
+    <user id="11" parent="1" name="u_pd_marketing">
+      <Host>172.0.3.165</Host>
+    </user>
+  </database-model>
+</dataSource>
