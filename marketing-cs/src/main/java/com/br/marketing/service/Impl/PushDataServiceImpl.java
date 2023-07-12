@@ -127,9 +127,12 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Resource
     private XieChengSmsCollidingDataLogMapper xieChengSmsCollidingDataLogMapper;
+
+//    XieChengSmsCollidingDataLogVt
     @Resource
     @Qualifier("xieChengThreadPool")
     ThreadPoolExecutor xieChengThreadPool;
+
 
 
     @Resource
@@ -1438,24 +1441,26 @@ public class PushDataServiceImpl implements PushDataService {
 
             String apiCode = xieChengData.getApiCode();
 
-            HashMap<String, Integer> xieChengCallPushCondition = marketingCommonConfig.getXieChengCallPushCondition();
+            HashMap<String, JSONObject> xieChengCallPushCondition = marketingCommonConfig.getXieChengCallPushCondition();
 
             if(xieChengCallPushCondition == null){
                 xieChengCallPushCondition=new HashMap<>();
-                xieChengCallPushCondition.put("3710058",1);
-                xieChengCallPushCondition.put("3710078",1);
-                xieChengCallPushCondition.put("3710090",2);
-                xieChengCallPushCondition.put("3710091",2);
+                xieChengCallPushCondition.put("3710058",getJo("1",Arrays.asList("3710058","3710078")));
+                xieChengCallPushCondition.put("3710078",getJo("1",Arrays.asList("3710058","3710078")));
+                xieChengCallPushCondition.put("3710090",getJo("2",Arrays.asList("3710058","3710078")));
+                xieChengCallPushCondition.put("3710091",getJo("2",Arrays.asList("3710058","3710078")));
             }
             XieChengData resultData = new XieChengData();
             resultData.setId(xieChengData.getId());
-            Integer condition = xieChengCallPushCondition.get(apiCode);
+            JSONObject condition = xieChengCallPushCondition.get(apiCode);
             if(condition==null){
                 resultData.setStatus(2);
                 resultData.setDataMessage("该apiCode未配置规则数据");
                 xieChengDataMapper.updateByPrimaryKeySelective(resultData);
                 return;
             }
+            String conditionKey = condition.getString("condition");
+            JSONArray soleCellApiCodes = condition.getJSONArray("soleCellApiCodes");
 
             String tcId = tableCreateService.getTcId(apiCode);
             // 字段修改兼容
@@ -1463,7 +1468,7 @@ public class PushDataServiceImpl implements PushDataService {
             xieChengData.setSha256Tel(sha256Tel);
             // 获取redis 锁
             String key = RedisKeyConstant.pushXieChengLock.concat(":")
-                    .concat(apiCode)
+                    .concat(conditionKey)
                     .concat(sha256Tel);
             String value = UUID.randomUUID().toString();
             redisChgService.lock(key, value);
@@ -1479,23 +1484,40 @@ public class PushDataServiceImpl implements PushDataService {
             }
 
             //查询转化isBlack或者convType=106
-            MarketingTransferSyncUser xcTransferNoAdData = marketingTransferSyncUserMapper.getXcTransferNoAdData(tcId, sha256Tel);
-            if (xcTransferNoAdData != null) {
-                JSONObject jsonObject = JSON.parseObject(xcTransferNoAdData.getReserveField1());
-                if ("1".equals(jsonObject.getString("isBlack"))) {
-                    resultData.setDataMessage("命中黑名单");
+            MarketingTransferSyncUser xcTransferNoAdData = null;
+            if("1".equals(conditionKey)){
+                xcTransferNoAdData = marketingTransferSyncUserMapper.getXcTransferNoAdData(tcId, sha256Tel);
+                if (xcTransferNoAdData != null) {
+                    JSONObject jsonObject = JSON.parseObject(xcTransferNoAdData.getReserveField1());
+                    if ("1".equals(jsonObject.getString("isBlack"))) {
+                        resultData.setDataMessage("命中黑名单");
+                    }
+                    if ("106".equals(jsonObject.getString("convType"))) {
+                        resultData.setDataMessage("命中convType106");
+                    }
+                    resultData.setStatus(2);
+                    xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                    redisChgService.unlock(key, value);
+                    return;
                 }
-                if ("106".equals(jsonObject.getString("convType"))) {
-                    resultData.setDataMessage("命中convType106");
+            }else{
+                xcTransferNoAdData = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyBlack(tcId, sha256Tel);
+                if (xcTransferNoAdData != null) {
+                    JSONObject jsonObject = JSON.parseObject(xcTransferNoAdData.getReserveField1());
+                    if ("1".equals(jsonObject.getString("isBlack"))) {
+                        resultData.setDataMessage("命中黑名单");
+                    }
+                    resultData.setStatus(2);
+                    xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                    redisChgService.unlock(key, value);
+                    return;
                 }
-                resultData.setStatus(2);
-                xieChengDataMapper.updateByPrimaryKeySelective(resultData);
-                redisChgService.unlock(key, value);
-                return;
+
             }
 
+
             // 查询到当前电话数据是否推送过。
-            List<XieChengData> xieChengRepeatDatalist = xieChengDataMapper.getByCellToday(sha256Tel);
+            List<XieChengData> xieChengRepeatDatalist = xieChengDataMapper.getByCellToday(sha256Tel,soleCellApiCodes);
             if (xieChengRepeatDatalist.isEmpty()) {
                 // 组装 clickId 13位时间戳+ 随机5位数字字母 + sha256tel
                 String clickId = System.currentTimeMillis() + getCode(5) + sha256Tel;
@@ -1522,7 +1544,12 @@ public class PushDataServiceImpl implements PushDataService {
         }
     }
 
-
+    private JSONObject getJo(String condition,List<String> soleCellApiCodes){
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("condition",condition);
+        jsonObject.put("soleCellApiCodes",soleCellApiCodes);
+        return jsonObject;
+    }
 
     /**
      * 随机生成由数字、字母组成的N位验证码
