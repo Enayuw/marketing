@@ -216,7 +216,7 @@ public class DiDiNewModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUs
             retryMainLog.setRetryType(1);
             retryMainLog.setRetryParam(JSON.toJSONString(retryDataList));
             retryMainLog.setRetryParamType(List.class.getName());
-            retryMainLog.setRetryService(DiDiModelingDataHandle.class.getName());
+            retryMainLog.setRetryService(DiDiNewModelingDataHandle.class.getName());
             retryMainLog.setServiceType(2);
             retryMainLog.setRetryNum(0);
             retryMainLog.setRetryStatus(1);

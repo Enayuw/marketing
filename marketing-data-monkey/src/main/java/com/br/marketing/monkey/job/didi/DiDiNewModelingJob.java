@@ -6,7 +6,7 @@ import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.entity.TransferActionFrontExample;
 import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.monkeydata.entity.commonobj.MarketingSyncCondition;
-import com.br.marketing.monkeydata.handle.didi.DiDiModelingDataHandle;
+import com.br.marketing.monkeydata.handle.didi.DiDiNewModelingDataHandle;
 import com.br.marketing.service.Impl.YiXinTransferServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -40,7 +40,7 @@ public class DiDiNewModelingJob extends AbstractSimpleElasticJob {
     @Resource
     private YiXinTransferServiceImpl yiXinTransferService;
     @Resource
-    private DiDiModelingDataHandle diDiModelingDataHandle;
+    private DiDiNewModelingDataHandle diDiNewModelingDataHandle;
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
@@ -60,16 +60,16 @@ public class DiDiNewModelingJob extends AbstractSimpleElasticJob {
         String recordDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         if (!now.before(executeTime)) {
             //查询推送记录
-            List<TransferActionFront> actionFrontList = getActionFront(apiCode, 1);
+            List<TransferActionFront> actionFrontList = getActionFront(apiCode, 3);
             if (actionFrontList.size() > 0) {
                 log.warn("滴滴联合建模新接口今日已经推送");
                 return;
             }
-            Long frontId = yiXinTransferService.saveFrontData(apiCode, recordDate, 1);
+            Long frontId = yiXinTransferService.saveFrontData(apiCode, recordDate, 3);
 
             MarketingSyncCondition marketingSyncCondition = new MarketingSyncCondition();
             marketingSyncCondition.setApiCode(apiCode);
-            diDiModelingDataHandle.action(marketingSyncCondition);
+            diDiNewModelingDataHandle.action(marketingSyncCondition);
             yiXinTransferService.updateFrontDataStatus(frontId, 2);
             log.warn("滴滴联合建模新接口任务完成");
         }
@@ -82,7 +82,7 @@ public class DiDiNewModelingJob extends AbstractSimpleElasticJob {
         criteria.andApiCodeEqualTo(apiCode)
                 .andActionDataEqualTo(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE))
                 .andActionTypeEqualTo(actionType)
-                .andIsDelEqualTo(3);
+                .andIsDelEqualTo(1);
         return transferActionFrontMapper.selectByExample(example);
     }
 }
