@@ -757,5 +757,12 @@ public class MarketingCommonConfig {
      * pushConvTypeConfig={"3710058":{"106":["3710058","3710078"],"107":["3710058"]},"7412009":{"106":["7412009","7410951"],"107":["7412009"]}}
      */
     private HashMap<String, JSONObject> pushConvTypeConfig;
+
+    /**
+     * 携程定时任务推决策情况apiCode配置:{"b":"371058"}
+     */
+    private Map<String,String> xieChengPushPolicyStatusToApiCode;
+
+
 }
 

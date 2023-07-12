@@ -62,7 +62,7 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
         String requestDate = LocalDate.now().minusDays(1).toString();
         String tcId = tableCreateService.getTcId(SOURCEAPICODE);
         Set<String> cellSets = new HashSet<>();
-        PushStatusAHandler(requestDate, tcId, cellSets);
+        //PushStatusAHandler(requestDate, tcId, cellSets);
         PushStatusBHandler(requestDate, tcId, cellSets);
         PushStatusCHandler(requestDate, tcId, cellSets);
     }
@@ -158,8 +158,8 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
     }
 
     private void pushPolicy(List<MarketingTransferSyncUser> pushDataList, Map<String, XieChengSmsCollidingDataLog> smsCollidingDataLogMap, String status, String convtype) {
-        if (!CollectionUtils.isEmpty(marketingCommonConfig.getXieChengPushPolicyApiCode())) {
-            TARGETAPICODE = marketingCommonConfig.getXieChengPushPolicyApiCode().get(1);
+        if (!CollectionUtils.isEmpty(marketingCommonConfig.getXieChengPushPolicyStatusToApiCode())) {
+            TARGETAPICODE = marketingCommonConfig.getXieChengPushPolicyStatusToApiCode().get(status);
         }
         List<PushMarketingUserDetailByRuleDTO> pushMarketingUserDetailByRuleDTOList = new ArrayList<>();
         pushDataList.forEach(marketingTransferSyncUser -> {
