@@ -2,26 +2,14 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-/**
- * 描述：： 携程新版短信撞库实体
- * <p>
- * ------------------------------------
- *
- * @program: marketing
- * @ClassName XieChengSmsCollidingDataVt
- * @author: it-yml
- * @create: 2023-07-11 19:51
- * @Version 1.0
- * --------------------------------------
- **/
 public class XieChengSmsCollidingDataVt {
     /**
-     *
+     * 
      */
     private Long id;
 
     /**
-     *
+     * 
      */
     private String apiCode;
 
@@ -41,7 +29,7 @@ public class XieChengSmsCollidingDataVt {
     private String sha256CodeList;
 
     /**
-     * 状态 1-未推送；2-推送
+     * 备用字段
      */
     private Integer pushStatus;
 
@@ -61,6 +49,11 @@ public class XieChengSmsCollidingDataVt {
     private String dataMessage;
 
     /**
+     * 扩展字段
+     */
+    private String extend;
+
+    /**
      * 创建时间
      */
     private Date createTime;
@@ -70,13 +63,10 @@ public class XieChengSmsCollidingDataVt {
      */
     private Date updateTime;
 
-
     /**
-     * 扩展字段
+     * 
      */
-    private String extend;
-
-
+    private Integer createDate;
 
     public Long getId() {
         return id;
@@ -150,6 +140,14 @@ public class XieChengSmsCollidingDataVt {
         this.dataMessage = dataMessage == null ? null : dataMessage.trim();
     }
 
+    public String getExtend() {
+        return extend;
+    }
+
+    public void setExtend(String extend) {
+        this.extend = extend == null ? null : extend.trim();
+    }
+
     public Date getCreateTime() {
         return createTime;
     }
@@ -166,11 +164,11 @@ public class XieChengSmsCollidingDataVt {
         this.updateTime = updateTime;
     }
 
-    public String getExtend() {
-        return extend;
+    public Integer getCreateDate() {
+        return createDate;
     }
 
-    public void setExtend(String extend) {
-        this.extend = extend == null ? null : extend.trim();
+    public void setCreateDate(Integer createDate) {
+        this.createDate = createDate;
     }
 }

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XieChengSmsCollidingDataLogVtMapper" >
+    <insert id="saveBatchLogVt" parameterType="list">
+        insert into b_xiecheng_sms_colliding_data_log_vt (api_code, local_id,sms_colliding_data_vt_id,
+        type, sha256_code_list,status,send_date, create_time,update_time)values
+        <foreach collection="list" item="data" separator=",">
+            (#{data.apiCode,jdbcType=VARCHAR}, #{data.localId,jdbcType=BIGINT},#{data.smsCollidingDataVtId,jdbcType=BIGINT},
+            #{data.type,jdbcType=VARCHAR}, #{data.sha256CodeList,jdbcType=VARCHAR},
+            #{data.status,jdbcType=INTEGER}, #{data.sendDate,jdbcType=VARCHAR}, now(),now()
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateSelectiveVt" parameterType="map" >
+        update b_xiecheng_sms_colliding_data_vt_log
+        <set >
+            <if test="record.id != null" >
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.smsCollidingDataVtId != null" >
+                sms_colliding_data_vt_id = #{record.smsCollidingDataVtId,jdbcType=BIGINT},
+            </if>
+            <if test="record.apiCode != null" >
+                api_code = #{record.apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="record.localId != null" >
+                local_id = #{record.localId,jdbcType=BIGINT},
+            </if>
+            <if test="record.type != null" >
+                type = #{record.type,jdbcType=VARCHAR},
+            </if>
+            <if test="record.sha256CodeList != null" >
+                sha256_code_list = #{record.sha256CodeList,jdbcType=VARCHAR},
+            </if>
+            <if test="record.md5Code != null" >
+                md5_code = #{record.md5Code,jdbcType=VARCHAR},
+            </if>
+            <if test="record.param != null" >
+                param = #{record.param,jdbcType=VARCHAR},
+            </if>
+            <if test="record.paramSecret != null" >
+                param_secret = #{record.paramSecret,jdbcType=VARCHAR},
+            </if>
+            <if test="record.orgChannel != null" >
+                org_channel = #{record.orgChannel,jdbcType=VARCHAR},
+            </if>
+            <if test="record.mktLevel != null" >
+                mkt_level = #{record.mktLevel,jdbcType=VARCHAR},
+            </if>
+            <if test="record.info != null" >
+                info = #{record.info,jdbcType=VARCHAR},
+            </if>
+            <if test="record.result != null" >
+                result = #{record.result,jdbcType=BIT},
+            </if>
+            <if test="record.status != null" >
+                status = #{record.status,jdbcType=INTEGER},
+            </if>
+            <if test="record.dataMessage != null" >
+                data_message = #{record.dataMessage,jdbcType=VARCHAR},
+            </if>
+            <if test="record.createTime != null" >
+                create_time = #{record.createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.updateTime != null" >
+                update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.extend != null" >
+                extend = #{record.extend,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="record.sendDate != null" >
+                send_date = #{record.sendDate,jdbcType=LONGVARCHAR},
+            </if>
+        </set>
+        where sha256_code_list = #{record.sha256CodeList,jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateBatchVt" parameterType="com.br.marketing.entity.XieChengSmsCollidingDataLogVt" >
+        update b_xiecheng_sms_colliding_data_log_vt
+        set  status = #{status}, data_message = #{msg}
+        where sha256_code_list in
+        <foreach collection="list" item="xc" open="(" separator="," close=")">
+            #{xc}
+        </foreach>
+    </update>
+</mapper>

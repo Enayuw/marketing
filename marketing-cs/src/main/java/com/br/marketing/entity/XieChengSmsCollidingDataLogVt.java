@@ -11,7 +11,7 @@ public class XieChengSmsCollidingDataLogVt {
     /**
      * 
      */
-    private Long smsCollidingDataId;
+    private Long smsCollidingDataVtId;
 
     /**
      * 
@@ -69,7 +69,7 @@ public class XieChengSmsCollidingDataLogVt {
     private Boolean result;
 
     /**
-     * 状态 1-正常2-非正常
+     * 状态 0-正常1-待推送 2 推送完成 3 异常
      */
     private Integer status;
 
@@ -77,6 +77,11 @@ public class XieChengSmsCollidingDataLogVt {
      * 数据描述
      */
     private String dataMessage;
+
+    /**
+     * 扩展字段
+     */
+    private String extend;
 
     /**
      * 创建时间
@@ -89,23 +94,10 @@ public class XieChengSmsCollidingDataLogVt {
     private Date updateTime;
 
     /**
-     * 扩展字段
-     */
-    private String extend;
-
-
-    /**
      * 推送日期
+
      */
-    private String sendDate;
-
-    public String getSendDate() {
-        return sendDate;
-    }
-
-    public void setSendDate(String sendDate) {
-        this.sendDate = sendDate;
-    }
+    private Integer sendDate;
 
     public Long getId() {
         return id;
@@ -115,12 +107,12 @@ public class XieChengSmsCollidingDataLogVt {
         this.id = id;
     }
 
-    public Long getSmsCollidingDataId() {
-        return smsCollidingDataId;
+    public Long getSmsCollidingDataVtId() {
+        return smsCollidingDataVtId;
     }
 
-    public void setSmsCollidingDataId(Long smsCollidingDataId) {
-        this.smsCollidingDataId = smsCollidingDataId;
+    public void setSmsCollidingDataVtId(Long smsCollidingDataVtId) {
+        this.smsCollidingDataVtId = smsCollidingDataVtId;
     }
 
     public String getApiCode() {
@@ -227,6 +219,14 @@ public class XieChengSmsCollidingDataLogVt {
         this.dataMessage = dataMessage == null ? null : dataMessage.trim();
     }
 
+    public String getExtend() {
+        return extend;
+    }
+
+    public void setExtend(String extend) {
+        this.extend = extend == null ? null : extend.trim();
+    }
+
     public Date getCreateTime() {
         return createTime;
     }
@@ -243,11 +243,11 @@ public class XieChengSmsCollidingDataLogVt {
         this.updateTime = updateTime;
     }
 
-    public String getExtend() {
-        return extend;
+    public Integer getSendDate() {
+        return sendDate;
     }
 
-    public void setExtend(String extend) {
-        this.extend = extend == null ? null : extend.trim();
+    public void setSendDate(Integer sendDate) {
+        this.sendDate = sendDate;
     }
 }
