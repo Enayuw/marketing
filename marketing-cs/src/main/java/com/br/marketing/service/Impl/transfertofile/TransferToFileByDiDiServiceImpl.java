@@ -150,7 +150,9 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
 
             for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUserList) {
                 //可配置的剔除data
-                String reservedField = marketingCommonConfig.getResverfiled1Data();
+                List<String> reservedField = marketingCommonConfig.getResverfiled1Data();
+//                ArrayList<String> reservedField = new ArrayList<>();
+//                reservedField.add("0");
                 String data = "" , extend = "";
 
                 if(StringUtils.isNotBlank(marketingTransferSyncUser.getReserveField1())) {
@@ -161,8 +163,10 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
                         log.warn(msg);
                     }
                     if (StringUtils.isNotEmpty(reservedField)){
-                        if ("00000000".equals(data) || "0".equals(data) || reservedField.equals(data)) {
-                            continue;
+                        for (String s : reservedField) {
+                            if ("00000000".equals(data) || "0".equals(data) || s.equals(data)) {
+                                continue;
+                            }
                         }
                     } else {
                         if ("00000000".equals(data) || "0".equals(data)) {

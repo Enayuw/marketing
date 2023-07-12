@@ -671,7 +671,7 @@ public class MarketingCommonConfig {
     /**
      * 滴滴剔除数据配置
      */
-    private String resverfiled1Data;
+    private List<String> resverfiled1Data;
 
     /**
      * 众安明细推送配置{"userType":{"isPush":"1/0","channelCode":"****"}}
