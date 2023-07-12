@@ -17,9 +17,8 @@ public interface XieChengSmsCollidingDataLogMapper extends XieChengSmsCollidingD
     *
     * @param list
     */
-   void saveBatch(@Param("list") List<XieChengSmsCollidingDataLog> list);
+   void saveBatchLogVt(@Param("list") List<XieChengSmsCollidingDataLogVt> list);
 
-   int insertSelectiveVt(XieChengSmsCollidingDataLogVt record);
    int updateSelectiveVt(XieChengSmsCollidingDataLogVt record);
 
 

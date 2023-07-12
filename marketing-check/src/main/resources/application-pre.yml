@@ -187,7 +187,7 @@ api:
       iv: 3b2dac323465b024
       singKey: 95cc01ec07387a44
       channel: commonUnionCheckUser
-      isProxy: true
+      isProxy: false
   didi:
     baseUrl: https://admarketing-manhattan.xiaojukeji.com
     smsUrl: ${api.didi.baseUrl}/crow/collision/bairong

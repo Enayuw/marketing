@@ -21,8 +21,8 @@
 
     </select>
 
-    <insert id="saveBatch" parameterType="list">
-        insert into b_xiecheng_sms_colliding_data_log (api_code, local_id,
+    <insert id="saveBatchLogVt" parameterType="list">
+        insert into b_xiecheng_sms_colliding_data_log_vt (api_code, local_id,
         type, sha256_code_list,status, create_time,update_time)values
         <foreach collection="list" item="data" separator=",">
             (#{data.apiCode,jdbcType=VARCHAR}, #{data.localId,jdbcType=BIGINT},
@@ -167,85 +167,6 @@
         and status=2
     </select>
 
-    <insert id="insertSelectiveVt" parameterType="com.br.marketing.entity.XieChengSmsCollidingDataVt" >
-        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
-            SELECT LAST_INSERT_ID()
-        </selectKey>
-        insert into b_xiecheng_sms_colliding_data_vt
-        <trim prefix="(" suffix=")" suffixOverrides="," >
-            <if test="apiCode != null" >
-                api_code,
-            </if>
-            <if test="localId != null" >
-                local_id,
-            </if>
-            <if test="type != null" >
-                type,
-            </if>
-            <if test="sha256CodeList != null" >
-                sha256_code_list,
-            </if>
-            <if test="pushStatus != null" >
-                push_status,
-            </if>
-            <if test="nextPushTime != null" >
-                next_push_time,
-            </if>
-            <if test="status != null" >
-                status,
-            </if>
-            <if test="dataMessage != null" >
-                data_message,
-            </if>
-            <if test="createTime != null" >
-                create_time,
-            </if>
-            <if test="updateTime != null" >
-                update_time,
-            </if>
-            <if test="extend != null" >
-                extend,
-            </if>
-            <if test="sendDate != null" >
-                send_date,
-            </if>
-        </trim>
-        <trim prefix="values (" suffix=")" suffixOverrides="," >
-            <if test="apiCode != null" >
-                #{apiCode,jdbcType=VARCHAR},
-            </if>
-            <if test="localId != null" >
-                #{localId,jdbcType=BIGINT},
-            </if>
-            <if test="type != null" >
-                #{type,jdbcType=VARCHAR},
-            </if>
-            <if test="sha256CodeList != null" >
-                #{sha256CodeList,jdbcType=VARCHAR},
-            </if>
-            <if test="pushStatus != null" >
-                #{pushStatus,jdbcType=INTEGER},
-            </if>
-            <if test="nextPushTime != null" >
-                #{nextPushTime,jdbcType=TIMESTAMP},
-            </if>
-            <if test="status != null" >
-                #{status,jdbcType=INTEGER},
-            </if>
-            <if test="dataMessage != null" >
-                #{dataMessage,jdbcType=VARCHAR},
-            </if>
-            <if test="createTime != null" >
-                #{createTime,jdbcType=TIMESTAMP},
-            </if>
-            <if test="updateTime != null" >
-                #{updateTime,jdbcType=TIMESTAMP},
-            </if>
-            <if test="extend != null" >
-                #{extend,jdbcType=LONGVARCHAR},
-            </if>
-        </trim>
-    </insert>
 
     <update id="updateSelectiveVt" parameterType="map" >
         update b_xiecheng_sms_colliding_data_log

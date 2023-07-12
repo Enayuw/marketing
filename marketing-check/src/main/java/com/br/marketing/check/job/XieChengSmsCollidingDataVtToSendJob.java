@@ -18,7 +18,7 @@ import java.util.List;
  * ------------------------------------
  *
  * @program: marketing
- * @ClassName XieChengSmsCollidingDataVtwoToSendJob
+ * @ClassName XieChengSmsCollidingDataVtToSendJob
  * @author: it-yml
  * @create: 2023-07-11 19:31
  * @Version 1.0
@@ -26,8 +26,8 @@ import java.util.List;
  **/
 @Component
 @Slf4j
-public class XieChengSmsCollidingDataVtwoToSendJob extends AbstractSimpleElasticJob {
-    private static final String XIECHENGSMSCOLLIDINGV2 = "xiechengsmscollidingv2";
+public class XieChengSmsCollidingDataVtToSendJob extends AbstractSimpleElasticJob {
+    private static final String XIECHENGSMSCOLLIDINGVT = "xiechengsmscollidingvt";
 
 
     /**
@@ -46,7 +46,7 @@ public class XieChengSmsCollidingDataVtwoToSendJob extends AbstractSimpleElastic
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         final LocalFileExample localFileExample = new LocalFileExample();
         localFileExample.createCriteria()
-                .andFileTypeEqualTo(XIECHENGSMSCOLLIDINGV2)
+                .andFileTypeEqualTo(XIECHENGSMSCOLLIDINGVT)
                 .andStatusEqualTo("1");
         List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
         localFileList.forEach((LocalFile lf) ->

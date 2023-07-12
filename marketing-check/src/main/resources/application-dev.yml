@@ -102,7 +102,7 @@ api:
       iv: 3b2dac323465b024
       singKey: 95cc01ec07387a44
       channel: commonUnionCheckUser
-      isProxy: true
+      isProxy: false
   zhongAn:
     baseUrl: https://finance-gateway-test.diandian.com.cn
     api: ${api.zhongAn.baseUrl}/fcpGateway
