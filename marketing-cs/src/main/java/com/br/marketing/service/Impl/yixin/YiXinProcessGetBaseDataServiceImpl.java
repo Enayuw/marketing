@@ -9,7 +9,10 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 宜信基础数据实现类
@@ -25,46 +28,44 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
+
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String cid, String type, Integer pageNum) {
-        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListA(String tCid,
+                                                                             String apiCode,
+                                                                             String requestDate,
+                                                                             Long indexId ) {
+
         // 获取前一天的日期yyyy-MM-dd
         return marketingTransferSyncUserMapper
                 .getYxTransferByApiCodeAtikv_(
-                        cid,
+                        tCid,
                         apiCode,
-                        LocalDate.now().minusDays(1).toString(),
-                        pageNum
+                        requestDate,
+                        indexId,
+                        marketingCommonConfig.getYiXinSearchPageSize()
                 );
     }
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListB(String cid,String type, Integer pageNum) {
-        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListBtoCtoI(String tCid,
+                                                                                   String apiCode,
+                                                                                   String type,
+                                                                                   String requestDate,
+                                                                                   Long indexId) {
+
         return marketingTransferSyncUserMapper
                 .getYxTransferByApiCodeBtoCtoItikv_(
-                        cid,
+                        tCid,
                         apiCode,
-                        LocalDate.now().minusDays(30).toString(),
+                        requestDate,
                         type,
-                        pageNum
+                        indexId,
+                        marketingCommonConfig.getYiXinSearchPageSize()
                 );
     }
 
-    @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCtoI(String cid,String type, Integer pageNum) {
-        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
-        return marketingTransferSyncUserMapper
-                .getYxTransferByApiCodeBtoCtoItikv_(
-                        cid,
-                        apiCode,
-                        LocalDate.now().toString(),
-                        type,
-                        pageNum
-                );
-    }
+
 
 }

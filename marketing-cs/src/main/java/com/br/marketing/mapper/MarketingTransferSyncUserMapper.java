@@ -334,12 +334,13 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                        @Param("apiCode") String apiCode,
                                                                        @Param("requestData") String requestData,
                                                                        @Param("type") String type,
-                                                                       @Param("pageNum") Integer pageNum);
-
-    List<MarketingTransferSyncUser> getYxTransferByApiCodeAtikv_(@Param("cid") String cid,
-                                                                  @Param("apiCode") String apiCode,
-                                                                  @Param("yesterday") String yesterday,
-                                                                 @Param("pageNum") Integer pageNum);
+                                                                       @Param("indexId") Long indexId,
+                                                                       @Param("pageSize") Integer pageSize);
+    List<MarketingTransferSyncUser> getYxTransferByApiCodeAtikv_(@Param("tCid") String tCid,
+                                                                 @Param("apiCode") String apiCode,
+                                                                 @Param("requestDate") String requestDate,
+                                                                 @Param("indexId") Long indexId,
+                                                                 @Param("pageSize") Integer pageSize);
 
     List<String> getExcludeRuleFirstYxTransferByApiCodetikv_(@Param("cid") String cid,
                                                              @Param("apiCode") String apiCode,

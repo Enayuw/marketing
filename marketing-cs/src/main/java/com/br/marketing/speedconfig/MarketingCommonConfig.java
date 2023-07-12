@@ -748,6 +748,17 @@ public class MarketingCommonConfig {
     private Integer yiXinExcludeRuleFifthThreadNum;
 
     /**
+     * 宜信查询基础数据 limit 量级
+     */
+    private Integer yiXinSearchPageSize;
+
+    /**
+     * 转化数据的apiCode、convType、推送的apiCode映射关系
+     * pushConvTypeConfig={"3710058":{"106":["3710058","3710078"],"107":["3710058"]},"7412009":{"106":["7412009","7410951"],"107":["7412009"]}}
+     */
+    private HashMap<String, JSONObject> pushConvTypeConfig;
+
+    /**
      * 2023-07-05 16:04
      * 非生成默认有效期配置的apiCode集合
      */

@@ -1,6 +1,7 @@
 package com.br.marketing.check.job.yixin;
 
 
+import IceInternal.Ex;
 import com.br.marketing.service.YiXinToJueCeProcessService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -8,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.LinkedHashMap;
 import java.util.TreeMap;
 
 
@@ -19,18 +21,18 @@ import java.util.TreeMap;
 @Component
 @Slf4j
 public class YiXinTransferToJueCeJob extends AbstractSimpleElasticJob {
-    private static final TreeMap<String, String> ACTONTYPETREE = new TreeMap<>();
+    private static final LinkedHashMap<String, String> ACTONTYPELINK = new LinkedHashMap<>();
 
     static {
-        ACTONTYPETREE.put("A", null);
-        ACTONTYPETREE.put("B", "12");
-        ACTONTYPETREE.put("C", "13");
-        ACTONTYPETREE.put("D", "23");
-        ACTONTYPETREE.put("E", "20");
-        ACTONTYPETREE.put("F", "21");
-        ACTONTYPETREE.put("G", "8");
-        ACTONTYPETREE.put("H", "15");
-        ACTONTYPETREE.put("I", "6");
+        ACTONTYPELINK.put("A", null);
+        ACTONTYPELINK.put("B", "12");
+        ACTONTYPELINK.put("C", "13");
+        ACTONTYPELINK.put("D", "23");
+        ACTONTYPELINK.put("E", "20");
+        ACTONTYPELINK.put("F", "21");
+        ACTONTYPELINK.put("G", "8");
+        ACTONTYPELINK.put("H", "15");
+        ACTONTYPELINK.put("I", "6");
     }
 
     @Resource
@@ -39,7 +41,12 @@ public class YiXinTransferToJueCeJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        yiXinToJueCeProcessService.doProcess(ACTONTYPETREE);
+        try {
+            yiXinToJueCeProcessService.doProcess(ACTONTYPELINK);
+        }catch (Exception e){
+            log.error(e.getMessage(), e);
+        }
+
     }
 
 
