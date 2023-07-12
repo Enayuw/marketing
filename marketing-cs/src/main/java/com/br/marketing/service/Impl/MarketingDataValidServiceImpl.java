@@ -65,15 +65,15 @@ public class MarketingDataValidServiceImpl implements IMarketingDataValidService
         MarketingDataValidConfigExample configExample = new MarketingDataValidConfigExample();
         configExample.createCriteria()
                 .andIsDelEqualTo(Constants.DATA_VALID)
+                .andValidTypeEqualTo(1)
                 .andApiCodeEqualTo(apiCode);
         List<MarketingDataValidConfig> list = marketingDataValidConfigMapper.selectByExample(configExample);
         if (CollectionUtils.isEmpty(list)) {
             return Collections.emptyMap();
         } else {
-            return list.stream().collect(
-                    Collectors.toConcurrentMap(l -> l.getUserType() + l.getAppletDate()
-                            , Function.identity()
-                            , BinaryOperator.maxBy(Comparator.comparing(MarketingDataValidConfig::getCreateTime))));
+            return list.stream().collect(Collectors.toConcurrentMap(l -> l.getUserType() + l.getAppletDate()
+                    , Function.identity()
+                    , BinaryOperator.maxBy(Comparator.comparing(MarketingDataValidConfig::getCreateTime))));
         }
     }
 
