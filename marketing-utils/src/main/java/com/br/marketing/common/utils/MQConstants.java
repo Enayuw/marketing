@@ -36,7 +36,7 @@ public class MQConstants {
     public static final String MARKETING_PUSH_TWOSEVEN_FILETRANSFER = "Marketing_Push_Seven_FileTransfer";
     public static final String MARKETING_QUEUE_PUSH_TRANSFER_HAIER = "marketing_queue_push_transfer_haier";
     public static final String MARKETING_UNIVERSAL_SFTPTODB_RECEIVE = "Marketing_Universal_SftpToDb_Receive";
-    public static final String XIECHENG_SMSCOLLIDINGVT_CUSTOMER = "Marketing_XieChengSmsCollidingVt_Customer";
+    public static final String MARKETING_XIECHENG_SMSCOLLIDINGVT_CUSTOMER = "Marketing_XieChengSmsCollidingVt_Customer";
 
 
 
