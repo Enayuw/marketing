@@ -70,20 +70,13 @@ public class XieChengSmsCollidingDataVt {
      */
     private Date updateTime;
 
-    private String sendDate;
-
-    public String getSendDate() {
-        return sendDate;
-    }
-
-    public void setSendDate(String sendDate) {
-        this.sendDate = sendDate;
-    }
 
     /**
      * 扩展字段
      */
     private String extend;
+
+
 
     public Long getId() {
         return id;

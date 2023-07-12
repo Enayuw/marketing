@@ -122,6 +122,23 @@ public class XieChengService {
     private Boolean smsCollidingIsProxy;
 
 
+    @Value("${api.xiecheng.smsCollidingVt.appId:0}")
+    private String smsCollidingVtAppId;
+
+    @Value("${api.xiecheng.smsCollidingVt.key:0}")
+    private String smsCollidingVtKey;
+
+    @Value("${api.xiecheng.smsCollidingVt.iv:0}")
+    private String smsCollidingVtIv;
+
+    @Value("${api.xiecheng.smsCollidingVt.singKey:0}")
+    private String smsCollidingVtSingKey;
+
+    @Value("${api.xiecheng.smsCollidingVt.channel:0}")
+    private String smsCollidingVtChannel;
+
+
+
     @Autowired
     HttpProxyClient httpProxyClient;
 
@@ -214,6 +231,44 @@ public class XieChengService {
      */
     @RetryMethod(retryNowNum = 3)
     public Result pushXieChengSmsCollidingData(List<String> sha256CodeList) {
+        /**
+         * data 组装
+         */
+        XieChengSmsCollidingReq xieChengSmsCollidingReq = new XieChengSmsCollidingReq(
+                smsCollidingAppId,sha256CodeList,CODETYPE,MARKETTYPE,MARKETFINANCEUSER
+        );
+        String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
+        Map<String, Object> retMap = Maps.newHashMap();
+        retMap.put("appId", smsCollidingAppId);
+        retMap.put("timestamp", timestemp);
+        retMap.put("channel", smsCollidingChannel);
+        String s = JSON.toJSONString(xieChengSmsCollidingReq);
+        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingKey, smsCollidingIv));
+        retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingSingKey));
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+            log.error("携程短信撞库接口httpcode非200异常，重试");
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+        String content = resMap.get("content");
+        //String content = "{\"code\":702,\"msg\":\"测试效率\",\"data\":[{\"md5Code\":null,\"sha256Code\":\"760a06d2bc9b150d1d5b162e95bed32ed306cd1c2f7417c5e10397715ea165c1\",\"result\":false,\"orgChannel\":\"测试orgChannel\",\"mktLevel\":\"测试orgmktLevel\",\"info\":\"测试info\"}]}";
+        JSONObject resultJson = JSONObject.parseObject(content);
+        Integer code = resultJson.getInteger("code");
+        if(code==0){
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
+        }else {
+            log.error("携程短信撞库接口请求返回code 非0异常，无重试，需要是手动处理。");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
+        }
+
+    }
+    /**
+     * 短信碰撞接口
+     * @param sha256CodeList
+     * @return
+     */
+    @RetryMethod(retryNowNum = 3)
+    public Result pushXieChengSmsCollidingDataVt(List<String> sha256CodeList) {
         /**
          * data 组装
          */

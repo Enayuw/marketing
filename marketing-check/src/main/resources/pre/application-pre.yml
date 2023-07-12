@@ -202,6 +202,13 @@ api:
       singKey: 95cc01ec07387a44
       channel: commonUnionCheckUser
       isProxy: true
+      openUrl: https://cgcallback-fat.ctripqa.com/nemoweb/ad/common/unionCheckUser.do
+      appId: bairong001
+      key: f3df6f62f0527bf0
+      iv: 3b2dac323465b024
+      singKey: 95cc01ec07387a44
+      channel: commonUnionCheckUser
+      isProxy: true
 spring:
   rabbitmq:
     addresses: delivery-rabbitmq-cluster-01.brapp.com:5672

@@ -1294,6 +1294,7 @@ public class PushDataServiceImpl implements PushDataService {
                         xieChengSmsCollidingDataLogVt.setStatus(1);
                         xieChengSmsCollidingDataLogVt.setType("1");
                         xieChengSmsCollidingDataLogVt.setCreateTime(new Date());
+                        xieChengSmsCollidingDataLogVt.setSendDate(LocalDate.now().toString());
                         xieChengSmsCollidingDataLogMapper.insertSelectiveVt(xieChengSmsCollidingDataLogVt);
                     })
                 );

@@ -206,6 +206,9 @@
             <if test="extend != null" >
                 extend,
             </if>
+            <if test="sendDate != null" >
+                send_date,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides="," >
             <if test="apiCode != null" >
@@ -300,6 +303,9 @@
             </if>
             <if test="record.extend != null" >
                 extend = #{record.extend,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="record.sendDate != null" >
+                send_date = #{record.sendDate,jdbcType=LONGVARCHAR},
             </if>
         </set>
        where sha256_code_list = #{record.sha256CodeList,jdbcType=VARCHAR}

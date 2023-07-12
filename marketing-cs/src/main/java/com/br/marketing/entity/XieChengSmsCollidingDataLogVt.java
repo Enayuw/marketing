@@ -93,6 +93,20 @@ public class XieChengSmsCollidingDataLogVt {
      */
     private String extend;
 
+
+    /**
+     * 推送日期
+     */
+    private String sendDate;
+
+    public String getSendDate() {
+        return sendDate;
+    }
+
+    public void setSendDate(String sendDate) {
+        this.sendDate = sendDate;
+    }
+
     public Long getId() {
         return id;
     }
