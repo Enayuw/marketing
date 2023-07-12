@@ -2,6 +2,7 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.entity.XieChengSmsCollidingData;
+import com.br.marketing.entity.XieChengSmsCollidingDataVt;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
@@ -13,6 +14,7 @@ public interface XieChengSmsCollidingDataMapper extends XieChengSmsCollidingData
 
 
     List<XieChengSmsCollidingData> selectByLocalId(@Param("localId") Long localId, @Param("minId") Long minId,@Param("endTime") String endTime);
+    List<XieChengSmsCollidingDataVt> selectByLocalIdVt(@Param("localId") Long localId, @Param("sendDate") String sendDate);
 
 
 

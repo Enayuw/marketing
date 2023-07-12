@@ -446,6 +446,20 @@ public class MarketingCommonConfig {
     private Integer xieChengSmsCollidingThread;
 
     /**
+     * 携程短信撞库线程数Version2
+     */
+    private Integer xieChengSmsCollidingThreadVt;
+    /**
+     * 携程短信撞库线插入线程数量
+     */
+    private Integer xieChengSmsCollidingThreadLogVt;
+
+    /**
+     * 携程短信撞库更新结果线程数
+     */
+    private Integer xieChengSmsCollidingThreadInfoVt;
+
+    /**
      * 通用文件入库
      */
     private Integer threadNumSftpToDbByCommon;

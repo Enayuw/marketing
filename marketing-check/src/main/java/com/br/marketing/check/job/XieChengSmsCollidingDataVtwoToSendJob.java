@@ -1,9 +1,18 @@
 package com.br.marketing.check.job;
 
+import com.br.marketing.entity.LocalFile;
+import com.br.marketing.entity.LocalFileExample;
+import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.service.PushDataService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
 
 /**
  * 描述：： 携程新版短信撞库 job
@@ -20,8 +29,25 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class XieChengSmsCollidingDataVtwoToSendJob extends AbstractSimpleElasticJob {
+    private final static String XIECHENGSMSCOLLIDINGV2 = "xiechengsmscollidingv2";
+
+
+    @Resource
+    private LocalFileMapper localFileMapper;
+
+    @Resource
+    private PushDataService pushDataService;
+
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
+        LocalFileExample localFileExample = new LocalFileExample();
+        localFileExample.createCriteria()
+                .andFileTypeEqualTo(XIECHENGSMSCOLLIDINGV2)
+                .andStatusEqualTo("1");
+        List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
+        localFileList.forEach((lf) -> {
+            pushDataService.pushXieChengSmsCollidingToDbDataVt(lf.getId());
 
+        });
     }
 }
