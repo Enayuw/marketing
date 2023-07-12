@@ -162,7 +162,7 @@ api:
     baseUrl: https://admarketing-manhattan.xiaojukeji.com
     smsUrl: ${api.didi.baseUrl}/crow/collision/bairong
     reachUrl: ${api.didi.baseUrl}/crow/user/success/bairong
-    jmassSUrl: ${api.didi.baseUrl}/model/sample/bairong
+    jmassSUrl: ${api.didi.baseUrl}/model/sample/mediaName
     token: DK&SgWl!fZ%WVSXe
     scas: "0001"
     channelId: 3140738836439875
