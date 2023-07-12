@@ -310,6 +310,7 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
                 .andApiCodeEqualTo(syncUser.getApiCode())
                 .andUserTypeEqualTo(syncUser.getUserType())
                 .andAppletDateEqualTo(appletDate)
+                .andValidTypeEqualTo(1)
                 .andIsDelEqualTo(1);
         // 检查db中是否已经存在有效期记录
         int count = marketingDataValidConfigMapper.countByExample(example);
