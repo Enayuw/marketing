@@ -1215,12 +1215,9 @@ public class PushRuleServiceImpl implements PushRuleService {
      */
     private void configValidDateDefault(Map<String, MarketingSyncUser> validDateCache, String apiCode) {
         Set<String> apiCodes = marketingCommonConfig.getNonConfigValidDefaultApiCodes();
-        if (CollectionUtils.isEmpty(apiCodes)) {
-            return;
-        }
         try {
             LOCK.lockInterruptibly();
-            if (apiCodes.contains(apiCode)) {
+            if (apiCodes != null && apiCodes.contains(apiCode)) {
                 return;
             }
             // 遍历缓存中需要设置默认有效期的apiCode与userType
