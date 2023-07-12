@@ -218,7 +218,6 @@ public class TestXiechengController {
         retMap.put("appId", appId);
         retMap.put("timestamp", timestemp);
         retMap.put("channel", channel);
-        String s = JSON.toJSONString(xieChengSmsCollidingReq);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), key, iv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, singKey));
         System.out.println(retMap);

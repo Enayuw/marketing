@@ -1,6 +1,5 @@
 package com.br.marketing.client.xiecheng;
 
-import cn.hutool.core.thread.ThreadUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
@@ -49,9 +48,9 @@ public class XieChengService {
     //singKey: 95cc01ec07387a44
     //source: BaiRong_C01
     //channel: commonOutAdMonitor
-    private final static String  CODETYPE = "MOBILE";
-    private final static String  MARKETTYPE = "SMS";
-    private final static Boolean  MARKETFINANCEUSER = false;
+    private static final  String  CODETYPE = "MOBILE";
+    private static final  String  MARKETTYPE = "SMS";
+    private static final  Boolean  MARKETFINANCEUSER = false;
 
 
 
@@ -121,6 +120,8 @@ public class XieChengService {
     @Value("${api.xiecheng.smsQuit.isProxy:0}")
     private Boolean smsCollidingIsProxy;
 
+    @Value("${api.xiecheng.smsCollidingVt.openUrl:0}")
+    private String smsCollidingVtOpenUrl;
 
     @Value("${api.xiecheng.smsCollidingVt.appId:0}")
     private String smsCollidingVtAppId;
@@ -137,6 +138,8 @@ public class XieChengService {
     @Value("${api.xiecheng.smsCollidingVt.channel:0}")
     private String smsCollidingVtChannel;
 
+    @Value("${api.xiecheng.smsCollidingVt.isProxy:0}")
+    private Boolean smsCollidingVtIsProxy;
 
 
     @Autowired
@@ -242,10 +245,9 @@ public class XieChengService {
         retMap.put("appId", smsCollidingAppId);
         retMap.put("timestamp", timestemp);
         retMap.put("channel", smsCollidingChannel);
-        String s = JSON.toJSONString(xieChengSmsCollidingReq);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingKey, smsCollidingIv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingSingKey));
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingVtIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.error("携程短信撞库接口httpcode非200异常，重试");
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
@@ -273,19 +275,18 @@ public class XieChengService {
          * data 组装
          */
         XieChengSmsCollidingReq xieChengSmsCollidingReq = new XieChengSmsCollidingReq(
-                smsCollidingAppId,sha256CodeList,CODETYPE,MARKETTYPE,MARKETFINANCEUSER
+                smsCollidingVtAppId,sha256CodeList,CODETYPE,MARKETTYPE,MARKETFINANCEUSER
         );
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         Map<String, Object> retMap = Maps.newHashMap();
-        retMap.put("appId", smsCollidingAppId);
+        retMap.put("appId", smsCollidingVtAppId);
         retMap.put("timestamp", timestemp);
-        retMap.put("channel", smsCollidingChannel);
-        String s = JSON.toJSONString(xieChengSmsCollidingReq);
-        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingKey, smsCollidingIv));
-        retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingSingKey));
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
+        retMap.put("channel", smsCollidingVtChannel);
+        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingVtKey, smsCollidingVtIv));
+        retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingVtSingKey));
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingVtOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.error("携程短信撞库接口httpcode非200异常，重试");
+            log.error("携程短信撞库接口【新】httpcode非200异常，重试");
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
         String content = resMap.get("content");
@@ -295,7 +296,7 @@ public class XieChengService {
         if(code==0){
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
         }else {
-            log.error("携程短信撞库接口请求返回code 非0异常，无重试，需要是手动处理。");
+            log.error("携程短信撞库接口请求【新】返回code 非0异常，无重试，需要是手动处理。");
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
         }
 

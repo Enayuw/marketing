@@ -1301,6 +1301,7 @@ public class PushDataServiceImpl implements PushDataService {
                 xieChengSmsCollidingThreadLogVt.shutdown();
                 try {
                     while (!xieChengSmsCollidingThreadLogVt.awaitTermination(10L, TimeUnit.SECONDS)) {
+                        log.info("日志插入线程池结束");
                     }
                 } catch (Exception ex) {
                     log.error(ex.getMessage(), ex);
@@ -1316,6 +1317,7 @@ public class PushDataServiceImpl implements PushDataService {
             xieChengSmsCollidingThreadVt.shutdown();
             try {
                 while (!xieChengSmsCollidingThreadVt.awaitTermination(10L, TimeUnit.SECONDS)) {
+                    log.info("推送过线程池结束");
                 }
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
@@ -1338,7 +1340,7 @@ public class PushDataServiceImpl implements PushDataService {
             if(!sha256CodeList.isEmpty()){
                     // 携程短信撞库接口
 
-                    Result postResult = xieChengService.pushXieChengSmsCollidingData(sha256CodeList);
+                    Result postResult = xieChengService.pushXieChengSmsCollidingDataVt(sha256CodeList);
                     JSONObject resultJson = JSONObject.parseObject(postResult.getMessage());
                     // 请求正常
                     if (postResult.getCode().equals(ResultCode.SUCCESS.getValue())) {
@@ -1372,6 +1374,7 @@ public class PushDataServiceImpl implements PushDataService {
                         xieChengSmsCollidingThreadInfoVt.shutdown();
                         try {
                             while (!xieChengSmsCollidingThreadInfoVt.awaitTermination(10L, TimeUnit.SECONDS)) {
+                                log.info("日志更新线程池结束");
                             }
                         } catch (Exception ex) {
                             log.error(ex.getMessage(), ex);

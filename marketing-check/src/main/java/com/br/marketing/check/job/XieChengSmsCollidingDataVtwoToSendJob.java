@@ -10,8 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
 /**
@@ -29,25 +27,29 @@ import java.util.List;
 @Component
 @Slf4j
 public class XieChengSmsCollidingDataVtwoToSendJob extends AbstractSimpleElasticJob {
-    private final static String XIECHENGSMSCOLLIDINGV2 = "xiechengsmscollidingv2";
+    private static final String XIECHENGSMSCOLLIDINGV2 = "xiechengsmscollidingv2";
 
 
+    /**
+     * 文件
+     */
     @Resource
     private LocalFileMapper localFileMapper;
 
+    /**
+     * 推送实现
+     */
     @Resource
     private PushDataService pushDataService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        LocalFileExample localFileExample = new LocalFileExample();
+        final LocalFileExample localFileExample = new LocalFileExample();
         localFileExample.createCriteria()
                 .andFileTypeEqualTo(XIECHENGSMSCOLLIDINGV2)
                 .andStatusEqualTo("1");
         List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
-        localFileList.forEach((lf) -> {
-            pushDataService.pushXieChengSmsCollidingToDbDataVt(lf.getId());
-
-        });
+        localFileList.forEach((LocalFile lf) ->
+                pushDataService.pushXieChengSmsCollidingToDbDataVt(lf.getId()));
     }
 }
