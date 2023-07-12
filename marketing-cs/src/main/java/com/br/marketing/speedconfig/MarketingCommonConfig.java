@@ -669,6 +669,11 @@ public class MarketingCommonConfig {
     private String didiModelingThreadNum;
 
     /**
+     * 滴滴剔除数据配置
+     */
+    private String resverfiled1Data;
+
+    /**
      * 众安明细推送配置{"userType":{"isPush":"1/0","channelCode":"****"}}
      */
     private HashMap<String, JSONObject> zhongAnDetailPush;

@@ -80,7 +80,8 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
         if (now.after(executeTime)) {
             String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
-            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(1);
+//            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(1);
+            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd);
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
             String fileName = String.format("didi_zhuanhua_%s.txt", yyyyMMdd);
             if (CollectionUtils.isEmpty(transferFileTasks)) {
@@ -160,7 +161,9 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
                         Collectors.groupingBy(MarketingTransferSyncUser::getCustNum));
                 for (MarketingSyncUser marketingSyncUser : marketingSyncUsers) {
                     String custNum = marketingSyncUser.getCustNum();
-                    String data = "", extend = "";
+                    //可配置的剔除data
+                    String reservedField = StringUtils.isBlank(marketingCommonConfig.getResverfiled1Data()) ? "0" : marketingCommonConfig.getResverfiled1Data();
+                    String data = "" , extend = "";
                     if (transferDataMap.containsKey(marketingSyncUser.getCustNum())) {
                         MarketingTransferSyncUser transferSyncUser = transferDataMap.get(marketingSyncUser.getCustNum()).stream().filter(marketingTransferSyncUser -> marketingTransferSyncUser.getCustNum().equals(custNum)).findAny().orElse(null);
                         if(StringUtils.isNotBlank(transferSyncUser.getReserveField1())) {
@@ -170,7 +173,7 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
                                 String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_DIDI.getCode(), "滴滴联合建模接口返回data为空，custNum="+custNum);
                                 log.warn(msg);
                             }
-                            if ("00000".equals(data) || "0".equals(data)) {
+                            if ("00000000".equals(data) || "0".equals(data) || reservedField.equals(data)) {
                                 continue;
                             }
                             extend = jsonObject.getString("extend");
