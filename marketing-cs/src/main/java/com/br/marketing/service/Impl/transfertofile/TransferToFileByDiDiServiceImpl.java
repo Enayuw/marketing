@@ -130,7 +130,7 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    private void newWriteDiDiTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException {
+    public void newWriteDiDiTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException {
         Long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         LocalDate date = LocalDate.now();
@@ -160,7 +160,7 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
                         String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_DIDI.getCode(), "滴滴联合建模接口返回data为空，custNum="+marketingTransferSyncUser.getCustNum());
                         log.warn(msg);
                     }
-                    if (reservedField.isEmpty()){
+                    if (StringUtils.isNotEmpty(reservedField)){
                         if ("00000000".equals(data) || "0".equals(data) || reservedField.equals(data)) {
                             continue;
                         }
@@ -169,6 +169,7 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
                             continue;
                         }
                     }
+
                     extend = jsonObject.getString("extend");
                 }
 
@@ -180,6 +181,7 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
                 fw.append(sb.toString());
                 totalSize++;
             }
+
         }
 
         TransferFileTask task = new TransferFileTask();
