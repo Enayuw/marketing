@@ -164,6 +164,7 @@ api:
   xiecheng:
     openUrl: https://jr.ctrip.com/nemoweb/ad/common/outAdMonitor.do
     appId: bairong001
+    appIdVt: test002
     key: f3df6f62f0527bf0
     iv: 3b2dac323465b024
     singKey: 95cc01ec07387a44

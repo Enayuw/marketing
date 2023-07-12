@@ -28,6 +28,7 @@ import com.br.marketing.client.twosevenservice.output.ResponseSevenZDTO;
 import com.br.marketing.client.twosevenservice.output.SevenDetailVO;
 import com.br.marketing.client.xiecheng.SmsQuitReq;
 import com.br.marketing.client.xiecheng.XieChengService;
+import com.br.marketing.client.xiecheng.intput.AdReqDTO;
 import com.br.marketing.client.yiqianbao.YiQianBaoService;
 import com.br.marketing.client.yiqianbao.input.YqbDetailVo;
 import com.br.marketing.common.commondto.Result;
@@ -1430,8 +1431,10 @@ public class PushDataServiceImpl implements PushDataService {
     private void pushXieChengData(XieChengData xieChengData, AtomicInteger failNum, CountDownLatch countDownLatch) {
         try {
             countDownLatch.countDown();
+            AdReqDTO adReqDTO = new AdReqDTO();
+            BeanUtils.copyProperties(xieChengData,adReqDTO);
 
-            String apiCode = xieChengData.getApiCode();
+            String apiCode = adReqDTO.getApiCode();
 
             HashMap<String, JSONObject> xieChengCallPushCondition = marketingCommonConfig.getXieChengCallPushCondition();
 
@@ -1443,7 +1446,7 @@ public class PushDataServiceImpl implements PushDataService {
                 xieChengCallPushCondition.put("3710091",getJo("2",Arrays.asList("3710058","3710078")));
             }
             XieChengData resultData = new XieChengData();
-            resultData.setId(xieChengData.getId());
+            resultData.setId(adReqDTO.getId());
             JSONObject condition = xieChengCallPushCondition.get(apiCode);
             if(condition==null){
                 resultData.setStatus(2);
@@ -1453,7 +1456,7 @@ public class PushDataServiceImpl implements PushDataService {
             }
             String conditionKey = condition.getString("condition");
             JSONArray soleCellApiCodes = condition.getJSONArray("soleCellApiCodes");
-
+            adReqDTO.setConditionKey(conditionKey);
             String tcId = tableCreateService.getTcId(apiCode);
             // 字段修改兼容
             String sha256Tel = xieChengData.getSha256Tel();
@@ -1495,16 +1498,44 @@ public class PushDataServiceImpl implements PushDataService {
             }else{
                 xcTransferNoAdData = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyBlack(tcId, sha256Tel);
                 if (xcTransferNoAdData != null) {
-                    JSONObject jsonObject = JSON.parseObject(xcTransferNoAdData.getReserveField1());
-                    if ("1".equals(jsonObject.getString("isBlack"))) {
-                        resultData.setDataMessage("命中黑名单");
-                    }
+                    resultData.setDataMessage("命中黑名单");
                     resultData.setStatus(2);
                     xieChengDataMapper.updateByPrimaryKeySelective(resultData);
                     redisChgService.unlock(key, value);
                     return;
                 }
-
+                Integer day = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+                XieChengSmsCollidingDataLogVtExample vtExample = new XieChengSmsCollidingDataLogVtExample();
+                vtExample.createCriteria()
+                        .andSha256CodeListEqualTo(sha256Tel)
+                        .andStatusEqualTo(2)
+                        .andSendDateEqualTo(day);
+                List<XieChengSmsCollidingDataLogVt> xieChengSmsCollidingDataLogVts = xieChengSmsCollidingDataLogVtMapper.selectByExample(vtExample);
+                if (xieChengSmsCollidingDataLogVts.size()<=0) {
+                    resultData.setDataMessage("没有获取到当日撞库结果");
+                    resultData.setStatus(2);
+                    xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                    redisChgService.unlock(key, value);
+                    return;
+                }
+                XieChengSmsCollidingDataLogVt xieChengSmsCollidingDataLogVt = xieChengSmsCollidingDataLogVts.get(0);
+                if(!xieChengSmsCollidingDataLogVt.getResult()){
+                    resultData.setDataMessage("命中当日撞库结果为false");
+                    resultData.setStatus(2);
+                    xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                    redisChgService.unlock(key, value);
+                    return;
+                }
+                if (StringUtils.isBlank(xieChengSmsCollidingDataLogVt.getOrgChannel())) {
+                    resultData.setDataMessage("命中当日OrgChannel为空,id="+xieChengSmsCollidingDataLogVt.getSmsCollidingDataVtId());
+                    resultData.setStatus(2);
+                    xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                    redisChgService.unlock(key, value);
+                    return;
+                }
+                adReqDTO.setMktMode("CPS");
+                adReqDTO.setMktChannel(xieChengSmsCollidingDataLogVt.getOrgChannel());
+                adReqDTO.setMktProductNo("CASH");
             }
 
 
@@ -1513,9 +1544,9 @@ public class PushDataServiceImpl implements PushDataService {
             if (xieChengRepeatDatalist.isEmpty()) {
                 // 组装 clickId 13位时间戳+ 随机5位数字字母 + sha256tel
                 String clickId = System.currentTimeMillis() + getCode(5) + sha256Tel;
-                xieChengData.setClickId(clickId);
+                adReqDTO.setClickId(clickId);
                 // 携程推送
-                Result result = xieChengService.pushXieChengData(xieChengData);
+                Result result = xieChengService.pushXieChengData(adReqDTO);
                 if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
                     resultData.setPushStatus(2);
                 } else {

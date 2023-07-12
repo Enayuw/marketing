@@ -3,6 +3,7 @@ package com.br.marketing.client.xiecheng;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.client.xiecheng.intput.AdReqDTO;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -48,10 +49,9 @@ public class XieChengService {
     //singKey: 95cc01ec07387a44
     //source: BaiRong_C01
     //channel: commonOutAdMonitor
-    private static final  String  CODETYPE = "MOBILE";
-    private static final  String  MARKETTYPE = "SMS";
-    private static final  Boolean  MARKETFINANCEUSER = false;
-
+    private static final String CODETYPE = "MOBILE";
+    private static final String MARKETTYPE = "SMS";
+    private static final Boolean MARKETFINANCEUSER = false;
 
 
     @Value("${api.xiecheng.openUrl:0}")
@@ -59,6 +59,9 @@ public class XieChengService {
 
     @Value("${api.xiecheng.appId:0}")
     private String appId;
+
+    @Value("${api.xiecheng.appIdVt:0}")
+    private String appIdVt;
 
     @Value("${api.xiecheng.key:0}")
     private String key;
@@ -148,33 +151,48 @@ public class XieChengService {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
-    private static final  String XIECHENGSMSQUIT= "xieChengSmsQuit";
+    private static final String XIECHENGSMSQUIT = "xieChengSmsQuit";
 
 
     @RetryMethod(retryNowNum = 3)
-    public Result pushXieChengData(XieChengData xieChengData) {
+    public Result pushXieChengData(AdReqDTO xieChengData) {
         /**
          * data 组装
          */
         JSONObject deviceInfo = new JSONObject();
         deviceInfo.put("sha256Tel", xieChengData.getSha256Tel());
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
-        ThirdAdOuterReq thirdAdOuterReq = new ThirdAdOuterReq(
-                timestemp,
-                source,
-                xieChengData.getClickId(),
-                xieChengData.getActionType(),
-                deviceInfo.toString()
-        );
+        ThirdAdOuterReq thirdAdOuterReq = null;
+        if ("1".equals(xieChengData.getConditionKey())) {
+            thirdAdOuterReq = new ThirdAdOuterReq(
+                    timestemp,
+                    source,
+                    xieChengData.getClickId(),
+                    xieChengData.getActionType(),
+                    deviceInfo.toString()
+            );
+        } else {
+            thirdAdOuterReq = new ThirdAdOuterReq(
+                    timestemp,
+                    source,
+                    xieChengData.getClickId(),
+                    xieChengData.getActionType(),
+                    deviceInfo.toString(),
+                    xieChengData.getMktMode(),
+                    xieChengData.getMktChannel(),
+                    xieChengData.getMktProductNo()
+            );
+        }
+
         Map<String, Object> retMap = Maps.newHashMap();
-        retMap.put("appId", appId);
+        retMap.put("appId", "1".equals(xieChengData.getConditionKey()) ? appId : appIdVt);
         retMap.put("timestamp", timestemp);
         retMap.put("channel", channel);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(thirdAdOuterReq), key, iv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, singKey));
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, openUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(thirdAdOuterReq),true,false);
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, openUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(thirdAdOuterReq), true, false);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.error("携程广告上报接口发送参数:ThirdAdOuterReq={} para={}", JSON.toJSONString(thirdAdOuterReq),JSON.toJSONString(retMap));
+            log.error("携程广告上报接口发送参数:ThirdAdOuterReq={} para={}", JSON.toJSONString(thirdAdOuterReq), JSON.toJSONString(retMap));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
         String content = resMap.get("content");
@@ -186,12 +204,12 @@ public class XieChengService {
 
         JSONObject resultJson = JSONObject.parseObject(content);
         Integer code = resultJson.getInteger("code");
-        if(code==0){
+        if (code == 0) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
         }
         if (code == 500 || code == 704) {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(content);
-        }else {
+        } else {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
         }
 
@@ -209,26 +227,27 @@ public class XieChengService {
         retMap.put("channel", smsQuitChannel);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(smsQuitReq), smsQuitKey, smsQuitIv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsQuitSingKey));
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsQuitOpenUrl, smsQuitIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,"", httpProxyClient.isLogStore(XIECHENGSMSQUIT).get(0), httpProxyClient.isLogStore(XIECHENGSMSQUIT).get(1));
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsQuitOpenUrl, smsQuitIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, "", httpProxyClient.isLogStore(XIECHENGSMSQUIT).get(0), httpProxyClient.isLogStore(XIECHENGSMSQUIT).get(1));
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.error("携程短信退订接口-请求参数:{};返回:{}",JSON.toJSONString(resMap),JSON.toJSONString(resMap));
+            log.error("携程短信退订接口-请求参数:{};返回:{}", JSON.toJSONString(resMap), JSON.toJSONString(resMap));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
         JSONObject resultJson = JSONObject.parseObject(resMap.get("content"));
         Integer code = resultJson.getInteger("code");
-        if(code==0){
+        if (code == 0) {
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         //需要重试
-        if(code==500||code==704){
+        if (code == 500 || code == 704) {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
-        }else{
+        } else {
             return new Result().setCode(ResultCode.FAIL.getValue());
         }
     }
 
     /**
      * 短信碰撞接口
+     *
      * @param sha256CodeList
      * @return
      */
@@ -238,7 +257,7 @@ public class XieChengService {
          * data 组装
          */
         XieChengSmsCollidingReq xieChengSmsCollidingReq = new XieChengSmsCollidingReq(
-                smsCollidingAppId,sha256CodeList,CODETYPE,MARKETTYPE,MARKETFINANCEUSER
+                smsCollidingAppId, sha256CodeList, CODETYPE, MARKETTYPE, MARKETFINANCEUSER
         );
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         Map<String, Object> retMap = Maps.newHashMap();
@@ -247,7 +266,7 @@ public class XieChengService {
         retMap.put("channel", smsCollidingChannel);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingKey, smsCollidingIv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingSingKey));
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingVtIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingVtIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.error("携程短信撞库接口httpcode非200异常，重试");
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
@@ -256,16 +275,18 @@ public class XieChengService {
         //String content = "{\"code\":702,\"msg\":\"测试效率\",\"data\":[{\"md5Code\":null,\"sha256Code\":\"760a06d2bc9b150d1d5b162e95bed32ed306cd1c2f7417c5e10397715ea165c1\",\"result\":false,\"orgChannel\":\"测试orgChannel\",\"mktLevel\":\"测试orgmktLevel\",\"info\":\"测试info\"}]}";
         JSONObject resultJson = JSONObject.parseObject(content);
         Integer code = resultJson.getInteger("code");
-        if(code==0){
+        if (code == 0) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
-        }else {
+        } else {
             log.error("携程短信撞库接口请求返回code 非0异常，无重试，需要是手动处理。");
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
         }
 
     }
+
     /**
      * 短信碰撞接口
+     *
      * @param sha256CodeList
      * @return
      */
@@ -275,7 +296,7 @@ public class XieChengService {
          * data 组装
          */
         XieChengSmsCollidingReq xieChengSmsCollidingReq = new XieChengSmsCollidingReq(
-                smsCollidingVtAppId,sha256CodeList,CODETYPE,MARKETTYPE,MARKETFINANCEUSER
+                smsCollidingVtAppId, sha256CodeList, CODETYPE, MARKETTYPE, MARKETFINANCEUSER
         );
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         Map<String, Object> retMap = Maps.newHashMap();
@@ -295,9 +316,9 @@ public class XieChengService {
         //String content = "{\"code\":702,\"msg\":\"测试效率\",\"data\":[{\"md5Code\":null,\"sha256Code\":\"760a06d2bc9b150d1d5b162e95bed32ed306cd1c2f7417c5e10397715ea165c1\",\"result\":false,\"orgChannel\":\"测试orgChannel\",\"mktLevel\":\"测试orgmktLevel\",\"info\":\"测试info\"}]}";
         JSONObject resultJson = JSONObject.parseObject(content);
         Integer code = resultJson.getInteger("code");
-        if(code==0){
+        if (code == 0) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
-        }else {
+        } else {
             log.error("携程短信撞库接口请求【新】返回code 非0异常，无重试，需要是手动处理。");
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
         }

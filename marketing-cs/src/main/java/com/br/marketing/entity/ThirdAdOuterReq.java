@@ -26,6 +26,12 @@ public class ThirdAdOuterReq {
 
     private String actionType;
 
+    private String mktMode;
+
+    private String mktChannel;
+
+    private String mktProductNo;
+
     private String deviceInfo;
 
     public ThirdAdOuterReq(String timestamp,String source,String clickId,String actionType,String deviceInfo){
@@ -34,5 +40,17 @@ public class ThirdAdOuterReq {
         this.clickId = clickId;
         this.actionType = actionType;
         this.deviceInfo = deviceInfo;
+    }
+
+    public ThirdAdOuterReq(String timestamp,String source,String clickId,String actionType,String deviceInfo
+            ,String mktMode,String mktChannel,String mktProductNo){
+        this.timestamp = timestamp;
+        this.source = source;
+        this.clickId = clickId;
+        this.actionType = actionType;
+        this.deviceInfo = deviceInfo;
+        this.mktMode = mktMode;
+        this.mktChannel = mktChannel;
+        this.mktProductNo = mktProductNo;
     }
 }
