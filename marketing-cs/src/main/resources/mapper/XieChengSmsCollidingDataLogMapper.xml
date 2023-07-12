@@ -10,19 +10,9 @@
         <![CDATA[ and create_time > #{lastTimeDay} ]]>
         order by create_time desc limit 1;
     </select>
-    <select id="selectBySha256CodeSet" resultType="java.lang.String">
-        select sha256_code_list
-        from b_xiecheng_sms_colliding_data_log_vt
-        where  sha256_code_list in
-        <foreach collection="sha256CodeSet" item="sha256Code" open="(" separator="," close=")">
-            #{sha256Code}
-        </foreach>
-        and status in(1,2) and send_date =#{sendDate}
 
-    </select>
-
-    <insert id="saveBatchLogVt" parameterType="list">
-        insert into b_xiecheng_sms_colliding_data_log_vt (api_code, local_id,
+    <insert id="saveBatch" parameterType="list">
+        insert into b_xiecheng_sms_colliding_data_log (api_code, local_id,
         type, sha256_code_list,status, create_time,update_time)values
         <foreach collection="list" item="data" separator=",">
             (#{data.apiCode,jdbcType=VARCHAR}, #{data.localId,jdbcType=BIGINT},
@@ -96,67 +86,7 @@
             and id =(select id from b_xiecheng_sms_colliding_data_log where  sha256_code_list=#{i.sha256CodeList} and local_id = #{i.localId} order by create_time desc limit 1)
         </foreach>
     </update>
-    <update id="updateBatchVt" parameterType="com.br.marketing.entity.XieChengSmsCollidingDataLog" >
-        update b_xiecheng_sms_colliding_data_log
-        <set >
-            <if test="smsCollidingDataId != null" >
-                sms_colliding_data_id = #{smsCollidingDataId,jdbcType=BIGINT},
-            </if>
-            <if test="apiCode != null" >
-                api_code = #{apiCode,jdbcType=VARCHAR},
-            </if>
-            <if test="localId != null" >
-                local_id = #{localId,jdbcType=BIGINT},
-            </if>
-            <if test="type != null" >
-                type = #{type,jdbcType=VARCHAR},
-            </if>
-            <if test="sha256CodeList != null" >
-                sha256_code_list = #{sha256CodeList,jdbcType=VARCHAR},
-            </if>
-            <if test="md5Code != null" >
-                md5_code = #{md5Code,jdbcType=VARCHAR},
-            </if>
-            <if test="param != null" >
-                param = #{param,jdbcType=VARCHAR},
-            </if>
-            <if test="paramSecret != null" >
-                param_secret = #{paramSecret,jdbcType=VARCHAR},
-            </if>
-            <if test="orgChannel != null" >
-                org_channel = #{orgChannel,jdbcType=VARCHAR},
-            </if>
-            <if test="mktLevel != null" >
-                mkt_level = #{mktLevel,jdbcType=VARCHAR},
-            </if>
-            <if test="info != null" >
-                info = #{info,jdbcType=VARCHAR},
-            </if>
-            <if test="result != null" >
-                result = #{result,jdbcType=BIT},
-            </if>
-            <if test="status != null" >
-                status = #{status,jdbcType=INTEGER},
-            </if>
-            <if test="dataMessage != null" >
-                data_message = #{dataMessage,jdbcType=VARCHAR},
-            </if>
-            <if test="createTime != null" >
-                create_time = #{createTime,jdbcType=TIMESTAMP},
-            </if>
-            <if test="updateTime != null" >
-                update_time = #{updateTime,jdbcType=TIMESTAMP},
-            </if>
-            <if test="extend != null" >
-                extend = #{extend,jdbcType=LONGVARCHAR},
-            </if>
-        </set>
-        where id in
-        <foreach collection="list" item="xc" open="(" separator="," close=")">
-            #{xc.sha256CodeList}
-        </foreach>
 
-    </update>
 
     <select id="getDataByCells" resultType="com.br.marketing.entity.XieChengSmsCollidingDataLog">
         select * from b_xiecheng_sms_colliding_data_log
@@ -167,68 +97,4 @@
         and status=2
     </select>
 
-
-    <update id="updateSelectiveVt" parameterType="map" >
-        update b_xiecheng_sms_colliding_data_log
-        <set >
-            <if test="record.id != null" >
-                id = #{record.id,jdbcType=BIGINT},
-            </if>
-            <if test="record.smsCollidingDataId != null" >
-                sms_colliding_data_id = #{record.smsCollidingDataId,jdbcType=BIGINT},
-            </if>
-            <if test="record.apiCode != null" >
-                api_code = #{record.apiCode,jdbcType=VARCHAR},
-            </if>
-            <if test="record.localId != null" >
-                local_id = #{record.localId,jdbcType=BIGINT},
-            </if>
-            <if test="record.type != null" >
-                type = #{record.type,jdbcType=VARCHAR},
-            </if>
-            <if test="record.sha256CodeList != null" >
-                sha256_code_list = #{record.sha256CodeList,jdbcType=VARCHAR},
-            </if>
-            <if test="record.md5Code != null" >
-                md5_code = #{record.md5Code,jdbcType=VARCHAR},
-            </if>
-            <if test="record.param != null" >
-                param = #{record.param,jdbcType=VARCHAR},
-            </if>
-            <if test="record.paramSecret != null" >
-                param_secret = #{record.paramSecret,jdbcType=VARCHAR},
-            </if>
-            <if test="record.orgChannel != null" >
-                org_channel = #{record.orgChannel,jdbcType=VARCHAR},
-            </if>
-            <if test="record.mktLevel != null" >
-                mkt_level = #{record.mktLevel,jdbcType=VARCHAR},
-            </if>
-            <if test="record.info != null" >
-                info = #{record.info,jdbcType=VARCHAR},
-            </if>
-            <if test="record.result != null" >
-                result = #{record.result,jdbcType=BIT},
-            </if>
-            <if test="record.status != null" >
-                status = #{record.status,jdbcType=INTEGER},
-            </if>
-            <if test="record.dataMessage != null" >
-                data_message = #{record.dataMessage,jdbcType=VARCHAR},
-            </if>
-            <if test="record.createTime != null" >
-                create_time = #{record.createTime,jdbcType=TIMESTAMP},
-            </if>
-            <if test="record.updateTime != null" >
-                update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-            </if>
-            <if test="record.extend != null" >
-                extend = #{record.extend,jdbcType=LONGVARCHAR},
-            </if>
-            <if test="record.sendDate != null" >
-                send_date = #{record.sendDate,jdbcType=LONGVARCHAR},
-            </if>
-        </set>
-       where sha256_code_list = #{record.sha256CodeList,jdbcType=VARCHAR}
-    </update>
 </mapper>
