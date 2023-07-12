@@ -1221,39 +1221,37 @@ public class PushRuleServiceImpl implements PushRuleService {
                 return;
             }
             // 遍历缓存中需要设置默认有效期的apiCode与userType
-            try {
-                validDateCache.forEach((key1, value) -> {
-                    LocalDateTime now = LocalDateTime.now();
-                    LocalDateTime localDateTime = now.plusDays(1);
-                    ZonedDateTime zonedDateTime = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault());
-                    String key = RedisKeyConstant.prefix.concat("valid:lock:") + key1;
-                    boolean lock;
+            validDateCache.forEach((key1, value) -> {
+                LocalDateTime now = LocalDateTime.now();
+                LocalDateTime localDateTime = now.plusDays(1);
+                ZonedDateTime zonedDateTime = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault());
+                String key = RedisKeyConstant.prefix.concat("valid:lock:") + key1;
+                boolean lock;
+                try {
+                    // 将主键保存到锁的key中
+                    lock = redisChgService.lock(key, String.valueOf(value.getId())
+                            , ChronoUnit.MILLIS.between(now, zonedDateTime));
+                } catch (Exception e) {
+                    lock = true;
+                    log.error("设置默认有效期,上锁失败key:" + key + e.getMessage(), e);
+                }
+                if (lock) {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("apiCode", value.getApiCode());
+                    jsonObject.put("userType", value.getUserType());
+                    jsonObject.put("appletDate", StringUtils.isBlank(value.getAppletDate())
+                            ? LocalDate.now().toString() : value.getAppletDate());
                     try {
-                        // 将主键保存到锁的key中
-                        lock = redisChgService.lock(key, String.valueOf(value.getId())
-                                , ChronoUnit.MILLIS.between(now, zonedDateTime));
+                        producter.send(MQConstants.ROUTING_KEY_MARKETING_CONFIG_DEFAULT_VALID_DATE, jsonObject.toJSONString());
                     } catch (Exception e) {
-                        lock = true;
-                        log.error("设置默认有效期,上锁失败key:" + key + e.getMessage(), e);
+                        log.error("设置默认有效期,发送mq消息内容:" + jsonObject.toJSONString() + e.getMessage(), e);
                     }
-                    if (lock) {
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("apiCode", value.getApiCode());
-                        jsonObject.put("userType", value.getUserType());
-                        jsonObject.put("appletDate", StringUtils.isBlank(value.getAppletDate())
-                                ? LocalDate.now().toString() : value.getAppletDate());
-                        try {
-                            producter.send(MQConstants.ROUTING_KEY_MARKETING_CONFIG_DEFAULT_VALID_DATE, jsonObject.toJSONString());
-                        } catch (Exception e) {
-                            log.error("设置默认有效期,发送mq消息内容:" + jsonObject.toJSONString() + e.getMessage(), e);
-                        }
-                    }
-                });
-            } finally {
-                LOCK.unlock();
-            }
+                }
+            });
         } catch (InterruptedException e) {
             log.error(e.getMessage(), e);
+        } finally {
+            LOCK.unlock();
         }
     }
 
