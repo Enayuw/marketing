@@ -1438,6 +1438,25 @@ public class PushDataServiceImpl implements PushDataService {
 
             String apiCode = xieChengData.getApiCode();
 
+            HashMap<String, Integer> xieChengCallPushCondition = marketingCommonConfig.getXieChengCallPushCondition();
+
+            if(xieChengCallPushCondition == null){
+                xieChengCallPushCondition=new HashMap<>();
+                xieChengCallPushCondition.put("3710058",1);
+                xieChengCallPushCondition.put("3710078",1);
+                xieChengCallPushCondition.put("3710090",2);
+                xieChengCallPushCondition.put("3710091",2);
+            }
+            XieChengData resultData = new XieChengData();
+            resultData.setId(xieChengData.getId());
+            Integer condition = xieChengCallPushCondition.get(apiCode);
+            if(condition==null){
+                resultData.setStatus(2);
+                resultData.setDataMessage("该apiCode未配置规则数据");
+                xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                return;
+            }
+
             String tcId = tableCreateService.getTcId(apiCode);
             // 字段修改兼容
             String sha256Tel = xieChengData.getSha256Tel();
@@ -1448,9 +1467,6 @@ public class PushDataServiceImpl implements PushDataService {
                     .concat(sha256Tel);
             String value = UUID.randomUUID().toString();
             redisChgService.lock(key, value);
-
-            XieChengData resultData = new XieChengData();
-            resultData.setId(xieChengData.getId());
 
             //查询投诉退订
             Integer xiechengSmsQuitDataSize = xiechengSmsQuitDataMapper.getCountSmsQuitDataByMobile(sha256Tel);
@@ -1505,6 +1521,8 @@ public class PushDataServiceImpl implements PushDataService {
             log.error(e.getMessage(),e);
         }
     }
+
+
 
     /**
      * 随机生成由数字、字母组成的N位验证码
