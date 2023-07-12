@@ -853,7 +853,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             return Collections.emptyMap();
         }
         // apicode有效期配置
-        final List<MarketingDataValidConfig> configList = findConfigAllByApiCodeList(apiCode);
+        final List<MarketingDataValidConfig> configList = findConfigAllByApiCodeListFirstVersion(apiCode);
         // 未配置任何有效期
         if (CollectionUtils.isEmpty(configList)) {
             return Collections.emptyMap();
@@ -896,5 +896,16 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             log.error(e.getMessage(), e);
         }
         return boMap;
+    }
+
+    /**
+     * 2023-03-23 12:38
+     * apicode全量有效期配置
+     */
+    private List<MarketingDataValidConfig> findConfigAllByApiCodeListFirstVersion(String apiCode) {
+        MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(1).andValidTypeEqualTo(1);
+        example.setOrderByClause("create_time desc, update_time desc");
+        return marketingDataValidConfigMapper.selectByExample(example);
     }
 }
