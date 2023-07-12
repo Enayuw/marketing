@@ -117,7 +117,7 @@ public class DiDiNewModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUs
             if (StringUtils.isNotEmpty(marketingCommonConfig.getDidiModelingNewThreadNum())) {
                 pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getDidiModelingNewThreadNum()));
                 pool.setMaximumPoolSize(Integer.valueOf(marketingCommonConfig.getDidiModelingNewThreadNum()));
-                log.warn("滴滴联合建模接口线程调整，corePoolSize={},maxPoolSize={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
+                log.warn("滴滴联合建模新接口(bairongA)线程调整，corePoolSize={},maxPoolSize={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
             }
             Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> inputRes = getInputData(inputData);
             if (ResultCode.FAIL.getValue().equals(inputRes.getCode())) {
@@ -135,7 +135,7 @@ public class DiDiNewModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUs
                         log.warn(res.getMessage());
                     }
                 } catch (Exception ex) {
-                    log.error("滴滴联合建模调用异常", ex);
+                    log.error("滴滴联合建模新接口调用异常", ex);
                 }
             });
         }

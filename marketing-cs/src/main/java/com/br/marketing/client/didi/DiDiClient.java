@@ -194,7 +194,7 @@ public class DiDiClient {
      */
     public Result<DiDiJMassResponseTO> pushJMASS(DiDiReqVO smsReqVO) {
         try {
-            jmassSUrl = jmassSUrl.replace("mediaName",smsReqVO.getMediaName());
+            String url = jmassSUrl.replace("mediaName",smsReqVO.getMediaName());
             // 获取是否记录日志
             HashMap<String, List<Boolean>> isLog = getIsLog();
             List<Boolean> islogs = isLog.get(PUSH_JMASS);
@@ -209,7 +209,7 @@ public class DiDiClient {
                 resMap.put("httpcode", "200");
             } else {
                 // 发送请求
-                resMap = httpProxyClient.sendByCodeWithLog(jmassRequestTO, jmassSUrl, isProxy,
+                resMap = httpProxyClient.sendByCodeWithLog(jmassRequestTO, url, isProxy,
                         MediaType.APPLICATION_JSON_UTF8_VALUE,
                         JSON.toJSONString(smsReqVO), islogs.get(0), islogs.get(1));
             }
