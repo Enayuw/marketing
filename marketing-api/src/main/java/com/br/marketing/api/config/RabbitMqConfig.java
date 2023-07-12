@@ -127,6 +127,16 @@ public class RabbitMqConfig {
         return BindingBuilder.bind(transferPushCustomerQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER);
     }
 
+    @Bean(name = MQConstants.XIECHENG_SMSCOLLIDINGVT_CUSTOMER)
+    public Queue XieChengSmsQueue() {
+        return new Queue(MQConstants.XIECHENG_SMSCOLLIDINGVT_CUSTOMER, true);
+    }
+
+    @Bean
+    public Binding XieChengSmsBinding() {
+        return BindingBuilder.bind(XieChengSmsQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_XIECHENG_SMSCOLLIDINGVT_CUSTOMER);
+    }
+
     @Bean
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
         return new RabbitAdmin(connectionFactory);

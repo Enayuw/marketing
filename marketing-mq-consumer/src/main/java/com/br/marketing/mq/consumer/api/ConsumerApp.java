@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * rabbitmq 消费端
@@ -76,5 +77,20 @@ public class ConsumerApp {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         consumerService.consumerRun(channel, message, pushRuleService::consumerTransferData, o, null);
+    }
+
+    /**
+     * 消费 携程短信撞库数据推送客服接口导入异步处理
+     * 携程新场景短信撞库result=false的sha256Code手机号
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(queues = MQConstants.XIECHENG_SMSCOLLIDINGVT_CUSTOMER, containerFactory = "fiveDataContainerFactory")
+    public void consumerXiechengSmsCollidingVtUser(Channel channel, Message message) {
+        log.warn("Marketing_XieChengSmsCollidingVt_Customer：获取消息成功");
+        List<String> o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<List<String>>() {
+        }.getType());
+        consumerService.consumerRun(channel, message, pushRuleService::consumerXiechengSmsCollidingVtUser, o, null);
     }
 }

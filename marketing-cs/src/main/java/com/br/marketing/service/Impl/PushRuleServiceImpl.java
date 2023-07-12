@@ -6,6 +6,7 @@ import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.common.utils.*;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
@@ -26,10 +27,6 @@ import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.exception.CommonException;
-import com.br.marketing.common.utils.AESUtil;
-import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.commonentity.StatusConstants;
@@ -104,6 +101,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         errorCodeHm.put("1005", "入库异常");
         errorCodeHm.put("1006", "参数过长");
     }
+
+    @Resource
+    XieChengSmsCollidingDataLogVtMapper xieChengSmsCollidingDataLogVtMapper;
 
     @Resource
     MarketingTaskMapper marketingTaskMapper;
@@ -2779,6 +2779,37 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue);
     }
+
+    @Override
+    public Result consumerXiechengSmsCollidingVtUser(List<String> list) {
+        // todo
+        for (String sha256Code : list) {
+            Date nowDayStartTime = DateHelper.getNowDayStartTime();
+            Date nowDayEndTime = DateHelper.getNowDayEndTime();
+            // todo apicode 改为配置
+            XieChengSmsCollidingDataLogVtExample xieChengSmsCollidingDataLogVtExample = new XieChengSmsCollidingDataLogVtExample();
+            xieChengSmsCollidingDataLogVtExample.createCriteria().andSha256CodeListEqualTo(sha256Code).andStatusEqualTo(new Integer(2))
+                    .andCreateTimeBetween(nowDayStartTime,nowDayEndTime).andApiCodeEqualTo("3710090");
+            List<XieChengSmsCollidingDataLogVt> xieChengSmsCollidingDataLogs =
+                    xieChengSmsCollidingDataLogVtMapper.selectByExample(xieChengSmsCollidingDataLogVtExample);
+
+            Long id = xieChengSmsCollidingDataLogs.get(0).getId();
+
+            ConversionData conversionData = new ConversionData();
+            conversionData.setDataId(id.toString());
+//            conversionData.setCid();
+            // todo 用数据写库时间还是当前时间
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String endTimeStr = dateFormat.format(nowDayEndTime);
+            conversionData.setExpireDate(endTimeStr);
+            conversionData.setInversionStatus("0");
+            String query = RpcClientProxy.decode(sha256Code, "cell", "sha", "");
+            conversionData.setPhone(query);
+            conversionData.setInversionInfo("{}");
+        }
+
+        return null;
+    };
 
     @Override
     @Transactional(rollbackFor = Exception.class)
