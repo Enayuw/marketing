@@ -210,8 +210,22 @@ public interface MarketingSyncUserMapper {
 
     List<MarketingSyncUser> getSyncUserByAppletDatePage(@Param("apiCode") String apiCode, @Param("appletDate") String executeDate, @Param("userType") String userType, @Param("limitStart") Integer limitStart);
 
+    /**
+     * 2023-07-13 20:15
+     * 根据手机号+有效期配置获取上传数据
+     *
+     * @param cellValidityPeriodBOList 封装类
+     */
     List<MarketingSyncUser> getSyncUserLastByCellAndInAppletDateUserTypeList(@Param("apiCode") String apiCode
             , @Param("configList") List<MarketingDataValidConfig> configList
             , @Param("cellValidityPeriodBOList") List<CellValidityPeriodBO> cellValidityPeriodBOList);
+
+    /**
+     * 2023-07-13 20:15
+     * 根据手机号+有效期配置获取上传数据
+     */
+    List<MarketingSyncUser> getSyncUserLastByCellAndInAppletDatList(@Param("apiCode") String apiCode
+            , @Param("configList") List<MarketingDataValidConfig> configList
+            , @Param("cellSet") Set<String> cellSet);
 
 }

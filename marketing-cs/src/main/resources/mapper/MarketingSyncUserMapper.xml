@@ -669,4 +669,34 @@
         a.applet_time = b.applet_time where
         b.status=1
     </select>
+
+    <select id="getSyncUserLastByCellAndInAppletDatList"
+            resultType="com.br.marketing.entity.MarketingSyncUser">
+        select
+        <include refid="Last_Column_List"/>
+        from
+        (select cell,max(applet_time) as applet_time
+        from b_marketing_sync_${apiCode}
+        where cell in
+        <foreach collection="cellSet" item="cell" open="(" separator="," close=")">
+            '${cell}'
+        </foreach>
+        <choose>
+            <when test="configList != null and configList.size()>0">
+                and (applet_date,user_type) in
+                <foreach collection="configList" item="item" open="(" close=")" separator=",">
+                    (#{item.appletDate},#{item.userType})
+                </foreach>
+            </when>
+            <otherwise>
+                1!=1
+            </otherwise>
+        </choose>
+        and status=1
+        group by cell
+        ) as a
+        left join b_marketing_sync_${apiCode} b on a.cell = b.cell and
+        a.applet_time = b.applet_time where
+        b.status=1
+    </select>
 </mapper>
