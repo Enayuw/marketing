@@ -10,16 +10,11 @@ import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.service.IMarketingDataValidService;
 import com.br.marketing.service.IMarketingSyncUserService;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class MarketingDataValidServiceImpl implements IMarketingDataValidService {
@@ -58,39 +53,5 @@ public class MarketingDataValidServiceImpl implements IMarketingDataValidService
         } else {
             return Boolean.FALSE;
         }
-    }
-
-    @Override
-    public Map<String, MarketingDataValidConfig> getDataValidConfig(String apiCode) {
-        MarketingDataValidConfigExample configExample = new MarketingDataValidConfigExample();
-        configExample.createCriteria()
-                .andIsDelEqualTo(Constants.DATA_VALID)
-                .andValidTypeEqualTo(1)
-                .andApiCodeEqualTo(apiCode);
-        List<MarketingDataValidConfig> list = marketingDataValidConfigMapper.selectByExample(configExample);
-        if (CollectionUtils.isEmpty(list)) {
-            return Collections.emptyMap();
-        } else {
-            return list.stream().collect(Collectors.toConcurrentMap(l -> l.getUserType() + l.getAppletDate()
-                    , Function.identity()
-                    , BinaryOperator.maxBy(Comparator.comparing(MarketingDataValidConfig::getCreateTime))));
-        }
-    }
-
-    @Override
-    public boolean isNotValid(MarketingDataValidConfig validConfig, MarketingSyncUser syncUser) {
-        return !isValid(validConfig, syncUser);
-    }
-
-    @Override
-    public boolean isValid(MarketingDataValidConfig validConfig, MarketingSyncUser syncUser) {
-        String validStartDate = validConfig.getValidStartDate();
-        String validEndDate = validConfig.getValidEndDate();
-        LocalDate startDate = LocalDate.parse(validStartDate, DateTimeFormatter.ISO_LOCAL_DATE);
-        LocalDate endDate = LocalDate.parse(validEndDate, DateTimeFormatter.ISO_LOCAL_DATE);
-        LocalDate localDate = syncUser.getAppletTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        // 比较是否在范围内
-        return ((startDate.isBefore(localDate) || startDate.isEqual(localDate))
-                && (localDate.isBefore(endDate) || localDate.isEqual(endDate)));
     }
 }
