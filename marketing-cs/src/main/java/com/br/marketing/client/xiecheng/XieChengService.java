@@ -66,11 +66,20 @@ public class XieChengService {
     @Value("${api.xiecheng.key:0}")
     private String key;
 
+    @Value("${api.xiecheng.keyVt:0}")
+    private String keyVt;
+
     @Value("${api.xiecheng.iv:0}")
     private String iv;
 
+    @Value("${api.xiecheng.ivVt:0}")
+    private String ivVt;
+
     @Value("${api.xiecheng.singKey:0}")
     private String singKey;
+
+    @Value("${api.xiecheng.signKeyVt:0}")
+    private String signKeyVt;
 
     @Value("${api.xiecheng.source:0}")
     private String source;
@@ -184,12 +193,17 @@ public class XieChengService {
             );
         }
 
+        String aid = "1".equals(xieChengData.getConditionKey()) ? appId : appIdVt;
+        String aesKey = "1".equals(xieChengData.getConditionKey()) ? key : keyVt;
+        String ivKey = "1".equals(xieChengData.getConditionKey()) ? iv : ivVt;
+        String sKey = "1".equals(xieChengData.getConditionKey()) ? singKey : signKeyVt;
+
         Map<String, Object> retMap = Maps.newHashMap();
-        retMap.put("appId", "1".equals(xieChengData.getConditionKey()) ? appId : appIdVt);
+        retMap.put("appId", aid);
         retMap.put("timestamp", timestemp);
         retMap.put("channel", channel);
-        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(thirdAdOuterReq), key, iv));
-        retMap.put("sign", FinanceAESUtils.signLocal(retMap, singKey));
+        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(thirdAdOuterReq), aesKey , ivKey));
+        retMap.put("sign", FinanceAESUtils.signLocal(retMap, sKey));
         HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, openUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(thirdAdOuterReq), true, false);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.error("携程广告上报接口发送参数:ThirdAdOuterReq={} para={}", JSON.toJSONString(thirdAdOuterReq), JSON.toJSONString(retMap));
