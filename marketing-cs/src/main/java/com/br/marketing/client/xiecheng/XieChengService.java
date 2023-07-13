@@ -309,7 +309,7 @@ public class XieChengService {
         HashMap<String, String> resMap = new HashMap<>();
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.error("携程短信撞库接口【新】httpcode非200异常，重试");
-            String content = "{\"msg\":\"非 200 网络异常\"}";
+            String content = "{\"msg\":\"网络异常或者返回内容为空\"}";
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(content);
         }
         String content = resMap.get("content");
