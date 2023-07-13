@@ -12,6 +12,7 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author GuangChao.Zhang
@@ -168,5 +169,23 @@ public interface TransferDataValidityPeriodService {
     Map<String, SyncUserValidityPeriodBO> getValidityPeriodCellBatchFirstVersion(
             List<CellValidityPeriodBO> cellValidityPeriodBOList, String apiCode, Object requestDateObj);
 
+    /**
+     * 根据cell获取有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
+     * 存在上传数据，有效
+     * 不存在上传数据，无效
+     *
+     * @param cellSet        手机号数据集合
+     * @param apiCode        客户编号
+     * @param requestDateObj 接收日期，为null时使用转化数据请求日期，
+     *                       支持数据格式 String(yyyy-MM-dd)、Date、LocalDate、LocalDateTime、Long、Calendar,
+     *                       非以上格式时默认当前日期
+     * @return Map  key：cell value：SyncUserValidityPeriodBO
+     * <p>
+     * {@linkplain SyncUserValidityPeriodBO MarketingSyncUser PeriodOfValidityBO.Builder}
+     * @author Guo Zeqiang
+     * @dateTime 2023-07-13 10:07
+     */
+    Map<String, SyncUserValidityPeriodBO> getValidityPeriodCellBatchFirstVersion(
+            Set<String> cellSet, String apiCode, Object requestDateObj);
 
 }

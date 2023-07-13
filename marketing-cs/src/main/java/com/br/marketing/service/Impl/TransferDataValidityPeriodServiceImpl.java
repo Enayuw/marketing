@@ -941,6 +941,39 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         return boMap;
     }
 
+    @Override
+    public Map<String, SyncUserValidityPeriodBO> getValidityPeriodCellBatchFirstVersion(Set<String> cellSet
+            , String apiCode, Object requestDateObj) {
+        if (CollectionUtils.isEmpty(cellSet)) {
+            return Collections.emptyMap();
+        }
+        // apicode有效期配置
+        final List<MarketingDataValidConfig> configList = findConfigAllByApiCodeListFirstVersion(apiCode);
+        // 未配置任何有效期
+        if (isNotExistDataValidConfig(configList, apiCode)) {
+            return Collections.emptyMap();
+        }
+        Map<String, SyncUserValidityPeriodBO> boMap = new HashMap<>(2048);
+        try {
+            // 统一时间格式
+            final Date requestDate = switchDate(requestDateObj);
+            // 获取包含请求日期的T,T （范围）模式的配置记录
+            final List<MarketingDataValidConfig> ttRequestDateDataValidConfigList = configList.stream()
+                    .filter(config -> compareRequestDate(config, requestDate)).collect(Collectors.toList());
+            // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
+            if (!ttRequestDateDataValidConfigList.isEmpty()) {
+                List<MarketingSyncUser> syncUserList =
+                        marketingSyncUserMapper.getSyncUserLastByCellAndInAppletDatList(apiCode
+                                , ttRequestDateDataValidConfigList, cellSet);
+                boMap.putAll(packageCellValidityPeriodInfo(syncUserList, ttRequestDateDataValidConfigList, false));
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        return boMap;
+    }
+
+
     /**
      * 2023-07-13 17:31
      * 是否存在有效期配置
