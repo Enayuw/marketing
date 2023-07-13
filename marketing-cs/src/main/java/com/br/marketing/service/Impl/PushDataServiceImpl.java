@@ -1415,7 +1415,7 @@ public class PushDataServiceImpl implements PushDataService {
                     updateLogVt(xieChengSmsCollidingThreadLogVt, returnDataList, xieChengSmsCollidingDataLogVtList);
 
                     // mq 消息发送
-//                    sendMqData(xieChengSmsCollidingDataLogVtList);
+                    sendMqData(xieChengSmsCollidingDataLogVtList);
 
                 } else {
                     // 异常请求 只更新日志表状态3
