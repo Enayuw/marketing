@@ -783,5 +783,9 @@ public class MarketingCommonConfig {
      */
     private HashMap<String, JSONObject> pushConvTypeConfig;
 
+    /**
+     * 携程定时任务推决策情况apiCode配置:{"b":"371058"}
+     */
+    private Map<String,String> xieChengPushPolicyStatusToApiCode;
 }
 
