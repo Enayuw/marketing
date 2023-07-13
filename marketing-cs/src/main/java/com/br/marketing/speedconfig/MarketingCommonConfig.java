@@ -772,5 +772,18 @@ public class MarketingCommonConfig {
      * 携程广告明细推送条件判断配置{“3710058”:{"condition":"1",soleCellApiCodes:["3710058","3710078"]},“3710078”:{"condition":1,soleCellApiCodes:["3710058","3710078"]},“3710090”:{"condition":2,soleCellApiCodes:["3710090","3710091"]},“3710091”:{"condition":2,soleCellApiCodes:["3710090","3710091"]}}
      */
     private HashMap<String, JSONObject> xieChengCallPushCondition;
+
+
+    /**
+     * 携程新场景短信撞库推送客服转化apiCode配置(一对多分发)
+     * xiechengSmsCustomerTransferApiCodes={"3710090":["3710090","3710091"],"7410950":["7410950","7410951"]}
+     */
+    private HashMap<String, List<String>> xiechengSmsCustomerTransferApiCodes;
+
+    /**
+     * 携程短信撞库新场景apicode
+     * xieChengSmsApiCode=3710090
+     */
+    private String xieChengSmsApiCode;
 }
 
