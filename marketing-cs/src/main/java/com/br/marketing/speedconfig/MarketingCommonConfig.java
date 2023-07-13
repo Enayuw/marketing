@@ -758,9 +758,30 @@ public class MarketingCommonConfig {
     private Integer yiXinSearchPageSize;
 
     /**
+     * 滴滴联合建模新接口执行时间
+     */
+    private String didiModelingNewExecTime;
+
+    /**
+     * 滴滴联合建模新接口线程数
+     */
+    private String didiModelingNewThreadNum;
+
+    /**
+     * 滴滴联合建模新接口任务开关
+     * true 打开，false 关闭执行
+     */
+    private Boolean didiModelingNewDataSwitch;
+
+    /**
+     * 滴滴联合建模mediaName
+     */
+    private Map<String, String> didiModelingMediaNameMap;
+    /**
      * 转化数据的apiCode、convType、推送的apiCode映射关系
      * pushConvTypeConfig={"3710058":{"106":["3710058","3710078"],"107":["3710058"]},"7412009":{"106":["7412009","7410951"],"107":["7412009"]}}
      */
     private HashMap<String, JSONObject> pushConvTypeConfig;
+
 }
 
