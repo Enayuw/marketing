@@ -772,5 +772,11 @@ public class MarketingCommonConfig {
      * 滴滴联合建模mediaName
      */
     private Map<String, String> didiModelingMediaNameMap;
+    /**
+     * 转化数据的apiCode、convType、推送的apiCode映射关系
+     * pushConvTypeConfig={"3710058":{"106":["3710058","3710078"],"107":["3710058"]},"7412009":{"106":["7412009","7410951"],"107":["7412009"]}}
+     */
+    private HashMap<String, JSONObject> pushConvTypeConfig;
+
 }
 
