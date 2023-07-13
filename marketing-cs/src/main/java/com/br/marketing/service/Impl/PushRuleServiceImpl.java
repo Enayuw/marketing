@@ -85,8 +85,6 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -327,8 +325,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     TransferFiledProcessImpl transferFiledProcess;
-
-    private static final Lock LOCK = new ReentrantLock();
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -1089,7 +1085,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 , marketingSyncUser.getId(), et1, et2));
                     }
                     // 入库成功后将apiCode、userType、appletDate为key，并且唯一,
-                    if (marketingSyncUser.getId() != null) {
+                    if (marketingSyncUser.getId() != null
+                            && marketingSyncUser.getStatus().equals(MonitorTypeEnum.STATUS_1.getTypeCode())) {
                         String key = apiCode + marketingSyncUser.getUserType() + marketingSyncUser.getAppletDate();
                         // 缓存最新的原始数据
                         validDateCache.put(key, marketingSyncUser);
@@ -1216,7 +1213,6 @@ public class PushRuleServiceImpl implements PushRuleService {
     private void configValidDateDefault(Map<String, MarketingSyncUser> validDateCache, String apiCode) {
         Set<String> apiCodes = marketingCommonConfig.getNonConfigValidDefaultApiCodes();
         try {
-            LOCK.lockInterruptibly();
             if (apiCodes != null && apiCodes.contains(apiCode)) {
                 return;
             }
@@ -1248,10 +1244,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                     }
                 }
             });
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
-        } finally {
-            LOCK.unlock();
         }
     }
 
