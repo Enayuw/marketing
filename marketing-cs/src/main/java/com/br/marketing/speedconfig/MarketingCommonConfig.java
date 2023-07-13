@@ -769,7 +769,7 @@ public class MarketingCommonConfig {
     private HashMap<String, JSONObject> pushConvTypeConfig;
 
     /**
-     * 携程广告明细推送条件判断配置{“3710058”:{"condition":1,soleCellApiCodes:["3710058","3710078"]},“3710078”:{"condition":1,soleCellApiCodes:["3710058","3710078"]},“3710090”:{"condition":2,soleCellApiCodes:["3710090","3710091"]},“3710091”:{"condition":2,soleCellApiCodes:["3710090","3710091"]}}
+     * 携程广告明细推送条件判断配置{“3710058”:{"condition":"1",soleCellApiCodes:["3710058","3710078"]},“3710078”:{"condition":1,soleCellApiCodes:["3710058","3710078"]},“3710090”:{"condition":2,soleCellApiCodes:["3710090","3710091"]},“3710091”:{"condition":2,soleCellApiCodes:["3710090","3710091"]}}
      */
     private HashMap<String, JSONObject> xieChengCallPushCondition;
 }
