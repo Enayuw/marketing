@@ -158,7 +158,9 @@ public interface TransferDataValidityPeriodService {
      * @param requestDateObj           接收日期，为null时使用转化数据请求日期，
      *                                 支持数据格式 String(yyyy-MM-dd)、Date、LocalDate、LocalDateTime、Long、Calendar,
      *                                 非以上格式时默认当前日期
-     * @return Map key：cell value：SyncUserValidityPeriodBO
+     * @return Map {@code cellValidityPeriodBOList}不存在场景时 key：cell value：SyncUserValidityPeriodBO
+     * {@code cellValidityPeriodBOList}存在场景时 key：cell+userType value：SyncUserValidityPeriodBO
+     * <p>
      * {@linkplain SyncUserValidityPeriodBO MarketingSyncUser PeriodOfValidityBO.Builder}
      * @author Guo Zeqiang
      * @dateTime 2023-07-13 10:07
