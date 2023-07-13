@@ -1,6 +1,7 @@
 package com.br.marketing.client.xiecheng;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.xiecheng.intput.AdReqDTO;
@@ -14,11 +15,13 @@ import com.br.marketing.entity.XieChengSmsCollidingReq;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.velocity.runtime.directive.Foreach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -132,25 +135,23 @@ public class XieChengService {
     @Value("${api.xiecheng.smsQuit.isProxy:0}")
     private Boolean smsCollidingIsProxy;
 
-    @Value("${api.xiecheng.smsCollidingVt.openUrl:0}")
-    private String smsCollidingVtOpenUrl;
 
-    @Value("${api.xiecheng.smsCollidingVt.appId:0}")
+    @Value("${api.xiecheng.smsColliding.appIdVt:0}")
     private String smsCollidingVtAppId;
 
-    @Value("${api.xiecheng.smsCollidingVt.key:0}")
+    @Value("${api.xiecheng.smsColliding.keyVt:0}")
     private String smsCollidingVtKey;
 
-    @Value("${api.xiecheng.smsCollidingVt.iv:0}")
+    @Value("${api.xiecheng.smsColliding.ivVt:0}")
     private String smsCollidingVtIv;
 
-    @Value("${api.xiecheng.smsCollidingVt.singKey:0}")
-    private String smsCollidingVtSingKey;
+    @Value("${api.xiecheng.smsColliding.signKeyVt:0}")
+    private String smsCollidingVtSignKey;
 
-    @Value("${api.xiecheng.smsCollidingVt.channel:0}")
+
     private String smsCollidingVtChannel;
 
-    @Value("${api.xiecheng.smsCollidingVt.isProxy:0}")
+
     private Boolean smsCollidingVtIsProxy;
 
 
@@ -305,37 +306,65 @@ public class XieChengService {
      * @return
      */
     @RetryMethod(retryNowNum = 3)
-    public Result pushXieChengSmsCollidingDataVt(List<String> sha256CodeList) {
-        /**
-         * data 组装
+    public Result<String> pushXieChengSmsCollidingDataVt(List<String> sha256CodeList) {
+        /*
+          data 组装
          */
         XieChengSmsCollidingReq xieChengSmsCollidingReq = new XieChengSmsCollidingReq(
-                smsCollidingVtAppId, sha256CodeList, CODETYPE, MARKETTYPE, MARKETFINANCEUSER
+                appIdVt, sha256CodeList, CODETYPE, MARKETTYPE, MARKETFINANCEUSER
         );
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         Map<String, Object> retMap = Maps.newHashMap();
         retMap.put("appId", smsCollidingVtAppId);
         retMap.put("timestamp", timestemp);
-        retMap.put("channel", smsCollidingVtChannel);
+        retMap.put("channel", smsCollidingChannel);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingVtKey, smsCollidingVtIv));
-        retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingVtSingKey));
-//        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingVtOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
-        HashMap<String, String> resMap = new HashMap<>();
+        retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingVtSignKey));
+//        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
+        HashMap<String, String> resMap = getTestMap(sha256CodeList);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.error("携程短信撞库接口【新】httpcode非200异常，重试");
-            String content = "{\"msg\":\"网络异常或者返回内容为空\"}";
+            String content = "网络异常或者返回内容为空";
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(content);
         }
+
         String content = resMap.get("content");
         //String content = "{\"code\":702,\"msg\":\"测试效率\",\"data\":[{\"md5Code\":null,\"sha256Code\":\"760a06d2bc9b150d1d5b162e95bed32ed306cd1c2f7417c5e10397715ea165c1\",\"result\":false,\"orgChannel\":\"测试orgChannel\",\"mktLevel\":\"测试orgmktLevel\",\"info\":\"测试info\"}]}";
         JSONObject resultJson = JSONObject.parseObject(content);
         Integer code = resultJson.getInteger("code");
         if (code == 0) {
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(content);
         } else {
             log.error("携程短信撞库接口请求【新】返回code 非0异常，无重试，需要是手动处理。");
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
         }
 
     }
+
+    private HashMap<String,String> getTestMap(List<String> sha256CodeList){
+        JSONObject map = new JSONObject();
+        map.put("code",0);
+        map.put("msg","success");
+        JSONArray jsonArray = new JSONArray();
+        for(int i=0;i<sha256CodeList.size();i++){
+            JSONObject dataMap = new JSONObject();
+            String s = sha256CodeList.get(i);
+            dataMap.put("sha256Code",s);
+            if(i%2==0){
+                dataMap.put("result",true);
+            }else {
+                dataMap.put("result",false);
+            }
+            dataMap.put("orgChannel","测试orgChannel");
+            dataMap.put("mktLevel","测试mktLevel");
+            dataMap.put("info","测试info");
+            jsonArray.add(dataMap);
+        }
+        map.put("data",jsonArray);
+        HashMap<String, String> resMap = new HashMap<>();
+        resMap.put("httpcode","200");
+        resMap.put("content",map.toString());
+        return resMap;
+
+    }
 }
+

@@ -7,5 +7,5 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 public interface XieChengSmsCollidingDataVtMapper extends XieChengSmsCollidingDataVtMapperBase{
-    List<XieChengSmsCollidingDataVt> selectByLocalIdVttikv_(@Param("localId") Long localId, @Param("sendDate") Integer sendDate);
+    List<XieChengSmsCollidingDataVt> selectByLocalIdVttikv_(@Param("localId") Long localId, @Param("indexId") Long indexId,@Param("sendDate") Integer sendDate);
 }
