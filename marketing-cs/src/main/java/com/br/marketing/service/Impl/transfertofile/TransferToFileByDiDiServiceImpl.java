@@ -163,10 +163,8 @@ public class TransferToFileByDiDiServiceImpl implements ITransferToFileService {
                         log.warn(msg);
                     }
                     if (StringUtils.isNotEmpty(reservedField)){
-                        for (String s : reservedField) {
-                            if ("00000000".equals(data) || "0".equals(data) || s.equals(data)) {
-                                continue;
-                            }
+                        if (reservedField.contains(data)) {
+                            continue;
                         }
                     } else {
                         if ("00000000".equals(data) || "0".equals(data)) {
