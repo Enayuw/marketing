@@ -228,4 +228,12 @@ public interface MarketingSyncUserMapper {
             , @Param("configList") List<MarketingDataValidConfig> configList
             , @Param("cellSet") Set<String> cellSet);
 
+    /**
+     * 2023-07-13 20:15
+     * 根据案件编号+有效期配置获取上传数据
+     */
+    List<MarketingSyncUser> getSyncUserLastByCustNumAndInAppletDatList(@Param("apiCode") String apiCode
+            , @Param("configList") List<MarketingDataValidConfig> configList
+            , @Param("custNumSet") Set<String> custNumSet);
+
 }

@@ -2,7 +2,6 @@ package com.br.marketing.service.Impl.transferfieldprocess;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.bo.CellValidityPeriodBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -61,9 +60,7 @@ public class TransferFieldProcessByZhongAnFactory implements TransferFieldProces
         }
         /* 2023-07-13 11:30  业务逻辑变更，洗数前需判断有效期 */
         Map<String, SyncUserValidityPeriodBO> validityMap = transferDataValidityPeriodService
-                .getValidityPeriodCellBatchFirstVersion(Collections.singletonList(
-                        new CellValidityPeriodBO(cellByLog))
-                        , transferSyncUser.getApiCode()
+                .getValidityPeriodCellBatchFirstVersion(Collections.singleton(cellByLog), transferSyncUser.getApiCode()
                         , transferSyncUser.getRequestData());
         SyncUserValidityPeriodBO bo;
         MarketingSyncUser syncUser;

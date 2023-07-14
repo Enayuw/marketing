@@ -8,7 +8,6 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
 
-import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -102,8 +101,7 @@ public interface TransferDataValidityPeriodService {
      * @dateTime 2023-03-22 16:07
      */
     Map<String, SyncUserValidityPeriodBO> getSyncUserValidityPeriodMap(
-            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj)
-            throws ParseException, IllegalArgumentException;
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj);
 
     /**
      * 场景中有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
@@ -118,8 +116,7 @@ public interface TransferDataValidityPeriodService {
      * @dateTime 2023-03-22 16:07
      */
     Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(
-            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj, String UploadLimitDate)
-            throws ParseException, IllegalArgumentException;
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj, String UploadLimitDate);
 
     /**
      * 根据apiCode和日期
@@ -187,5 +184,24 @@ public interface TransferDataValidityPeriodService {
      */
     Map<String, SyncUserValidityPeriodBO> getValidityPeriodCellBatchFirstVersion(
             Set<String> cellSet, String apiCode, Object requestDateObj);
+
+    /**
+     * 根据custNum获取有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
+     * 存在上传数据，有效
+     * 不存在上传数据，无效
+     *
+     * @param custNumSet     案件编号数据集合
+     * @param apiCode        客户编号
+     * @param requestDateObj 接收日期，为null时使用转化数据请求日期，
+     *                       支持数据格式 String(yyyy-MM-dd)、Date、LocalDate、LocalDateTime、Long、Calendar,
+     *                       非以上格式时默认当前日期
+     * @return Map  key：custNum value：SyncUserValidityPeriodBO
+     * <p>
+     * {@linkplain SyncUserValidityPeriodBO MarketingSyncUser PeriodOfValidityBO.Builder}
+     * @author Guo Zeqiang
+     * @dateTime 2023-07-13 10:07
+     */
+    Map<String, SyncUserValidityPeriodBO> getValidityPeriodCustNumBatchFirstVersion(
+            Set<String> custNumSet, String apiCode, Object requestDateObj);
 
 }
