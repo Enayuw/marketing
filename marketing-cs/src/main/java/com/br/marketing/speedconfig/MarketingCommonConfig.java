@@ -590,12 +590,12 @@ public class MarketingCommonConfig {
     /**
      * 你我贷apiCode
      */
-    private  List<String> youMeDApiCodes;
+    private List<String> youMeDApiCodes;
 
     /**
      * 你我贷转化数据提取相关配置 线程数量，是否继续（1-继续，0-退出）{"threadNum":"10","isContinue":"1"}
      */
-    private Map<String,String> youMeDDataPull;
+    private Map<String, String> youMeDDataPull;
 
     /**
      * 你我贷数据提取时间
@@ -605,7 +605,7 @@ public class MarketingCommonConfig {
     /**
      * 海尔数据提取apiCode
      */
-    private  List<String> haierApiCodes;
+    private List<String> haierApiCodes;
 
 
     /**
@@ -615,7 +615,7 @@ public class MarketingCommonConfig {
     /**
      * 国美apiCode
      */
-    private  List<String> gomeApiCodes;
+    private List<String> gomeApiCodes;
     /**
      * 国美数据提取时间
      */
@@ -659,7 +659,7 @@ public class MarketingCommonConfig {
     /**
      * 对客作业配置 {"test":{"isThread":true,"threadNum":10,"isPause":false}}
      */
-    private HashMap<String,JSONObject> customerJobConfig;
+    private HashMap<String, JSONObject> customerJobConfig;
 
 
     /**
@@ -780,7 +780,6 @@ public class MarketingCommonConfig {
      * 携程广告明细推送条件判断配置{“3710058”:{"condition":"1",soleCellApiCodes:["3710058","3710078"]},“3710078”:{"condition":1,soleCellApiCodes:["3710058","3710078"]},“3710090”:{"condition":2,soleCellApiCodes:["3710090","3710091"]},“3710091”:{"condition":2,soleCellApiCodes:["3710090","3710091"]}}
      */
     private HashMap<String, JSONObject> xieChengCallPushCondition;
-
 
     /**
      * 携程新场景短信撞库推送客服转化apiCode配置(一对多分发)

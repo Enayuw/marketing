@@ -2780,7 +2780,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue);
     }
 
-
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result<Long> saveCondition(ConditionSaveDTO dto) {
