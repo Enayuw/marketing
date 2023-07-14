@@ -47,7 +47,6 @@ import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.vo.*;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -103,7 +102,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         errorCodeHm.put("1006", "参数过长");
     }
 
-
+    @Resource
+    XieChengSmsCollidingDataLogVtMapper xieChengSmsCollidingDataLogVtMapper;
 
     @Resource
     MarketingTaskMapper marketingTaskMapper;

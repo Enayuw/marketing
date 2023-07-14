@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import com.alibaba.fastjson.JSONArray;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.entity.XieChengDataExample;
 import com.br.marketing.entity.YiqianbaoData;

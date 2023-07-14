@@ -354,7 +354,7 @@ public class MethodRetryHandlerService {
             dataCompareMapper.insertSelective(dataCompare);
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(transferRobotOutboundVO);
         }
-        log.error("调用客服接口失败 -- {}", JSON.toJSONString(transferRobotOutboundVO));
+        log.error("携程新场景短信撞库，调用客服接口失败 -- {}", JSON.toJSONString(transferRobotOutboundVO));
         //调用客户转化接口失败，记录数据入库，定时任务重试
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
     }

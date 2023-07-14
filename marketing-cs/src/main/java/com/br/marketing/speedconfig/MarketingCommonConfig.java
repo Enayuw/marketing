@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.*;
 
 @Configuration
-@SpeedFile(filename = "marketingcommon.properties",topic = "marketing")
+@SpeedFile(filename = "marketingcommon.properties", topic = "marketing")
 @Data
 public class MarketingCommonConfig {
     /**
@@ -28,7 +28,7 @@ public class MarketingCommonConfig {
     /**
      * 是否是宜信客服转化接口
      */
-    private HashMap<String,Boolean> customerTransferIsYx;
+    private HashMap<String, Boolean> customerTransferIsYx;
 
     /**
      * 海尔apicode
@@ -63,7 +63,7 @@ public class MarketingCommonConfig {
     /**
      * 客户使用规则映射
      */
-    private HashMap<String,String> customerRuleMapping;
+    private HashMap<String, String> customerRuleMapping;
 
     /**
      * 配置走通用流程apiCode
@@ -87,7 +87,7 @@ public class MarketingCommonConfig {
     /**
      * 众安推送黑名单线程数设置{userType:threadNum}
      */
-    private Map<String,String> zhongAnPushBlackThreadNum;
+    private Map<String, String> zhongAnPushBlackThreadNum;
 
     /**
      * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
@@ -236,19 +236,19 @@ public class MarketingCommonConfig {
     /**
      * {"dassBlack":30,"customerBlack":30}
      */
-    private HashMap<String,Integer> shuhePushBlackDay;
+    private HashMap<String, Integer> shuhePushBlackDay;
 
     /**
-     *  哈罗转化数据规则
-     *  {"status":"a,b,d","Ddate":"4","ABCdate":"5","taskIddate":"35","dTimes":"7"}
+     * 哈罗转化数据规则
+     * {"status":"a,b,d","Ddate":"4","ABCdate":"5","taskIddate":"35","dTimes":"7"}
      */
-    private HashMap<String,String> haluoTransferRule;
+    private HashMap<String, String> haluoTransferRule;
 
     /**
      * key:业务sql名称
      * value:0-shardingjdbc;1:tiflash;2:tikv
      */
-    private HashMap<String,Integer> sqlType;
+    private HashMap<String, Integer> sqlType;
 
     /**
      * 跑分资源数量
@@ -391,7 +391,7 @@ public class MarketingCommonConfig {
     private String scoreFileYhTime;
 
     /**
-     *规则筛选从es获取的最大线程数
+     * 规则筛选从es获取的最大线程数
      */
     private Integer scoreByEsThreadNum;
 
@@ -767,6 +767,12 @@ public class MarketingCommonConfig {
      * pushConvTypeConfig={"3710058":{"106":["3710058","3710078"],"107":["3710058"]},"7412009":{"106":["7412009","7410951"],"107":["7412009"]}}
      */
     private HashMap<String, JSONObject> pushConvTypeConfig;
+
+    /**
+     * 携程广告明细推送条件判断配置{“3710058”:{"condition":"1",soleCellApiCodes:["3710058","3710078"]},“3710078”:{"condition":1,soleCellApiCodes:["3710058","3710078"]},“3710090”:{"condition":2,soleCellApiCodes:["3710090","3710091"]},“3710091”:{"condition":2,soleCellApiCodes:["3710090","3710091"]}}
+     */
+    private HashMap<String, JSONObject> xieChengCallPushCondition;
+
 
     /**
      * 携程新场景短信撞库推送客服转化apiCode配置(一对多分发)

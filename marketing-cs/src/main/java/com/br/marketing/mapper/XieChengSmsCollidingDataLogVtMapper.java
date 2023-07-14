@@ -1,6 +1,5 @@
 package com.br.marketing.mapper;
 
-import com.br.marketing.entity.XieChengSmsCollidingDataLog;
 import com.br.marketing.entity.XieChengSmsCollidingDataLogVt;
 import org.apache.ibatis.annotations.Param;
 
@@ -15,7 +14,18 @@ public interface XieChengSmsCollidingDataLogVtMapper extends XieChengSmsCollidin
      */
     void saveBatchLogVt(@Param("list") List<XieChengSmsCollidingDataLogVt> list);
 
+    /**
+     * 修改返回参数
+     * @param record
+     * @return
+     */
     int updateSelectiveVt(XieChengSmsCollidingDataLogVt record);
 
+    /**
+     * 批量更新
+     * @param list
+     * @param status
+     * @param msg
+     */
     void updateBatchVt(@Param("list") List<String> list,@Param("status") Integer status,@Param("msg")String msg);
 }
