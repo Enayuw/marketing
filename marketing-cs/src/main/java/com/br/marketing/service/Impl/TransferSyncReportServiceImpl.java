@@ -60,7 +60,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
     ICompatibleService iCompatibleService;
 
     @Override
-    public void reportProcess(Set<String> dateStrSet, int shardingTotalCount, List<Integer> shardingItems) {
+    public void reportProcess(Set<String> dateStrSet, int shardingTotalCount, List<Integer> shardingItems,String JobName) {
         long l = System.currentTimeMillis();
         // 分片获取所有客户
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
@@ -76,9 +76,11 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                 : marketingCommonConfig.getSaMoYeTransferFileApiCodes();
         for (String dateStr : dateStrSet) {
             for (MarketingCustomer customer : customers) {
-                Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo());
-                if(!action){
-                    continue;
+                if(StringUtils.isNoneBlank(JobName)){
+                    Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo(),JobName);
+                    if(!action){
+                        continue;
+                    }
                 }
                 String apiCode = customer.getApiCode();
                 String tCid = Optional.ofNullable(customer.getCid()).orElse(other).replace("-", other);
@@ -185,7 +187,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
 
     @Override
     public void reportProcess(Set<String> dateStrSet) {
-        reportProcess(dateStrSet, 1, Collections.singletonList(0));
+        reportProcess(dateStrSet, 1, Collections.singletonList(0),null);
     }
 
     @Override

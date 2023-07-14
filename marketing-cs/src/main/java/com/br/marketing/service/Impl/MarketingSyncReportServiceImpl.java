@@ -56,6 +56,11 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     @Autowired
     ICompatibleService iCompatibleService;
 
+    @Override
+    public void syncReportProcess(String uploadDate, String jobName) {
+        this.doSyncReportProcess(uploadDate,null,jobName);
+    }
+
     /**
      * 上传数据统计报表流程
      *
@@ -64,14 +69,14 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
      */
     @Override
     public void syncReportProcess(String uploadDate) {
-        this.doSyncReportProcess(uploadDate,null);
+        this.doSyncReportProcess(uploadDate,null,null);
     }
     @Override
     public void syncReportProcessByApiCode(String uploadDate,String apiCode) {
-        this.doSyncReportProcess(uploadDate,apiCode);
+        this.doSyncReportProcess(uploadDate,apiCode,null);
     }
 
-    public void doSyncReportProcess(String uploadDate, String apiCodes) {
+    public void doSyncReportProcess(String uploadDate, String apiCodes,String jobName) {
         long l = System.currentTimeMillis();
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
         List<Customer> customers = new ArrayList<>();
@@ -84,10 +89,12 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         Map<String, Set<String>> userTypeMap = getUserTypeMap();
         CountDownLatch countDownLatch = new CountDownLatch(customers.size());
         for (Customer customer : customers) {
-            Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo());
-            if(!action){
-                countDownLatch.countDown();
-                continue;
+            if(StringUtils.isNoneBlank(jobName)){
+                Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo(),jobName);
+                if(!action){
+                    countDownLatch.countDown();
+                    continue;
+                }
             }
             threadPool.submit(() -> {
                 try {
