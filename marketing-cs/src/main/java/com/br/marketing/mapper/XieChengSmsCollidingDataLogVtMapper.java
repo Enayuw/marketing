@@ -12,7 +12,7 @@ public interface XieChengSmsCollidingDataLogVtMapper extends XieChengSmsCollidin
      *
      * @param list
      */
-    void saveBatchLogVt(@Param("list") List<XieChengSmsCollidingDataLogVt> list);
+    int saveBatchLogVt(@Param("list") List<XieChengSmsCollidingDataLogVt> list);
 
     /**
      * 修改返回参数

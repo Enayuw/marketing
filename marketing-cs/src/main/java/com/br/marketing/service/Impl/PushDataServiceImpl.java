@@ -1277,19 +1277,29 @@ public class PushDataServiceImpl implements PushDataService {
             // 初始化线程池
             ThreadResult result = getThreadResult();
             Integer sendDate = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-            Long indexId =1l;
             while (true) {
                 // 动态修改线程参数
-                changeTpProperties(result.xieChengSmsCollidingThreadVt, result.xieChengSmsCollidingThreadLogVt);
+                changeTpProperties(result.xieChengSmsCollidingThreadLogSaveVt,result.xieChengSmsCollidingThreadVt, result.xieChengSmsCollidingThreadLogUpdateVt);
 
-                // 查询需要推送的基础数据x
+                // 查询需要推送的基础数据
                 List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataVtList =
-                        xieChengSmsCollidingDataVtMapper.selectByLocalIdVttikv_(localId,indexId, sendDate);
+                        xieChengSmsCollidingDataVtMapper.selectByLocalIdVttikv_(localId, sendDate,marketingCommonConfig.getXieChengSmsCollidingDataVtPageSize());
                 if (xieChengSmsCollidingDataVtList.isEmpty()) break;
-                indexId = xieChengSmsCollidingDataVtList.get(xieChengSmsCollidingDataVtList.size()-1).getId();
                 // 存储推送日志
-                saveXieChengSmsCollidingDataLogVts(sendDate, xieChengSmsCollidingDataVtList);
-
+                List<List<XieChengSmsCollidingDataVt>> partition = Lists.partition(xieChengSmsCollidingDataVtList, 1000);
+                List<Callable<Integer>> saveLogListTask = new ArrayList<>();
+                partition.forEach(p->{
+                    saveLogListTask.add(()->{
+                        return saveXieChengSmsCollidingDataLogVts(sendDate, p);
+                    });
+                });
+                List<Future<Integer>> futures = result.xieChengSmsCollidingThreadLogSaveVt.invokeAll(saveLogListTask);
+                for(int i=0;i<futures.size();i++){
+                    Integer integer = futures.get(i).get();
+                    if(integer==0){
+                        log.error("插入数据库异常");
+                    }
+                }
                 // 将查询出来的明细数据进行分组，每组50个数据
                 sendXieChengDataVt(result, xieChengSmsCollidingDataVtList);
             }
@@ -1312,9 +1322,18 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     private static void closedThreadPoll(ThreadResult result) {
-        result.xieChengSmsCollidingThreadLogVt.shutdown();
+        result.xieChengSmsCollidingThreadLogSaveVt.shutdown();
         try {
-            while (!result.xieChengSmsCollidingThreadLogVt.awaitTermination(10L, TimeUnit.SECONDS)) {
+            while (!result.xieChengSmsCollidingThreadLogSaveVt.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("日志保存线程池结束");
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+
+        result.xieChengSmsCollidingThreadLogUpdateVt.shutdown();
+        try {
+            while (!result.xieChengSmsCollidingThreadLogUpdateVt.awaitTermination(10L, TimeUnit.SECONDS)) {
                 log.info("日志更新线程池结束");
             }
         } catch (Exception ex) {
@@ -1328,6 +1347,7 @@ public class PushDataServiceImpl implements PushDataService {
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
+
     }
 
 
@@ -1336,66 +1356,75 @@ public class PushDataServiceImpl implements PushDataService {
                 Lists.partition(xieChengSmsCollidingDataVtList, XIECHENGSMSCOLLIDINGPARTATIONNUM);
         for (List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataListVtPartition : xieChengSmsCollidingDataVtPartitions) {
             result.xieChengSmsCollidingThreadVt.submit(() ->
-                    pushXieChengSmsCollidingDataVt(xieChengSmsCollidingDataListVtPartition, result.xieChengSmsCollidingThreadLogVt));
+                    pushXieChengSmsCollidingDataVt(xieChengSmsCollidingDataListVtPartition, result.xieChengSmsCollidingThreadLogUpdateVt));
         }
     }
 
     private ThreadResult getThreadResult() {
+        // 创建日志插入线程池
+        ThreadPoolExecutor xieChengSmsCollidingThreadLogSaveVt = BrExecutors.getThreadPool(
+                marketingCommonConfig.getXieChengSmsCollidingThreadLogSaveVt(),
+                marketingCommonConfig.getXieChengSmsCollidingThreadLogSaveVt());
+
         // 创建推送线程池
         ThreadPoolExecutor xieChengSmsCollidingThreadVt = BrExecutors.getThreadPool(
                 marketingCommonConfig.getXieChengSmsCollidingThreadVt(),
                 marketingCommonConfig.getXieChengSmsCollidingThreadVt());
 
         // 创建更新线程池
-        ThreadPoolExecutor xieChengSmsCollidingThreadLogVt = BrExecutors.getThreadPool(
-                marketingCommonConfig.getXieChengSmsCollidingThreadInfoVt(),
-                marketingCommonConfig.getXieChengSmsCollidingThreadInfoVt());
-        ThreadResult result = new ThreadResult(xieChengSmsCollidingThreadVt, xieChengSmsCollidingThreadLogVt);
+        ThreadPoolExecutor xieChengSmsCollidingThreadLogUpdateVt = BrExecutors.getThreadPool(
+                marketingCommonConfig.getXieChengSmsCollidingThreadLogUpdateVt(),
+                marketingCommonConfig.getXieChengSmsCollidingThreadLogUpdateVt());
+        ThreadResult result = new ThreadResult(xieChengSmsCollidingThreadLogSaveVt,xieChengSmsCollidingThreadVt, xieChengSmsCollidingThreadLogUpdateVt);
         return result;
     }
 
     private static class ThreadResult {
-        public final ThreadPoolExecutor xieChengSmsCollidingThreadVt;
-        public final ThreadPoolExecutor xieChengSmsCollidingThreadLogVt;
 
-        public ThreadResult(ThreadPoolExecutor xieChengSmsCollidingThreadVt, ThreadPoolExecutor xieChengSmsCollidingThreadLogVt) {
+        public final ThreadPoolExecutor xieChengSmsCollidingThreadLogSaveVt;
+        public final ThreadPoolExecutor xieChengSmsCollidingThreadVt;
+        public final ThreadPoolExecutor xieChengSmsCollidingThreadLogUpdateVt;
+
+
+
+        public ThreadResult(ThreadPoolExecutor xieChengSmsCollidingThreadLogSaveVt,ThreadPoolExecutor xieChengSmsCollidingThreadVt, ThreadPoolExecutor xieChengSmsCollidingThreadLogUpdateVt) {
+            this.xieChengSmsCollidingThreadLogSaveVt = xieChengSmsCollidingThreadLogSaveVt;
             this.xieChengSmsCollidingThreadVt = xieChengSmsCollidingThreadVt;
-            this.xieChengSmsCollidingThreadLogVt = xieChengSmsCollidingThreadLogVt;
+            this.xieChengSmsCollidingThreadLogUpdateVt = xieChengSmsCollidingThreadLogUpdateVt;
         }
     }
 
-    private void changeTpProperties(ThreadPoolExecutor xieChengSmsCollidingThreadVt, ThreadPoolExecutor xieChengSmsCollidingThreadLogVt) {
+    private void changeTpProperties(ThreadPoolExecutor xieChengSmsCollidingThreadLogSaveVt,ThreadPoolExecutor xieChengSmsCollidingThreadVt, ThreadPoolExecutor xieChengSmsCollidingThreadLogUpdateVt) {
+        xieChengSmsCollidingThreadLogSaveVt.setMaximumPoolSize(marketingCommonConfig.getXieChengSmsCollidingThreadLogSaveVt());
+        xieChengSmsCollidingThreadLogSaveVt.setCorePoolSize(marketingCommonConfig.getXieChengSmsCollidingThreadLogSaveVt());
         xieChengSmsCollidingThreadVt.setMaximumPoolSize(marketingCommonConfig.getXieChengSmsCollidingThreadVt());
         xieChengSmsCollidingThreadVt.setCorePoolSize(marketingCommonConfig.getXieChengSmsCollidingThreadVt());
-        xieChengSmsCollidingThreadLogVt.setMaximumPoolSize(marketingCommonConfig.getXieChengSmsCollidingThreadInfoVt());
-        xieChengSmsCollidingThreadLogVt.setCorePoolSize(marketingCommonConfig.getXieChengSmsCollidingThreadInfoVt());
+        xieChengSmsCollidingThreadLogUpdateVt.setMaximumPoolSize(marketingCommonConfig.getXieChengSmsCollidingThreadLogUpdateVt());
+        xieChengSmsCollidingThreadLogUpdateVt.setCorePoolSize(marketingCommonConfig.getXieChengSmsCollidingThreadLogUpdateVt());
     }
 
-    private void  saveXieChengSmsCollidingDataLogVts(Integer sendDate, List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataVtList) {
+    private Integer  saveXieChengSmsCollidingDataLogVts(Integer sendDate, List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataVtList) {
 
+        List<XieChengSmsCollidingDataLogVt> xcvtList = xieChengSmsCollidingDataVtList.stream()
+                .map(x -> {
+                            XieChengSmsCollidingDataLogVt xieChengSmsCollidingDataLogVt = new XieChengSmsCollidingDataLogVt();
+                            xieChengSmsCollidingDataLogVt.setApiCode(x.getApiCode());
+                            xieChengSmsCollidingDataLogVt.setLocalId(x.getLocalId());
+                            xieChengSmsCollidingDataLogVt.setSha256CodeList(x.getSha256CodeList());
+                            xieChengSmsCollidingDataLogVt.setSmsCollidingDataVtId(x.getId());
+                            xieChengSmsCollidingDataLogVt.setStatus(1);
+                            xieChengSmsCollidingDataLogVt.setType("1");
+                            xieChengSmsCollidingDataLogVt.setCreateTime(new Date());
+                            xieChengSmsCollidingDataLogVt.setSendDate(sendDate);
+                            return xieChengSmsCollidingDataLogVt;
+                        }
+                ).collect(Collectors.toList());
+        return   xieChengSmsCollidingDataLogVtMapper.saveBatchLogVt(xcvtList);
 
-        List<List<XieChengSmsCollidingDataVt>> partition = Lists.partition(xieChengSmsCollidingDataVtList, 1000);
-        partition.forEach(p->{
-            List<XieChengSmsCollidingDataLogVt> xcvtList = p.stream()
-                    .map(x -> {
-                                XieChengSmsCollidingDataLogVt xieChengSmsCollidingDataLogVt = new XieChengSmsCollidingDataLogVt();
-                                xieChengSmsCollidingDataLogVt.setApiCode(x.getApiCode());
-                                xieChengSmsCollidingDataLogVt.setLocalId(x.getLocalId());
-                                xieChengSmsCollidingDataLogVt.setSha256CodeList(x.getSha256CodeList());
-                                xieChengSmsCollidingDataLogVt.setSmsCollidingDataVtId(x.getId());
-                                xieChengSmsCollidingDataLogVt.setStatus(1);
-                                xieChengSmsCollidingDataLogVt.setType("1");
-                                xieChengSmsCollidingDataLogVt.setCreateTime(new Date());
-                                xieChengSmsCollidingDataLogVt.setSendDate(sendDate);
-                                return xieChengSmsCollidingDataLogVt;
-                            }
-                    ).collect(Collectors.toList());
-            xieChengSmsCollidingDataLogVtMapper.saveBatchLogVt(xcvtList);
-        });
     }
 
     public void pushXieChengSmsCollidingDataVt(List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataVtPartition,
-                                               ThreadPoolExecutor xieChengSmsCollidingThreadLogVt) {
+                                               ThreadPoolExecutor xieChengSmsCollidingThreadLogUpdateVt) {
         try {
             List<String> sha256CodeList = xieChengSmsCollidingDataVtPartition.stream()
                     .map(XieChengSmsCollidingDataVt::getSha256CodeList).collect(Collectors.toList());
@@ -1412,7 +1441,7 @@ public class PushDataServiceImpl implements PushDataService {
                     List<Callable<XieChengSmsCollidingDataLogVt>> tasks = new ArrayList<>();
 
                     // mq 更新日志
-                    updateLogVt(xieChengSmsCollidingThreadLogVt, returnDataList, xieChengSmsCollidingDataLogVtList);
+                    updateLogVt(xieChengSmsCollidingThreadLogUpdateVt, returnDataList, xieChengSmsCollidingDataLogVtList);
 
                     // mq 消息发送
                     sendMqData(xieChengSmsCollidingDataLogVtList);
@@ -1428,7 +1457,7 @@ public class PushDataServiceImpl implements PushDataService {
         }
     }
 
-    private void updateLogVt(ThreadPoolExecutor xieChengSmsCollidingThreadLogVt, JSONArray returnDataList, List<XieChengSmsCollidingDataLogVt> xieChengSmsCollidingDataLogVtList) {
+    private void updateLogVt(ThreadPoolExecutor xieChengSmsCollidingThreadLogUpdateVt, JSONArray returnDataList, List<XieChengSmsCollidingDataLogVt> xieChengSmsCollidingDataLogVtList) {
         for (int i = 0; i < returnDataList.size(); i++) {
             JSONObject returnData = returnDataList.getJSONObject(i);
             XieChengSmsCollidingDataLogVt xieChengSmsCollidingDataLogVt = new XieChengSmsCollidingDataLogVt();
@@ -1440,7 +1469,7 @@ public class PushDataServiceImpl implements PushDataService {
             xieChengSmsCollidingDataLogVt.setStatus(2);
             xieChengSmsCollidingDataLogVtList.add(xieChengSmsCollidingDataLogVt);
 
-            xieChengSmsCollidingThreadLogVt.submit(()->{
+            xieChengSmsCollidingThreadLogUpdateVt.submit(()->{
                 try{
                     xieChengSmsCollidingDataLogVtMapper.updateSelectiveVt(xieChengSmsCollidingDataLogVt);
                 }catch (Exception e){

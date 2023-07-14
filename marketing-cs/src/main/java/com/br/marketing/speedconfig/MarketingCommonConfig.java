@@ -451,9 +451,17 @@ public class MarketingCommonConfig {
     private Integer xieChengSmsCollidingThreadVt;
 
     /**
+     * 携程短信撞库线插入线程数量
+     */
+    private Integer xieChengSmsCollidingThreadLogSaveVt;
+    /**
      * 携程短信撞库更新结果线程数
      */
-    private Integer xieChengSmsCollidingThreadInfoVt;
+    private Integer xieChengSmsCollidingThreadLogUpdateVt;
+    /**
+     * 携程短信撞库查询单次数据量级
+     */
+    private Integer xieChengSmsCollidingDataVtPageSize;
 
     /**
      * 通用文件入库
