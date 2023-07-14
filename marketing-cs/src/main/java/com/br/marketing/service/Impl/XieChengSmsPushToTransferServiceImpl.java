@@ -54,7 +54,7 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         Date nowDayStartTime = DateHelper.getNowDayStartTime();
         Date nowDayEndTime = DateHelper.getNowDayEndTime();
         String xieChengSmsApiCode = marketingCommonConfig.getXieChengSmsApiCode();
-        String tcId = tableCreateService.getTcId(xieChengSmsApiCode);
+        String cid = tableCreateService.getCId(xieChengSmsApiCode);
 
         for (Object o : jsonArray) {
             String sha256Code = o.toString();
@@ -72,7 +72,7 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
 
             ConversionData conversionData = new ConversionData();
             conversionData.setDataId(id.toString());
-            conversionData.setCid(tcId);
+            conversionData.setCid(cid);
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String expireDate = dateFormat.format(nowDayEndTime);
             conversionData.setExpireDate(expireDate);
