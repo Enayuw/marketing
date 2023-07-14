@@ -114,6 +114,8 @@ otherConfig:
 
 
 api:
+  customerService:
+    apiCode: 4000296
   intelligentCustomerService:
     baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
     pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
@@ -204,7 +206,7 @@ spring:
     password: strategy_distribute
     publisher-confirms: true
     publisher-returns: true
-    virtual-host: marketing_juman
+    virtual-host: marketing-test
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置

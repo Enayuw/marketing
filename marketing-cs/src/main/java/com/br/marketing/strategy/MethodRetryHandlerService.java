@@ -344,6 +344,21 @@ public class MethodRetryHandlerService {
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
     }
 
+    public Result<TransferRobotOutboundVO<TransferRobotDataVO>> xieChengSmsCallCustomerTransfer(TransferRobotOutboundDTO robotOutboundDTO, Integer retry) {
+        TransferRobotOutboundVO<TransferRobotDataVO> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
+        if (!"9999".equals(transferRobotOutboundVO.getCode()) && getAllSuccessful(transferRobotOutboundVO)) {
+            List<ConversionData> conversionData = robotOutboundDTO.getJsonData().getConversionData();
+            Set<String> set = conversionData.stream().map(ConversionData::getDataId).collect(Collectors.toSet());
+            DataCompare dataCompare = new DataCompare(String.join(",", set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), null);
+            dataCompare.setRemark("xieChengSmsPushToTransfer");
+            dataCompareMapper.insertSelective(dataCompare);
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(transferRobotOutboundVO);
+        }
+        log.error("携程新场景短信撞库，调用客服接口失败 -- {}", JSON.toJSONString(transferRobotOutboundVO));
+        //调用客户转化接口失败，记录数据入库，定时任务重试
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
+    }
+
     private static Boolean getAllSuccessful(TransferRobotOutboundVO<TransferRobotDataVO> transferRobotOutboundVO) {
         // 当unsuccessfulData数组中有值时，需要重试
         Boolean allSuccessful = Boolean.FALSE;

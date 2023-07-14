@@ -104,7 +104,6 @@ public interface PushRuleService {
 
 
     Result consumerTransferData(Long id);
-    Result consumerXiechengSmsCollidingVtUser(List<String> list);
 
     Result<MarketingTransferUserStatusVO> getTransferDataStatus(String apiCode, String requestId);
 

@@ -7,6 +7,7 @@ import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.service.XieChengSmsPushToTransferService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,6 +40,9 @@ public class ConsumerApp {
 
     @Autowired
     PushRuleService pushRuleService;
+
+    @Autowired
+    XieChengSmsPushToTransferService xieChengSmsPushToTransferService;
 
     /**
      * 延迟消费 获取推送客服中心数据状态
@@ -180,8 +185,7 @@ public class ConsumerApp {
             , key = MQConstants.ROUTING_KEY_XIECHENG_SMSCOLLIDINGVT_CUSTOMER)}, containerFactory = "containerFactory")
     public void consumerXiechengSmsCollidingVtUser(Channel channel, Message message) {
         log.warn("Marketing_XieChengSmsCollidingVt_Customer：获取消息成功");
-        List<String> o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<List<String>>() {
-        }.getType());
-        consumerService.consumerRun(channel, message, pushRuleService::consumerXiechengSmsCollidingVtUser, o, null);
+        String o = new String(message.getBody(), StandardCharsets.UTF_8);
+        consumerService.consumerRun(channel, message, xieChengSmsPushToTransferService::consumerXiechengSmsCollidingVtUser, o, null);
     }
 }
