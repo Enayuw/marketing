@@ -69,7 +69,7 @@ public interface PushDataService {
      * @param data
      * @return
      */
-    void pushXieChengSmsCollidingToDbDataVt(Long localId);
+    void pushXieChengSmsCollidingToDbDataVt();
 
     String getHaierRequestId(String type);
 

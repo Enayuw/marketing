@@ -44,12 +44,14 @@ public class XieChengSmsCollidingDataVtToSendJob extends AbstractSimpleElasticJo
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        final LocalFileExample localFileExample = new LocalFileExample();
-        localFileExample.createCriteria()
-                .andFileTypeEqualTo(XIECHENGSMSCOLLIDINGVT)
-                .andStatusEqualTo("2");
-        List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
-        localFileList.forEach((LocalFile lf) ->
-                pushDataService.pushXieChengSmsCollidingToDbDataVt(lf.getId()));
+//        final LocalFileExample localFileExample = new LocalFileExample();
+//        localFileExample.createCriteria()
+//                .andFileTypeEqualTo(XIECHENGSMSCOLLIDINGVT)
+//                .andStatusEqualTo("2");
+//        List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
+//        localFileList.forEach((LocalFile lf) ->
+//                pushDataService.pushXieChengSmsCollidingToDbDataVt(lf.getId()));
+        pushDataService.pushXieChengSmsCollidingToDbDataVt();
     }
+
 }
