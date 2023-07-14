@@ -1,6 +1,5 @@
 package com.br.marketing.mapper;
 
-import com.alibaba.fastjson.JSONArray;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.entity.XieChengDataExample;
 import com.br.marketing.entity.YiqianbaoData;
@@ -17,7 +16,7 @@ public interface XieChengDataMapper extends XieChengDataMapperBase{
 
     List<String> selectLocalIdByNotSend();
 
-    List<XieChengData> getByCellToday(@Param("cell") String cell,@Param("apiCodes") JSONArray apiCodes);
+    List<XieChengData> getByCellToday(@Param("cell") String cell);
 
     List<XieChengData> getByCellTodayAndLocalId(@Param("createDate")Integer createDate, @Param("minlocalId") Long minlocalId);
 }

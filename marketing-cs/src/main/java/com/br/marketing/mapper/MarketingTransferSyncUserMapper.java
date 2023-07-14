@@ -328,7 +328,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     List<MarketingTransferSyncUser> getTransferByRequestDate(@Param("tCid") String tcId, @Param("apiCode") String apiCode
             , @Param("requestDate") String requestDate, @Param("minId") Long minId);
 
-    List<MarketingTransferSyncUser> getTransferByCustNumOrderDatatikv_(@Param("tCid") String tcId, @Param("custNums") List<String> custNums);
+    List<MarketingTransferSyncUser> getTransferByCustNumOrderDatatikv_(@Param("tCid") String tcId,@Param("custNums") List<String> custNums);
 
     List<MarketingTransferSyncUser> getYxTransferByApiCodeBtoCtoItikv_(@Param("tCid") String tcId,
                                                                        @Param("apiCode") String apiCode,
@@ -336,7 +336,6 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                        @Param("type") String type,
                                                                        @Param("indexId") Long indexId,
                                                                        @Param("pageSize") Integer pageSize);
-
     List<MarketingTransferSyncUser> getYxTransferByApiCodeAtikv_(@Param("tCid") String tCid,
                                                                  @Param("apiCode") String apiCode,
                                                                  @Param("requestDate") String requestDate,
@@ -361,9 +360,6 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                @Param("requestData") String requestData,
                                @Param("type") String type);
 
-    Integer getCountByRequestId(@Param("cid") String cId, @Param("requestId") String requestId);
-
-    MarketingTransferSyncUser getXcTransferNoAdData(@Param("tCid") String tcId, @Param("custNum") String custNum);
-
-    MarketingTransferSyncUser getXcTransferNoAdDataByOnlyBlack(@Param("tCid") String tcId, @Param("custNum") String custNum);
+    Integer getCountByRequestId(@Param("cid") String cId, @Param("requestId") String requestId );
+    MarketingTransferSyncUser getXcTransferNoAdData(@Param("tCid") String tcId,@Param("custNum") String custNum);
 }
