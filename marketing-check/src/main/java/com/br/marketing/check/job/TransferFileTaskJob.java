@@ -153,7 +153,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 , context.getShardingTotalCount()
                 , context.getShardingItems());
         for (MarketingCustomer marketingCustomer : marketingCustomers) {
-            Boolean action = iCompatibleService.isAction(marketingCustomer.getExtendConfigInfo());
+            Boolean action = iCompatibleService.isAction(marketingCustomer.getExtendConfigInfo(),context.getJobName());
             if(!action){
                 continue;
             }

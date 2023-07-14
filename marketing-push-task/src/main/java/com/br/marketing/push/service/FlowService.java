@@ -59,10 +59,10 @@ public class FlowService {
         List<LoanFile> pushList;
         try {
 
-            Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo());
-            if(!action){
-                return;
-            }
+//            Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo());
+//            if(!action){
+//                return;
+//            }
             /**
              * 文件合并
              */

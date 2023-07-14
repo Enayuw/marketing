@@ -82,7 +82,7 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
                 continue;
             }
             MarketingCustomer marketingCustomer = marketingCustomers.get(0);
-            Boolean action = iCompatibleService.isAction(marketingCustomer.getExtendConfigInfo());
+            Boolean action = iCompatibleService.isAction(marketingCustomer.getExtendConfigInfo(),context.getJobName());
             if(!action){
                 continue;
             }

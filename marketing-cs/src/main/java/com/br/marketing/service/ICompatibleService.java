@@ -10,5 +10,5 @@ public interface ICompatibleService {
      * @param config
      * @return
      */
-    Boolean isAction(String config);
+    Boolean isAction(String config,String jobName);
 }

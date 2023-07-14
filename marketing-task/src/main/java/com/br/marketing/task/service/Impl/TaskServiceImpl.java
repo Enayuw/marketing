@@ -99,7 +99,7 @@ public class TaskServiceImpl implements ITaskService {
     ICompatibleService iCompatibleService;
 
     @Override
-    public void buildScoreTask(List<Long> scoreRuleIds) {
+    public void buildScoreTask(List<Long> scoreRuleIds,String jobNm) {
         Result<List<CustomerScoreRuleVO>> scoreConfigNow = iRuleConfigService.getScoreConfigNow(scoreRuleIds);
 //        AssertResult.assertResult(scoreConfigNow);
         if(!ResultCode.SUCCESS.getValue().equals(scoreConfigNow.getCode())){
@@ -114,7 +114,7 @@ public class TaskServiceImpl implements ITaskService {
                 continue;
             }
             MarketingCustomer customer = marketingCustomers.get(0);
-            Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo());
+            Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo(),jobNm);
             if(!action){
                 continue;
             }
@@ -139,7 +139,7 @@ public class TaskServiceImpl implements ITaskService {
      *  2.2、移除锁状态
      */
     @Override
-    public Result<MarketingTask> getScoreTask(String nowDay, Long taskId,Integer isTimeLimit) {
+    public Result<MarketingTask> getScoreTask(String nowDay, Long taskId,Integer isTimeLimit,String jobNm) {
         Integer resource = 0;
 
         try {
@@ -167,7 +167,7 @@ public class TaskServiceImpl implements ITaskService {
                 continue;
             }
 
-            Result<TaskStatus> taskStatusResult = canScore(scoreTask, nowDay);
+            Result<TaskStatus> taskStatusResult = canScore(scoreTask, nowDay,jobNm);
             if (!ResultCode.SUCCESS.getValue().equals(taskStatusResult.getCode())) {
                 removeTaskLock(scoreTask, s);
                 continue;
@@ -213,7 +213,7 @@ public class TaskServiceImpl implements ITaskService {
      * @param task
      * @return
      */
-    private Result<TaskStatus> canScore(MarketingTask task, String nowDay) {
+    private Result<TaskStatus> canScore(MarketingTask task, String nowDay,String jobNm) {
 
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andApiCodeEqualTo(task.getApiCode()).andStatusEqualTo(new Byte("1"));
@@ -222,7 +222,7 @@ public class TaskServiceImpl implements ITaskService {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
         MarketingCustomer customer = marketingCustomers.get(0);
-        Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo());
+        Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo(),jobNm);
         if(!action){
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }

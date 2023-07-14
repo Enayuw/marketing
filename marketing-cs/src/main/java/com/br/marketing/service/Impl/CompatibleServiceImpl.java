@@ -24,9 +24,12 @@ public class CompatibleServiceImpl implements ICompatibleService {
     MarketingCommonConfig marketingCommonConfig;
 
     @Override
-    public Boolean isAction(String config) {
+    public Boolean isAction(String config,String jobName) {
         HashMap<String, String> moveConfig = marketingCommonConfig.getMoveConfig();
         if(moveConfig != null && !"1".equals(moveConfig.get("jobToEngineRoom"))){
+            return true;
+        }
+        if(moveConfig != null && !"1".equals(moveConfig.get("jobName"))){
             return true;
         }
 

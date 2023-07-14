@@ -100,7 +100,7 @@ public class SftpToDbByDxIbuDataJob extends AbstractSimpleElasticJob {
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
-        List<String> apiCodes = marketingCustomers.stream().filter(t->iCompatibleService.isAction(t.getExtendConfigInfo()))
+        List<String> apiCodes = marketingCustomers.stream().filter(t->iCompatibleService.isAction(t.getExtendConfigInfo(),jobExecutionMultipleShardingContext.getJobName()))
                 .map(t -> t.getApiCode()).collect(Collectors.toList());
         SyncConfigExample syncConfigExample = new SyncConfigExample();
         syncConfigExample.createCriteria().andApiCodeIn(apiCodes).andStatusEqualTo(1)
