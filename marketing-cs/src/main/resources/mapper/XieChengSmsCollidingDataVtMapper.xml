@@ -4,26 +4,20 @@
 
     <select id="selectByLocalIdVttikv_" resultType="com.br.marketing.entity.XieChengSmsCollidingDataVt">
 
-        select dvt.* from (
-                        SELECT
-                            b.*
-                              FROM(
-                                      SELECT
-                                          a.id,
-                                          a.api_code,
-                                          a.local_id,
-                                          a.sha256_code_list,
-                                          status,
-                                          ROW_NUMBER() over ( PARTITION BY sha256_code_list ORDER BY id asc ) AS rn
-                                      FROM
-                                          b_xiecheng_sms_colliding_data_vt a
-                                      where a.local_id = #{localId} and a.status = 1
-                                      order by id asc
-                                  ) b where b.rn = 1) dvt
-                              LEFT JOIN
-                          (select id ,sha256_code_list from b_xiecheng_sms_colliding_data_log_vt where send_date =#{sendDate} and
-                                                                                                       local_id = #{localId}) dlvt
-                          ON dvt.sha256_code_list = dlvt.sha256_code_list
-        WHERE dvt.rn=1 AND dlvt.id IS NULL order by dvt.id asc limit #{xieChengSmsCollidingDataVtPageSize};
+        select dvt.* from  (
+                       select
+                           a.sha256_code_list,
+                              a.api_code,
+                              a.local_id, min(id) as id from b_xiecheng_sms_colliding_data_vt a where  a.status =1
+                                                                  and a.id > #{indexId}
+                                                                                          group by a.sha256_code_list
+                                                                                          order by id asc
+                       limit #{xieChengSmsCollidingDataVtPageSize}
+
+                   )dvt
+                       left join
+                   (select id,sha256_code_list from  b_xiecheng_sms_colliding_data_log_vt where    send_date =#{sendDate}) dlvt
+                   on dvt.sha256_code_list = dlvt.sha256_code_list
+        where dlvt.id is null ;
     </select>
 </mapper>

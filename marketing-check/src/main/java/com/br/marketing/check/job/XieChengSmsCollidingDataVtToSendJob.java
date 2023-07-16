@@ -27,14 +27,7 @@ import java.util.List;
 @Component
 @Slf4j
 public class XieChengSmsCollidingDataVtToSendJob extends AbstractSimpleElasticJob {
-    private static final String XIECHENGSMSCOLLIDINGVT = "xiechengsmscollidingvt";
 
-
-    /**
-     * 文件
-     */
-    @Resource
-    private LocalFileMapper localFileMapper;
 
     /**
      * 推送实现
@@ -44,12 +37,7 @@ public class XieChengSmsCollidingDataVtToSendJob extends AbstractSimpleElasticJo
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        final LocalFileExample localFileExample = new LocalFileExample();
-        localFileExample.createCriteria()
-                .andFileTypeEqualTo(XIECHENGSMSCOLLIDINGVT)
-                .andStatusEqualTo("2");
-        List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
-        localFileList.forEach((LocalFile lf) ->
-                pushDataService.pushXieChengSmsCollidingToDbDataVt(lf.getId()));
+        pushDataService.pushXieChengSmsCollidingToDbDataVt();
     }
+
 }

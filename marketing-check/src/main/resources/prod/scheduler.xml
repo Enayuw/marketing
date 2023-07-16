@@ -666,7 +666,7 @@
     />
     <job:simple id="XieChengSmsCollidingDataVtToSendJob"
                 class="com.br.marketing.check.job.XieChengSmsCollidingDataVtToSendJob"
-                cron="0 0/10 8-23 * * ? *"
+                cron="0 0/10 6-8 * * ? *"
                 description="携程短信撞库早 8 点定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
