@@ -150,4 +150,18 @@ public class RabbitMqConfig {
         return factory;
     }
 
+    @Bean(name = "xieChengSmsMqContainerFactory")
+    public SimpleRabbitListenerContainerFactory xieChengSmsMqContainerFactory(SimpleRabbitListenerContainerFactoryConfigurer configurer,
+                                                                 ConnectionFactory connectionFactory) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        //设置线程数
+        factory.setConcurrentConsumers(marketingCommonConfig.getXieChengSmsMqThreadNum());
+        //最大线程数
+        factory.setMaxConcurrentConsumers(marketingCommonConfig.getXieChengSmsMqThreadNum());
+        factory.setPrefetchCount(10);
+        factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+        configurer.configure(factory, connectionFactory);
+        return factory;
+    }
+
 }

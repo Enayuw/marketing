@@ -70,6 +70,10 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         for (Object o : jsonArray) {
             sha256CodeList.add(o.toString());
         }
+        if (CollectionUtils.isEmpty(sha256CodeList)) {
+            // ack
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+        }
         XieChengSmsCollidingDataLogVtExample xieChengSmsCollidingDataLogVtExample = new XieChengSmsCollidingDataLogVtExample();
         xieChengSmsCollidingDataLogVtExample.createCriteria().andSha256CodeListIn(sha256CodeList).andSendDateEqualTo(sendDate);
         List<XieChengSmsCollidingDataLogVt> selectByExample =

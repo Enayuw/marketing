@@ -178,7 +178,7 @@ public class ConsumerApp {
 
     @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_XIECHENG_SMSCOLLIDINGVT_CUSTOMER, durable = "true")
             , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
-            , key = MQConstants.ROUTING_KEY_XIECHENG_SMSCOLLIDINGVT_CUSTOMER)}, containerFactory = "containerFactory")
+            , key = MQConstants.ROUTING_KEY_XIECHENG_SMSCOLLIDINGVT_CUSTOMER)}, containerFactory = "xieChengSmsMqContainerFactory")
     public void consumerXiechengSmsCollidingVtUser(Channel channel, Message message) {
         log.warn("Marketing_XieChengSmsCollidingVt_Customer：获取消息成功");
         String o = new String(message.getBody(), StandardCharsets.UTF_8);

@@ -797,5 +797,10 @@ public class MarketingCommonConfig {
      * 携程新场景短信撞库,mq推送客服转化线程数
      */
     private Integer xieChengSmsMqPushCustomerThreadNum;
+
+    /**
+     * 携程新场景短信撞库,mq消费线程数
+     */
+    private Integer xieChengSmsMqThreadNum;
 }
 
