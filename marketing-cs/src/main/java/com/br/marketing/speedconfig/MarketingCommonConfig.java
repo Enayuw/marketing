@@ -792,5 +792,10 @@ public class MarketingCommonConfig {
      * xieChengSmsApiCode=3710090
      */
     private String xieChengSmsApiCode;
+
+    /**
+     * 携程新场景短信撞库,mq推送客服转化线程数
+     */
+    private Integer xieChengSmsMqPushCustomerThreadNum;
 }
 
