@@ -26,10 +26,10 @@ public class CompatibleServiceImpl implements ICompatibleService {
     @Override
     public Boolean isAction(String config,String jobName) {
         HashMap<String, String> moveConfig = marketingCommonConfig.getMoveConfig();
-        if(moveConfig != null && !"1".equals(moveConfig.get("jobToEngineRoom"))){
+        if(moveConfig != null && moveConfig.get("jobToEngineRoom") !=null && !"1".equals(moveConfig.get("jobToEngineRoom"))){
             return true;
         }
-        if(moveConfig != null && !"1".equals(moveConfig.get(jobName))){
+        if(moveConfig != null && moveConfig.get(jobName) !=null && !"1".equals(moveConfig.get(jobName))){
             return true;
         }
 
