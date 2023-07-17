@@ -47,7 +47,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param day
      * @return
      */
-    List<MarketingNewTransferData> getNewTransferDatabaseCollision(@Param("apiCode") String apiCode , @Param("day") Integer day);
+    List<MarketingNewTransferData> getNewTransferDatabaseCollision(@Param("day") Integer day);
 
     /**
      * 根据cell（custNum）查询转化数据
@@ -70,6 +70,14 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     List<MarketingTransferSyncUser> getTransferByRequestData(@Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
 
     List<MarketingTransferSyncUser> getTransferData(@Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
+
+    /**
+     * 取T日apiCode的撞库数据,按照updateTime排序
+     * @param day
+     * @param limitStart
+     * @return
+     */
+    List<MarketingNewTransferData> getTransferNewData(@Param("day") int day , @Param("limitStart") Integer limitStart);
 
     /**
      * 根据ApplyDt数据统计

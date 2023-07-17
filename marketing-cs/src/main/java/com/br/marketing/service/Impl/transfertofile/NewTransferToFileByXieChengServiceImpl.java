@@ -196,10 +196,18 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         // 使用格式化字符串将LocalDate对象格式化为字符串
         int day = Integer.valueOf(date.format(formatter));
+//        int day = 20230722;
+        Integer page = 0;
         Boolean mark = Boolean.TRUE;
         int totalSize = 0;
         while (mark) {
-            List<MarketingNewTransferData> newTransferDatabaseCollision = marketingTransferSyncUserMapper.getNewTransferDatabaseCollision(apiCode,day);
+            Result<List<MarketingNewTransferData>> transferData = getOrderTransferData(day , page);
+            if (!ResultCode.SUCCESS.getValue().equals(transferData.getCode())) {
+                mark = Boolean.FALSE;
+                continue;
+            }
+            page++;
+            List<MarketingNewTransferData> newTransferDatabaseCollision = transferData.getData();
             for (MarketingNewTransferData marketingNewTransferData : newTransferDatabaseCollision) {
                 String requestTime = "";
                 String convType = "";
@@ -211,8 +219,9 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
                 try {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                     Date today = sdf.parse(date.toString());
-//                    if (periodOfValidityService.isNotExpire(apiCode, cell, today, marketingCommonConfig.getXieChengNewTransferValidityDay())) {
-                    if (periodOfValidityService.isNotExpire(apiCode, cell, today, "30")) {
+//                    Date today = sdf.parse("2023-07-22");
+                    if (periodOfValidityService.isNotExpire(apiCode, cell, today, marketingCommonConfig.getXieChengNewTransferValidityDay())) {
+//                    if (periodOfValidityService.isNotExpire(apiCode, cell, today, 30)) {
                         MarketingTransferSyncUser newestByCusnum = marketingTransferSyncUserMapper.getNewestByCell(tcId, cell);
                         if (StringUtils.isNotEmpty(newestByCusnum.getReserveField1())) {
                             try {
@@ -366,5 +375,20 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
         return concat;
     }
 
+    /**
+     * 获取撞库数据
+     * 按照updateTime排序
+     * @param day
+     * @param pageIndex
+     * @return
+     */
+    private Result<List<MarketingNewTransferData>> getOrderTransferData(int day, Integer pageIndex) {
+        Integer limitStart = pageIndex * 2000;
+        List<MarketingNewTransferData> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferNewData(day, limitStart);
+        if (transferOrderInsertTime.size() <= 0) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue());
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(transferOrderInsertTime);
+    }
 
 }

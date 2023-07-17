@@ -443,7 +443,7 @@ public class MarketingCommonConfig {
     /**
      * 携程新场景转化数据有效期
      */
-    private String XieChengNewTransferValidityDay;
+    private int XieChengNewTransferValidityDay;
 
     /**
      * 拍拍贷有效期34；目前仅老客使用
