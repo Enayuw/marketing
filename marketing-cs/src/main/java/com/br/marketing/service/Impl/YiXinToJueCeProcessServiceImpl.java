@@ -291,8 +291,10 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             }
             indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             if (predicate != null) {
-                marketingTransferSyncUserList = marketingTransferSyncUserList.parallelStream()
+                List<MarketingTransferSyncUser> syncUsers = marketingTransferSyncUserList.parallelStream()
                         .filter(predicate).collect(Collectors.toList());
+                marketingTransferSyncUserList.clear();
+                marketingTransferSyncUserList.addAll(syncUsers);
             }
             List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(marketingTransferSyncUserList, PARTITION);
             partition.forEach(users -> {
