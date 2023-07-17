@@ -1308,10 +1308,6 @@ public class PushDataServiceImpl implements PushDataService {
             // 线程池关门
             closedThreadPoll(result);
 
-            producter.send(ROUTING_KEY_XIECHENG_SMSCOLLIDINGVT_CUSTOMER
-                    , JSON.toJSONString(new ArrayList<>()));
-            // mq 消息发送
-
             // 发送异常统计信息
             sendAlertMessage(sendDate);
         } catch (Exception e) {
