@@ -28,7 +28,9 @@ public enum AlarmSendCodeEnum {
     //画像返回98,阶梯推送
     EXCEPTION_HUAX("62002", "huaxiangCommonly"),
     //滴滴联合建模,阶梯推送
-    EXCEPTION_DIDI("62003", "didiCommonly")
+    EXCEPTION_DIDI("62003", "didiCommonly"),
+    //滴滴联合建模,阶梯推送
+    EXCEPTION_SPEEDCOMMONCONFIG("62004", "marketingCommonConfigAlarm"),
     ;
 
     /**

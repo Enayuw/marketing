@@ -85,9 +85,9 @@ public class MarketingCommonConfig {
      */
     private String zhongAnPushBlackDataPeriod;
     /**
-     * 众安推送黑名单线程数设置
+     * 众安推送黑名单线程数设置{userType:threadNum}
      */
-    private String zhongAnPushBlackThreadNum;
+    private Map<String,String> zhongAnPushBlackThreadNum;
 
     /**
      * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
@@ -669,6 +669,11 @@ public class MarketingCommonConfig {
     private String didiModelingThreadNum;
 
     /**
+     * 滴滴剔除数据配置
+     */
+    private List<String> resverfiled1Data;
+
+    /**
      * 众安明细推送配置{"userType":{"isPush":"1/0","channelCode":"****"}}
      */
     private HashMap<String, JSONObject> zhongAnDetailPush;
@@ -721,6 +726,67 @@ public class MarketingCommonConfig {
      * customerBlackListApiCodes={"3710058":["3710058","3710078"],"7410950":["7410950","7410951"]}
      */
     private HashMap<String, List<String>> customerBlackListApiCodes;
+
+    /**
+     * 宜信推决策 查询转化数据的 apiCode
+     */
+    private String yiXinGetTransferToJueCeApiCode;
+
+    /**
+     * 宜信推决策  推决策数据集的 apiCode
+     */
+    private String yiXinTransferToJueCeApiCode;
+
+    /**
+     * 宜信实时转化数据推决策策略编号设置
+     */
+    private Map<String, String> yiXinToJueCeStrategyMap;
+
+    /**
+     * 宜信推决策线程池线程数量
+     */
+    private Integer yiXinToJueCeTpNum;
+
+    /**
+     * 宜信推决策，剔除规则5，外层线程池按天查询线程数
+     */
+    private Integer yiXinExcludeRuleFifthThreadNum;
+
+    /**
+     * 宜信查询基础数据 limit 量级
+     */
+    private Integer yiXinSearchPageSize;
+
+    /**
+     * 滴滴联合建模新接口执行时间
+     */
+    private String didiModelingNewExecTime;
+
+    /**
+     * 滴滴联合建模新接口线程数
+     */
+    private String didiModelingNewThreadNum;
+
+    /**
+     * 滴滴联合建模新接口任务开关
+     * true 打开，false 关闭执行
+     */
+    private Boolean didiModelingNewDataSwitch;
+
+    /**
+     * 滴滴联合建模mediaName
+     */
+    private Map<String, String> didiModelingMediaNameMap;
+    /**
+     * 转化数据的apiCode、convType、推送的apiCode映射关系
+     * pushConvTypeConfig={"3710058":{"106":["3710058","3710078"],"107":["3710058"]},"7412009":{"106":["7412009","7410951"],"107":["7412009"]}}
+     */
+    private HashMap<String, JSONObject> pushConvTypeConfig;
+
+    /**
+     * 携程定时任务推决策情况apiCode配置:{"b":"371058"}
+     */
+    private Map<String,String> xieChengPushPolicyStatusToApiCode;
 
     /**
      * 迁移配置 key-功能项；value-具体的值；{"jobToEngineRoom":"1(开启)/0（关闭）"}

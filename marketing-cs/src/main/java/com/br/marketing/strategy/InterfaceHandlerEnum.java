@@ -22,7 +22,8 @@ public enum InterfaceHandlerEnum {
     INIT_TO_POLICY_SOLE(18, "推送决策去重接口"),
     ARTIFICIAL_REAL_TIME_LOG(19, "人工实时推送并且记录日志"),
     DIDI_CALL_RECORD_INSERT_DB(20, "滴滴通话明细保存到滴滴销数据表"),
-    CUSTOMER_BLACKLIST_DISTRIBUTE(21, "推送客服黑名单(分发到多个apicode)");
+    CUSTOMER_BLACKLIST_DISTRIBUTE(21, "推送客服黑名单(分发到多个apicode)"),
+    CUSTOMER_TRANSFER_BY_CONVTYPE(22, "根据转化规则，推送客服转化");
 
 
     InterfaceHandlerEnum(Integer code, String name) {

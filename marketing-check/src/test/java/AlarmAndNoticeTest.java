@@ -6,8 +6,10 @@ import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.service.EmailService;
+import com.br.marketing.service.Impl.transfertofile.TransferToFileByDiDiServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.TransferToFileBySamoyeServiveImpl;
 import com.br.marketing.service.PushDataService;
+import com.br.marketing.service.SyncConfigService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -19,6 +21,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
+import java.io.*;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +44,40 @@ public class AlarmAndNoticeTest {
 
     @Resource
     LoanFileMapper loanFileMapper;
+
+    @Resource
+    TransferToFileByDiDiServiceImpl transferToFileByDiDiService;
+
+    @Autowired
+    SyncConfigService syncConfigService;
+
+    @Test
+    public void testNew(){
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7434432");
+        transferFileTask.setStartDate("2023-07-09 ");
+        transferFileTask.setFileName("file");
+        log.warn("滴滴转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String apiCode = transferFileTask.getApiCode();
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(file), "UTF-8"));) {
+            fw.append("custNum,data,extend");
+            fw.append("\r\n");
+            transferToFileByDiDiService.newWriteDiDiTransferToFile(fw, apiCode, transferFileTask);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+
+    }
 
     @Test
     public void testAes(){
@@ -119,8 +156,8 @@ public class AlarmAndNoticeTest {
     @Test
     public void transferFileTest(){
         String jobParameter = "7410787#2022-05-21";
-        String myParam = transferToFileService.isMyParam("7412001", jobParameter);
-        Result<List<TransferFileTask>> listResult = transferToFileService.buildTransferTask("7412001",myParam);
+        String myParam = transferToFileService.isMyParam("7434432", jobParameter);
+        Result<List<TransferFileTask>> listResult = transferToFileService.buildTransferTask("7434432",myParam);
         if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0){
             List<TransferFileTask> data = listResult.getData();
             for (TransferFileTask datum : data){

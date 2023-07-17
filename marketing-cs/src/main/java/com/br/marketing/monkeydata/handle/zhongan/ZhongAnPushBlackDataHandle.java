@@ -132,10 +132,10 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
             inputData.setExecuteDateList(appletDateList);
             inputData.setUserType(usertype);
             for (; ; ) {
-                if (StringUtils.isNotEmpty(marketingCommonConfig.getZhongAnPushBlackThreadNum())) {
-                    pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum()));
-                    pool.setMaximumPoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum()));
-                    log.warn("众安推送黑名单线程调整，corePoolSize={},maxPoolSize={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
+                if (StringUtils.isNotEmpty(marketingCommonConfig.getZhongAnPushBlackThreadNum().get(usertype))) {
+                    pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum().get(usertype)));
+                    pool.setMaximumPoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum().get(usertype)));
+                    log.warn("众安推送黑名单线程调整，userType={},corePoolSize={},maxPoolSize={}", usertype, pool.getCorePoolSize(), pool.getMaximumPoolSize());
                 }
                 Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> inputRes = getInputData(inputData);
                 if (ResultCode.FAIL.getValue().equals(inputRes.getCode())) {

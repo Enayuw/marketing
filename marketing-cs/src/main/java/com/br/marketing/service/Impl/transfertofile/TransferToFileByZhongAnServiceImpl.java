@@ -70,7 +70,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
-    public static final String ZHUANHUA_COLUMU_NAME = "custNum,cell,userType,createTime,bizType,eventTime,eventType";
+    public static final String ZHUANHUA_COLUMU_NAME = "custNum,cell,userType,createTime,bizType,eventTime,eventType,amountStatus,highApplyStatus";
 
     @Resource
     TransferDataValidityPeriodService validityPeriodService;
@@ -336,14 +336,20 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
                     Object eventType = reserveFieldJson.get("eventType");
                     Object createTime = reserveFieldJson.get("uploadCreateTime");
 
+                    Object amountStatus = reserveFieldJson.get("amountStatus");
+                    Object highApplyStatus = reserveFieldJson.get("highApplyStatus");
+
                     String sb = deleteNull(custNum) +
                             deleteNull(cell) +
                             deleteNull(userType) +
                             deleteNull(createTime) +
                             deleteNull(bizType) +
                             deleteNull(eventTime) +
-                            (eventType != null ? eventType.toString() : "") +
+                            deleteNull(eventType) +
+                            deleteNull(amountStatus) +
+                            (highApplyStatus != null ? highApplyStatus.toString() : "") +
                             "\r\n";
+
                     fw.append(sb);
                     totalSize = totalSize + 1;
                 } catch (Exception e) {

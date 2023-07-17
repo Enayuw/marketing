@@ -62,7 +62,7 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
 
-    private final static String TABLE_HEAD_TRANSFER = "custNum,userType,registerTime,ifLogin,loginTime,ifApply,applyDt,applyResult,auditTime,auditAmount,applyLoan,applyLoanTime,applyLoanAmount,ifLent,lentTime,lentAmount,cell";
+    private final static String TABLE_HEAD_TRANSFER = "custNum,userType,registerTime,ifLogin,loginTime,ifApply,applyDt,applyResult,auditTime,auditAmount,applyLoan,applyLoanTime,applyLoanAmount,ifLent,lentTime,lentAmount,cell,channel";
 
     /**
      * 2023-05-10 18:50
@@ -186,11 +186,13 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
                     String applyLoan = null;
                     String applyLoanTime = null;
                     String applyLoanAmount = null;
+                    String channel = null;
                     if (org.apache.commons.lang3.StringUtils.isNotBlank(reserveField1)) {
                         JSONObject jsonObject = JSON.parseObject(reserveField1);
                         applyLoan = jsonObject.getString("applyLoan");
                         applyLoanTime = jsonObject.getString("applyLoanTime");
                         applyLoanAmount = jsonObject.getString("applyLoanAmount");
+                        channel = jsonObject.getString("channel");
                     }
                     sb.append(emptyDefault(transferFilterData.getCustNum())).append(",");
                     sb.append(emptyDefault(transferFilterData.getUserType())).append(",");
@@ -209,7 +211,8 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
                     sb.append(removeMillisecond(emptyDefault(transferFilterData.getLentTime()))).append(",");
                     sb.append(emptyDefault(transferFilterData.getLentAmount())).append(",");
                     sb.append(cellMap.containsKey(transferFilterData.getCustNum()) ? MD5Utils.cell32(
-                            BrCipherMaker.getInstance().decode(cellMap.get(transferFilterData.getCustNum()))) : "");
+                            BrCipherMaker.getInstance().decode(cellMap.get(transferFilterData.getCustNum()))) : "").append(",");
+                    sb.append(emptyDefault(channel));
                     sb.append("\r\n");
                     try {
                         fw.append(sb.toString());

@@ -72,6 +72,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             BeanUtils.copyProperties(marketingTransferSyncUser, marketingTransferSyncUserCell);
             marketingTransferSyncUserCell.setCell(marketingSyncUser.getCell());
             marketingTransferSyncUserCell.setTaskId(marketingSyncUser.getCusBatch());
+            marketingTransferSyncUserCell.setUserType(marketingSyncUser.getUserType());
             return marketingTransferSyncUserCell;
         }
         return null;
@@ -360,7 +361,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             }
             Map<String, MarketingSyncUser> syncUserLastByNotInAppletDateMap = syncUserLastByNotInAppletDateList
                     .parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCustNum
-                            , Function.identity()));
+                            , Function.identity(),(t1,t2)->t1));
             List<MarketingSyncUser> returnSyncUserList = ttSyncUserLastByInAppletDateList.parallelStream().filter(
                     syncUser -> !syncUserLastByNotInAppletDateMap.containsKey(syncUser.getCustNum()))
                     .collect(Collectors.toList());
@@ -368,7 +369,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             boMap.putAll(ttValidityPeriodMap(ttDataValidConfigList, returnSyncUserList));
             Map<String, MarketingSyncUser> ttSyncUserLastByInAppletDateMap = ttSyncUserLastByInAppletDateList
                     .parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCustNum
-                            , Function.identity()));
+                            , Function.identity(),(t1,t2)->t1));
             // 配置了T+N模式的情况
             boMap.putAll(tnValidityPeriodMap(configList, requestDate, ttSyncUserLastByInAppletDateMap
                     , syncUserLastByNotInAppletDateList));
@@ -433,7 +434,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             }
             Map<String, MarketingSyncUser> syncUserLastByNotInAppletDateMap = syncUserLastByNotInAppletDateList
                     .parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCustNum
-                            , Function.identity()));
+                            , Function.identity(),(t1,t2)->t2));
             List<MarketingSyncUser> returnSyncUserList = ttSyncUserLastByInAppletDateList.parallelStream().filter(
                     syncUser -> !syncUserLastByNotInAppletDateMap.containsKey(syncUser.getCustNum()))
                     .collect(Collectors.toList());
@@ -441,13 +442,14 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             boMap.putAll(ttValidityPeriodUserTypeMap(ttDataValidConfigList, returnSyncUserList));
             Map<String, MarketingSyncUser> ttSyncUserLastByInAppletDateMap = ttSyncUserLastByInAppletDateList
                     .parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCustNum
-                            , Function.identity()));
+                            , Function.identity(),(t1,t2)->t2));
             // 配置了T+N模式的情况
             boMap.putAll(tnValidityPeriodUserTypeMap(configList, requestDate, ttSyncUserLastByInAppletDateMap
                     , syncUserLastByNotInAppletDateList));
         }
         return boMap;
     }
+
 
     /**
      * 2023-04-07 9:52

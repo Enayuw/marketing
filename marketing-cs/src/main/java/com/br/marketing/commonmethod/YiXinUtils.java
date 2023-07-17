@@ -9,24 +9,16 @@ public class YiXinUtils {
         switch (type){
             case "13":
                 return "21";
-            case "12":
-                return "30";
-            case "9":
-                return "17";
-            case "7":
-                return "15";
-            case "17":
-                return "26";
-            case "18":
-                return "27";
-            case "6":
-                return "14";
-            case "8":
-                return "29";
-            case "4":
-                return "12";
             case "15":
-                return "23";
+                return "31";
+            case "23":
+                return "32";
+            case "6":
+                return "33";
+            case "8":
+            case "20":
+            case "21":
+                return "29";
             case "0":
                 return "0";
             case "25":
@@ -61,19 +53,16 @@ public class YiXinUtils {
     public static String getPrioritySymbol(String type){
         switch (type){
             case "13":
-            case "9":
-            case "7":
-            case "6":
+            case "15":
             case "8":
             case "25":
             case "0":
                 return "1";
-            case "12":
-            case "17":
-            case "15":
+            case "21":
+            case "23":
                 return "2";
-            case "18":
-            case "4":
+            case "6":
+            case "20":
                 return "3";
             default:
                 return null;

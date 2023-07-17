@@ -23,6 +23,7 @@ import com.br.marketing.service.ITxtToDbService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.utils.Sets;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -1792,7 +1793,6 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         String tcId = tableCreateService.getTcId(apiCode);
         String cid = tableCreateService.getCId(apiCode);
         Boolean actionMark = Boolean.TRUE;
-        String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String _7start = LocalDate.now().minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String _7end = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Long minId = null;
@@ -1814,7 +1814,6 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         Map<String, List<MarketingTransferSyncUser>> nowTimetransferUserMap = transferSyncUserMapper
                                 .getTransferOrderInsertTimeByCustNum(tcId, custNums, null)
                                 .stream().collect(Collectors.groupingBy(MarketingTransferSyncUser::getCustNum));
-
                         //根据custNum获取最新转化数据
                         List<MarketingTransferSyncUser> _lastTransferSyncUsers = transferSyncUserMapper
                                 .getTransferOrderRequestTimeByCustNum(tcId, custNums, null);
@@ -1824,14 +1823,15 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         //根据custNum获取最新上传数据
                         Map<String, List<MarketingSyncUser>> syncUser = syncUserMapper.getSyncUserLastByCustNums(apiCode, custNums)
                                 .stream().collect(Collectors.groupingBy(MarketingSyncUser::getCustNum));
-
+                        //获取caseEffective=0的案件
+                        Set<String> caseEffectiveCust=transferSyncUserMapper.getByInCustAndCaseEffective(tcId,apiCode, new HashSet<>(custNums))
+                                .stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
                         //获取最新通话记录
                         Map<String, List<CallRecord>> callrecord = callRecordMapper.getLastCallRecordByCustNum(custNums, cid)
                                 .stream().collect(Collectors.groupingBy(CallRecord::getCaseNum));
 
                         //获取7天实时数据
                         Set<String> custNumByPhoneDx = iDxService.getCustNumByPhoneDx(custNums, apiCode, _7start, _7end, "1");
-
                         //获取黑名单
                         HashMap<String, String> black = new HashMap<>();
                         Result<Map<String, String>> blackByTransfer = iDxService.getBlackByDXfile(phoneSales, apiCode);
@@ -1856,6 +1856,13 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                             }
                             if (custNumByPhoneDx != null && custNumByPhoneDx.contains(uid)) {
                                 computeSale.setDataMessage("命中7天内实时数据");
+                                computeSale.setStatus(2);
+                                phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
+                                errorNum.getAndIncrement();
+                                continue;
+                            }
+                            if (caseEffectiveCust != null && caseEffectiveCust.contains(uid)) {
+                                computeSale.setDataMessage("命中caseEffective等于0的数据");
                                 computeSale.setStatus(2);
                                 phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
                                 errorNum.getAndIncrement();
@@ -1891,48 +1898,8 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                                 errorNum.getAndIncrement();
                                 continue;
                             }
-                            String name = "";
-                            String gender = null;
-                            String activity = null;
-                            JSONObject extend = new JSONObject();
-                            if (StringUtils.isNotBlank(_marketingSyncUser.getName())) {
-                                name = BrCipherMaker.getInstance().decode(_marketingSyncUser.getName());
-                            }
-                            if (StringUtils.isNotBlank(_marketingSyncUser.getReserveField1())) {
-                                JSONObject jsonObject = JSON.parseObject(_marketingSyncUser.getReserveField1());
-                                gender = YiXinUtils.getGender(jsonObject.getString("gender"));
-                            }
-                            if (StringUtils.isNotBlank(_transferSyncUser.getReserveField1())) {
-                                JSONObject jsonObject = JSON.parseObject(_transferSyncUser.getReserveField1());
-                                activity = YiXinUtils.getActivity(jsonObject.getString("rate"));
-                                String raiseLimiSuccess = jsonObject.getString("raiseLimiSuccess");
-                                String raiseLimiType = jsonObject.getString("raiseLimiType");
-                                if (StringUtils.isNotBlank(raiseLimiSuccess)) {
-                                    extend.put("raiseLimiSuccess", raiseLimiSuccess);
-                                }
-                                if (StringUtils.isNotBlank(raiseLimiType)) {
-                                    extend.put("raiseLimiType", raiseLimiType);
-                                }
-                            }
-                            CallRecord _callRecord = new CallRecord();
-                            List<CallRecord> callRecords = callrecord.get(uid);
-                            if (callRecords != null && callRecords.size() > 0) {
-                                _callRecord = callRecords.get(0);
-                            }
-                            computeSale.setPhone(AESUtil.aesEncrypty(cell, aesKey));
-                            computeSale.setPhoneAes(_marketingSyncUser.getCell());
-                            computeSale.setName(name);
-                            computeSale.setNameAes(_marketingSyncUser.getName());
-                            computeSale.setGender(gender);
-                            computeSale.setLevel(YiXinUtils.getLevel(_callRecord.getIntentionGrade()));
-                            computeSale.setAuditAmount(_transferSyncUser.getAuditAmount());
-                            computeSale.setApplyTime(StringUtils.isBlank(_transferSyncUser.getApplyDt())
-                                    ? _transferSyncUser.getApplyDt()
-                                    : _transferSyncUser.getApplyDt().replaceAll(":\\d{3}", ""));
-                            computeSale.setActivity(activity);
-                            computeSale.setPrioritysymbol(YiXinUtils.getPrioritySymbol(phoneSale.getType()));
-                            computeSale.setExtend(JSON.toJSONString(extend));
-                            phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
+                            updatePhoneSale(_marketingSyncUser,_transferSyncUser,phoneSale,computeSale,callrecord,cell);
+
                         }
                     } catch (Exception ex) {
                         log.error(ex.getMessage(), ex);
@@ -1952,6 +1919,61 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
             }
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(errorNum.get());
+    }
+
+    private void updatePhoneSale(MarketingSyncUser _marketingSyncUser, MarketingTransferSyncUser _transferSyncUser, PhoneSale phoneSale,
+                                 PhoneSale computeSale,Map<String, List<CallRecord>> callrecord,String cell){
+        String name = "";
+        String gender = null;
+        String activity = null;
+        JSONObject extend = new JSONObject();
+        if (StringUtils.isNotBlank(_marketingSyncUser.getName())) {
+            name = BrCipherMaker.getInstance().decode(_marketingSyncUser.getName());
+        }
+        if (StringUtils.isNotBlank(_marketingSyncUser.getReserveField1())) {
+            JSONObject jsonObject = JSON.parseObject(_marketingSyncUser.getReserveField1());
+            gender = YiXinUtils.getGender(jsonObject.getString("gender"));
+        }
+        if (StringUtils.isNotBlank(_transferSyncUser.getReserveField1())) {
+            JSONObject jsonObject = JSON.parseObject(_transferSyncUser.getReserveField1());
+            activity = YiXinUtils.getActivity(jsonObject.getString("rate"));
+            String raiseLimiSuccess = jsonObject.getString("raiseLimiSuccess");
+            String raiseLimiType = jsonObject.getString("raiseLimiType");
+            String availableAmount = jsonObject.getString("availableAmount");
+            String recommendType = jsonObject.getString("recommendType");
+            if (StringUtils.isNotBlank(raiseLimiSuccess)) {
+                extend.put("raiseLimiSuccess", raiseLimiSuccess);
+            }
+            if (StringUtils.isNotBlank(raiseLimiType)) {
+                extend.put("raiseLimiType", raiseLimiType);
+            }
+            if (StringUtils.isNotBlank(availableAmount)) {
+                extend.put("availableAmount", availableAmount);
+            }
+            if (StringUtils.isNotBlank(recommendType)) {
+                extend.put("recommendType", recommendType);
+            }
+        }
+        CallRecord _callRecord = new CallRecord();
+        List<CallRecord> callRecords = callrecord.get(phoneSale.getUid());
+        if (callRecords != null && callRecords.size() > 0) {
+            _callRecord = callRecords.get(0);
+        }
+        computeSale.setPhone(AESUtil.aesEncrypty(cell, aesKey));
+        computeSale.setPhoneAes(_marketingSyncUser.getCell());
+        computeSale.setName(name);
+        computeSale.setNameAes(_marketingSyncUser.getName());
+        computeSale.setGender(gender);
+        computeSale.setLevel(YiXinUtils.getLevel(_callRecord.getIntentionGrade()));
+        computeSale.setAuditAmount(_transferSyncUser.getAuditAmount());
+        computeSale.setApplyTime(StringUtils.isBlank(_transferSyncUser.getApplyDt())
+                ? _transferSyncUser.getApplyDt()
+                : _transferSyncUser.getApplyDt().replaceAll(":\\d{3}", ""));
+        computeSale.setActivity(activity);
+        computeSale.setPrioritysymbol(YiXinUtils.getPrioritySymbol(phoneSale.getType()));
+        computeSale.setExtend(JSON.toJSONString(extend));
+        phoneSaleMapper.updateByPrimaryKeySelective(computeSale);
+
     }
 
     private Result<List<PhoneSale>> getPhoneSaleDataByfileWithPage(Long fileId, Long dataId) {
