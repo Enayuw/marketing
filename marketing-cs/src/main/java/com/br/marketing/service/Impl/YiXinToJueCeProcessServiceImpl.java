@@ -128,7 +128,6 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     private void yiXinToJueCeAction(LinkedHashMap<String, String> actionTypeLink, String apiCodeTransfer) {
         String tcId = tableCreateService.getTcId(apiCodeTransfer);
         actionTypeLink.forEach((String k, String v) -> {
-            Predicate<MarketingTransferSyncUser> predicate = null;
             switch (k) {
                 case "A":
                     Result<Long> resultA = actionFront(apiCodeTransfer, ACTONTFROUNTYPETREE.get(k));
@@ -139,30 +138,22 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                     updateActionFront(resultA);
                     break;
                 case "B":
-                case "C":
-                    predicate = checkRegisterChannel("1");
                 case "D":
                 case "E":
                 case "F":
                 case "G":
                 case "H":
                 case "I":
+                    actionData(k, v, tcId, apiCodeTransfer);
+                    break;
+                case "C":
+                    actionData(k, v, tcId, apiCodeTransfer, checkRegisterChannel("1"));
+                    break;
                 case "J":
-                    if (predicate == null) {
-                        predicate = checkRegisterChannel("3");
-                    }
+                    actionData(k, v, tcId, apiCodeTransfer, checkRegisterChannel("3"));
+                    break;
                 case "K":
-                    if (predicate == null) {
-                        predicate = checkRegisterChannel("2");
-                    }
-                    if (isTransferLast(tcId, apiCodeTransfer)) {
-                        Result<Long> resultK = actionFront(apiCodeTransfer, ACTONTFROUNTYPETREE.get(k));
-                        if (!ResultCode.SUCCESS.getValue().equals(resultK.getCode())) {
-                            break;
-                        }
-                        getMarketingTransferSyncUserListBtoCtoI(k, v, tcId, predicate);
-                        updateActionFront(resultK);
-                    }
+                    actionData(k, v, tcId, apiCodeTransfer, checkRegisterChannel("2"));
                     break;
                 default:
                     log.warn("宜信转化数据推决策类型异常");
@@ -170,6 +161,28 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             }
         });
 
+    }
+
+    private void actionData(String k
+            , String v
+            , String tcId
+            , String apiCodeTransfer) {
+        actionData(k, v, tcId, apiCodeTransfer, null);
+    }
+
+    private void actionData(String k
+            , String v
+            , String tcId
+            , String apiCodeTransfer
+            , Predicate<MarketingTransferSyncUser> predicate) {
+        if (isTransferLast(tcId, apiCodeTransfer)) {
+            Result<Long> resultK = actionFront(apiCodeTransfer, ACTONTFROUNTYPETREE.get(k));
+            if (!ResultCode.SUCCESS.getValue().equals(resultK.getCode())) {
+                return;
+            }
+            getMarketingTransferSyncUserListBtoCtoI(k, v, tcId, predicate);
+            updateActionFront(resultK);
+        }
     }
 
     /**
