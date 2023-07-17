@@ -32,6 +32,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -854,16 +855,16 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             final Set<String> userTypeSet = v.stream().map(MarketingTransferSyncUser::getUserType)
                     .collect(Collectors.toSet());
             // 获取包含请求日期的T,T （范围）模式的配置记录
-            final List<MarketingDataValidConfig> ttRequestDateDataValidConfigList = configList.stream()
+            List<MarketingDataValidConfig> dataValidConfigs = configList.stream()
                     .filter(config -> userTypeSet.contains(config.getUserType())
                             && compareRequestDate(config, k)).collect(Collectors.toList());
+            userTypeExistDataValidConfigCheck(dataValidConfigs, userTypeSet, apiCode);
             // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
-            if (!ttRequestDateDataValidConfigList.isEmpty()) {
+            if (!dataValidConfigs.isEmpty()) {
                 List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserLastByInAppletDateUserTypeList(
-                        apiCode, ttRequestDateDataValidConfigList, v);
-                boMap.putAll(packageKeyValidityPeriodInfo(
-                        syncUser -> syncUser.getCustNum() + syncUser.getUserType()
-                        , syncUserList, ttRequestDateDataValidConfigList));
+                        apiCode, dataValidConfigs, v);
+                boMap.putAll(packageKeyValidityPeriodInfo(syncUser -> syncUser.getCustNum() + syncUser.getUserType()
+                        , syncUserList, dataValidConfigs));
             }
         });
         return boMap;
@@ -887,27 +888,27 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             // 获取包含请求日期的T,T （范围）模式的配置记录
             final List<MarketingDataValidConfig> dataValidConfigs;
             if (empty) {
-                dataValidConfigs = configList.stream()
-                        .filter(config -> compareRequestDate(config, k)).collect(Collectors.toList());
+                dataValidConfigs = configList.stream().filter(config -> compareRequestDate(config, k))
+                        .collect(Collectors.toList());
                 // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
                 if (!dataValidConfigs.isEmpty()) {
                     List<MarketingSyncUser> syncUserList =
                             marketingSyncUserMapper.getSyncUserLastByCellAndInAppletDateUserTypeList(apiCode
                                     , dataValidConfigs, v);
-                    boMap.putAll(packageKeyValidityPeriodInfo(
-                            MarketingSyncUser::getCell, syncUserList, dataValidConfigs));
+                    boMap.putAll(packageKeyValidityPeriodInfo(MarketingSyncUser::getCell, syncUserList, dataValidConfigs));
                 }
             } else {
                 dataValidConfigs = configList.stream()
                         .filter(config -> userTypeSet.contains(config.getUserType())
                                 && compareRequestDate(config, k)).collect(Collectors.toList());
+                userTypeExistDataValidConfigCheck(dataValidConfigs, userTypeSet, apiCode);
                 // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
                 if (!dataValidConfigs.isEmpty()) {
                     List<MarketingSyncUser> syncUserList =
-                            marketingSyncUserMapper.getSyncUserLastByCellAndInAppletDateUserTypeList(apiCode
-                                    , dataValidConfigs, v);
-                    boMap.putAll(packageKeyValidityPeriodInfo(
-                            syncUser -> syncUser.getCell() + syncUser.getUserType(), syncUserList, dataValidConfigs));
+                            marketingSyncUserMapper.getSyncUserLastByCellAndInAppletDateUserTypeList(
+                                    apiCode, dataValidConfigs, v);
+                    boMap.putAll(packageKeyValidityPeriodInfo(syncUser -> syncUser.getCell() + syncUser.getUserType()
+                            , syncUserList, dataValidConfigs));
                 }
             }
         });
@@ -930,11 +931,9 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         Map<String, SyncUserValidityPeriodBO> boMap = new ConcurrentHashMap<>(2048);
         // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
         if (!dataValidConfigs.isEmpty()) {
-            List<MarketingSyncUser> syncUserList =
-                    marketingSyncUserMapper.getSyncUserLastByCellAndInAppletDatList(apiCode
-                            , dataValidConfigs, cellSet);
-            boMap.putAll(packageKeyValidityPeriodInfo(
-                    MarketingSyncUser::getCell, syncUserList, dataValidConfigs));
+            List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserLastByCellAndInAppletDatList(
+                    apiCode, dataValidConfigs, cellSet);
+            boMap.putAll(packageKeyValidityPeriodInfo(MarketingSyncUser::getCell, syncUserList, dataValidConfigs));
         }
         return boMap;
     }
@@ -958,8 +957,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             List<MarketingSyncUser> syncUserList =
                     marketingSyncUserMapper.getSyncUserLastByCustNumAndInAppletDatList(apiCode
                             , dataValidConfigs, custNumSet);
-            boMap.putAll(packageKeyValidityPeriodInfo(
-                    MarketingSyncUser::getCustNum, syncUserList, dataValidConfigs));
+            boMap.putAll(packageKeyValidityPeriodInfo(MarketingSyncUser::getCustNum, syncUserList, dataValidConfigs));
         }
         return boMap;
     }
@@ -979,6 +977,8 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     /**
      * 2023-07-13 17:31
      * 是否存在有效期配置
+     *
+     * @return true 不存在，false 存在
      */
     private boolean isNotExistDataValidConfig(List<MarketingDataValidConfig> configList, String apiCode) {
         // 未配置任何有效期
@@ -988,6 +988,24 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             return true;
         }
         return false;
+    }
+
+    /**
+     * 2023-07-13 17:31
+     * 场景是否存在有效期配置
+     */
+    private void userTypeExistDataValidConfigCheck(List<MarketingDataValidConfig> configList
+            , Set<String> userTypeSet, String apiCode) {
+        Set<String> configUserTypeSet = configList.stream().map(
+                MarketingDataValidConfig::getUserType).collect(Collectors.toSet());
+        Set<String> newSet = new HashSet<>(userTypeSet);
+        newSet.retainAll(configUserTypeSet);
+        // 未配置任何有效期
+        if (newSet.size() > 0) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode()
+                    , "场景未配置任何有效期，请配置对应的有效期规则;apiCode:" + apiCode + ";userType:" + newSet
+                    , apiCode + "存在场景未配置有效期"));
+        }
     }
 
     /**
@@ -1021,10 +1039,14 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             Function<MarketingSyncUser, String> keyMapper,
             List<MarketingSyncUser> syncUserList
             , List<MarketingDataValidConfig> configList) {
+        final Map<String, MarketingDataValidConfig> configMap = configList.stream().collect(Collectors.toMap(
+                config -> config.getUserType() + config.getAppletDate()
+                , Function.identity()
+                , BinaryOperator.maxBy(Comparator.comparing(MarketingDataValidConfig::getCreateTime))));
         return syncUserList.stream().collect(Collectors.toConcurrentMap(
                 keyMapper, user -> {
                     // 组装原始数据有效期
-                    return packageMapValue(user, configList);
+                    return packageMapValue(user, configMap);
                 }, this::latestSyncUserValidityPeriodBO));
     }
 
@@ -1032,18 +1054,17 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      * 2023-03-22 18:19
      * 组装原始数据有效期
      */
-    private SyncUserValidityPeriodBO packageMapValue(MarketingSyncUser user, List<MarketingDataValidConfig> configList) {
+    private SyncUserValidityPeriodBO packageMapValue(MarketingSyncUser user, final Map<String
+            , MarketingDataValidConfig> validConfigMap) {
         // 组装原始数据有效期
-        SyncUserValidityPeriodBO validityPeriodBO = configList.stream().map(config -> {
-            SyncUserValidityPeriodBO bo = new SyncUserValidityPeriodBO();
-            if (user.getUserType().equals(config.getUserType())
-                    && user.getAppletDate().equals(config.getAppletDate())) {
-                packageSyncUserValidityPeriodBO(bo, config);
-            }
+        MarketingDataValidConfig validConfig = validConfigMap.get(user.getUserType() + user.getAppletDate());
+        SyncUserValidityPeriodBO bo = new SyncUserValidityPeriodBO();
+        bo.setSyncUser(user);
+        if (validConfig == null) {
             return bo;
-        }).collect(Collectors.toList()).get(0);
-        validityPeriodBO.setSyncUser(user);
-        return validityPeriodBO;
+        }
+        packageSyncUserValidityPeriodBO(bo, validConfig);
+        return bo;
     }
 
     /**
