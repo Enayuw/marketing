@@ -40,4 +40,5 @@ public class XieChengSmsCollidingDataVtToSendJob extends AbstractSimpleElasticJo
         pushDataService.pushXieChengSmsCollidingToDbDataVt();
     }
 
+
 }
