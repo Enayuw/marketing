@@ -10,7 +10,6 @@ import com.br.marketing.client.robotaiapi.output.TransferRobotDataVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.XieChengSmsCollidingDataLogVt;
 import com.br.marketing.entity.XieChengSmsCollidingDataLogVtExample;
@@ -21,6 +20,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -29,10 +29,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 
@@ -56,6 +53,10 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    @Qualifier("xieChengSmsThreadPool")
+    ThreadPoolExecutor pool;
+
     @Override
     public Result consumerXiechengSmsCollidingVtUser(String msg) {
         long start = System.currentTimeMillis();
@@ -70,6 +71,7 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         for (Object o : jsonArray) {
             sha256CodeList.add(o.toString());
         }
+
         if (CollectionUtils.isEmpty(sha256CodeList)) {
             // ack
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
@@ -78,44 +80,26 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         xieChengSmsCollidingDataLogVtExample.createCriteria().andSha256CodeListIn(sha256CodeList).andSendDateEqualTo(sendDate);
         List<XieChengSmsCollidingDataLogVt> selectByExample =
                 xieChengSmsCollidingDataLogVtMapper.selectByExample(xieChengSmsCollidingDataLogVtExample);
-        log.warn("查询数据库耗时：{}", System.currentTimeMillis() - start);
 
-        // 根据sha256code将查询结果去重 todo
-        Set<String> selectByExampleSet = selectByExample.stream().map(XieChengSmsCollidingDataLogVt::getSha256CodeList).collect(Collectors.toSet());
-        // 没查到也推客服
-        List<XieChengSmsCollidingDataLogVt> notFoundList =
-                sha256CodeList.stream().filter(t -> !selectByExampleSet.contains(t)).map(m -> {
-                    XieChengSmsCollidingDataLogVt xieChengSmsCollidingDataLogVt = new XieChengSmsCollidingDataLogVt();
-                    xieChengSmsCollidingDataLogVt.setSha256CodeList(m);
-                    return xieChengSmsCollidingDataLogVt;
-                }).collect(Collectors.toList());
-
-        selectByExample.addAll(notFoundList);
         // 推送客服数据集合
         long start1 = System.currentTimeMillis();
-        List<ConversionData> conversionDataList = new ArrayList<>();
+        List<ConversionData> conversionDataList = new CopyOnWriteArrayList<>();
 
-        // 创建线程池
-        Integer threadNum = marketingCommonConfig.getXieChengSmsMqPushCustomerThreadNum();
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(threadNum, threadNum);
-        List<Callable<ConversionData>> tasks = new ArrayList<>();
+        // 动态修改线程池
+        modifyCorePoolSize();
 
+        CountDownLatch countDownLatch = new CountDownLatch(selectByExample.size());
         for (XieChengSmsCollidingDataLogVt vt : selectByExample) {
-            final String dataId = vt.getId() == null ? generateRandomNumber() : vt.getId().toString();
+            final String dataId = vt.getId().toString();
             final String sha256Code = vt.getSha256CodeList();
-            tasks.add(() -> getConversionData(nowDayEndTime, cid, sha256Code, dataId));
+            pool.submit(() -> buildConversionDataList(nowDayEndTime, cid, sha256Code, dataId, countDownLatch, conversionDataList));
         }
         try {
-            List<Future<ConversionData>> futures = pool.invokeAll(tasks);
-            for (Future<ConversionData> future : futures) {
-                conversionDataList.add(future.get());
-            }
-        } catch (InterruptedException | ExecutionException e) {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
             log.error(e.getMessage(), e);
-            Thread.currentThread().interrupt();
-        } finally {
-            pool.shutdown();
         }
+
         log.warn("封装数据集合耗时：{}", System.currentTimeMillis() - start1);
 
         if (CollectionUtils.isEmpty(conversionDataList)) {
@@ -157,8 +141,25 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
-    private ConversionData getConversionData(Date nowDayEndTime, String cid, String sha256Code,
-                                             String dataId) {
+    private void modifyCorePoolSize() {
+        Integer threadNum = marketingCommonConfig.getXieChengSmsMqPushCustomerThreadNum();
+        pool.setCorePoolSize(threadNum);
+        pool.setMaximumPoolSize(threadNum);
+    }
+
+    private void shutDownTreadPool() {
+        pool.shutdown();
+        try {
+            while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("xieChengSmsThreadPool线程池结束");
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+    }
+
+    private void buildConversionDataList(Date nowDayEndTime, String cid, String sha256Code,
+                                         String dataId, CountDownLatch countDownLatch, List<ConversionData> conversionDataList) {
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(dataId);
         conversionData.setCid(cid);
@@ -172,16 +173,8 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         conversionData.setPhone(query);
         conversionData.setInversionInfo("{}");
         conversionData.setPartnerProcessDate(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
-        return conversionData;
-    }
 
-    public static String generateRandomNumber() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-        String timeString = dateFormat.format(new Date());
-
-        Random random = new Random();
-        int randomInt = random.nextInt(900000) + 100000; // 生成6位随机数
-
-        return "xcsms" + timeString + randomInt;
+        conversionDataList.add(conversionData);
+        countDownLatch.countDown();
     }
 }
