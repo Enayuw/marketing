@@ -37,6 +37,10 @@ public class XieChengSmsCollidingDataVtToSendJob extends AbstractSimpleElasticJo
     @Resource
     private PushDataService pushDataService;
 
+    /**
+     * jobParameter 为需要推送数据的最小id 减 1
+     * @param jobExecutionMultipleShardingContext
+     */
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
