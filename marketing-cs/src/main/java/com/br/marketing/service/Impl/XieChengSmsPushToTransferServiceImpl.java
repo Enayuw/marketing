@@ -31,7 +31,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 
 /**
@@ -42,6 +41,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTransferService {
+    public static final String YYYY_MM_DD_HH_MM_SS = "yyyy-MM-dd HH:mm:ss";
     @Resource
     XieChengSmsCollidingDataLogVtMapper xieChengSmsCollidingDataLogVtMapper;
 
@@ -98,7 +98,7 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         try {
             countDownLatch.await();
         } catch (InterruptedException e) {
-            log.error(e.getMessage(), e);
+            log.error("携程新场景短信撞库：" + e.getMessage(), e);
         }
 
         log.warn("封装数据集合耗时：{}", System.currentTimeMillis() - start1);
@@ -164,19 +164,21 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(dataId);
         conversionData.setCid(cid);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat(YYYY_MM_DD_HH_MM_SS);
         String expireDate = dateFormat.format(nowDayEndTime);
         conversionData.setExpireDate(expireDate);
         conversionData.setInversionStatus("0");
         String query = RpcClientProxy.decode(sha256Code, "cell", "sha", "");
-
         conversionData.setPhone(query);
         conversionData.setInversionInfo("{}");
-        conversionData.setPartnerProcessDate(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
-        // 解密失败
-        if (!StringUtils.isEmpty(query)) {
+        conversionData.setPartnerProcessDate(DateUtils.format(new Date(), YYYY_MM_DD_HH_MM_SS));
+
+        if (StringUtils.isEmpty(query)) {
+            log.error("携程新场景短信撞库，sha256解密失败：{},dataId：{}", sha256Code, dataId);
+        } else {
             conversionDataList.add(conversionData);
         }
+
         countDownLatch.countDown();
     }
 }
