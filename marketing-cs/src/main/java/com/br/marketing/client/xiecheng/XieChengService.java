@@ -347,9 +347,9 @@ public class XieChengService {
             String s = sha256CodeList.get(i);
             dataMap.put("sha256Code",s);
             if(i%2==0){
-                dataMap.put("result",true);
+                dataMap.put("result",null);
             }else {
-                dataMap.put("result",false);
+                dataMap.put("result",null);
             }
             dataMap.put("orgChannel","测试orgChannel");
             dataMap.put("mktLevel","测试mktLevel");
