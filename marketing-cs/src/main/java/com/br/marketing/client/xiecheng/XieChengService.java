@@ -149,10 +149,6 @@ public class XieChengService {
     private String smsCollidingVtSignKey;
 
 
-    private String smsCollidingVtChannel;
-
-
-    private Boolean smsCollidingVtIsProxy;
 
 
     @Autowired
@@ -282,7 +278,7 @@ public class XieChengService {
         retMap.put("channel", smsCollidingChannel);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingKey, smsCollidingIv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingSingKey));
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingVtIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.error("携程短信撞库接口httpcode非200异常，重试");
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
@@ -324,8 +320,8 @@ public class XieChengService {
 //        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
         HashMap<String, String> resMap = getTestMap(sha256CodeList);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            String content = "网络异常或者返回内容为空";
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(content);
+            String content = " {\"code\":702,\"msg\":\"网络异常或者返回内容为空\"}";
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(content);
         }
 
         String content = resMap.get("content");
@@ -336,7 +332,7 @@ public class XieChengService {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(content);
         } else {
             log.error("携程短信撞库接口请求【新】返回code 非0异常，无重试，需要是手动处理。");
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
+            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(content);
         }
 
     }

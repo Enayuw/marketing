@@ -10,6 +10,7 @@ import com.br.marketing.client.robotaiapi.output.TransferRobotDataVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.XieChengSmsCollidingDataLogVt;
 import com.br.marketing.entity.XieChengSmsCollidingDataLogVtExample;
@@ -25,7 +26,15 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
+
 
 /**
  * @Description XieChengSmsPushToTransferServiceImpl
@@ -49,47 +58,72 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
 
     @Override
     public Result consumerXiechengSmsCollidingVtUser(String msg) {
+        long start = System.currentTimeMillis();
         JSONArray jsonArray = JSON.parseArray(msg);
-        List<ConversionData> conversionDataList = new ArrayList<>();
-        Date nowDayStartTime = DateHelper.getNowDayStartTime();
+
         Date nowDayEndTime = DateHelper.getNowDayEndTime();
         String xieChengSmsApiCode = marketingCommonConfig.getXieChengSmsApiCode();
         String cid = tableCreateService.getCId(xieChengSmsApiCode);
+        Integer sendDate = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
 
+        List<String> sha256CodeList = new ArrayList<>();
         for (Object o : jsonArray) {
-            String sha256Code = o.toString();
-            XieChengSmsCollidingDataLogVtExample xieChengSmsCollidingDataLogVtExample = new XieChengSmsCollidingDataLogVtExample();
-            xieChengSmsCollidingDataLogVtExample.createCriteria().andSha256CodeListEqualTo(sha256Code)
-                    .andCreateTimeBetween(nowDayStartTime, nowDayEndTime);
-            List<XieChengSmsCollidingDataLogVt> xieChengSmsCollidingDataLogs =
-                    xieChengSmsCollidingDataLogVtMapper.selectByExample(xieChengSmsCollidingDataLogVtExample);
-
-            if (CollectionUtils.isEmpty(xieChengSmsCollidingDataLogs)) {
-                log.error("携程新场景短信撞库，根据sha256手机号查询查询为空：{}", sha256Code);
-                continue;
-            }
-            Long id = xieChengSmsCollidingDataLogs.get(0).getId();
-
-            ConversionData conversionData = new ConversionData();
-            conversionData.setDataId(id.toString());
-            conversionData.setCid(cid);
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            String expireDate = dateFormat.format(nowDayEndTime);
-            conversionData.setExpireDate(expireDate);
-            conversionData.setInversionStatus("0");
-            String query = RpcClientProxy.decode(sha256Code, "cell", "sha", "");
-            conversionData.setPhone(query);
-            conversionData.setInversionInfo("{}");
-            conversionData.setPartnerProcessDate(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
-
-            conversionDataList.add(conversionData);
+            sha256CodeList.add(o.toString());
         }
+        if (CollectionUtils.isEmpty(sha256CodeList)) {
+            // ack
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+        }
+        XieChengSmsCollidingDataLogVtExample xieChengSmsCollidingDataLogVtExample = new XieChengSmsCollidingDataLogVtExample();
+        xieChengSmsCollidingDataLogVtExample.createCriteria().andSha256CodeListIn(sha256CodeList).andSendDateEqualTo(sendDate);
+        List<XieChengSmsCollidingDataLogVt> selectByExample =
+                xieChengSmsCollidingDataLogVtMapper.selectByExample(xieChengSmsCollidingDataLogVtExample);
+        log.warn("查询数据库耗时：{}", System.currentTimeMillis() - start);
+
+        // 根据sha256code将查询结果去重 todo
+        Set<String> selectByExampleSet = selectByExample.stream().map(XieChengSmsCollidingDataLogVt::getSha256CodeList).collect(Collectors.toSet());
+        // 没查到也推客服
+        List<XieChengSmsCollidingDataLogVt> notFoundList =
+                sha256CodeList.stream().filter(t -> !selectByExampleSet.contains(t)).map(m -> {
+                    XieChengSmsCollidingDataLogVt xieChengSmsCollidingDataLogVt = new XieChengSmsCollidingDataLogVt();
+                    xieChengSmsCollidingDataLogVt.setSha256CodeList(m);
+                    return xieChengSmsCollidingDataLogVt;
+                }).collect(Collectors.toList());
+
+        selectByExample.addAll(notFoundList);
+        // 推送客服数据集合
+        long start1 = System.currentTimeMillis();
+        List<ConversionData> conversionDataList = new ArrayList<>();
+
+        // 创建线程池
+        Integer threadNum = marketingCommonConfig.getXieChengSmsMqPushCustomerThreadNum();
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(threadNum, threadNum);
+        List<Callable<ConversionData>> tasks = new ArrayList<>();
+
+        for (XieChengSmsCollidingDataLogVt vt : selectByExample) {
+            final String dataId = vt.getId() == null ? generateRandomNumber() : vt.getId().toString();
+            final String sha256Code = vt.getSha256CodeList();
+            tasks.add(() -> getConversionData(nowDayEndTime, cid, sha256Code, dataId));
+        }
+        try {
+            List<Future<ConversionData>> futures = pool.invokeAll(tasks);
+            for (Future<ConversionData> future : futures) {
+                conversionDataList.add(future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            log.error(e.getMessage(), e);
+            Thread.currentThread().interrupt();
+        } finally {
+            pool.shutdown();
+        }
+        log.warn("封装数据集合耗时：{}", System.currentTimeMillis() - start1);
 
         if (CollectionUtils.isEmpty(conversionDataList)) {
             // ack
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
         // 每500条数据一个批次
+        long s = System.currentTimeMillis();
         int pageSize = 500;
         int totalCount = conversionDataList.size();
         int pageCount = totalCount % pageSize == 0 ? (totalCount / pageSize) : totalCount / pageSize + 1;
@@ -117,7 +151,37 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
                 }
             }
         }
+        log.warn("推送客服耗时：{}", System.currentTimeMillis() - s);
+        log.warn("携程新场景短信撞库result=false分发多apicode推送至客服,mq消费并推送成功,耗时：{}，推送cell的数量为：{}", System.currentTimeMillis() - start, conversionDataList.size());
         // ack
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+    }
+
+    private ConversionData getConversionData(Date nowDayEndTime, String cid, String sha256Code,
+                                             String dataId) {
+        ConversionData conversionData = new ConversionData();
+        conversionData.setDataId(dataId);
+        conversionData.setCid(cid);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String expireDate = dateFormat.format(nowDayEndTime);
+        conversionData.setExpireDate(expireDate);
+        conversionData.setInversionStatus("0");
+        long ll = System.currentTimeMillis();
+        String query = RpcClientProxy.decode(sha256Code, "cell", "sha", "");
+        log.warn("sha256解密耗时：{}", System.currentTimeMillis() - ll);
+        conversionData.setPhone(query);
+        conversionData.setInversionInfo("{}");
+        conversionData.setPartnerProcessDate(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+        return conversionData;
+    }
+
+    public static String generateRandomNumber() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+        String timeString = dateFormat.format(new Date());
+
+        Random random = new Random();
+        int randomInt = random.nextInt(900000) + 100000; // 生成6位随机数
+
+        return "xcsms" + timeString + randomInt;
     }
 }

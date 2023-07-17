@@ -66,8 +66,6 @@ public interface PushDataService {
 
     /**
      * 推送携程短信撞库数据Version2
-     * @param data
-     * @return
      */
     void pushXieChengSmsCollidingToDbDataVt(Long localId);
 
