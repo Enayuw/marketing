@@ -253,7 +253,7 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
                 .getValidityPeriodCellBatchFirstVersion(mobileMd5Set, apiCode, data.getBizDate());
         boolean emptyBool = CollectionUtils.isEmpty(syncUserMap);
         if (emptyBool) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode()
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
                     , "tag:" + tag + ",apiCode:" + apiCode + "未获取到上传数据或未配置有效期！"
                     , apiCode + "," + tag + "锁定名单推送众安异常"));
             List<Long> ids = inList.parallelStream().map(ZhonganRosterLockingData::getId).collect(Collectors.toList());

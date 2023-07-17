@@ -69,11 +69,12 @@ public class TransferFieldProcessByZhongAnFactory implements TransferFieldProces
         if (CollectionUtils.isEmpty(validityMap)
                 || (bo = validityMap.get(cellByLog)) == null
                 || (syncUser = bo.getSyncUser()) == null) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode()
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
                     , "众安未配置任何有效期，请配置对应的有效期规则，apiCode:" + transferSyncUser.getApiCode()
                             + ";tcid:" + transferSyncUser.gettCid()
                             + ";cell:" + cellByLog
-                    , transferSyncUser.getApiCode() + "众安转化数据清洗入库，未配置有效期规则"));
+                    , transferSyncUser.getApiCode() + "众安转化数据清洗入库，"
+                            + AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getMessage()));
             return;
         }
         transferSyncUser.setCustNum(syncUser.getCustNum());

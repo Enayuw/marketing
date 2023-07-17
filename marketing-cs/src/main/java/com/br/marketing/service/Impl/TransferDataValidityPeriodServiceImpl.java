@@ -983,8 +983,9 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     private boolean isNotExistDataValidConfig(List<MarketingDataValidConfig> configList, String apiCode) {
         // 未配置任何有效期
         if (CollectionUtils.isEmpty(configList)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode()
-                    , apiCode + "未配置任何有效期，请配置对应的有效期规则", apiCode + "未配置有效期规则"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
+                    , apiCode + "未配置任何有效期，请配置对应的有效期规则"
+                    , apiCode + AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getMessage()));
             return true;
         }
         return false;
@@ -1002,7 +1003,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         newSet.retainAll(configUserTypeSet);
         // 未配置任何有效期
         if (newSet.size() > 0) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode()
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
                     , "场景未配置任何有效期，请配置对应的有效期规则;apiCode:" + apiCode + ";userType:" + newSet
                     , apiCode + "存在场景未配置有效期规则"));
         }
