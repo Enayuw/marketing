@@ -18,6 +18,8 @@ import lombok.Data;
 @Data
 public class ThirdAdOuterReq {
 
+    private String appId;
+
     private String timestamp;
 
     private String source;
@@ -43,7 +45,7 @@ public class ThirdAdOuterReq {
     }
 
     public ThirdAdOuterReq(String timestamp,String source,String clickId,String actionType,String deviceInfo
-            ,String mktMode,String mktChannel,String mktProductNo){
+            ,String mktMode,String mktChannel,String mktProductNo,String appId){
         this.timestamp = timestamp;
         this.source = source;
         this.clickId = clickId;
@@ -52,5 +54,6 @@ public class ThirdAdOuterReq {
         this.mktMode = mktMode;
         this.mktChannel = mktChannel;
         this.mktProductNo = mktProductNo;
+        this.appId = appId;
     }
 }

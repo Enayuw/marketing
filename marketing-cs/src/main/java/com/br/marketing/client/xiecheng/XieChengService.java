@@ -190,7 +190,8 @@ public class XieChengService {
                     deviceInfo.toString(),
                     xieChengData.getMktMode(),
                     xieChengData.getMktChannel(),
-                    xieChengData.getMktProductNo()
+                    xieChengData.getMktProductNo(),
+                    appIdVt
             );
         }
 
