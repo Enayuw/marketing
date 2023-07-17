@@ -9,7 +9,7 @@ import java.util.List;
 public interface XieChengSmsCollidingDataVtMapper extends XieChengSmsCollidingDataVtMapperBase{
     List<XieChengSmsCollidingDataVt> selectByLocalIdVttikv_(
                                                             @Param("indexId") Long indexId,
-                                                            @Param("indexLast") Long indexLast,
+                                                            @Param("localId") Long localId,
                                                             @Param("sendDate") Integer sendDate,
                                                             @Param("xieChengSmsCollidingDataVtPageSize") Integer xieChengSmsCollidingDataVtPageSize);
 }

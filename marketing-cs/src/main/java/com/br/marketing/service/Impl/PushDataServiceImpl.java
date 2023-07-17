@@ -1272,22 +1272,21 @@ public class PushDataServiceImpl implements PushDataService {
         }
     }
     @Override
-    public void pushXieChengSmsCollidingToDbDataVt(Long indexId) {
+    public void pushXieChengSmsCollidingToDbDataVt(Long localId) {
         try {
             // 初始化线程池
             ThreadResult result = getThreadResult();
             Integer sendDate = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-            Long indexLast = 100000L;
+            Long indexId = 1L;
             while (true) {
                 // 动态修改线程参数
                 changeTpProperties(result.xieChengSmsCollidingThreadLogSaveVt,result.xieChengSmsCollidingThreadVt, result.xieChengSmsCollidingThreadLogUpdateVt);
 
                 // 查询需要推送的基础数据
                 List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataVtList =
-                        xieChengSmsCollidingDataVtMapper.selectByLocalIdVttikv_(indexId,indexLast,sendDate,marketingCommonConfig.getXieChengSmsCollidingDataVtPageSize());
+                        xieChengSmsCollidingDataVtMapper.selectByLocalIdVttikv_(indexId,localId,sendDate,marketingCommonConfig.getXieChengSmsCollidingDataVtPageSize());
                 if (xieChengSmsCollidingDataVtList.isEmpty()) break;
                 indexId = xieChengSmsCollidingDataVtList.get(xieChengSmsCollidingDataVtList.size()-1).getId();
-                indexLast = indexId+indexLast;
                 // 存储推送日志
                 List<List<XieChengSmsCollidingDataVt>> partition = Lists.partition(xieChengSmsCollidingDataVtList, 1000);
                 List<Callable<Integer>> saveLogListTask = new ArrayList<>();

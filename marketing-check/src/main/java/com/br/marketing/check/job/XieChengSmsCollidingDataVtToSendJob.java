@@ -29,7 +29,7 @@ import java.util.List;
 @Component
 @Slf4j
 public class XieChengSmsCollidingDataVtToSendJob extends AbstractSimpleElasticJob {
-
+    private static final String XIECHENGSMSCOLLIDINGVT = "xiechengsmscollidingvt";
 
     /**
      * 推送实现
@@ -41,14 +41,20 @@ public class XieChengSmsCollidingDataVtToSendJob extends AbstractSimpleElasticJo
      * jobParameter 为需要推送数据的最小id 减 1
      * @param jobExecutionMultipleShardingContext
      */
+    /**
+     * 文件
+     */
+    @Resource
+    private LocalFileMapper localFileMapper;
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
-        Long indexId  = 1L;
-        if (StringUtils.isNotBlank(jobParameter)) {
-            indexId = Long.valueOf(jobParameter);
-        }
-        pushDataService.pushXieChengSmsCollidingToDbDataVt(indexId);
+        final LocalFileExample localFileExample = new LocalFileExample();
+        localFileExample.createCriteria()
+                .andFileTypeEqualTo(XIECHENGSMSCOLLIDINGVT)
+                .andStatusEqualTo("2");
+        localFileExample.setOrderByClause("id desc");
+        List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
+        localFileList.forEach((LocalFile lf) -> pushDataService.pushXieChengSmsCollidingToDbDataVt(lf.getId()));
     }
 
 
