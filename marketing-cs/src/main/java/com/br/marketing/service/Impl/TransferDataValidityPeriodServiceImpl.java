@@ -984,7 +984,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         // 未配置任何有效期
         if (CollectionUtils.isEmpty(configList)) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode()
-                    , apiCode + "未配置任何有效期，请配置对应的有效期规则", apiCode + "未配置有效期"));
+                    , apiCode + "未配置任何有效期，请配置对应的有效期规则", apiCode + "未配置有效期规则"));
             return true;
         }
         return false;
@@ -1004,7 +1004,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         if (newSet.size() > 0) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode()
                     , "场景未配置任何有效期，请配置对应的有效期规则;apiCode:" + apiCode + ";userType:" + newSet
-                    , apiCode + "存在场景未配置有效期"));
+                    , apiCode + "存在场景未配置有效期规则"));
         }
     }
 

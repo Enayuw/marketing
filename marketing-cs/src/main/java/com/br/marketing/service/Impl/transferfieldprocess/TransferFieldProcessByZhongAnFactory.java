@@ -2,9 +2,11 @@ package com.br.marketing.service.Impl.transferfieldprocess;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -67,6 +69,11 @@ public class TransferFieldProcessByZhongAnFactory implements TransferFieldProces
         if (CollectionUtils.isEmpty(validityMap)
                 || (bo = validityMap.get(cellByLog)) == null
                 || (syncUser = bo.getSyncUser()) == null) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode()
+                    , "众安未配置任何有效期，请配置对应的有效期规则，apiCode:" + transferSyncUser.getApiCode()
+                            + ";tcid:" + transferSyncUser.gettCid()
+                            + ";cell:" + cellByLog
+                    , transferSyncUser.getApiCode() + "众安转化数据清洗入库，未配置有效期规则"));
             return;
         }
         transferSyncUser.setCustNum(syncUser.getCustNum());
