@@ -11,6 +11,7 @@ import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.XieChengSmsCollidingDataLogVt;
 import com.br.marketing.entity.XieChengSmsCollidingDataLogVtExample;
 import com.br.marketing.mapper.XieChengSmsCollidingDataLogVtMapper;
@@ -167,14 +168,15 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
         String expireDate = dateFormat.format(nowDayEndTime);
         conversionData.setExpireDate(expireDate);
         conversionData.setInversionStatus("0");
-        long ll = System.currentTimeMillis();
         String query = RpcClientProxy.decode(sha256Code, "cell", "sha", "");
-        log.warn("sha256解密耗时：{}", System.currentTimeMillis() - ll);
+
         conversionData.setPhone(query);
         conversionData.setInversionInfo("{}");
         conversionData.setPartnerProcessDate(DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
-
-        conversionDataList.add(conversionData);
+        // 解密失败
+        if (!StringUtils.isEmpty(query)) {
+            conversionDataList.add(conversionData);
+        }
         countDownLatch.countDown();
     }
 }
