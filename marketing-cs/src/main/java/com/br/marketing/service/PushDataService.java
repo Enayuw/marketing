@@ -67,7 +67,7 @@ public interface PushDataService {
     /**
      * 推送携程短信撞库数据Version2
      */
-    void pushXieChengSmsCollidingToDbDataVt();
+    void pushXieChengSmsCollidingToDbDataVt(Long indexId);
 
     String getHaierRequestId(String type);
 

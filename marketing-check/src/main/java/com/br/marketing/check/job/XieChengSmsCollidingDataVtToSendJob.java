@@ -1,11 +1,13 @@
 package com.br.marketing.check.job;
 
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.service.PushDataService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -37,7 +39,12 @@ public class XieChengSmsCollidingDataVtToSendJob extends AbstractSimpleElasticJo
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        pushDataService.pushXieChengSmsCollidingToDbDataVt();
+        String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
+        Long indexId  = 1L;
+        if (StringUtils.isNotBlank(jobParameter)) {
+            indexId = Long.valueOf(jobParameter);
+        }
+        pushDataService.pushXieChengSmsCollidingToDbDataVt(indexId);
     }
 
 

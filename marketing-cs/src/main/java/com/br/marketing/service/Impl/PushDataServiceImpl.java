@@ -1272,12 +1272,11 @@ public class PushDataServiceImpl implements PushDataService {
         }
     }
     @Override
-    public void pushXieChengSmsCollidingToDbDataVt() {
+    public void pushXieChengSmsCollidingToDbDataVt(Long indexId) {
         try {
             // 初始化线程池
             ThreadResult result = getThreadResult();
             Integer sendDate = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-            Long indexId = 1L;
             Long indexLast = 100000L;
             while (true) {
                 // 动态修改线程参数
@@ -1309,6 +1308,10 @@ public class PushDataServiceImpl implements PushDataService {
             }
             // 线程池关门
             closedThreadPoll(result);
+
+            producter.send(ROUTING_KEY_XIECHENG_SMSCOLLIDINGVT_CUSTOMER
+                    , JSON.toJSONString(new ArrayList<>()));
+            // mq 消息发送
 
             // 发送异常统计信息
             sendAlertMessage(sendDate);
