@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 
+import com.br.marketing.entity.MarketingNewTransferData;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.vo.TransferOfCnIdVO;
 import com.br.marketing.vo.TransferOfRdRFVO;
@@ -40,6 +41,31 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     List<MarketingTransferSyncUser> getTransferOrderInsertTime(@Param("cid") String cid, @Param("data") String data, @Param("limitStart") Integer limitStart);
 
     List<MarketingTransferSyncUser> getTransferDataByRequestDataAndApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("data") String data, @Param("limitStart") Integer limitStart);
+
+    /**
+     * 取T日apiCode的撞库数据
+     * @param day
+     * @return
+     */
+    List<MarketingNewTransferData> getNewTransferDatabaseCollision(@Param("apiCode") String apiCode , @Param("day") Integer day);
+
+    /**
+     * 根据cell（custNum）查询转化数据
+     * @param cell
+     * @return
+     */
+    List<MarketingNewTransferData> getNewTransferData(@Param("cell") String cell);
+
+    /**
+     * 根据cell获取最新的一条数据
+     *
+     * @param cid
+     * @param cell
+     * @return
+     */
+    MarketingTransferSyncUser getNewestByCell(@Param("cid") String cid, @Param("cell") String cell);
+
+
 
     List<MarketingTransferSyncUser> getTransferByRequestData(@Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
 
