@@ -11,6 +11,7 @@ import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.mapper.SyncLogMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
+import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.SftpInnerServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.*;
@@ -137,6 +138,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByYonghuiServiceImpl transferToFileByYonghuiService;
 
+    @Autowired
+    ICompatibleService iCompatibleService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
@@ -150,6 +153,10 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 , context.getShardingTotalCount()
                 , context.getShardingItems());
         for (MarketingCustomer marketingCustomer : marketingCustomers) {
+            Boolean action = iCompatibleService.isAction(marketingCustomer.getExtendConfigInfo(),context.getJobName());
+            if(!action){
+                continue;
+            }
             Set<ITransferToFileService> serviceImplSet = bind.get(marketingCustomer.getApiCode());
             for (ITransferToFileService serviceImpl : serviceImplSet) {
                 try {
@@ -350,6 +357,5 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
             }
         }
     }
-
 
 }

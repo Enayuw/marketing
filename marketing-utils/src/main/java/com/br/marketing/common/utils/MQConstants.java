@@ -61,6 +61,8 @@ public class MQConstants {
     // 文件合并队列
     public static final String MARKETING_PUSHTASK_FILE_MERGE = "Marketing_PushTask_File_Merge";
 
+    public static final String MARKETING_PUSHTASK_FILE_INITMERGE = "Marketing_PushTask_File_InitMerge";
+
     public static final String MARKETING_PUSHTASK_FILE_MERGE_ERRORDELAY = "Marketing_PushTask_File_Merge_ErrorDelay";
 
     // 离线跑批回调队列
@@ -116,7 +118,9 @@ public class MQConstants {
     //文件合并
     public static final String ROUTING_KEY_PUSHTASK_FILE_MERGE = "Marketing.PushTask.File.Merge";
 
-    public static final String ROUTING_KEY_PUSHTASK_FILE_MERGE_ERRORDELAY = "Marketing.PushTask.File.Merge.ErrorDelay";
+    public static final String ROUTING_KEY_PUSHTASK_FILE_INITMERGE = "Marketing.PushTask.File.InitMerge";
+
+    public static final String ROUTING_KEY_PUSHTASK_FILE_MERGE_ERRORDELAY ="Marketing.PushTask.File.Merge.ErrorDelay";
 
     //离线跑批回调路由键
     public static final String ROUTING_KEY_OFFLINETASK_FILE_CALLBACK = "Marketing.OffLineTask.File.CallBack";

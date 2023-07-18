@@ -1,13 +1,13 @@
 package com.br.marketing.push.service;
 
 import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.common.utils.RabbitMqSenderUtils;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.entity.LoanFile;
 import com.br.marketing.push.PushApplication;
 import com.br.marketing.push.service.impl.MergeServiceImpl;
 import com.br.marketing.push.service.impl.PushServiceImpl;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.service.ICompatibleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,9 +52,17 @@ public class FlowService {
     @Autowired
     RabbitMqProducter producter;
 
+    @Autowired
+    ICompatibleService iCompatibleService;
+
     public void flow(Customer customer){
         List<LoanFile> pushList;
         try {
+
+//            Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo());
+//            if(!action){
+//                return;
+//            }
             /**
              * 文件合并
              */

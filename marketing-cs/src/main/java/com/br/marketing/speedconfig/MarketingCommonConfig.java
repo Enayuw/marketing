@@ -669,6 +669,11 @@ public class MarketingCommonConfig {
     private String didiModelingThreadNum;
 
     /**
+     * 滴滴剔除数据配置
+     */
+    private List<String> resverfiled1Data;
+
+    /**
      * 众安明细推送配置{"userType":{"isPush":"1/0","channelCode":"****"}}
      */
     private HashMap<String, JSONObject> zhongAnDetailPush;
@@ -753,10 +758,45 @@ public class MarketingCommonConfig {
     private Integer yiXinSearchPageSize;
 
     /**
+     * 滴滴联合建模新接口执行时间
+     */
+    private String didiModelingNewExecTime;
+
+    /**
+     * 滴滴联合建模新接口线程数
+     */
+    private String didiModelingNewThreadNum;
+
+    /**
+     * 滴滴联合建模新接口任务开关
+     * true 打开，false 关闭执行
+     */
+    private Boolean didiModelingNewDataSwitch;
+
+    /**
+     * 滴滴联合建模mediaName
+     */
+    private Map<String, String> didiModelingMediaNameMap;
+    /**
      * 转化数据的apiCode、convType、推送的apiCode映射关系
      * pushConvTypeConfig={"3710058":{"106":["3710058","3710078"],"107":["3710058"]},"7412009":{"106":["7412009","7410951"],"107":["7412009"]}}
      */
     private HashMap<String, JSONObject> pushConvTypeConfig;
+
+    /**
+     * 携程定时任务推决策情况apiCode配置:{"b":"371058"}
+     */
+    private Map<String,String> xieChengPushPolicyStatusToApiCode;
+
+    /**
+     * 迁移配置 key-功能项；value-具体的值；{"jobToEngineRoom":"1(开启)/0（关闭）"}
+     */
+    private HashMap<String,String> moveConfig;
+
+    /**
+     * job集群指定{“作业名称”:"zwpro/yzpro/zwfz/yzfz/zw/yz/all","default":"zwpro/yzpro/zwfz/yzfz/zw/yz/all"}
+     */
+    private HashMap<String,String> jobCluster;
 
     /**
      * 2023-07-05 16:04

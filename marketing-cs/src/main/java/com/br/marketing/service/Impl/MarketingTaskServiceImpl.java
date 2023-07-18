@@ -734,7 +734,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     private static Integer mo = 10;
 
     @Override
-    public Integer getPart(Integer sum, Integer index) {
+    public Integer getPart(Integer sum, Long index) {
         if(sum==null||sum==0||index==null||index==0){
             throw new RuntimeException("参数不能为空或者0");
         }
@@ -743,7 +743,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         while (sum>zuNum*zu){
             zu++;
         }
-        return ((zu-1)*mo)+(index%mo);
+        return ((zu-1)*mo)+(index.intValue()%mo);
     }
 
     @Override

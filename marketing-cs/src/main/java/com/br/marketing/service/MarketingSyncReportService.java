@@ -16,6 +16,7 @@ import java.util.Map;
  */
 public interface MarketingSyncReportService {
 
+    void syncReportProcess(String uploadDate,String jobName);
     /**
      * 根据日期对上传数据进行报表统计
      *

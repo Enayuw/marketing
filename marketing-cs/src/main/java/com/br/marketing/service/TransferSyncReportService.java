@@ -25,7 +25,7 @@ public interface TransferSyncReportService {
      * @author Guo Zeqiang
      * @dateTime 2022/6/29 16:05
      */
-    void reportProcess(Set<String> dateStrSet, int shardingTotalCount, List<Integer> shardingItems);
+    void reportProcess(Set<String> dateStrSet, int shardingTotalCount, List<Integer> shardingItems,String JobName);
 
     /**
      * 处理转化数据生成数据报表
