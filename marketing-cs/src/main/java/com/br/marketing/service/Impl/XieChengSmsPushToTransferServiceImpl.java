@@ -83,7 +83,6 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
                 xieChengSmsCollidingDataLogVtMapper.selectByExample(xieChengSmsCollidingDataLogVtExample);
 
         // 推送客服数据集合
-        long start1 = System.currentTimeMillis();
         List<ConversionData> conversionDataList = new CopyOnWriteArrayList<>();
 
         // 动态修改线程池
@@ -101,14 +100,11 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
             log.error("携程新场景短信撞库：" + e.getMessage(), e);
         }
 
-        log.warn("封装数据集合耗时：{}", System.currentTimeMillis() - start1);
-
         if (CollectionUtils.isEmpty(conversionDataList)) {
             // ack
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
         // 每500条数据一个批次
-        long s = System.currentTimeMillis();
         int pageSize = 500;
         int totalCount = conversionDataList.size();
         int pageCount = totalCount % pageSize == 0 ? (totalCount / pageSize) : totalCount / pageSize + 1;
@@ -136,7 +132,6 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
                 }
             }
         }
-        log.warn("推送客服耗时：{}", System.currentTimeMillis() - s);
         log.warn("携程新场景短信撞库result=false分发多apicode推送至客服,mq消费并推送成功,耗时：{}，推送cell的数量为：{}", System.currentTimeMillis() - start, conversionDataList.size());
         // ack
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);

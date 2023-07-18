@@ -180,7 +180,6 @@ public class ConsumerApp {
             , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
             , key = MQConstants.ROUTING_KEY_XIECHENG_SMSCOLLIDINGVT_CUSTOMER)}, containerFactory = "xieChengSmsMqContainerFactory")
     public void consumerXiechengSmsCollidingVtUser(Channel channel, Message message) {
-        log.warn("Marketing_XieChengSmsCollidingVt_Customer：获取消息成功");
         String o = new String(message.getBody(), StandardCharsets.UTF_8);
         consumerService.consumerRun(channel, message, xieChengSmsPushToTransferService::consumerXiechengSmsCollidingVtUser, o, null);
     }
