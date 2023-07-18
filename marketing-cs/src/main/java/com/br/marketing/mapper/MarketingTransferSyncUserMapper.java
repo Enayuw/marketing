@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 
+import com.alibaba.fastjson.JSONArray;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.vo.TransferOfCnIdVO;
 import com.br.marketing.vo.TransferOfRdRFVO;
@@ -363,7 +364,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     Integer getCountByRequestId(@Param("cid") String cId, @Param("requestId") String requestId);
 
-    MarketingTransferSyncUser getXcTransferNoAdData(@Param("tCid") String tcId, @Param("custNum") String custNum);
+    MarketingTransferSyncUser getXcTransferNoAdDataByOnlyConvType(@Param("tCid") String tcId, @Param("custNum") String custNum, @Param("apiCodes") JSONArray apiCodes);
 
-    MarketingTransferSyncUser getXcTransferNoAdDataByOnlyBlack(@Param("tCid") String tcId, @Param("custNum") String custNum);
+    MarketingTransferSyncUser getXcTransferNoAdDataByOnlyBlack(@Param("tCid") String tcId, @Param("custNum") String custNum, @Param("apiCodes") JSONArray apiCodes);
 }
