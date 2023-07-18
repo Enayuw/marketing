@@ -161,24 +161,30 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
 
     private void buildConversionDataList(Date nowDayEndTime, String cid, String sha256Code,
                                          String dataId, CountDownLatch countDownLatch, List<ConversionData> conversionDataList) {
-        ConversionData conversionData = new ConversionData();
-        conversionData.setDataId(dataId);
-        conversionData.setCid(cid);
-        SimpleDateFormat dateFormat = new SimpleDateFormat(YYYY_MM_DD_HH_MM_SS);
-        String expireDate = dateFormat.format(nowDayEndTime);
-        conversionData.setExpireDate(expireDate);
-        conversionData.setInversionStatus("0");
-        String query = RpcClientProxy.decode(sha256Code, "cell", "sha", "");
-        conversionData.setPhone(query);
-        conversionData.setInversionInfo("{}");
-        conversionData.setPartnerProcessDate(DateUtils.format(new Date(), YYYY_MM_DD_HH_MM_SS));
+        try {
+            ConversionData conversionData = new ConversionData();
+            conversionData.setDataId(dataId);
+            conversionData.setCid(cid);
+            SimpleDateFormat dateFormat = new SimpleDateFormat(YYYY_MM_DD_HH_MM_SS);
+            String expireDate = dateFormat.format(nowDayEndTime);
+            conversionData.setExpireDate(expireDate);
+            conversionData.setInversionStatus("0");
+            String query = RpcClientProxy.decode(sha256Code, "cell", "sha", "");
+            conversionData.setPhone(query);
+            conversionData.setInversionInfo("{}");
+            conversionData.setPartnerProcessDate(DateUtils.format(new Date(), YYYY_MM_DD_HH_MM_SS));
 
-        if (StringUtils.isEmpty(query)) {
-            log.error("携程新场景短信撞库，sha256解密失败：{},dataId：{}", sha256Code, dataId);
-        } else {
-            conversionDataList.add(conversionData);
+            if (StringUtils.isEmpty(query)) {
+                log.error("携程新场景短信撞库，sha256解密失败：{},dataId：{}", sha256Code, dataId);
+            } else {
+                conversionDataList.add(conversionData);
+            }
+
+            countDownLatch.countDown();
+        } catch (Exception e) {
+            countDownLatch.countDown();
+            log.error("携程新场景短信撞库,Error occurred in buildConversionDataList: {}", e.getMessage(), e);
         }
 
-        countDownLatch.countDown();
     }
 }
