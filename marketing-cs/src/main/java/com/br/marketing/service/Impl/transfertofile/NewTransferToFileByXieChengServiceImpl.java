@@ -166,8 +166,8 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
         // 定义日期格式
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         // 使用格式化字符串将LocalDate对象格式化为字符串
-//        int day = Integer.valueOf(date.format(formatter));
-        int day = 20230717;
+        int day = Integer.valueOf(date.format(formatter));
+//        int day = 20230717;
         Integer page = 0;
         Boolean mark = Boolean.TRUE;
         int totalSize = 0;
