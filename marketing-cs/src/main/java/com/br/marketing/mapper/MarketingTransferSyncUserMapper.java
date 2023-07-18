@@ -63,7 +63,10 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param cell
      * @return
      */
-    MarketingTransferSyncUser getNewestByCell(@Param("cid") String cid, @Param("cell") String cell);
+    MarketingTransferSyncUser getNewTransferDataByCell(@Param("cid") String cid, @Param("cell") String cell);
+
+
+    List<MarketingTransferSyncUser> getNewTransferDataByCellList(@Param("cid") String cid, @Param("custNumList") Set<String> custNumList);
 
 
 
@@ -72,7 +75,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     List<MarketingTransferSyncUser> getTransferData(@Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
 
     /**
-     * 取T日apiCode的撞库数据,按照updateTime排序
+     * 取T日apiCode的撞库数据
      * @param day
      * @param limitStart
      * @return

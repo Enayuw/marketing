@@ -1,6 +1,8 @@
 package com.br.marketing.service.Impl.transfertofile;
 
 import com.alibaba.fastjson.JSON;
+import com.br.marketing.bo.PeriodOfValidityBO;
+import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
@@ -22,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
@@ -29,12 +32,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -188,69 +190,77 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    public void writeXieChengTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) {
+    public void writeXieChengTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException {
         Long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         LocalDate date = LocalDate.now();
         // 定义日期格式
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         // 使用格式化字符串将LocalDate对象格式化为字符串
-        int day = Integer.valueOf(date.format(formatter));
-//        int day = 20230722;
+//        int day = Integer.valueOf(date.format(formatter));
+        int day = 20230717;
         Integer page = 0;
         Boolean mark = Boolean.TRUE;
         int totalSize = 0;
         while (mark) {
+//            try {
+//                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+//                Date today = sdf.parse(date.toString());
+//                Date today = sdf.parse("2023-07-22");
+//            } catch (ParseException e) {
+//                throw new RuntimeException(e);
+//            }
             Result<List<MarketingNewTransferData>> transferData = getOrderTransferData(day , page);
             if (!ResultCode.SUCCESS.getValue().equals(transferData.getCode())) {
                 mark = Boolean.FALSE;
                 continue;
             }
             page++;
+            // 批量的
             List<MarketingNewTransferData> newTransferDatabaseCollision = transferData.getData();
+
+            Set<String> custNumList = newTransferDatabaseCollision.stream()
+                    .map(MarketingNewTransferData :: getSha256CodeList)
+                    .collect(Collectors.toSet());
+
+            List<MarketingTransferSyncUser> newestByCusnum = marketingTransferSyncUserMapper.getNewTransferDataByCellList(tcId, custNumList);
+            Map<String, MarketingTransferSyncUser> transferSyncUserMap = newestByCusnum.stream().collect(Collectors.toMap(MarketingTransferSyncUser::getCustNum, Function.identity(), (v1, v2) -> v1));
             for (MarketingNewTransferData marketingNewTransferData : newTransferDatabaseCollision) {
+
+                String cell = marketingNewTransferData.getSha256CodeList();
+                MarketingTransferSyncUser marketingTransferSyncUser = transferSyncUserMap.get(cell);
                 String requestTime = "";
                 String convType = "";
-                String cell = marketingNewTransferData.getSha256CodeList();
                 String result = marketingNewTransferData.getResult();
                 String orgChannel = marketingNewTransferData.getOrgChannel();
                 String mktLevel = marketingNewTransferData.getMktLevel();
                 String isBlack = "";
-                try {
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                    Date today = sdf.parse(date.toString());
-//                    Date today = sdf.parse("2023-07-22");
-                    if (periodOfValidityService.isNotExpire(apiCode, cell, today, marketingCommonConfig.getXieChengNewTransferValidityDay())) {
-//                    if (periodOfValidityService.isNotExpire(apiCode, cell, today, 30)) {
-                        MarketingTransferSyncUser newestByCusnum = marketingTransferSyncUserMapper.getNewestByCell(tcId, cell);
-                        if (StringUtils.isNotEmpty(newestByCusnum.getReserveField1())) {
-                            try {
-                                convType = getReserFieldVal(newestByCusnum.getReserveField1(),"convType");
-                                isBlack =  getReserFieldVal(newestByCusnum.getReserveField1(),"isBlack");
-                            } catch (Exception e) {
-                                log.warn("携程新场景转化数据提取,ReserveField1非JSON格式{}", newestByCusnum.getReserveField1());
-                            }
-                        }
-                        requestTime = newestByCusnum.getRequestTime();
-                    } else {
-                        convType = "";
-                        requestTime = "";
-                    }
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(cell.concat(","));
-                    sb.append(convType.concat(","));
-                    sb.append(requestTime.concat(","));
-                    sb.append(result.concat(","));
-                    sb.append(orgChannel.concat(","));
-                    sb.append(mktLevel.concat(","));
-                    sb.append(isBlack);
-                    sb.append("\r\n");
-                    fw.append(sb.toString());
-                } catch (Exception e) {
-                    log.warn("携程新场景转化数据提取有效期判断有误", new RuntimeException(e));
-                }
-            }
 
+                if (marketingTransferSyncUser != null && StringUtils.isNotEmpty(marketingTransferSyncUser.getReserveField1())) {
+                    try {
+                        convType = getReserFieldVal(marketingTransferSyncUser.getReserveField1(),"convType");
+                        isBlack =  getReserFieldVal(marketingTransferSyncUser.getReserveField1(),"isBlack");
+                    } catch (Exception e) {
+                        log.warn("携程新场景转化数据提取,ReserveField1非JSON格式{}", marketingTransferSyncUser.getReserveField1());
+                    }
+                    requestTime = marketingTransferSyncUser.getRequestTime();
+                } else {
+                    convType = "";
+                    requestTime = "";
+                }
+                StringBuilder sb = new StringBuilder();
+                sb.append(cell.concat(","));
+                sb.append(convType.concat(","));
+                sb.append(requestTime.concat(","));
+                sb.append(result.concat(","));
+                sb.append(orgChannel.concat(","));
+                sb.append(mktLevel.concat(","));
+                sb.append(isBlack);
+                sb.append("\r\n");
+                fw.append(sb.toString());
+            }
+            totalSize = totalSize + newTransferDatabaseCollision.size();
+            newTransferDatabaseCollision.clear();
         }
         TransferFileTask updatetask = new TransferFileTask();
         updatetask.setId(transferFileTask.getId());
@@ -377,7 +387,6 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
 
     /**
      * 获取撞库数据
-     * 按照updateTime排序
      * @param day
      * @param pageIndex
      * @return
