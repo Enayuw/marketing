@@ -85,22 +85,26 @@ public class MergeServiceImpl implements MergeService {
     private static final Pattern MYREGEX1 = Pattern.compile("_");
     @Override
     public List<LoanFile> process(Customer customer) {
+        return process(null,customer);
+    }
+
+    @Override
+    public List<LoanFile> process(List<LoanFile> fileList, Customer customer) {
         List<LoanFile> pushList =new ArrayList<>();
         try{
-            if(customer !=null){
+            if(fileList != null && fileList.size()>0){
+                pushList =mergeAllOrOnce(fileList,customer);
+            }else{
                 List<LoanFile> list= loanFileMapper.queryFile(customer.getApiCode());
                 pushList =mergeAllOrOnce(list,customer);
             }
-
         }catch (Exception e){
             log.error("error-----",e);
         }
         return pushList;
     }
 
-
-
-    private  List<LoanFile> mergeAllOrOnce(List<LoanFile> loanFileList,Customer customer) {
+    private  List<LoanFile> mergeAllOrOnce(List<LoanFile> loanFileList, Customer customer) {
         List<LoanFile> pushList=new ArrayList<>();
         for(LoanFile blf:loanFileList){
             String zipName = mergeResultFile(blf,customer);

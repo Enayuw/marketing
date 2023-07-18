@@ -7,13 +7,11 @@ import com.br.common.encryption.BrCipherMaker;
 import com.br.common.util.StringUtils;
 import com.br.marketing.client.ProFieldsClient;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.RedisService;
 import com.br.marketing.client.StrategyClient;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
-import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.task.Scheduler;
 import com.br.marketing.task.utils.HxUtil;
@@ -25,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -35,10 +32,9 @@ public class CoreScoreThread implements Callable<String> {
     private List<MarketingSyncUser> list;
     private String apiCode;
     private String strategyId;
-    private int currentPage;
+    private Long currentPage;
     private String path;
     private String strategyStr;
-    private RedisService redisService;
     private String message;
     private boolean firstTime;
     private JSONObject meal = new JSONObject();
@@ -62,7 +58,7 @@ public class CoreScoreThread implements Callable<String> {
     private String part;
 
     public CoreScoreThread(List<MarketingSyncUser> list, Map<String, String> param
-            , int currentPage, boolean firstTime, MarketingCustomer customer, MarketingTask marketingTask
+            , Long currentPage, boolean firstTime, MarketingCustomer customer, MarketingTask marketingTask
             , List<String> noflagproductlist, List<String> flagProductList, MarketingTaskExtend marketingTaskExtend
             , BaseHeadConfigVO baseHeadConfigVO, StrategyProductDetailVO fieldInfo, Boolean isRetry) {
         this.list = list;
@@ -71,7 +67,7 @@ public class CoreScoreThread implements Callable<String> {
         this.currentPage = currentPage;
         this.path = param.get("path");
         this.strategyStr = param.get("strategyStr");
-        this.redisService = Scheduler.ac.getBean(RedisService.class);
+//        this.redisService = Scheduler.ac.getBean(RedisService.class);
         this.firstTime = firstTime;
         this.url = param.get("url");
         this.sep = param.get("sep");
@@ -186,182 +182,6 @@ public class CoreScoreThread implements Callable<String> {
         String key = RedisKeyConstant.scoreStatus.concat(fileId).concat(":").concat(String.valueOf(currentPage));
         redisChgService.set(key, "1");
         redisChgService.expire(key, 60 * 60 * 24 * 10);
-    }
-
-
-    /**
-     * 校验api_code的数据产品条数
-     *
-     * @return
-     */
-    @Deprecated
-    private boolean checkRedisNumber() {
-        boolean flag = true;
-        if (customer.getCheckRedisNumber() == 0) {
-            return flag;
-        }
-        try {
-            String date = new SimpleDateFormat("yyyyMMdd").format(new Date());
-            Map<String, String> dayNumMap = new HashMap<>();
-            List<String> typeNoList = new ArrayList<>();
-            addDTBPro(typeNoList);
-            MerchantParam merchantParam = RpcClientProxy.getMerchantParam(apiCode);
-            if (merchantParam == null) {
-                log.error("用户中心结果为空" + apiCode);
-                return false;
-            }
-            getDayNumMap(dayNumMap, merchantParam);
-            if (merchantParam.getAccountType() == 1) {
-                //在redis中加上使用条数
-                addRedisNum(Constants.REDIS_RADAR_PREFIX + ":" + apiCode, typeNoList, list.size());
-                for (String proCode : typeNoList) {
-                    String key = Constants.REDIS_RADAR_PREFIX + ":" + apiCode + ":" + proCode + ":" + date;
-                    String currentNum = redisService.get(key);
-                    if (currentNum == null) {
-                        redisService.set(key, null, 604800);
-                        addRedisNumForDayNum(key, null, list.size());
-                    } else {
-                        addRedisNumForDayNum(key, null, list.size());
-                    }
-                }
-            } else {
-                long min = 0;
-                String result = getMinNum(apiCode, typeNoList, merchantParam);
-                try {
-                    min = Long.parseLong(result);
-                } catch (Exception e) {
-                    message = result;
-                    log.error("message--{}", message);
-                    flag = false;
-                    return flag;
-                }
-
-                if (min >= list.size()) {
-                    addRedisNum(Constants.REDIS_RADAR_TEST_PREFIX + ":" + apiCode, typeNoList, list.size());
-                    for (String proCode : typeNoList) {
-                        String keyTest = Constants.REDIS_RADAR_TEST_PREFIX + ":" + apiCode + ":" + proCode + ":" + date;
-                        String currentNum = redisService.get(keyTest);
-                        String dayNum = dayNumMap.get(proCode);
-                        if (currentNum == null) {
-                            redisService.set(keyTest, null, 604800);
-                            if (list.size() > Integer.parseInt(dayNum)) {
-                                message = "可用条数不足，请确认，若需要请联系客服";
-                                log.error("message--{}", message);
-                                flag = false;
-                            } else {
-                                addRedisNumForDayNum(keyTest, null, list.size());
-                            }
-                        } else {
-                            if (Integer.parseInt(currentNum) + list.size() > Integer.parseInt(dayNum)) {
-                                message = "可用条数不足，请确认，若需要请联系客服";
-                                log.error("message--{}", message);
-                                flag = false;
-                            } else {
-                                addRedisNumForDayNum(keyTest, null, list.size());
-                            }
-                        }
-                    }
-                } else {
-                    message = "可用条数不足，请确认，若需要请联系客服";
-                    log.error("message--{}", message);
-                    flag = false;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.error("error----{}", e);
-        }
-
-        return flag;
-    }
-
-
-    /**
-     * 获取redis中最小的产品条数
-     *
-     * @param apiCode
-     * @param typeNoList
-     * @return
-     */
-    private String getMinNum(String apiCode, List<String> typeNoList, MerchantParam merchantParam) {
-        List<Long> numList = new ArrayList<>();
-        for (String typeNo : typeNoList) {
-            String keyTest = Constants.REDIS_RADAR_TEST_PREFIX + ":" + apiCode + ":" + typeNo + ":" + Constants.REDIS_RADAR_TOTALCOUNT;
-            String str = redisService.get(keyTest);
-            long num = 0;
-            if (!org.springframework.util.StringUtils.isEmpty(str)) {
-                num = Long.parseLong(str);
-            }
-            String limitNumFromUserCenter = getLimitNumFromUserCenter(typeNo, merchantParam);
-            long canUseNum = 0;
-            if (!"empty".equals(limitNumFromUserCenter)) {
-                canUseNum = Long.parseLong(limitNumFromUserCenter) - num;
-            } else {
-                return "策略状态不可用";
-            }
-            numList.add(canUseNum);
-        }
-        //log.info("各个数据产品的可用条数：数据产品代号：{}，剩余条数：{}", JSON.toJSONString(typeNoList), JSON.toJSONString(numList));
-        if (numList.size() > 0) {
-            String string = Collections.min(numList).toString();
-            return string;
-        } else {
-            return "0";
-        }
-
-    }
-
-    private String getLimitNumFromUserCenter(String proCode, MerchantParam merchantParam) {
-        String limitNum = null;
-        String meal = merchantParam.getMealJson();
-        if (!org.springframework.util.StringUtils.isEmpty(meal)) {
-            JSONObject mealJson = JSON.parseObject(meal);
-            String proCodeString = mealJson.getString(proCode);
-            if (!org.springframework.util.StringUtils.isEmpty(proCodeString)) {
-                JSONObject proCodeJson = JSON.parseObject(proCodeString);
-                limitNum = proCodeJson.getString("limit_num");
-            } else {
-                log.warn("产品---{}---没有权限", proCode);
-                return "empty";
-            }
-        }
-        return limitNum;
-    }
-
-    private void getDayNumMap(Map<String, String> dayNumMap, MerchantParam merchantParam) {
-        String meal = merchantParam.getMealJson();
-        if (!org.springframework.util.StringUtils.isEmpty(meal)) {
-            JSONObject mealJson = JSON.parseObject(meal);
-            Set<String> strings = mealJson.keySet();
-            for (String key : strings) {
-                String proCodeString = mealJson.getString(key);
-                if (!org.springframework.util.StringUtils.isEmpty(proCodeString)) {
-                    JSONObject proCodeJson = JSON.parseObject(proCodeString);
-                    String dayNum = "";
-                    if (proCodeJson != null && proCodeJson.containsKey("dayNum")) {
-                        dayNum = proCodeJson.getString("dayNum");
-                    } else if (proCodeJson != null && !proCodeJson.containsKey("dayNum")) {
-                        dayNum = proCodeJson.getString("limit_num");
-                    }
-                    if (!org.springframework.util.StringUtils.isEmpty(dayNum)) {
-                        dayNumMap.put(key, dayNum);
-                    }
-
-                }
-            }
-        }
-    }
-
-    private void addRedisNumForDayNum(String apiCode, String typeNo, int num) {
-        long l = System.currentTimeMillis();
-        redisService.incrBy(apiCode, typeNo, num);
-    }
-
-    private void addRedisNum(String apiCode, List<String> typeNoList, int num) {
-        long l = System.currentTimeMillis();
-        for (String typeNo : typeNoList) {
-            redisService.incrBy(apiCode + ":" + typeNo + ":" + Constants.REDIS_RADAR_TOTALCOUNT, null, num);
-        }
     }
 
     /**

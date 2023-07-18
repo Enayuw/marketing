@@ -80,11 +80,11 @@ public class CallingUtil {
         jsonObject.put("channelNo","BR");
         String signTest = EncryptUtil.signTopRequest(jsonObject, secret);
         jsonObject.put(PublicParamsConstants.SIGN, signTest);
-        System.out.println("curl -x http_proxy://bairong:Proxy_br@192.168.22.169:3128 -H 'Content-Type: application/json' -d '"+jsonObject+"'   "+   openUrl+"  -X POST");
+        System.out.println("curl -x http_proxy://bairong:Proxy_br@squid-proxy2.brapp.com:3128 -H 'Content-Type: application/json' -d '"+jsonObject+"'   "+   openUrl+"  -X POST");
         /**
          * 测试
          */
-        //$ curl -x http_proxy://bairong:Proxy_br@192.168.22.169:3128 -H 'Content-Type: application/json' -d '{"method":"hello.finance.loan.marketing.callback.end","data":{"batchNo":"123","openSerialNo":"123123"},"channelNo":"BR","sign":"e2287b4f776a5593bd2aec5a19769cda","appKey":"brgroup-pnPnzgxf","timestamp":1651895334842}' https://fat-hello-openapi.hellobike.com/openapi -X POST
+        //$ curl -x http_proxy://bairong:Proxy_br@squid-proxy2.brapp.com:3128 -H 'Content-Type: application/json' -d '{"method":"hello.finance.loan.marketing.callback.end","data":{"batchNo":"123","openSerialNo":"123123"},"channelNo":"BR","sign":"e2287b4f776a5593bd2aec5a19769cda","appKey":"brgroup-pnPnzgxf","timestamp":1651895334842}' https://fat-hello-openapi.hellobike.com/openapi -X POST
     }
 
 }

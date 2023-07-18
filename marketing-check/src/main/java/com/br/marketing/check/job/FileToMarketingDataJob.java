@@ -25,7 +25,6 @@ import com.br.marketing.check.service.Impl.DeleteService;
 import com.br.marketing.check.service.Impl.FileCheckServiceImpl;
 import com.br.marketing.check.service.Impl.SftpToDbService;
 import com.br.marketing.check.utils.SftpToDbUtils;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -124,9 +123,14 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
 
+        String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
+        String apiCode = StringUtils.isBlank(jobParameter) ? "" : jobParameter;
         SyncConfigExample syncConfigExample = new SyncConfigExample();
-        syncConfigExample.createCriteria()
-                .andStatusEqualTo(1)
+        SyncConfigExample.Criteria criteria = syncConfigExample.createCriteria();
+        if(StringUtils.isNotBlank(apiCode)){
+            criteria.andApiCodeEqualTo(apiCode);
+        }
+        criteria.andStatusEqualTo(1)
                 .andDataTypeEqualTo(DataTypeEnum.MARKETINGDATA.getValue())
                 .andTypeEqualTo(1);
         List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);

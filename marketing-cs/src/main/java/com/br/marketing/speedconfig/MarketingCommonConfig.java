@@ -787,5 +787,15 @@ public class MarketingCommonConfig {
      * 携程定时任务推决策情况apiCode配置:{"b":"371058"}
      */
     private Map<String,String> xieChengPushPolicyStatusToApiCode;
+
+    /**
+     * 迁移配置 key-功能项；value-具体的值；{"jobToEngineRoom":"1(开启)/0（关闭）"}
+     */
+    private HashMap<String,String> moveConfig;
+
+    /**
+     * job集群指定{“作业名称”:"zwpro/yzpro/zwfz/yzfz/zw/yz/all","default":"zwpro/yzpro/zwfz/yzfz/zw/yz/all"}
+     */
+    private HashMap<String,String> jobCluster;
 }
 

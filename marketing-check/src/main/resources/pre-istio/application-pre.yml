@@ -101,10 +101,11 @@ otherConfig:
         appName: loan-warning
         appSecretKey: f15a1421ac95a284683688af14688b72
   proxy:
-    proxy_host_zw: 192.168.22.169
+    proxy_host: squid-proxy2.brapp.com
     proxy_port: 3128
     proxy_username: bairong
     proxy_password: Proxy_br
+    proxy_host_zw: 192.168.22.169
   mom:
     appSecretKey: d42726322ba9bda57b74043be21aa2c4
     appName: marketing_query_producer
@@ -204,12 +205,33 @@ api:
     isProxy: true
 spring:
   rabbitmq:
-    addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
-    username: strategy_distribute
-    password: strategy_distribute
-    publisher-confirms: true
-    publisher-returns: true
-    virtual-host: marketing-flow-default
+    zw:
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
+      username: strategy_distribute
+      password: strategy_distribute
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow-default
+    yz:
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
+      username: strategy_distribute
+      password: strategy_distribute
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow-default
+    listener:
+      retry:
+        enabled: true
+        max-attempts: 5
+        initial-interval: 3000
+      acknowledge-mode: manual
+      default-requeue-rejected: false
+      auto-startup: true
+  web:
+    interceptors.enabled: true
+  sql.source: prod
+cluster:
+  flag: ${CONF_CLUSTER}
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置

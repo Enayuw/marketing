@@ -6,7 +6,6 @@ import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.enums.ErrorFileTypeEnum;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -61,11 +60,6 @@ public class SftpToDbByDXService {
      */
     @Resource
     FileCheckServiceImpl fileCheckService;
-    /**
-     * The Redis chg service.
-     */
-    @Resource
-    RedisChgService redisChgService;
 
     @Autowired
     LocalFileMapper localFileMapper;

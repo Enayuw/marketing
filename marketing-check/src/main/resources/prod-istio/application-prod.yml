@@ -105,10 +105,11 @@ otherConfig:
         appName: loan-warning
         appSecretKey: a938d0e974746651a11ddcdbcea31404
   proxy:
-    proxy_host_zw: 192.168.22.169
+    proxy_host: squid-proxy2.brapp.com
     proxy_port: 3128
     proxy_username: bairong
     proxy_password: Proxy_br
+    proxy_host_zw: 192.168.22.169
   mom:
     appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
     appName: marketing_query_producer
@@ -210,16 +211,37 @@ api:
     isProxy: true
 spring:
   rabbitmq:
-    addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672
-    username: strategy_distribute
-    password: Rz453hoEjUb37j8v
-    publisher-confirms: true
-    publisher-returns: true
-    virtual-host: marketing-flow
+    zw:
+      addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672
+      username: strategy_distribute
+      password: Rz453hoEjUb37j8v
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow
+    yz:
+      addresses: strategy-rabbitmq-yz-01.brapp.com:5672,strategy-rabbitmq-yz-02.brapp.com:5672
+      username: strategy_distribute
+      password: Rz453hoEjUb37j8v
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow
+    listener:
+      retry:
+        enabled: true
+        max-attempts: 5
+        initial-interval: 3000
+      acknowledge-mode: manual
+      default-requeue-rejected: false
+      auto-startup: true
+  web:
+    interceptors.enabled: true
+  sql.source: prod
+cluster:
+  flag: ${CONF_CLUSTER}
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置
-SERVER_LISTS: 192.168.21.41:2181,192.168.21.42:2181,192.168.21.43:2181
+SERVER_LISTS: zk-strategy-01.brapp.com:2181,zk-strategy-02.brapp.com:2181,zk-strategy-03.brapp.com:2181
 NAMESPACE: marketing-job
 BASE_SLEEP_TIME_MILLISECONDS: 1000
 MAX_SLEEP_TIME_MILLISECONDS: 3000

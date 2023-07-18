@@ -107,10 +107,11 @@ otherConfig:
     appName: loan-warning
     appSecretKey: f15a1421ac95a284683688af14688b72
   proxy:
-    proxy_host_zw: 192.168.22.169
+    proxy_host: squid-proxy2.brapp.com
     proxy_port: 3128
     proxy_username: bairong
     proxy_password: Proxy_br
+    proxy_host_zw: 192.168.22.169
 
 
 api:
@@ -191,17 +192,38 @@ api:
     isProxy: true
 spring:
   rabbitmq:
-    addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
-    username: strategy_distribute
-    password: strategy_distribute
-    publisher-confirms: true
-    publisher-returns: true
-    virtual-host: marketing-test
+    zw:
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
+      username: strategy_distribute
+      password: strategy_distribute
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-test
+    yz:
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
+      username: strategy_distribute
+      password: strategy_distribute
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-test
+    listener:
+      retry:
+        enabled: true
+        max-attempts: 5
+        initial-interval: 3000
+      acknowledge-mode: manual
+      default-requeue-rejected: false
+      auto-startup: true
+  web:
+    interceptors.enabled: true
+  sql.source: prod
+cluster:
+  flag: k8s-prod-d
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
-NAMESPACE: marketing-dev-job
+NAMESPACE: marketing-local-job
 BASE_SLEEP_TIME_MILLISECONDS: 1000
 MAX_SLEEP_TIME_MILLISECONDS: 3000
 MAX_RETRIES: 3

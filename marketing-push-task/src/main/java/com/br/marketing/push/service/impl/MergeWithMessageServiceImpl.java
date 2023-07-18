@@ -1,6 +1,10 @@
 package com.br.marketing.push.service.impl;
 
 import com.br.common.util.BrCipherMaker;
+import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.push.PushApplication;
+import com.br.marketing.push.service.PushFinishService;
+import com.br.marketing.push.service.PushService;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.common.constants.RegexConstants;
 import com.br.marketing.common.utils.file.MyFileUtil;
@@ -99,6 +103,30 @@ public class MergeWithMessageServiceImpl {
 
     @Autowired
     MarketingTaskService marketingTaskService;
+
+    @Autowired
+    PushFinishService pushFinishService;
+
+    @Autowired
+    PushService pushService;
+
+    public Result<Boolean> consumerInitFileMsg(Long fileId) {
+        Boolean res = Boolean.FALSE;
+        List<LoanFile> loanFiles = loanFileMapper.queryFileById(fileId);
+        if (loanFiles.size() <= 0) {
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
+        }
+        LoanFile file = loanFiles.get(0);
+        Customer customer = customerMapper.getCustomerByApiCode(file.getApiCode());
+        List<LoanFile> pushList = mergeService.process(loanFiles, customer);
+        if (pushList != null && pushList.size() > 0) {
+            pushService.push(pushList);
+            for (LoanFile loanFile : pushList) {
+                pushFinishService.pushFinish(loanFile.getId());
+            }
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
+    }
 
     /**
      * 消费文件合并信息
@@ -314,7 +342,7 @@ public class MergeWithMessageServiceImpl {
         Integer threadNum = offLineInserEsThreadNum != null && offLineInserEsThreadNum > 0 ? offLineInserEsThreadNum : 50;
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
         Integer sumNum = 0;
-        Integer index = 0;
+        Long index = 0L;
         for (File f : files) {
             try {
                 FileReader read = new FileReader(f);
