@@ -179,11 +179,10 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
             } else {
                 conversionDataList.add(conversionData);
             }
-
-            countDownLatch.countDown();
         } catch (Exception e) {
-            countDownLatch.countDown();
             log.error("携程新场景短信撞库,Error occurred in buildConversionDataList: {}", e.getMessage(), e);
+        } finally {
+            countDownLatch.countDown();
         }
 
     }
