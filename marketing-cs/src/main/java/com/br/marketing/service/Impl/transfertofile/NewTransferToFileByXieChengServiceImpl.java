@@ -119,35 +119,6 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
             }
         }
 
-        String _zkexecute = ZK_EXECUTE_TIME;
-        if (marketingCommonConfig.getXieChengTransferExecuteTime() != null && marketingCommonConfig.getXieChengTransferExecuteTime().size() > 1) {
-            _zkexecute = " " + marketingCommonConfig.getXieChengTransferExecuteTime().get(1);
-        }
-        Date executeTimeByZk = DateHelper.getDatePlusHourMinuteSecond(now, _zkexecute);
-        if (now.after(executeTimeByZk)) {
-            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-            TransferFileTaskExample taskExample = new TransferFileTaskExample();
-            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(2);
-            List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
-            if (CollectionUtils.isEmpty(transferFileTasks)) {
-                log.warn("携程撞库数据提取-开始执行,apiCode ={}", apiCode);
-                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
-                String batchNumber = createBatchNumber(apiCode, transferFileContextId);
-                TransferFileTask transferFileTask = new TransferFileTask();
-                transferFileTask.setApiCode(apiCode);
-                transferFileTask.setFileType(2);
-                transferFileTask.setBatchNumber(batchNumber);
-                transferFileTask.setFileName("");
-                transferFileTask.setTaskNumber(0);
-                transferFileTask.setStartDate(yyyyMMdd);
-                transferFileTask.setContextId(transferFileContextId);
-                transferFileTask.setFileChildDir("zk");
-                transferFileTask.setCreateTime(new Date());
-                transferFileTask.setUpdateTime(new Date());
-                transferFileTaskMapper.insertSelective(transferFileTask);
-                resultList.add(transferFileTask);
-            }
-        }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultList);
     }
 
@@ -155,8 +126,6 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
     public Result actionTransferToFile(TransferFileTask transferFileTask, String jobParameter) {
         if (new Integer(1).equals(transferFileTask.getFileType())) {
             return actionTransfer(transferFileTask, jobParameter);
-        } else if (new Integer(2).equals(transferFileTask.getFileType())) {
-            return actionZk(transferFileTask, jobParameter);
         } else {
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
@@ -277,107 +246,6 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
         return StringUtils.isNotEmpty(JSON.parseObject(reserStr).getString(field)) ? JSON.parseObject(reserStr).getString(field) : "";
     }
 
-    private Result actionZk(TransferFileTask transferFileTask, String jobParameter) {
-        log.warn("携程锁定结果数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
-        String apiCode = transferFileTask.getApiCode();
-        String recordDate = transferFileTask.getStartDate();//yyyyMMdd
-        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
-        File writeDic = new File(descPath);
-        if (!writeDic.exists()) {
-            writeDic.mkdirs();
-        }
-        StringBuilder fileName = new StringBuilder();
-        fileName.append(XIECHENG_ZK_FILE).append(recordDate).append(".txt");
-        String fileAllPath = descPath.concat(fileName.toString());
-        transferFileTask.setFileName(fileName.toString());
-        transferFileTask.setFilePath(descPath);
-        File file = new File(fileAllPath);
-        try (Writer fw = new BufferedWriter(
-                new OutputStreamWriter(
-                        new FileOutputStream(file), "UTF-8"));) {
-            fw.append("sha256Code,result,orgChannel,mktLevel,info,fileName");
-            fw.append("\r\n");
-            writeZk(fw, apiCode, transferFileTask);
-        } catch (Exception ex) {
-            log.error(ex.getMessage());
-            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
-        }
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
-    }
-
-    private void writeZk(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException {
-        Long start = System.currentTimeMillis();
-        String sDateStr = LocalDate.parse(transferFileTask.getStartDate(), ymdShort).minusDays(1L).format(ymd).concat(" 00:00:00");
-        String eDateStr = LocalDate.parse(transferFileTask.getStartDate(), ymdShort).format(ymd).concat(" 00:00:00");
-        Date sDate = DateHelper.parseDate(sDateStr);
-        Date eDate = DateHelper.parseDate(eDateStr);
-        Long minId = null;
-        int num = 0;
-        Boolean isContiue = Boolean.TRUE;
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
-        while (isContiue) {
-            XieChengSmsCollidingDataLogExample dataExample = new XieChengSmsCollidingDataLogExample();
-            dataExample.setOrderByClause(" id asc limit 2000");
-            XieChengSmsCollidingDataLogExample.Criteria criteria = dataExample.createCriteria();
-            criteria.andApiCodeEqualTo(apiCode)
-                    .andStatusEqualTo(2)
-                    .andCreateTimeGreaterThanOrEqualTo(sDate)
-                    .andCreateTimeLessThan(eDate);
-            if (minId != null) {
-                criteria.andIdGreaterThan(minId);
-            }
-
-            List<XieChengSmsCollidingDataLog> xieChengSmsCollidingDataLogs = xieChengSmsCollidingDataLogMapper.selectByExample(dataExample);
-            List<Long> localIds = xieChengSmsCollidingDataLogs.stream().map(t -> t.getLocalId()).distinct().collect(Collectors.toList());
-            if (xieChengSmsCollidingDataLogs.size() <= 0) {
-                isContiue = Boolean.FALSE;
-                continue;
-            }
-            num += xieChengSmsCollidingDataLogs.size();
-            LocalFileExample fileExample = new LocalFileExample();
-            fileExample.createCriteria().andIdIn(localIds);
-            List<LocalFile> localFiles = localFileMapper.selectByExample(fileExample);
-            Map<Long, List<LocalFile>> fileMap = localFiles.stream().collect(Collectors.groupingBy(LocalFile::getId));
-            minId = xieChengSmsCollidingDataLogs.get(xieChengSmsCollidingDataLogs.size() - 1).getId();
-            threadPool.submit(()->{
-                try {
-                    for (XieChengSmsCollidingDataLog xieChengSmsCollidingDataLog : xieChengSmsCollidingDataLogs) {
-                        List<LocalFile> localFiles1 = fileMap.get(xieChengSmsCollidingDataLog.getLocalId());
-                        String fileName = "";
-                        if (localFiles1.size() > 0) {
-                            fileName = localFiles1.get(0).getFileName();
-                        }
-                        StringBuilder sb = new StringBuilder();
-                        sb.append(xieChengSmsCollidingDataLog.getSha256CodeList().concat(","));
-                        sb.append((xieChengSmsCollidingDataLog.getResult() == null ? "" : xieChengSmsCollidingDataLog.getResult().toString()).concat(","));
-                        sb.append((StringUtils.isBlank(xieChengSmsCollidingDataLog.getOrgChannel()) ? "" : xieChengSmsCollidingDataLog.getOrgChannel()).concat(","));
-                        sb.append((StringUtils.isBlank(xieChengSmsCollidingDataLog.getMktLevel()) ? "" : xieChengSmsCollidingDataLog.getMktLevel()).concat(","));
-                        sb.append((StringUtils.isBlank(xieChengSmsCollidingDataLog.getInfo()) ? "" : xieChengSmsCollidingDataLog.getInfo()).concat(","));
-                        sb.append(fileName);
-                        sb.append("\r\n");
-                        fw.append(sb.toString());
-                    }
-                }catch (Exception ex){
-                    log.error("携程锁定名单线程错误:"+ex.getMessage(),ex);
-                }
-            });
-        }
-        threadPool.shutdown();
-        try{
-            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-
-            }}catch (Exception ex){
-            log.error(ex.getMessage(),ex);
-        }
-        TransferFileTask updatetask = new TransferFileTask();
-        updatetask.setId(transferFileTask.getId());
-        updatetask.setStatus(2);
-        updatetask.setFileName(transferFileTask.getFileName());
-        updatetask.setFilePath(transferFileTask.getFilePath());
-        updatetask.setTaskNumber(num);
-        transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
-        log.warn("携程锁定结果数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, num);
-    }
 
     String createBatchNumber(String apiCode, Long contextId) {
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
