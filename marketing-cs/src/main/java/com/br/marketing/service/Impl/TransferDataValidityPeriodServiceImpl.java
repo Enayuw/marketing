@@ -488,7 +488,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         } else {
             // 统一时间格式
             Date requestDate = switchDate(requestDateObj);
-            requestDateMap = new HashMap<>(2);
+            requestDateMap = new ConcurrentHashMap<>(2);
             requestDateMap.put(requestDate, transferSyncUserList);
         }
         return requestDateMap;
@@ -1000,7 +1000,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         Set<String> configUserTypeSet = configList.stream().map(
                 MarketingDataValidConfig::getUserType).collect(Collectors.toSet());
         Set<String> newSet = new HashSet<>(userTypeSet);
-        newSet.retainAll(configUserTypeSet);
+        newSet.removeAll(configUserTypeSet);
         // 未配置任何有效期
         if (newSet.size() > 0) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
