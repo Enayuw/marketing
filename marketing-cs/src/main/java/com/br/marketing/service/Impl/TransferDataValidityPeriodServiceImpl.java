@@ -488,7 +488,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         } else {
             // 统一时间格式
             Date requestDate = switchDate(requestDateObj);
-            requestDateMap = new ConcurrentHashMap<>(2);
+            requestDateMap = new HashMap<>(2);
             requestDateMap.put(requestDate, transferSyncUserList);
         }
         return requestDateMap;
