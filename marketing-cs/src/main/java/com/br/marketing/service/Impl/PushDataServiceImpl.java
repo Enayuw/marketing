@@ -1531,10 +1531,9 @@ public class PushDataServiceImpl implements PushDataService {
             AdReqDTO adReqDTO = new AdReqDTO();
             BeanUtils.copyProperties(xieChengData,adReqDTO);
 
+            //region 获取配置信息
             String apiCode = adReqDTO.getApiCode();
-
             HashMap<String, JSONObject> xieChengCallPushCondition = marketingCommonConfig.getXieChengCallPushCondition();
-
             if(xieChengCallPushCondition == null){
                 xieChengCallPushCondition=new HashMap<>();
                 xieChengCallPushCondition.put("3710058",getJo("1",Arrays.asList("3710058","3710078")));
@@ -1542,17 +1541,23 @@ public class PushDataServiceImpl implements PushDataService {
                 xieChengCallPushCondition.put("3710090",getJo("2",Arrays.asList("3710058","3710078")));
                 xieChengCallPushCondition.put("3710091",getJo("2",Arrays.asList("3710058","3710078")));
             }
+            JSONObject condition = xieChengCallPushCondition.get(apiCode);
+            String conditionKey = condition.getString("condition");
+            JSONArray soleCellApiCodes = condition.getJSONArray("soleCellApiCodes");
+            JSONArray isBlackApiCodes = condition.getJSONArray("isBlackApiCodes");
+            JSONArray convTypeApiCodes = condition.getJSONArray("convTypeApiCodes");
+            //endregion
+
             XieChengData resultData = new XieChengData();
             resultData.setId(adReqDTO.getId());
-            JSONObject condition = xieChengCallPushCondition.get(apiCode);
+
             if(condition==null){
                 resultData.setStatus(2);
                 resultData.setDataMessage("该apiCode未配置规则数据");
                 xieChengDataMapper.updateByPrimaryKeySelective(resultData);
                 return;
             }
-            String conditionKey = condition.getString("condition");
-            JSONArray soleCellApiCodes = condition.getJSONArray("soleCellApiCodes");
+
             adReqDTO.setConditionKey(conditionKey);
             String tcId = tableCreateService.getTcId(apiCode);
             // 字段修改兼容
@@ -1575,32 +1580,38 @@ public class PushDataServiceImpl implements PushDataService {
                 return;
             }
 
-            //查询转化isBlack或者convType=106
-            MarketingTransferSyncUser xcTransferNoAdData = null;
+            //region 特定剔除规则
             if("1".equals(conditionKey)){
-                xcTransferNoAdData = marketingTransferSyncUserMapper.getXcTransferNoAdData(tcId, sha256Tel);
-                if (xcTransferNoAdData != null) {
-                    JSONObject jsonObject = JSON.parseObject(xcTransferNoAdData.getReserveField1());
-                    if ("1".equals(jsonObject.getString("isBlack"))) {
-                        resultData.setDataMessage("命中黑名单");
-                    }
-                    if ("106".equals(jsonObject.getString("convType"))) {
-                        resultData.setDataMessage("命中convType106");
-                    }
-                    resultData.setStatus(2);
-                    xieChengDataMapper.updateByPrimaryKeySelective(resultData);
-                    redisChgService.unlock(key, value);
-                    return;
-                }
-            }else{
-                xcTransferNoAdData = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyBlack(tcId, sha256Tel);
-                if (xcTransferNoAdData != null) {
+                //region 剔除规则1 查询黑名单和convType106
+                MarketingTransferSyncUser xcTransferBlack = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyBlack(tcId, sha256Tel, isBlackApiCodes);
+                if(xcTransferBlack!=null){
                     resultData.setDataMessage("命中黑名单");
                     resultData.setStatus(2);
                     xieChengDataMapper.updateByPrimaryKeySelective(resultData);
                     redisChgService.unlock(key, value);
                     return;
                 }
+
+                MarketingTransferSyncUser xcTransferConvType = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyConvType(tcId, sha256Tel,convTypeApiCodes);
+                if (xcTransferConvType != null) {
+                    resultData.setDataMessage("命中convType106");
+                    resultData.setStatus(2);
+                    xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                    redisChgService.unlock(key, value);
+                    return;
+                }
+                //endregion
+            }else{
+                //region 剔除规则2 查询黑名单和当日撞库结果
+                MarketingTransferSyncUser xcTransferBlack = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyBlack(tcId, sha256Tel,isBlackApiCodes);
+                if (xcTransferBlack != null) {
+                    resultData.setDataMessage("命中黑名单");
+                    resultData.setStatus(2);
+                    xieChengDataMapper.updateByPrimaryKeySelective(resultData);
+                    redisChgService.unlock(key, value);
+                    return;
+                }
+
                 Integer day = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
                 XieChengSmsCollidingDataLogVtExample vtExample = new XieChengSmsCollidingDataLogVtExample();
                 vtExample.createCriteria()
@@ -1630,13 +1641,14 @@ public class PushDataServiceImpl implements PushDataService {
                     redisChgService.unlock(key, value);
                     return;
                 }
+                //endregion
                 adReqDTO.setMktMode("CPS");
                 adReqDTO.setMktChannel(xieChengSmsCollidingDataLogVt.getOrgChannel());
                 adReqDTO.setMktProductNo("CASH");
             }
+            //endregion
 
-
-            // 查询到当前电话数据是否推送过。
+            //region 查询到当前电话数据是否推送过 有不推，反之就推。
             List<XieChengData> xieChengRepeatDatalist = xieChengDataMapper.getByCellToday(sha256Tel,soleCellApiCodes);
             if (xieChengRepeatDatalist.isEmpty()) {
                 // 组装 clickId 13位时间戳+ 随机5位数字字母 + sha256tel
@@ -1657,6 +1669,7 @@ public class PushDataServiceImpl implements PushDataService {
                 resultData.setStatus(2);
                 resultData.setDataMessage("数据重复未推送");
             }
+            //endregion
             xieChengDataMapper.updateByPrimaryKeySelective(resultData);
             redisChgService.unlock(key, value);
         }catch (Exception e){
@@ -1667,6 +1680,8 @@ public class PushDataServiceImpl implements PushDataService {
     private JSONObject getJo(String condition,List<String> soleCellApiCodes){
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("condition",condition);
+        jsonObject.put("isBlackApiCodes",soleCellApiCodes);
+        jsonObject.put("convTypeApiCodes",soleCellApiCodes);
         jsonObject.put("soleCellApiCodes",soleCellApiCodes);
         return jsonObject;
     }
