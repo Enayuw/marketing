@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -119,8 +120,10 @@ public class BackEndResourceController {
                 continue;
             }
             localId = datas.get(datas.size()-1).getLocalId();
+            final List<XieChengData> objects = new ArrayList<>();
+            objects.addAll(datas);
             threadPool.submit(()->{
-                for (XieChengData data : datas) {
+                for (XieChengData data : objects) {
                     JSONObject msg = new JSONObject();
                     msg.put("localId", data.getLocalId());
                     msg.put("type", 2);
