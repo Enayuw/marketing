@@ -573,8 +573,9 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     /**
      * 2023-04-10 17:47
      * 比较请求日期
-     * 在范围内返回true
-     * 不在范围内返回false
+     * 闭区间 eg：
+     * [2023-07-19,9999-12-31] {@code requestDate}满足2023-07-19、9999-12-31、2023-07-19与9999-12-31范围内 返回 true
+     * [2023-07-19,2023-07-09] 非法的范围 返回false
      */
     private boolean compareRequestDate(MarketingDataValidConfig config, Date requestDate) {
         String validStartDate = config.getValidStartDate();
@@ -585,24 +586,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         return ((startDate.isBefore(localDate) || startDate.isEqual(localDate))
                 && (localDate.isBefore(endDate) || localDate.isEqual(endDate)));
     }
-
-    /**
-     * 2023-07-17 17:47
-     * 比较请求日期
-     * 闭区间 eg：
-     * [2023-07-19,9999-12-31] {@code requestDate}满足2023-07-19、9999-12-31、2023-07-19与9999-12-31范围内 返回 true
-     * [2023-07-19,2023-07-09] {@code requestDate}满足2023-07-19、2023-07-09 返回true
-     */
-    private boolean compareRequestDateNew(MarketingDataValidConfig config, Date requestDate) {
-        String validStartDate = config.getValidStartDate();
-        String validEndDate = config.getValidEndDate();
-        LocalDate startDate = LocalDate.parse(validStartDate, DATE_FORMAT_PATTERN);
-        LocalDate endDate = LocalDate.parse(validEndDate, DATE_FORMAT_PATTERN);
-        LocalDate localDate = requestDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        return localDate.isEqual(startDate) || localDate.isEqual(endDate)
-                || (startDate.isBefore(localDate) && localDate.isBefore(endDate));
-    }
-
 
     /**
      * 2023-03-23 12:25
@@ -876,7 +859,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             // 获取包含请求日期的T,T （范围）模式的配置记录
             List<MarketingDataValidConfig> dataValidConfigs = configList.stream()
                     .filter(config -> userTypeSet.contains(config.getUserType())
-                            && compareRequestDateNew(config, k)).collect(Collectors.toList());
+                            && compareRequestDate(config, k)).collect(Collectors.toList());
             userTypeExistDataValidConfigCheck(dataValidConfigs, userTypeSet, apiCode);
             // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
             if (!dataValidConfigs.isEmpty()) {
@@ -919,7 +902,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             } else {
                 dataValidConfigs = configList.stream()
                         .filter(config -> userTypeSet.contains(config.getUserType())
-                                && compareRequestDateNew(config, k)).collect(Collectors.toList());
+                                && compareRequestDate(config, k)).collect(Collectors.toList());
                 userTypeExistDataValidConfigCheck(dataValidConfigs, userTypeSet, apiCode);
                 // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
                 if (!dataValidConfigs.isEmpty()) {
@@ -946,7 +929,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         final Date requestDate = switchDate(requestDateObj);
         // 获取包含请求日期的T,T （范围）模式的配置记录
         final List<MarketingDataValidConfig> dataValidConfigs = configList.stream()
-                .filter(config -> compareRequestDateNew(config, requestDate)).collect(Collectors.toList());
+                .filter(config -> compareRequestDate(config, requestDate)).collect(Collectors.toList());
         Map<String, SyncUserValidityPeriodBO> boMap = new ConcurrentHashMap<>(2048);
         // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
         if (!dataValidConfigs.isEmpty()) {
@@ -970,7 +953,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         final Date requestDate = switchDate(requestDateObj);
         // 获取包含请求日期的T,T （范围）模式的配置记录
         final List<MarketingDataValidConfig> dataValidConfigs = configList.stream()
-                .filter(config -> compareRequestDateNew(config, requestDate)).collect(Collectors.toList());
+                .filter(config -> compareRequestDate(config, requestDate)).collect(Collectors.toList());
         // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
         if (!dataValidConfigs.isEmpty()) {
             List<MarketingSyncUser> syncUserList =
