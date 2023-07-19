@@ -173,7 +173,7 @@ public class AlarmAndNoticeTest {
     public void newTransferFileTest() {
         TransferFileTask transferFileTask = new TransferFileTask();
         transferFileTask.setApiCode("7410990");
-        transferFileTask.setStartDate("2023-07-17 ");
+        transferFileTask.setStartDate("2023-07-22 ");
         transferFileTask.setFileName("file");
         log.warn("滴滴转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
@@ -188,7 +188,7 @@ public class AlarmAndNoticeTest {
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file), "UTF-8"));) {
-            fw.append("cell,convType,requestTime,result,orgChannel,mktLevel,isBlack");
+            fw.append("cell,convType,requestTime,result,orgChannel,mktLevel");
             fw.append("\r\n");
             newTransferToFileByXieChengServiceImpl.writeXieChengTransferToFile(fw, apiCode, transferFileTask);
         } catch (Exception ex) {

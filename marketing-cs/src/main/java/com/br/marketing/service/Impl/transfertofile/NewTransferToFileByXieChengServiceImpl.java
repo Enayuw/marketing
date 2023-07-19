@@ -91,7 +91,7 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
         Date now = new Date();
         //可配置
         String execute = EXECUTE_TIME;
-        if (marketingCommonConfig.getXieChengTransferExecuteTime() != null && marketingCommonConfig.getXieChengTransferExecuteTime().size() > 0) {
+        if (marketingCommonConfig.getXieChengNewTransferExecuteTime() != null && marketingCommonConfig.getXieChengNewTransferExecuteTime().size() > 0) {
             execute = " " + marketingCommonConfig.getXieChengTransferExecuteTime().get(0);
         }
         Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, execute);
@@ -149,7 +149,7 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file), "UTF-8"));) {
-            fw.append("cell,convType,requestTime,result,orgChannel,mktLevel,isBlack");
+            fw.append("cell,convType,requestTime,result,orgChannel,mktLevel");
             fw.append("\r\n");
             writeXieChengTransferToFile(fw, apiCode, transferFileTask);
         } catch (Exception ex) {
@@ -163,22 +163,14 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
         Long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         LocalDate date = LocalDate.now();
-        // 定义日期格式
+        //定义日期格式
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        // 使用格式化字符串将LocalDate对象格式化为字符串
+        //使用格式化字符串将LocalDate对象格式化为字符串
         int day = Integer.valueOf(date.format(formatter));
-//        int day = 20230717;
         Integer page = 0;
         Boolean mark = Boolean.TRUE;
         int totalSize = 0;
         while (mark) {
-//            try {
-//                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-//                Date today = sdf.parse(date.toString());
-//                Date today = sdf.parse("2023-07-22");
-//            } catch (ParseException e) {
-//                throw new RuntimeException(e);
-//            }
             Result<List<MarketingNewTransferData>> transferData = getOrderTransferData(day , page);
             if (!ResultCode.SUCCESS.getValue().equals(transferData.getCode())) {
                 mark = Boolean.FALSE;
@@ -200,15 +192,13 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
                 MarketingTransferSyncUser marketingTransferSyncUser = transferSyncUserMap.get(cell);
                 String requestTime = "";
                 String convType = "";
-                String result = marketingNewTransferData.getResult();
-                String orgChannel = marketingNewTransferData.getOrgChannel();
-                String mktLevel = marketingNewTransferData.getMktLevel();
-                String isBlack = "";
-
+                String result = StringUtils.isNotEmpty(marketingNewTransferData.getResult()) ? marketingNewTransferData.getResult() : "";
+                String orgChannel = StringUtils.isNotEmpty(marketingNewTransferData.getOrgChannel()) ? marketingNewTransferData.getOrgChannel() : "";
+                String mktLevel = StringUtils.isNotEmpty(marketingNewTransferData.getMktLevel()) ? marketingNewTransferData.getMktLevel() : "";
+                result = result.equals("1") ? "true" : "false";
                 if (marketingTransferSyncUser != null && StringUtils.isNotEmpty(marketingTransferSyncUser.getReserveField1())) {
                     try {
                         convType = getReserFieldVal(marketingTransferSyncUser.getReserveField1(),"convType");
-                        isBlack =  getReserFieldVal(marketingTransferSyncUser.getReserveField1(),"isBlack");
                     } catch (Exception e) {
                         log.warn("携程新场景转化数据提取,ReserveField1非JSON格式{}", marketingTransferSyncUser.getReserveField1());
                     }
@@ -217,16 +207,13 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
                     convType = "";
                     requestTime = "";
                 }
-                StringBuilder sb = new StringBuilder();
-                sb.append(cell.concat(","));
-                sb.append(convType.concat(","));
-                sb.append(requestTime.concat(","));
-                sb.append(result.concat(","));
-                sb.append(orgChannel.concat(","));
-                sb.append(mktLevel.concat(","));
-                sb.append(isBlack);
-                sb.append("\r\n");
-                fw.append(sb.toString());
+                String sb = cell.concat(",") +
+                        convType.concat(",") +
+                        requestTime.concat(",") +
+                        result.concat(",") +
+                        orgChannel.concat(",") +
+                        mktLevel + "\r\n";
+                fw.append(sb);
             }
             totalSize = totalSize + newTransferDatabaseCollision.size();
             newTransferDatabaseCollision.clear();
