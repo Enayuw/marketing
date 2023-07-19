@@ -82,6 +82,14 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
             if (transformType) {
                 return Boolean.FALSE;
             }
+            //过滤type=13，registerChannel！=1的数据
+            if ("13".equals(transfer.getType())) {
+                boolean registerChannel = !"1".equals(json.getString("registerChannel"));
+                if (registerChannel) {
+                    return Boolean.FALSE;
+                }
+            }
+
         }
         if (context.getRuleNecessaryData() == null
                 || !(context.getRuleNecessaryData() instanceof YiXinRuleCollectDataImpl.YiXinRuleNecessaryData)) {

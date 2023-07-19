@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleSoleDTO;
@@ -39,6 +38,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -63,6 +63,8 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         ACTONTFROUNTYPETREE.put("G", 9);
         ACTONTFROUNTYPETREE.put("H", 10);
         ACTONTFROUNTYPETREE.put("I", 11);
+        ACTONTFROUNTYPETREE.put("J", 12);
+        ACTONTFROUNTYPETREE.put("K", 13);
     }
     @Resource
     private YiXinProcessGetBaseDataService yiXinProcessGetBaseDataService;
@@ -136,21 +138,22 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                     updateActionFront(resultA);
                     break;
                 case "B":
-                case "C":
                 case "D":
                 case "E":
                 case "F":
                 case "G":
                 case "H":
                 case "I":
-                    if (isTransferLast(tcId, apiCodeTransfer)) {
-                        Result<Long> resultK = actionFront(apiCodeTransfer, ACTONTFROUNTYPETREE.get(k));
-                        if (!ResultCode.SUCCESS.getValue().equals(resultK.getCode())) {
-                            break;
-                        }
-                        getMarketingTransferSyncUserListBtoCtoI(k, v, tcId);
-                        updateActionFront(resultK);
-                    }
+                    actionData(k, v, tcId, apiCodeTransfer);
+                    break;
+                case "C":
+                    actionData(k, v, tcId, apiCodeTransfer, checkRegisterChannel("1"));
+                    break;
+                case "J":
+                    actionData(k, v, tcId, apiCodeTransfer, checkRegisterChannel("3"));
+                    break;
+                case "K":
+                    actionData(k, v, tcId, apiCodeTransfer, checkRegisterChannel("2"));
                     break;
                 default:
                     log.warn("宜信转化数据推决策类型异常");
@@ -160,11 +163,48 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
     }
 
+    private void actionData(String k
+            , String v
+            , String tcId
+            , String apiCodeTransfer) {
+        actionData(k, v, tcId, apiCodeTransfer, null);
+    }
+
+    private void actionData(String k
+            , String v
+            , String tcId
+            , String apiCodeTransfer
+            , Predicate<MarketingTransferSyncUser> predicate) {
+        if (isTransferLast(tcId, apiCodeTransfer)) {
+            Result<Long> resultK = actionFront(apiCodeTransfer, ACTONTFROUNTYPETREE.get(k));
+            if (!ResultCode.SUCCESS.getValue().equals(resultK.getCode())) {
+                return;
+            }
+            getMarketingTransferSyncUserListBtoCtoI(k, v, tcId, predicate);
+            updateActionFront(resultK);
+        }
+    }
+
+    /**
+     * 2023-07-14 14:19
+     * 检查registerChannel
+     */
+    private Predicate<MarketingTransferSyncUser> checkRegisterChannel(final String registerChannel) {
+        return user -> {
+            String reserveField1 = user.getReserveField1();
+            if (StringUtils.isBlank(reserveField1)) {
+                return false;
+            }
+            JSONObject jsonObject = JSONObject.parseObject(reserveField1);
+            return registerChannel.equals(jsonObject.getString("registerChannel"));
+        };
+    }
+
     private void updateActionFront(Result<Long> result) {
         jobManager.updateFrontDataStatus(result.getData(), 2);
     }
 
-    private boolean isTransferLast(String tcId,String apiCodeTransfer) {
+    private boolean isTransferLast(String tcId, String apiCodeTransfer) {
         // 查询转化数据last =1 的数据是否传输到详情表。2000个
         String requestId = marketingTransferInfoMapper.countByApiCodAndLastOne(apiCodeTransfer, LocalDate.now().toString(), "1");
         if (StringUtils.isEmpty(requestId)) {
@@ -230,27 +270,34 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      *
      * @param tcId cid
      */
-    private void getMarketingTransferSyncUserListBtoCtoI(String actionType, String type, String tcId) {
-        Long indexId = 3000l;
+    private void getMarketingTransferSyncUserListBtoCtoI(String actionType, String type, String tcId
+            , Predicate<MarketingTransferSyncUser> predicate) {
+        Long indexId = 3000L;
         // 创建线程池
         ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
         String requestDate = LocalDate.now().toString();
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
-        if("B".equals(actionType)){
-             requestDate = LocalDate.now().minusDays(30).toString();
+        if ("B".equals(actionType)) {
+            requestDate = LocalDate.now().minusDays(30).toString();
         }
         while (true) {
             initThreadPoolParam(yiXinToJueCeThread);
 
             List<MarketingTransferSyncUser> marketingTransferSyncUserList =
-                    yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListBtoCtoI(tcId,apiCode,
-                            type, requestDate,indexId);
-            if(marketingTransferSyncUserList.isEmpty()){
+                    yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListBtoCtoI(tcId, apiCode,
+                            type, requestDate, indexId);
+            if (marketingTransferSyncUserList.isEmpty()) {
                 break;
             }
             indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
+            if (predicate != null) {
+                List<MarketingTransferSyncUser> syncUsers = marketingTransferSyncUserList.parallelStream()
+                        .filter(predicate).collect(Collectors.toList());
+                marketingTransferSyncUserList.clear();
+                marketingTransferSyncUserList.addAll(syncUsers);
+            }
             List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(marketingTransferSyncUserList, PARTITION);
-            partition.forEach(users->{
+            partition.forEach(users -> {
                 List<MarketingTransferSyncUser> tpList = new ArrayList<>();
                 tpList.addAll(users);
                 yiXinToJueCeThread.submit(() -> threadDoProcess(tpList, actionType));
@@ -285,6 +332,8 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 case "G":
                 case "H":
                 case "I":
+                case "J":
+                case "K":
                     yiXinProcessExcludeRuleData.excludeActionCtoI(marketingTransferSyncUserList);
                     break;
                 default:

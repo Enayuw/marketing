@@ -1,7 +1,6 @@
 package com.br.marketing.check.job.yixin;
 
 
-import IceInternal.Ex;
 import com.br.marketing.service.YiXinToJueCeProcessService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.LinkedHashMap;
-import java.util.TreeMap;
 
 
 /**
@@ -33,6 +31,8 @@ public class YiXinTransferToJueCeJob extends AbstractSimpleElasticJob {
         ACTONTYPELINK.put("G", "8");
         ACTONTYPELINK.put("H", "15");
         ACTONTYPELINK.put("I", "6");
+        ACTONTYPELINK.put("J", "13");
+        ACTONTYPELINK.put("K", "13");
     }
 
     @Resource
