@@ -195,7 +195,9 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
                 String result = StringUtils.isNotEmpty(marketingNewTransferData.getResult()) ? marketingNewTransferData.getResult() : "";
                 String orgChannel = StringUtils.isNotEmpty(marketingNewTransferData.getOrgChannel()) ? marketingNewTransferData.getOrgChannel() : "";
                 String mktLevel = StringUtils.isNotEmpty(marketingNewTransferData.getMktLevel()) ? marketingNewTransferData.getMktLevel() : "";
-                result = result.equals("1") ? "true" : "false";
+                if (StringUtils.isNotEmpty(result)){
+                    result = result.equals("1") ? "true" : "false";
+                }
                 if (marketingTransferSyncUser != null && StringUtils.isNotEmpty(marketingTransferSyncUser.getReserveField1())) {
                     try {
                         convType = getReserFieldVal(marketingTransferSyncUser.getReserveField1(),"convType");
