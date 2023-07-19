@@ -107,13 +107,13 @@ public class BackEndResourceController {
      * @return
      */
     @GetMapping("/pushMq")
-    public String pushMq(){
+    public String pushMq(@RequestParam("createDate") Integer createDate){
 
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
         Boolean mark = Boolean.TRUE;
         Long localId = null;
         while (mark){
-            List<XieChengData> datas = xieChengDataMapper.getByCellTodayAndLocalId(20230628, localId);
+            List<XieChengData> datas = xieChengDataMapper.getByCellTodayAndLocalId(createDate, localId);
             if(datas.size()<=0){
                 mark = Boolean.FALSE;
                 continue;
