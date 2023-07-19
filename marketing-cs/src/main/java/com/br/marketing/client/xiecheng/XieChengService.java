@@ -1,5 +1,6 @@
 package com.br.marketing.client.xiecheng;
 
+import cn.hutool.core.thread.ThreadUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -202,17 +203,17 @@ public class XieChengService {
         retMap.put("channel", channel);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(thirdAdOuterReq), aesKey , ivKey));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, sKey));
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, openUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(thirdAdOuterReq), true, false);
-        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.error("携程广告上报接口发送参数:ThirdAdOuterReq={} para={}", JSON.toJSONString(thirdAdOuterReq), JSON.toJSONString(retMap));
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
-        }
-        String content = resMap.get("content");
+//        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, openUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(thirdAdOuterReq), true, false);
+//        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+//            log.error("携程广告上报接口发送参数:ThirdAdOuterReq={} para={}", JSON.toJSONString(thirdAdOuterReq), JSON.toJSONString(retMap));
+//            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+//        }
+//        String content = resMap.get("content");
 
-//        /*范围40到70的随机数*/
+        /*范围40到70的随机数*/
 //        int random = (int) (Math.random() * (70 - 40 + 1) + 40);
-//        ThreadUtil.sleep(random);
-//        String content = "{\"code\":0,\"msg\":\"测试效率\",\"data\":[{\"md5Code\":null,\"sha256Code\":\"760a06d2bc9b150d1d5b162e95bed32ed306cd1c2f7417c5e10397715ea165c1\",\"result\":false,\"orgChannel\":\"测试orgChannel\",\"mktLevel\":\"测试orgmktLevel\",\"info\":\"测试info\"}]}";
+        ThreadUtil.sleep(70);
+        String content = "{\"code\":0,\"msg\":\"测试效率\",\"data\":[{\"md5Code\":null,\"sha256Code\":\"760a06d2bc9b150d1d5b162e95bed32ed306cd1c2f7417c5e10397715ea165c1\",\"result\":false,\"orgChannel\":\"测试orgChannel\",\"mktLevel\":\"测试orgmktLevel\",\"info\":\"测试info\"}]}";
 
         JSONObject resultJson = JSONObject.parseObject(content);
         Integer code = resultJson.getInteger("code");
