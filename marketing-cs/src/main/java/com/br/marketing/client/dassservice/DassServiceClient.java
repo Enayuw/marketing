@@ -163,8 +163,12 @@ public class DassServiceClient {
             interfaceLog.setExpire(String.valueOf(end - start));
             if (Integer.valueOf(200).equals(code)) {
                 //调用数量监控
-                BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_BATCH_USERDATA_METRIC_NAME,dto.getList().get(0).getOrgname(),"batchUserData-api",
-                        dtos.size());
+                try {
+                    BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_BATCH_USERDATA_METRIC_NAME, dto.getList().get(0).getOrgname(), "batchUserData-api",
+                            dtos.size());
+                } catch (Exception ex) {
+                    log.error("电销批量接口统计异常" + ex.getMessage(), ex);
+                }
                 result.setCode(ResultCode.SUCCESS.getValue());
             } else {
                 result.setCode(ResultCode.FAIL.getValue());
@@ -215,10 +219,13 @@ public class DassServiceClient {
                     result.setCode(ResultCode.SUCCESS.getValue());
                     result.setDate(JSON.parseObject(content, new TypeReference<PushBlackListResponse>() {
                     }.getType()));
-
-                    //调用数量监控
-                    BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_BLACK_DATA_METRIC_NAME,list.get(0).getApiCode(),"blackData-api",
-                            list.size());
+                    try {
+                        //调用数量监控
+                        BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_BLACK_DATA_METRIC_NAME, list.get(0).getApiCode(), "blackData-api",
+                                list.size());
+                    } catch (Exception ex) {
+                        log.error("电销黑名单接口统计异常" + ex.getMessage(), ex);
+                    }
                 } else {
                     result.setCode(ResultCode.FAIL.getValue());
                     result.setMessage(content);
@@ -295,8 +302,12 @@ public class DassServiceClient {
                 return result;
             }
             result.setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.parseObject(respStr));
-            //调用数量监控
-            BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_SINGLE_USERDATA_METRIC_NAME,dassSingleImportDataDTO.getOrgname(),"DaasRealTimeData-api");
+            try {
+                //调用数量监控
+                BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_SINGLE_USERDATA_METRIC_NAME, dassSingleImportDataDTO.getOrgname(), "DaasRealTimeData-api");
+            } catch (Exception ex) {
+                log.error("电销单条接口统计异常" + ex.getMessage(), ex);
+            }
         } else {
             result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
         }
@@ -393,9 +404,13 @@ public class DassServiceClient {
                 return result;
             }
             result.setCode(ResultCode.SUCCESS.getValue()).setDate(respStr);
+            try {
             //调用数量监控
             BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_TRANSFER_METRIC_NAME,dassTransferDataDTOList.get(0).getOrgName(),"transferData-api",
                     dassTransferDataDTOList.size());
+            } catch (Exception ex) {
+                log.error("电销转化接口统计异常" + ex.getMessage(), ex);
+            }
         } else {
             result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
         }

@@ -68,9 +68,13 @@ public class RobotaiApiServiceClient {
             }
             TransferRobotOutboundVO<UnsuccessfulData> result = JSON.parseObject(transfer.getResult()
                     ,new TypeReference<TransferRobotOutboundVO>(){}.getType());
-            //调用数量监控
-            BrCounter.count(PrometheusMonitorUtils.COUNT_ROBOTAI_TRANSFER_METRIC_NAME,dto.getApiCode(),"transferData-api",
-                    dto.getJsonData().getConversionData().size());
+            try {
+                //调用数量监控
+                BrCounter.count(PrometheusMonitorUtils.COUNT_ROBOTAI_TRANSFER_METRIC_NAME, dto.getApiCode(), "transferData-api",
+                        dto.getJsonData().getConversionData().size());
+            } catch (Exception ex) {
+                log.error("推送客服转化接口统计异常" + ex.getMessage(), ex);
+            }
             return result;
         }catch (Exception ex){
             log.warn(ex.getMessage(), ex);
@@ -94,9 +98,13 @@ public class RobotaiApiServiceClient {
             }
             TransferRobotOutboundVO<UnsuccessfulData> result = JSON.parseObject(transfer.getResult()
                     ,new TypeReference<TransferRobotOutboundVO>(){}.getType());
-            //调用数量监控
-            BrCounter.count(PrometheusMonitorUtils.COUNT_ROBOTAI_TRANSFER_METRIC_NAME,dto.getApiCode(),"transferData-api",
-                    dto.getJsonData().getConversionData().size());
+            try {
+                //调用数量监控
+                BrCounter.count(PrometheusMonitorUtils.COUNT_ROBOTAI_TRANSFER_METRIC_NAME, dto.getApiCode(), "transferData-api",
+                        dto.getJsonData().getConversionData().size());
+            } catch (Exception ex) {
+                log.error("推送客服转化接口统计异常" + ex.getMessage(), ex);
+            }
             return result;
         }catch (Exception ex){
             log.warn(ex.getMessage(), ex);
@@ -138,9 +146,13 @@ public class RobotaiApiServiceClient {
                     log.error(String.format("调用转化接口插入接口日志报错:%s", ex.getMessage()), ex);
                 }
             });
-            //调用数量监控
-            BrCounter.count(PrometheusMonitorUtils.COUNT_ROBOTAI_BLACK_METRIC_NAME,dto.getApiCode(),"blackData-api",
-                    parentDTO.getBlackDetailDTOList().size());
+            try {
+                //调用数量监控
+                BrCounter.count(PrometheusMonitorUtils.COUNT_ROBOTAI_BLACK_METRIC_NAME, dto.getApiCode(), "blackData-api",
+                        parentDTO.getBlackDetailDTOList().size());
+            } catch (Exception ex) {
+                log.error("推送客服黑名单接口统计异常" + ex.getMessage(), ex);
+            }
             return result;
         }catch (Exception ex){
             log.error(ex.getMessage(), ex);

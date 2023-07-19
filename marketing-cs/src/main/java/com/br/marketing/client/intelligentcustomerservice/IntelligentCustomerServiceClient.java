@@ -15,6 +15,7 @@ import com.br.marketing.entity.CustomerInfoPushLog;
 import com.br.marketing.mapper.CustomerInfoPushLogMapper;
 import com.br.marketing.mapper.InterfaceLogMapper;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,9 +80,13 @@ public class IntelligentCustomerServiceClient {
             }
             if ("00".equals(jsonObject.getString("code"))) {
                 result.setCode(ResultCode.SUCCESS.getValue());
-                //调用数量监控
-                BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME,dto.getApiCode(),"policy-api",
-                        pushNum);
+                try {
+                    //调用数量监控
+                    BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME, dto.getApiCode(), "policy-api",
+                            pushNum);
+                } catch (Exception ex) {
+                    logger.error("推送决策接口统计异常" + ex.getMessage(), ex);
+                }
             } else {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
             }
@@ -108,9 +113,13 @@ public class IntelligentCustomerServiceClient {
             if ("00".equals(jsonObject.getString("code"))) {
                 result.setCode(ResultCode.SUCCESS.getValue());
                 PushMarketingUserTaskInfoDTO taskInfoDTO = (PushMarketingUserTaskInfoDTO) dto.getJsonData();
+                try {
                 //调用数量监控
                 BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME,dto.getApiCode(),"policy-api",
                         taskInfoDTO.getData().size());
+                } catch (Exception ex) {
+                    logger.error("推送决策接口统计异常" + ex.getMessage(), ex);
+                }
             } else {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
             }
