@@ -159,10 +159,11 @@ public class ZhongAnClient {
 //        上线需要去除掉,模拟调用不可营销的数据
         if(true){
             ZkReponseVO zkReponseVO = new ZkReponseVO();
-            zkReponseVO.setAccess(true);
+            zkReponseVO.setAccess(false);
             zkReponseVO.setRespNo("bbbe484f3bd94cb296fa3127be55d0c8");
             zkReponseVO.setRespCode("1");
             zkReponseVO.setStatus("SUCCESS");
+            log.warn("调用撞库接口返回"+JSON.toJSONString(zkReponseVO));
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(zkReponseVO);
         }
         return zk(zkReqDTO, xinDaiZKApiKey);
