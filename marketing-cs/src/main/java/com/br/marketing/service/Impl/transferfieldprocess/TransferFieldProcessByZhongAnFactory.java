@@ -70,7 +70,7 @@ public class TransferFieldProcessByZhongAnFactory implements TransferFieldProces
                 || (bo = validityMap.get(cellByLog)) == null
                 || (syncUser = bo.getSyncUser()) == null) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
-                    , "众安未配置任何有效期，请配置对应的有效期规则，apiCode:" + transferSyncUser.getApiCode()
+                    , "众安清洗入库不在有效期，请检查有效期配置及原始数据是否存在，apiCode:" + transferSyncUser.getApiCode()
                             + ";tcid:" + transferSyncUser.gettCid()
                             + ";cell:" + cellByLog
                     , transferSyncUser.getApiCode() + "众安转化数据清洗入库，"
