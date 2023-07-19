@@ -438,7 +438,7 @@ public class MarketingCommonConfig {
     /**
      * 携程新场景转化数据提取执行时间,携程撞库提取时间
      */
-    private List<String> XieChengNewTransferExecuteTime;
+    private String XieChengNewTransferExecuteTime;
 
     /**
      * 携程新场景转化数据有效期

@@ -91,8 +91,8 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
         Date now = new Date();
         //可配置
         String execute = EXECUTE_TIME;
-        if (marketingCommonConfig.getXieChengNewTransferExecuteTime() != null && marketingCommonConfig.getXieChengNewTransferExecuteTime().size() > 0) {
-            execute = " " + marketingCommonConfig.getXieChengTransferExecuteTime().get(0);
+        if (StringUtils.isNotEmpty(marketingCommonConfig.getXieChengNewTransferExecuteTime()) ) {
+            execute = " " + marketingCommonConfig.getXieChengNewTransferExecuteTime();
         }
         Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, execute);
         if (now.after(executeTime)) {
