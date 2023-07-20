@@ -66,7 +66,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     MarketingTransferSyncUser getNewTransferDataByCell(@Param("cid") String cid, @Param("cell") String cell);
 
 
-    List<MarketingTransferSyncUser> getNewTransferDataByCellList(@Param("cid") String cid, @Param("custNumList") Set<String> custNumList);
+    List<MarketingTransferSyncUser> getNewTransferDataByCellList(@Param("apiCode") String apiCode ,@Param("cid") String cid, @Param("custNumList") Set<String> custNumList);
 
 
 

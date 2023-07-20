@@ -184,7 +184,7 @@ public class NewTransferToFileByXieChengServiceImpl implements ITransferToFileSe
                     .map(MarketingNewTransferData :: getSha256CodeList)
                     .collect(Collectors.toSet());
 
-            List<MarketingTransferSyncUser> newestByCusnum = marketingTransferSyncUserMapper.getNewTransferDataByCellList(tcId, custNumList);
+            List<MarketingTransferSyncUser> newestByCusnum = marketingTransferSyncUserMapper.getNewTransferDataByCellList(apiCode , tcId, custNumList);
             Map<String, MarketingTransferSyncUser> transferSyncUserMap = newestByCusnum.stream().collect(Collectors.toMap(MarketingTransferSyncUser::getCustNum, Function.identity(), (v1, v2) -> v1));
             for (MarketingNewTransferData marketingNewTransferData : newTransferDatabaseCollision) {
 

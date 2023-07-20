@@ -84,9 +84,9 @@
 
     <select id="getNewTransferDataByCellList" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         SELECT
-            b.cust_num,
-            b.reserve_field1,
-            b.request_time
+        b.cust_num,
+        b.reserve_field1,
+        b.request_time
         FROM
         (
         SELECT
@@ -99,11 +99,12 @@
         <foreach collection = "custNumList" item = "custNumList" open = "(" separator = "," close = ")" >
             #{custNumList}
         </foreach >
+        and api_code = #{apiCode}
         GROUP BY
         cust_num
         ) AS a
         LEFT JOIN b_marketing_transfer_sync_${cid} b ON a.cust_num = b.cust_num
-        AND a.request_time = b.request_time
+        AND a.request_time = b.request_time and b.api_code = #{apiCode}
     </select>
 
 
