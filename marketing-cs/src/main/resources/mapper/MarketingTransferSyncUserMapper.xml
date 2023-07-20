@@ -63,23 +63,8 @@
         order by id desc limit #{limitStart},2000;
     </select>
 
-    <select id="getNewTransferDatabaseCollision" resultType="com.br.marketing.entity.MarketingNewTransferData">
-        SELECT sha256_code_list,result,org_channel,mkt_level
-        FROM b_xiecheng_sms_colliding_data_log_vt
-        where send_date = #{day};
-    </select>
 
-    <select id="getNewTransferData" resultType="com.br.marketing.entity.MarketingNewTransferData">
-        SELECT result,org_channel,mkt_level
-        FROM b_xiecheng_sms_colliding_data_log_vt
-        where cell = #{sha256_code_list};
-    </select>
 
-    <select id="getNewTransferDataByCell" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-            select * from b_marketing_transfer_sync_${cid}
-            where cust_num=#{cell}
-            order by create_time desc limit 1;
-    </select>
 
 
     <select id="getNewTransferDataByCellList" resultType="com.br.marketing.entity.MarketingTransferSyncUser">

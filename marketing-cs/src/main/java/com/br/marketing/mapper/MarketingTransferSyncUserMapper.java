@@ -42,30 +42,14 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     List<MarketingTransferSyncUser> getTransferDataByRequestDataAndApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("data") String data, @Param("limitStart") Integer limitStart);
 
-    /**
-     * 取T日apiCode的撞库数据
-     * @param day
-     * @return
-     */
-    List<MarketingNewTransferData> getNewTransferDatabaseCollision(@Param("day") Integer day);
 
     /**
-     * 根据cell（custNum）查询转化数据
-     * @param cell
-     * @return
-     */
-    List<MarketingNewTransferData> getNewTransferData(@Param("cell") String cell);
-
-    /**
-     * 根据cell获取最新的一条数据
-     *
+     * 根据custnum以及apiCode取最新的一条转换数据
+     * @param apiCode
      * @param cid
-     * @param cell
+     * @param custNumList
      * @return
      */
-    MarketingTransferSyncUser getNewTransferDataByCell(@Param("cid") String cid, @Param("cell") String cell);
-
-
     List<MarketingTransferSyncUser> getNewTransferDataByCellList(@Param("apiCode") String apiCode ,@Param("cid") String cid, @Param("custNumList") Set<String> custNumList);
 
 

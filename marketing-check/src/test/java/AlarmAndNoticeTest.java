@@ -195,21 +195,6 @@ public class AlarmAndNoticeTest {
             log.error(ex.getMessage());
         }
 
-
-//        String jobParameter = "3710090#2023-07-17";
-//        TransferFileTask transferFileTask = new TransferFileTask();
-//        transferFileTask.setFileName("xiecheng");
-//        transferFileTask.setFilePath("/opt/data");
-//        transferFileTask.setFileType(1);
-//        transferFileTask.setApiCode("3710090");
-//        LocalDate currentDate = LocalDate.now();
-//        String dateString = currentDate.toString();
-//        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-//        Date date = formatter.parse(dateString);
-//        transferFileTask.setCreateTime(date);
-//        transferFileTask.setUpdateTime(date);
-//        Result result = newTransferToFileByXieChengService.actionTransferToFile(transferFileTask,jobParameter);
-//        System.out.println(result.getCode());
     }
 
     @Test
