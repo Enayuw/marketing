@@ -318,8 +318,8 @@ public class XieChengService {
         retMap.put("channel", smsCollidingChannel);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingVtKey, smsCollidingVtIv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingVtSignKey));
-//        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
-        HashMap<String, String> resMap = getTestMap(sha256CodeList);
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
+//        HashMap<String, String> resMap = getTestMap(sha256CodeList);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             String content = " {\"code\":702,\"msg\":\"网络异常或者返回内容为空\"}";
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(content);
