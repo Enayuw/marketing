@@ -426,9 +426,24 @@ public class MarketingCommonConfig {
     private List<String> XieChengTransferApiCodes;
 
     /**
+     * 携程新场景转化数据提取apiCode集合
+     */
+    private List<String> XieChengNewTransferApiCodes;
+
+    /**
      * 携程转化数据提取执行时间,携程撞库提取时间
      */
     private List<String> XieChengTransferExecuteTime;
+
+    /**
+     * 携程新场景转化数据提取执行时间,携程撞库提取时间
+     */
+    private String XieChengNewTransferExecuteTime;
+
+    /**
+     * 携程新场景转化数据有效期
+     */
+    private int XieChengNewTransferValidityDay;
 
     /**
      * 拍拍贷有效期34；目前仅老客使用
