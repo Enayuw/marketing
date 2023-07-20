@@ -115,6 +115,8 @@ otherConfig:
 
 
 api:
+  customerService:
+    apiCode: 4000296
   intelligentCustomerService:
     baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
     pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
@@ -167,6 +169,10 @@ api:
   xiecheng:
     openUrl: https://cgcallback-fat.ctripqa.com/nemoweb/ad/common/outAdMonitor.do
     appId: bairong001
+    appIdVt: test002
+    keyVt: 6b219b9e71fdb2d2
+    ivVt: 5e7b6c07d3edbc01
+    signKeyVt: b8845b4cb1f16471
     key: f3df6f62f0527bf0
     iv: 3b2dac323465b024
     singKey: 95cc01ec07387a44
@@ -176,6 +182,10 @@ api:
     smsColliding:
       openUrl: https://cgcallback-fat.ctripqa.com/nemoweb/ad/common/unionCheckUser.do
       appId: bairong001
+      appIdVt: test002
+      keyVt: 6b219b9e71fdb2d2
+      ivVt: 5e7b6c07d3edbc01
+      signKeyVt: b8845b4cb1f16471
       key: f3df6f62f0527bf0
       iv: 3b2dac323465b024
       singKey: 95cc01ec07387a44

@@ -647,10 +647,27 @@
     </select>
 
 
-    <select id="getXcTransferNoAdData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+    <select id="getXcTransferNoAdDataByOnlyConvType" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select *
         from b_marketing_transfer_sync_${tCid}
         where cust_num = #{custNum}
-        and (reserve_field1->'$.convType' = '106' or reserve_field1->'$.isBlack' = '1') limit 1
+        and (reserve_field1->'$.convType' = '106')
+        and api_code in
+        <foreach collection="apiCodes" item="apiCode" separator="," open="(" close=")">
+            #{apiCode}
+        </foreach>
+        limit 1
+    </select>
+
+    <select id="getXcTransferNoAdDataByOnlyBlack" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tCid}
+        where cust_num = #{custNum}
+        and (reserve_field1->'$.isBlack' = '1' or reserve_field1->'$.isBlack' = 1)
+        and api_code in
+        <foreach collection="apiCodes" item="apiCode" separator="," open="(" close=")">
+            #{apiCode}
+        </foreach>
+        limit 1
     </select>
 </mapper>

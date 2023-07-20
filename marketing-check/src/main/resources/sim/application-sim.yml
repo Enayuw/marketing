@@ -167,6 +167,10 @@ api:
     key: f3df6f62f0527bf0
     iv: 3b2dac323465b024
     singKey: 95cc01ec07387a44
+    appIdVt: bairong002
+    keyVt: f3df6f62f0527bf0
+    ivVt: 3b2dac323465b024
+    signKeyVt: 95cc01ec07387a44
     source: BaiRong_C01
     channel: commonOutAdMonitor
     isProxy: true
@@ -184,6 +188,10 @@ api:
       key: f3df6f62f0527bf0
       iv: 3b2dac323465b024
       singKey: 95cc01ec07387a44
+      appIdVt: bairong002
+      keyVt: f3df6f62f0527bf0
+      ivVt: 3b2dac323465b024
+      signKeyVt: 95cc01ec07387a44
       channel: commonUnionCheckUser
       isProxy: true
   didi:

@@ -19,12 +19,15 @@
     where  status =1 and push_status =1
     order by id asc limit 10000
   </select>
-  <select id="getByCellToday" resultType="com.br.marketing.entity.XieChengData"
-          parameterType="java.lang.String">
+  <select id="getByCellToday" resultType="com.br.marketing.entity.XieChengData">
     select
       *
     from b_xiecheng_data
     where  status =1 and push_status =2 and sha256_tel = #{cell}
+      and api_code in
+      <foreach collection="apiCodes" open="(" close=")" item="apiCode" separator=",">
+        #{apiCode}
+      </foreach>
       and create_time > str_to_date(now(), '%Y-%m-%d')
 
   </select>

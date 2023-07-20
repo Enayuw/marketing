@@ -461,6 +461,24 @@ public class MarketingCommonConfig {
     private Integer xieChengSmsCollidingThread;
 
     /**
+     * 携程短信撞库线程数Version2
+     */
+    private Integer xieChengSmsCollidingThreadVt;
+
+    /**
+     * 携程短信撞库线插入线程数量
+     */
+    private Integer xieChengSmsCollidingThreadLogSaveVt;
+    /**
+     * 携程短信撞库更新结果线程数
+     */
+    private Integer xieChengSmsCollidingThreadLogUpdateVt;
+    /**
+     * 携程短信撞库查询单次数据量级
+     */
+    private Integer xieChengSmsCollidingDataVtPageSize;
+
+    /**
      * 通用文件入库
      */
     private Integer threadNumSftpToDbByCommon;
@@ -812,5 +830,27 @@ public class MarketingCommonConfig {
      * job集群指定{“作业名称”:"zwpro/yzpro/zwfz/yzfz/zw/yz/all","default":"zwpro/yzpro/zwfz/yzfz/zw/yz/all"}
      */
     private HashMap<String,String> jobCluster;
+
+    /**
+     * 携程广告明细推送条件判断配置{“3710058”:{"condition":"1",soleCellApiCodes:["3710058","3710078"]},“3710078”:{"condition":1,soleCellApiCodes:["3710058","3710078"]},“3710090”:{"condition":2,soleCellApiCodes:["3710090","3710091"]},“3710091”:{"condition":2,soleCellApiCodes:["3710090","3710091"]}}
+     */
+    private HashMap<String, JSONObject> xieChengCallPushCondition;
+
+    /**
+     * 携程新场景短信撞库推送客服转化apiCode配置(一对多分发)
+     * xiechengSmsCustomerTransferApiCodes={"3710090":["3710090","3710091"],"7410950":["7410950","7410951"]}
+     */
+    private HashMap<String, List<String>> xiechengSmsCustomerTransferApiCodes;
+
+    /**
+     * 携程短信撞库新场景apicode
+     * xieChengSmsApiCode=3710090
+     */
+    private String xieChengSmsApiCode;
+
+    /**
+     * 携程新场景短信撞库,mq推送客服转化线程数
+     */
+    private Integer xieChengSmsMqPushCustomerThreadNum;
 }
 

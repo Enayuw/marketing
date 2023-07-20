@@ -65,7 +65,7 @@ public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob 
             LocalFileExample localFileExample = new LocalFileExample();
             localFileExample.createCriteria()
                     .andFileTypeEqualTo(XIECHENGSMSCOLLIDING)
-                    .andStatusEqualTo("1");
+                    .andStatusEqualTo("2");
             List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
 
             localFileList.forEach((lf) -> {

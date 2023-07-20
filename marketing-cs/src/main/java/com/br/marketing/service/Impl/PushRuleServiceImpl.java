@@ -6,6 +6,7 @@ import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.common.utils.*;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
@@ -26,10 +27,6 @@ import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.exception.CommonException;
-import com.br.marketing.common.utils.AESUtil;
-import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.commonentity.StatusConstants;
@@ -104,6 +101,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         errorCodeHm.put("1005", "入库异常");
         errorCodeHm.put("1006", "参数过长");
     }
+
+    @Resource
+    XieChengSmsCollidingDataLogVtMapper xieChengSmsCollidingDataLogVtMapper;
 
     @Resource
     MarketingTaskMapper marketingTaskMapper;
