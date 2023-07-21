@@ -258,7 +258,7 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
                     , apiCode + "," + tag + "锁定名单推送众安异常"));
             List<Long> ids = inList.parallelStream().map(ZhonganRosterLockingData::getId).collect(Collectors.toList());
             // 未获取到上传数据
-            updatePushStatusById(ids, 3);
+            updatePushStatusById(ids, 4);
             return result;
         }
         HashMap<String, JSONObject> zhongAnDetailPush = marketingCommonConfig.getZhongAnDetailPush();
