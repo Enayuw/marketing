@@ -32,7 +32,10 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @Author songjuanjnuan
@@ -302,25 +305,18 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
             page++;
             // 过滤有效期内数据
             List<MarketingTransferSyncUser> periodList = new ArrayList<>(offset);
-            Map<String, Map<String, SyncUserValidityPeriodBO>> map = validityPeriodService.getSyncUserValidityPeriodUserTypeMap(list, apiCode,
+            Map<String, SyncUserValidityPeriodBO> map = validityPeriodService.getValidityPeriodUserTypeBatchFirstVersion(list, apiCode,
                     yesterday);
 
             for (MarketingTransferSyncUser transferSyncUser : list) {
                 String custNum = transferSyncUser.getCustNum();
                 String userType = transferSyncUser.getUserType();
 
-                Map<String, SyncUserValidityPeriodBO> boMap = map.get(custNum);
-                if (CollectionUtils.isEmpty(boMap)) {
+                SyncUserValidityPeriodBO boMap = map.get(custNum + userType);
+                if (boMap == null) {
                     log.warn("{}:{}不满足案件编号“有效期内”条件", custNum, userType);
                     continue;
                 }
-
-                SyncUserValidityPeriodBO bo = boMap.get(userType);
-                if (null == bo) {
-                    log.warn("{}:{}不满足场景“有效期内”条件", custNum, userType);
-                    continue;
-                }
-
                 periodList.add(transferSyncUser);
             }
 

@@ -852,5 +852,11 @@ public class MarketingCommonConfig {
      * 携程新场景短信撞库,mq推送客服转化线程数
      */
     private Integer xieChengSmsMqPushCustomerThreadNum;
+
+    /**
+     * 2023-07-05 16:04
+     * 非生成默认有效期配置的apiCode集合
+     */
+    private Set<String> nonConfigValidDefaultApiCodes;
 }
 

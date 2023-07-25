@@ -5,7 +5,7 @@
 <!-- 配置生成器 -->
 <generatorConfiguration>
     <context id="DB2Tables" targetRuntime="MyBatis3">
-
+        <property name="javaFileEncoding" value="UTF-8"/>
         <!--        <commentGenerator>-->
         <!--            <property name="suppressDate" value="true"/>-->
         <!--            &lt;!&ndash; 是否去除自动生成的注释 true：是 ： false:否 &ndash;&gt;-->
