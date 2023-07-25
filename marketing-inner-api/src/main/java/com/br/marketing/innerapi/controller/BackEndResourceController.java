@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -107,20 +108,22 @@ public class BackEndResourceController {
      * @return
      */
     @GetMapping("/pushMq")
-    public String pushMq(){
+    public String pushMq(@RequestParam("createDate") Integer createDate){
 
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
         Boolean mark = Boolean.TRUE;
         Long localId = null;
         while (mark){
-            List<XieChengData> datas = xieChengDataMapper.getByCellTodayAndLocalId(20230628, localId);
+            List<XieChengData> datas = xieChengDataMapper.getByCellTodayAndLocalId(createDate, localId);
             if(datas.size()<=0){
                 mark = Boolean.FALSE;
                 continue;
             }
             localId = datas.get(datas.size()-1).getLocalId();
+            final List<XieChengData> objects = new ArrayList<>();
+            objects.addAll(datas);
             threadPool.submit(()->{
-                for (XieChengData data : datas) {
+                for (XieChengData data : objects) {
                     JSONObject msg = new JSONObject();
                     msg.put("localId", data.getLocalId());
                     msg.put("type", 2);

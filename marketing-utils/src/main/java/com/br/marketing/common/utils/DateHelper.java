@@ -287,6 +287,15 @@ public class DateHelper {
             return null;
         }
     }
+    public static Date getNowDayEndTime(){
+        String timeStr = new SimpleDateFormat("yyyy-MM-dd").format(new Date()).concat(" 23:59:59");
+        try {
+            return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(timeStr);
+        } catch (ParseException e) {
+            log.error(e.getMessage(),e);
+            return null;
+        }
+    }
 
     public static Date addDays(Date date,Integer days){
         Calendar c = Calendar.getInstance();

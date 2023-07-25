@@ -1,6 +1,8 @@
 package com.br.marketing.mapper;
 
 
+import com.br.marketing.entity.MarketingNewTransferData;
+import com.alibaba.fastjson.JSONArray;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.vo.TransferOfCnIdVO;
 import com.br.marketing.vo.TransferOfRdRFVO;
@@ -41,9 +43,29 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     List<MarketingTransferSyncUser> getTransferDataByRequestDataAndApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("data") String data, @Param("limitStart") Integer limitStart);
 
+
+    /**
+     * 根据custnum以及apiCode取最新的一条转换数据
+     * @param apiCode
+     * @param cid
+     * @param custNumList
+     * @return
+     */
+    List<MarketingTransferSyncUser> getNewTransferDataByCellList(@Param("apiCode") String apiCode ,@Param("cid") String cid, @Param("custNumList") Set<String> custNumList);
+
+
+
     List<MarketingTransferSyncUser> getTransferByRequestData(@Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
 
     List<MarketingTransferSyncUser> getTransferData(@Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
+
+    /**
+     * 取T日apiCode的撞库数据
+     * @param day
+     * @param limitStart
+     * @return
+     */
+    List<MarketingNewTransferData> getTransferNewData(@Param("day") int day , @Param("limitStart") Integer limitStart);
 
     /**
      * 根据ApplyDt数据统计
@@ -328,7 +350,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     List<MarketingTransferSyncUser> getTransferByRequestDate(@Param("tCid") String tcId, @Param("apiCode") String apiCode
             , @Param("requestDate") String requestDate, @Param("minId") Long minId);
 
-    List<MarketingTransferSyncUser> getTransferByCustNumOrderDatatikv_(@Param("tCid") String tcId,@Param("custNums") List<String> custNums);
+    List<MarketingTransferSyncUser> getTransferByCustNumOrderDatatikv_(@Param("tCid") String tcId, @Param("custNums") List<String> custNums);
 
     List<MarketingTransferSyncUser> getYxTransferByApiCodeBtoCtoItikv_(@Param("tCid") String tcId,
                                                                        @Param("apiCode") String apiCode,
@@ -336,6 +358,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                        @Param("type") String type,
                                                                        @Param("indexId") Long indexId,
                                                                        @Param("pageSize") Integer pageSize);
+
     List<MarketingTransferSyncUser> getYxTransferByApiCodeAtikv_(@Param("tCid") String tCid,
                                                                  @Param("apiCode") String apiCode,
                                                                  @Param("requestDate") String requestDate,
@@ -360,6 +383,9 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                @Param("requestData") String requestData,
                                @Param("type") String type);
 
-    Integer getCountByRequestId(@Param("cid") String cId, @Param("requestId") String requestId );
-    MarketingTransferSyncUser getXcTransferNoAdData(@Param("tCid") String tcId,@Param("custNum") String custNum);
+    Integer getCountByRequestId(@Param("cid") String cId, @Param("requestId") String requestId);
+
+    MarketingTransferSyncUser getXcTransferNoAdDataByOnlyConvType(@Param("tCid") String tcId, @Param("custNum") String custNum, @Param("apiCodes") JSONArray apiCodes);
+
+    MarketingTransferSyncUser getXcTransferNoAdDataByOnlyBlack(@Param("tCid") String tcId, @Param("custNum") String custNum, @Param("apiCodes") JSONArray apiCodes);
 }

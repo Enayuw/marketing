@@ -2,9 +2,9 @@ package com.br.marketing.check.consumer;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.Impl.ConsumerService;
+import com.br.marketing.service.XieChengSmsPushToTransferService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.PushRuleService;
 import com.rabbitmq.client.Channel;
@@ -15,7 +15,6 @@ import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,6 +36,9 @@ public class ConsumerApp {
 
     @Autowired
     PushRuleService pushRuleService;
+
+    @Autowired
+    XieChengSmsPushToTransferService xieChengSmsPushToTransferService;
 
     /**
      * 延迟消费 获取推送客服中心数据状态
@@ -164,5 +166,21 @@ public class ConsumerApp {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         consumerService.consumerRun(channel, message, pushDataService::pushDassTransferIbu, o, "");
+    }
+
+    /**
+     * 消费 携程短信撞库数据推送客服接口导入异步处理
+     * 携程新场景短信撞库result=false的sha256Code手机号
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_XIECHENG_SMSCOLLIDINGVT_CUSTOMER, durable = "true")
+            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
+            , key = MQConstants.ROUTING_KEY_XIECHENG_SMSCOLLIDINGVT_CUSTOMER)}, containerFactory = "xieChengSmsMqContainerFactory")
+    public void consumerXiechengSmsCollidingVtUser(Channel channel, Message message) {
+        String o = new String(message.getBody(), StandardCharsets.UTF_8);
+        consumerService.consumerRun(channel, message, xieChengSmsPushToTransferService::consumerXiechengSmsCollidingVtUser, o, null);
     }
 }

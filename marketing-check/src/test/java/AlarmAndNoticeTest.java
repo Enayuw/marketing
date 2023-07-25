@@ -5,7 +5,9 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.mapper.LoanFileMapper;
+import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.EmailService;
+import com.br.marketing.service.Impl.transfertofile.NewTransferToFileByXieChengServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.TransferToFileByDiDiServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.TransferToFileBySamoyeServiveImpl;
 import com.br.marketing.service.PushDataService;
@@ -23,6 +25,11 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import java.io.*;
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -46,10 +53,16 @@ public class AlarmAndNoticeTest {
     LoanFileMapper loanFileMapper;
 
     @Resource
+    NewTransferToFileByXieChengServiceImpl newTransferToFileByXieChengService;
+
+    @Resource
     TransferToFileByDiDiServiceImpl transferToFileByDiDiService;
 
     @Autowired
     SyncConfigService syncConfigService;
+
+    @Resource
+    TransferFileTaskMapper transferFileTaskMapper;
 
     @Test
     public void testNew(){
@@ -152,6 +165,37 @@ public class AlarmAndNoticeTest {
 
     @Resource
     private TransferToFileBySamoyeServiveImpl transferToFileService;
+
+    @Resource
+    private NewTransferToFileByXieChengServiceImpl newTransferToFileByXieChengServiceImpl;
+
+    @Test
+    public void newTransferFileTest() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7410990");
+        transferFileTask.setStartDate("2023-07-20 ");
+        transferFileTask.setFileName("file");
+        log.warn("滴滴转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String apiCode = transferFileTask.getApiCode();
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(file), "UTF-8"));) {
+            fw.append("cell,convType,requestTime,result,orgChannel,mktLevel");
+            fw.append("\r\n");
+            newTransferToFileByXieChengServiceImpl.writeXieChengTransferToFile(fw, apiCode, transferFileTask);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+
+    }
 
     @Test
     public void transferFileTest(){
