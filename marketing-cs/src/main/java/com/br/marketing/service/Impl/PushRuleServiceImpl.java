@@ -2,6 +2,8 @@ package com.br.marketing.service.Impl;
 
 import IceInternal.Ex;
 import com.alibaba.fastjson.*;
+import com.br.arch.geo.pulsar.ProductPulsarClientManager;
+import com.br.arch.geo.pulsar.ProductPulsarProducer;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
@@ -956,6 +958,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
         } catch (Exception ex) {
+            ProductPulsarProducer producer = ProductPulsarClientManager.newProducer("persistent://CDC/TEST/test-wangguanghao");
+            byte[] message = "test".getBytes();
+            producer.send(message);
             throw ex;
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");

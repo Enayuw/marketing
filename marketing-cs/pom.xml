@@ -155,6 +155,17 @@
             <version>${lombok.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.br.arch.geo</groupId>
+            <artifactId>puslar-product-client</artifactId>
+            <version>${pulsar.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>com.br</groupId>
             <artifactId>grpc-encode-mapping-rely</artifactId>
             <version>1.0.0</version>
