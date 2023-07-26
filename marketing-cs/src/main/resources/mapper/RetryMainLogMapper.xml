@@ -15,4 +15,23 @@
         and incr_id >= #{minId}
         order by incr_id asc limit 500;
     </select>
+
+    <select id="getMinIdByNeedRetryWithMethodData" resultType="java.lang.Long">
+        select incr_id
+        from b_retry_main_log
+        where retry_status = 4
+          and retry_service = #{service}
+          and retry_method = #{method}
+        order by incr_id asc limit 1;
+    </select>
+
+    <select id="getNeedRetryWithMethodData" resultType="com.br.marketing.entity.RetryMainLog">
+        select *
+        from b_retry_main_log
+        where retry_status = 4
+          and retry_service = #{service}
+          and retry_method = #{method}
+          and incr_id >= #{minId}
+        order by incr_id asc limit #{pageSize};
+    </select>
 </mapper>
