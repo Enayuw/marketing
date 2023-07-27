@@ -1076,8 +1076,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                     Long et1 = null;
                     Long et2 = null;
                     marketingSyncUserMapper.insertMarketingSyncUser(marketingSyncUser);
-                    //上传请求监控统计
-                    BrCounter.count(PrometheusMonitorUtils.COUNT_UPLOAD_API_REQUEST_APICODE_METRIC_NAME,apiCode,marketingSyncUser.getUserType());
+                    try {
+                        //上传请求监控统计
+                        BrCounter.count(PrometheusMonitorUtils.COUNT_UPLOAD_API_REQUEST_APICODE_METRIC_NAME, apiCode, marketingSyncUser.getUserType());
+                    } catch (Exception ex) {
+                        log.error("客户上传接口统计异常" + ex.getMessage(), ex);
+                    }
                     et1 = System.currentTimeMillis() - st1;
                     if (ResultCode.SUCCESS.getValue().equals(soleConfig.getCode())) {
                         Long st2 = System.currentTimeMillis();
@@ -1371,7 +1375,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                     marketingTransferSyncUserMapper.insertSelective(transferSyncUser);
                     //转化请求监控统
                     //是否影响性能待观察
-                    BrCounter.count(PrometheusMonitorUtils.COUNT_TRANSFER_API_REQUEST_CID_METRIC_NAME,transferSyncUser.getApiCode(),transferSyncUser.getUserType());
+                    try {
+                        BrCounter.count(PrometheusMonitorUtils.COUNT_TRANSFER_API_REQUEST_CID_METRIC_NAME, transferSyncUser.getApiCode(), transferSyncUser.getUserType());
+                    } catch (Exception ex) {
+                        log.error("客户转化接口统计异常" + ex.getMessage(), ex);
+                    }
                 } catch (Exception ex) {
                     MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
                     errorDetailVO.setCustNum(transferDataItemDTO.getCustNum());

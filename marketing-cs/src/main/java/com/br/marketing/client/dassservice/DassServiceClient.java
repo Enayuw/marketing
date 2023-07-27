@@ -405,9 +405,9 @@ public class DassServiceClient {
             }
             result.setCode(ResultCode.SUCCESS.getValue()).setDate(respStr);
             try {
-            //调用数量监控
-            BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_TRANSFER_METRIC_NAME,dassTransferDataDTOList.get(0).getOrgName(),"transferData-api",
-                    dassTransferDataDTOList.size());
+                //调用数量监控
+                BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_TRANSFER_METRIC_NAME, dassTransferDataDTOList.get(0).getOrgName(), "transferData-api",
+                        dassTransferDataDTOList.size());
             } catch (Exception ex) {
                 log.error("电销转化接口统计异常" + ex.getMessage(), ex);
             }
