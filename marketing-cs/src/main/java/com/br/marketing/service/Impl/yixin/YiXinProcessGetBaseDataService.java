@@ -29,5 +29,11 @@ public interface YiXinProcessGetBaseDataService {
      */
     List<MarketingTransferSyncUser> getMarketingTransferSyncUserListBtoCtoI(String cid, String apiCode,String type, String requestDate,Long indexId);
 
+    /**
+     * T日9点推送
+     * T-1日转化数据取transformType非1，根据custNum去重取insertime距离当前时间最新的一条数据，applyResult=1且applyDt=T-1日
+     * @return 转化数据列表
+     */
+    List<MarketingTransferSyncUser> getMarketingTransferSyncUserListL(String cid, String apiCode,String requestDate,String requestDateStart,String requestDateEnd,Long indexId);
 
 }

@@ -2,8 +2,7 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
-import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleSoleDTO;
-import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailDTO;
+import com.br.marketing.client.intelligentcustomerservice.input.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
@@ -52,6 +51,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessService {
     private static final TreeMap<String, Integer> ACTONTFROUNTYPETREE = new TreeMap<>();
+    public static final String STRATEGY_CODE = "CASTR0000423";
 
     static {
         ACTONTFROUNTYPETREE.put("A", 3);
@@ -154,6 +154,14 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                     break;
                 case "K":
                     actionData(k, v, tcId, apiCodeTransfer, checkRegisterChannel("2"));
+                    break;
+                case "L":
+                    Result<Long> resultL = actionFront(apiCodeTransfer, ACTONTFROUNTYPETREE.get(k));
+                    if (!ResultCode.SUCCESS.getValue().equals(resultL.getCode())) {
+                        break;
+                    }
+                    pushMarketingTransferSyncUsersL(k, v, tcId);
+                    updateActionFront(resultL);
                     break;
                 default:
                     log.warn("宜信转化数据推决策类型异常");
@@ -313,7 +321,46 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         }
     }
 
-
+    /**
+     * 情况 L
+     *
+     * @param tcId cid
+     */
+    private void pushMarketingTransferSyncUsersL(String actionType, String type, String tcId) {
+        Long indexId = 3000l;
+        // 创建线程池
+        ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
+        String requestDate = LocalDate.now().minusDays(1).toString();
+        String applyDtStart = LocalDate.now().minusDays(1).toString() + " 00:00:00";
+        String applyDtEnd = LocalDate.now().minusDays(1).toString() + " 23:59:59";
+        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        while (true) {
+            initThreadPoolParam(yiXinToJueCeThread);
+            log.warn("开始时间:{}", LocalDateTime.now());
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList =
+                    yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListL(tcId, apiCode,
+                            requestDate, applyDtStart, applyDtEnd, indexId);
+            log.warn("结束时间:{}", LocalDateTime.now());
+            if(marketingTransferSyncUserList.isEmpty()){
+                break;
+            }
+            indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
+            List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(marketingTransferSyncUserList, PARTITION);
+            partition.forEach(users->{
+                List<MarketingTransferSyncUser> tpList = new ArrayList<>();
+                tpList.addAll(users);
+                yiXinToJueCeThread.submit(() -> threadDoProcess(tpList, actionType));
+            });
+        }
+        yiXinToJueCeThread.shutdown();
+        try {
+            while (!yiXinToJueCeThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("等待线程池结束");
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+    }
 
 
     private void threadDoProcess(List<MarketingTransferSyncUser> marketingTransferSyncUserList, String actionType) {
@@ -336,6 +383,8 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 case "K":
                     yiXinProcessExcludeRuleData.excludeActionCtoI(marketingTransferSyncUserList);
                     break;
+                case "L":
+                    yiXinProcessExcludeRuleData.excludeActionL(marketingTransferSyncUserList);
                 default:
                     break;
             }
@@ -359,7 +408,12 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
     private void pushToJueCe(String actionType, List<MarketingTransferSyncUser> e) {
         if (CollectionUtils.isNotEmpty(e)) {
-            pushJc(actionType, getMarketingTransferSyncUserCells(e));
+            if ("L".equals(actionType)) {
+                pushJcOfL(actionType, getMarketingTransferSyncUserCells(e));
+            } else {
+                // A->K
+                pushJc(actionType, getMarketingTransferSyncUserCells(e));
+            }
         }
     }
 
@@ -377,7 +431,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
 
     /**
-     * 推送决策逻辑
+     * 情况A-K推送决策逻辑
      *
      * @param actionType                         情况说明
      * @param marketingTransferSyncUserCellLists 带电话的转化数据
@@ -395,6 +449,49 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             PolicyRetryByRuleSoleDTO retryByRuleDTO = getPolicyRetryByRuleSoleDTO(actionType, apiCodeJc, logList, pushs);
             // 推送决策方法
             methodRetryHandlerService.callPolicySoleData(retryByRuleDTO, 0);
+        });
+
+    }
+
+    /**
+     * 情况L推送决策逻辑
+     * @param actionType 情况说明
+     * @param marketingTransferSyncUserCellLists 带电话的转化数据
+     */
+    private void pushJcOfL(String actionType, List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists) {
+        String apiCodeJc = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        // 2000 拆分一组
+        List<List<MarketingTransferSyncUserCell>> partition = ListUtils.partition(marketingTransferSyncUserCellLists, PARTITION);
+        partition.forEach((List<MarketingTransferSyncUserCell> list) -> {
+            // 组装List<PushMarketingUserDetailDTO>
+            List<PushMarketingUserDetailDTO> pushList = list.stream().map(t -> {
+                PushMarketingUserDetailDTO pushData = new PushMarketingUserDetailDTO();
+                pushData.setCaseNumber(t.getCustNum());
+                // log解密  md5加密
+                String cell = DigestUtils.md5DigestAsHex(
+                        BrCipherMaker.getInstance().decode(t.getCell()).getBytes(StandardCharsets.UTF_8));
+                pushData.setPhone(cell);
+                pushData.setVariables(variablesInit(t, cell, actionType));
+                return pushData;
+            }).collect(Collectors.toList());
+
+            PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
+            taskInfoDTO.setData(pushList);
+            taskInfoDTO.setAccessNumber(UUID.randomUUID().toString());
+            taskInfoDTO.setMethod("caseAdd");
+            taskInfoDTO.setBatchNumber(DateFormatUtils.format(new Date(), "yyyyMMdd") + "_" + actionType.toLowerCase() + "_" + apiCodeJc);
+            taskInfoDTO.setStrategyCode(STRATEGY_CODE);
+
+            PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
+            pushMarketingUserDTO.setApiCode(apiCodeJc);
+            pushMarketingUserDTO.setJsonData(taskInfoDTO);
+
+            PolicyRetryByRuleDTO retryByRuleDTO = new PolicyRetryByRuleDTO();
+            retryByRuleDTO.setIds(list.stream().map(MarketingTransferSyncUserCell::getId).collect(Collectors.toList()));
+            retryByRuleDTO.setInfoId(null);
+            retryByRuleDTO.setPushMarketingUserDTO(pushMarketingUserDTO);
+            // 推送决策方法
+            methodRetryHandlerService.callPolicyData(retryByRuleDTO, 0);
         });
 
     }
@@ -450,9 +547,9 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("custNum", marketingTransferSyncUserCell.getCustNum());
         jsonObject.put("cell", cell);
-        jsonObject.put("userType", marketingTransferSyncUserCell.getUserType());
         switch (actionType) {
             case "D":
+                jsonObject.put("userType", marketingTransferSyncUserCell.getUserType());
                 jsonObject.put("unlentAmount", marketingTransferSyncUserCell.getUnlentAmount());
                 JSONObject parsed = JSONObject.parseObject(marketingTransferSyncUserCell.getReserveField1());
                 jsonObject.put("availableAmount", parsed.get("availableAmount"));
@@ -460,6 +557,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             case "E":
             case "F":
             case "G":
+                jsonObject.put("userType", marketingTransferSyncUserCell.getUserType());
                 JSONObject parse = JSONObject.parseObject(marketingTransferSyncUserCell.getReserveField1());
                 jsonObject.put("raiseLimiType", parse.get("raiseLimiType"));
                 jsonObject.put("raiseLimiSuccess", parse.get("raiseLimiSuccess"));
@@ -467,9 +565,11 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 break;
             case "H":
             case "I":
+                jsonObject.put("userType", marketingTransferSyncUserCell.getUserType());
                 JSONObject parseh = JSONObject.parseObject(marketingTransferSyncUserCell.getReserveField1());
                 jsonObject.put("availableAmount", parseh.get("availableAmount"));
                 break;
+            case "L":
             default:
                 break;
         }
