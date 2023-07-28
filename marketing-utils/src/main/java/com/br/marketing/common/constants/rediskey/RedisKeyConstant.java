@@ -103,4 +103,14 @@ public class RedisKeyConstant {
      * 3k加密类型
      */
     public static final String encryptyKey = prefix.concat("threek:encrypty");
+
+    /**
+     * 代运营数据requestId的key
+     */
+    public static final String uploadKey = prefix.concat("upload");
+
+    /**
+     * 转化数据requestId的key
+     */
+    public static final String transferKey = prefix.concat("transfer");
 }

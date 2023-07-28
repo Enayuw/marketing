@@ -93,6 +93,8 @@ public interface PushRuleService {
      */
     Result<Boolean> insertMarketingPreUserSync(Long infoId);
 
+    Result<Boolean> consumerSyncInfo(String msg);
+
     /**
      * 插入转化数据
      *
