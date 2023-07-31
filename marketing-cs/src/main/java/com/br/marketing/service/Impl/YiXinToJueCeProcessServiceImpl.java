@@ -465,7 +465,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         List<List<MarketingTransferSyncUserCell>> partition = ListUtils.partition(marketingTransferSyncUserCellLists, PARTITION);
         partition.forEach((List<MarketingTransferSyncUserCell> list) -> {
             // 组装List<PushMarketingUserDetailDTO>
-            List<PushMarketingUserDetailDTO> pushList = list.stream().map(t -> {
+            List<PushMarketingUserDetailDTO> pushList = list.parallelStream().map(t -> {
                 PushMarketingUserDetailDTO pushData = new PushMarketingUserDetailDTO();
                 pushData.setCaseNumber(t.getCustNum());
                 // log解密  md5加密
@@ -477,22 +477,23 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             }).collect(Collectors.toList());
 
             PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
-            taskInfoDTO.setData(pushList);
-            taskInfoDTO.setAccessNumber(UUID.randomUUID().toString());
             taskInfoDTO.setMethod("caseAdd");
             taskInfoDTO.setBatchNumber(DateFormatUtils.format(new Date(), "yyyyMMdd") + "_" + actionType.toLowerCase() + "_" + apiCodeJc);
             taskInfoDTO.setStrategyCode(STRATEGY_CODE);
+            taskInfoDTO.setAccessNumber(UUID.randomUUID().toString());
+            taskInfoDTO.setData(pushList);
 
             PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
             pushMarketingUserDTO.setApiCode(apiCodeJc);
             pushMarketingUserDTO.setJsonData(taskInfoDTO);
 
             PolicyRetryByRuleDTO retryByRuleDTO = new PolicyRetryByRuleDTO();
+            // 转化表id
             retryByRuleDTO.setIds(list.stream().map(MarketingTransferSyncUserCell::getId).collect(Collectors.toList()));
             retryByRuleDTO.setInfoId(null);
             retryByRuleDTO.setPushMarketingUserDTO(pushMarketingUserDTO);
             // 推送决策方法
-            methodRetryHandlerService.callPolicyData(retryByRuleDTO, 0);
+            methodRetryHandlerService.callPolicyDataYiXinToJueCe(retryByRuleDTO, 0);
         });
 
     }

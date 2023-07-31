@@ -29,7 +29,6 @@ import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotDataVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
-import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.client.zhongan.ZhongAnClient;
 import com.br.marketing.common.annoation.DistributeLog;
 import com.br.marketing.common.annoation.RetryMethod;
@@ -545,6 +544,27 @@ public class MethodRetryHandlerService {
             if (infoId != null) {
                 saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(), infoId);
             }
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
+
+    /**
+     * 宜信情况L调用推送决策接口
+     * @param dto
+     * @param retry
+     * @return
+     */
+    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = true)
+    public Result callPolicyDataYiXinToJueCe(PolicyRetryByRuleDTO dto, Integer retry) {
+        List<Long> ids = dto.getIds();
+        PushMarketingUserDTO pushMarketingUserDTO = dto.getPushMarketingUserDTO();
+        Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            DataCompare dataCompare = new DataCompare(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(), null);
+            dataCompare.setRemark("yixinToJueCeL");
+            dataCompareMapper.insertSelective(dataCompare);
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
