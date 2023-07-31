@@ -87,7 +87,7 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
         if (transmitFact instanceof CallRecordBO) {
             CallRecordBO bo = (CallRecordBO) transmitFact;
             String intentionGrade = bo.getDetail().getIntentionGrade();
-            return StringUtils.isNotBlank(intentionGrade) && intentionGrade.contains("A");
+            return StringUtils.isNotBlank(intentionGrade) && (intentionGrade.contains("A") || intentionGrade.contains("B"));
         }
         return false;
     }
