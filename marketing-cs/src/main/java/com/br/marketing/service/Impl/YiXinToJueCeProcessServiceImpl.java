@@ -65,6 +65,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         ACTONTFROUNTYPETREE.put("I", 11);
         ACTONTFROUNTYPETREE.put("J", 12);
         ACTONTFROUNTYPETREE.put("K", 13);
+        ACTONTFROUNTYPETREE.put("L", 14);
     }
     @Resource
     private YiXinProcessGetBaseDataService yiXinProcessGetBaseDataService;
