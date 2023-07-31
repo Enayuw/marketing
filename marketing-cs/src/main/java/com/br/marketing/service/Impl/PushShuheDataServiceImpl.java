@@ -385,13 +385,14 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
 
     @Override
     public ResponseCustomDTO saveUploadData(String apiCode, String jsonData) {
+        String requestId = buildRequestId(apiCode);
         CaseShuheUploadData shuheUploadData = new CaseShuheUploadData();
         shuheUploadData.setJsonData(jsonData);
         shuheUploadData.setUploadDate(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
         shuheUploadData.setCreateTime(new Date());
         shuheUploadData.setUpdateTime(shuheUploadData.getCreateTime());
         shuheUploadData.setApiCode(apiCode);
-        shuheUploadData.setRequestId(getSerialNumber(apiCode));
+        shuheUploadData.setRequestId(requestId);
         Response2ShuheDTO response2ShuheDTO = new Response2ShuheDTO();
         response2ShuheDTO.setMsgId(shuheUploadData.getRequestId());
         if (org.apache.commons.lang3.StringUtils.isBlank(jsonData)) {
@@ -424,7 +425,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 BusinessException exception = new BusinessException(mgs);
                 exception.setExceptionMessage(mgs);
             }
-            response2ShuheDTO.setMsgId(serialNumberAddId(shuheUploadData));
+            response2ShuheDTO.setMsgId(requestId);
             shuheUploadData.setRequestId(response2ShuheDTO.getMsgId());
         } catch (Exception e) {
             log.error(e.getMessage()

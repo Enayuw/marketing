@@ -1,5 +1,6 @@
 package com.br.marketing.service;
 
+import com.br.marketing.entity.CaseShuheUploadData;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -25,5 +26,5 @@ public interface ITransferSyncUserService {
 
     int updateByPrimaryKeySelective(MarketingTransferSyncUser marketingTransferSyncUser);
 
-
+    void saveShUploadData(CaseShuheUploadData uploadData);
 }

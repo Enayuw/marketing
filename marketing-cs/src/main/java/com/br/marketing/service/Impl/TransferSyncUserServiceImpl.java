@@ -1,8 +1,11 @@
 package com.br.marketing.service.Impl;
 
+import com.br.marketing.common.exception.BusinessException;
+import com.br.marketing.entity.CaseShuheUploadData;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.mapper.CaseShuheUploadDataMapper;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.service.ITransferSyncUserService;
@@ -23,6 +26,9 @@ import javax.annotation.Resource;
 public class TransferSyncUserServiceImpl implements ITransferSyncUserService {
 
     @Resource
+    CaseShuheUploadDataMapper caseShuheUploadDataMapper;
+
+    @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
     @Resource
     private MarketingTransferInfoMapper marketingTransferInfoMapper;
@@ -36,6 +42,29 @@ public class TransferSyncUserServiceImpl implements ITransferSyncUserService {
     public int updateByPrimaryKeySelective(MarketingTransferSyncUser marketingTransferSyncUser) {
         return marketingTransferSyncUserMapper.updateByPrimaryKeySelective(marketingTransferSyncUser);
     }
+
+//    @Override
+//    @Transactional(rollbackFor = Exception.class)
+//    public void saveShUploadData(CaseShuheUploadData shuheUploadData) {
+//        try {
+//            int i = caseShuheUploadDataMapper.insertSelective(shuheUploadData);
+//            if (i != 1) {
+//                String mgs = "数禾上传数据前置表入库失败";
+//                BusinessException exception = new BusinessException(mgs);
+//                exception.setExceptionMessage(mgs);
+//            }
+//            response2ShuheDTO.setMsgId(requestId);
+//            shuheUploadData.setRequestId(response2ShuheDTO.getMsgId());
+//        } catch (Exception e) {
+//            log.error(e.getMessage()
+//                    + "\nrequestId:" + shuheUploadData.getRequestId()
+//                    + "\napiCode:" + apiCode
+//                    + "\njsonData:" + jsonData, e);
+//            response2ShuheDTO.setMsgId(shuheUploadData.getRequestId());
+//            return response2ShuheDTO.failed();
+//        }
+//        saveSyncInfo(adapterMarketingPreUserDTO(uploadDataDTO, listInfo, shuheUploadData), shuheUploadData);
+//    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
