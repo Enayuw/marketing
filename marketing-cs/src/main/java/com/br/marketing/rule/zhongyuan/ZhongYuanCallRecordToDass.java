@@ -11,6 +11,7 @@ import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.PushDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import org.apache.commons.lang3.StringUtils;
@@ -39,6 +40,9 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
+
+    @Autowired
+    PushDataService pushDataService;
 
     @Override
     public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -94,19 +98,7 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
         if (transmitFact instanceof CallRecordBO) {
             CallRecordBO bo = (CallRecordBO) transmitFact;
             String intentionGrade = bo.getDetail().getIntentionGrade();
-            HashMap<String, List<String>> gradeOfcallToDass = marketingCommonConfig.getGradeOfcallToDass();
-            List<String> grades = gradeOfcallToDass.get(this.label());
-            if(grades == null){
-                grades.add("A");
-            }
-            if(StringUtils.isBlank(intentionGrade)){
-                return false;
-            }
-            for (String grade : grades) {
-                if(intentionGrade.toUpperCase().contains(grade)){
-                    return true;
-                }
-            }
+            return pushDataService.isPushDassWithCallGrade(this.label(),intentionGrade);
         }
         return false;
     }
