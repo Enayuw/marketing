@@ -345,6 +345,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             if(marketingTransferSyncUserList.isEmpty()){
                 break;
             }
+            log.warn("宜信推送决策,情况L剔除前数据量级:{}", marketingTransferSyncUserList.size());
             indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(marketingTransferSyncUserList, PARTITION);
             partition.forEach(users->{

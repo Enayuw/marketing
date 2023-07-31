@@ -88,5 +88,6 @@ public class YiXinProcessExcludeRuleData {
         if(CollectionUtils.isNotEmpty(marketingTransferSyncUserList)){
             yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSixth(marketingTransferSyncUserList);
         }
+        log.warn("宜信推送决策,情况L剔除后数据量级:{}", marketingTransferSyncUserList.size());
     }
 }
