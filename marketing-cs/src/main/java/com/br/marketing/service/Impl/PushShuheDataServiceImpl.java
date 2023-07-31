@@ -664,6 +664,21 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     }
 
     /**
+     * 数禾上传接口创建requestID
+     * @param apiCode
+     * 日期（6，年后2+月2+日2）_apiCode（7）_毫秒（13）_随机数（6）
+     * @return
+     */
+    private String buildRequestId(String apiCode) {
+        SecureRandom random = new SecureRandom();
+        return LocalDateTime.now().format(yyMMddHH)
+                .concat("_"+apiCode)
+                .concat("_"+System.currentTimeMillis())
+                .concat("_"+random.nextInt(999999));
+    }
+
+
+    /**
      * 2022/8/30 18:04
      * 业务流水流水号生成规则：
      * 1.流水号+数据库id
