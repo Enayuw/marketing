@@ -186,7 +186,7 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
         Boolean mark = Boolean.TRUE;
         int totalSize = 0;
         while (mark) {
-            Result<List<MarketingTransferSyncUser>> transferData = getOrderTransferData(tcId, date.toString(), page);
+            Result<List<MarketingTransferSyncUser>> transferData = getOrderTransferData(apiCode, tcId, date.toString(), page);
             if (!ResultCode.SUCCESS.getValue().equals(transferData.getCode())) {
                 mark = Boolean.FALSE;
                 continue;
@@ -349,9 +349,9 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
      * @param pageIndex
      * @return
      */
-    private Result<List<MarketingTransferSyncUser>> getOrderTransferData(String tcId, String endDate, Integer pageIndex) {
+    private Result<List<MarketingTransferSyncUser>> getOrderTransferData(String apiCode, String tcId, String endDate, Integer pageIndex) {
         Integer limitStart = pageIndex * 2000;
-        List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferData(tcId, endDate, limitStart);
+        List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferData(apiCode, tcId, endDate, limitStart);
         if (transferOrderInsertTime.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
