@@ -858,5 +858,7 @@ public class MarketingCommonConfig {
      * 非生成默认有效期配置的apiCode集合
      */
     private Set<String> nonConfigValidDefaultApiCodes;
+
+    private HashMap<String,List<String>>  gradeOfcallToDass;
 }
 
