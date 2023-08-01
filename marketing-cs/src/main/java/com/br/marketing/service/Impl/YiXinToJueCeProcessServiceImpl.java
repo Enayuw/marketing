@@ -157,12 +157,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                     actionData(k, v, tcId, apiCodeTransfer, checkRegisterChannel("2"));
                     break;
                 case "L":
-                    Result<Long> resultL = actionFront(apiCodeTransfer, ACTONTFROUNTYPETREE.get(k));
-                    if (!ResultCode.SUCCESS.getValue().equals(resultL.getCode())) {
-                        break;
-                    }
-                    pushMarketingTransferSyncUsersL(k, v, tcId);
-                    updateActionFront(resultL);
+                    actionDataL(apiCodeTransfer, tcId, k, v);
                     break;
                 default:
                     log.warn("宜信转化数据推决策类型异常");
@@ -170,6 +165,18 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             }
         });
 
+    }
+
+    private void actionDataL(String apiCodeTransfer, String tcId, String k, String v) {
+        if (!isTransferLast(tcId, apiCodeTransfer)) {
+            return;
+        }
+        Result<Long> resultL = actionFront(apiCodeTransfer, ACTONTFROUNTYPETREE.get(k));
+        if (!ResultCode.SUCCESS.getValue().equals(resultL.getCode())) {
+            return;
+        }
+        pushMarketingTransferSyncUsersL(k, v, tcId);
+        updateActionFront(resultL);
     }
 
     private void actionData(String k
