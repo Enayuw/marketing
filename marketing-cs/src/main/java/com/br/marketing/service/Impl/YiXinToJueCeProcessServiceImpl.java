@@ -557,9 +557,9 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("custNum", marketingTransferSyncUserCell.getCustNum());
         jsonObject.put("cell", cell);
+        jsonObject.put("userType", marketingTransferSyncUserCell.getUserType());
         switch (actionType) {
             case "D":
-                jsonObject.put("userType", marketingTransferSyncUserCell.getUserType());
                 jsonObject.put("unlentAmount", marketingTransferSyncUserCell.getUnlentAmount());
                 JSONObject parsed = JSONObject.parseObject(marketingTransferSyncUserCell.getReserveField1());
                 jsonObject.put("availableAmount", parsed.get("availableAmount"));
@@ -567,7 +567,6 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             case "E":
             case "F":
             case "G":
-                jsonObject.put("userType", marketingTransferSyncUserCell.getUserType());
                 JSONObject parse = JSONObject.parseObject(marketingTransferSyncUserCell.getReserveField1());
                 jsonObject.put("raiseLimiType", parse.get("raiseLimiType"));
                 jsonObject.put("raiseLimiSuccess", parse.get("raiseLimiSuccess"));
@@ -575,7 +574,6 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 break;
             case "H":
             case "I":
-                jsonObject.put("userType", marketingTransferSyncUserCell.getUserType());
                 JSONObject parseh = JSONObject.parseObject(marketingTransferSyncUserCell.getReserveField1());
                 jsonObject.put("availableAmount", parseh.get("availableAmount"));
                 break;
