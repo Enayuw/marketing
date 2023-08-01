@@ -25,6 +25,10 @@ public interface IPushShuheDataService {
      */
     ResponseCustomDTO saveShuheTransferData(String apiCode, String jsonData);
 
+    ResponseCustomDTO saveShuheTransferDataTwoVersion(String apiCode, String jsonData);
+
+    Result<Boolean> consumerShTransfer(String msg);
+
     default void sendAlarmMgs(String title, String error, AlarmApiClient alarmClient) {
         try {
             alarmClient.sendAlarm(error, title, AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());

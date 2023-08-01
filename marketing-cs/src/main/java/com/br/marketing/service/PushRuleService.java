@@ -104,6 +104,7 @@ public interface PushRuleService {
      */
     Result insertTransferData(String apiCode, String jsonData);
 
+    Result<Boolean> consumerTransferInfo(String msg);
 
     Result consumerTransferData(Long id);
 

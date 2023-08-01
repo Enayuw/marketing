@@ -3,25 +3,45 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.br.common.encryption.Md5Utils;
+import com.br.marketing.adapter.transfer.TransferSyncAdapter;
+import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
+import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
-import com.br.marketing.entity.CaseShuheUploadData;
-import com.br.marketing.entity.MarketingSyncInfo;
-import com.br.marketing.mapper.CaseShuheUploadDataMapper;
-import com.br.marketing.mapper.MarketingUserMapper;
+import com.br.marketing.dto.ResponseCustomDTO;
+import com.br.marketing.dto.shuhe.ResponseShuheDTO;
+import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
+import com.br.marketing.dto.shuhe.factory.CaseShuheUserFactory;
+import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
+import com.br.marketing.dto.shuhe.strategy.IUserType;
+import com.br.marketing.dto.shuhe.strategy.UnknownUserType;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.*;
+import com.br.marketing.origin.MqFact;
+import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.util.ShuHeAESencUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -34,6 +54,30 @@ public class ShuHeUserServiceImpl {
 
     @Resource
     private MarketingUserMapper marketingUserMapper;
+
+    @Autowired
+    IMarketingSyncUserService iMarketingSyncUserService;
+
+    @Resource
+    MarketingTransferInfoMapper marketingTransferInfoMapper;
+
+    @Resource
+    MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+
+    @Resource
+    private AlarmApiClient alarmClient;
+
+    private final String title = "数禾转化数据定制化清洗入库";
+
+    @Resource
+    CaseShuheUserMapper caseShuheUserMapper;
+
+    @Autowired
+    TableCreateServiceImpl tableCreateService;
+
+    DateTimeFormatter ymdhms = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+
 
     @Transactional(rollbackFor = Exception.class)
     public Long saveShUploadData(CaseShuheUploadData shuheUploadData, JSONObject uploadDataDTO, JSONArray listInfo) {
@@ -127,5 +171,101 @@ public class ShuHeUserServiceImpl {
         int i = marketingUserMapper.insertMarketingPreUserByText(syncInfo);
         caseShuheUploadDataMapper.updateByPrimaryKeySelective(record);
         return syncInfo.getId();
+    }
+
+    public Map saveShTransferData(String apiCode, String jsonData,String requestId, ResponseShuheDTO responseShuheDTO,Date createTime){
+        HashMap<String, Object> res = new HashMap<>();
+        String msg="";
+        ShuheTransferJsonDTO jsonDTO = JSONObject.parseObject(jsonData, new TypeReference<ShuheTransferJsonDTO>() {
+        }.getType());
+        String userType = jsonDTO.getBizType();
+        // 2、判断场景类型
+        if (StringUtils.isEmpty(userType)) {
+            /*
+             * 对bizType字段做兜底，对应营销userType,
+             * 当bizType未传时，需要主动去上传接口中查找，
+             * 如果未查到需要返回给客户提示信息，并将数据落库到本地
+             */
+            userType = iMarketingSyncUserService.getUserTypeLatestByCustNum(apiCode, jsonDTO.getOrderId());
+        }
+        final IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(userType);
+        CaseShuheUser caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType
+                , jsonDTO, apiCode, jsonData);
+        boolean sendToQueueBool = iUserType instanceof UnknownUserType;
+        res.put("userTypeMark",sendToQueueBool);
+        if (sendToQueueBool) {
+            caseShuheUser.setStatus(1);
+            msg = "未知的业务类型\"" + userType + "\"!";
+            responseShuheDTO.failed("抱歉,".concat(msg));
+            caseShuheUser.setErrorInfo("#1" + responseShuheDTO.getDesc());
+            this.sendAlarmMgs(title, msg.concat("\napiCode“").concat(apiCode).concat("”\n案件编号“")
+                            .concat(jsonDTO.getOrderId()).concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^")
+                    ,alarmClient);
+        } else if (!iUserType.getApiCodes().contains(apiCode)) {
+            log.warn("场景(".concat(iUserType.getApiCodes().toString()).concat(")与对应apiCode不匹配\n")
+                    .concat(userType).concat("\napiCode“").concat(apiCode).concat("”\n案件编号“")
+                    .concat(jsonDTO.getOrderId()).concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^"));
+        }
+        // 3、查询db获取相应TaskId
+        String taskId = iMarketingSyncUserService.getTaskIdLatestByCustNum(apiCode, jsonDTO.getOrderId(), userType);
+        if (taskId == null) {
+            taskId = "";
+        }
+        // 4、客户转化数据适配标准转化数据
+        MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(
+                (CaseShuheUserAdaptee) caseShuheUser).transferSyncUserRequest(taskId, jsonDTO);
+        SecureRandom random = new SecureRandom();
+        caseShuheUser.setReserveField2(requestId);
+        transferSyncUser.setRequestId(requestId);
+        // 5、数据落前置库
+        if(createTime!=null){
+            caseShuheUser.setCreateTime(createTime);
+        }
+        caseShuheUserMapper.insertSelective(caseShuheUser);
+        // 6、转化信息入转化标准库
+        Long id = saveTransferNew(apiCode, caseShuheUser, transferSyncUser, !sendToQueueBool,createTime);
+        res.put("transferInfoId",id);
+        return res;
+    }
+
+    private Long saveTransferNew(String apiCode, CaseShuheUser caseShuheUser
+            , MarketingTransferSyncUser transferSyncUser, boolean sendToQueueBool, Date createTime) {
+        MarketingTransferInfo transferInfo = new MarketingTransferInfo();
+        transferSyncUser.setCid(tableCreateService.getCId(transferSyncUser.getApiCode()));
+        transferSyncUser.settCid(tableCreateService.getTcId(transferSyncUser.getApiCode()));
+        LocalDateTime localDateTime = LocalDateTime.now().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        if (createTime != null) {
+            transferSyncUser.setInsertTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(createTime));
+            transferSyncUser.setRequestData(new SimpleDateFormat("yyyy-MM-dd").format(createTime));
+        }else{
+            transferSyncUser.setInsertTime(localDateTime.format(ymdhms));
+            transferSyncUser.setRequestData(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
+        }
+        transferSyncUser.setRequestTime(transferSyncUser.getInsertTime());
+        transferInfo.setApiCode(apiCode);
+        transferInfo.setRequestId(transferSyncUser.getRequestId());
+        transferInfo.setCreateTime(new Date());
+        transferInfo.setJsonData(JSONObject.toJSONString(transferSyncUser));
+        transferInfo.setActualNum(1);
+        marketingTransferInfoMapper.insertSelective(transferInfo);
+        marketingTransferSyncUserMapper.insertSelective(transferSyncUser);
+        return transferInfo.getId();
+    }
+
+    private void updateCaseShuhe(CaseShuheUser caseShuheUser) {
+            CaseShuheUser csu = new CaseShuheUser();
+            csu.setId(caseShuheUser.getId());
+            csu.setSaveStatus(caseShuheUser.getSaveStatus());
+            csu.setErrorInfo(caseShuheUser.getErrorInfo());
+            csu.setUpdateTime(new Date());
+            caseShuheUserMapper.updateByPrimaryKeySelective(csu);
+    }
+
+    void sendAlarmMgs(String title, String error, AlarmApiClient alarmClient) {
+        try {
+            alarmClient.sendAlarm(error, title, AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());
+        } catch (Exception ignored) {
+
+        }
     }
 }

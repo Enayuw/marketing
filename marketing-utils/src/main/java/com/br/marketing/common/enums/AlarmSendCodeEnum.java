@@ -31,6 +31,8 @@ public enum AlarmSendCodeEnum {
     EXCEPTION_DIDI("62003", "didiCommonly"),
     //滴滴联合建模,阶梯推送
     EXCEPTION_SPEEDCOMMONCONFIG("62004", "marketingCommonConfigAlarm"),
+    //pulsar消费requestId冲突
+    REQUESTID_CONFLICT("62006", "requestIdConflict"),
     ;
 
     /**

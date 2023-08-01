@@ -5,6 +5,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.constants.PulsarSubscription;
 import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.PushRuleService;
 import com.rabbitmq.client.Channel;
@@ -35,6 +36,8 @@ public class ConsumerApp {
     @Autowired
     PushRuleService pushRuleService;
 
+    @Autowired
+    IPushShuheDataService pushShuheDataService;
 
 
     /**
@@ -87,7 +90,13 @@ public class ConsumerApp {
         consumerService.consumerPulsar(PulsarSubscription.upLoadSubscription,pushRuleService::consumerSyncInfo,2, PulsarTopic.upLoadTopic);
 
         // 数禾上传数据pulsar消费端
-        consumerService.consumerPulsar(PulsarSubscription.upLoadShSubscription,pushRuleService::consumerSyncInfo,2, PulsarTopic.upLoadShTopic);
+        consumerService.consumerPulsar(PulsarSubscription.upLoadShSubscription,pushShuheDataService::consumerShUpload,2, PulsarTopic.upLoadShTopic);
+
+        //标准转化数据pulsar消费端
+        consumerService.consumerPulsar(PulsarSubscription.transferSubscription,pushRuleService::consumerTransferInfo,2, PulsarTopic.transferTopic);
+
+        //数禾转化数据pulsar消费端
+        consumerService.consumerPulsar(PulsarSubscription.transferShSubscription,pushShuheDataService::consumerShTransfer,2, PulsarTopic.transferShTopic);
 
 
     }
