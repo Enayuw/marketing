@@ -1,15 +1,15 @@
 package com.br.marketing.client.zhongyou;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.ChallengeState;
@@ -30,14 +30,13 @@ import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cglib.beans.BeanMap;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.regex.Pattern;
 
 /**
  * 描述：： 中邮接口请求
@@ -85,12 +84,12 @@ public class ZhongYouClient {
     @Autowired
     ThreadPoolExecutor interfaceLogDbpool;
 
-    public HashMap<String, String> sendByCodeWithLog(Object param, String url, Boolean isPorxy, String mediaType, String extendInfo, Boolean isDbLog, Boolean isFileLog) {
-        return sendByCodePool(param, url, isPorxy, mediaType, extendInfo, isDbLog, isFileLog);
+    public HashMap<String, String> sendByCodeWithLog(Object param, String url, Boolean isPorxy, String mediaType, String extendInfo, Boolean isDbLog, Boolean isStream) {
+        return sendByCodePool(param, url, isPorxy, mediaType, extendInfo, isDbLog,isStream);
     }
 
 
-    private HashMap<String, String> sendByCodePool(Object param, String url, Boolean isPorxy, String mediaType, String extendInfo, Boolean isDbLog, Boolean isFileLog) {
+    private HashMap<String, String> sendByCodePool(Object param, String url, Boolean isPorxy, String mediaType, String extendInfo, Boolean isDbLog,Boolean isStream) {
         InterfaceLog interfaceLog = new InterfaceLog();
         interfaceLog.setExtendInfo(extendInfo);
         interfaceLog.setRequestId(UUID.randomUUID().toString());
@@ -98,23 +97,23 @@ public class ZhongYouClient {
         interfaceLog.setCreateTime(new Date());
         HttpClient httpClient = getHttpClientInner(isPorxy);
         HashMap<String, String> res = new HashMap<>();
-        Long start = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
         try {
             HttpPost post = new HttpPost(url);
-            HttpEntity requestEntity = null;
+            HttpEntity requestEntity;
             if (mediaType.equals(MediaType.APPLICATION_JSON_UTF8_VALUE)) {
                 String s = JSON.toJSONString(param);
                 interfaceLog.setRequestParam(s);
                 requestEntity = new StringEntity(s, CHARSET_UTF8);
-            }  else {
+            } else {
                 throw new RuntimeException("不支持的请求类型");
             }
             post.setEntity(requestEntity);
             post.setHeader("content-type", mediaType);
-            interfaceLog.setHeader(post.getAllHeaders().toString());
+            interfaceLog.setHeader(Arrays.toString(post.getAllHeaders()));
             RequestConfig requestConfig = getRequestConfig(isPorxy, 10000, null);
             post.setConfig(requestConfig);
-            HttpResponse response = null;
+            HttpResponse response;
             start = System.currentTimeMillis();
             if (isPorxy) {
                 AuthCache authCache = new BasicAuthCache();
@@ -126,29 +125,47 @@ public class ZhongYouClient {
             } else {
                 response = httpClient.execute(post);
             }
-            Long end = System.currentTimeMillis();
+            long end = System.currentTimeMillis();
             interfaceLog.setExpire(String.valueOf(end - start));
             int statusCode = response.getStatusLine().getStatusCode();
-            res.put("httpcode", String.valueOf(statusCode));
-            InputStream contentInputStream = response.getEntity().getContent();
-            BufferedInputStream br = new BufferedInputStream(contentInputStream);
-            String result ="";
-            byte[] b = new byte[1024];
-            for (int c = 0; (c = br.read(b)) != -1;) {
-                result = new String(b, 0, c);
-                if(isJSON(result)){
-                    // 文件异常
+            if (statusCode == HttpStatus.SC_OK) {
+                if(isStream){
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+                    String tempString;
+                    int line = 1;
+                    while ((tempString = reader.readLine()) != null) {
+                        String lineData = tempString.trim();
+                        // 如果第一行返回是一个json 格式则说明接口请求异常
+                        if (line == 1) {
+                            if (isValidJson(lineData)) {
+                                interfaceLog.setResult(lineData);
+                                res.put("content", lineData);
+                                // 异常数据停止循环
+                                log.error("中邮文件拉取数据异常：{} ", lineData);
+                                break;
+                            }
+                            if (isNumeric(lineData)) {
+                                // 设置第一行数据标记
+                            }
+                        }
+                        // 存储数据
+                        System.out.println("--- 第" + line + "行 ---");
+                        System.out.println(lineData);
+                        line++;
+                    }
+                }else {
+                    String result = EntityUtils.toString(response.getEntity(), CHARSET_UTF8);
+                    res.put("content", result);
                     interfaceLog.setResult(result);
                 }
-                // 保存
-                System.out.println(result);
+
             }
-            br.close();
+            res.put("httpcode", String.valueOf(statusCode));
             interfaceLog.setHttpCode(statusCode);
             post.releaseConnection();
         } catch (Exception e) {
             log.error("url={} param={}", url, param, e);
-            Long end = System.currentTimeMillis();
+            long end = System.currentTimeMillis();
             interfaceLog.setExpire(String.valueOf(end - start));
             interfaceLog.setResult(e.getMessage());
             res.put("content", e.getMessage());
@@ -162,96 +179,37 @@ public class ZhongYouClient {
                 }
             });
         }
-        if (isFileLog) {
-            log.warn(JSON.toJSONString(interfaceLog));
-        }
         return res;
     }
 
-    /**
-     * 判断string 是否为 json
-     * @param str
-     * @return
-     */
-    public static boolean isJSON(String str) {
-        boolean result = false;
-        try {
-            Object obj=JSON.parse(str);
-            result = true;
-        } catch (Exception e) {
-            result=false;
-        }
-        return result;
+    private static boolean isNumeric(String str) {
+        Pattern pattern = Pattern.compile("[0-9]*");
+        return pattern.matcher(str).matches();
     }
 
-    public HttpClient getHttpClientInner(Boolean isProxy) {
+    private static boolean isValidJson(String json) {
+        try {
+            new ObjectMapper().readTree(json);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+
+    private HttpClient getHttpClientInner(Boolean isProxy) {
         if (isProxy) {
             // 设置代理HttpHost
             HttpHost proxy = new HttpHost(proxyHost, proxyPort);
             // 设置认证
             CredentialsProvider provider = new BasicCredentialsProvider();
             provider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials(userName, password));
-            CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(HTTP_CLIENT_POOL).setDefaultCredentialsProvider(provider).build();
-            return httpClient;
+            return HttpClients.custom().setConnectionManager(HTTP_CLIENT_POOL).setDefaultCredentialsProvider(provider).build();
         } else {
-            CloseableHttpClient httpClient = HttpClientBuilder.create().setConnectionManager(HTTP_CLIENT_POOL).build();
-            return httpClient;
+            return HttpClientBuilder.create().setConnectionManager(HTTP_CLIENT_POOL).build();
         }
     }
 
-    /**
-     * @description:获取兆维HttpClient代理对象
-     * @author: lei.zhang2@100credit.com
-     * @time: 2018年6月1日 下午2:19:08
-     */
-    public HttpClient getHttpClientZw() {
-        // 设置代理HttpHost
-        HttpHost proxy = new HttpHost(proxyHostZW, proxyPort);
-        // 设置认证
-        CredentialsProvider provider = new BasicCredentialsProvider();
-
-        provider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials(userName, password));
-
-        CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(provider).build();
-
-        return httpClient;
-    }
-
-    public HttpClient getHttpClientSimple() {
-        // 设置代理HttpHost
-        HttpHost proxy = new HttpHost(proxyHost, proxyPort);
-        // 设置认证
-        CredentialsProvider provider = new BasicCredentialsProvider();
-
-        provider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials(userName, password));
-
-        CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(provider).build();
-
-        return httpClient;
-    }
-
-    /**
-     * 配置信息
-     *
-     * @param isProxy 是否代理
-     * @return RequestConfig requestConfig
-     */
-    public RequestConfig getRequestConfig(Boolean isProxy) {
-        if (isProxy) {
-            return RequestConfig.custom()
-                    .setSocketTimeout(6000)
-                    .setConnectTimeout(1000)
-                    .setProxy(new HttpHost(proxyHost, proxyPort))
-                    .setConnectionRequestTimeout(1000)
-                    .build();
-        } else {
-            return RequestConfig.custom()
-                    .setSocketTimeout(6000)
-                    .setConnectTimeout(1000)
-                    .setConnectionRequestTimeout(1000)
-                    .build();
-        }
-    }
 
     /**
      * 配置信息
@@ -274,26 +232,5 @@ public class ZhongYouClient {
                     .setConnectionRequestTimeout(1000)
                     .build();
         }
-    }
-
-
-    /**
-     * 日志存储配置
-     *
-     * @param callMethod 调用方法名
-     * @return List : list(0)为是否db存储，list(1)为是否elk存储
-     * 默认elk存储
-     */
-    public List<Boolean> isLogStore(String callMethod) {
-        HashMap<String, List<Boolean>> apiLogMark = marketingCommonConfig.getApiLogMark();
-        ArrayList<Boolean> mark = new ArrayList<>();
-        if (apiLogMark == null || !apiLogMark.containsKey(callMethod)) {
-            mark.add(false);
-            mark.add(true);
-        } else {
-            mark.add(apiLogMark.get(callMethod).get(0));
-            mark.add(apiLogMark.get(callMethod).get(1));
-        }
-        return mark;
     }
 }
