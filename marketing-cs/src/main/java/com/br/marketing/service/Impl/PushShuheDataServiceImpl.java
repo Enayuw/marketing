@@ -12,6 +12,7 @@ import com.br.marketing.adapter.transfer.TransferSyncAdapter;
 import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -453,6 +454,13 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         }
         BR_EXECUTORS.execute(() -> checkField(uploadDataDTO, listInfo));
         return response2ShuheDTO.success();
+    }
+
+
+    @Override
+    public Result<Boolean> consumerShUpload(String msg) {
+
+        return null;
     }
 
     /**

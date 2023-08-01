@@ -83,6 +83,12 @@ public class ConsumerApp {
 
     @PostConstruct
     void init(){
+        // 标准上传数据pulsar消费端
         consumerService.consumerPulsar(PulsarSubscription.upLoadSubscription,pushRuleService::consumerSyncInfo,2, PulsarTopic.upLoadTopic);
+
+        // 数禾上传数据pulsar消费端
+        consumerService.consumerPulsar(PulsarSubscription.upLoadShSubscription,pushRuleService::consumerSyncInfo,2, PulsarTopic.upLoadShTopic);
+
+
     }
 }
