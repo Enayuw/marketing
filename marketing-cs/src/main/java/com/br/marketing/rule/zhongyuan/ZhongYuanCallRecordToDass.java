@@ -70,7 +70,7 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
         phoneSaleExtendInfo.setAppletTime(dto.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                 .toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         phoneSaleExtendInfo.setTaskId(marketingSyncUser.getCusBatch());
-        phoneSaleExtendInfo.setStatus("a");
+        phoneSaleExtendInfo.setStatus(pushDataService.getStatusByGrade(this.label(),dto.getDetail().getIntentionGrade()));
         phoneSaleExtendInfo.setPStatus(1);
         phoneSaleExtendInfo.setCreateTime(new Date());
         phoneSaleExtendInfo.setPushDxTime(new Date());

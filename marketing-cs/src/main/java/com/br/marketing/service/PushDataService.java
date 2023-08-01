@@ -72,4 +72,6 @@ public interface PushDataService {
     String getHaierRequestId(String type);
 
     Boolean isPushDassWithCallGrade(String ruleLabel,String intentionGrade);
+
+    String getStatusByGrade(String ruleLabel,String intentionGrade);
 }
