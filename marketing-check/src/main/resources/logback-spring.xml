@@ -86,7 +86,7 @@
         </root>
     </springProfile>
     <springProfile name="pre">
-        <root level="ERROR">
+        <root level="WARN">
             <appender-ref ref="STDOUT"/>
             <appender-ref ref="ASYNC"/>
             <appender-ref ref="ALARM_ERROR_ASYNC"/>
