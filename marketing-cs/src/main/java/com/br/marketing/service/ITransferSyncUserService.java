@@ -28,5 +28,4 @@ public interface ITransferSyncUserService {
 
     int updateByPrimaryKeySelective(MarketingTransferSyncUser marketingTransferSyncUser);
 
-    void saveShUploadData(CaseShuheUploadData uploadData, JSONObject uploadDataDTO, JSONArray listInfo);
 }

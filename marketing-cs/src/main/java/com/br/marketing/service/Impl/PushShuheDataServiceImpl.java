@@ -397,7 +397,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         response2ShuheDTO.setMsgId(shuheUploadData.getRequestId());
         if (org.apache.commons.lang3.StringUtils.isBlank(jsonData)) {
             response2ShuheDTO.failed(",内容不可为空");
-//            exceptionSave(shuheUploadData, response2ShuheDTO, null);
+            exceptionSave(shuheUploadData, response2ShuheDTO, null);
             return response2ShuheDTO;
         }
         final JSONObject uploadDataDTO;
@@ -406,12 +406,12 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             response2ShuheDTO.failed(",JSON结构解析失败");
-//            exceptionSave(shuheUploadData, response2ShuheDTO, e);
+            exceptionSave(shuheUploadData, response2ShuheDTO, e);
             return response2ShuheDTO;
         }
         final JSONArray listInfo = uploadDataDTO.getJSONArray("listInfo");
         if (requiredCheck(listInfo, response2ShuheDTO)) {
-//            exceptionSave(shuheUploadData, response2ShuheDTO, null);
+            exceptionSave(shuheUploadData, response2ShuheDTO, null);
             return response2ShuheDTO;
         }
         if (uploadDataDTO.containsKey("extraInfo")) {
