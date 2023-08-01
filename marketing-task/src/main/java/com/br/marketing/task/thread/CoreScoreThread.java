@@ -415,7 +415,11 @@ public class CoreScoreThread implements Callable<String> {
         try {
             if (VaildHxResultUtil.isPass(s, meal, apiCode, redisChgService, blu, errorList, noflagproductlist, flagProductList)) {
                 //跑分请求监控统计
-                BrCounter.count(PrometheusMonitorUtils.COUNT_CORE_SCORE_API_METRIC_NAME,apiCode,blu.getUserType());
+                try {
+                    BrCounter.count(PrometheusMonitorUtils.COUNT_CORE_SCORE_API_METRIC_NAME, apiCode, blu.getUserType());
+                } catch (Exception ex) {
+                    log.error("跑分接口统计异常" + ex.getMessage(), ex);
+                }
                 JSONObject resultJson = JSONObject.parseObject(s);
                 if (fw != null) {
                     ResultUtil.generateFile(resultJson, strategyId
