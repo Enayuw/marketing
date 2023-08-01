@@ -97,7 +97,7 @@ public class ShuHeUserServiceImpl {
             userDTO.setDataItems(list);
             return userDTO;
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error(String.format("数禾上传数据封装对象报错：%s",e.getMessage()), e);
         }
         return null;
     }

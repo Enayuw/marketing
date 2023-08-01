@@ -5,14 +5,20 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.br.arch.geo.pulsar.ProductPulsarClientManager;
+import com.br.arch.geo.pulsar.ProductPulsarProducer;
 import com.br.common.encryption.Md5Utils;
 import com.br.marketing.adapter.transfer.TransferSyncAdapter;
 import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.constants.MarketingErrorInfo;
+import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.exception.BusinessException;
+import com.br.marketing.common.exception.CommonException;
+import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.MQConstants;
@@ -39,6 +45,8 @@ import com.br.marketing.service.ITransferSyncUserService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.ShuHeAESencUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pulsar.client.api.PulsarClientException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -96,6 +104,9 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final DateTimeFormatter yyMMddHH = DateTimeFormatter.ofPattern("yyMMdd");
     private static final Set<String> FIELD_SET = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+    @Autowired
+    ShuHeUserServiceImpl shuHeUserService;
 
     static {
         // D20220824数禾定制版上传接口改造一期 初始化字段 2022-9-1 16:49:53
@@ -418,24 +429,28 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             String userType = uploadDataDTO.getString("extraInfo");
             shuheUploadData.setUserType(StringUtils.isEmpty(userType) ? "" : userType);
         }
+        Long infoId = null;
         try {
-            int i = caseShuheUploadDataMapper.insertSelective(shuheUploadData);
-            if (i != 1) {
-                String mgs = "数禾上传数据前置表入库失败";
-                BusinessException exception = new BusinessException(mgs);
-                exception.setExceptionMessage(mgs);
+            infoId = shuHeUserService.saveShUploadData(shuheUploadData, uploadDataDTO, listInfo);
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+            ProductPulsarProducer producer = null;
+            try {
+                producer = ProductPulsarClientManager.newProducer(PulsarTopic.upLoadShTopic);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("apiCode",apiCode);
+                jsonObject.put("requestId",requestId);
+                jsonObject.put("jsonData",jsonData);
+                byte[] message = jsonObject.toJSONString().getBytes();
+                producer.send(message);
+            } catch (PulsarClientException e) {
+                response2ShuheDTO.failed(",内部错误");
+                return response2ShuheDTO;
             }
-            response2ShuheDTO.setMsgId(requestId);
-            shuheUploadData.setRequestId(response2ShuheDTO.getMsgId());
-        } catch (Exception e) {
-            log.error(e.getMessage()
-                    + "\nrequestId:" + shuheUploadData.getRequestId()
-                    + "\napiCode:" + apiCode
-                    + "\njsonData:" + jsonData, e);
-            response2ShuheDTO.setMsgId(shuheUploadData.getRequestId());
-            return response2ShuheDTO.failed();
         }
-        saveSyncInfo(adapterMarketingPreUserDTO(uploadDataDTO, listInfo, shuheUploadData), shuheUploadData);
+        if(infoId!=null){
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, infoId.toString());
+        }
         BR_EXECUTORS.execute(() -> checkField(uploadDataDTO, listInfo));
         return response2ShuheDTO.success();
     }
