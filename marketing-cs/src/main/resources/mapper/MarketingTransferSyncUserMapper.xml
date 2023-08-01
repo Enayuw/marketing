@@ -589,7 +589,7 @@
     </select>
     <select id="getYxTransferByApiCodeLtikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select b.*
-        From (select a.id,a.cid,a.t_cid,a.api_code,a.cust_num,a.reserve_field1 ,a.type,a.request_data
+        From (select a.id,a.cid,a.t_cid,a.api_code,a.cust_num,a.reserve_field1 ,a.type,a.request_data,
         row_number() over(partition by cust_num order by insert_time desc,id desc) as rn
         From b_marketing_transfer_sync_${tCid} a
         where api_code =#{apiCode}
