@@ -1,5 +1,7 @@
 package com.br.marketing.service;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.entity.CaseShuheUploadData;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferInfo;
@@ -26,5 +28,5 @@ public interface ITransferSyncUserService {
 
     int updateByPrimaryKeySelective(MarketingTransferSyncUser marketingTransferSyncUser);
 
-    void saveShUploadData(CaseShuheUploadData uploadData);
+    void saveShUploadData(CaseShuheUploadData uploadData, JSONObject uploadDataDTO, JSONArray listInfo);
 }
