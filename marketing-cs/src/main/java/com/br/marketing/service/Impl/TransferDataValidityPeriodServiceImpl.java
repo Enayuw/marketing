@@ -1098,25 +1098,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     }
 
     /**
-     * 2023-07-13 17:31
-     * 场景是否存在有效期配置
-     */
-    @Deprecated
-    private void userTypeExistDataValidConfigCheck(List<MarketingDataValidConfig> configList
-            , Set<String> userTypeSet, String apiCode) {
-        Set<String> configUserTypeSet = configList.stream().map(
-                MarketingDataValidConfig::getUserType).collect(Collectors.toSet());
-        Set<String> newSet = new HashSet<>(userTypeSet);
-        newSet.removeAll(configUserTypeSet);
-        // 未配置任何有效期
-        if (newSet.size() > 0) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
-                    , "场景未配置任何有效期，请配置对应的有效期规则;apiCode:" + apiCode + ";userType:" + newSet
-                    , apiCode + "存在场景未配置有效期规则"));
-        }
-    }
-
-    /**
      * 2023-08-01 17:31
      * 场景是否存在有效期配置
      */
@@ -1211,35 +1192,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         }
         packageSyncUserValidityPeriodBO(bo, validConfig);
         return bo;
-    }
-
-    /**
-     * 2023-04-07 9:52
-     * 获取数据的请求日期
-     *
-     * @return key requestDate; value List<CellValidityPeriodBO>
-     */
-    @Deprecated
-    private Map<Date, List<CellValidityPeriodBO>> getCellValidityPeriodBORequestDate(
-            List<CellValidityPeriodBO> cellValidityPeriodBOList, Object requestDateObj) {
-        Map<Date, List<CellValidityPeriodBO>> requestDateMap;
-        if (requestDateObj == null) {
-            // 对转化数据按请求日期分组
-            requestDateMap = cellValidityPeriodBOList.parallelStream().collect(Collectors.groupingBy(c -> {
-                try {
-                    return DateUtils.parse(c.getRequestDate(), DateHelper.LINE_DATE_FORMAT);
-                } catch (ParseException pe) {
-                    // 日期格式解析失败时，使用当前时间
-                    return Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
-                }
-            }));
-        } else {
-            // 统一时间格式
-            Date requestDate = switchDate(requestDateObj);
-            requestDateMap = new HashMap<>(2);
-            requestDateMap.put(requestDate, cellValidityPeriodBOList);
-        }
-        return requestDateMap;
     }
 
     /**
