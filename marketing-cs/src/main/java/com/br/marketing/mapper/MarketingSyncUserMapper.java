@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.bo.CellValidityPeriodBO;
 import com.br.marketing.entity.MarketingDataValidConfig;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -205,9 +206,34 @@ public interface MarketingSyncUserMapper {
             , @Param("custNums") Set<String> custNumSet);
 
 
-    List<MarketingSyncUser> getCellByAppletDateAndUserType(@Param("apiCode") String apiCode,  @Param("appletDate")String executeDate,  @Param("minId")Long minId,@Param("userType") String userType);
+    List<MarketingSyncUser> getCellByAppletDateAndUserType(@Param("apiCode") String apiCode, @Param("appletDate") String executeDate, @Param("minId") Long minId, @Param("userType") String userType);
 
-    List<MarketingSyncUser> getSyncUserByAppletDatePage(@Param("apiCode") String apiCode,  @Param("appletDate")String executeDate, @Param("userType") String userType, @Param("limitStart") Integer limitStart);
+    List<MarketingSyncUser> getSyncUserByAppletDatePage(@Param("apiCode") String apiCode, @Param("appletDate") String executeDate, @Param("userType") String userType, @Param("limitStart") Integer limitStart);
 
+    /**
+     * 2023-07-13 20:15
+     * 根据手机号+有效期配置获取上传数据
+     *
+     * @param cellValidityPeriodBOList 封装类
+     */
+    List<MarketingSyncUser> getSyncUserLastByCellAndInAppletDateUserTypeList(@Param("apiCode") String apiCode
+            , @Param("configList") List<MarketingDataValidConfig> configList
+            , @Param("cellValidityPeriodBOList") List<CellValidityPeriodBO> cellValidityPeriodBOList);
+
+    /**
+     * 2023-07-13 20:15
+     * 根据手机号+有效期配置获取上传数据
+     */
+    List<MarketingSyncUser> getSyncUserLastByCellAndInAppletDatList(@Param("apiCode") String apiCode
+            , @Param("configList") List<MarketingDataValidConfig> configList
+            , @Param("cellSet") Set<String> cellSet);
+
+    /**
+     * 2023-07-13 20:15
+     * 根据案件编号+有效期配置获取上传数据
+     */
+    List<MarketingSyncUser> getSyncUserLastByCustNumAndInAppletDatList(@Param("apiCode") String apiCode
+            , @Param("configList") List<MarketingDataValidConfig> configList
+            , @Param("custNumSet") Set<String> custNumSet);
 
 }

@@ -1,6 +1,7 @@
 package com.br.marketing.service;
 
 import com.br.marketing.bo.PeriodOfValidityBO;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.MarketingSyncUser;
 
 import java.text.ParseException;
@@ -363,4 +364,14 @@ public interface IPeriodOfValidityService {
      */
     PeriodOfValidityBO.Builder getPeriodOfValidityRange(Supplier<Object> validityDayStrSupplier
             , Supplier<Date> validityDateSupplier) throws IllegalArgumentException;
+
+
+    /**
+     * 2023-07-07 15:18
+     * 生成默认有效期范围
+     *
+     * @param syncUser 上传数据
+     * @return Boolean
+     */
+    Result<Boolean> configValidDateDefault(MarketingSyncUser syncUser);
 }
