@@ -51,7 +51,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessService {
     private static final TreeMap<String, Integer> ACTONTFROUNTYPETREE = new TreeMap<>();
-    public static final String STRATEGY_CODE = "CASTR0000423";
 
     static {
         ACTONTFROUNTYPETREE.put("A", 3);
@@ -487,7 +486,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
             taskInfoDTO.setMethod("caseAdd");
             taskInfoDTO.setBatchNumber(DateFormatUtils.format(new Date(), "yyyyMMdd") + "_" + actionType.toLowerCase() + "_" + apiCodeJc);
-            taskInfoDTO.setStrategyCode(STRATEGY_CODE);
+            taskInfoDTO.setStrategyCode(marketingCommonConfig.getYiXinToJueCeStrategyMapOfL().get(apiCodeJc));
             taskInfoDTO.setAccessNumber(UUID.randomUUID().toString());
             taskInfoDTO.setData(pushList);
 

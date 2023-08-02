@@ -858,5 +858,10 @@ public class MarketingCommonConfig {
      * 非生成默认有效期配置的apiCode集合
      */
     private Set<String> nonConfigValidDefaultApiCodes;
+
+    /**
+     * 宜信推决策，情况L策略编号设置
+     */
+    private Map<String, String> yiXinToJueCeStrategyMapOfL;
 }
 
