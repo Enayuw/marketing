@@ -58,4 +58,12 @@ public class ServiceConfig {
                 , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("xieCheng-sms-pushCustomer-pool-%d").build()
                 ,new ThreadPoolExecutor.CallerRunsPolicy());
     }
+
+    @Bean(name = "yiXinExcludeRuleFifthThreadPool")
+    public ThreadPoolExecutor yiXinExcludeRuleFifthThreadPool() {
+        Integer threadNum = marketingCommonConfig.getYiXinExcludeRuleFifthThreadNum();
+        return new ThreadPoolExecutor(threadNum,threadNum,10L, TimeUnit.SECONDS
+                , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("yiXinTojueCe-ruleFifth-pool-%d").build()
+                ,new ThreadPoolExecutor.CallerRunsPolicy());
+    }
 }

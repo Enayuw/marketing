@@ -11,14 +11,19 @@ import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.PushDataService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,6 +37,12 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
 
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
+    @Autowired
+    PushDataService pushDataService;
 
     @Override
     public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -59,7 +70,7 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
         phoneSaleExtendInfo.setAppletTime(dto.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                 .toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         phoneSaleExtendInfo.setTaskId(marketingSyncUser.getCusBatch());
-        phoneSaleExtendInfo.setStatus("a");
+        phoneSaleExtendInfo.setStatus(pushDataService.getStatusByGrade(this.label(),dto.getDetail().getIntentionGrade()));
         phoneSaleExtendInfo.setPStatus(1);
         phoneSaleExtendInfo.setCreateTime(new Date());
         phoneSaleExtendInfo.setPushDxTime(new Date());
@@ -87,7 +98,7 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
         if (transmitFact instanceof CallRecordBO) {
             CallRecordBO bo = (CallRecordBO) transmitFact;
             String intentionGrade = bo.getDetail().getIntentionGrade();
-            return StringUtils.isNotBlank(intentionGrade) && intentionGrade.contains("A");
+            return pushDataService.isPushDassWithCallGrade(this.label(),intentionGrade);
         }
         return false;
     }

@@ -860,6 +860,11 @@ public class MarketingCommonConfig {
     private Set<String> nonConfigValidDefaultApiCodes;
 
     /**
+     * 推送dass意向登记判断配置{"labelNm":["A","B"]}
+     */
+    private HashMap<String,List<String>>  gradeOfcallToDass;
+
+    /**
      * 宜信推决策，情况L策略编号设置
      */
     private Map<String, String> yiXinToJueCeStrategyMapOfL;

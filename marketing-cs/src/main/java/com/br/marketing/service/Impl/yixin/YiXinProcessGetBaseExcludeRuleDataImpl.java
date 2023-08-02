@@ -1,9 +1,10 @@
 package com.br.marketing.service.Impl.yixin;
 
 import cn.hutool.core.collection.ConcurrentHashSet;
+import com.br.cloud.threadpool.ThreadPoolField;
+import com.br.cloud.threadpool.ThreadPoolOwner;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExample;
 import com.br.marketing.entity.PhoneSaleExtendInfoExample;
@@ -14,6 +15,7 @@ import com.br.marketing.service.IDxService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -21,7 +23,10 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -32,6 +37,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
+@ThreadPoolOwner
 public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBaseExcludeRuleDataService {
 
     @Resource
@@ -45,6 +51,11 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
     private PhoneSaleMapper phoneSaleMapper;
     @Resource
     private IDxService iDxService;
+
+    @Resource
+    @Qualifier("yiXinExcludeRuleFifthThreadPool")
+    @ThreadPoolField(poolName = "YiXinProcessGetBaseExcludeRuleDataImpl.yiXinExcludeRuleFifthThreadPool")
+    ThreadPoolExecutor pool;
 
     @Override
     public void excludeRuleFirst(List<MarketingTransferSyncUser> marketingTransferSyncUsers) {
@@ -121,6 +132,12 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
 
     }
 
+    private void modifyCorePoolSize() {
+        Integer threadNum = marketingCommonConfig.getYiXinExcludeRuleFifthThreadNum();
+        pool.setCorePoolSize(threadNum);
+        pool.setMaximumPoolSize(threadNum);
+    }
+
     /**
      * 请求时间为T-30日的转化数据取transformType为非1的type=12根据inserTime取最新的custNum，且该custNum在[T-29,T]该transformType为非1的custNum无其他type-20230619更新
      * @param marketingTransferSyncUsers 转化数据集合
@@ -129,6 +146,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
     public void excludeRuleFifth(List<MarketingTransferSyncUser> marketingTransferSyncUsers) {
         log.warn("宜信推送决策,符合剔除条件:custNum在30天内有type!=12的基础数据,剔除前数据量级:{}", marketingTransferSyncUsers.size());
         long start = System.currentTimeMillis();
+        modifyCorePoolSize();
         String cid = marketingTransferSyncUsers.get(0).gettCid();
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         List<String> custNums = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
@@ -136,9 +154,6 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusDays(29);
 
-        // 创建线程池
-        Integer threadNum = marketingCommonConfig.getYiXinExcludeRuleFifthThreadNum();
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(threadNum, threadNum);
         List<Callable<List<String>>> tasks = new ArrayList<>();
         // 提交查询任务给线程池
         for (LocalDate date = startDate; date.isBefore(endDate.plusDays(1)); date = date.plusDays(1)) {
@@ -157,8 +172,6 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         } catch (InterruptedException | ExecutionException e) {
             log.error(e.getMessage(), e);
             Thread.currentThread().interrupt();
-        } finally {
-            pool.shutdown();
         }
 
         long end = System.currentTimeMillis();
