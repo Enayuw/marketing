@@ -70,7 +70,7 @@ public class ZhongBangCallRecordToDaas implements AssembleData<BatchRealTimeUser
         phoneSaleExtendInfo.setAppletTime(dto.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                 .toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         phoneSaleExtendInfo.setTaskId(marketingSyncUser.getCusBatch());
-        phoneSaleExtendInfo.setStatus("a");
+        phoneSaleExtendInfo.setStatus(pushDataService.getStatusByGrade(this.label(),dto.getDetail().getIntentionGrade()));
         phoneSaleExtendInfo.setPStatus(1);
         phoneSaleExtendInfo.setCreateTime(new Date());
         phoneSaleExtendInfo.setPushDxTime(new Date());
@@ -86,7 +86,7 @@ public class ZhongBangCallRecordToDaas implements AssembleData<BatchRealTimeUser
             firstName = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("firstName");
         }
         DassImportDataDTO batchImportData = new DassImportDataDTO();
-        batchImportData.setName(firstName);
+        batchImportData.setName(StringUtils.isNotEmpty(firstName) ? firstName : "1");
         batchImportData.setOrgname("zhongbang");
         batchImportData.setPhone(phone);
         batchImportData.setUserType("1");
