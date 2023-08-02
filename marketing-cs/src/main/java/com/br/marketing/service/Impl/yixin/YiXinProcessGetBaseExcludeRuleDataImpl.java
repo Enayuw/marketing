@@ -1,6 +1,8 @@
 package com.br.marketing.service.Impl.yixin;
 
 import cn.hutool.core.collection.ConcurrentHashSet;
+import com.br.cloud.threadpool.ThreadPoolField;
+import com.br.cloud.threadpool.ThreadPoolOwner;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
+@ThreadPoolOwner
 public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBaseExcludeRuleDataService {
 
     @Resource
@@ -51,6 +54,7 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
 
     @Resource
     @Qualifier("yiXinExcludeRuleFifthThreadPool")
+    @ThreadPoolField(poolName = "YiXinProcessGetBaseExcludeRuleDataImpl.yiXinExcludeRuleFifthThreadPool")
     ThreadPoolExecutor pool;
 
     @Override
