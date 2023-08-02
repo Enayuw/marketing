@@ -574,6 +574,22 @@
         </if>
           and b.type =#{type} order by b.id asc limit #{pageSize};
     </select>
+    <select id="getYxTransferByApiCodeCJKtikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        Select b.*
+        From (select a.id,a.cid,a.t_cid,a.api_code,a.cust_num,a.reserve_field1 ,a.type,a.request_data,a.user_type,a.unlent_amount,
+                     row_number() over(partition by cust_num order by insert_time desc,id desc) as rn
+            From b_marketing_transfer_sync_${tCid} a
+            where api_code =#{apiCode}
+            and request_data = #{requestData}
+            and (json_extract(reserve_field1,"$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
+            and json_extract(reserve_field1,"$.registerChannel") = #{registerChannel}
+           ) b
+        Where b.rn = 1
+        <if test="indexId != null and indexId!=''">
+            and b.id > #{indexId}
+        </if>
+          and b.type =#{type} order by b.id asc limit #{pageSize};
+    </select>
     <select id="getYxTransferByApiCodeAtikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select b.*
         from (select a.id,a.cid,a.t_cid,a.api_code,a.cust_num,a.reserve_field1,a.request_data,a.user_type,a.unlent_amount,

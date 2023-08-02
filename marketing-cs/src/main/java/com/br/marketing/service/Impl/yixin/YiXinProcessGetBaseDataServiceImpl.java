@@ -60,6 +60,23 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
                         marketingCommonConfig.getYiXinSearchPageSize()
                 );
     }
+    @Override
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCJK(String tCid,
+                                                                                   String apiCode,
+                                                                                   String type,
+                                                                                   String requestDate,
+                                                                                   Long indexId,String registerChannel) {
+
+        return marketingTransferSyncUserMapper
+                .getYxTransferByApiCodeCJKtikv_(
+                        tCid,
+                        apiCode,
+                        requestDate,
+                        type,
+                        indexId,registerChannel,
+                        marketingCommonConfig.getYiXinSearchPageSize()
+                );
+    }
 
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListL(String tCid,
                                                                              String apiCode,

@@ -28,6 +28,7 @@ public interface YiXinProcessGetBaseDataService {
      * @return 转化数据列表
      */
     List<MarketingTransferSyncUser> getMarketingTransferSyncUserListBtoCtoI(String cid, String apiCode,String type, String requestDate,Long indexId);
+    List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCJK(String cid, String apiCode,String type, String requestDate,Long indexId, String registerChannel);
 
     /**
      * T日9点推送

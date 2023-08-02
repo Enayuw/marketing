@@ -147,13 +147,13 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                     actionData(k, v, tcId, apiCodeTransfer);
                     break;
                 case "C":
-                    actionData(k, v, tcId, apiCodeTransfer, checkRegisterChannel("1"));
+                    actionDataCJK(k, v, tcId, apiCodeTransfer, "1");
                     break;
                 case "J":
-                    actionData(k, v, tcId, apiCodeTransfer, checkRegisterChannel("3"));
+                    actionDataCJK(k, v, tcId, apiCodeTransfer, "3");
                     break;
                 case "K":
-                    actionData(k, v, tcId, apiCodeTransfer, checkRegisterChannel("2"));
+                    actionDataCJK(k, v, tcId, apiCodeTransfer, "2");
                     break;
                 case "L":
                     actionDataL(apiCodeTransfer, tcId, k, v);
@@ -182,20 +182,26 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             , String v
             , String tcId
             , String apiCodeTransfer) {
-        actionData(k, v, tcId, apiCodeTransfer, null);
-    }
-
-    private void actionData(String k
-            , String v
-            , String tcId
-            , String apiCodeTransfer
-            , Predicate<MarketingTransferSyncUser> predicate) {
         if (isTransferLast(tcId, apiCodeTransfer)) {
             Result<Long> resultK = actionFront(apiCodeTransfer, ACTONTFROUNTYPETREE.get(k));
             if (!ResultCode.SUCCESS.getValue().equals(resultK.getCode())) {
                 return;
             }
-            getMarketingTransferSyncUserListBtoCtoI(k, v, tcId, predicate);
+            getMarketingTransferSyncUserListBtoCtoI(k, v, tcId);
+            updateActionFront(resultK);
+        }
+    }
+
+    private void actionDataCJK(String k
+            , String v
+            , String tcId
+            , String apiCodeTransfer, String registerChannel) {
+        if (isTransferLast(tcId, apiCodeTransfer)) {
+            Result<Long> resultK = actionFront(apiCodeTransfer, ACTONTFROUNTYPETREE.get(k));
+            if (!ResultCode.SUCCESS.getValue().equals(resultK.getCode())) {
+                return;
+            }
+            getMarketingTransferSyncUserListCJK(k, v, tcId, registerChannel);
             updateActionFront(resultK);
         }
     }
@@ -285,8 +291,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      *
      * @param tcId cid
      */
-    private void getMarketingTransferSyncUserListBtoCtoI(String actionType, String type, String tcId
-            , Predicate<MarketingTransferSyncUser> predicate) {
+    private void getMarketingTransferSyncUserListBtoCtoI(String actionType, String type, String tcId) {
         Long indexId = 3000L;
         // 创建线程池
         ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
@@ -305,12 +310,38 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 break;
             }
             indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
-            if (predicate != null) {
-                List<MarketingTransferSyncUser> syncUsers = marketingTransferSyncUserList.parallelStream()
-                        .filter(predicate).collect(Collectors.toList());
-                marketingTransferSyncUserList.clear();
-                marketingTransferSyncUserList.addAll(syncUsers);
+            List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(marketingTransferSyncUserList, PARTITION);
+            partition.forEach(users -> {
+                List<MarketingTransferSyncUser> tpList = new ArrayList<>();
+                tpList.addAll(users);
+                yiXinToJueCeThread.submit(() -> threadDoProcess(tpList, actionType));
+            });
+        }
+        yiXinToJueCeThread.shutdown();
+        try {
+            while (!yiXinToJueCeThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("等待线程池结束");
             }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+    }
+
+    private void getMarketingTransferSyncUserListCJK(String actionType, String type, String tcId, String registerChannel) {
+        Long indexId = 3000L;
+        // 创建线程池
+        ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
+        String requestDate = LocalDate.now().toString();
+        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        while (true) {
+            initThreadPoolParam(yiXinToJueCeThread);
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList =
+                    yiXinProcessGetBaseDataService.getMarketingTransferSyncUserListCJK(tcId, apiCode,
+                            type, requestDate, indexId, registerChannel);
+            if (marketingTransferSyncUserList.isEmpty()) {
+                break;
+            }
+            indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(marketingTransferSyncUserList, PARTITION);
             partition.forEach(users -> {
                 List<MarketingTransferSyncUser> tpList = new ArrayList<>();
