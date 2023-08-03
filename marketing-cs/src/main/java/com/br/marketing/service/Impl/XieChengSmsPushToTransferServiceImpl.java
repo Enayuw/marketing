@@ -2,8 +2,6 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.br.cloud.threadpool.ThreadPoolField;
-import com.br.cloud.threadpool.ThreadPoolOwner;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
@@ -48,7 +46,6 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 @Slf4j
-@ThreadPoolOwner
 public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTransferService {
     public static final String YYYY_MM_DD_HH_MM_SS = "yyyy-MM-dd HH:mm:ss";
     @Resource
@@ -65,7 +62,6 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
 
     @Resource
     @Qualifier("xieChengSmsThreadPool")
-    @ThreadPoolField(poolName = "XieChengSmsPushToTransferServiceImpl.xieChengSmsThreadPool")
     ThreadPoolExecutor pool;
 
     @Override
