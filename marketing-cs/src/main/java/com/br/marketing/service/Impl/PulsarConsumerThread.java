@@ -37,7 +37,7 @@ public class PulsarConsumerThread extends Thread {
     String retry;
 
     /**
-     * 分区
+     * 订阅者
      */
     String subscription;
 

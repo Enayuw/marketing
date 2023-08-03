@@ -80,7 +80,7 @@ public class ConsumerService {
 
     /**
      * pulsar消费端
-     * @param subscription 分区
+     * @param subscription 订阅者
      * @param method 消费业务方法
      * @param consumerNum 消费者数量
      * @param topic 主题，死信，重试
