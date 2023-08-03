@@ -3,11 +3,11 @@ package com.br.marketing.rule.tongcheng;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.DateUtils;
+import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.TongChengCollectDataImpl;
-import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.context.impl.TongChengCollectDataV2Impl;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
@@ -43,13 +43,13 @@ public class TongChenCustomerTransferV2Impl implements AssembleData<ConversionDa
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-            TongChengCollectDataImpl.TongChengRuleNecessaryData tongChengContext
-                    = (TongChengCollectDataImpl.TongChengRuleNecessaryData)
+            TongChengCollectDataV2Impl.TongChengRuleNecessaryData tongChengContext
+                    = (TongChengCollectDataV2Impl.TongChengRuleNecessaryData)
                     context.getRuleNecessaryData();
-            MarketingSyncUser syncUser = tongChengContext.getCustomerMap().get(
+            SyncUserValidityPeriodBO bo = tongChengContext.getCustomerMap().get(
                     transfer.getCustNum() + transfer.getUserType());
             // 判断有效期
-            if (syncUser != null) {
+            if (bo != null) {
                 String applyResult = transfer.getApplyResult();
                 String applyLoan;
                 if (StringUtils.isNotBlank(transfer.getReserveField1())) {
