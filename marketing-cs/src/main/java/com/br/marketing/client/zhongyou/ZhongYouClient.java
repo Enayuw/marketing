@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -36,7 +36,6 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.regex.Pattern;
 
 /**
  * 描述：： 中邮接口请求
@@ -84,14 +83,16 @@ public class ZhongYouClient {
     @Autowired
     ThreadPoolExecutor interfaceLogDbpool;
 
-    public HashMap<String, String> sendByCodeWithLog(Object param, String url, Boolean isPorxy, String mediaType, String extendInfo, Boolean isDbLog, Boolean isStream) {
-        return sendByCodePool(param, url, isPorxy, mediaType, extendInfo, isDbLog,isStream);
+    @Autowired
+    ZhongYouResultInterface zhongYouResultInterface;
+
+    public HashMap<String, String> sendByCodeWithLog(Object param, String url, Boolean isPorxy, Boolean isStream) {
+        return sendByCodePool(param, url, isPorxy, isStream);
     }
 
 
-    private HashMap<String, String> sendByCodePool(Object param, String url, Boolean isPorxy, String mediaType, String extendInfo, Boolean isDbLog,Boolean isStream) {
+    private HashMap<String, String> sendByCodePool(Object param, String url, Boolean isPorxy, Boolean isStream) {
         InterfaceLog interfaceLog = new InterfaceLog();
-        interfaceLog.setExtendInfo(extendInfo);
         interfaceLog.setRequestId(UUID.randomUUID().toString());
         interfaceLog.setUrl(url);
         interfaceLog.setCreateTime(new Date());
@@ -101,15 +102,12 @@ public class ZhongYouClient {
         try {
             HttpPost post = new HttpPost(url);
             HttpEntity requestEntity;
-            if (mediaType.equals(MediaType.APPLICATION_JSON_UTF8_VALUE)) {
-                String s = JSON.toJSONString(param);
-                interfaceLog.setRequestParam(s);
-                requestEntity = new StringEntity(s, CHARSET_UTF8);
-            } else {
-                throw new RuntimeException("不支持的请求类型");
-            }
+            String s = JSON.toJSONString(param);
+            interfaceLog.setRequestParam(s);
+            requestEntity = new StringEntity(s, CHARSET_UTF8);
             post.setEntity(requestEntity);
-            post.setHeader("content-type", mediaType);
+            post.setHeader("content-type", MediaType.APPLICATION_JSON_UTF8_VALUE);
+            post.setHeader("Accept", "application/json");
             interfaceLog.setHeader(Arrays.toString(post.getAllHeaders()));
             RequestConfig requestConfig = getRequestConfig(isPorxy, 10000, null);
             post.setConfig(requestConfig);
@@ -129,36 +127,15 @@ public class ZhongYouClient {
             interfaceLog.setExpire(String.valueOf(end - start));
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
-                if(isStream){
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-                    String tempString;
-                    int line = 1;
-                    while ((tempString = reader.readLine()) != null) {
-                        String lineData = tempString.trim();
-                        // 如果第一行返回是一个json 格式则说明接口请求异常
-                        if (line == 1) {
-                            if (isValidJson(lineData)) {
-                                interfaceLog.setResult(lineData);
-                                res.put("content", lineData);
-                                // 异常数据停止循环
-                                log.error("中邮文件拉取数据异常：{} ", lineData);
-                                break;
-                            }
-                            if (isNumeric(lineData)) {
-                                // 设置第一行数据标记
-                            }
-                        }
-                        // 存储数据
-                        System.out.println("--- 第" + line + "行 ---");
-                        System.out.println(lineData);
-                        line++;
-                    }
-                }else {
-                    String result = EntityUtils.toString(response.getEntity(), CHARSET_UTF8);
-                    res.put("content", result);
-                    interfaceLog.setResult(result);
-                }
+                String result = "";
+                if (isStream) {
+                    result = zhongYouResultInterface.applyStream(response.getEntity().getContent());
+                } else {
+                    result = zhongYouResultInterface.applyEntity(response.getEntity());
 
+                }
+                interfaceLog.setResult(result);
+                res.put("content", result);
             }
             res.put("httpcode", String.valueOf(statusCode));
             interfaceLog.setHttpCode(statusCode);
@@ -170,32 +147,17 @@ public class ZhongYouClient {
             interfaceLog.setResult(e.getMessage());
             res.put("content", e.getMessage());
         }
-        if (isDbLog) {
-            interfaceLogDbpool.submit(() -> {
-                try {
-                    interfaceLogMapper.insertSelective(interfaceLog);
-                } catch (Exception ex) {
-                    log.error(String.format("插入接口日志报错:%s", ex.getMessage()), ex);
-                }
-            });
-        }
+
+        interfaceLogDbpool.submit(() -> {
+            try {
+                interfaceLogMapper.insertSelective(interfaceLog);
+            } catch (Exception ex) {
+                log.error(String.format("插入接口日志报错:%s", ex.getMessage()), ex);
+            }
+        });
+
         return res;
     }
-
-    private static boolean isNumeric(String str) {
-        Pattern pattern = Pattern.compile("[0-9]*");
-        return pattern.matcher(str).matches();
-    }
-
-    private static boolean isValidJson(String json) {
-        try {
-            new ObjectMapper().readTree(json);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
 
     private HttpClient getHttpClientInner(Boolean isProxy) {
         if (isProxy) {
@@ -217,7 +179,7 @@ public class ZhongYouClient {
      * @param isProxy 是否代理
      * @return RequestConfig requestConfig
      */
-    public RequestConfig getRequestConfig(Boolean isProxy, Integer sockTimeout, Integer proxyType) {
+    private RequestConfig getRequestConfig(Boolean isProxy, Integer sockTimeout, Integer proxyType) {
         if (isProxy) {
             return RequestConfig.custom()
                     .setSocketTimeout(sockTimeout)
