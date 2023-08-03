@@ -28,8 +28,12 @@ public interface MarketingDataValidConfigMapper extends MarketingDataValidConfig
      * @param dateStr     日期,格式yyyy-MM-dd
      * @param userTypeSet 场景集合
      * @param page        页号，首页页号为0
+     * @param pageSize    页面大小
+     * @return 有效期规则集合
      */
-    List<MarketingDataValidConfig> findListByApiCodeAndUserTypeSetPage(@Param("apiCode") String apiCode
+    List<MarketingDataValidConfig> findListByApiCodeAndUserTypeSetPagetikv_(@Param("apiCode") String apiCode
             , @Param("dateStr") String dateStr
-            , @Param("userTypeSet") Set<String> userTypeSet, int page);
+            , @Param("userTypeSet") Set<String> userTypeSet
+            , @Param("page") int page
+            , @Param("pageSize") int pageSize);
 }
