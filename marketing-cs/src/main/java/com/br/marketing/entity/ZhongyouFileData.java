@@ -1,8 +1,12 @@
 package com.br.marketing.entity;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class ZhongyouFileData {
+public class ZhongyouFileData implements Serializable {
+
+    private static final long serialVersionUID = -2287448289554015234L;
+
     /**
      * 
      */

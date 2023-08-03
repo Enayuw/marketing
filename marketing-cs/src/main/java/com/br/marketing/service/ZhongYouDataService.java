@@ -47,7 +47,7 @@ public class ZhongYouDataService {
         ZhongYouClientData zhongYouClientData = new ZhongYouClientData(date);
 
         HashMap<String, String> stringStringHashMap =
-                zhongYouClient.sendByCodeWithLog(zhongYouClientData.getData(), zhongYouClientData.getUrl(), false, false);
+                zhongYouClient.sendByCodeWithLog(zhongYouClientData.getData(), zhongYouClientData.getUrl(), false, false,null);
 
         if (!"200".equals(stringStringHashMap.get("httpcode"))) {
             log.error("中邮文件列表接口httpcode非200异常，重试");
@@ -61,7 +61,7 @@ public class ZhongYouDataService {
         ZhongyouFile zhongyouFile = zhongyouFileMapper.selectByPrimaryKey(id);
         ZhongYouClientData zhongYouClientData = new ZhongYouClientData(zhongyouFile.getFileName());
         HashMap<String, String> stringStringHashMap =
-                zhongYouClient.sendByCodeWithLog(zhongYouClientData.getData(), zhongYouClientData.getUrl(), false, true);
+                zhongYouClient.sendByCodeWithLog(zhongYouClientData.getData(), zhongYouClientData.getUrl(), false, true,id);
         if (!"200".equals(stringStringHashMap.get("httpcode")) || StringUtils.isBlank(stringStringHashMap.get("content"))) {
             log.error("中邮文件内容接口httpcode非200异常");
         }

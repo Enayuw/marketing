@@ -86,7 +86,9 @@ public class ZhongYouClient {
     @Resource
     ZhongYouResultInterface zhongYouResultInterface;
 
-    public HashMap<String, String> sendByCodeWithLog(Object param, String url, Boolean isPorxy, Boolean isStream) {
+
+
+    public HashMap<String, String> sendByCodeWithLog(Object param, String url, Boolean isPorxy, Boolean isStream,Long fileId) {
         InterfaceLog interfaceLog = new InterfaceLog();
         interfaceLog.setRequestId(UUID.randomUUID().toString());
         interfaceLog.setUrl(url);
@@ -124,7 +126,7 @@ public class ZhongYouClient {
             if (statusCode == HttpStatus.SC_OK) {
                 Map<String,String > resultMap = new HashMap<>();
                 if (isStream) {
-                    resultMap = zhongYouResultInterface.applyStream(response.getEntity().getContent());
+                    resultMap = zhongYouResultInterface.applyStream(response.getEntity().getContent(),fileId);
                 } else {
                     resultMap = zhongYouResultInterface.applyEntity(response.getEntity());
                 }

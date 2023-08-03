@@ -208,7 +208,7 @@
         #{createDate,jdbcType=INTEGER},
       </if>
       <if test="fileData != null" >
-        #{fileData,jdbcType=LONGVARCHAR},
+        #{fileData},
       </if>
     </trim>
   </insert>
@@ -252,7 +252,7 @@
         create_date = #{record.createDate,jdbcType=INTEGER},
       </if>
       <if test="record.fileData != null" >
-        file_data = #{record.fileData,jdbcType=LONGVARCHAR},
+        file_data = #{record.fileData},
       </if>
     </set>
     <if test="_parameter != null" >
@@ -271,7 +271,7 @@
     create_time = #{record.createTime,jdbcType=TIMESTAMP},
     update_time = #{record.updateTime,jdbcType=TIMESTAMP},
     create_date = #{record.createDate,jdbcType=INTEGER},
-    file_data = #{record.fileData,jdbcType=LONGVARCHAR}
+    file_data = #{record.fileData}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -323,7 +323,7 @@
         create_date = #{createDate,jdbcType=INTEGER},
       </if>
       <if test="fileData != null" >
-        file_data = #{fileData,jdbcType=LONGVARCHAR},
+        file_data = #{fileData},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
@@ -339,7 +339,7 @@
         create_time = #{createTime,jdbcType=TIMESTAMP},
         update_time = #{updateTime,jdbcType=TIMESTAMP},
         create_date = #{createDate,jdbcType=INTEGER},
-        file_data = #{fileData,jdbcType=LONGVARCHAR}
+        file_data = #{fileData}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ZhongyouFileData" >

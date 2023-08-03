@@ -43,7 +43,7 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
     private ZhongyouFileDataMapper zhongyouFileDataMapper;
 
     @Override
-    public Map<String,String> applyStream(InputStream inputStream) {
+    public Map<String,String> applyStream(InputStream inputStream,Long fileId) {
         ThreadPoolExecutor poolExecutor = BrExecutors.getThreadPool(5, 5);
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         String tempString;
@@ -53,6 +53,7 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
         try {
             while (true) {
                 ZhongyouFileData zhongyouFileData = new ZhongyouFileData();
+                zhongyouFileData.setFileId(fileId);
                 zhongyouFileData.setStatus(1);
                 zhongyouFileData.setType("2");
                 if (((tempString = reader.readLine()) == null)) {

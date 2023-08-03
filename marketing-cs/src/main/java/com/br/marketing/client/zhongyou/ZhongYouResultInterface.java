@@ -19,6 +19,6 @@ import java.util.Map;
  **/
 public interface ZhongYouResultInterface {
     //
-    Map<String,String> applyStream(InputStream inputStream) ;
+    Map<String,String> applyStream(InputStream inputStream,Long fileId) ;
     Map<String,String> applyEntity(HttpEntity httpEntity) ;
 }
