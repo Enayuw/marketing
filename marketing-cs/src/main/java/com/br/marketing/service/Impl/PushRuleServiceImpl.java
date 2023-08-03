@@ -940,6 +940,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         //region 数据入库
         try {
+            //todo 测试pulsar 上线删除
             if("20230724-wjm-pulsar-test-01".equals(dto.getJsonData().getRequestId())){
                 throw new KnowException("手动db报错");
             }
@@ -1376,6 +1377,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         Boolean dbException = Boolean.FALSE;
 
         try {
+            //todo 测试pulsar 上线删除
+            if("transfer_20230803_wjm_test_pulsar".equals(transferDataDTO.getRequestId())){
+                throw new RuntimeException("模拟DB错误");
+            }
             MarketingTransferInfo transferInfo = new MarketingTransferInfo();
             transferInfo.setApiCode(apiCode);
             transferInfo.setRequestId(transferDataDTO.getRequestId());
@@ -1398,7 +1403,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if(dbException){
             ProductPulsarProducer producer = null;
             try {
-                producer = ProductPulsarClientManager.newProducer(PulsarTopic.upLoadTopic);
+                producer = ProductPulsarClientManager.newProducer(PulsarTopic.transferTopic);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("apiCode",apiCode);
                 jsonObject.put("jsonData",jsonData);

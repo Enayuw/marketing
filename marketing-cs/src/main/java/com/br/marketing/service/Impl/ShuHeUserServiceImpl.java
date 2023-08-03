@@ -82,6 +82,10 @@ public class ShuHeUserServiceImpl {
     @Transactional(rollbackFor = Exception.class)
     public Long saveShUploadData(CaseShuheUploadData shuheUploadData, JSONObject uploadDataDTO, JSONArray listInfo) {
         caseShuheUploadDataMapper.insertSelective(shuheUploadData);
+        //todo 测试pulsar 上线删除
+        if("1".equals(uploadDataDTO.getString("test"))){
+            throw new RuntimeException("数据库异常");
+        }
         return saveSyncInfo(adapterMarketingPreUserDTO(uploadDataDTO, listInfo, shuheUploadData), shuheUploadData);
     }
 
@@ -161,14 +165,9 @@ public class ShuHeUserServiceImpl {
         syncInfo.setTotal(0L);
         syncInfo.setCreateTime(new Date());
         syncInfo.setActualNum(userDTO.getDataItems().size());
-        try {
-            syncInfo.setJsonData(JSON.toJSONString(userDTO, SerializerFeature.WriteNullStringAsEmpty
-                    , SerializerFeature.WriteNullListAsEmpty));
-        } catch (Exception e) {
-            record.setSaveInfoStatus(1);
-            log.error(e.getMessage(), e);
-        }
-        int i = marketingUserMapper.insertMarketingPreUserByText(syncInfo);
+        syncInfo.setJsonData(JSON.toJSONString(userDTO, SerializerFeature.WriteNullStringAsEmpty
+                , SerializerFeature.WriteNullListAsEmpty));
+        marketingUserMapper.insertMarketingPreUserByText(syncInfo);
         caseShuheUploadDataMapper.updateByPrimaryKeySelective(record);
         return syncInfo.getId();
     }
@@ -222,6 +221,12 @@ public class ShuHeUserServiceImpl {
             caseShuheUser.setCreateTime(createTime);
         }
         caseShuheUserMapper.insertSelective(caseShuheUser);
+        //todo 测试pulsar 上线删除
+        JSONObject testJb = JSONObject.parseObject(jsonData);
+        if("1".equals(testJb.getString("test"))){
+            throw new RuntimeException("模拟DB异常");
+        }
+
         // 6、转化信息入转化标准库
         Long id = saveTransferNew(apiCode, caseShuheUser, transferSyncUser, !sendToQueueBool,createTime);
         res.put("transferInfoId",id);

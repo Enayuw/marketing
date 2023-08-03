@@ -311,6 +311,12 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         Map res = null;
         try {
             ResponseShuheDTO responseShuheDTO = new ResponseShuheDTO();
+            //todo 测试pulsar 上线删除
+            JSONObject testJb = JSONObject.parseObject(jsonData);
+            if("1".equals(testJb.getString("test"))){
+                testJb.remove("test");
+                jsonData = JSON.toJSONString(testJb);
+            }
             res = shuHeUserService.saveShTransferData(apiCode, jsonData, requestId, responseShuheDTO,createTime);
         }catch (DuplicateKeyException keyException) {
             log.error(String.format("数禾转化数据pulsar消费重复requestId requestId:%s,jsonData:%s,apiCode:%s",requestId,jsonData,apiCode));
@@ -574,6 +580,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         }
         CaseShuheUploadData shuheUploadData = new CaseShuheUploadData();
         shuheUploadData.setJsonData(jsonData);
+        shuheUploadData.setUploadDate(new SimpleDateFormat("yyyy-MM-dd").format(dataTime));
         shuheUploadData.setCreateTime(dataTime);
         shuheUploadData.setUpdateTime(shuheUploadData.getCreateTime());
         shuheUploadData.setApiCode(apiCode);
@@ -586,6 +593,10 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         final JSONArray listInfo = uploadDataDTO.getJSONArray("listInfo");
         Long infoId = null;
         try {
+            //todo 测试pulsar 上线删除
+            if("1".equals(uploadDataDTO.getString("test"))){
+                uploadDataDTO.remove("test");
+            }
             infoId = shuHeUserService.saveShUploadData(shuheUploadData, uploadDataDTO, listInfo);
         } catch (DuplicateKeyException keyException) {
             log.error(String.format("数禾上传数据pulsar消费重复requestId requestId:%s,jsonData:%s,apiCode:%s",requestId,jsonData,apiCode));
