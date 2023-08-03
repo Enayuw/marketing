@@ -927,10 +927,12 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
                     .collect(Collectors.toSet());
             Set<String> newSet = new HashSet<>(userTypeSet);
             int page = 0;
+            int pageSize = 2000;
             // 获取包含请求日期的T,T （范围）模式的配置记录
             for (; ; ) {
-                List<MarketingDataValidConfig> dataValidConfigs = getDataValidConfig(apiCode, k, userTypeSet, page);
-                boolean isLast = dataValidConfigs.size() < 2000;
+                List<MarketingDataValidConfig> dataValidConfigs = getDataValidConfig(
+                        apiCode, k, userTypeSet, page, pageSize);
+                boolean isLast = dataValidConfigs.size() < pageSize;
                 userTypeExistDataValidConfigCheck(dataValidConfigs, newSet, apiCode, isLast);
                 if (dataValidConfigs.isEmpty()) {
                     break;
@@ -965,9 +967,10 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             // 获取包含请求日期的T,T （范围）模式的配置记录
             List<MarketingDataValidConfig> dataValidConfigs;
             int page = 0;
+            int pageSize = 2000;
             if (empty) {
                 for (; ; ) {
-                    dataValidConfigs = getDataValidConfig(apiCode, k, null, page);
+                    dataValidConfigs = getDataValidConfig(apiCode, k, null, page, pageSize);
                     if (dataValidConfigs.isEmpty()) {
                         break;
                     }
@@ -976,7 +979,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
                             marketingSyncUserMapper.getSyncUserLastByCellAndInAppletDateUserTypeList(apiCode
                                     , dataValidConfigs, v);
                     boMap.putAll(packageKeyValidityPeriodInfo(MarketingSyncUser::getCell, syncUserList, dataValidConfigs));
-                    if (dataValidConfigs.size() < 2000) {
+                    if (dataValidConfigs.size() < pageSize) {
                         break;
                     }
                     ++page;
@@ -984,8 +987,8 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             } else {
                 Set<String> newSet = new HashSet<>(userTypeSet);
                 for (; ; ) {
-                    dataValidConfigs = getDataValidConfig(apiCode, k, userTypeSet, page);
-                    boolean isLast = dataValidConfigs.size() < 2000;
+                    dataValidConfigs = getDataValidConfig(apiCode, k, userTypeSet, page, pageSize);
+                    boolean isLast = dataValidConfigs.size() < pageSize;
                     userTypeExistDataValidConfigCheck(dataValidConfigs, newSet, apiCode, isLast);
                     if (dataValidConfigs.isEmpty()) {
                         break;
@@ -1067,20 +1070,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     }
 
     /**
-     * 2023-07-28 17:10
-     * 符合条件的有效期配置
-     *
-     * @param apiCode     编号
-     * @param dateStr     日期,格式yyyy-MM-dd
-     * @param userTypeSet 场景集合
-     * @return 有效期集合
-     */
-    private List<MarketingDataValidConfig> findConfigListFirstVersion(String apiCode, String dateStr
-            , Set<String> userTypeSet, int page) {
-        return marketingDataValidConfigMapper.findListByApiCodeAndUserTypeSetPage(apiCode, dateStr, userTypeSet, page);
-    }
-
-    /**
      * 2023-07-13 17:31
      * 是否存在有效期配置
      *
@@ -1142,9 +1131,11 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      * @return 有效期集合，未配置有效期时返回空集合
      */
     private List<MarketingDataValidConfig> getDataValidConfig(String apiCode, String dateStr, Set<String> userTypeSet
-            , int page) {
+            , int page, int pageSize) {
         // apicode有效期配置
-        List<MarketingDataValidConfig> configList = findConfigListFirstVersion(apiCode, dateStr, userTypeSet, page);
+        List<MarketingDataValidConfig> configList = marketingDataValidConfigMapper
+                .findListByApiCodeAndUserTypeSetPagetikv_(
+                        apiCode, dateStr, userTypeSet, page, pageSize);
         // 未配置任何有效期
         if (page == 0 && isNotExistDataValidConfig(configList, apiCode)) {
             return Collections.emptyList();
