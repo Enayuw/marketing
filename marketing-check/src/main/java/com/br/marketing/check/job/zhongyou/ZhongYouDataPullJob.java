@@ -1,6 +1,7 @@
 package com.br.marketing.check.job.zhongyou;
 
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.ZhongYouDataService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -8,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -31,10 +33,14 @@ public class ZhongYouDataPullJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        Result postResult = zhongYouDataService.saveFileNameList();
-        Object data = postResult.getData();
+        String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
 
-
+        LocalDate beginDate = StringUtils.isBlank(jobParameter) ? LocalDate.now() : LocalDate.parse(jobParameter);
+        Result<List<Long>> postResult = zhongYouDataService.saveFileNameList(beginDate);
+        if (postResult.getCode() == 1) {
+            List<Long> data = postResult.getData();
+            data.forEach(id -> zhongYouDataService.saveFileData(id));
+        }
     }
 
 }

@@ -3,6 +3,7 @@ package com.br.marketing.client.zhongyou;
 import org.apache.http.HttpEntity;
 
 import java.io.InputStream;
+import java.util.Map;
 
 /**
  * 描述：： 中邮结果处理回调函数类
@@ -18,6 +19,6 @@ import java.io.InputStream;
  **/
 public interface ZhongYouResultInterface {
     //
-    String applyStream(InputStream inputStream) ;
-    String applyEntity(HttpEntity httpEntity) ;
+    Map<String,String> applyStream(InputStream inputStream) ;
+    Map<String,String> applyEntity(HttpEntity httpEntity) ;
 }

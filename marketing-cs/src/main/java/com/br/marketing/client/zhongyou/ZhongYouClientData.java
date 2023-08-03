@@ -1,12 +1,8 @@
 package com.br.marketing.client.zhongyou;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
@@ -22,7 +18,6 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
-import java.util.HashMap;
 
 /**
  * 描述：： 中邮数据加密处理组装
@@ -99,22 +94,26 @@ public class ZhongYouClientData {
         this.url = url;
     }
 
-    public   ZhongYouClientData (LocalDate localDate){
+    public ZhongYouClientData(){
+
+    }
+    public ZhongYouClientData(LocalDate localDate) {
         String fileDate = localDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         this.data = getFileNameListData(fileDate);
         this.url = "https://alissl.youcash.com/facadeuat/outmarketing-fileserver/file/out/query";
     }
-    public   ZhongYouClientData (String fileName){
+
+    public ZhongYouClientData(String fileName) {
         this.data = fileDownLoadData(fileName);
         this.url = "https://alissl.youcash.com/facadeuat/outmarketing-fileserver/file/out/download";
     }
+
     /**
      * 中邮接口列表查询数据组装
+     *
      * @return
-     * @throws Exception
      */
-
-    private static Object getFileNameListData(String fileDate){
+    private static Object getFileNameListData(String fileDate) {
         JSONObject data = new JSONObject();
         try {
             String format = sdf.format(new Date());
@@ -128,9 +127,10 @@ public class ZhongYouClientData {
             data.put("version", "1.0");
             data.put("requestTime", format);
             data.put("sysSign", signDataStr);
-            data.put("requestData", encryptDataStr);
-        }catch (Exception e){
-            log.error("中邮文件名称请求数据加密异常:{}",e);
+            data.put("requestData", requestData.toString());
+//            data.put("requestData", encryptDataStr);
+        } catch (Exception e) {
+            log.error("中邮文件名称请求数据加密异常:{}", e);
         }
         return data;
     }
@@ -147,9 +147,10 @@ public class ZhongYouClientData {
             data.put("version", "1.0");
             data.put("requestTime", format);
             data.put("sysSign", signDataStr);
-            data.put("requestData", encryptDataStr);
-        }catch (Exception e){
-            log.error("中邮文件内容获取请求加密异常:{}",e);
+//            data.put("requestData", encryptDataStr);
+            data.put("requestData", requestData.toString());
+        } catch (Exception e) {
+            log.error("中邮文件内容获取请求加密异常:{}", e);
         }
 
         return data;
@@ -160,7 +161,6 @@ public class ZhongYouClientData {
      *
      * @param requestData
      * @return
-     * @throws Exception
      */
     private static String signData(String requestData) throws Exception {
         //aes加密
@@ -251,7 +251,6 @@ public class ZhongYouClientData {
         }
         return decryptData;
     }
-
     /**
      * 验签
      *

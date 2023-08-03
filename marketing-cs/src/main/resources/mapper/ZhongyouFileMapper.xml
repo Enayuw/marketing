@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ZhongyouFileMapper" >
+  <insert id="saveBatch" parameterType="list">
+    insert into b_zhongyou_file
+    (api_code,`type`,status,
+    file_name,data_message,
+    create_time,update_time)
+    values
+    <foreach collection="list" item="data" separator=",">
+      (#{data.apiCode,jdbcType=VARCHAR}, #{data.type,jdbcType=VARCHAR}, #{data.status,jdbcType=VARCHAR},
+      #{data.fileName,jdbcType=VARCHAR}, #{data.dataMessage,jdbcType=VARCHAR},
+      #{data.createTime,jdbcType=TIMESTAMP}, #{data.updateTime,jdbcType=TIMESTAMP})
+    </foreach>
+  </insert>
+</mapper>

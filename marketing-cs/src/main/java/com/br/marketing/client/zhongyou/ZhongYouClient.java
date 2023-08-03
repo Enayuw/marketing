@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.google.common.base.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -27,15 +26,16 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+
+import static net.lingala.zip4j.util.InternalZipConstants.CHARSET_UTF8;
 
 /**
  * 描述：： 中邮接口请求
@@ -72,26 +72,21 @@ public class ZhongYouClient {
         HTTP_CLIENT_POOL.setDefaultMaxPerRoute(500);
     }
 
-    @Autowired
+    @Resource
     MarketingCommonConfig marketingCommonConfig;
 
 
-    @Autowired
+    @Resource
     InterfaceLogMapper interfaceLogMapper;
 
     @Qualifier("interfaceLogDbpool")
-    @Autowired
+    @Resource
     ThreadPoolExecutor interfaceLogDbpool;
 
-    @Autowired
+    @Resource
     ZhongYouResultInterface zhongYouResultInterface;
 
     public HashMap<String, String> sendByCodeWithLog(Object param, String url, Boolean isPorxy, Boolean isStream) {
-        return sendByCodePool(param, url, isPorxy, isStream);
-    }
-
-
-    private HashMap<String, String> sendByCodePool(Object param, String url, Boolean isPorxy, Boolean isStream) {
         InterfaceLog interfaceLog = new InterfaceLog();
         interfaceLog.setRequestId(UUID.randomUUID().toString());
         interfaceLog.setUrl(url);
@@ -107,9 +102,9 @@ public class ZhongYouClient {
             requestEntity = new StringEntity(s, CHARSET_UTF8);
             post.setEntity(requestEntity);
             post.setHeader("content-type", MediaType.APPLICATION_JSON_UTF8_VALUE);
-            post.setHeader("Accept", "application/json");
+            post.setHeader("Accept", MediaType.APPLICATION_JSON_UTF8_VALUE);
             interfaceLog.setHeader(Arrays.toString(post.getAllHeaders()));
-            RequestConfig requestConfig = getRequestConfig(isPorxy, 10000, null);
+            RequestConfig requestConfig = getRequestConfig(isPorxy);
             post.setConfig(requestConfig);
             HttpResponse response;
             start = System.currentTimeMillis();
@@ -127,15 +122,14 @@ public class ZhongYouClient {
             interfaceLog.setExpire(String.valueOf(end - start));
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
-                String result = "";
+                Map<String,String > resultMap = new HashMap<>();
                 if (isStream) {
-                    result = zhongYouResultInterface.applyStream(response.getEntity().getContent());
+                    resultMap = zhongYouResultInterface.applyStream(response.getEntity().getContent());
                 } else {
-                    result = zhongYouResultInterface.applyEntity(response.getEntity());
-
+                    resultMap = zhongYouResultInterface.applyEntity(response.getEntity());
                 }
-                interfaceLog.setResult(result);
-                res.put("content", result);
+                interfaceLog.setResult( resultMap.get("result"));
+                res.put("content", resultMap.get("responseData"));
             }
             res.put("httpcode", String.valueOf(statusCode));
             interfaceLog.setHttpCode(statusCode);
@@ -159,6 +153,7 @@ public class ZhongYouClient {
         return res;
     }
 
+
     private HttpClient getHttpClientInner(Boolean isProxy) {
         if (isProxy) {
             // 设置代理HttpHost
@@ -179,17 +174,17 @@ public class ZhongYouClient {
      * @param isProxy 是否代理
      * @return RequestConfig requestConfig
      */
-    private RequestConfig getRequestConfig(Boolean isProxy, Integer sockTimeout, Integer proxyType) {
+    private RequestConfig getRequestConfig(Boolean isProxy) {
         if (isProxy) {
             return RequestConfig.custom()
-                    .setSocketTimeout(sockTimeout)
+                    .setSocketTimeout(10000)
                     .setConnectTimeout(5000)
-                    .setProxy(new HttpHost(new Integer(1).equals(proxyType) ? proxyHostZW : proxyHost, proxyPort))
+                    .setProxy(new HttpHost(proxyHost, proxyPort))
                     .setConnectionRequestTimeout(5000)
                     .build();
         } else {
             return RequestConfig.custom()
-                    .setSocketTimeout(sockTimeout)
+                    .setSocketTimeout(10000)
                     .setConnectTimeout(1000)
                     .setConnectionRequestTimeout(1000)
                     .build();
