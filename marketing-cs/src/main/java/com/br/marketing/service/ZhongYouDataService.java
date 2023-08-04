@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.zhongyou.ZhongYouClient;
 import com.br.marketing.client.zhongyou.ZhongYouClientData;
-import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
@@ -52,10 +51,8 @@ public class ZhongYouDataService {
     public Result<List<Long>> saveFileNameList(LocalDate date){
         // 拉取数据
         ZhongYouClientData zhongYouClientData = new ZhongYouClientData(date);
-
         HashMap<String, String> stringStringHashMap =
                 zhongYouClient.sendByCodeWithLog(zhongYouClientData.getData(), zhongYouClientData.getUrl(), false, false,null);
-
         if (!"200".equals(stringStringHashMap.get("httpcode"))) {
             log.error("中邮文件列表接口httpcode非200异常，重试");
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
@@ -64,16 +61,16 @@ public class ZhongYouDataService {
         return new Result<List<Long>>().setCode(ResultCode.SUCCESS.getValue()).setDate(ids);
     }
 
-    public void saveFileData(Long id){
-        ZhongyouFile zhongyouFile = zhongyouFileMapper.selectByPrimaryKey(id);
+    public void saveFileData(Long fileId){
+        ZhongyouFile zhongyouFile = zhongyouFileMapper.selectByPrimaryKey(fileId);
         ZhongYouClientData zhongYouClientData = new ZhongYouClientData(zhongyouFile.getFileName());
         HashMap<String, String> stringStringHashMap =
-                zhongYouClient.sendByCodeWithLog(zhongYouClientData.getData(), zhongYouClientData.getUrl(), false, true,id);
+                zhongYouClient.sendByCodeWithLog(zhongYouClientData.getData(), zhongYouClientData.getUrl(), false, true,fileId);
         if (!"200".equals(stringStringHashMap.get("httpcode")) || StringUtils.isBlank(stringStringHashMap.get("content"))) {
             log.error("中邮文件内容接口httpcode非200异常");
         }
         // 发送mq
-        producter.send(ROUTING_KEY_MARKETING_ZHONGYOU_DATA_CLEAN,String.valueOf(id));
+        producter.send(ROUTING_KEY_MARKETING_ZHONGYOU_DATA_CLEAN,String.valueOf(fileId));
     }
 
     private  List<Long> saveFile(String content){
@@ -85,13 +82,7 @@ public class ZhongYouDataService {
         List<Long> ids = new ArrayList<>();
         for(int i=0;i<fileNames.size();i++){
             String fileName = JSONObject.parseObject(fileNames.getString(i)).getString("fileName");
-            ZhongyouFile zhongyouFile  = new ZhongyouFile();
-            zhongyouFile.setFileName(fileName);
-            zhongyouFile.setDataMessage(content);
-            zhongyouFile.setType("OUTMARKETING");
-            zhongyouFile.setStatus(1);
-            zhongyouFile.setCreateTime(new Date());
-            zhongyouFile.setUpdateTime(new Date());
+            ZhongyouFile zhongyouFile = zhongyouFileBuild(content, fileName);
             if(zhongyouFileMapper.insertSelective(zhongyouFile)>0){
                 ids.add(zhongyouFile.getId());
             }
@@ -99,5 +90,20 @@ public class ZhongYouDataService {
         return ids;
     }
 
-
+    /**
+     * 中邮文件实体创建
+     * @param content 数据描述
+     * @param fileName 文件名称
+     * @return ZhongYouFile 实体
+     */
+    private static ZhongyouFile zhongyouFileBuild(String content, String fileName) {
+        ZhongyouFile zhongyouFile  = new ZhongyouFile();
+        zhongyouFile.setFileName(fileName);
+        zhongyouFile.setDataMessage(content);
+        zhongyouFile.setType("OUTMARKETING");
+        zhongyouFile.setStatus(1);
+        zhongyouFile.setCreateTime(new Date());
+        zhongyouFile.setUpdateTime(new Date());
+        return zhongyouFile;
+    }
 }

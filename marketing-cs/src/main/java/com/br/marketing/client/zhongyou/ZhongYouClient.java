@@ -5,7 +5,6 @@ import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -85,7 +84,15 @@ public class ZhongYouClient {
     ZhongYouResultInterface zhongYouResultInterface;
 
 
-
+    /**
+     * 中邮接口请求调用
+     * @param param 参数
+     * @param url 地址
+     * @param isPorxy 是否dialing
+     * @param isStream 是否是数据流
+     * @param fileId 文件id
+     * @return
+     */
     public HashMap<String, String> sendByCodeWithLog(Object param, String url, Boolean isPorxy, Boolean isStream,Long fileId) {
         InterfaceLog interfaceLog = new InterfaceLog();
         interfaceLog.setRequestId(UUID.randomUUID().toString());
@@ -96,16 +103,13 @@ public class ZhongYouClient {
         long start = System.currentTimeMillis();
         try {
             HttpPost post = new HttpPost(url);
-            HttpEntity requestEntity;
-            String s = JSON.toJSONString(param);
-            interfaceLog.setRequestParam(s);
-            requestEntity = new StringEntity(s, CHARSET_UTF8);
-            post.setEntity(requestEntity);
+            String paramString = JSON.toJSONString(param);
+            interfaceLog.setRequestParam(paramString);
+            post.setEntity( new StringEntity(paramString, CHARSET_UTF8));
             post.setHeader("content-type", MediaType.APPLICATION_JSON_UTF8_VALUE);
             post.setHeader("Accept", MediaType.APPLICATION_JSON_UTF8_VALUE);
             interfaceLog.setHeader(Arrays.toString(post.getAllHeaders()));
-            RequestConfig requestConfig = getRequestConfig(isPorxy);
-            post.setConfig(requestConfig);
+            post.setConfig(getRequestConfig(isPorxy));
             HttpResponse response;
             start = System.currentTimeMillis();
             if (isPorxy) {
@@ -142,6 +146,16 @@ public class ZhongYouClient {
             res.put("content", e.getMessage());
         }
 
+        saveInterfaceLog(interfaceLog);
+
+        return res;
+    }
+
+    /**
+     * interface-log 存储
+     * @param interfaceLog
+     */
+    private void saveInterfaceLog(InterfaceLog interfaceLog) {
         interfaceLogDbpool.submit(() -> {
             try {
                 interfaceLogMapper.insertSelective(interfaceLog);
@@ -149,8 +163,6 @@ public class ZhongYouClient {
                 log.error(String.format("插入接口日志报错:%s", ex.getMessage()), ex);
             }
         });
-
-        return res;
     }
 
 
@@ -177,16 +189,16 @@ public class ZhongYouClient {
     private RequestConfig getRequestConfig(Boolean isProxy) {
         if (isProxy) {
             return RequestConfig.custom()
-                    .setSocketTimeout(10000)
-                    .setConnectTimeout(5000)
+                    .setSocketTimeout(50000)
+                    .setConnectTimeout(50000)
                     .setProxy(new HttpHost(proxyHost, proxyPort))
-                    .setConnectionRequestTimeout(5000)
+                    .setConnectionRequestTimeout(50000)
                     .build();
         } else {
             return RequestConfig.custom()
                     .setSocketTimeout(10000)
-                    .setConnectTimeout(1000)
-                    .setConnectionRequestTimeout(1000)
+                    .setConnectTimeout(10000)
+                    .setConnectionRequestTimeout(10000)
                     .build();
         }
     }

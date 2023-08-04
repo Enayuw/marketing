@@ -1,6 +1,7 @@
 package com.br.marketing.check.job.zhongyou;
 
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.ZhongYouDataService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -37,12 +38,11 @@ public class ZhongYouDataPullJob extends AbstractSimpleElasticJob {
             String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
             LocalDate beginDate = StringUtils.isBlank(jobParameter) ? LocalDate.now() : LocalDate.parse(jobParameter);
             Result<List<Long>> postResult = zhongYouDataService.saveFileNameList(beginDate);
-            if (postResult.getCode() == 1) {
-                List<Long> data = postResult.getData();
-                data.forEach(id -> zhongYouDataService.saveFileData(id));
+            if (postResult.getCode() == ResultCode.SUCCESS.getValue()) {
+                postResult.getData().forEach(fileId -> zhongYouDataService.saveFileData(fileId));
             }
         }catch (Exception e){
-            log.error("中邮数据拉取定时任务启动异常：{}",e);
+            log.error("中邮数据拉取定时任务启动异常：{}",e.toString());
         }
     }
 

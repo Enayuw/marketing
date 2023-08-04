@@ -39,7 +39,15 @@ import static net.lingala.zip4j.util.InternalZipConstants.CHARSET_UTF8;
 @Slf4j
 public class ZhongYouResultImpl implements ZhongYouResultInterface {
 
-    private static final String RETURNCODE = "0000";
+    /**
+     * 中邮返回code码
+     */
+    private static final String RETURN_CODE = "0000";
+
+    /**
+     * 存储文件内容条数
+     */
+    private static final Integer SAVE_PARTITION_SIZE =2000;
 
     @Resource
     private ZhongyouFileDataMapper zhongyouFileDataMapper;
@@ -53,11 +61,11 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
             List<ZhongyouFileData> zhongyouFileDataList = new ArrayList<>();
 
             while (dealStream(fileId, reader, zhongyouFileDataList, resultMap, zhongyouThread)) {
-
+                // do nothing;
             }
             shutdownThread(zhongyouThread);
         } catch (Exception e) {
-            log.error("数据流处理异常：{}",e);
+            log.error("数据流处理异常：{}",e.toString());
             resultMap.put("result", "数据流处理异常" );
             resultMap.put("responseData", "数据流处理异常");
         }
@@ -107,7 +115,7 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
      * @param zhongyouThread       线程池
      */
     private void zhongyouDataListSave(List<ZhongyouFileData> zhongyouFileDataList, ThreadPoolExecutor zhongyouThread) {
-        if (zhongyouFileDataList.size() == 2000) {
+        if (zhongyouFileDataList.size() == SAVE_PARTITION_SIZE) {
             // 线程池存储
             zhongyouThread.submit(() -> {
                 List<ZhongyouFileData> saveZhongyouFileDataList = new ArrayList<>(zhongyouFileDataList);
@@ -186,7 +194,7 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
             resultMap.put("result", result);
             JSONObject resultJson = JSONObject.parseObject(result);
             String responseCode = resultJson.getString("responseCode");
-            if (RETURNCODE.equals(responseCode)) {
+            if (RETURN_CODE.equals(responseCode)) {
                 // 解析数据
                 String sysSign = resultJson.getString("sysSign");
                 String responseData = resultJson.getString("responseData");
