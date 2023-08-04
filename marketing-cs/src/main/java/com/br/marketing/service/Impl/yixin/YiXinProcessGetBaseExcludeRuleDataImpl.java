@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl.yixin;
 
-import com.br.cloud.threadpool.ThreadPoolOwner;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -30,7 +29,6 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-@ThreadPoolOwner
 public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBaseExcludeRuleDataService {
 
     @Resource
