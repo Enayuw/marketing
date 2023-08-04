@@ -310,11 +310,6 @@ public class XieChengService {
      */
     @RetryMethod(retryNowNum = 3)
     public Result<String> pushXieChengSmsCollidingDataVt(List<String> sha256CodeList) {
-        JSONObject config = marketingCommonConfig.getXieChengVtConfig().get("smsVt");
-        String aid = config==null||StringUtils.isBlank(config.getString("appId"))?appIdVt:config.getString("appId");
-        String aesKey = config==null||StringUtils.isBlank(config.getString("aesKey"))?smsCollidingVtKey:config.getString("aesKey");
-        String ivKey = config==null||StringUtils.isBlank(config.getString("iv"))?smsCollidingVtIv:config.getString("iv");
-        String sKey = config==null||StringUtils.isBlank(config.getString("singKey"))?smsCollidingVtSignKey:config.getString("singKey");
         /*
           data 组装
          */
@@ -323,11 +318,11 @@ public class XieChengService {
         );
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         Map<String, Object> retMap = Maps.newHashMap();
-        retMap.put("appId", aid);
+        retMap.put("appId", smsCollidingVtAppId);
         retMap.put("timestamp", timestemp);
         retMap.put("channel", smsCollidingChannel);
-        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), aesKey, ivKey));
-        retMap.put("sign", FinanceAESUtils.signLocal(retMap, sKey));
+        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingVtKey, smsCollidingVtIv));
+        retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingVtSignKey));
         HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq),true,false);
 //        HashMap<String, String> resMap = getTestMap(sha256CodeList);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
