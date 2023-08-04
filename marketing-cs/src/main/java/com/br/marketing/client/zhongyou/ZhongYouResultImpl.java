@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import static net.lingala.zip4j.util.InternalZipConstants.CHARSET_UTF8;
@@ -44,80 +45,145 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
     private ZhongyouFileDataMapper zhongyouFileDataMapper;
 
     @Override
-    public Map<String,String> applyStream(InputStream inputStream,Long fileId) {
-        ThreadPoolExecutor poolExecutor = BrExecutors.getThreadPool(5, 5);
+    public Map<String, String> applyStream(InputStream inputStream, Long fileId) {
+        ThreadPoolExecutor zhongyouThread = BrExecutors.getThreadPool(5, 5);
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-        String tempString;
-        Map<String,String> resultMap = new HashMap<>();
-        int line = 1;
-        String lineData = "";
+        Map<String, String> resultMap = new HashMap<>();
         try {
             List<ZhongyouFileData> zhongyouFileDataList = new ArrayList<>();
-            while (true) {
-                ZhongyouFileData zhongyouFileData = new ZhongyouFileData();
-                zhongyouFileData.setFileId(fileId);
-                zhongyouFileData.setStatus(1);
-                zhongyouFileData.setType("2");
-                if (((tempString = reader.readLine()) == null)) {
-                    break;
-                }
-                lineData = tempString.trim();
-                if (line == 1) {
-                    // 如果第一行返回是一个json 格式则说明接口请求异常
-                    if (isJson(lineData)) {
-                        zhongyouFileData.setDataMessage(lineData);
-                        zhongyouFileData.setStatus(2);
-                        resultMap.put("result",lineData);
-                        log.error("中邮文件内数据接口请求异常 lineData:{}", lineData);
-                        // 异常数据停止循环
-                        break;
-                    }
-                    if (isNumeric(lineData)) {
-                        // 设置第一行数据标记
-                        zhongyouFileData.setType("1");
-                    }
-                }else {
-                    if(lineData.split("\\|\\|").length!=33){
-                        zhongyouFileData.setStatus(2);
-                    }
-                }
-                zhongyouFileData.setFileData(lineData);
-                String format = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-                zhongyouFileData.setCreateDate(Integer.parseInt(format));
-                zhongyouFileData.setCreateTime(new Date());
-                zhongyouFileData.setUpdateTime(new Date());
-                // 存储数据
-                zhongyouFileDataList.add(zhongyouFileData);
-                if(zhongyouFileDataList.size()==2000){
-                    // 线程池存储
-                    List<ZhongyouFileData> saveZhongyouFileDataList = new ArrayList<>();
-                    saveZhongyouFileDataList.addAll(zhongyouFileDataList);
-                    zhongyouFileDataMapper.saveBatch(saveZhongyouFileDataList);
-                    // 清空集合
-                    zhongyouFileDataList.clear();
-                }
 
-//                poolExecutor.execute();
-
-                line++;
+            while (dealStream(fileId, reader, zhongyouFileDataList, resultMap, zhongyouThread)) {
 
             }
+            shutdownThread(zhongyouThread);
         } catch (Exception e) {
-            log.error("数据流处理异常 line:{}", line);
-            resultMap.put("result","数据流处理异常 line:"+line);
-        }
-        if (line > 1) {
-            resultMap.put("result","success");
+            log.error("数据流处理异常：{}",e);
+            resultMap.put("result", "数据流处理异常" );
+            resultMap.put("responseData", "数据流处理异常");
         }
         return resultMap;
     }
 
+    /**
+     * 关闭线程池
+     *
+     * @param zhongyouThread 线程池
+     */
+    private static void shutdownThread(ThreadPoolExecutor zhongyouThread) {
+        zhongyouThread.shutdown();
+        try {
+            while (!zhongyouThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("等待线程池结束");
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+    }
+
+    /**
+     * 主流程处理逻辑
+     *
+     * @param fileId               文件id
+     * @param reader               stream流
+     * @param zhongyouFileDataList 数据集
+     * @param resultMap            结果集
+     * @param zhongyouThread       线程池
+     * @return 是否继续while 循环
+     * @throws IOException IO异常
+     */
+    private boolean dealStream(Long fileId, BufferedReader reader, List<ZhongyouFileData> zhongyouFileDataList,
+                           Map<String, String> resultMap, ThreadPoolExecutor zhongyouThread) throws IOException {
+        String lineData = getLineData(reader, zhongyouFileDataList);
+        if (lineData == null) return false;
+        zhongyouDataListBuild(fileId, zhongyouFileDataList, resultMap, lineData);
+        zhongyouDataListSave(zhongyouFileDataList, zhongyouThread);
+        return true;
+    }
+
+    /**
+     * 集合数据存储
+     *
+     * @param zhongyouFileDataList 数据集
+     * @param zhongyouThread       线程池
+     */
+    private void zhongyouDataListSave(List<ZhongyouFileData> zhongyouFileDataList, ThreadPoolExecutor zhongyouThread) {
+        if (zhongyouFileDataList.size() == 2000) {
+            // 线程池存储
+            zhongyouThread.submit(() -> {
+                List<ZhongyouFileData> saveZhongyouFileDataList = new ArrayList<>(zhongyouFileDataList);
+                zhongyouFileDataMapper.saveBatch(saveZhongyouFileDataList);
+            });
+            // 清空集合
+            zhongyouFileDataList.clear();
+        }
+    }
+
+    /**
+     * 存储集合数据构建
+     *
+     * @param fileId               文件id
+     * @param zhongyouFileDataList 中邮待存储鞂
+     * @param resultMap            返回结果集
+     * @param lineData             行内容
+     */
+    private static void zhongyouDataListBuild(Long fileId, List<ZhongyouFileData> zhongyouFileDataList,
+                                              Map<String, String> resultMap, String lineData) {
+        ZhongyouFileData zhongyouFileData = new ZhongyouFileData();
+        zhongyouFileData.setFileId(fileId);
+        zhongyouFileData.setStatus(1);
+        zhongyouFileData.setType("2");
+
+        // 如果第一行返回是一个json 格式则说明接口请求异常
+        if (isJson(lineData)) {
+            zhongyouFileData.setDataMessage(lineData);
+            zhongyouFileData.setStatus(2);
+            resultMap.put("result", lineData);
+            log.error("中邮文件内数据接口请求异常 lineData:{}", lineData);
+        } else if (isNumeric(lineData)) {
+            // 设置第一行数据标记
+            zhongyouFileData.setType("1");
+        } else if (lineData.contains("\\|\\|")) {
+            int length = lineData.split("\\|\\|").length;
+            if (length != 33) {
+                zhongyouFileData.setStatus(2);
+                zhongyouFileData.setDataMessage("字段数不匹配：" + length);
+            }
+        }
+        zhongyouFileData.setFileData(lineData);
+        String format = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        zhongyouFileData.setCreateDate(Integer.parseInt(format));
+        zhongyouFileData.setCreateTime(new Date());
+        zhongyouFileData.setUpdateTime(new Date());
+        // 存储数据
+        zhongyouFileDataList.add(zhongyouFileData);
+    }
+
+    /**
+     * 获取数据流里的每一行数据
+     *
+     * @param reader               数据流
+     * @param zhongyouFileDataList 中邮待存储集合
+     * @return 行数据流
+     * @throws IOException IO异常
+     */
+    private String getLineData(BufferedReader reader, List<ZhongyouFileData> zhongyouFileDataList) throws IOException {
+        String tempString;
+        if (((tempString = reader.readLine()) == null)) {
+            // 最后一批不足2000的数据主线程直接存储
+            if (!zhongyouFileDataList.isEmpty()) {
+                zhongyouFileDataMapper.saveBatch(zhongyouFileDataList);
+            }
+            return null;
+        }
+        return tempString.trim();
+    }
+
     @Override
-    public Map<String,String> applyEntity(HttpEntity httpEntity) {
-        Map<String,String> resultMap = new HashMap<>();
+    public Map<String, String> applyEntity(HttpEntity httpEntity) {
+        Map<String, String> resultMap = new HashMap<>();
         try {
             String result = EntityUtils.toString(httpEntity, CHARSET_UTF8);
-            resultMap.put("result",result);
+            resultMap.put("result", result);
             JSONObject resultJson = JSONObject.parseObject(result);
             String responseCode = resultJson.getString("responseCode");
             if (RETURNCODE.equals(responseCode)) {
@@ -125,10 +191,10 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
                 String sysSign = resultJson.getString("sysSign");
                 String responseData = resultJson.getString("responseData");
 //                resultString = ZhongYouClientData.decryptData(responseData, sysSign);
-                resultMap.put("responseData",responseData);
+                resultMap.put("responseData", responseData);
             }
         } catch (Exception e) {
-            resultMap.put("responseData","解析中邮Entity数据异常");
+            resultMap.put("responseData", "解析中邮Entity数据异常");
             log.error("解析中邮Entity数据异常");
         }
 

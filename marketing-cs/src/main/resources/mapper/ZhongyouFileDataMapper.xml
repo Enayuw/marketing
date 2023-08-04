@@ -2,74 +2,29 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.br.marketing.mapper.ZhongyouFileDataMapper">
     <insert id="saveBatch" parameterType="list">
-        insert into b_zhongyou_file_data
-        <trim prefix="(" suffix=")" suffixOverrides="," >
-            <if test="apiCode != null" >
-                api_code,
-            </if>
-            <if test="fileId != null" >
-                file_id,
-            </if>
-            <if test="type != null" >
-                `type`,
-            </if>
-            <if test="status != null" >
-                `status`,
-            </if>
-            <if test="dataMessage != null" >
-                data_message,
-            </if>
-            <if test="extend != null" >
-                extend,
-            </if>
-            <if test="createTime != null" >
-                create_time,
-            </if>
-            <if test="updateTime != null" >
-                update_time,
-            </if>
-            <if test="createDate != null" >
-                create_date,
-            </if>
-            <if test="fileData != null" >
-                file_data,
-            </if>
-        </trim>
-
-        <trim prefix="values (" suffix=")" suffixOverrides="," >
-            <foreach collection="list" item="data" separator=",">
-            <if test="apiCode != null" >
-                #{data.apiCode,jdbcType=VARCHAR},
-            </if>
-            <if test="fileId != null" >
-                #{data.fileId,jdbcType=BIGINT},
-            </if>
-            <if test="type != null" >
-                #{data.type,jdbcType=VARCHAR},
-            </if>
-            <if test="status != null" >
-                #{data.status,jdbcType=INTEGER},
-            </if>
-            <if test="dataMessage != null" >
-                #{data.dataMessage,jdbcType=VARCHAR},
-            </if>
-            <if test="extend != null" >
-                #{data.extend,jdbcType=VARCHAR},
-            </if>
-            <if test="createTime != null" >
-                #{data.createTime,jdbcType=TIMESTAMP},
-            </if>
-            <if test="updateTime != null" >
-                #{data.updateTime,jdbcType=TIMESTAMP},
-            </if>
-            <if test="createDate != null" >
-                #{data.createDate,jdbcType=INTEGER},
-            </if>
-            <if test="fileData != null" >
-                #{data.fileData},
-            </if>
-            </foreach>
-        </trim>
-
+        insert into b_zhongyou_file_data (
+        api_code,
+        file_id,
+        `type`,
+        status,
+        data_message,
+        file_data,
+        create_time,
+        update_time,
+        create_date
+        )values
+        <foreach collection="list" item="data" separator=",">
+        (
+        #{data.apiCode,jdbcType=VARCHAR},
+        #{data.fileId,jdbcType=BIGINT},
+        #{data.type,jdbcType=VARCHAR},
+        #{data.status,jdbcType=INTEGER},
+        #{data.dataMessage,jdbcType=VARCHAR},
+        #{data.fileData},
+        #{data.createTime,jdbcType=TIMESTAMP},
+        #{data.updateTime,jdbcType=TIMESTAMP},
+        #{data.createDate,jdbcType=INTEGER}
+        )
+        </foreach>
     </insert>
 </mapper>

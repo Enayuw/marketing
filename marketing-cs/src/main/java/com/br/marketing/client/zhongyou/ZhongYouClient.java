@@ -25,7 +25,6 @@ import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -35,7 +34,6 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import static net.lingala.zip4j.util.InternalZipConstants.CHARSET_UTF8;
 
 /**
  * 描述：： 中邮接口请求
@@ -124,7 +122,7 @@ public class ZhongYouClient {
             interfaceLog.setExpire(String.valueOf(end - start));
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
-                Map<String,String > resultMap = new HashMap<>();
+                Map<String,String > resultMap;
                 if (isStream) {
                     resultMap = zhongYouResultInterface.applyStream(response.getEntity().getContent(),fileId);
                 } else {

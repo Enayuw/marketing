@@ -10,14 +10,18 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.ZhongyouFile;
 import com.br.marketing.mapper.ZhongyouFileMapper;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+
+import static com.br.marketing.common.utils.MQConstants.ROUTING_KEY_MARKETING_ZHONGYOU_DATA_CLEAN;
 
 /**
  * 描述：： 中邮数据处理接口
@@ -40,6 +44,9 @@ public class ZhongYouDataService {
 
     @Resource
     private ZhongyouFileMapper zhongyouFileMapper;
+
+    @Resource
+    private RabbitMqProducter producter;
 
 //    @RetryMethod
     public Result<List<Long>> saveFileNameList(LocalDate date){
@@ -65,6 +72,8 @@ public class ZhongYouDataService {
         if (!"200".equals(stringStringHashMap.get("httpcode")) || StringUtils.isBlank(stringStringHashMap.get("content"))) {
             log.error("中邮文件内容接口httpcode非200异常");
         }
+        // 发送mq
+        producter.send(ROUTING_KEY_MARKETING_ZHONGYOU_DATA_CLEAN,String.valueOf(id));
     }
 
     private  List<Long> saveFile(String content){
@@ -80,6 +89,9 @@ public class ZhongYouDataService {
             zhongyouFile.setFileName(fileName);
             zhongyouFile.setDataMessage(content);
             zhongyouFile.setType("OUTMARKETING");
+            zhongyouFile.setStatus(1);
+            zhongyouFile.setCreateTime(new Date());
+            zhongyouFile.setUpdateTime(new Date());
             if(zhongyouFileMapper.insertSelective(zhongyouFile)>0){
                 ids.add(zhongyouFile.getId());
             }

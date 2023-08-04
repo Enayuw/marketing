@@ -33,13 +33,16 @@ public class ZhongYouDataPullJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
-
-        LocalDate beginDate = StringUtils.isBlank(jobParameter) ? LocalDate.now() : LocalDate.parse(jobParameter);
-        Result<List<Long>> postResult = zhongYouDataService.saveFileNameList(beginDate);
-        if (postResult.getCode() == 1) {
-            List<Long> data = postResult.getData();
-            data.forEach(id -> zhongYouDataService.saveFileData(id));
+        try {
+            String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
+            LocalDate beginDate = StringUtils.isBlank(jobParameter) ? LocalDate.now() : LocalDate.parse(jobParameter);
+            Result<List<Long>> postResult = zhongYouDataService.saveFileNameList(beginDate);
+            if (postResult.getCode() == 1) {
+                List<Long> data = postResult.getData();
+                data.forEach(id -> zhongYouDataService.saveFileData(id));
+            }
+        }catch (Exception e){
+            log.error("中邮数据拉取定时任务启动异常：{}",e);
         }
     }
 
