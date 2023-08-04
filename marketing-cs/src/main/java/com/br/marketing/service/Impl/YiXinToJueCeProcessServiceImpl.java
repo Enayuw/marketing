@@ -369,8 +369,8 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         // 创建线程池
         ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
         String requestDate = LocalDate.now().minusDays(1).toString();
-        String applyDtStart = LocalDate.now().minusDays(1).toString() + " 00:00:00";
-        String applyDtEnd = LocalDate.now().minusDays(1).toString() + " 23:59:59";
+        String applyDtStart = requestDate + " 00:00:00";
+        String applyDtEnd = requestDate + " 23:59:59";
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         while (true) {
             initThreadPoolParam(yiXinToJueCeThread);

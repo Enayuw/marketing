@@ -1,7 +1,5 @@
 package com.br.marketing.service.Impl.yixin;
 
-import cn.hutool.core.collection.ConcurrentHashSet;
-import com.br.cloud.threadpool.ThreadPoolField;
 import com.br.cloud.threadpool.ThreadPoolOwner;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -15,7 +13,6 @@ import com.br.marketing.service.IDxService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -23,10 +20,6 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -51,11 +44,6 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
     private PhoneSaleMapper phoneSaleMapper;
     @Resource
     private IDxService iDxService;
-
-    @Resource
-    @Qualifier("yiXinExcludeRuleFifthThreadPool")
-    @ThreadPoolField(poolName = "YiXinProcessGetBaseExcludeRuleDataImpl.yiXinExcludeRuleFifthThreadPool")
-    ThreadPoolExecutor pool;
 
     @Override
     public void excludeRuleFirst(List<MarketingTransferSyncUser> marketingTransferSyncUsers) {
@@ -132,12 +120,6 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
 
     }
 
-    private void modifyCorePoolSize() {
-        Integer threadNum = marketingCommonConfig.getYiXinExcludeRuleFifthThreadNum();
-        pool.setCorePoolSize(threadNum);
-        pool.setMaximumPoolSize(threadNum);
-    }
-
     /**
      * 请求时间为T-30日的转化数据取transformType为非1的type=12根据inserTime取最新的custNum，且该custNum在[T-29,T]该transformType为非1的custNum无其他type-20230619更新
      * @param marketingTransferSyncUsers 转化数据集合
@@ -146,51 +128,27 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
     public void excludeRuleFifth(List<MarketingTransferSyncUser> marketingTransferSyncUsers) {
         log.warn("宜信推送决策,符合剔除条件:custNum在30天内有type!=12的基础数据,剔除前数据量级:{}", marketingTransferSyncUsers.size());
         long start = System.currentTimeMillis();
-        modifyCorePoolSize();
         String cid = marketingTransferSyncUsers.get(0).gettCid();
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         List<String> custNums = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
 
-        LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusDays(29);
+        String endDate = LocalDate.now().toString();
+        String startDate = LocalDate.now().minusDays(29).toString();
 
-        List<Callable<List<String>>> tasks = new ArrayList<>();
-        // 提交查询任务给线程池
-        for (LocalDate date = startDate; date.isBefore(endDate.plusDays(1)); date = date.plusDays(1)) {
-            final String queryDate = date.toString();
-            tasks.add(() -> queryDataByDate(cid, apiCode, queryDate, custNums));
-        }
-
-        Set<String> custNumExcludeList = new ConcurrentHashSet<>();
-
-        // 执行任务并等待所有任务执行完成，并汇总结果
-        try {
-            List<Future<List<String>>> futures = pool.invokeAll(tasks);
-            for (Future<List<String>> future : futures) {
-                custNumExcludeList.addAll(future.get());
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            log.error(e.getMessage(), e);
-            Thread.currentThread().interrupt();
-        }
-
-        long end = System.currentTimeMillis();
-        log.warn("宜信推送决策,剔除处理:custNum在30天内有type!=12的基础数据。单次处理耗时：{}ms,剔除的数据量级:{}", end - start, custNumExcludeList.size());
-        if (CollectionUtils.isEmpty(custNumExcludeList)) {
-            return;
-        }
-
-        marketingTransferSyncUsers.removeIf(t -> custNumExcludeList.contains(t.getCustNum()));
-    }
-
-    private List<String> queryDataByDate(String cid, String apiCode, String queryDate, List<String> custNums) {
         List<String> includeList =
                 marketingTransferSyncUserMapper.getRuleFifthYxTransferByApiCodetikv_(
                         cid,
                         apiCode,
-                        queryDate,
+                        startDate, endDate,
                         custNums);
-        return includeList;
+
+        long end = System.currentTimeMillis();
+        log.warn("宜信推送决策,剔除处理:custNum在30天内有type!=12的基础数据。单次处理耗时：{}ms,剔除的数据量级:{}", end - start, includeList.size());
+        if (CollectionUtils.isEmpty(includeList)) {
+            return;
+        }
+
+        marketingTransferSyncUsers.removeIf(t -> includeList.contains(t.getCustNum()));
     }
 
     @Override
