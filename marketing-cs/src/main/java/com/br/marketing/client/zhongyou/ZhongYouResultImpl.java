@@ -14,8 +14,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Pattern;
 
@@ -51,6 +52,7 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
         int line = 1;
         String lineData = "";
         try {
+            List<ZhongyouFileData> zhongyouFileDataList = new ArrayList<>();
             while (true) {
                 ZhongyouFileData zhongyouFileData = new ZhongyouFileData();
                 zhongyouFileData.setFileId(fileId);
@@ -74,17 +76,33 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
                         // 设置第一行数据标记
                         zhongyouFileData.setType("1");
                     }
+                }else {
+                    if(lineData.split("\\|\\|").length!=33){
+                        zhongyouFileData.setStatus(2);
+                    }
                 }
                 zhongyouFileData.setFileData(lineData);
+                String format = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+                zhongyouFileData.setCreateDate(Integer.parseInt(format));
+                zhongyouFileData.setCreateTime(new Date());
+                zhongyouFileData.setUpdateTime(new Date());
                 // 存储数据
-                zhongyouFileDataMapper.insertSelective(zhongyouFileData);
+                zhongyouFileDataList.add(zhongyouFileData);
+                if(zhongyouFileDataList.size()==2000){
+                    // 线程池存储
+                    List<ZhongyouFileData> saveZhongyouFileDataList = new ArrayList<>();
+                    saveZhongyouFileDataList.addAll(zhongyouFileDataList);
+                    zhongyouFileDataMapper.saveBatch(saveZhongyouFileDataList);
+                    // 清空集合
+                    zhongyouFileDataList.clear();
+                }
+
 //                poolExecutor.execute();
-                log.warn("--- 第 {} 行 ---", line);
-                log.warn(lineData);
+
                 line++;
 
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("数据流处理异常 line:{}", line);
             resultMap.put("result","数据流处理异常 line:"+line);
         }

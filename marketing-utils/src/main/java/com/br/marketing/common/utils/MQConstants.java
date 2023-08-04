@@ -131,4 +131,7 @@ public class MQConstants {
 
     // 设置默认有效日期队列路由key
     public static final String ROUTING_KEY_MARKETING_CONFIG_DEFAULT_VALID_DATE = "marketing.config.default.valid.date";
+
+    //中邮数据清洗队列
+    public static final String ROUTING_KEY_MARKETING_ZHONGYOU_DATA_CLEAN = "Marketing.Zhongyou.Data.Clean";
 }
