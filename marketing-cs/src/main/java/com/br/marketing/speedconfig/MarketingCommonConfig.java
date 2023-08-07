@@ -858,5 +858,10 @@ public class MarketingCommonConfig {
      * 非生成默认有效期配置的apiCode集合
      */
     private Set<String> nonConfigValidDefaultApiCodes;
+
+    /**
+     * 中邮数据文件流读取落库apiCode
+     */
+    private String zhongyouApiCode;
 }
 

@@ -27,4 +27,8 @@
         )
         </foreach>
     </insert>
+    <select id="selectZhongyouCount" resultType="com.br.marketing.entity.ZhongyouDataCountDTO" parameterType="java.lang.Long">
+        select count(1) as num ,file_data,type from b_zhongyou_file_data where file_id = #{fileId} group by type order by type
+    </select>
+
 </mapper>

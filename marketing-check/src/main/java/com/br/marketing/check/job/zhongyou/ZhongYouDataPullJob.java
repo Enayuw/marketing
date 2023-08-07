@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 描述：： 中邮数据拉取
@@ -38,7 +39,7 @@ public class ZhongYouDataPullJob extends AbstractSimpleElasticJob {
             String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
             LocalDate beginDate = StringUtils.isBlank(jobParameter) ? LocalDate.now() : LocalDate.parse(jobParameter);
             Result<List<Long>> postResult = zhongYouDataService.saveFileNameList(beginDate);
-            if (postResult.getCode() == ResultCode.SUCCESS.getValue()) {
+            if (Objects.equals(postResult.getCode(), ResultCode.SUCCESS.getValue())) {
                 postResult.getData().forEach(fileId -> zhongYouDataService.saveFileData(fileId));
             }
         }catch (Exception e){
