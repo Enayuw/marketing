@@ -81,7 +81,7 @@ logging:
     root: INFO
 otherConfig:
   huaXiangInterface:
-        getReport: http://batch-hxapi.100credit.cn/batch-hxapi/v1/get_report
+        getReport: http://batch-hxapi/batch-hxapi/v1/get_report
   sanxiangzhiliInterface:
         sanxiang_url: http://zh-service/v1/getData
         haina_url: http://HAINA-SERVICE/query

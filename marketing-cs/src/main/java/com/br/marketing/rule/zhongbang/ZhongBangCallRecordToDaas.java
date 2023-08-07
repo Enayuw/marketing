@@ -1,12 +1,14 @@
-package com.br.marketing.rule.zhongyuan;
+package com.br.marketing.rule.zhongbang;
 
+import com.alibaba.fastjson.JSON;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
 import com.br.marketing.common.utils.AESUtil;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.ZhongYuanRuleCollectDataImpl;
+import com.br.marketing.context.impl.ZhongBangRuleCollectDataImpl;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
@@ -14,7 +16,6 @@ import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,18 +23,16 @@ import org.springframework.stereotype.Service;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
- * 中原消金通话明细推送人工
+ * 众邦通话明细推送人工
  *
- * @author Guo Zeqiang
- * @dateTime 2023-06-08 16:44
+ * @author zhen.Li
+ * @dateTime 2023-08-01 16:44
  */
 @Service
-public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUserDataDTO> {
+public class ZhongBangCallRecordToDaas implements AssembleData<BatchRealTimeUserDataDTO> {
 
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
@@ -44,11 +43,12 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
     @Autowired
     PushDataService pushDataService;
 
+
     @Override
-    public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
+    public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         CallRecordBO dto = (CallRecordBO) transmitFact;
-        ZhongYuanRuleCollectDataImpl.ZhongYuanRuleNecessaryData ruleNecessaryData =
-                (ZhongYuanRuleCollectDataImpl.ZhongYuanRuleNecessaryData) context.getRuleNecessaryData();
+        ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData ruleNecessaryData =
+                (ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData) context.getRuleNecessaryData();
         Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCallRecordCustomerMap();
         MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, dto.getCaseNum());
         if (marketingSyncUser == null) {
@@ -80,32 +80,36 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
     }
 
     private DassImportDataDTO packageDassImportData(CallRecordBO dto, MarketingSyncUser marketingSyncUser) {
-        String phone = AESUtil.aesEncrypty(BrCipherMaker.getInstance().decode(
-                marketingSyncUser.getCell()), aesKey);
+        String phone = AESUtil.aesEncrypty(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()), aesKey);
+        String firstName = "";
+        if (StringUtils.isNotEmpty(marketingSyncUser.getReserveField1())) {
+            firstName = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("firstName");
+        }
         DassImportDataDTO batchImportData = new DassImportDataDTO();
-        batchImportData.setName("1");
-        batchImportData.setOrgname("zhongyuanxj");
+        batchImportData.setName(StringUtils.isNotEmpty(firstName) ? firstName : "1");
+        batchImportData.setOrgname("zhongbang");
         batchImportData.setPhone(phone);
-        batchImportData.setUserType("2");
-        batchImportData.setSource("30");
+        batchImportData.setUserType("1");
+        batchImportData.setSource("33");
         batchImportData.setUid(dto.getCaseNum());
         batchImportData.setId(dto.getId());
         return batchImportData;
+
     }
 
     @Override
-    public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
+    public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         if (transmitFact instanceof CallRecordBO) {
             CallRecordBO bo = (CallRecordBO) transmitFact;
             String intentionGrade = bo.getDetail().getIntentionGrade();
-            return pushDataService.isPushDassWithCallGrade(this.label(),intentionGrade);
+            return pushDataService.isPushDassWithCallGrade(this.label(), intentionGrade);
         }
         return false;
     }
 
     @Override
     public String label() {
-        return "ZhongYuan_CallRecordData_PhoneSale";
+        return "ZhongBang_CallRecordData_PushDaas";
     }
 
     @Override
@@ -115,6 +119,6 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
 
     @Override
     public Integer ruleDataCollection() {
-        return RuleDataCollectionEnum.ZHONGYUAN_DATA_COLLECTION.getCode();
+        return RuleDataCollectionEnum.ZHONGBANG_DATA_COLLECTION.getCode();
     }
 }

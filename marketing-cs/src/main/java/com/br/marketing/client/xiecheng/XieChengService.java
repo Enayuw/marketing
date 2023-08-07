@@ -163,6 +163,7 @@ public class XieChengService {
 
     @RetryMethod(retryNowNum = 3)
     public Result pushXieChengData(AdReqDTO xieChengData) {
+
         /**
          * data 组装
          */
@@ -170,6 +171,12 @@ public class XieChengService {
         deviceInfo.put("sha256Tel", xieChengData.getSha256Tel());
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         ThirdAdOuterReq thirdAdOuterReq = null;
+        JSONObject config = marketingCommonConfig.getXieChengVtConfig().get("adVt");
+        String aid = "1".equals(xieChengData.getConditionKey()) ? appId : config.getString("appId");
+        String aesKey = "1".equals(xieChengData.getConditionKey()) ? key : config.getString("aesKey");
+        String ivKey = "1".equals(xieChengData.getConditionKey()) ? iv : config.getString("iv");
+        String sKey = "1".equals(xieChengData.getConditionKey()) ? singKey : config.getString("singKey");
+        String sourceVt = config.getString("source");
         if ("1".equals(xieChengData.getConditionKey())) {
             thirdAdOuterReq = new ThirdAdOuterReq(
                     timestemp,
@@ -179,23 +186,21 @@ public class XieChengService {
                     deviceInfo.toString()
             );
         } else {
+
             thirdAdOuterReq = new ThirdAdOuterReq(
                     timestemp,
-                    source,
+                    sourceVt,
                     xieChengData.getClickId(),
                     xieChengData.getActionType(),
                     deviceInfo.toString(),
                     xieChengData.getMktMode(),
                     xieChengData.getMktChannel(),
                     xieChengData.getMktProductNo(),
-                    appIdVt
+                    aid
             );
         }
 
-        String aid = "1".equals(xieChengData.getConditionKey()) ? appId : appIdVt;
-        String aesKey = "1".equals(xieChengData.getConditionKey()) ? key : keyVt;
-        String ivKey = "1".equals(xieChengData.getConditionKey()) ? iv : ivVt;
-        String sKey = "1".equals(xieChengData.getConditionKey()) ? singKey : signKeyVt;
+
 
         Map<String, Object> retMap = Maps.newHashMap();
         retMap.put("appId", aid);
