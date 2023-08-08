@@ -1,9 +1,12 @@
 package com.br.marketing.client.zhongyou;
 
 import com.alibaba.fastjson.JSONObject;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -33,94 +36,68 @@ import java.util.Date;
  **/
 
 @Slf4j
-@Component
-
+@Service
+@Data
 public class ZhongYouClientData {
 
     private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyyMMddHHmmss");
     /**
      * 加密算法RSA
      */
-    private static final String KEY_ALGORITHM = "RSA";
+    @Value("${api.zhongyou.keyAlgorithm}")
+    String keyAlgorithm;
 
     /**
      * 签名算法
      */
-    private static final String SIGN_ALGORITHMS = "SHA1WithRSA";
+    @Value("${api.zhongyou.signAlgorithms}")
+    String signAlgorithms;
 
     /**
      * 中邮提供
      */
-    private static final String AES_KEY = "3nbkz1h7kg7mueaq";
+    @Value("${api.zhongyou.aesKey}")
+    String aesKey;
 
     /**
      * 中邮提供
      */
-    private static final String AES_IV = "hfhogkpfypizg2gi";
+    @Value("${api.zhongyou.aesIv}")
+    String aesIv;
     /**
      * 中邮提供
      */
-    private static final String CHANNEL_CODE = "BRYXkHIAvr0m2U0T";
+    @Value("${api.zhongyou.channelCode}")
+    String channelCode;
     /**
      * 中邮公钥
      */
-    private static final String RSA_PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhnl5uzpi0XZ2LIlc0C7kLe9JQ3v9els+K7WcsgRRrtszGCae6ko48NHf8xJvr8tWZqJf3P1YDzQe86pff9x7u6Xx4XqCbYIaH/DDsoXaZG+gvRtlRLDq5rXwncGFvx7lXAE/dOfyvK2OW7/bWbA9iZ5Za4mWKr3qwSHwOEptd93KPsvi5Xk0I8hcfik9BnTPds/P9nGNesHKk9E+Rt2GnPxa8h9aF8jFweie4MlaXzb3CkrM7vEaQZA+mwPTKvvYdCd20rIJmKwUMdG/k/KA80x3l6XwC5QCpa82AoBFVvUJyCXkxG9VRJ9q2nawLMiq6sES5Lq6sYIvu2O+b/z0DQIDAQAB";
+    @Value("${api.zhongyou.rsaPublicKey}")
+    String rsaPublicKey;
 
     /**
      * 百融私钥
      */
-    private static final String RSA_PRIVATE_KEY = "MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAr1BcLtKFLRQ92jl9\n" +
-            "mS4DyMyMOgYf0EZfmhE0R5WGs92XstydpUr8xVN5pwYkU3RNeKzNjXMR3K4aBkso\n" +
-            "ren2mwIDAQABAkBc3ogGsbSkva1KVdwn8g1FKL472pStwynPtr9oEFisHJ024o7C\n" +
-            "JSHq6tqThFmNNg2vH9R1anILVC5JgfeRsWSBAiEA2t8fKnx5D41rywHyoSCBxhbo\n" +
-            "kBS8qmO5O9PzSgEVPEECIQDNDavQZ5wTE151HkRXjlt12G5b+b/PVe3FC+p6MYCr\n" +
-            "2wIhAJ3/3/G9tW7iumPsXgiu/L/RHcWVErU2FCv6T3Cm43uBAiB37kYOh3r+oTZ+\n" +
-            "86vvNeEChQrPGrz4DH8b38NNosRqPwIgW8lPWHq4OlsW1G/KojSjigkRUtu2BEk+\n" +
-            "GJxW/aIYOrY=+gRbjjk24TOAth6Zpo7m/IXgxovkSnRfPEimnfbbkvyqQZps0F64y9i8SxsIQ3cwzE0EcJQTXuIz2yowPnzYBtbkqcLS0kyk/EK6mM7nf9JI8ONTvXq1s9xgbIoWMsaNsmCyb2Bvad+Y2gAJ0ady6hH4slYI6nLCLcsK9Od5BwRVFQcNaIbeT4/7FSZLpsZS/YlSdlG5CqztkNO2nS9jo6P0HM7CNpvvASrv5jJmXjRfC/Vzf26WEQbMIRCGV3kytrmpylBTN7AgMBAAECggEAJ5v8SSW+oZeo/35ZSZBcYLn7Ptqw1TYTMn4XnrW3xVXMvYxUiQQmi+GGxNHP/qlLbZgw4Fpy7Qq1eoaJNyLHNwpejBHzD61AufKMgtuHrn76PydtFkpklrKw4QBI2KtNbrX/5a4t4drkc/kFQGxnC0fbXnp+cj8/66HgTK6OBANJTxaX2wJo122TPIRVLvhwN7sbDhKvrqehpvM+B9RMIhDL+jyQ73QRxVoS4m4+ajEmggKnejcCsokCtwQ/rask2KU82fp0zZS2gz5BrUG9VWKcU3gLnCOXP6VkrhJnXQylX5oJz+wipbZFlfUI4Fni+1/C8SSRUeAuhyDHyz434QKBgQDnN6BrkFYRpAWWxI7BYLtP7yI8AmSmvJs2UAP2OO6EpfDeRmP/CvGZd4gTej+RKP337/idvDnLLphSlIp+DBUddUvzFibgPwqGTyByGDF6/jxp6hf9ygb0wf2FmCgiGacdAyOB04p4OEfSJWvksjqpWnnB4k8aXZCSZldCQwm4GQKBgQCsH4KUtLf7+6AEfWo7P9+2rS6mXC4dJ+kc1u8qroadmIl/Mb4NVYIw58rqTqohROjkA/lTc4pxbsD/l5SuX0wEE2pQgbutt1eYNqAFHzyG1OTUC7y/dt8XTc9rwZyksLXCf88LcrnYmvEw14KpcF1ZlrFg4LIUo3JLZOEBN1yKswKBgARKQ++6/d3V7USe4Qc1hEQ3a6sxYCy30ylu0qP+6m4Lpix5oeFZkqIGVcAGxKcs24l+Kl7C30+lza26k9dC4iFpy7726kG+6bMURMXZLRHbJcPRVCChXv+rmcigyh3X3AHtzPrbsfYJFUwQ5a+Ynv4Fb7zpNg6HLeeJfpT8KXIBAoGAdOIQ8pqmNd9xkpr4ALQnXw3Ll/0Q84ueqY7rariJgYuME2vb+4INnthI20QAFAePfweT0C+t28myFd8BgEgGft4QXAs9P4I5YYv2roO/vm/j1HsD+aDnbhPQvwQDM3MseqAAIW4O9iCBmQFAIX/EZIoIehkb1RgJDVm70e+eUDECgYEAzEUhGHnELGEVej1NUXjNtmJ3546c+JebJ05pKauG+b1bO2/1w1SNmdfTN0n/Wd+jLBHOv+nakJ1LSvPIqq8nob8YBrGTzWRrUMcjfqcAYoFwfR545e1z7XpkGIOrYtmp8GGPrzF05DmXAC7V58ZEsD5V9xPzBZTEtSwO25FJRBs=";
+    @Value("${api.zhongyou.rsaPrivateKey}")
+    String rsaPrivateKey;
 
-    private static final String QUERY_URL = "https://alissl.youcash.com/facadeuat/outmarketing-fileserver/file/out/query";
+    @Value("${api.zhongyou.query}")
+    String queryUrl;
 
-    private static final String DOWNLOAD_URL = "https://alissl.youcash.com/facadeuat/outmarketing-fileserver/file/out/download";
-    private Object data;
+    @Value("${api.zhongyou.download}")
+    String downloadUrl;
 
-    private String url;
+    @Value("${api.zhongyou.isPorxy}")
+    Boolean isPorxy;
 
-    public Object getData() {
-        return data;
-    }
 
-    public void setData(Object data) {
-        this.data = data;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public ZhongYouClientData(){
-
-    }
-    public ZhongYouClientData(LocalDate localDate) {
-        String fileDate = localDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        this.data = getFileNameListData(fileDate);
-        this.url = QUERY_URL;
-    }
-
-    public ZhongYouClientData(String fileName) {
-        this.data = fileDownLoadData(fileName);
-        this.url = DOWNLOAD_URL;
-    }
 
     /**
      * 中邮接口列表查询数据组装
      *
      * @return
      */
-    private static Object getFileNameListData(String fileDate) {
+    public Object fileNameListData(String fileDate) {
         JSONObject data = new JSONObject();
         try {
             String format = SDF.format(new Date());
@@ -130,7 +107,7 @@ public class ZhongYouClientData {
             requestData.put("endTime", fileDate);
             String encryptDataStr = encryptData(requestData.toString());
             String signDataStr = signData(requestData.toString());
-            data.put("channelCode", CHANNEL_CODE);
+            data.put("channelCode", channelCode);
             data.put("version", "1.0");
             data.put("requestTime", format);
             data.put("sysSign", signDataStr);
@@ -142,7 +119,7 @@ public class ZhongYouClientData {
         return data;
     }
 
-    private static Object fileDownLoadData(String fileName) {
+    public Object fileDownLoadData(String fileName) {
         JSONObject data = new JSONObject();
         try {
             String format = SDF.format(new Date());
@@ -150,7 +127,7 @@ public class ZhongYouClientData {
             requestData.put("fileName", fileName);
             String encryptDataStr = encryptData(requestData.toString());
             String signDataStr = signData(requestData.toString());
-            data.put("channelCode", CHANNEL_CODE);
+            data.put("channelCode", channelCode);
             data.put("version", "1.0");
             data.put("requestTime", format);
             data.put("sysSign", signDataStr);
@@ -169,12 +146,12 @@ public class ZhongYouClientData {
      * @param requestData
      * @return
      */
-    private static String signData(String requestData) throws Exception {
+    private String signData(String requestData) throws Exception {
         //aes加密
-        byte[] encryptDataByte = encrypt(requestData, AES_KEY, AES_IV);
+        byte[] encryptDataByte = encrypt(requestData, aesKey, aesIv);
 
         //rsa加签
-        return sign(encryptDataByte, RSA_PRIVATE_KEY);
+        return sign(encryptDataByte, rsaPrivateKey);
     }
 
     /**
@@ -184,12 +161,12 @@ public class ZhongYouClientData {
      * @param privateKey
      * @return
      */
-    private static String sign(byte[] content, String privateKey) {
+    private String sign(byte[] content, String privateKey) {
         try {
             PKCS8EncodedKeySpec priPKCS8 = new PKCS8EncodedKeySpec(Base64.decodeBase64(privateKey));
-            KeyFactory keyf = KeyFactory.getInstance(KEY_ALGORITHM);
+            KeyFactory keyf = KeyFactory.getInstance(keyAlgorithm);
             PrivateKey priKey = keyf.generatePrivate(priPKCS8);
-            Signature signature = Signature.getInstance(SIGN_ALGORITHMS);
+            Signature signature = Signature.getInstance(signAlgorithms);
             signature.initSign(priKey);
             signature.update(content);
             byte[] signed = signature.sign();
@@ -207,9 +184,9 @@ public class ZhongYouClientData {
      * @return
      * @throws Exception
      */
-    private static String encryptData(String requestData) throws Exception {
+    private String encryptData(String requestData) throws Exception {
         //aes加密
-        byte[] encryptDataByte = encrypt(requestData, AES_KEY, AES_IV);
+        byte[] encryptDataByte = encrypt(requestData, aesKey, aesIv);
 
         //加密后的数据
         return Base64.encodeBase64String(encryptDataByte);
@@ -240,24 +217,25 @@ public class ZhongYouClientData {
      * @param sign         响应的签名
      * @return
      */
-    public static String decryptData(String responseData, String sign) throws Exception {
+    public String decryptData(String responseData, String sign) throws Exception {
 
         //对sign进行签名验证
-        if (!doCheck(responseData, sign, RSA_PUBLIC_KEY)) {
-//            log.error("报文验签失败");
+        if (!doCheck(responseData, sign, rsaPublicKey)) {
+            log.error("报文验签失败");
             throw new Exception();
         }
 
         //使用AES解密后的数据
         String decryptData = null;
         try {
-            decryptData = decrypt(responseData, AES_KEY, AES_IV);
+            decryptData = decrypt(responseData, aesKey, aesIv);
         } catch (Exception e) {
-//            log.error("请求参数解密失败:{}", e);
+            log.error("请求参数解密失败:{}", e);
             throw e;
         }
         return decryptData;
     }
+
     /**
      * 验签
      *
@@ -266,14 +244,14 @@ public class ZhongYouClientData {
      * @param publicKey
      * @return
      */
-    private static boolean doCheck(String content, String sign, String publicKey) {
+    private boolean doCheck(String content, String sign, String publicKey) {
         try {
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             byte[] encodedKey = Base64.decodeBase64(publicKey);
             PublicKey pubKey = keyFactory.generatePublic(new X509EncodedKeySpec(encodedKey));
 
             Signature signature = Signature
-                    .getInstance(SIGN_ALGORITHMS);
+                    .getInstance(signAlgorithms);
 
             signature.initVerify(pubKey);
             signature.update(Base64.decodeBase64(content));
@@ -282,7 +260,7 @@ public class ZhongYouClientData {
             return bverify;
 
         } catch (Exception e) {
-//            log.error("验签失败,内容为={}",e);
+            log.error("验签失败,内容为={}", e);
         }
         return false;
     }

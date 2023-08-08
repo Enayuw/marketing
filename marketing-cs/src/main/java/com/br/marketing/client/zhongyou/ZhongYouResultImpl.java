@@ -56,6 +56,9 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    private ZhongYouClientData zhongYouClientData;
+
     @Override
     public Map<String, String> applyStream(InputStream inputStream, Long fileId) {
         ThreadPoolExecutor zhongyouThread = BrExecutors.getThreadPool(5, 5);
@@ -203,7 +206,7 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
                 // 解析数据
                 String sysSign = resultJson.getString("sysSign");
                 String responseData = resultJson.getString("responseData");
-                String resultString = ZhongYouClientData.decryptData(responseData, sysSign);
+                String resultString = zhongYouClientData.decryptData(responseData, sysSign);
                 resultMap.put("responseData", resultString);
             }
         } catch (Exception e) {

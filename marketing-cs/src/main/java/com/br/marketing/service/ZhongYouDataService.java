@@ -16,11 +16,11 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static com.br.marketing.common.utils.MQConstants.ROUTING_KEY_MARKETING_ZHONGYOU_DATA_CLEAN;
@@ -60,12 +60,20 @@ public class ZhongYouDataService {
     @Resource
     TableCreateServiceImpl tableCreateService;
 
+    @Resource
+    ZhongYouClientData zhongYouClientData;
+
     @RetryMethod(retryNum = 2)
     public Result<List<Long>> saveFileNameList(LocalDate date) {
         // 拉取数据
-        ZhongYouClientData zhongYouClientData = new ZhongYouClientData(date);
+        String fileDate = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         HashMap<String, String> stringStringHashMap =
-                zhongYouClient.sendByCodeWithLog(zhongYouClientData.getData(), zhongYouClientData.getUrl(), false, false, null);
+                zhongYouClient.sendByCodeWithLog(
+                        zhongYouClientData.fileNameListData(fileDate),
+                        zhongYouClientData.getQueryUrl(),
+                        zhongYouClientData.getIsPorxy(),
+                        false,
+                        null);
         if (!"200".equals(stringStringHashMap.get("httpcode"))) {
             log.error("中邮文件列表接口httpcode非200异常，重试");
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
@@ -77,10 +85,14 @@ public class ZhongYouDataService {
     @RetryMethod(retryNum = 2)
     public Result saveFileData(Long fileId) {
         LocalFile zhongyouFile = localFileMapper.selectByPrimaryKey(fileId);
-        ZhongYouClientData zhongYouClientData = new ZhongYouClientData(zhongyouFile.getFileName());
         HashMap<String, String> stringStringHashMap =
-                zhongYouClient.sendByCodeWithLog(zhongYouClientData.getData(), zhongYouClientData.getUrl(), false, true, fileId);
-        if (!"200".equals(stringStringHashMap.get("httpcode")) || StringUtils.isBlank(stringStringHashMap.get("content"))) {
+                zhongYouClient.sendByCodeWithLog(
+                        zhongYouClientData.fileDownLoadData(zhongyouFile.getFileName()),
+                        zhongYouClientData.getDownloadUrl(),
+                        zhongYouClientData.getIsPorxy(),
+                        true,
+                        fileId);
+        if (!"200".equals(stringStringHashMap.get("httpcode"))) {
             log.error("中邮文件内容接口httpcode非200异常");
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
