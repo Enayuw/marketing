@@ -814,6 +814,7 @@ public class DidiCallRecordExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
         public Criteria andSysMessageIsNull() {
             addCriterion("sys_message is null");
             return (Criteria) this;
@@ -884,6 +885,145 @@ public class DidiCallRecordExample {
             return (Criteria) this;
         }
 
+        public Criteria andScasIsNull() {
+            addCriterion("scas is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andScasIsNotNull() {
+            addCriterion("scas is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andScasEqualTo(String value) {
+            addCriterion("scas =", value, "scas");
+            return (Criteria) this;
+        }
+
+        public Criteria andScasNotEqualTo(String value) {
+            addCriterion("scas <>", value, "scas");
+            return (Criteria) this;
+        }
+
+        public Criteria andScasGreaterThan(String value) {
+            addCriterion("scas >", value, "scas");
+            return (Criteria) this;
+        }
+
+        public Criteria andScasGreaterThanOrEqualTo(String value) {
+            addCriterion("scas >=", value, "scas");
+            return (Criteria) this;
+        }
+
+        public Criteria andScasLessThan(String value) {
+            addCriterion("scas <", value, "scas");
+            return (Criteria) this;
+        }
+
+        public Criteria andScasLessThanOrEqualTo(String value) {
+            addCriterion("scas <=", value, "scas");
+            return (Criteria) this;
+        }
+
+        public Criteria andScasLike(String value) {
+            addCriterion("scas like", value, "scas");
+            return (Criteria) this;
+        }
+
+        public Criteria andScasNotLike(String value) {
+            addCriterion("scas not like", value, "scas");
+            return (Criteria) this;
+        }
+
+        public Criteria andScasIn(List<String> values) {
+            addCriterion("scas in", values, "scas");
+            return (Criteria) this;
+        }
+
+        public Criteria andScasNotIn(List<String> values) {
+            addCriterion("scas not in", values, "scas");
+            return (Criteria) this;
+        }
+
+        public Criteria andScasBetween(String value1, String value2) {
+            addCriterion("scas between", value1, value2, "scas");
+            return (Criteria) this;
+        }
+
+        public Criteria andScasNotBetween(String value1, String value2) {
+            addCriterion("scas not between", value1, value2, "scas");
+            return (Criteria) this;
+        }
+
+        public Criteria andMediaNameIsNull() {
+            addCriterion("media_name is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMediaNameIsNotNull() {
+            addCriterion("media_name is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMediaNameEqualTo(String value) {
+            addCriterion("media_name =", value, "mediaName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMediaNameNotEqualTo(String value) {
+            addCriterion("media_name <>", value, "mediaName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMediaNameGreaterThan(String value) {
+            addCriterion("media_name >", value, "mediaName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMediaNameGreaterThanOrEqualTo(String value) {
+            addCriterion("media_name >=", value, "mediaName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMediaNameLessThan(String value) {
+            addCriterion("media_name <", value, "mediaName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMediaNameLessThanOrEqualTo(String value) {
+            addCriterion("media_name <=", value, "mediaName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMediaNameLike(String value) {
+            addCriterion("media_name like", value, "mediaName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMediaNameNotLike(String value) {
+            addCriterion("media_name not like", value, "mediaName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMediaNameIn(List<String> values) {
+            addCriterion("media_name in", values, "mediaName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMediaNameNotIn(List<String> values) {
+            addCriterion("media_name not in", values, "mediaName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMediaNameBetween(String value1, String value2) {
+            addCriterion("media_name between", value1, value2, "mediaName");
+            return (Criteria) this;
+        }
+
+        public Criteria andMediaNameNotBetween(String value1, String value2) {
+            addCriterion("media_name not between", value1, value2, "mediaName");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
