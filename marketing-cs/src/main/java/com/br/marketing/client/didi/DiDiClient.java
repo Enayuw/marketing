@@ -45,7 +45,7 @@ public class DiDiClient {
     @Value("${api.didi.scas:0001}")
     String scas;
 
-    @Value("${api.didi.channelId:3140738836439875}")
+    @Value("${api.didi.channelId:3140738898634899}")
     String channelId;
 
     @Value("${api.didi.isProxy:false}")

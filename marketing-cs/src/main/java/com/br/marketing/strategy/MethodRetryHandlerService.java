@@ -735,7 +735,7 @@ public class MethodRetryHandlerService {
             DidiCallRecordExample didiCallRecordExample = new DidiCallRecordExample();
             didiCallRecordExample.createCriteria()
                     .andCustNumEqualTo(custNum)
-                    .andStatusEqualTo(1)
+                    .andStatusEqualTo(3)
                     .andCreateDateEqualTo(createDate);
             if (didiCallRecordMapper.countByExample(didiCallRecordExample)==0) {
                 MarketingTransferSyncUser marketingTransferSyncUser = new MarketingTransferSyncUser();
@@ -778,7 +778,7 @@ public class MethodRetryHandlerService {
                         }
                         String errorMessage = diDiResponseTO.getErrorMessage();
                         String errorCode = diDiResponseTO.getErrorCode();
-                        updateDidiCallRecord.setStatus(1);
+                        updateDidiCallRecord.setStatus(3);
                         updateDidiCallRecord.setResult(result);
                         updateDidiCallRecord.setErrorCode(errorCode);
                         updateDidiCallRecord.setErrorMessage(errorMessage);

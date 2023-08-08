@@ -47,7 +47,7 @@ public class DidiCallRecordHandle {
                     DidiCallRecordExample didiCallRecordExample = new DidiCallRecordExample();
                     didiCallRecordExample.setOrderByClause("id asc limit 2000");
                     DidiCallRecordExample.Criteria criteria = didiCallRecordExample.createCriteria();
-                    criteria.andCreateDateEqualTo(Integer.valueOf(date)).andStatusEqualTo(0);
+                    criteria.andCreateDateEqualTo(Integer.valueOf(date)).andStatusEqualTo(1);
                     if(minId!=null){
                         criteria.andIdGreaterThan(minId);
                     }
