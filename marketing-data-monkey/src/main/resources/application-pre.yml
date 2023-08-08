@@ -177,6 +177,7 @@ api:
     smsUrl: ${api.didi.baseUrl}/crow/collision/bairong
     reachUrl: ${api.didi.baseUrl}/crow/user/success/bairong
     jmassSUrl: ${api.didi.baseUrl}/model/sample/bairong
+    failedUrl: ${api.didi.baseUrl}/crow/faileduser/mediaName
     token: DK&SgWl!fZ%WVSXe
     scas: "0001"
     channelId: 3140738836439875

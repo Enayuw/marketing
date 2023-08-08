@@ -54,7 +54,7 @@ public class JobManagerByDidiServiceImpl implements IJobManagerService {
             return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage("参数错误");
         }
 
-        if(new Integer(2).equals(actionType)){
+        if(new Integer(2).equals(actionType)||new Integer(4).equals(actionType)){
             return isDataAllowExe(apiCode,  actionType,  actionDate,  taskArgs);
         }
 

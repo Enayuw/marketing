@@ -15,4 +15,5 @@ public class DiDiReqVO {
     // 媒体名称
     // bairong/bairongA
     private String mediaName;
+
 }

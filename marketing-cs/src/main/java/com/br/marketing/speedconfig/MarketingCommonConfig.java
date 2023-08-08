@@ -868,5 +868,10 @@ public class MarketingCommonConfig {
      * 携程vt配置信息{"adVt":{"appId":"bairong002","source":"BaiRong_CPS_C01","iv":"3b2dac323465b024","aesKey":"f3df6f62f0527bf0","singKey":"95cc01ec07387a44"}}
      */
     private HashMap<String,JSONObject> xieChengVtConfig;
+
+    /**
+     * 滴滴接口mediaNm配置{“pushSmsTrafficAccess”:“bairongA”}
+     */
+    private Map<String, String> didiMediaNm;
 }
 

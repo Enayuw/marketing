@@ -6,6 +6,7 @@ import com.br.marketing.client.didi.input.DiDiJmassRequestTO;
 import com.br.marketing.client.didi.input.DiDiReachRequestTO;
 import com.br.marketing.client.didi.input.DiDiReqVO;
 import com.br.marketing.client.didi.input.DiDiSmsRequestTO;
+import com.br.marketing.client.didi.output.DiDiFailUserVO;
 import com.br.marketing.client.didi.output.DiDiJMassResponseTO;
 import com.br.marketing.client.didi.output.DiDiResponseTO;
 import com.br.marketing.client.didi.utils.MD5Util;
@@ -38,6 +39,8 @@ public class DiDiClient {
     String reachUrl;
     @Value("${api.didi.jmassSUrl:https://admarketing-manhattan.xiaojukeji.com/model/sample/bairong}")
     String jmassSUrl;
+    @Value("${api.didi.failedUrl:https://admarketing-manhattan.xiaojukeji.com/crow/faileduser/mediaName}")
+    String failUserUrl;
 
     @Value("${api.didi.token:DK&SgWl!fZ%WVSXe}")
     String token;
@@ -60,9 +63,11 @@ public class DiDiClient {
     public static final String PUSH_SMS_TRAFFIC_ACCESS = "pushSmsTrafficAccess";
     public static final String PUSH_REACH_SUCCESS = "pushReachSuccess";
     public static final String PUSH_JMASS = "pushJMASS";
+    public static final String PUSH_FAIL = "pushFail";
 
     /**
      * 短信流量准入接口
+     *
      * @return
      */
     public Result<DiDiResponseTO> pushSmsTrafficAccess(DiDiReqVO smsReqVO) {
@@ -77,6 +82,11 @@ public class DiDiClient {
 //        }
 
         try {
+            String allowUrl = smsUrl;
+            if (marketingCommonConfig.getDidiMediaNm() != null && StringUtils.isNotBlank(marketingCommonConfig.getDidiMediaNm().get(PUSH_SMS_TRAFFIC_ACCESS))) {
+                allowUrl = allowUrl.replace("bairong", marketingCommonConfig.getDidiMediaNm().get(PUSH_SMS_TRAFFIC_ACCESS));
+            }
+
             // 获取是否记录日志
             HashMap<String, List<Boolean>> isLog = getIsLog();
             List<Boolean> islogs = isLog.get(PUSH_SMS_TRAFFIC_ACCESS);
@@ -96,7 +106,7 @@ public class DiDiClient {
                 resMap.put("httpcode", "200");
             } else {
                 // 发送请求
-                resMap = httpProxyClient.sendByCodeWithLog(smsRequestTO, smsUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,
+                resMap = httpProxyClient.sendByCodeWithLog(smsRequestTO, allowUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,
                         JSON.toJSONString(smsReqVO), islogs.get(0), islogs.get(1));
             }
 
@@ -130,6 +140,7 @@ public class DiDiClient {
 
     /**
      * 触达成功接口
+     *
      * @return
      */
     public Result<DiDiResponseTO> pushReachSuccess(DiDiReqVO smsReqVO) {
@@ -190,11 +201,12 @@ public class DiDiClient {
 
     /**
      * 联合建模接口
+     *
      * @return
      */
     public Result<DiDiJMassResponseTO> pushJMASS(DiDiReqVO smsReqVO) {
         try {
-            String url = jmassSUrl.replace("mediaName",smsReqVO.getMediaName());
+            String url = jmassSUrl.replace("mediaName", smsReqVO.getMediaName());
             // 获取是否记录日志
             HashMap<String, List<Boolean>> isLog = getIsLog();
             List<Boolean> islogs = isLog.get(PUSH_JMASS);
@@ -242,9 +254,79 @@ public class DiDiClient {
         }
     }
 
+    public static void main(String[] args) {
+        HashMap<String,String> reqMap = new HashMap<>();
+        String cell = MD5Util.encode("12312341234");
+        reqMap.put("sign",cell);
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        reqMap.put("timestamp",timestamp);
+        StringBuilder sb = new StringBuilder();
+        sb.append(cell).append(timestamp).append("DK&SgWl!fZ%WVSXe");
+        reqMap.put("signature",MD5Util.encode(String.valueOf(sb)));
+        System.out.println(JSON.toJSONString(reqMap));
+    }
+
+    public Result<DiDiFailUserVO> failUser(DiDiReqVO smsReqVO) {
+        try {
+            // 获取是否记录日志
+            HashMap<String, List<Boolean>> isLog = getIsLog();
+            List<Boolean> islogs = isLog.get(PUSH_FAIL);
+
+            // 构建请求参数
+            HashMap<String,String> reqMap = new HashMap<>();
+            reqMap.put("sign",smsReqVO.getCustMobileMd5());
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            reqMap.put("timestamp",timestamp);
+            reqMap.put("signature",getSignature(smsReqVO.getCustMobileMd5(), timestamp));
+
+            HashMap<String, String> resMap = new HashMap<>();
+            // 获取挡板开关
+            if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_FAIL)) {
+                resMap.put("content", "{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"result\":true}}");
+                resMap.put("httpcode", "200");
+            } else {
+                String failUrl = failUserUrl;
+                if (marketingCommonConfig.getDidiMediaNm() != null && StringUtils.isNotBlank(marketingCommonConfig.getDidiMediaNm().get(PUSH_FAIL))) {
+                    failUrl = failUrl.replace("mediaName", marketingCommonConfig.getDidiMediaNm().get(PUSH_FAIL));
+                }
+                // 发送请求
+                resMap = httpProxyClient.sendByCodeWithLog(reqMap, failUrl, isProxy,
+                        MediaType.APPLICATION_JSON_UTF8_VALUE,
+                        JSON.toJSONString(smsReqVO), islogs.get(0), islogs.get(1));
+            }
+
+            // 1.httpcode不为200，需要重试
+            if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+                if (!islogs.get(1)) {
+                    log.error("调用滴滴营销失败接口异常-请求参数:{};返回:{}", JSON.toJSONString(smsReqVO), JSON.toJSONString(resMap));
+                }
+                return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            }
+
+            // 解析返回结果
+            DiDiFailUserVO failReq = JSON.parseObject(resMap.get("content"), DiDiFailUserVO.class);
+
+            // 2.errorCode=20000，需要重试
+            if ("20000".equals(failReq.getErrorCode())) {
+                if (!islogs.get(1)) {
+                    log.error("调用滴滴营销失败接口异常-请求参数:{};返回:{}", JSON.toJSONString(smsReqVO), JSON.toJSONString(resMap));
+                }
+                return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            }
+
+            // 3.返回成功，无需重试
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(failReq);
+        } catch (Exception e) {
+            // 4.异常，需要重试
+            log.error("调用滴滴营销失败接口异常" + e.getMessage(), e);
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+    }
+
     /**
      * 获取签名串
      * MD5(sign + timestamp + token) 32位小写
+     *
      * @param sign      手机号的md5值
      * @param timestamp 时间戳
      * @return 签名串
@@ -257,6 +339,7 @@ public class DiDiClient {
 
     /**
      * {"pushSmsTrafficAccess":[false,true],"pushReachSuccess":[false,true],"pushJMASS":[false,true]}
+     *
      * @return
      */
     private HashMap<String, List<Boolean>> getIsLog() {
