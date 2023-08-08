@@ -1,8 +1,10 @@
 package com.br.marketing.entity;
 
+import com.br.marketing.rule.InterfaceParams;
+
 import java.util.Date;
 
-public class DidiCallRecord {
+public class DidiCallRecord extends InterfaceParams {
     /**
      *
      */
