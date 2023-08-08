@@ -396,6 +396,13 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                     }
                     //过滤掉 同一custNum的其他insertTime列，custNumResult
                     if (custNumFilterType.add(datum.getCustNum()) && custNumResult.add(datum.getCustNum())) {
+                        //过滤type=13，且registerChannel！=1,2的
+                        if ("13".equals(datum.getType())) {
+                            String registerChannel = JSON.parseObject(datum.getReserveField1()).getString("registerChannel");
+                            if (!("1".equals(registerChannel) || "2".equals(registerChannel))) {
+                                continue;
+                            }
+                        }
                         ids.add(datum.getId());
                     }
                 }
