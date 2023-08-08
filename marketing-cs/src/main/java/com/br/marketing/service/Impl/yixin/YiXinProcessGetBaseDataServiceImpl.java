@@ -4,15 +4,10 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 宜信基础数据实现类
@@ -65,7 +60,37 @@ public class YiXinProcessGetBaseDataServiceImpl implements YiXinProcessGetBaseDa
                         marketingCommonConfig.getYiXinSearchPageSize()
                 );
     }
+    @Override
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListCJK(String tCid,
+                                                                                   String apiCode,
+                                                                                   String type,
+                                                                                   String requestDate,
+                                                                                   Long indexId,String registerChannel) {
 
+        return marketingTransferSyncUserMapper
+                .getYxTransferByApiCodeCJKtikv_(
+                        tCid,
+                        apiCode,
+                        requestDate,
+                        type,
+                        indexId,registerChannel,
+                        marketingCommonConfig.getYiXinSearchPageSize()
+                );
+    }
 
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListL(String tCid,
+                                                                             String apiCode,
+                                                                             String requestDate,String applyDtStart,String applyDtEnd,
+                                                                             Long indexId) {
 
+        // 获取前一天的日期yyyy-MM-dd
+        return marketingTransferSyncUserMapper
+                .getYxTransferByApiCodeLtikv_(
+                        tCid,
+                        apiCode,
+                        requestDate,applyDtStart,applyDtEnd,
+                        indexId,
+                        marketingCommonConfig.getYiXinSearchPageSize()
+                );
+    }
 }

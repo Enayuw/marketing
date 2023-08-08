@@ -1,9 +1,7 @@
 package com.br.marketing.service.Impl.yixin;
 
-import cn.hutool.core.collection.ConcurrentHashSet;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExample;
 import com.br.marketing.entity.PhoneSaleExtendInfoExample;
@@ -21,7 +19,6 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -133,51 +130,23 @@ public class YiXinProcessGetBaseExcludeRuleDataImpl implements YiXinProcessGetBa
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         List<String> custNums = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
 
-        LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusDays(29);
+        String endDate = LocalDate.now().toString();
+        String startDate = LocalDate.now().minusDays(29).toString();
 
-        // 创建线程池
-        Integer threadNum = marketingCommonConfig.getYiXinExcludeRuleFifthThreadNum();
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(threadNum, threadNum);
-        List<Callable<List<String>>> tasks = new ArrayList<>();
-        // 提交查询任务给线程池
-        for (LocalDate date = startDate; date.isBefore(endDate.plusDays(1)); date = date.plusDays(1)) {
-            final String queryDate = date.toString();
-            tasks.add(() -> queryDataByDate(cid, apiCode, queryDate, custNums));
-        }
-
-        Set<String> custNumExcludeList = new ConcurrentHashSet<>();
-
-        // 执行任务并等待所有任务执行完成，并汇总结果
-        try {
-            List<Future<List<String>>> futures = pool.invokeAll(tasks);
-            for (Future<List<String>> future : futures) {
-                custNumExcludeList.addAll(future.get());
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            log.error(e.getMessage(), e);
-            Thread.currentThread().interrupt();
-        } finally {
-            pool.shutdown();
-        }
-
-        long end = System.currentTimeMillis();
-        log.warn("宜信推送决策,剔除处理:custNum在30天内有type!=12的基础数据。单次处理耗时：{}ms,剔除的数据量级:{}", end - start, custNumExcludeList.size());
-        if (CollectionUtils.isEmpty(custNumExcludeList)) {
-            return;
-        }
-
-        marketingTransferSyncUsers.removeIf(t -> custNumExcludeList.contains(t.getCustNum()));
-    }
-
-    private List<String> queryDataByDate(String cid, String apiCode, String queryDate, List<String> custNums) {
         List<String> includeList =
                 marketingTransferSyncUserMapper.getRuleFifthYxTransferByApiCodetikv_(
                         cid,
                         apiCode,
-                        queryDate,
+                        startDate, endDate,
                         custNums);
-        return includeList;
+
+        long end = System.currentTimeMillis();
+        log.warn("宜信推送决策,剔除处理:custNum在30天内有type!=12的基础数据。单次处理耗时：{}ms,剔除的数据量级:{}", end - start, includeList.size());
+        if (CollectionUtils.isEmpty(includeList)) {
+            return;
+        }
+
+        marketingTransferSyncUsers.removeIf(t -> includeList.contains(t.getCustNum()));
     }
 
     @Override
