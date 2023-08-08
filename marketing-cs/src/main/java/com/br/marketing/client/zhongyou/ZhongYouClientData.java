@@ -134,8 +134,8 @@ public class ZhongYouClientData {
             data.put("version", "1.0");
             data.put("requestTime", format);
             data.put("sysSign", signDataStr);
-            data.put("requestData", requestData.toString());
-//            data.put("requestData", encryptDataStr);
+//            data.put("requestData", requestData.toString());
+            data.put("requestData", encryptDataStr);
         } catch (Exception e) {
             log.error("中邮文件名称请求数据加密异常:{}", e);
         }
@@ -154,8 +154,8 @@ public class ZhongYouClientData {
             data.put("version", "1.0");
             data.put("requestTime", format);
             data.put("sysSign", signDataStr);
-//            data.put("requestData", encryptDataStr);
-            data.put("requestData", requestData.toString());
+            data.put("requestData", encryptDataStr);
+//            data.put("requestData", requestData.toString());
         } catch (Exception e) {
             log.error("中邮文件内容获取请求加密异常:{}", e);
         }

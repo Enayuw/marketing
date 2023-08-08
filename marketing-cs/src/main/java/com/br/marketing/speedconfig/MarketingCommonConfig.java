@@ -873,5 +873,10 @@ public class MarketingCommonConfig {
      * 中邮数据文件流读取落库apiCode
      */
     private String zhongyouApiCode;
+
+    /**
+     * 中邮数据文件流读取落库字段数
+     */
+    private Integer zhongyouColumnsSize;
 }
 

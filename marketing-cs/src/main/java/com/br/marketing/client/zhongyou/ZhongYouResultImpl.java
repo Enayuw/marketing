@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.ZhongyouFileData;
 import com.br.marketing.mapper.ZhongyouFileDataMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.util.EntityUtils;
@@ -47,10 +48,13 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
     /**
      * 存储文件内容条数
      */
-    private static final Integer SAVE_PARTITION_SIZE =2000;
+    private static final Integer SAVE_PARTITION_SIZE = 2000;
 
     @Resource
     private ZhongyouFileDataMapper zhongyouFileDataMapper;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public Map<String, String> applyStream(InputStream inputStream, Long fileId) {
@@ -65,8 +69,8 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
             }
             shutdownThread(zhongyouThread);
         } catch (Exception e) {
-            log.error("数据流处理异常：{}",e.toString());
-            resultMap.put("result", "数据流处理异常" );
+            log.error("数据流处理异常：{}", e.toString());
+            resultMap.put("result", "数据流处理异常");
             resultMap.put("responseData", "数据流处理异常");
         }
         return resultMap;
@@ -100,7 +104,7 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
      * @throws IOException IO异常
      */
     private boolean dealStream(Long fileId, BufferedReader reader, List<ZhongyouFileData> zhongyouFileDataList,
-                           Map<String, String> resultMap, ThreadPoolExecutor zhongyouThread) throws IOException {
+                               Map<String, String> resultMap, ThreadPoolExecutor zhongyouThread) throws IOException {
         String lineData = getLineData(reader, zhongyouFileDataList);
         if (lineData == null) return false;
         zhongyouDataListBuild(fileId, zhongyouFileDataList, resultMap, lineData);
@@ -134,12 +138,13 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
      * @param resultMap            返回结果集
      * @param lineData             行内容
      */
-    private static void zhongyouDataListBuild(Long fileId, List<ZhongyouFileData> zhongyouFileDataList,
+    private  void zhongyouDataListBuild(Long fileId, List<ZhongyouFileData> zhongyouFileDataList,
                                               Map<String, String> resultMap, String lineData) {
         ZhongyouFileData zhongyouFileData = new ZhongyouFileData();
         zhongyouFileData.setFileId(fileId);
         zhongyouFileData.setStatus(1);
         zhongyouFileData.setType("2");
+        zhongyouFileData.setApiCode(marketingCommonConfig.getZhongyouApiCode());
 
         // 如果第一行返回是一个json 格式则说明接口请求异常
         if (isJson(lineData)) {
@@ -152,7 +157,7 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
             zhongyouFileData.setType("1");
         } else if (lineData.contains("\\|\\|")) {
             int length = lineData.split("\\|\\|").length;
-            if (length != 33) {
+            if (length != marketingCommonConfig.getZhongyouColumnsSize()) {
                 zhongyouFileData.setStatus(2);
                 zhongyouFileData.setDataMessage("字段数不匹配：" + length);
             }
@@ -198,8 +203,8 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
                 // 解析数据
                 String sysSign = resultJson.getString("sysSign");
                 String responseData = resultJson.getString("responseData");
-//                resultString = ZhongYouClientData.decryptData(responseData, sysSign);
-                resultMap.put("responseData", responseData);
+                String resultString = ZhongYouClientData.decryptData(responseData, sysSign);
+                resultMap.put("responseData", resultString);
             }
         } catch (Exception e) {
             resultMap.put("responseData", "解析中邮Entity数据异常");
