@@ -255,6 +255,7 @@ public class DiDiClient {
     }
 
     public static void main(String[] args) {
+        //流量准入
         HashMap<String,String> reqMap = new HashMap<>();
         String cell = MD5Util.encode("12312341234");
         reqMap.put("sign",cell);
@@ -264,7 +265,25 @@ public class DiDiClient {
         sb.append(cell).append(timestamp).append("DK&SgWl!fZ%WVSXe");
         reqMap.put("signature",MD5Util.encode(String.valueOf(sb)));
         System.out.println(JSON.toJSONString(reqMap));
+
+        //触达
+//        HashMap<String,String> reqMap = new HashMap<>();
+//        String cell = MD5Util.encode("12312341234");
+//        reqMap.put("sign",cell);
+//        String timestamp = String.valueOf(System.currentTimeMillis());
+//        reqMap.put("timestamp",timestamp);
+//        StringBuilder sb = new StringBuilder();
+//        sb.append(cell).append(timestamp).append("DK&SgWl!fZ%WVSXe");
+//        reqMap.put("signature",MD5Util.encode(String.valueOf(sb)));
+//        reqMap.put("scas","0001");
+//        reqMap.put("channelId","3140738836439875");
+//        System.out.println(JSON.toJSONString(reqMap));
+
+        //失效
     }
+
+
+
 
     public Result<DiDiFailUserVO> failUser(DiDiReqVO smsReqVO) {
         try {
