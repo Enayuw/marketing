@@ -5,12 +5,12 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.dto.SyncUserTypeNumDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.enums.DiDiAllowMarketingEnum;
-import com.br.marketing.mapper.DidiDataMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
-import com.br.marketing.monkeydata.entity.didi.DiDiAllowCondition;
+import com.br.marketing.mapper.MarketingSyncReportMapper;
+import com.br.marketing.monkeydata.entity.didi.DiDiFailedCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import com.br.marketing.service.IJobManagerService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -40,8 +40,6 @@ public class DidiaInvalidityJob extends AbstractSimpleElasticJob {
     @Autowired
     IMonkeyDataHandle diDiInvalidityHandle;
 
-    @Resource
-    DidiDataMapper didiDataMapper;
 
     @Resource
     MarketingDataValidConfigMapper dataValidConfigMapper;
@@ -53,6 +51,10 @@ public class DidiaInvalidityJob extends AbstractSimpleElasticJob {
     @Qualifier("jobManagerByDidiServiceImpl")
     IJobManagerService iJobManagerService;
 
+    @Resource
+    MarketingSyncReportMapper syncReportMapper;
+
+
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         LocalDate now = LocalDate.now();
@@ -60,7 +62,8 @@ public class DidiaInvalidityJob extends AbstractSimpleElasticJob {
         Date from = Date.from(now.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         Date end = Date.from(now.plusDays(1L).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
-        String apiCode = StringUtils.isNotBlank(jobParameter) ? jobParameter :"3710083";
+        String apiCode = StringUtils.isNotBlank(jobParameter) ? jobParameter : "3710083";
+
         LocalFileExample fileExample = new LocalFileExample();
         fileExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
@@ -69,45 +72,38 @@ public class DidiaInvalidityJob extends AbstractSimpleElasticJob {
                 .andCreateTimeGreaterThanOrEqualTo(from)
                 .andCreateTimeLessThan(end);
         List<LocalFile> localFiles = localFileMapper.selectByExample(fileExample);
+
         for (LocalFile localFile : localFiles) {
-            Result<TransferActionFront> allowExecute = iJobManagerService.isAllowExecute(apiCode,4, actionDay, localFile);
-            if(!ResultCode.SUCCESS.getValue().equals(allowExecute.getCode())){
+            Result<TransferActionFront> allowExecute = iJobManagerService.isAllowExecute(apiCode, 4, actionDay, localFile);
+            if (!ResultCode.SUCCESS.getValue().equals(allowExecute.getCode())) {
                 continue;
             }
-            DiDiAllowCondition condition = new DiDiAllowCondition();
-            condition.setPageSize(2000);
+            DiDiFailedCondition condition = new DiDiFailedCondition();
             condition.setLocalId(localFile.getId());
+            condition.setDay(actionDay);
+            condition.setPageSize(2000);
+
             //执行撞库逻辑
             Result action = diDiInvalidityHandle.action(condition);
             //更新任务
             iJobManagerService.updateJobStatus(allowExecute.getData(), ResultCode.SUCCESS.getValue().equals(action.getCode()));
 
 
-            //region 生成有效期配置记录
-            Long validDays = marketingCommonConfig.getDidiValidDays()!=null && marketingCommonConfig.getDidiValidDays()>0 ?marketingCommonConfig.getDidiValidDays()-1L:29L;
-            List<String> pushDates = didiDataMapper.getPushDateByLocalId(localFile.getId());
-            if(pushDates.size()>0){
-                MarketingDataValidConfigExample configExample = new MarketingDataValidConfigExample();
-                configExample.createCriteria().andApiCodeEqualTo(localFile.getApiCode())
-                        .andValidTypeEqualTo(1)
-                        .andAppletDateIn(pushDates)
-                        .andIsDelEqualTo(Constants.DATA_VALID);
-                List<MarketingDataValidConfig> validConfigs = dataValidConfigMapper.selectByExample(configExample);
-                for (String pushDate : pushDates) {
-                    String endDate = LocalDate.parse(pushDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")).plusDays(validDays).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                    Optional<MarketingDataValidConfig> first = validConfigs.stream().filter(t -> t.getAppletDate().equals(pushDate)).findFirst();
-                    if(!first.isPresent()){
-                        MarketingDataValidConfig marketingDataValidConfig = new MarketingDataValidConfig();
-                        marketingDataValidConfig.setApiCode(apiCode);
-                        marketingDataValidConfig.setAppletDate(pushDate);
-                        marketingDataValidConfig.setUserType("1");
-                        marketingDataValidConfig.setValidStartDate(pushDate);
-                        marketingDataValidConfig.setValidEndDate(endDate);
-                        marketingDataValidConfig.setValidType(1);
-                        marketingDataValidConfig.setCreateTime(new Date());
-                        marketingDataValidConfig.setIsDel(Constants.DATA_VALID);
-                        dataValidConfigMapper.insertSelective(marketingDataValidConfig);
-                    }
+            //region 删除有效期配置记录
+            List<SyncUserTypeNumDTO> syncUserTypeNumDTOS = syncReportMapper.uploadSyncCount(apiCode, actionDay);
+            MarketingDataValidConfigExample configExample = new MarketingDataValidConfigExample();
+            configExample.createCriteria().andApiCodeEqualTo(localFile.getApiCode())
+                    .andValidTypeEqualTo(1)
+                    .andAppletDateEqualTo(actionDay)
+                    .andIsDelEqualTo(Constants.DATA_VALID);
+            List<MarketingDataValidConfig> validConfigs = dataValidConfigMapper.selectByExample(configExample);
+            for (MarketingDataValidConfig validConfig : validConfigs) {
+                Optional<SyncUserTypeNumDTO> first = syncUserTypeNumDTOS.stream().filter(t -> t.getUserType().equals(validConfig.getUserType())).findFirst();
+                if (!first.isPresent()) {
+                    MarketingDataValidConfig marketingDataValidConfig = new MarketingDataValidConfig();
+                    marketingDataValidConfig.setId(validConfig.getId());
+                    marketingDataValidConfig.setIsDel(9);
+                    dataValidConfigMapper.updateByPrimaryKeySelective(marketingDataValidConfig);
                 }
             }
             //endregion

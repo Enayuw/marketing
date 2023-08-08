@@ -1,43 +1,33 @@
 package com.br.marketing.monkeydata.handle.didi;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.didi.DiDiClient;
-import com.br.marketing.client.didi.input.DiDiReqVO;
-import com.br.marketing.client.didi.output.DiDiFailUserVO;
-import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.dto.MarketingPreUserDTO;
-import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.DidiData;
 import com.br.marketing.entity.DidiDataExample;
-import com.br.marketing.entity.MarketingDataValidConfig;
+import com.br.marketing.mapper.DidiCallRecordMapper;
 import com.br.marketing.mapper.DidiDataMapper;
 import com.br.marketing.monkeydata.entity.IterationResult;
-import com.br.marketing.monkeydata.entity.didi.DiDiAllowCondition;
 import com.br.marketing.monkeydata.entity.didi.DiDiFailedCondition;
 import com.br.marketing.monkeydata.entity.didi.DiDiFailedProcessData;
-import com.br.marketing.monkeydata.entity.didi.DiDiProcessData;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import com.br.marketing.service.IMarketingDataValidService;
+import com.br.marketing.service.Impl.DiDiServiceImpl;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
-import com.br.marketing.vo.DiDiAllowReqDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class DiDiInvalidityHandle extends IMonkeyDataHandle<DidiData, DiDiFailedProcessData, DiDiFailedCondition> {
 
     @Autowired
@@ -56,7 +46,10 @@ public class DiDiInvalidityHandle extends IMonkeyDataHandle<DidiData, DiDiFailed
     PushInfoService pushInfoService;
 
     @Autowired
-    DiDiClient diDiClient;
+    DiDiServiceImpl diDiService;
+
+    @Resource
+    DidiCallRecordMapper didiCallRecordMapper;
 
     @Override
     public Boolean isThread() {
@@ -124,31 +117,36 @@ public class DiDiInvalidityHandle extends IMonkeyDataHandle<DidiData, DiDiFailed
         DidiData didiData = inList.get(0);
         Long localId = didiData.getLocalId();
         String apiCode = didiData.getApiCode();
-
-        List<DiDiProcessData> diDiProcessDatas = new ArrayList<>();
-        List<String> cells = inList.stream().map(t -> t.getCell()).collect(Collectors.toList());
-        //todo 获取当天触达的数据
-        Map<String,String> pushData = new HashMap<>();
+        String pushDate = didiData.getPushDate();
+        Integer intDate = Integer.valueOf(pushDate.replace("-", ""));
+        List<DiDiFailedProcessData> diDiProcessDatas = new ArrayList<>();
+        Set<String> cellSets = inList.stream().map(t -> t.getCell()).collect(Collectors.toSet());
+        Set<String> pushDatas = didiCallRecordMapper.getCustNumByStatusIs1AndCellSet(apiCode, intDate, cellSets);
+        Integer bad = 0;
         for (DidiData data : inList) {
-            String pd = pushData.get(data.getCell());
-            if(pd==null){
-                //调用营销失败接口
-                DiDiReqVO diDiReqVO = new DiDiReqVO();
-                diDiReqVO.setCustMobileMd5(data.getCell());
-                Result<DiDiFailUserVO> diDiFailUserVOResult = diDiClient.failUser(diDiReqVO);
-                //todo
-                // 1、需要根据营销失败接口的状态来更新数据
-                // 2、更新
+            boolean isUpload = pushDatas.contains(data.getCell());
+            if(!isUpload){
+                try {
+                    diDiService.invalidData(data);
+                }catch (Exception ex){
+                    log.error(ex.getMessage());
+                    bad++;
+                }
             }
-
         }
+        diDiProcessDatas.add(new DiDiFailedProcessData(bad));
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(diDiProcessDatas);
     }
 
     @Override
     public Result resultAction(List<DiDiFailedProcessData> outputDataList) {
         Boolean errorMark =Boolean.FALSE;
-
+        DiDiFailedProcessData diDiFailedProcessData = outputDataList.get(0);
+        if(diDiFailedProcessData != null){
+            if(diDiFailedProcessData.getBad()>0){
+                errorMark =Boolean.TRUE;
+            }
+        }
         return new Result().setCode(errorMark?ResultCode.FAIL.getValue():ResultCode.SUCCESS.getValue());
     }
 }

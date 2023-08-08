@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class DiDiFailUserVO {
-    private String errorCode;
+    private Integer errorCode;
     private String errorMessage;
     private String data;
 }

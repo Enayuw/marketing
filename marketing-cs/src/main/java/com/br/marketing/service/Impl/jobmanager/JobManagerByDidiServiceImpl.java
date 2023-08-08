@@ -1,9 +1,12 @@
 package com.br.marketing.service.Impl.jobmanager;
+
 import java.time.LocalDate;
 import java.util.Date;
 
+import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.LocalFile;
@@ -15,6 +18,7 @@ import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.service.IJobManagerService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.sun.org.apache.xpath.internal.operations.Bool;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +29,7 @@ import java.util.List;
  * 滴滴作业判断
  */
 @Service
+@Slf4j
 public class JobManagerByDidiServiceImpl implements IJobManagerService {
 
 
@@ -37,8 +42,11 @@ public class JobManagerByDidiServiceImpl implements IJobManagerService {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
+    @Autowired
+    AlarmApiClient alarmApiClient;
     /**
      * 滴滴作业准入判断
+     *
      * @param apiCode    客户编号
      * @param actionType 任务类型
      * @param actionDate 任务日期
@@ -47,15 +55,15 @@ public class JobManagerByDidiServiceImpl implements IJobManagerService {
      */
     @Override
     public Result<TransferActionFront> isAllowExecute(String apiCode, Integer actionType, String actionDate, Object... taskArgs) {
-        if(StringUtils.isBlank(apiCode)
-        || actionType == null
-        || StringUtils.isBlank(actionDate)
-        || taskArgs.length<=0){
+        if (StringUtils.isBlank(apiCode)
+                || actionType == null
+                || StringUtils.isBlank(actionDate)
+                || taskArgs.length <= 0) {
             return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage("参数错误");
         }
 
-        if(new Integer(2).equals(actionType)||new Integer(4).equals(actionType)){
-            return isDataAllowExe(apiCode,  actionType,  actionDate,  taskArgs);
+        if (new Integer(2).equals(actionType) || new Integer(4).equals(actionType)) {
+            return isDataAllowExe(apiCode, actionType, actionDate, taskArgs);
         }
 
         return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未找到实现");
@@ -64,45 +72,44 @@ public class JobManagerByDidiServiceImpl implements IJobManagerService {
 
     @Override
     public Result<TransferActionFront> updateJobStatus(TransferActionFront task, Object... taskArgs) {
-        if( task == null || taskArgs.length<=0){
+        if (task == null || taskArgs.length <= 0) {
             return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage("参数错误");
         }
-        if(new Integer(2).equals(task.getActionType())){
-            return updateAllowJobStatus(task,  taskArgs);
+        if (new Integer(2).equals(task.getActionType()) || new Integer(4).equals(task.getActionType())) {
+            return updateAllowJobStatus(task, taskArgs);
         }
         return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未找到更新的实现");
     }
 
 
-
-    private Result<TransferActionFront> isDataAllowExe(String apiCode, Integer actionType, String actionDate, Object... taskArgs){
+    private Result<TransferActionFront> isDataAllowExe(String apiCode, Integer actionType, String actionDate, Object... taskArgs) {
         LocalFile file = (LocalFile) taskArgs[0];
-        TransferActionFrontExample frontExample  = new TransferActionFrontExample();
+        TransferActionFrontExample frontExample = new TransferActionFrontExample();
         frontExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
                 .andActionTypeEqualTo(actionType)
                 .andRemarkLike(file.getId().toString().concat("-%"))
                 .andIsDelEqualTo(Constants.DATA_VALID);
         List<TransferActionFront> transferActionFronts = transferActionFrontMapper.selectByExample(frontExample);
-        if(transferActionFronts.size()>0){
+        if (transferActionFronts.size() > 0) {
             TransferActionFront actionFront = transferActionFronts.get(0);
-            if(new Integer(2).equals(actionFront.getStatus())){
+            if (new Integer(2).equals(actionFront.getStatus()) || new Integer(4).equals(actionFront.getStatus())) {
                 return new Result<>().setCode(ResultCode.FAIL.getValue());
             }
             String remark = actionFront.getRemark();
             String[] split = remark.split("-");
-            if(split.length <2){
+            if (split.length < 2) {
                 return new Result<>().setCode(ResultCode.FAIL.getValue());
             }
             Integer num = Integer.valueOf(split[1]);
-            num = num+1;
+            num = num + 1;
             TransferActionFront updateEntity = new TransferActionFront();
             updateEntity.setId(actionFront.getId());
             updateEntity.setRemark(file.getId().toString().concat("-").concat(num.toString()));
             actionFront.setRemark(file.getId().toString().concat("-").concat(num.toString()));
             transferActionFrontMapper.updateByPrimaryKeySelective(updateEntity);
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(actionFront);
-        }else{
+        } else {
             TransferActionFront actionFront = new TransferActionFront();
             actionFront.setApiCode(apiCode);
             actionFront.setStatus(1);
@@ -115,25 +122,26 @@ public class JobManagerByDidiServiceImpl implements IJobManagerService {
         }
     }
 
-    private Result<TransferActionFront> updateAllowJobStatus(TransferActionFront task, Object... taskArgs){
+    private Result<TransferActionFront> updateAllowJobStatus(TransferActionFront task, Object... taskArgs) {
         Boolean isRetry = Boolean.TRUE;
         Boolean resBoolean = (Boolean) taskArgs[0];
         TransferActionFront updateEntity = new TransferActionFront();
         updateEntity.setId(task.getId());
-        if(resBoolean){
+        if (resBoolean) {
             updateEntity.setStatus(JobStatusEnum.FINISH.getValue());
-        }else{
+        } else {
             String[] split = task.getRemark().split("-");
             Integer num = Integer.valueOf(split[1]);
-            Integer didiAllowRetryNum = marketingCommonConfig.getDidiAllowRetryNum()!=null?marketingCommonConfig.getDidiAllowRetryNum():3;
-            if(num>=didiAllowRetryNum){
+            Integer didiAllowRetryNum = marketingCommonConfig.getDidiAllowRetryNum() != null ? marketingCommonConfig.getDidiAllowRetryNum() : 3;
+            if (num >= didiAllowRetryNum) {
                 updateEntity.setStatus(JobStatusEnum.RETRY_FAIL.getValue());
                 isRetry = Boolean.FALSE;
-            }else{
+                alarmApiClient.sendAlarm(String.format("作业类型：%d,作业任务记录id：%d",task.getActionType(),task.getId()),"滴滴作业重试多次仍然失败", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
+            } else {
                 updateEntity.setStatus(JobStatusEnum.RETRY.getValue());
             }
         }
         transferActionFrontMapper.updateByPrimaryKeySelective(updateEntity);
-        return new Result<>().setCode(resBoolean?ResultCode.SUCCESS.getValue():ResultCode.FAIL.getValue()).setMessage(isRetry?"1":"0");
+        return new Result<>().setCode(resBoolean ? ResultCode.SUCCESS.getValue() : ResultCode.FAIL.getValue()).setMessage(isRetry ? "1" : "0");
     }
 }

@@ -254,19 +254,20 @@ public class DiDiClient {
         }
     }
 
-    public static void main(String[] args) {
-        //流量准入
-        HashMap<String,String> reqMap = new HashMap<>();
-        String cell = MD5Util.encode("12312341234");
-        reqMap.put("sign",cell);
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        reqMap.put("timestamp",timestamp);
-        StringBuilder sb = new StringBuilder();
-        sb.append(cell).append(timestamp).append("DK&SgWl!fZ%WVSXe");
-        reqMap.put("signature",MD5Util.encode(String.valueOf(sb)));
-        System.out.println(JSON.toJSONString(reqMap));
-
-        //触达
+//    public static void main(String[] args) {
+//        //流量准入
+//        HashMap<String,String> reqMap = new HashMap<>();
+////        String cell = MD5Util.encode("12312562248");
+//        String cell = "10b3ac05cd4affc7e19e6d624ac6f2e7";
+//        reqMap.put("sign",cell);
+//        String timestamp = String.valueOf(System.currentTimeMillis());
+//        reqMap.put("timestamp",timestamp);
+//        StringBuilder sb = new StringBuilder();
+//        sb.append(cell).append(timestamp).append("DK&SgWl!fZ%WVSXe");
+//        reqMap.put("signature",MD5Util.encode(String.valueOf(sb)));
+//        System.out.println(JSON.toJSONString(reqMap));
+//
+//        //触达
 //        HashMap<String,String> reqMap = new HashMap<>();
 //        String cell = MD5Util.encode("12312341234");
 //        reqMap.put("sign",cell);
@@ -275,12 +276,12 @@ public class DiDiClient {
 //        StringBuilder sb = new StringBuilder();
 //        sb.append(cell).append(timestamp).append("DK&SgWl!fZ%WVSXe");
 //        reqMap.put("signature",MD5Util.encode(String.valueOf(sb)));
-//        reqMap.put("scas","0001");
-//        reqMap.put("channelId","3140738836439875");
+//        reqMap.put("scas","1001");
+//        reqMap.put("channelId","3140738898634899");
 //        System.out.println(JSON.toJSONString(reqMap));
-
-        //失效
-    }
+//
+//        //失效
+//    }
 
 
 
@@ -333,8 +334,11 @@ public class DiDiClient {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
 
-            // 3.返回成功，无需重试
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(failReq);
+            if(new Integer(10000).equals(failReq.getErrorCode())){
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
+            }else{
+                return new Result().setCode(ResultCode.FAIL.getValue()).setDate(failReq);
+            }
         } catch (Exception e) {
             // 4.异常，需要重试
             log.error("调用滴滴营销失败接口异常" + e.getMessage(), e);
