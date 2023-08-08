@@ -410,6 +410,16 @@ public class MarketingCommonConfig {
     private List<String> xieChengTransferInsertApiCodes;
 
     /**
+     * 中邮转化数据提取apiCode集合
+     */
+    private List<String> ZhongYouTransferApiCodes;
+
+    /**
+     * 中邮转化数据提取执行时间
+     */
+    private String ZhongYouTransferExecuteTime;
+
+    /**
      * 众安异业撞库数据提取apiCode集合
      */
     private List<String> ZhongAnTransferApiCodes;

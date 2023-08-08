@@ -64,7 +64,13 @@
     </select>
 
 
-
+    <select id="getTransferDataByDate" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from
+            b_marketing_transfer_sync_${cid}
+        where
+        <![CDATA[  request_data = #{endDate} ]]> and api_code = #{apiCode}
+        order by id desc limit #{limitStart},2000;
+    </select>
 
 
     <select id="getNewTransferDataByCellList" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
