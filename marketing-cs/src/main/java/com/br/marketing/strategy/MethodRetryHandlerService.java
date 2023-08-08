@@ -17,6 +17,8 @@ import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDT
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
 import com.br.marketing.client.dassservice.output.DassExportAdapterDTO;
 import com.br.marketing.client.didi.DiDiClient;
+import com.br.marketing.client.didi.input.DiDiReachBO;
+import com.br.marketing.client.didi.input.DiDiReachRequestTO;
 import com.br.marketing.client.didi.input.DiDiReqVO;
 import com.br.marketing.client.didi.output.DiDiResponseTO;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
@@ -29,7 +31,6 @@ import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotDataVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
-import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.client.zhongan.ZhongAnClient;
 import com.br.marketing.common.annoation.DistributeLog;
 import com.br.marketing.common.annoation.RetryMethod;
@@ -54,7 +55,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -722,7 +722,6 @@ public class MethodRetryHandlerService {
             String custNum = didiCallRecord.getCustNum();
             String apiCode = didiCallRecord.getApiCode();
             Integer createDate = didiCallRecord.getCreateDate();
-            Date createTime = didiCallRecord.getCreateTime();
             // 获取redis 锁
             String key = RedisKeyConstant.pushDidiCollRecordLock.concat(":")
                     .concat(apiCode)
@@ -741,20 +740,24 @@ public class MethodRetryHandlerService {
             if (didiCallRecordMapper.countByExample(didiCallRecordExample)==0) {
                 MarketingTransferSyncUser marketingTransferSyncUser = new MarketingTransferSyncUser();
                 marketingTransferSyncUser.setApiCode(apiCode);
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                marketingTransferSyncUser.setRequestData( sdf.format(new Date()));
+                marketingTransferSyncUser.setRequestData(LocalDate.now().toString());
                 marketingTransferSyncUser.setCustNum(custNum);
                 // 判断是否有效
                 MarketingSyncUser newValidityPeriodData = transferDataValidityPeriodService.getMarketingSyncUserDidi(marketingTransferSyncUser,null);
-                if(newValidityPeriodData!=null){
+                if(newValidityPeriodData!=null) {
                     updateDidiCallRecord.setCell(newValidityPeriodData.getCell());
-
                     // 调接口推送
+                    DiDiReachBO diDiReachBO = new DiDiReachBO();
+                    DiDiReachRequestTO diDiReachRequestTO = new DiDiReachRequestTO();
                     DiDiReqVO diDiReqVO = new DiDiReqVO();
+                    diDiReachRequestTO.setScas(didiCallRecord.getScas());
+                    diDiReqVO.setMediaName(didiCallRecord.getMediaName());
+                    diDiReachBO.setDiDiReachRequestTO(diDiReachRequestTO);
                     diDiReqVO.setCustMobileMd5(custNum);
-                    Result<DiDiResponseTO> resResultResult = diDiClient.pushReachSuccess(diDiReqVO);
+                    diDiReachBO.setDiDiReqVO(diDiReqVO);
+                    Result<DiDiResponseTO> resResultResult = diDiClient.pushReachSuccess(diDiReachBO);
                     // 500 异常需要进入阶梯重试
-                    if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(resResultResult.getCode())){
+                    if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(resResultResult.getCode())) {
                         updateDidiCallRecord.setStatus(2);
                         updateDidiCallRecord.setSysMessage("重试数据");
                         updateDidiCallRecord.setUpdateTime(new Date());
@@ -764,12 +767,13 @@ public class MethodRetryHandlerService {
                         return new Result<Boolean>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
                     }
                     // 成功则更新数据状态
-                    if(resResultResult.getCode().equals(ResultCode.SUCCESS.getValue())){
+                    if (resResultResult.getCode().equals(ResultCode.SUCCESS.getValue())
+                            && "10000".equals(resResultResult.getData().getErrorCode())) {
                         res = Boolean.TRUE;
                         DiDiResponseTO diDiResponseTO = resResultResult.getData();
                         DiDiResponseTO.ResResult data = diDiResponseTO.getData();
                         Boolean result = null;
-                        if(data !=null){
+                        if (data != null) {
                             result = data.getResult();
                         }
                         String errorMessage = diDiResponseTO.getErrorMessage();
