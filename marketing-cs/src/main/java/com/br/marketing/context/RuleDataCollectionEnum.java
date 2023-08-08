@@ -38,11 +38,18 @@ public enum RuleDataCollectionEnum {
     ORANGE_DATA_COLLECTION(9, "桔子规则所需数据收集"),
 
     ELEPHANT_DATA_COLLECTION(10, "小象规则所需数据收集"),
+
+    TONG_CHENG_DATA_COLLECTION_V2(11, "同程金融规则所需数据收集第二版"),
+
     NIWODAI_DATA_COLLECTION(20, "你我贷规则所需数据收集"),
 
     GOME_DATA_COLLECTION(21, "国美规则所需数据收集"),
 
-    ZHONGYUAN_DATA_COLLECTION(22, "中原规则所需数据收集");
+    ZHONGYUAN_DATA_COLLECTION(22, "中原规则所需数据收集"),
+
+    ZHONGBANG_DATA_COLLECTION(23, "众邦规则所需数据收集"),
+
+    ;
 
 
     RuleDataCollectionEnum(Integer code, String name) {

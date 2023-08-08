@@ -83,9 +83,9 @@ public class PushRuleFilterController {
     @ApiOperation(value = "获取列表跑分总数")
     @PostMapping("/getBatchInfosCounts")
     @AddDataAuthBusiness
-    public ApiResult<Integer> getBatchInfosCounts(@RequestBody CustomerBatchNumDTO dto) {
-        Integer totalNum = pushRuleService.getBatchInfosCounts(dto);
-        return new ApiResult<Integer>().success(totalNum);
+    public ApiResult<Long> getBatchInfosCounts(@RequestBody CustomerBatchNumDTO dto) {
+        Long totalNum = pushRuleService.getBatchInfosCounts(dto);
+        return new ApiResult<Long>().success(totalNum);
     }
 
     /**

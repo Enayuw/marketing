@@ -187,7 +187,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     @Override
-    public Integer getBatchInfosCounts(CustomerBatchNumDTO dto) {
+    public Long getBatchInfosCounts(CustomerBatchNumDTO dto) {
         dto = getCustomerBatchNumDTO(dto);
         return marketingTaskMapper.queryBatchsCount(dto);
     }

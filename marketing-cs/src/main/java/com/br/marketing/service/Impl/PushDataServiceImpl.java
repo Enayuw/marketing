@@ -794,6 +794,42 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     @Override
+    public Boolean isPushDassWithCallGrade(String ruleLabel,String intentionGrade) {
+        HashMap<String, List<String>> gradeOfcallToDass = marketingCommonConfig.getGradeOfcallToDass();
+        List<String> grades = gradeOfcallToDass.get(ruleLabel);
+        if(grades == null){
+            return false;
+        }
+        if(org.apache.commons.lang3.StringUtils.isBlank(intentionGrade)){
+            return false;
+        }
+        for (String grade : grades) {
+            if(intentionGrade.toUpperCase().contains(grade)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public String getStatusByGrade(String ruleLabel, String intentionGrade) {
+        HashMap<String, List<String>> gradeOfcallToDass = marketingCommonConfig.getGradeOfcallToDass();
+        List<String> grades = gradeOfcallToDass.get(ruleLabel);
+        if(grades == null){
+            return "";
+        }
+        if(org.apache.commons.lang3.StringUtils.isBlank(intentionGrade)){
+            return "";
+        }
+        for (String grade : grades) {
+            if(intentionGrade.toUpperCase().contains(grade)){
+                return grade.toLowerCase();
+            }
+        }
+        return "";
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> pushHaierTransferData(Long id) {
         // 1 先查转化信息表b_marketing_transfer_apiCode 获取apiCode、request_id

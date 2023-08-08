@@ -50,9 +50,10 @@
 
     <select id="getTransferData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select * from
-        b_marketing_transfer_sync_${cid}
+            b_marketing_transfer_sync_${cid}
         where
         <![CDATA[  request_data < #{endDate} ]]>
+        and api_code = #{apiCode}
         order by create_time desc,id desc limit #{limitStart},2000;
     </select>
 
