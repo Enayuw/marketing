@@ -68,6 +68,15 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     List<MarketingNewTransferData> getTransferNewData(@Param("day") int day , @Param("limitStart") Integer limitStart);
 
     /**
+     * 取T日全量转换数据
+     * @param cid
+     * @param endDate
+     * @param limitStart
+     * @return
+     */
+    List<MarketingTransferSyncUser> getTransferDataByDate(@Param("apiCode") String apiCode , @Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
+
+    /**
      * 根据ApplyDt数据统计
      *
      * @param cid

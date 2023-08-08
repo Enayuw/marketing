@@ -43,7 +43,7 @@ public class ZhongYouDataPullJob extends AbstractSimpleElasticJob {
                 postResult.getData().forEach(fileId -> zhongYouDataService.saveFileData(fileId));
             }
         }catch (Exception e){
-            log.error("中邮数据拉取定时任务启动异常：{}",e.toString());
+            e.printStackTrace();
         }
     }
 
