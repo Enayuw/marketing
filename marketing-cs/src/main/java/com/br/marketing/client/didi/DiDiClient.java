@@ -433,24 +433,18 @@ public class DiDiClient {
             mark.add(false);
             mark.add(true);
             res.put(PUSH_SMS_TRAFFIC_ACCESS, mark);
-        } else {
-            res.put(PUSH_SMS_TRAFFIC_ACCESS, apiLogMark.get(PUSH_SMS_TRAFFIC_ACCESS));
         }
         if (apiLogMark == null || !apiLogMark.containsKey(PUSH_REACH_SUCCESS)) {
             ArrayList<Boolean> mark = new ArrayList<>();
             mark.add(false);
             mark.add(true);
             res.put(PUSH_REACH_SUCCESS, mark);
-        } else {
-            res.put(PUSH_REACH_SUCCESS, apiLogMark.get(PUSH_REACH_SUCCESS));
         }
         if (apiLogMark == null || !apiLogMark.containsKey(PUSH_JMASS)) {
             ArrayList<Boolean> mark = new ArrayList<>();
             mark.add(false);
             mark.add(true);
             res.put(PUSH_JMASS, mark);
-        } else {
-            res.put(PUSH_JMASS, apiLogMark.get(PUSH_JMASS));
         }
         return res;
     }
