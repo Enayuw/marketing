@@ -425,6 +425,9 @@ public class DiDiClient {
     private HashMap<String, List<Boolean>> getIsLog() {
         HashMap<String, List<Boolean>> res = new HashMap<>();
         HashMap<String, List<Boolean>> apiLogMark = marketingCommonConfig.getApiLogMark();
+        if(apiLogMark!=null){
+            res.putAll(apiLogMark);
+        }
         if (apiLogMark == null || !apiLogMark.containsKey(PUSH_SMS_TRAFFIC_ACCESS)) {
             ArrayList<Boolean> mark = new ArrayList<>();
             mark.add(false);
