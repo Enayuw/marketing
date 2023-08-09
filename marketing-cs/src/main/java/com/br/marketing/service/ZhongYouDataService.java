@@ -78,6 +78,10 @@ public class ZhongYouDataService {
             log.error("中邮文件列表接口httpcode非200异常，重试");
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
+        if(StringUtils.isEmpty(stringStringHashMap.get("content"))){
+            log.error("中邮获取文件列表数据为空");
+            return new Result<List<Long>>().setCode(ResultCode.FAIL.getValue());
+        }
         List<Long> ids = saveFile(stringStringHashMap.get("content"));
         return new Result<List<Long>>().setCode(ResultCode.SUCCESS.getValue()).setDate(ids);
     }
