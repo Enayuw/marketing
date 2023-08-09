@@ -8,6 +8,5 @@
         <foreach collection="custNumSet" item="custNum" open="(" close=")" separator=",">
             '${custNum}'
         </foreach>
-        and status=3
     </select>
 </mapper>
