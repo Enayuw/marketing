@@ -32,7 +32,7 @@ import java.util.List;
 public class DiDiClient {
     @Value("${api.didi.smsUrl:https://admarketing-manhattan.xiaojukeji.com/crow/collision/bairong}")
     String smsUrl;
-    @Value("${api.didi.reachUrl:https://admarketing-manhattan.xiaojukeji.com/crow/user/success/mediaName}")
+    @Value("${api.didi.reachUrl:https://admarketing-manhattan.xiaojukeji.com/crow/user/success/bairong}")
     String reachUrl;
     @Value("${api.didi.jmassSUrl:https://admarketing-manhattan.xiaojukeji.com/model/sample/bairong}")
     String jmassSUrl;
@@ -161,7 +161,7 @@ public class DiDiClient {
                 resMap.put("content", "{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"result\":true}}");
                 resMap.put("httpcode", "200");
             } else {
-                String url = reachUrl.replace("mediaName", reqVO.getMediaName());
+                String url = reachUrl.replace("bairong", reqVO.getMediaName());
                 // 发送请求
                 resMap = httpProxyClient.sendByCodeWithLog(reachRequestTO, url, isProxy,
                         MediaType.APPLICATION_JSON_UTF8_VALUE,
