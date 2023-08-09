@@ -9,6 +9,8 @@ import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.context.RuleDataCollectionEnum;
+import com.br.marketing.context.impl.ZhongYouRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
@@ -47,22 +49,20 @@ public class ZhongYouCustomerTransferImpl implements AssembleData<ConversionData
         log.warn("中邮推客服转化,apicode={}", transfer.getApiCode());
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(transfer.getId().toString());
-        // 获取有效期失效日期
-        List<MarketingTransferSyncUser> transferList = new ArrayList<>();
-        transferList.add(transfer);
-        Map<String, SyncUserValidityPeriodBO> periodBOMap =
-                transferDataValidityPeriodService.getSyncUserValidityPeriodMap(transferList, transfer.getApiCode());
-        SyncUserValidityPeriodBO bo = periodBOMap.get(transfer.getCustNum());
-        PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
+
+        ZhongYouRuleCollectDataImpl.ZhongYouRuleNecessaryData contextRuleNecessaryData = (ZhongYouRuleCollectDataImpl.ZhongYouRuleNecessaryData
+                ) context.getRuleNecessaryData();
+
         // 有效期设置
-        conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
+        conversionData.setExpireDate(contextRuleNecessaryData.getExpireDate());
         conversionData.setPartnerProcessDate(ObjectUtils.isEmpty(transfer.getCreateTime())
                 ? LocalDateTime.now().format(DATE_TIME_FORMATTER) : DateUtils.format(transfer.getCreateTime()
                 , DateHelper.LINE_DATE_COLON_TIME_FORMAT));
 
         // phone
-        if (bo.getSyncUser() != null) {
-            conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
+        MarketingSyncUser syncUser = contextRuleNecessaryData.getSyncUser();
+        if (syncUser != null) {
+            conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUser.getCell()));
         } else {
             conversionData.setPhone("");
         }
@@ -75,15 +75,8 @@ public class ZhongYouCustomerTransferImpl implements AssembleData<ConversionData
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
 
-
         return conversionData;
     }
-
-//    public static void main(String[] args) {
-//        LocalDateTime parse = LocalDateTime.parse("2021-04-09 23:15:32", DATE_TIME_FORMATTER);
-//        LocalDateTime parse1 = LocalDateTime.parse("2021-04-09 23:15:32", DATE_TIME_FORMATTER);
-//        System.out.println(parse1.isAfter(parse));
-//    }
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -107,10 +100,23 @@ public class ZhongYouCustomerTransferImpl implements AssembleData<ConversionData
                 }
 
                 // 判断是否在有效期范围[t,t+45]
-                MarketingSyncUser syncUser = transferDataValidityPeriodService.getNewValidityPeriodDataFirstVersion(transfer, null);
-                if (syncUser == null) {
+                List<MarketingTransferSyncUser> transferList = new ArrayList<>();
+                transferList.add(transfer);
+                Map<String, SyncUserValidityPeriodBO> periodBOMap =
+                        transferDataValidityPeriodService.getSyncUserValidityPeriodMap(transferList, transfer.getApiCode());
+                SyncUserValidityPeriodBO bo = periodBOMap.get(transfer.getCustNum());
+                if (bo == null) {
                     return false;
                 }
+
+                ZhongYouRuleCollectDataImpl.ZhongYouRuleNecessaryData contextRuleNecessaryData =
+                        (ZhongYouRuleCollectDataImpl.ZhongYouRuleNecessaryData
+                        ) context.getRuleNecessaryData();
+                // 将上传数据保存到上下文
+                contextRuleNecessaryData.setSyncUser(bo.getSyncUser());
+                // 将失效时间保存到上下文
+                PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
+                contextRuleNecessaryData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
 
                 flag = Boolean.TRUE;
             }
@@ -130,6 +136,6 @@ public class ZhongYouCustomerTransferImpl implements AssembleData<ConversionData
 
     @Override
     public Integer ruleDataCollection() {
-        return null;
+        return RuleDataCollectionEnum.ZHONGYOU_DATA_COLLECTION.getCode();
     }
 }
