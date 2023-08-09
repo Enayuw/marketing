@@ -55,7 +55,7 @@
     />
     <job:simple id="DidiCallingRecordJob"
                 class="com.br.marketing.monkey.job.didi.DidiCallingRecordJob"
-                cron="0 0 21 * * ?"
+                cron="0 0/10 18-20 * * ?"
                 description="滴滴通话明细推送定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
