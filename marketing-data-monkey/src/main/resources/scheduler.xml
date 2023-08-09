@@ -83,7 +83,7 @@
     />
     <job:simple id="DidiaInvalidityJob"
                 class="com.br.marketing.monkey.job.didi.DidiaInvalidityJob"
-                cron="0 0/10 18-20 * * ?"
+                cron="0 0/10 21-23 * * ?"
                 description="滴滴营销失败"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
