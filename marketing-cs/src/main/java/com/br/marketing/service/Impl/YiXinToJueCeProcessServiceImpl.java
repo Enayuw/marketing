@@ -477,6 +477,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * @param marketingTransferSyncUserCellLists 带电话的转化数据
      */
     private void pushJc(String actionType, List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists) {
+        log.warn("情况:{},去重前推送量级：{}", actionType, marketingTransferSyncUserCellLists.size());
         String apiCodeJc = marketingCommonConfig.getYiXinTransferToJueCeApiCode();
         // 2000 拆分一组
         List<List<MarketingTransferSyncUserCell>> partition = ListUtils.partition(marketingTransferSyncUserCellLists, PARTITION);
@@ -499,6 +500,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * @param marketingTransferSyncUserCellLists 带电话的转化数据
      */
     private void pushJcOfL(String actionType, List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists) {
+        log.warn("情况:{},不去重推送量级：{}", actionType, marketingTransferSyncUserCellLists.size());
         String apiCodeJc = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         // 2000 拆分一组
         List<List<MarketingTransferSyncUserCell>> partition = ListUtils.partition(marketingTransferSyncUserCellLists, PARTITION);
