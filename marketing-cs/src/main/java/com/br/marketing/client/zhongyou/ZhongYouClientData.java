@@ -44,50 +44,50 @@ public class ZhongYouClientData {
     /**
      * 加密算法RSA
      */
-    @Value("${api.zhongyou.keyAlgorithm}")
+    @Value("${api.zhongyou.keyAlgorithm:00}")
     String keyAlgorithm;
 
     /**
      * 签名算法
      */
-    @Value("${api.zhongyou.signAlgorithms}")
+    @Value("${api.zhongyou.signAlgorithms:00}")
     String signAlgorithms;
 
     /**
      * 中邮提供
      */
-    @Value("${api.zhongyou.aesKey}")
+    @Value("${api.zhongyou.aesKey:00}")
     String aesKey;
 
     /**
      * 中邮提供
      */
-    @Value("${api.zhongyou.aesIv}")
+    @Value("${api.zhongyou.aesIv:00}")
     String aesIv;
     /**
      * 中邮提供
      */
-    @Value("${api.zhongyou.channelCode}")
+    @Value("${api.zhongyou.channelCode:00}")
     String channelCode;
     /**
      * 中邮公钥
      */
-    @Value("${api.zhongyou.rsaPublicKey}")
+    @Value("${api.zhongyou.rsaPublicKey:00}")
     String rsaPublicKey;
 
     /**
      * 百融私钥
      */
-    @Value("${api.zhongyou.rsaPrivateKey}")
+    @Value("${api.zhongyou.rsaPrivateKey:00}")
     String rsaPrivateKey;
 
-    @Value("${api.zhongyou.query}")
+    @Value("${api.zhongyou.query:00}")
     String queryUrl;
 
     @Value("${api.zhongyou.download}")
     String downloadUrl;
 
-    @Value("${api.zhongyou.isPorxy}")
+    @Value("${api.zhongyou.isPorxy:false}")
     Boolean isPorxy;
 
 
