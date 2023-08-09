@@ -791,11 +791,6 @@ public class MarketingCommonConfig {
     private Integer yiXinToJueCeTpNum;
 
     /**
-     * 宜信推决策，剔除规则5，外层线程池按天查询线程数
-     */
-    private Integer yiXinExcludeRuleFifthThreadNum;
-
-    /**
      * 宜信查询基础数据 limit 量级
      */
     private Integer yiXinSearchPageSize;
@@ -878,6 +873,11 @@ public class MarketingCommonConfig {
      * 携程vt配置信息{"adVt":{"appId":"bairong002","source":"BaiRong_CPS_C01","iv":"3b2dac323465b024","aesKey":"f3df6f62f0527bf0","singKey":"95cc01ec07387a44"}}
      */
     private HashMap<String,JSONObject> xieChengVtConfig;
+
+    /**
+     * 宜信推决策，情况L策略编号设置
+     */
+    private Map<String, String> yiXinToJueCeStrategyMapOfL;
 
     /**
      * 中邮数据文件流读取落库apiCode

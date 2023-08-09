@@ -76,4 +76,18 @@ public class YiXinProcessExcludeRuleData {
         }
 
     }
+
+    /**
+     * 情况 l 判断剔除
+     *
+     */
+    public void excludeActionL(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+        if(CollectionUtils.isNotEmpty(marketingTransferSyncUserList)){
+            yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSecond(marketingTransferSyncUserList);
+        }
+        if(CollectionUtils.isNotEmpty(marketingTransferSyncUserList)){
+            yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSixth(marketingTransferSyncUserList);
+        }
+        log.warn("宜信推送决策,情况L剔除后数据量级:{}", marketingTransferSyncUserList.size());
+    }
 }

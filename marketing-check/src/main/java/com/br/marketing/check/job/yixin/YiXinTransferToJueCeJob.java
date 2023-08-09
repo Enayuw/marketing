@@ -33,6 +33,7 @@ public class YiXinTransferToJueCeJob extends AbstractSimpleElasticJob {
         ACTONTYPELINK.put("I", "6");
         ACTONTYPELINK.put("J", "13");
         ACTONTYPELINK.put("K", "13");
+        ACTONTYPELINK.put("L", null);
     }
 
     @Resource

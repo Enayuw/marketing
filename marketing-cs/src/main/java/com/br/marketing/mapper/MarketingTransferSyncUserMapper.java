@@ -1,12 +1,11 @@
 package com.br.marketing.mapper;
 
 
-import com.br.marketing.entity.MarketingNewTransferData;
 import com.alibaba.fastjson.JSONArray;
+import com.br.marketing.entity.MarketingNewTransferData;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.vo.TransferOfCnIdVO;
 import com.br.marketing.vo.TransferOfRdRFVO;
-import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
@@ -367,10 +366,24 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                        @Param("type") String type,
                                                                        @Param("indexId") Long indexId,
                                                                        @Param("pageSize") Integer pageSize);
+    List<MarketingTransferSyncUser> getYxTransferByApiCodeCJKtikv_(@Param("tCid") String tcId,
+                                                                   @Param("apiCode") String apiCode,
+                                                                   @Param("requestData") String requestData,
+                                                                   @Param("type") String type,
+                                                                   @Param("indexId") Long indexId,
+                                                                   @Param("registerChannel") String registerChannel,
+                                                                   @Param("pageSize") Integer pageSize);
 
     List<MarketingTransferSyncUser> getYxTransferByApiCodeAtikv_(@Param("tCid") String tCid,
                                                                  @Param("apiCode") String apiCode,
                                                                  @Param("requestDate") String requestDate,
+                                                                 @Param("indexId") Long indexId,
+                                                                 @Param("pageSize") Integer pageSize);
+    List<MarketingTransferSyncUser> getYxTransferByApiCodeLtikv_(@Param("tCid") String tCid,
+                                                                 @Param("apiCode") String apiCode,
+                                                                 @Param("requestDate") String requestDate,
+                                                                 @Param("applyDtStart") String applyDtStart,
+                                                                 @Param("applyDtEnd") String applyDtEnd,
                                                                  @Param("indexId") Long indexId,
                                                                  @Param("pageSize") Integer pageSize);
 
@@ -384,7 +397,8 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     List<String> getRuleFifthYxTransferByApiCodetikv_(@Param("cid") String cid,
                                                       @Param("apiCode") String apiCode,
-                                                      @Param("queryDate") String queryDate,
+                                                      @Param("startDate") String startDate,
+                                                      @Param("endDate") String endDate,
                                                       @Param("custNums") List<String> custNums);
 
     Long getYiXinMinAtoBtoCtoI(@Param("cid") String cid,
