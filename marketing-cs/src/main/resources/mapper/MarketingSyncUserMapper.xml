@@ -315,6 +315,7 @@
             </otherwise>
         </choose>
         and status=1
+        and is_repeat in (1,2)
         group by cust_num,user_type
         ) as a
         left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and a.user_type = b.user_type and
@@ -533,7 +534,7 @@
         select *
         from b_marketing_sync_${marketingTransferSyncUser.apiCode}
         <where>
-            cust_num = #{marketingTransferSyncUser.custNum} and status =1
+            cust_num = #{marketingTransferSyncUser.custNum} and status =1 and is_repeat in (1,2)
             and (applet_date,user_type) in
             <foreach collection="collectRequestDate" item="item" open="(" close=")" separator=",">
                 (#{item.appletDate},#{item.userType})
@@ -663,6 +664,7 @@
             </otherwise>
         </choose>
         and status=1
+        and is_repeat in (1,2)
         group by cell,user_type
         ) as a
         left join b_marketing_sync_${apiCode} b on a.cell = b.cell and a.user_type = b.user_type and
@@ -693,6 +695,7 @@
             </otherwise>
         </choose>
         and status=1
+        and is_repeat in (1,2)
         group by cell
         ) as a
         left join b_marketing_sync_${apiCode} b on a.cell = b.cell and
@@ -723,6 +726,7 @@
             </otherwise>
         </choose>
         and status=1
+        and is_repeat in (1,2)
         group by cust_num
         ) as a
         left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and
