@@ -368,9 +368,10 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         Long indexId = 3000l;
         // 创建线程池
         ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
-        String requestDate = LocalDate.now().minusDays(1).toString();
-        String applyDtStart = requestDate + " 00:00:00";
-        String applyDtEnd = requestDate + " 23:59:59";
+        String requestDate = LocalDate.now().toString();
+        String lastDate = LocalDate.now().minusDays(1).toString();
+        String applyDtStart = lastDate + " 00:00:00";
+        String applyDtEnd = lastDate + " 23:59:59";
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         while (true) {
             initThreadPoolParam(yiXinToJueCeThread);
