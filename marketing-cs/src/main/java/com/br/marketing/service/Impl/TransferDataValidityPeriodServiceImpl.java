@@ -544,7 +544,9 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      */
     private Date switchDate(Object requestDateObj) {
         Date requestDate;
-        if (requestDateObj instanceof Date) {
+        if (requestDateObj == null) {
+            requestDate = new Date();
+        } else if (requestDateObj instanceof Date) {
             requestDate = (Date) requestDateObj;
         } else if (requestDateObj instanceof String) {
             try {
@@ -580,7 +582,9 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      */
     private String switchDateStr(Object requestDateObj) {
         String requestDateStr;
-        if (requestDateObj instanceof Date) {
+        if (requestDateObj == null) {
+            requestDateStr = LocalDate.now().toString();
+        } else if (requestDateObj instanceof Date) {
             requestDateStr = ((Date) requestDateObj).toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString();
         } else if (requestDateObj instanceof String) {
             requestDateStr = (String) requestDateObj;
@@ -1012,22 +1016,29 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     @Override
     public Map<String, SyncUserValidityPeriodBO> getValidityPeriodCellBatchFirstVersion(Set<String> cellSet
             , String apiCode, Object requestDateObj) {
-        // apicode有效期配置
-        final List<MarketingDataValidConfig> configList = getDataValidConfig(cellSet, apiCode);
-        if (configList == null) {
+        if (CollectionUtils.isEmpty(cellSet)) {
             return Collections.emptyMap();
         }
         // 统一时间格式
-        final Date requestDate = switchDate(requestDateObj);
+        final String requestDate = switchDateStr(requestDateObj);
         // 获取包含请求日期的T,T （范围）模式的配置记录
-        final List<MarketingDataValidConfig> dataValidConfigs = configList.stream()
-                .filter(config -> compareRequestDate(config, requestDate)).collect(Collectors.toList());
+        List<MarketingDataValidConfig> dataValidConfigs;
         Map<String, SyncUserValidityPeriodBO> boMap = new ConcurrentHashMap<>(2048);
-        // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
-        if (!dataValidConfigs.isEmpty()) {
+        int page = 0;
+        int pageSize = 2000;
+        for (; ; ) {
+            dataValidConfigs = getDataValidConfig(apiCode, requestDate, null, page, pageSize);
+            if (dataValidConfigs.isEmpty()) {
+                break;
+            }
+            // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
             List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserLastByCellAndInAppletDatList(
                     apiCode, dataValidConfigs, cellSet);
             boMap.putAll(packageKeyValidityPeriodInfo(MarketingSyncUser::getCell, syncUserList, dataValidConfigs));
+            if (dataValidConfigs.size() < pageSize) {
+                break;
+            }
+            ++page;
         }
         return boMap;
     }
@@ -1035,23 +1046,30 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     @Override
     public Map<String, SyncUserValidityPeriodBO> getValidityPeriodCustNumBatchFirstVersion(Set<String> custNumSet
             , String apiCode, Object requestDateObj) {
-        // apicode有效期配置
-        final List<MarketingDataValidConfig> configList = getDataValidConfig(custNumSet, apiCode);
-        if (configList == null) {
+        if (CollectionUtils.isEmpty(custNumSet)) {
             return Collections.emptyMap();
         }
         Map<String, SyncUserValidityPeriodBO> boMap = new ConcurrentHashMap<>(2048);
         // 统一时间格式
-        final Date requestDate = switchDate(requestDateObj);
+        final String requestDateStr = switchDateStr(requestDateObj);
         // 获取包含请求日期的T,T （范围）模式的配置记录
-        final List<MarketingDataValidConfig> dataValidConfigs = configList.stream()
-                .filter(config -> compareRequestDate(config, requestDate)).collect(Collectors.toList());
-        // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
-        if (!dataValidConfigs.isEmpty()) {
+        List<MarketingDataValidConfig> dataValidConfigs;
+        int page = 0;
+        int pageSize = 2000;
+        for (; ; ) {
+            dataValidConfigs = getDataValidConfig(apiCode, requestDateStr, null, page, pageSize);
+            if (dataValidConfigs.isEmpty()) {
+                break;
+            }
+            // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
             List<MarketingSyncUser> syncUserList =
                     marketingSyncUserMapper.getSyncUserLastByCustNumAndInAppletDatList(apiCode
                             , dataValidConfigs, custNumSet);
             boMap.putAll(packageKeyValidityPeriodInfo(MarketingSyncUser::getCustNum, syncUserList, dataValidConfigs));
+            if (dataValidConfigs.size() < pageSize) {
+                break;
+            }
+            ++page;
         }
         return boMap;
     }
