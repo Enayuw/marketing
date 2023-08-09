@@ -66,7 +66,7 @@ public class AlarmAndNoticeTest {
     TransferFileTaskMapper transferFileTaskMapper;
 
     final static String FILE_HEADER = "taskId,custNum,userType,customName,registerTime,ifLogin,loginTime," +
-            "ifApply,applyDt,applyResult,applyResult,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount," +
+            "ifApply,applyDt,applyResult,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount," +
             "pushTime,loginChannel,auditRate,couponType,validityAmt,rateType,lentRate,validityRate,applyLentTime,cps," +
             "lentAmountFirst,lentTimeFirst,cpsRate,fileName,firstName,gender,cell";
 
@@ -178,6 +178,8 @@ public class AlarmAndNoticeTest {
     @Resource
     private TransferToFileByZhongYouServiceImpl transferToFileByZhongYouService;
 
+    final static String ZHONGYOU_TRANSFER_FILE = "transform_";
+
     @Test
     public void newTransferFileTest() {
         TransferFileTask transferFileTask = new TransferFileTask();
@@ -211,7 +213,10 @@ public class AlarmAndNoticeTest {
         TransferFileTask transferFileTask = new TransferFileTask();
         transferFileTask.setApiCode("7434636");
         transferFileTask.setStartDate("2023-08-08 ");
-        transferFileTask.setFileName("file");
+        String recordDate = transferFileTask.getStartDate();
+        StringBuilder fileName = new StringBuilder();
+        fileName.append(ZHONGYOU_TRANSFER_FILE).append(recordDate).append(".txt");
+        transferFileTask.setFileName(fileName.toString());
         log.warn("中邮转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
         String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");

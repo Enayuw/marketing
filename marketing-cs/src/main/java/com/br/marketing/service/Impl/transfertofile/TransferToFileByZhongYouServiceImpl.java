@@ -65,7 +65,7 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
     final static String ZHONGYOU_TRANSFER_FILE = "transform_";
 
     final static String FILE_HEADER = "taskId,custNum,userType,customName,registerTime,ifLogin,loginTime," +
-            "ifApply,applyDt,applyResult,applyResult,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount," +
+            "ifApply,applyDt,applyResult,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount," +
             "pushTime,loginChannel,auditRate,couponType,validityAmt,rateType,lentRate,validityRate,applyLentTime,cps," +
             "lentAmountFirst,lentTimeFirst,cpsRate,fileName,firstName,gender,cell";
 
