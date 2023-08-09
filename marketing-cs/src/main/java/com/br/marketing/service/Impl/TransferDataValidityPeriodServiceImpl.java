@@ -1122,24 +1122,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     }
 
     /**
-     * 2023-07-14 13:31
-     * 验证数据及获取合法的有效期配置
-     */
-    @Deprecated
-    private List<MarketingDataValidConfig> getDataValidConfig(Collection<?> collection, String apiCode) {
-        if (CollectionUtils.isEmpty(collection)) {
-            return null;
-        }
-        // apicode有效期配置
-        final List<MarketingDataValidConfig> configList = findConfigAllByApiCodeListFirstVersion(apiCode);
-        // 未配置任何有效期
-        if (isNotExistDataValidConfig(configList, apiCode)) {
-            return null;
-        }
-        return configList;
-    }
-
-    /**
      * 2023-07-28 13:31
      * 验证数据及获取合法的有效期配置
      *
