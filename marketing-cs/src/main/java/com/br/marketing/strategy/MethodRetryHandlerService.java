@@ -747,15 +747,23 @@ public class MethodRetryHandlerService {
                 if(newValidityPeriodData!=null) {
                     updateDidiCallRecord.setCell(newValidityPeriodData.getCell());
                     // 调接口推送
-                    DiDiReachBO diDiReachBO = new DiDiReachBO();
-                    DiDiReachRequestTO diDiReachRequestTO = new DiDiReachRequestTO();
                     DiDiReqVO diDiReqVO = new DiDiReqVO();
-                    diDiReachRequestTO.setScas(didiCallRecord.getScas());
                     diDiReqVO.setMediaName(didiCallRecord.getMediaName());
-                    diDiReachBO.setDiDiReachRequestTO(diDiReachRequestTO);
                     diDiReqVO.setCustMobileMd5(custNum);
-                    diDiReachBO.setDiDiReqVO(diDiReqVO);
-                    Result<DiDiResponseTO> resResultResult = diDiClient.pushReachSuccess(diDiReachBO);
+                    boolean isError;
+                    Result<DiDiResponseTO> resResultResult;
+                    if ("bairong".equals(didiCallRecord.getMediaName())) {
+                        resResultResult = diDiClient.pushReachSuccess(diDiReqVO);
+                        isError = true;
+                    } else {
+                        DiDiReachBO diDiReachBO = new DiDiReachBO();
+                        DiDiReachRequestTO diDiReachRequestTO = new DiDiReachRequestTO();
+                        diDiReachRequestTO.setScas(didiCallRecord.getScas());
+                        diDiReachBO.setDiDiReachRequestTO(diDiReachRequestTO);
+                        diDiReachBO.setDiDiReqVO(diDiReqVO);
+                        resResultResult = diDiClient.pushReachSuccess(diDiReachBO);
+                        isError = "10000".equals(resResultResult.getData().getErrorCode());
+                    }
                     // 500 异常需要进入阶梯重试
                     if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(resResultResult.getCode())) {
                         updateDidiCallRecord.setStatus(2);
@@ -767,8 +775,7 @@ public class MethodRetryHandlerService {
                         return new Result<Boolean>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
                     }
                     // 成功则更新数据状态
-                    if (resResultResult.getCode().equals(ResultCode.SUCCESS.getValue())
-                            && "10000".equals(resResultResult.getData().getErrorCode())) {
+                    if (resResultResult.getCode().equals(ResultCode.SUCCESS.getValue()) && isError) {
                         res = Boolean.TRUE;
                         DiDiResponseTO diDiResponseTO = resResultResult.getData();
                         DiDiResponseTO.ResResult data = diDiResponseTO.getData();

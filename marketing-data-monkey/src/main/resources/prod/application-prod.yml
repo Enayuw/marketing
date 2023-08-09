@@ -189,7 +189,8 @@ api:
     failedUrl: ${api.didi.baseUrl}/crow/faileduser/mediaName
     token: DK&SgWl!fZ%WVSXe
     scas: "0001"
-    channelId: 3140738898634899
+    channelId: 3140738836439875
+    channelIdMap: "{bairong:'3140738836439875',bairongA:'3140738898634899'}"
     isProxy: true
 spring:
   rabbitmq:
