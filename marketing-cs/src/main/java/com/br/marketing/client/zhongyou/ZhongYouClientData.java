@@ -84,7 +84,7 @@ public class ZhongYouClientData {
     @Value("${api.zhongyou.query:00}")
     String queryUrl;
 
-    @Value("${api.zhongyou.download}")
+    @Value("${api.zhongyou.download:00}")
     String downloadUrl;
 
     @Value("${api.zhongyou.isPorxy:false}")
