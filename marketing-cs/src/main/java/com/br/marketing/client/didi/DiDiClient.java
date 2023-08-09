@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Description DiDiClient
@@ -45,8 +46,11 @@ public class DiDiClient {
     @Value("${api.didi.scas:0001}")
     String scas;
 
-    @Value("${api.didi.channelId:3140738898634899}")
+    @Value("${api.didi.channelId:3140738836439875}")
     String channelId;
+
+    @Value("#{${api.didi.channelIdMap:\"bairong:'3140738836439875',bairongA:'3140738898634899'\"}}")
+    private Map<String, String> channelIdMap;
 
     @Value("${api.didi.isProxy:false}")
     Boolean isProxy;
@@ -140,66 +144,6 @@ public class DiDiClient {
      *
      * @return
      */
-    public Result<DiDiResponseTO> pushReachSuccess(DiDiReachBO diDiReachBO) {
-        try {
-            // 获取是否记录日志
-            HashMap<String, List<Boolean>> isLog = getIsLog();
-            List<Boolean> islogs = isLog.get(PUSH_REACH_SUCCESS);
-            DiDiReqVO reqVO = diDiReachBO.getDiDiReqVO();
-            // 构建请求参数
-            DiDiReachRequestTO reachRequestTO = diDiReachBO.getDiDiReachRequestTO();
-            reachRequestTO.setSign(reqVO.getCustMobileMd5());
-            String timestamp = String.valueOf(System.currentTimeMillis());
-            reachRequestTO.setTimestamp(timestamp);
-            String signature = getSignature(reqVO.getCustMobileMd5(), timestamp);
-            reachRequestTO.setSignature(signature);
-            reachRequestTO.setChannelId(channelId);
-
-            HashMap<String, String> resMap = new HashMap<>();
-            // 获取挡板开关
-            if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_REACH_SUCCESS)) {
-                resMap.put("content", "{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"result\":true}}");
-                resMap.put("httpcode", "200");
-            } else {
-                String url = reachUrl.replace("bairong", reqVO.getMediaName());
-                // 发送请求
-                resMap = httpProxyClient.sendByCodeWithLog(reachRequestTO, url, isProxy,
-                        MediaType.APPLICATION_JSON_UTF8_VALUE,
-                        JSON.toJSONString(reqVO), islogs.get(0), islogs.get(1));
-            }
-
-            // 1.httpcode不为200，需要重试
-            if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-                if (!islogs.get(1)) {
-                    log.error("调用滴滴触达成功接口异常-请求参数:{};返回:{}", JSON.toJSONString(reqVO), JSON.toJSONString(resMap));
-                }
-                return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
-            }
-
-            // 解析返回结果
-            DiDiResponseTO smsResponseTO = JSON.parseObject(resMap.get("content"), DiDiResponseTO.class);
-
-            // 2.errorCode=20000，需要重试
-            if ("20000".equals(smsResponseTO.getErrorCode())) {
-                if (!islogs.get(1)) {
-                    log.error("调用滴滴触达成功接口异常-请求参数:{};返回:{}", JSON.toJSONString(reqVO), JSON.toJSONString(resMap));
-                }
-                return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
-            }
-
-            // 3.返回成功，无需重试
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(smsResponseTO);
-        } catch (Exception e) {
-            // 4.异常，需要重试
-            log.error("调用滴滴触达成功接口异常" + e.getMessage(), e);
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
-        }
-    }
-
-    /**
-     * 2023-08-08 14:10
-     * sftp文件方式推送触达成功接口
-     */
     public Result<DiDiResponseTO> pushReachSuccess(DiDiReqVO smsReqVO) {
         try {
             // 获取是否记录日志
@@ -253,6 +197,77 @@ public class DiDiClient {
             // 4.异常，需要重试
             log.error("调用滴滴触达成功接口异常" + e.getMessage(), e);
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+    }
+
+
+    /**
+     * 2023-08-08 14:10
+     * sftp文件方式推送触达成功接口
+     *
+     * @param diDiReachBO 业务封装
+     * @return DiDiResponseTO
+     */
+    public Result<DiDiResponseTO> pushReachSuccess(DiDiReachBO diDiReachBO) {
+        Result<DiDiResponseTO> result = new Result<>();
+        try {
+            // 获取是否记录日志
+            HashMap<String, List<Boolean>> isLog = getIsLog();
+            List<Boolean> islogs = isLog.get(PUSH_REACH_SUCCESS);
+            DiDiReqVO reqVO = diDiReachBO.getDiDiReqVO();
+            // 构建请求参数
+            DiDiReachRequestTO reachRequest = diDiReachBO.getDiDiReachRequestTO();
+            reachRequest.setSign(reqVO.getCustMobileMd5());
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            reachRequest.setTimestamp(timestamp);
+            String signature = getSignature(reqVO.getCustMobileMd5(), timestamp);
+            reachRequest.setSignature(signature);
+            reachRequest.setChannelId(channelIdMap.getOrDefault(reqVO.getCustMobileMd5(), channelIdMap.get("bairongA")));
+            HashMap<String, String> resMap = new HashMap<>();
+            String httpcode = "200";
+            String codeKey = "httpcode";
+            String contentKey = "content";
+            // 获取挡板开关
+            if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_REACH_SUCCESS)) {
+                resMap.put(contentKey, "{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"result\":true}}");
+                resMap.put(codeKey, httpcode);
+            } else {
+                String url = reachUrl.replace("bairong", reqVO.getMediaName());
+                // 发送请求
+                resMap = httpProxyClient.sendByCodeWithLog(reachRequest, url, isProxy,
+                        MediaType.APPLICATION_JSON_UTF8_VALUE,
+                        JSON.toJSONString(reqVO), islogs.get(0), islogs.get(1));
+            }
+
+            // 1.httpcode不为200，需要重试
+            if (!httpcode.equals(resMap.get(codeKey)) || StringUtils.isBlank(resMap.get(contentKey))) {
+                if (!islogs.get(1)) {
+                    log.error("调用滴滴触达成功接口异常-请求参数:{};返回:{}", JSON.toJSONString(reqVO), JSON.toJSONString(resMap));
+                }
+                result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+                return result;
+            }
+            // 解析返回结果
+            DiDiResponseTO smsResponseTO = JSON.parseObject(resMap.get(contentKey), DiDiResponseTO.class);
+            // 2.errorCode=20000，需要重试
+            if ("20000".equals(smsResponseTO.getErrorCode())) {
+                if (!islogs.get(1)) {
+                    log.error("调用滴滴触达成功接口异常-请求参数:{};返回:{}", JSON.toJSONString(reqVO)
+                            , JSON.toJSONString(resMap));
+                }
+                result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+                return result;
+            }
+
+            // 3.返回成功，无需重试
+            result.setCode(ResultCode.SUCCESS.getValue());
+            result.setDate(smsResponseTO);
+            return result;
+        } catch (Exception e) {
+            // 4.异常，需要重试
+            log.error("调用滴滴触达成功接口异常" + e.getMessage(), e);
+            result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            return result;
         }
     }
 
