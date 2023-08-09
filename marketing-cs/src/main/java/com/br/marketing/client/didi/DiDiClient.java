@@ -49,7 +49,7 @@ public class DiDiClient {
     @Value("${api.didi.channelId:3140738836439875}")
     String channelId;
 
-    @Value("#{${api.didi.channelIdMap:\"{bairong:'3140738836439875',bairongA:'3140738898634899'}\"}}")
+    @Value("#{${api.didi.channelIdMap:{bairong:'3140738836439875',bairongA:'3140738898634899'}}}")
     private Map<String, String> channelIdMap;
 
     @Value("${api.didi.isProxy:false}")
