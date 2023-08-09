@@ -229,7 +229,7 @@ public class DiDiClient {
             String contentKey = "content";
             // 获取挡板开关
             if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_REACH_SUCCESS)) {
-                resMap.put(contentKey, "{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"result\":true}}");
+                resMap.put(contentKey, "{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":\"\"}");
                 resMap.put(codeKey, httpcode);
             } else {
                 String url = reachUrl.replace("bairong", reqVO.getMediaName());
