@@ -664,7 +664,6 @@
             </otherwise>
         </choose>
         and status=1
-        and is_repeat in (1,2)
         group by cell,user_type
         ) as a
         left join b_marketing_sync_${apiCode} b on a.cell = b.cell and a.user_type = b.user_type and
@@ -695,7 +694,6 @@
             </otherwise>
         </choose>
         and status=1
-        and is_repeat in (1,2)
         group by cell
         ) as a
         left join b_marketing_sync_${apiCode} b on a.cell = b.cell and
