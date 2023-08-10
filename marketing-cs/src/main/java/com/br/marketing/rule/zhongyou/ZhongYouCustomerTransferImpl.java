@@ -90,8 +90,17 @@ public class ZhongYouCustomerTransferImpl implements AssembleData<ConversionData
                 if (StringUtils.isEmpty(applyLentTime) || StringUtils.isEmpty(pushTime)) {
                     return false;
                 }
-                LocalDateTime date1 = LocalDateTime.parse(applyLentTime, DATE_TIME_FORMATTER);
-                LocalDateTime date2 = LocalDateTime.parse(pushTime, DATE_TIME_FORMATTER);
+
+                LocalDateTime date1;
+                LocalDateTime date2;
+                try {
+                    date1 = LocalDateTime.parse(applyLentTime, DATE_TIME_FORMATTER);
+                    date2 = LocalDateTime.parse(pushTime, DATE_TIME_FORMATTER);
+                } catch (Exception e) {
+                    log.error("中邮推客服转化,applyLentTime或pushTime日期格式解析失败,转化数据id：{}", transfer.getId());
+                    return false;
+                }
+
                 // 若applyLentTime小于pushTime，则不推送
                 if (date1.isBefore(date2)) {
                     return false;
