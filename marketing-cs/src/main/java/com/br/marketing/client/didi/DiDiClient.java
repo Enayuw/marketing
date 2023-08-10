@@ -224,7 +224,7 @@ public class DiDiClient {
             reachRequest.setTimestamp(timestamp);
             String signature = getSignature(reqVO.getCustMobileMd5(), timestamp);
             reachRequest.setSignature(signature);
-            reachRequest.setChannelId(channelIdMap.getOrDefault(reqVO.getCustMobileMd5(), channelIdMap.get("bairongA")));
+            reachRequest.setChannelId(channelIdMap.getOrDefault(reqVO.getMediaName(), channelIdMap.get("bairongA")));
             HashMap<String, String> resMap = new HashMap<>();
             String httpcode = "200";
             String codeKey = "httpcode";
