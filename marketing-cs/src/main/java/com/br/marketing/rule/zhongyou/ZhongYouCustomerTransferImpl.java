@@ -24,9 +24,13 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @Description ZhongYouCustomerTransferImpl
@@ -37,7 +41,7 @@ import java.util.*;
 @Slf4j
 public class ZhongYouCustomerTransferImpl implements AssembleData<ConversionData> {
 
-    private static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT);
+    private static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
@@ -91,18 +95,27 @@ public class ZhongYouCustomerTransferImpl implements AssembleData<ConversionData
                     return false;
                 }
 
-                LocalDateTime date1;
-                LocalDateTime date2;
+                // yyyy-MM-dd
+                SimpleDateFormat format = new SimpleDateFormat(DateHelper.LINE_DATE_FORMAT);
+                Date date1;
+                Date date2;
                 try {
-                    date1 = LocalDateTime.parse(applyLentTime, DATE_TIME_FORMATTER);
-                    date2 = LocalDateTime.parse(pushTime, DATE_TIME_FORMATTER);
+                    date1 = format.parse(applyLentTime);
+                    date2 = format.parse(pushTime);
                 } catch (Exception e) {
-                    log.error("中邮推客服转化,applyLentTime或pushTime日期格式解析失败,转化数据id：{}", transfer.getId());
-                    return false;
+                    // yyyyMMdd
+                    format = new SimpleDateFormat(DateHelper.SHORT_DATE_FORMAT);
+                    try {
+                        date1 = format.parse(applyLentTime);
+                        date2 = format.parse(pushTime);
+                    } catch (Exception e1) {
+                        log.error("中邮推客服转化,applyLentTime或pushTime日期格式解析失败,转化数据id：{}", transfer.getId());
+                        return false;
+                    }
                 }
 
                 // 若applyLentTime小于pushTime，则不推送
-                if (date1.isBefore(date2)) {
+                if (date1.before(date2)) {
                     return false;
                 }
 
