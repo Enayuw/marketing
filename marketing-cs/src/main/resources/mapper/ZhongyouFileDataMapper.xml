@@ -31,4 +31,16 @@
         select count(1) as num ,file_data,type from b_zhongyou_file_data where file_id = #{fileId} group by type order by type
     </select>
 
+    <select id="selectZhongYouDataPage" resultType="com.br.marketing.entity.ZhongyouFileData">
+        select * from
+        b_zhongyou_file_data
+        where
+        <if test="minId != null and minId >0">
+            id >=#{minId} and
+        </if>
+        file_id = #{fileId}  and status =1  and type =2
+        order by id asc limit 2000;
+
+    </select>
+
 </mapper>

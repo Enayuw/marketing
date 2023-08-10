@@ -885,6 +885,11 @@ public class MarketingCommonConfig {
     private String zhongyouApiCode;
 
     /**
+     * 中邮清洗数据线程数
+     */
+    private Integer zhongYouCleanDataThreadNum;
+
+    /**
      * 中邮数据文件流读取落库字段数
      */
     private Integer zhongyouColumnsSize;

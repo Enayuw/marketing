@@ -137,6 +137,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     DecodeClient decodeClient;
 
     @Resource
+    private ZhongyouFileDataMapper zhongyouFileDataMapper;
+
+    @Resource
     private RestTemplate restTemplate;
 
     @Value("#{${api.pushTransfer.robotAi.tailor.apiCodeMap:{'7410787':true}}}")
@@ -3070,5 +3073,187 @@ public class PushRuleServiceImpl implements PushRuleService {
                     .setDate("9999".equals(reqBlackPhoneVO.getCode()) ? "9999" : "部分成功");
         }
         return new Result().setCode(ResultCode.FAIL.getValue()).setDate(reqBlackPhoneVO.getCode());
+    }
+
+    @Override
+    public Result<Boolean> HandleZhongYouData(Long id) {
+        Long st1 = System.currentTimeMillis();
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5, 20);
+        Long minId = null;
+        Boolean isContiue = Boolean.TRUE;
+        while (isContiue) {
+            if (marketingCommonConfig.getZhongYouCleanDataThreadNum() != null) {
+                pool.setCorePoolSize(marketingCommonConfig.getZhongYouCleanDataThreadNum());
+                pool.setMaximumPoolSize(marketingCommonConfig.getZhongYouCleanDataThreadNum());
+                log.warn("中邮清洗数据线程调整，corePoolSize={},maxPoolSize={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
+            }
+            List<ZhongyouFileData> zhongyouFileDataList = zhongyouFileDataMapper.selectZhongYouDataPage(id, minId);
+            if (zhongyouFileDataList.size() <= 0) {
+                isContiue = Boolean.FALSE;
+                continue;
+            }
+            minId = zhongyouFileDataList.get(zhongyouFileDataList.size() - 1).getId() + 1;
+            pool.submit(() -> {
+                Result result = cleanData(zhongyouFileDataList);
+                if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                    log.warn(result.getMessage());
+                }
+            });
+        }
+        pool.shutdown();
+        try {
+            while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+        log.warn("中邮清洗数据耗时：{} ms",System.currentTimeMillis() - st1);
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
+    }
+
+    private Result cleanData(List<ZhongyouFileData> zhongyouFileDataList) {
+        String apiCode = zhongyouFileDataList.get(0).getApiCode();
+        MarketingPreUserDTO uploadDataDTO = new MarketingPreUserDTO();
+        TransferDataDTO transferDataDTO = new TransferDataDTO();
+        //构造上传转化参数
+        buildParam(apiCode, zhongyouFileDataList, uploadDataDTO, transferDataDTO);
+        //插入上传info表
+        MarketingSyncInfo syncInfo = new MarketingSyncInfo();
+        try {
+            syncInfo.setApiCode(apiCode);
+            syncInfo.setCusBatch(uploadDataDTO.getTaskId());
+            syncInfo.setRequestBatch(uploadDataDTO.getRequestId());
+            syncInfo.setCreateTime(new Date());
+            syncInfo.setJsonData(JSON.toJSONString(uploadDataDTO));
+            syncInfo.setActualNum(uploadDataDTO.getDataItems().size());
+            marketingUserMapper.insertMarketingPreUserByText(syncInfo);
+        } catch (DuplicateKeyException keyException) {
+            log.error("中邮上传数据request_batch重复，requestBatch = {}", uploadDataDTO.getRequestId());
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("中邮上传数据request_batch重复");
+        } catch (Exception ex) {
+            log.error("中邮上传数据插入异常", ex.getMessage());
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("中邮上传数据插入异常");
+        }
+        //插入上传明细表
+        insertMarketingPreUserSync(syncInfo.getId());
+
+        //插入转化info表
+        MarketingTransferInfo transferInfo = new MarketingTransferInfo();
+        try {
+            transferInfo.setApiCode(apiCode);
+            transferInfo.setRequestId(transferDataDTO.getRequestId());
+            transferInfo.setCreateTime(new Date());
+            transferInfo.setJsonData(JSON.toJSONString(transferDataDTO));
+            transferInfo.setActualNum(transferDataDTO.getDataItems().size());
+            marketingTransferInfoMapper.insertSelective(transferInfo);
+        } catch (DuplicateKeyException keyException) {
+            log.error("中邮转化数据request_id重复，requestId = {}", transferDataDTO.getRequestId());
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("中邮转化数据request_id重复");
+        } catch (Exception ex) {
+            log.error("中邮转化数据插入异常", ex.getMessage());
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("中邮转化数据插入异常");
+        }
+        //插入转化明细表
+        consumerTransferData(transferInfo.getId());
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
+
+    }
+
+    private void buildParam(String apiCode, List<ZhongyouFileData> zhongyouFileDataList, MarketingPreUserDTO uploadDataDTO, TransferDataDTO transferDataDTO) {
+
+        List<MarketingPreUserDetailDTO> dataItems = new ArrayList<>();
+        List<TransferDataItemDTO> transferDataItemDTOS = new ArrayList<>();
+        zhongyouFileDataList.forEach(zhongyouFileData -> {
+            List<String> list = Arrays.asList(zhongyouFileData.getFileData().split("\\|\\|"));
+            MarketingPreUserDetailDTO detailDTO = new MarketingPreUserDetailDTO();
+            TransferDataItemDTO transferDataItemDTO = new TransferDataItemDTO();
+            JSONObject uploadJsonObject = new JSONObject();
+            JSONObject transferJsonObject = new JSONObject();
+            uploadDataDTO.setTaskId(list.get(0));
+            transferJsonObject.put("taskId",list.get(0));
+            detailDTO.setCell(list.get(4));
+            uploadJsonObject.put("cell", list.get(4));
+            detailDTO.setCustNum(list.get(3));
+            transferDataItemDTO.setCustNum(list.get(3));
+            uploadJsonObject.put("firstName", list.get(5));
+            transferJsonObject.put("firstName", list.get(5));
+            uploadJsonObject.put("userType", "00");
+            transferDataItemDTO.setUserType("00");
+            String gender = list.get(6);
+            if ("女".equals(gender)) {
+                uploadJsonObject.put("gender", 0);
+                transferJsonObject.put("gender", 0);
+            } else if ("男".equals(gender)) {
+                uploadJsonObject.put("gender", 1);
+                transferJsonObject.put("gender", 1);
+            }
+            uploadJsonObject.put("customName", list.get(1));
+            transferDataItemDTO.setCustomName(list.get(1));
+            uploadJsonObject.put("registerTime", list.get(7));
+            transferDataItemDTO.setRegisterTime(list.get(7));
+            uploadJsonObject.put("ifLogin", list.get(19));
+            transferDataItemDTO.setIfLogin(list.get(19));
+            if (StringUtils.isNotEmpty(list.get(8)) || StringUtils.isNotEmpty(list.get(20))) {
+                uploadJsonObject.put("loginTime", StringUtils.isNotEmpty(list.get(8)) ? list.get(8) : list.get(20));
+                transferDataItemDTO.setLoginTime(StringUtils.isNotEmpty(list.get(8)) ? list.get(8) : list.get(20));
+            }
+            uploadJsonObject.put("ifApply", list.get(21));
+            transferDataItemDTO.setIfApply(list.get(21));
+            uploadJsonObject.put("applyDt", list.get(22));
+            transferDataItemDTO.setApplyDt(list.get(22));
+            uploadJsonObject.put("applyResult", list.get(23));
+            transferDataItemDTO.setApplyResult(list.get(23));
+            if (StringUtils.isNotEmpty(list.get(10)) || StringUtils.isNotEmpty(list.get(24))) {
+                uploadJsonObject.put("auditTime", StringUtils.isNotEmpty(list.get(10)) ? list.get(10) : list.get(24));
+                transferDataItemDTO.setAuditTime(StringUtils.isNotEmpty(list.get(10)) ? list.get(10) : list.get(24));
+            }
+            uploadJsonObject.put("auditAmount", list.get(11));
+            transferDataItemDTO.setAuditAmount(list.get(11));
+            uploadJsonObject.put("ifLent", list.get(26));
+            transferDataItemDTO.setIfLent(list.get(26));
+            uploadJsonObject.put("lentTime", list.get(29));
+            transferDataItemDTO.setLentTime(list.get(29));
+            uploadJsonObject.put("lentAmount", list.get(30));
+            transferDataItemDTO.setLentAmount(list.get(30));
+            uploadJsonObject.put("unlentAmount", list.get(14));
+            transferDataItemDTO.setUnlentAmount(list.get(14));
+            uploadJsonObject.put("pushTime", list.get(2));
+            transferJsonObject.put("pushTime", list.get(2));
+            uploadJsonObject.put("loginChannel", list.get(9));
+            transferJsonObject.put("loginChannel", list.get(9));
+            uploadJsonObject.put("auditRate", list.get(12));
+            transferJsonObject.put("auditRate", list.get(12));
+            uploadJsonObject.put("couponType", list.get(13));
+            transferJsonObject.put("couponType", list.get(13));
+            uploadJsonObject.put("validityAmt", list.get(15));
+            transferJsonObject.put("validityAmt", list.get(15));
+            uploadJsonObject.put("rateType", list.get(16));
+            transferJsonObject.put("rateType", list.get(16));
+            uploadJsonObject.put("lentRate", list.get(17));
+            transferJsonObject.put("lentRate", list.get(17));
+            uploadJsonObject.put("validityRate", list.get(18));
+            transferJsonObject.put("validityRate", list.get(18));
+            uploadJsonObject.put("applyLentTime", list.get(25));
+            transferJsonObject.put("applyLentTime", list.get(25));
+            uploadJsonObject.put("cps", list.get(32));
+            transferJsonObject.put("cps", list.get(32));
+            uploadJsonObject.put("lentAmountFirst", list.get(28));
+            transferJsonObject.put("lentAmountFirst", list.get(28));
+            uploadJsonObject.put("lentTimeFirst", list.get(27));
+            transferJsonObject.put("lentTimeFirst", list.get(27));
+            uploadJsonObject.put("cpsRate", list.get(31));
+            transferJsonObject.put("cpsRate", list.get(31));
+
+            detailDTO.setReserveField1(uploadJsonObject.toJSONString());
+            dataItems.add(detailDTO);
+
+            transferDataItemDTO.setReserveField1(transferJsonObject.toJSONString());
+            transferDataItemDTOS.add(transferDataItemDTO);
+        });
+        uploadDataDTO.setRequestId(apiCode + System.currentTimeMillis() + UUID.randomUUID());
+        uploadDataDTO.setDataItems(dataItems);
+        transferDataDTO.setDataItems(transferDataItemDTOS);
+        transferDataDTO.setRequestId(apiCode + System.currentTimeMillis() + UUID.randomUUID());
+
     }
 }
