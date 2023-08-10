@@ -12,9 +12,10 @@ import org.springframework.context.annotation.Configuration;
 import java.util.*;
 
 @Configuration
-@SpeedFile(filename = "marketingcommon.properties",topic = "marketing")
+@SpeedFile(filename = "marketingcommon.properties", topic = "marketing")
 @Data
 public class MarketingCommonConfig {
+
     /**
      * 推送客服
      */
@@ -868,5 +869,10 @@ public class MarketingCommonConfig {
      * 宜信推决策，情况L策略编号设置
      */
     private Map<String, String> yiXinToJueCeStrategyMapOfL;
+
+    /**
+     * 滴滴接口mediaNm配置{“pushSmsTrafficAccess”:“bairongA”}
+     */
+    private Map<String, String> didiMediaNm;
 }
 
