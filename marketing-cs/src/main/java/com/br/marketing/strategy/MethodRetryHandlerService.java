@@ -750,11 +750,11 @@ public class MethodRetryHandlerService {
                     DiDiReqVO diDiReqVO = new DiDiReqVO();
                     diDiReqVO.setMediaName(didiCallRecord.getMediaName());
                     diDiReqVO.setCustMobileMd5(custNum);
-                    boolean isError;
+                    boolean isNotError;
                     Result<DiDiResponseTO> resResultResult;
                     if ("bairong".equals(didiCallRecord.getMediaName())) {
                         resResultResult = diDiClient.pushReachSuccess(diDiReqVO);
-                        isError = true;
+                        isNotError = true;
                     } else {
                         DiDiReachBO diDiReachBO = new DiDiReachBO();
                         DiDiReachRequestTO diDiReachRequestTO = new DiDiReachRequestTO();
@@ -762,7 +762,7 @@ public class MethodRetryHandlerService {
                         diDiReachBO.setDiDiReachRequestTO(diDiReachRequestTO);
                         diDiReachBO.setDiDiReqVO(diDiReqVO);
                         resResultResult = diDiClient.pushReachSuccess(diDiReachBO);
-                        isError = "10000".equals(resResultResult.getData().getErrorCode());
+                        isNotError = "10000".equals(resResultResult.getData().getErrorCode());
                     }
                     // 500 异常需要进入阶梯重试
                     if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(resResultResult.getCode())) {
@@ -775,7 +775,7 @@ public class MethodRetryHandlerService {
                         return new Result<Boolean>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
                     }
                     // 成功则更新数据状态
-                    if (resResultResult.getCode().equals(ResultCode.SUCCESS.getValue()) && isError) {
+                    if (resResultResult.getCode().equals(ResultCode.SUCCESS.getValue()) && isNotError) {
                         res = Boolean.TRUE;
                         DiDiResponseTO diDiResponseTO = resResultResult.getData();
                         DiDiResponseTO.ResResult data = diDiResponseTO.getData();
