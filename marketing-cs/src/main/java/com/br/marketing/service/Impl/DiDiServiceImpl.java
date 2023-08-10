@@ -47,10 +47,10 @@ public class DiDiServiceImpl {
         if(syncSize<=0){
             log.warn(String.format("未更新到上传数据 apiCode:%s,custNum:%s,appletDate:%s",didiData.getApiCode(),didiData.getCell(),didiData.getPushDate()));
         }
-        //todo 测试异常数据
-        if("432f3595dfb187ef811c9d4761c344aa".equals(didiData.getCell())){
-            throw new KnowException("测试异常回滚");
-        }
+//        //todo 测试异常数据
+//        if("432f3595dfb187ef811c9d4761c344aa".equals(didiData.getCell())){
+//            throw new KnowException("测试异常回滚");
+//        }
         DiDiReqVO diDiReqVO = new DiDiReqVO();
         diDiReqVO.setCustMobileMd5(didiData.getCell());
         Result<DiDiFailUserVO> diDiFailUserVOResult = diDiClient.failUser(diDiReqVO);
