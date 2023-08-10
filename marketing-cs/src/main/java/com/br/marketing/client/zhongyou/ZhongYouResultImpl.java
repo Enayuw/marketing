@@ -158,7 +158,7 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
         } else if (isNumeric(lineData)) {
             // 设置第一行数据标记
             zhongyouFileData.setType("1");
-        } else if (lineData.contains("\\|\\|")) {
+        } else if (lineData.contains("||")) {
             int length = lineData.split("\\|\\|").length;
             if (length != marketingCommonConfig.getZhongyouColumnsSize()) {
                 zhongyouFileData.setStatus(2);
