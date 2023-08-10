@@ -79,7 +79,7 @@ public class YiXinToJueCeMakeUpProcessServiceImpl implements YiXinToJueCeMakeUpP
     private static final Integer PARTITION = 2000;
     @Override
     public void doProcess(String param) {
-        log.warn("宜信推决策补推数据定时任务，启动");
+        log.error("宜信推决策补推数据定时任务，启动");
         String apiCode = checkApiCode();
         Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd(apiCode, LocalDate.now().toString());
         if (!pushBlackPhoneEnd && LocalDateTime.now().getHour() < 11) {
@@ -177,7 +177,7 @@ public class YiXinToJueCeMakeUpProcessServiceImpl implements YiXinToJueCeMakeUpP
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
-        log.warn("宜信情况L补推送决策，补推完成！");
+        log.error("宜信情况L补推送决策，补推完成！");
     }
 
 
