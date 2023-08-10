@@ -44,6 +44,7 @@ public class DidiCallRecordHandle {
             pushDate.forEach(date -> {
                 Long minId = null;
                 while ( marketingCommonConfig.isDidiCallRecordSwitch()){
+                    didiCallRecordThread.setMaximumPoolSize(marketingCommonConfig.getDidiCallRecordThread());
                     DidiCallRecordExample didiCallRecordExample = new DidiCallRecordExample();
                     didiCallRecordExample.setOrderByClause("id asc limit 2000");
                     DidiCallRecordExample.Criteria criteria = didiCallRecordExample.createCriteria();
