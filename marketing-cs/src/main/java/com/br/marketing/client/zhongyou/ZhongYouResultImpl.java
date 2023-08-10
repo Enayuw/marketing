@@ -141,8 +141,8 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
      * @param resultMap            返回结果集
      * @param lineData             行内容
      */
-    private  void zhongyouDataListBuild(Long fileId, List<ZhongyouFileData> zhongyouFileDataList,
-                                              Map<String, String> resultMap, String lineData) {
+    private void zhongyouDataListBuild(Long fileId, List<ZhongyouFileData> zhongyouFileDataList,
+                                       Map<String, String> resultMap, String lineData) {
         ZhongyouFileData zhongyouFileData = new ZhongyouFileData();
         zhongyouFileData.setFileId(fileId);
         zhongyouFileData.setStatus(1);
@@ -159,10 +159,10 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
             // 设置第一行数据标记
             zhongyouFileData.setType("1");
         } else if (lineData.contains("||")) {
-            int length = lineData.split("\\|\\|").length;
-            if (length != marketingCommonConfig.getZhongyouColumnsSize()) {
+            int count = getCount(lineData, "||");
+            if (count != marketingCommonConfig.getZhongyouColumnsSize()) {
                 zhongyouFileData.setStatus(2);
-                zhongyouFileData.setDataMessage("字段数不匹配：" + length);
+                zhongyouFileData.setDataMessage("字段数不匹配");
             }
         }
         zhongyouFileData.setFileData(lineData);
@@ -172,6 +172,19 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
         zhongyouFileData.setUpdateTime(new Date());
         // 存储数据
         zhongyouFileDataList.add(zhongyouFileData);
+    }
+
+    public int getCount(String str, String key) {
+        if (str == null || key == null || "".equals(str.trim()) || "".equals(key.trim())) {
+            return 0;
+        }
+        int count = 0;
+        int index = 0;
+        while ((index = str.indexOf(key, index)) != -1) {
+            index = index + key.length();
+            count++;
+        }
+        return count;
     }
 
     /**

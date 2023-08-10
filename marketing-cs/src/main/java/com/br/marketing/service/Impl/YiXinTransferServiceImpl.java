@@ -498,7 +498,6 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         List<TransferActionFront> transferActionFronts = transferActionFrontMapper.selectByExample(frontExample);
 
         if (transferActionFronts.size() > 1) {
-            log.error(String.format("该推送日志当前有条 请检查apiCode:%s,data:%s,type:%s", apiCode, date, actionType));
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
 
