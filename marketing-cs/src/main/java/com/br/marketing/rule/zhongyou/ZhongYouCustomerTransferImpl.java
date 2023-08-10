@@ -26,9 +26,7 @@ import org.springframework.util.StringUtils;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @Description ZhongYouCustomerTransferImpl
@@ -100,10 +98,10 @@ public class ZhongYouCustomerTransferImpl implements AssembleData<ConversionData
                 }
 
                 // 判断是否在有效期范围[t,t+45]
-                List<MarketingTransferSyncUser> transferList = new ArrayList<>();
-                transferList.add(transfer);
+                Set<String> custNumSet = new HashSet<>();
+                custNumSet.add(transfer.getCustNum());
                 Map<String, SyncUserValidityPeriodBO> periodBOMap =
-                        transferDataValidityPeriodService.getSyncUserValidityPeriodMap(transferList, transfer.getApiCode());
+                        transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(custNumSet, transfer.getApiCode(), new Date());
                 SyncUserValidityPeriodBO bo = periodBOMap.get(transfer.getCustNum());
                 if (bo == null) {
                     return false;
@@ -111,7 +109,7 @@ public class ZhongYouCustomerTransferImpl implements AssembleData<ConversionData
 
                 ZhongYouRuleCollectDataImpl.ZhongYouRuleNecessaryData contextRuleNecessaryData =
                         (ZhongYouRuleCollectDataImpl.ZhongYouRuleNecessaryData
-                        ) context.getRuleNecessaryData();
+                                ) context.getRuleNecessaryData();
                 // 将上传数据保存到上下文
                 contextRuleNecessaryData.setSyncUser(bo.getSyncUser());
                 // 将失效时间保存到上下文
