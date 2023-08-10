@@ -7,35 +7,14 @@ import com.br.marketing.bo.JobPushDecisionParameterBO;
 import com.br.marketing.enums.CustomerPushDecisionActionEnum;
 import com.br.speed.client.common.annotations.SpeedFile;
 import lombok.Data;
-import lombok.SneakyThrows;
 import org.springframework.context.annotation.Configuration;
 
-import java.security.SecureRandom;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @Configuration
 @SpeedFile(filename = "marketingcommon.properties", topic = "marketing")
 @Data
 public class MarketingCommonConfig {
-
-    /**
-     * 消失的时间（耗时）
-     *
-     * @param maxTimeConsuming 最大耗时 单位：毫秒
-     * @param minTimeConsuming 最少耗时 单位：毫秒
-     * @author Guo Zeqiang
-     * @dateTime 2023-08-09 22:13
-     */
-    @SneakyThrows
-    public void disappearTime(int maxTimeConsuming, int minTimeConsuming) {
-        if (minTimeConsuming <= 0 || minTimeConsuming > maxTimeConsuming) {
-            throw new IllegalArgumentException();
-        }
-        SecureRandom secureRandom = new SecureRandom();
-        int tt = (secureRandom.nextInt(maxTimeConsuming - minTimeConsuming) + minTimeConsuming);
-        TimeUnit.MILLISECONDS.sleep(tt);
-    }
 
     /**
      * 推送客服

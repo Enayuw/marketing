@@ -10,6 +10,7 @@ import com.br.marketing.client.didi.utils.MD5Util;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.service.Impl.MockConfigServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +60,9 @@ public class DiDiClient {
     MarketingCommonConfig marketingCommonConfig;
 
     @Autowired
+    MockConfigServiceImpl mockConfigService;
+
+    @Autowired
     HttpProxyClient httpProxyClient;
 
     public static final String PUSH_SMS_TRAFFIC_ACCESS = "pushSmsTrafficAccess";
@@ -105,7 +109,7 @@ public class DiDiClient {
             if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_SMS_TRAFFIC_ACCESS)) {
                 resMap.put("content", "{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"result\":true}}");
                 resMap.put("httpcode", "200");
-                marketingCommonConfig.disappearTime(100, 50);
+                mockConfigService.disappearTime(100, 50);
             } else {
                 // 发送请求
                 resMap = httpProxyClient.sendByCodeWithLog(smsRequestTO, allowUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,
@@ -166,7 +170,7 @@ public class DiDiClient {
             if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_REACH_SUCCESS)) {
                 resMap.put("content", "{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"result\":true}}");
                 resMap.put("httpcode", "200");
-                marketingCommonConfig.disappearTime(80, 30);
+                mockConfigService.disappearTime(80, 30);
             } else {
                 // 发送请求
                 resMap = httpProxyClient.sendByCodeWithLog(reachRequestTO, reachUrl, isProxy,
@@ -233,7 +237,7 @@ public class DiDiClient {
             if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_REACH_SUCCESS)) {
                 resMap.put(contentKey, "{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":\"\"}");
                 resMap.put(codeKey, httpcode);
-                marketingCommonConfig.disappearTime(80, 30);
+                mockConfigService.disappearTime(80, 30);
             } else {
                 String url = reachUrl.replace("bairong", reqVO.getMediaName());
                 // 发送请求
@@ -379,7 +383,7 @@ public class DiDiClient {
             if (marketingCommonConfig.getDidiMockSwitch().get(PUSH_FAIL)) {
                 resMap.put("content", "{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"result\":true}}");
                 resMap.put("httpcode", "200");
-                marketingCommonConfig.disappearTime(100, 50);
+                mockConfigService.disappearTime(100, 50);
             } else {
                 String failUrl = failUserUrl;
                 if (marketingCommonConfig.getDidiMediaNm() != null && StringUtils.isNotBlank(marketingCommonConfig.getDidiMediaNm().get(PUSH_FAIL))) {
