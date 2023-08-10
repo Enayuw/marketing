@@ -3170,13 +3170,16 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<MarketingPreUserDetailDTO> dataItems = new ArrayList<>();
         List<TransferDataItemDTO> transferDataItemDTOS = new ArrayList<>();
         zhongyouFileDataList.forEach(zhongyouFileData -> {
-            List<String> list = Arrays.asList(zhongyouFileData.getFileData().split("\\|\\|"));
+            List<String> list = new ArrayList<>(Arrays.asList(zhongyouFileData.getFileData().split("\\|\\|")));
+            if (list.size() == 32) {
+                list.add("");
+            }
             MarketingPreUserDetailDTO detailDTO = new MarketingPreUserDetailDTO();
             TransferDataItemDTO transferDataItemDTO = new TransferDataItemDTO();
             JSONObject uploadJsonObject = new JSONObject();
             JSONObject transferJsonObject = new JSONObject();
             uploadDataDTO.setTaskId(list.get(0));
-            transferJsonObject.put("taskId",list.get(0));
+            transferJsonObject.put("taskId", list.get(0));
             detailDTO.setCell(list.get(4));
             uploadJsonObject.put("cell", list.get(4));
             detailDTO.setCustNum(list.get(3));
