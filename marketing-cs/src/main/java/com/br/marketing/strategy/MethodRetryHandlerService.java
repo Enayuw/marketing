@@ -783,7 +783,8 @@ public class MethodRetryHandlerService {
                         diDiReachBO.setDiDiReachRequestTO(diDiReachRequestTO);
                         diDiReachBO.setDiDiReqVO(diDiReqVO);
                         resResultResult = diDiClient.pushReachSuccess(diDiReachBO);
-                        isNotError = "10000".equals(resResultResult.getData().getErrorCode());
+                        isNotError = resResultResult.getData() != null
+                                && "10000".equals(resResultResult.getData().getErrorCode());
                     }
                     // 500 异常需要进入阶梯重试
                     if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(resResultResult.getCode())) {
