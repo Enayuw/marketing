@@ -368,9 +368,10 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         Long indexId = 3000l;
         // 创建线程池
         ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
-        String requestDate = LocalDate.now().minusDays(1).toString();
-        String applyDtStart = requestDate + " 00:00:00";
-        String applyDtEnd = requestDate + " 23:59:59";
+        String requestDate = LocalDate.now().toString();
+        String lastDate = LocalDate.now().minusDays(1).toString();
+        String applyDtStart = lastDate + " 00:00:00";
+        String applyDtEnd = lastDate + " 23:59:59";
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         while (true) {
             initThreadPoolParam(yiXinToJueCeThread);
@@ -476,6 +477,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * @param marketingTransferSyncUserCellLists 带电话的转化数据
      */
     private void pushJc(String actionType, List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists) {
+        log.warn("情况:{},去重前推送量级：{}", actionType, marketingTransferSyncUserCellLists.size());
         String apiCodeJc = marketingCommonConfig.getYiXinTransferToJueCeApiCode();
         // 2000 拆分一组
         List<List<MarketingTransferSyncUserCell>> partition = ListUtils.partition(marketingTransferSyncUserCellLists, PARTITION);
@@ -498,6 +500,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * @param marketingTransferSyncUserCellLists 带电话的转化数据
      */
     private void pushJcOfL(String actionType, List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists) {
+        log.warn("情况:{},不去重推送量级：{}", actionType, marketingTransferSyncUserCellLists.size());
         String apiCodeJc = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         // 2000 拆分一组
         List<List<MarketingTransferSyncUserCell>> partition = ListUtils.partition(marketingTransferSyncUserCellLists, PARTITION);
