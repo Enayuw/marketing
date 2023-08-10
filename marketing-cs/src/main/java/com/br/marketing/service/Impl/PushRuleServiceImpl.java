@@ -3100,9 +3100,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             minId = zhongyouFileDataList.get(zhongyouFileDataList.size() - 1).getId() + 1;
             pool.submit(() -> {
-                Result result = cleanData(zhongyouFileDataList);
-                if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                    log.warn(result.getMessage());
+                try {
+                    Result result = cleanData(zhongyouFileDataList);
+                    if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                        log.warn(result.getMessage());
+                    }
+                } catch (Exception ex) {
+                    log.error("中邮数据清洗异常", ex);
                 }
             });
         }
@@ -3114,7 +3118,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.error(ex.getMessage(), ex);
         }
         log.warn("中邮清洗数据耗时：{} ms",System.currentTimeMillis() - st1);
-        return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(false).setMessage("成功");
     }
 
     private Result cleanData(List<ZhongyouFileData> zhongyouFileDataList) {
