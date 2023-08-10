@@ -5,8 +5,6 @@ import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.common.utils.*;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
@@ -26,6 +24,10 @@ import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.exception.CommonException;
+import com.br.marketing.common.utils.AESUtil;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.commonentity.StatusConstants;
@@ -1088,9 +1090,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                         log.info(String.format("去重数据：%d,数据入库和去重时间耗时：%d，数据去重时间：%d"
                                 , marketingSyncUser.getId(), et1, et2));
                     }
-                    // 入库成功后将apiCode、userType、appletDate为key，并且唯一,
-                    if (marketingSyncUser.getId() != null
-                            && marketingSyncUser.getStatus().equals(MonitorTypeEnum.STATUS_1.getTypeCode())) {
+                    boolean isCreate = marketingSyncUser.getId() != null
+                            && marketingSyncUser.getStatus().equals(MonitorTypeEnum.STATUS_1.getTypeCode())
+                            && (marketingSyncUser.getIsRepeat() == null
+                            || marketingSyncUser.getIsRepeat().equals(2)
+                            || marketingSyncUser.getIsRepeat().equals(1));
+                    if (isCreate) {
+                        // 入库成功后将apiCode、userType、appletDate为key，并且唯一
                         String key = apiCode + marketingSyncUser.getUserType() + marketingSyncUser.getAppletDate();
                         // 缓存最新的原始数据
                         validDateCache.put(key, marketingSyncUser);
