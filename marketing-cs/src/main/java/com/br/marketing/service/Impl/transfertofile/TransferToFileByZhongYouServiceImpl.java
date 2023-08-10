@@ -1,6 +1,8 @@
 package com.br.marketing.service.Impl.transfertofile;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
@@ -145,6 +147,7 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
         String tcId = tableCreateService.getTcId(apiCode);
         LocalDate date = LocalDate.now();
         Integer page = 0;
+        int offset = 2000;
         Boolean mark = Boolean.TRUE;
         int totalSize = 0;
         while (mark) {
@@ -159,53 +162,67 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
             String cpsRate = "" , fileName = "" , firstName = "" , gender = "" , cell = "" , taskId  = "";
 
             List<MarketingTransferSyncUser> data = transferData.getData();
-            for (MarketingTransferSyncUser datum : data) {
 
-                MarketingSyncUser newValidityPeriodDataFirstVersion = transferDataValidityPeriodService.getNewValidityPeriodDataFirstVersion(datum, null);
-                //判断是否在有效期内
-                if (StringUtils.isNotEmpty(newValidityPeriodDataFirstVersion)) {
-                    if (datum != null && StringUtils.isNotEmpty(datum.getReserveField1())) {
+            // 过滤有效期内数据
+            List<MarketingTransferSyncUser> periodList = new ArrayList<>(offset);
+            Map<String, SyncUserValidityPeriodBO> map = transferDataValidityPeriodService.getValidityPeriodUserTypeBatchFirstVersion(data, apiCode, date);
+
+            for (MarketingTransferSyncUser transferSyncUser : data) {
+                String custNum = transferSyncUser.getCustNum();
+                String userType = transferSyncUser.getUserType();
+
+                SyncUserValidityPeriodBO boMap = map.get(custNum + userType);
+                if (boMap == null) {
+                    log.warn("{}:{}不满足案件编号“有效期内”条件", custNum, userType);
+                    continue;
+                }
+                periodList.add(transferSyncUser);
+            }
+
+            for (MarketingTransferSyncUser newData : periodList) {
+                try {
+                    if (newData != null && StringUtils.isNotEmpty(newData.getReserveField1())) {
                         try {
-                            taskId = getReserFieldVal(datum.getReserveField1(),"taskId");
-                            pushTime = getReserFieldVal(datum.getReserveField1(),"pushTime");
-                            loginChannel = getReserFieldVal(datum.getReserveField1(),"loginChannel");
-                            auditRate = getReserFieldVal(datum.getReserveField1(),"auditRate");
-                            couponType = getReserFieldVal(datum.getReserveField1(),"couponType");
-                            validityAmt = getReserFieldVal(datum.getReserveField1(),"validityAmt");
-                            rateType = getReserFieldVal(datum.getReserveField1(),"rateType");
-                            lentRate = getReserFieldVal(datum.getReserveField1(),"lentRate");
-                            validityRate = getReserFieldVal(datum.getReserveField1(),"validityRate");
-                            applyLentTime = getReserFieldVal(datum.getReserveField1(),"applyLentTime");
-                            cps = getReserFieldVal(datum.getReserveField1(),"cps");
-                            lentAmountFirst = getReserFieldVal(datum.getReserveField1(),"lentAmountFirst");
-                            lentTimeFirst = getReserFieldVal(datum.getReserveField1(),"lentTimeFirst");
-                            cpsRate = getReserFieldVal(datum.getReserveField1(),"cpsRate");
-                            fileName = getReserFieldVal(datum.getReserveField1(),"fileName");
-                            firstName = getReserFieldVal(datum.getReserveField1(),"firstName");
-                            gender = getReserFieldVal(datum.getReserveField1(),"gender");
-                            cell = getReserFieldVal(datum.getReserveField1(),"cell");
+                            taskId = getReserFieldVal(newData.getReserveField1(), "taskId");
+                            pushTime = getReserFieldVal(newData.getReserveField1(), "pushTime");
+                            loginChannel = getReserFieldVal(newData.getReserveField1(), "loginChannel");
+                            auditRate = getReserFieldVal(newData.getReserveField1(), "auditRate");
+                            couponType = getReserFieldVal(newData.getReserveField1(), "couponType");
+                            validityAmt = getReserFieldVal(newData.getReserveField1(), "validityAmt");
+                            rateType = getReserFieldVal(newData.getReserveField1(), "rateType");
+                            lentRate = getReserFieldVal(newData.getReserveField1(), "lentRate");
+                            validityRate = getReserFieldVal(newData.getReserveField1(), "validityRate");
+                            applyLentTime = getReserFieldVal(newData.getReserveField1(), "applyLentTime");
+                            cps = getReserFieldVal(newData.getReserveField1(), "cps");
+                            lentAmountFirst = getReserFieldVal(newData.getReserveField1(), "lentAmountFirst");
+                            lentTimeFirst = getReserFieldVal(newData.getReserveField1(), "lentTimeFirst");
+                            cpsRate = getReserFieldVal(newData.getReserveField1(), "cpsRate");
+                            fileName = getReserFieldVal(newData.getReserveField1(), "fileName");
+                            firstName = getReserFieldVal(newData.getReserveField1(), "firstName");
+                            gender = getReserFieldVal(newData.getReserveField1(), "gender");
+                            cell = getReserFieldVal(newData.getReserveField1(), "cell");
                         } catch (Exception e) {
-                            log.warn("中邮转化数据提取,ReserveField1非JSON格式{}", datum.getReserveField1());
+                            log.warn("中邮转化数据提取,ReserveField1非JSON格式{}", newData.getReserveField1());
                         }
                     }
                     StringBuilder sb = new StringBuilder();
 
                     sb.append(deleteNull(taskId))
-                            .append(deleteNull(datum.getCustNum()))
-                            .append(deleteNull(datum.getUserType()))
-                            .append(deleteNull(datum.getCustomName()))
-                            .append(formDateStr(datum.getRegisterTime()))
-                            .append(deleteNull(datum.getIfLogin()))
-                            .append(formDateStr(datum.getLoginTime()))
-                            .append(deleteNull(datum.getIfApply()))
-                            .append(formDateStr(datum.getApplyDt()))
-                            .append(deleteNull(datum.getApplyResult()))
-                            .append(formDateStr(datum.getAuditTime()))
-                            .append(deleteNull(datum.getAuditAmount()))
-                            .append(deleteNull(datum.getIfLent()))
-                            .append(formDateStr(datum.getLentTime()))
-                            .append(deleteNull(datum.getLentAmount()))
-                            .append(deleteNull(datum.getUnlentAmount()))
+                            .append(deleteNull(newData.getCustNum()))
+                            .append(deleteNull(newData.getUserType()))
+                            .append(deleteNull(newData.getCustomName()))
+                            .append(formDateStr(newData.getRegisterTime()))
+                            .append(deleteNull(newData.getIfLogin()))
+                            .append(formDateStr(newData.getLoginTime()))
+                            .append(deleteNull(newData.getIfApply()))
+                            .append(formDateStr(newData.getApplyDt()))
+                            .append(deleteNull(newData.getApplyResult()))
+                            .append(formDateStr(newData.getAuditTime()))
+                            .append(deleteNull(newData.getAuditAmount()))
+                            .append(deleteNull(newData.getIfLent()))
+                            .append(formDateStr(newData.getLentTime()))
+                            .append(deleteNull(newData.getLentAmount()))
+                            .append(deleteNull(newData.getUnlentAmount()))
                             .append(deleteNull(pushTime))
                             .append(deleteNull(loginChannel))
                             .append(deleteNull(auditRate))
@@ -222,13 +239,15 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
                             .append(deleteNull(fileName))
                             .append(deleteNull(firstName))
                             .append(deleteNull(gender))
-                            .append(deleteNull(cell));
+                            .append(StringUtils.isNotEmpty(cell) ? cell : "");
                     sb.append("\r\n");
-                    fw.append(sb);
-                }
 
+                    fw.append(sb);
+                    totalSize = totalSize + 1;
+                } catch (Exception e) {
+                    log.error("{}:{}数据异常", newData.getCustNum(), newData.getUserType());
+                }
             }
-            totalSize = totalSize + data.size();
             data.clear();
         }
         TransferFileTask updatetask = new TransferFileTask();
