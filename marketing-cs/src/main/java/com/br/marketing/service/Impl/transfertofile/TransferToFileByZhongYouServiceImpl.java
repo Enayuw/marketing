@@ -27,11 +27,16 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
+import java.security.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -63,6 +68,8 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
     private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
 
     private final static DateTimeFormatter DATE_TIME_2_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    private final static DateTimeFormatter DATE_TIME_3_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     final static String ZHONGYOU_TRANSFER_FILE = "transform_";
 
@@ -211,30 +218,30 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
                             .append(deleteNull(newData.getCustNum()))
                             .append(deleteNull(newData.getUserType()))
                             .append(deleteNull(newData.getCustomName()))
-                            .append(formDateStr(newData.getRegisterTime()))
+                            .append(formDateStr2(newData.getRegisterTime()))
                             .append(deleteNull(newData.getIfLogin()))
-                            .append(formDateStr(newData.getLoginTime()))
+                            .append(formDateStr2(newData.getLoginTime()))
                             .append(deleteNull(newData.getIfApply()))
-                            .append(formDateStr(newData.getApplyDt()))
+                            .append(formDateStr2(newData.getApplyDt()))
                             .append(deleteNull(newData.getApplyResult()))
-                            .append(formDateStr(newData.getAuditTime()))
+                            .append(formDateStr2(newData.getAuditTime()))
                             .append(deleteNull(newData.getAuditAmount()))
                             .append(deleteNull(newData.getIfLent()))
-                            .append(formDateStr(newData.getLentTime()))
+                            .append(formDateStr2(newData.getLentTime()))
                             .append(deleteNull(newData.getLentAmount()))
                             .append(deleteNull(newData.getUnlentAmount()))
-                            .append(deleteNull(pushTime))
+                            .append(formDateStr(pushTime))
                             .append(deleteNull(loginChannel))
                             .append(deleteNull(auditRate))
                             .append(deleteNull(couponType))
-                            .append(deleteNull(validityAmt))
+                            .append(formDateStr2(validityAmt))
                             .append(deleteNull(rateType))
                             .append(deleteNull(lentRate))
-                            .append(deleteNull(validityRate))
-                            .append(deleteNull(applyLentTime))
+                            .append(formDateStr2(validityRate))
+                            .append(formDateStr2(applyLentTime))
                             .append(deleteNull(cps))
                             .append(deleteNull(lentAmountFirst))
-                            .append(deleteNull(lentTimeFirst))
+                            .append(formDateStr2(lentTimeFirst))
                             .append(deleteNull(cpsRate))
                             .append(deleteNull(fileName))
                             .append(deleteNull(firstName))
@@ -282,6 +289,30 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
         } catch (Exception e) {
             return deleteNull(dateTimeStr);
         }
+    }
+
+    private String formDateStr2(String dateString) {
+        String[] patterns = {"yyyy-MM-dd", "yyyy/MM/dd", "yyyy.MM.dd", "dd-MM-yyyy", "dd/MM/yyyy", "dd.MM.yyyy"};
+        Date date = null;
+
+        for (String pattern : patterns) {
+            SimpleDateFormat formatter = new SimpleDateFormat(pattern);
+            try {
+                date = formatter.parse(dateString);
+                break;
+            } catch (ParseException e) {
+                // 解析失败，尝试下一个格式
+            }
+        }
+
+        if (date != null) {
+            SimpleDateFormat targetFormatter = new SimpleDateFormat("yyyy-MM-dd");
+            return targetFormatter.format(date).concat(",");
+        } else {
+            // 未能解析成功，返回原始字符串或者其他默认值
+            return dateString.concat(",");
+        }
+
     }
 
     private String getReserFieldVal(String reserStr,String field){

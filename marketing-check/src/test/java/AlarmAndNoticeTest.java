@@ -212,7 +212,7 @@ public class AlarmAndNoticeTest {
     public void ZhongYouTransferFileTest() {
         TransferFileTask transferFileTask = new TransferFileTask();
         transferFileTask.setApiCode("7434636");
-        transferFileTask.setStartDate("2023-08-10 ");
+        transferFileTask.setStartDate("2023-08-14 ");
         String recordDate = transferFileTask.getStartDate();
         StringBuilder fileName = new StringBuilder();
         fileName.append(ZHONGYOU_TRANSFER_FILE).append(recordDate).append(".txt");
