@@ -3084,6 +3084,8 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Override
     public Result<Boolean> HandleZhongYouData(Long id) {
         Long st1 = System.currentTimeMillis();
+        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
+        String fileName = localFile.getFileName();
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5, 20);
         Long minId = null;
         Boolean isContiue = Boolean.TRUE;
@@ -3101,7 +3103,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             minId = zhongyouFileDataList.get(zhongyouFileDataList.size() - 1).getId() + 1;
             pool.submit(() -> {
                 try {
-                    Result result = cleanData(zhongyouFileDataList);
+                    Result result = cleanData(zhongyouFileDataList,fileName);
                     if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                         log.warn(result.getMessage());
                     }
@@ -3121,12 +3123,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(false).setMessage("成功");
     }
 
-    private Result cleanData(List<ZhongyouFileData> zhongyouFileDataList) {
+    private Result cleanData(List<ZhongyouFileData> zhongyouFileDataList,String fileName) {
         String apiCode = zhongyouFileDataList.get(0).getApiCode();
         MarketingPreUserDTO uploadDataDTO = new MarketingPreUserDTO();
         TransferDataDTO transferDataDTO = new TransferDataDTO();
         //构造上传转化参数
-        buildParam(apiCode, zhongyouFileDataList, uploadDataDTO, transferDataDTO);
+        buildParam(apiCode, zhongyouFileDataList, uploadDataDTO, transferDataDTO,fileName);
         //插入上传info表
         MarketingSyncInfo syncInfo = new MarketingSyncInfo();
         try {
@@ -3169,7 +3171,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     }
 
-    private void buildParam(String apiCode, List<ZhongyouFileData> zhongyouFileDataList, MarketingPreUserDTO uploadDataDTO, TransferDataDTO transferDataDTO) {
+    private void buildParam(String apiCode, List<ZhongyouFileData> zhongyouFileDataList, MarketingPreUserDTO uploadDataDTO, TransferDataDTO transferDataDTO,String fileName) {
 
         List<MarketingPreUserDetailDTO> dataItems = new ArrayList<>();
         List<TransferDataItemDTO> transferDataItemDTOS = new ArrayList<>();
@@ -3185,7 +3187,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             uploadDataDTO.setTaskId(list.get(0));
             transferJsonObject.put("taskId", list.get(0));
             detailDTO.setCell(list.get(4));
-            uploadJsonObject.put("cell", list.get(4));
+            transferJsonObject.put("cell", list.get(4));
             detailDTO.setCustNum(list.get(3));
             transferDataItemDTO.setCustNum(list.get(3));
             uploadJsonObject.put("firstName", list.get(5));
@@ -3256,6 +3258,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             transferJsonObject.put("lentTimeFirst", list.get(27));
             uploadJsonObject.put("cpsRate", list.get(31));
             transferJsonObject.put("cpsRate", list.get(31));
+            uploadJsonObject.put("fileName",fileName);
+            transferJsonObject.put("fileName", fileName);
 
             detailDTO.setReserveField1(uploadJsonObject.toJSONString());
             dataItems.add(detailDTO);
