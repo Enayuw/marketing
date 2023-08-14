@@ -74,7 +74,6 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
         } catch (Exception e) {
             log.error("数据流处理异常：{}", e.toString());
             resultMap.put("result", "数据流处理异常");
-            resultMap.put("responseData", "数据流处理异常");
         }
         return resultMap;
     }
@@ -155,6 +154,7 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
             zhongyouFileData.setStatus(2);
             resultMap.put("result", lineData);
             log.error("中邮文件内数据接口请求异常 lineData:{}", lineData);
+            return;
         } else if (isNumeric(lineData)) {
             // 设置第一行数据标记
             zhongyouFileData.setType("1");
@@ -221,9 +221,10 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
                 String responseData = resultJson.getString("responseData");
                 String resultString = zhongYouClientData.decryptData(responseData, sysSign);
                 resultMap.put("responseData", resultString);
+            }else {
+                log.error("中邮文件接口返回code 码异常：{}",resultJson.toJSONString());
             }
         } catch (Exception e) {
-            resultMap.put("responseData", "解析中邮Entity数据异常");
             log.error("解析中邮Entity数据异常");
         }
 

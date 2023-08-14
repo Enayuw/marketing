@@ -79,7 +79,7 @@ public class ZhongYouDataService {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
         if(StringUtils.isEmpty(stringStringHashMap.get("content"))){
-            log.error("中邮获取文件列表数据为空");
+            log.error("中邮获取文件列表responseData数据为空");
             return new Result<List<Long>>().setCode(ResultCode.FAIL.getValue());
         }
         List<Long> ids = saveFile(stringStringHashMap.get("content"));
