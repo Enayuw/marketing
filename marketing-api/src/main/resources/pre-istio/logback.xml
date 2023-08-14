@@ -62,6 +62,24 @@
         <queueSize>512</queueSize>
     </appender>
 
+    <appender name="PATCH_LOG"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/opt/logs/${APP_NAME}/${POD_NAME}/${APP_NAME}.patch</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter"></filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>/opt/logs/${APP_NAME}/${POD_NAME}/${APP_NAME}.patch.%d{yyyy-MM-dd}
+            </fileNamePattern>
+            <maxHistory>15</maxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>${ENCODER_PATTERN}</Pattern>
+        </encoder>
+    </appender>
+
+    <appender name="PATCH_ASYNC_LOG">
+        <appender-ref ref="PATCH_LOG"/>
+        <queueSize>512</queueSize>
+    </appender>
 
     <logger name="com.br" level="${LOG_LEVEL}"/>
     <logger name="org.springframework.boot.context.embedded.tomcat" level="INFO"/>
@@ -72,5 +90,6 @@
         <level value="${LOG_LEVEL}"/>
         <appender-ref ref="ASYNC"/>
         <appender-ref ref="ALARM_ERROR_ASYNC"/>
+        <appender-ref ref="PATCH_ASYNC_LOG"/>
     </root>
 </configuration>
