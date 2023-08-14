@@ -744,6 +744,76 @@ public class ZhongyouFileDataExample {
             addCriterion("create_date not between", value1, value2, "createDate");
             return (Criteria) this;
         }
+
+        public Criteria andStrategyIdIsNull() {
+            addCriterion("strategy_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyIdIsNotNull() {
+            addCriterion("strategy_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyIdEqualTo(String value) {
+            addCriterion("strategy_id =", value, "strategyId");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyIdNotEqualTo(String value) {
+            addCriterion("strategy_id <>", value, "strategyId");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyIdGreaterThan(String value) {
+            addCriterion("strategy_id >", value, "strategyId");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyIdGreaterThanOrEqualTo(String value) {
+            addCriterion("strategy_id >=", value, "strategyId");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyIdLessThan(String value) {
+            addCriterion("strategy_id <", value, "strategyId");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyIdLessThanOrEqualTo(String value) {
+            addCriterion("strategy_id <=", value, "strategyId");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyIdLike(String value) {
+            addCriterion("strategy_id like", value, "strategyId");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyIdNotLike(String value) {
+            addCriterion("strategy_id not like", value, "strategyId");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyIdIn(List<String> values) {
+            addCriterion("strategy_id in", values, "strategyId");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyIdNotIn(List<String> values) {
+            addCriterion("strategy_id not in", values, "strategyId");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyIdBetween(String value1, String value2) {
+            addCriterion("strategy_id between", value1, value2, "strategyId");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyIdNotBetween(String value1, String value2) {
+            addCriterion("strategy_id not between", value1, value2, "strategyId");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

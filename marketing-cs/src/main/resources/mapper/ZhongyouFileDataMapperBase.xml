@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.ZhongyouFileDataMapperBase" >
+<mapper namespace="com.br.marketing.mapper.ZhongyouFileDataMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.ZhongyouFileData" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
@@ -12,6 +12,7 @@
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="create_date" property="createDate" jdbcType="INTEGER" />
+    <result column="strategy_id" property="strategyId" jdbcType="VARCHAR" />
   </resultMap>
   <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.ZhongyouFileData" extends="BaseResultMap" >
     <result column="file_data" property="fileData" jdbcType="LONGVARCHAR" />
@@ -75,8 +76,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, file_id, `type`, `status`, data_message, extend, create_time, update_time,
-    create_date
+    id, api_code, file_id, `type`, `status`, data_message, extend, create_time, update_time, 
+    create_date, strategy_id
   </sql>
   <sql id="Blob_Column_List" >
     file_data
@@ -112,7 +113,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
-    select
+    select 
     <include refid="Base_Column_List" />
     ,
     <include refid="Blob_Column_List" />
@@ -133,14 +134,14 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_zhongyou_file_data (api_code, file_id, `type`,
-    `status`, data_message, extend,
-    create_time, update_time, create_date,
-    file_data)
-    values (#{apiCode,jdbcType=VARCHAR}, #{fileId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR},
-    #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR},
-    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{createDate,jdbcType=INTEGER},
-    #{fileData,jdbcType=LONGVARCHAR})
+    insert into b_zhongyou_file_data (api_code, file_id, `type`, 
+      `status`, data_message, extend, 
+      create_time, update_time, create_date, 
+      strategy_id, file_data)
+    values (#{apiCode,jdbcType=VARCHAR}, #{fileId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR}, 
+      #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{createDate,jdbcType=INTEGER}, 
+      #{strategyId,jdbcType=VARCHAR}, #{fileData,jdbcType=LONGVARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.ZhongyouFileData" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -175,6 +176,9 @@
       <if test="createDate != null" >
         create_date,
       </if>
+      <if test="strategyId != null" >
+        strategy_id,
+      </if>
       <if test="fileData != null" >
         file_data,
       </if>
@@ -207,8 +211,11 @@
       <if test="createDate != null" >
         #{createDate,jdbcType=INTEGER},
       </if>
+      <if test="strategyId != null" >
+        #{strategyId,jdbcType=VARCHAR},
+      </if>
       <if test="fileData != null" >
-        #{fileData},
+        #{fileData,jdbcType=LONGVARCHAR},
       </if>
     </trim>
   </insert>
@@ -251,8 +258,11 @@
       <if test="record.createDate != null" >
         create_date = #{record.createDate,jdbcType=INTEGER},
       </if>
+      <if test="record.strategyId != null" >
+        strategy_id = #{record.strategyId,jdbcType=VARCHAR},
+      </if>
       <if test="record.fileData != null" >
-        file_data = #{record.fileData},
+        file_data = #{record.fileData,jdbcType=LONGVARCHAR},
       </if>
     </set>
     <if test="_parameter != null" >
@@ -262,16 +272,17 @@
   <update id="updateByExampleWithBLOBs" parameterType="map" >
     update b_zhongyou_file_data
     set id = #{record.id,jdbcType=BIGINT},
-    api_code = #{record.apiCode,jdbcType=VARCHAR},
-    file_id = #{record.fileId,jdbcType=BIGINT},
-    `type` = #{record.type,jdbcType=VARCHAR},
-    `status` = #{record.status,jdbcType=INTEGER},
-    data_message = #{record.dataMessage,jdbcType=VARCHAR},
-    extend = #{record.extend,jdbcType=VARCHAR},
-    create_time = #{record.createTime,jdbcType=TIMESTAMP},
-    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-    create_date = #{record.createDate,jdbcType=INTEGER},
-    file_data = #{record.fileData}
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      file_id = #{record.fileId,jdbcType=BIGINT},
+      `type` = #{record.type,jdbcType=VARCHAR},
+      `status` = #{record.status,jdbcType=INTEGER},
+      data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      extend = #{record.extend,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      create_date = #{record.createDate,jdbcType=INTEGER},
+      strategy_id = #{record.strategyId,jdbcType=VARCHAR},
+      file_data = #{record.fileData,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -279,15 +290,16 @@
   <update id="updateByExample" parameterType="map" >
     update b_zhongyou_file_data
     set id = #{record.id,jdbcType=BIGINT},
-    api_code = #{record.apiCode,jdbcType=VARCHAR},
-    file_id = #{record.fileId,jdbcType=BIGINT},
-    `type` = #{record.type,jdbcType=VARCHAR},
-    `status` = #{record.status,jdbcType=INTEGER},
-    data_message = #{record.dataMessage,jdbcType=VARCHAR},
-    extend = #{record.extend,jdbcType=VARCHAR},
-    create_time = #{record.createTime,jdbcType=TIMESTAMP},
-    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-    create_date = #{record.createDate,jdbcType=INTEGER}
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      file_id = #{record.fileId,jdbcType=BIGINT},
+      `type` = #{record.type,jdbcType=VARCHAR},
+      `status` = #{record.status,jdbcType=INTEGER},
+      data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      extend = #{record.extend,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      create_date = #{record.createDate,jdbcType=INTEGER},
+      strategy_id = #{record.strategyId,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -322,8 +334,11 @@
       <if test="createDate != null" >
         create_date = #{createDate,jdbcType=INTEGER},
       </if>
+      <if test="strategyId != null" >
+        strategy_id = #{strategyId,jdbcType=VARCHAR},
+      </if>
       <if test="fileData != null" >
-        file_data = #{fileData},
+        file_data = #{fileData,jdbcType=LONGVARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
@@ -331,28 +346,30 @@
   <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.ZhongyouFileData" >
     update b_zhongyou_file_data
     set api_code = #{apiCode,jdbcType=VARCHAR},
-        file_id = #{fileId,jdbcType=BIGINT},
-        `type` = #{type,jdbcType=VARCHAR},
-        `status` = #{status,jdbcType=INTEGER},
-        data_message = #{dataMessage,jdbcType=VARCHAR},
-        extend = #{extend,jdbcType=VARCHAR},
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-        create_date = #{createDate,jdbcType=INTEGER},
-        file_data = #{fileData}
+      file_id = #{fileId,jdbcType=BIGINT},
+      `type` = #{type,jdbcType=VARCHAR},
+      `status` = #{status,jdbcType=INTEGER},
+      data_message = #{dataMessage,jdbcType=VARCHAR},
+      extend = #{extend,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      create_date = #{createDate,jdbcType=INTEGER},
+      strategy_id = #{strategyId,jdbcType=VARCHAR},
+      file_data = #{fileData,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ZhongyouFileData" >
     update b_zhongyou_file_data
     set api_code = #{apiCode,jdbcType=VARCHAR},
-        file_id = #{fileId,jdbcType=BIGINT},
-        `type` = #{type,jdbcType=VARCHAR},
-        `status` = #{status,jdbcType=INTEGER},
-        data_message = #{dataMessage,jdbcType=VARCHAR},
-        extend = #{extend,jdbcType=VARCHAR},
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-        create_date = #{createDate,jdbcType=INTEGER}
+      file_id = #{fileId,jdbcType=BIGINT},
+      `type` = #{type,jdbcType=VARCHAR},
+      `status` = #{status,jdbcType=INTEGER},
+      data_message = #{dataMessage,jdbcType=VARCHAR},
+      extend = #{extend,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      create_date = #{createDate,jdbcType=INTEGER},
+      strategy_id = #{strategyId,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

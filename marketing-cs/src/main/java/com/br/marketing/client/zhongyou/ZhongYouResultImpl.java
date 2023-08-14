@@ -160,7 +160,10 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
             zhongyouFileData.setType("1");
         } else if (lineData.contains("||")) {
             int count = getCount(lineData, "||");
-            if (count != marketingCommonConfig.getZhongyouColumnsSize()) {
+            if (count == marketingCommonConfig.getZhongyouColumnsSize()) {
+                String strategyId = lineData.split("\\|\\|")[0];
+                zhongyouFileData.setStrategyId(strategyId);
+            }else {
                 zhongyouFileData.setStatus(2);
                 zhongyouFileData.setDataMessage("字段数不匹配");
             }
