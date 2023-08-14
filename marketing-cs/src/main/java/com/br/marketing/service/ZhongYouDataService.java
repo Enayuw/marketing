@@ -119,7 +119,7 @@ public class ZhongYouDataService {
             }
             producter.send(ROUTING_KEY_MARKETING_ZHONGYOU_DATA_CLEAN, String.valueOf(fileId));
         }
-        log.error("中邮文件数据异常，含有多条统计数据");
+        log.error("中邮文件数据异常");
     }
 
     private List<Long> saveFile(String content) {
