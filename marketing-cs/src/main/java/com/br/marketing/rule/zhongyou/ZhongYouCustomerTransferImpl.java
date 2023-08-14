@@ -94,18 +94,29 @@ public class ZhongYouCustomerTransferImpl implements AssembleData<ConversionData
                 // yyyy-MM-dd
                 SimpleDateFormat format = new SimpleDateFormat(DateHelper.LINE_DATE_FORMAT);
                 Date date1;
-                Date date2;
                 try {
                     date1 = format.parse(applyLentTime);
-                    date2 = format.parse(pushTime);
                 } catch (Exception e) {
                     // yyyyMMdd
                     format = new SimpleDateFormat(DateHelper.SHORT_DATE_FORMAT);
                     try {
                         date1 = format.parse(applyLentTime);
+                    } catch (Exception e1) {
+                        log.error("中邮推客服转化,applyLentTime日期格式解析失败,转化数据id：{}", transfer.getId());
+                        return false;
+                    }
+                }
+
+                Date date2;
+                try {
+                    date2 = format.parse(pushTime);
+                } catch (Exception e) {
+                    // yyyyMMdd
+                    format = new SimpleDateFormat(DateHelper.SHORT_DATE_FORMAT);
+                    try {
                         date2 = format.parse(pushTime);
                     } catch (Exception e1) {
-                        log.error("中邮推客服转化,applyLentTime或pushTime日期格式解析失败,转化数据id：{}", transfer.getId());
+                        log.error("中邮推客服转化,pushTime日期格式解析失败,转化数据id：{}", transfer.getId());
                         return false;
                     }
                 }
