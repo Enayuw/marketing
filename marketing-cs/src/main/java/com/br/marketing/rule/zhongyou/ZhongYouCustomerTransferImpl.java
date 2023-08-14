@@ -16,9 +16,7 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
-import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -73,9 +71,7 @@ public class ZhongYouCustomerTransferImpl implements AssembleData<ConversionData
         conversionData.setInversionStatus("0");
         conversionData.setCaseNum(transfer.getCustNum());
         // inversionInfo(必填)
-        TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
-        BeanUtils.copyProperties(transfer, vo);
-        conversionData.setInversionInfo(JSON.toJSONString(vo));
+        conversionData.setInversionInfo("{}");
 
         return conversionData;
     }
