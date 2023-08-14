@@ -180,7 +180,7 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
         }
         int count = 0;
         int index = 0;
-        while ((index = str.indexOf(key, index)) != -1) {
+        while ((index = str.indexOf(key, index)) != -1 && count <= marketingCommonConfig.getZhongyouColumnsSize()+1) {
             index = index + key.length();
             count++;
         }
