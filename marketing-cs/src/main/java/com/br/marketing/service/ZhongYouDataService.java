@@ -118,8 +118,10 @@ public class ZhongYouDataService {
                 log.error("中邮文件数据量级不匹配：文件给定量级-> {},实际入库量级-> {}", fileData, num);
             }
             producter.send(ROUTING_KEY_MARKETING_ZHONGYOU_DATA_CLEAN, String.valueOf(fileId));
+        }else {
+            log.error("中邮文件内容数据异常 fileId ：{}",fileId);
         }
-        log.error("中邮文件数据异常");
+
     }
 
     private List<Long> saveFile(String content) {
