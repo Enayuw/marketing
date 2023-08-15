@@ -3087,31 +3087,35 @@ public class PushRuleServiceImpl implements PushRuleService {
         LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
         String fileName = localFile.getFileName();
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5, 20);
-        Long minId = null;
-        Boolean isContiue = Boolean.TRUE;
-        while (isContiue) {
-            if (marketingCommonConfig.getZhongYouCleanDataThreadNum() != null) {
-                pool.setCorePoolSize(marketingCommonConfig.getZhongYouCleanDataThreadNum());
-                pool.setMaximumPoolSize(marketingCommonConfig.getZhongYouCleanDataThreadNum());
-                log.warn("中邮清洗数据线程调整，corePoolSize={},maxPoolSize={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
-            }
-            List<ZhongyouFileData> zhongyouFileDataList = zhongyouFileDataMapper.selectZhongYouDataPage(id, minId);
-            if (zhongyouFileDataList.size() <= 0) {
-                isContiue = Boolean.FALSE;
-                continue;
-            }
-            minId = zhongyouFileDataList.get(zhongyouFileDataList.size() - 1).getId() + 1;
-            pool.submit(() -> {
-                try {
-                    Result result = cleanData(zhongyouFileDataList,fileName);
-                    if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                        log.warn(result.getMessage());
-                    }
-                } catch (Exception ex) {
-                    log.error("中邮数据清洗异常", ex);
+        List<String> strategyIdList = zhongyouFileDataMapper.selectZhongYoustrategyIds(id);
+        //根据策略ID分组查询
+        strategyIdList.forEach(strategyId -> {
+            Long minId = null;
+            Boolean isContiue = Boolean.TRUE;
+            while (isContiue) {
+                if (marketingCommonConfig.getZhongYouCleanDataThreadNum() != null) {
+                    pool.setCorePoolSize(marketingCommonConfig.getZhongYouCleanDataThreadNum());
+                    pool.setMaximumPoolSize(marketingCommonConfig.getZhongYouCleanDataThreadNum());
+                    log.warn("中邮清洗数据线程调整，taskId={},corePoolSize={},maxPoolSize={}", strategyId, pool.getCorePoolSize(), pool.getMaximumPoolSize());
                 }
-            });
-        }
+                List<ZhongyouFileData> zhongyouFileDataList = zhongyouFileDataMapper.selectZhongYouDataPage(id, minId, strategyId);
+                if (zhongyouFileDataList.size() <= 0) {
+                    isContiue = Boolean.FALSE;
+                    continue;
+                }
+                minId = zhongyouFileDataList.get(zhongyouFileDataList.size() - 1).getId() + 1;
+                pool.submit(() -> {
+                    try {
+                        Result result = cleanData(zhongyouFileDataList, fileName);
+                        if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                            log.warn(result.getMessage());
+                        }
+                    } catch (Exception ex) {
+                        log.error("中邮数据清洗异常", ex);
+                    }
+                });
+            }
+        });
         pool.shutdown();
         try {
             while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
@@ -3127,7 +3131,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         String apiCode = zhongyouFileDataList.get(0).getApiCode();
         MarketingPreUserDTO uploadDataDTO = new MarketingPreUserDTO();
         TransferDataDTO transferDataDTO = new TransferDataDTO();
-        //构造上传转化参数
+        //构造上传,转化参数
         buildParam(apiCode, zhongyouFileDataList, uploadDataDTO, transferDataDTO,fileName);
         //插入上传info表
         MarketingSyncInfo syncInfo = new MarketingSyncInfo();
@@ -3171,19 +3175,20 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     }
 
-    private void buildParam(String apiCode, List<ZhongyouFileData> zhongyouFileDataList, MarketingPreUserDTO uploadDataDTO, TransferDataDTO transferDataDTO,String fileName) {
-
+    private void buildParam(String apiCode, List<ZhongyouFileData> zhongyouFileDataList, MarketingPreUserDTO uploadDataDTO, TransferDataDTO transferDataDTO, String fileName) {
         List<MarketingPreUserDetailDTO> dataItems = new ArrayList<>();
         List<TransferDataItemDTO> transferDataItemDTOS = new ArrayList<>();
         zhongyouFileDataList.forEach(zhongyouFileData -> {
             List<String> list = new ArrayList<>(Arrays.asList(zhongyouFileData.getFileData().split("\\|\\|")));
-            if (list.size() == 32) {
+            //兼容最后一位是null
+            if (list.size() == marketingCommonConfig.getZhongyouColumnsSize()) {
                 list.add("");
             }
             MarketingPreUserDetailDTO detailDTO = new MarketingPreUserDetailDTO();
             TransferDataItemDTO transferDataItemDTO = new TransferDataItemDTO();
             JSONObject uploadJsonObject = new JSONObject();
             JSONObject transferJsonObject = new JSONObject();
+            //同一批taskId一样
             uploadDataDTO.setTaskId(list.get(0));
             transferJsonObject.put("taskId", list.get(0));
             detailDTO.setCell(list.get(4));
@@ -3201,6 +3206,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             } else if ("男".equals(gender)) {
                 uploadJsonObject.put("gender", 1);
                 transferJsonObject.put("gender", 1);
+            } else {
+                uploadJsonObject.put("gender", "");
+                transferJsonObject.put("gender", "");
             }
             uploadJsonObject.put("customName", list.get(1));
             transferDataItemDTO.setCustomName(list.get(1));
@@ -3208,7 +3216,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             transferDataItemDTO.setRegisterTime(list.get(7));
             uploadJsonObject.put("ifLogin", list.get(19));
             transferDataItemDTO.setIfLogin(list.get(19));
-            if (StringUtils.isNotEmpty(list.get(8)) || StringUtils.isNotEmpty(list.get(20))) {
+            if (StringUtils.isEmpty(list.get(8)) || StringUtils.isEmpty(list.get(20))) {
+                uploadJsonObject.put("loginTime", "");
+            } else {
                 uploadJsonObject.put("loginTime", StringUtils.isNotEmpty(list.get(8)) ? list.get(8) : list.get(20));
                 transferDataItemDTO.setLoginTime(StringUtils.isNotEmpty(list.get(8)) ? list.get(8) : list.get(20));
             }
@@ -3218,7 +3228,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             transferDataItemDTO.setApplyDt(list.get(22));
             uploadJsonObject.put("applyResult", list.get(23));
             transferDataItemDTO.setApplyResult(list.get(23));
-            if (StringUtils.isNotEmpty(list.get(10)) || StringUtils.isNotEmpty(list.get(24))) {
+            if (StringUtils.isEmpty(list.get(10)) || StringUtils.isEmpty(list.get(24))) {
+                uploadJsonObject.put("auditTime", "");
+            } else {
                 uploadJsonObject.put("auditTime", StringUtils.isNotEmpty(list.get(10)) ? list.get(10) : list.get(24));
                 transferDataItemDTO.setAuditTime(StringUtils.isNotEmpty(list.get(10)) ? list.get(10) : list.get(24));
             }
@@ -3258,7 +3270,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             transferJsonObject.put("lentTimeFirst", list.get(27));
             uploadJsonObject.put("cpsRate", list.get(31));
             transferJsonObject.put("cpsRate", list.get(31));
-            uploadJsonObject.put("fileName",fileName);
+            uploadJsonObject.put("fileName", fileName);
             transferJsonObject.put("fileName", fileName);
 
             detailDTO.setReserveField1(uploadJsonObject.toJSONString());

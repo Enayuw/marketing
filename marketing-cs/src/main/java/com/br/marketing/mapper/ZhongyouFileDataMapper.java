@@ -15,7 +15,10 @@ public interface ZhongyouFileDataMapper extends ZhongyouFileDataMapperBase{
     List<ZhongyouDataCountDTO>  selectZhongyouCount(Long fileId);
 
 
-    List<ZhongyouFileData> selectZhongYouDataPage(@Param("fileId") Long fileId, @Param("minId") Long minId);
+    List<ZhongyouFileData> selectZhongYouDataPage(@Param("fileId") Long fileId, @Param("minId") Long minId,@Param("strategyId") String strategyId);
+
+
+    List<String> selectZhongYoustrategyIds(@Param("fileId") Long fileId);
 
 
 }

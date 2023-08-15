@@ -40,9 +40,13 @@
         <if test="minId != null and minId >0">
             id >=#{minId} and
         </if>
-        file_id = #{fileId}  and status =1  and type =2
+        file_id = #{fileId}  and strategy_id=#{strategyId}  and status =1  and `type` =2
         order by id asc limit 2000;
 
+    </select>
+    <select id="selectZhongYoustrategyIds" resultType="java.lang.String">
+        SELECT strategy_id FROM b_zhongyou_file_data data
+        where file_id = #{fileId}  and `type` =2  group by strategy_id;
     </select>
 
 </mapper>
