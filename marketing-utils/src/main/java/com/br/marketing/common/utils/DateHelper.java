@@ -16,6 +16,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * @Author: jinwei.li@100credit.com
@@ -127,7 +128,7 @@ public class DateHelper {
 
         return Integer.parseInt(String.valueOf(betweenDays));
     }
-    
+
     /**
      * 时间戳转换成日期格式字符串
      *
@@ -278,26 +279,27 @@ public class DateHelper {
         return day + "天" + hour + "小时" + min + "分" + sec + "秒";
     }
 
-    public static Date getNowDayStartTime(){
+    public static Date getNowDayStartTime() {
         String timeStr = new SimpleDateFormat("yyyy-MM-dd").format(new Date()).concat(" 00:00:00");
         try {
             return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(timeStr);
         } catch (ParseException e) {
-            log.error(e.getMessage(),e);
-            return null;
-        }
-    }
-    public static Date getNowDayEndTime(){
-        String timeStr = new SimpleDateFormat("yyyy-MM-dd").format(new Date()).concat(" 23:59:59");
-        try {
-            return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(timeStr);
-        } catch (ParseException e) {
-            log.error(e.getMessage(),e);
+            log.error(e.getMessage(), e);
             return null;
         }
     }
 
-    public static Date addDays(Date date,Integer days){
+    public static Date getNowDayEndTime() {
+        String timeStr = new SimpleDateFormat("yyyy-MM-dd").format(new Date()).concat(" 23:59:59");
+        try {
+            return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(timeStr);
+        } catch (ParseException e) {
+            log.error(e.getMessage(), e);
+            return null;
+        }
+    }
+
+    public static Date addDays(Date date, Integer days) {
         Calendar c = Calendar.getInstance();
         c.setTime(date);
         c.add(Calendar.DAY_OF_MONTH, days);
@@ -306,6 +308,7 @@ public class DateHelper {
 
     /**
      * 时间日期转换
+     *
      * @param strDate 字符串
      * @return 字符串yyyy-MM-dd HH:mm:ss
      */
@@ -322,33 +325,66 @@ public class DateHelper {
 
     /**
      * 时间日期定制
+     *
      * @param date+hhmmss（Date+时分秒）
      * @return Date
      */
-    public static Date getDatePlusHourMinuteSecond(Date date,String hhmmss){
+    public static Date getDatePlusHourMinuteSecond(Date date, String hhmmss) {
         String timeStr = new SimpleDateFormat("yyyy-MM-dd").format(date).concat(hhmmss);
         try {
             return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(timeStr);
         } catch (ParseException e) {
-            log.error(e.getMessage(),e);
+            log.error(e.getMessage(), e);
             return null;
         }
     }
 
     /**
      * 获取传入时间与第二天凌晨相差秒数
+     *
      * @param currentDate
      * @return
      */
     public static Integer getRemainSecondsOneDay(Date currentDate) {
         //使用plusDays加传入的时间加1天，将时分秒设置成0
         LocalDateTime midnight = LocalDateTime.ofInstant(currentDate.toInstant(),
-                ZoneId.systemDefault()).plusDays(1).withHour(0).withMinute(0)
+                        ZoneId.systemDefault()).plusDays(1).withHour(0).withMinute(0)
                 .withSecond(0).withNano(0);
         LocalDateTime currentDateTime = LocalDateTime.ofInstant(currentDate.toInstant(),
                 ZoneId.systemDefault());
         //使用ChronoUnit.SECONDS.between方法，传入两个LocalDateTime对象即可得到相差的秒数
         long seconds = ChronoUnit.SECONDS.between(currentDateTime, midnight);
         return (int) seconds;
+    }
+
+    public static LocalDate strToLocalDate(String date) {
+        if (StringUtils.isBlank(date)) {
+            return null;
+        }
+        LocalDate res = null;
+        try {
+            if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}$", date)) {
+                String s = date.replaceAll("/", "-");
+                res = LocalDate.parse(s, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2}$|^\\d{4}/\\d{2}/\\d{2}$", date)) {
+                String s = date.replaceAll("/", "-");
+                res = LocalDate.parse(s, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3}$", date)) {
+                String s = date.replaceAll("/", "-");
+                res = LocalDate.parse(s, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
+            } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$", date)) {
+                String s = date.replaceAll("/", "-");
+                res = LocalDate.parse(s, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:[SSS]"));
+            } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}$", date)) {
+                String s = date.replaceAll("/", "-");
+                res = LocalDate.parse(s, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+            } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}$", date)) {
+                String s = date.replaceAll("/", "-");
+                res = LocalDate.parse(s, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH"));
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+        return res;
     }
 }

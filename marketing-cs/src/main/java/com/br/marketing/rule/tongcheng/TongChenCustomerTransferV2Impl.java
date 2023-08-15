@@ -35,7 +35,6 @@ public class TongChenCustomerTransferV2Impl implements AssembleData<ConversionDa
         conversionData.setCaseNum(transfer.getCustNum());
         conversionData.setInversionStatus("0");
         conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-        conversionData.setGroupType(transfer.getUserType());
         return conversionData;
     }
 
