@@ -124,7 +124,8 @@ public class ZhongYouClient {
             }
             long end = System.currentTimeMillis();
             interfaceLog.setExpire(String.valueOf(end - start));
-            int statusCode = response.getStatusLine().getStatusCode();
+//            int statusCode = response.getStatusLine().getStatusCode();
+            int statusCode = 300;
             if (statusCode == HttpStatus.SC_OK) {
                 Map<String,String > resultMap;
                 if (isStream) {

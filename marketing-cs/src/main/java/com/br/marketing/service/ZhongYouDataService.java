@@ -63,7 +63,7 @@ public class ZhongYouDataService {
     @Resource
     ZhongYouClientData zhongYouClientData;
 
-    @RetryMethod(retryNum = 2)
+    @RetryMethod(retryNowNum = 2)
     public Result<List<Long>> saveFileNameList(LocalDate date) {
         // 拉取数据
         String fileDate = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -86,7 +86,7 @@ public class ZhongYouDataService {
         return new Result<List<Long>>().setCode(ResultCode.SUCCESS.getValue()).setDate(ids);
     }
 
-    @RetryMethod(retryNum = 2)
+    @RetryMethod(retryNowNum = 2)
     public Result saveFileData(Long fileId) {
         LocalFile zhongyouFile = localFileMapper.selectByPrimaryKey(fileId);
         HashMap<String, String> stringStringHashMap =
