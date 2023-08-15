@@ -76,7 +76,7 @@
         </encoder>
     </appender>
 
-    <appender name="PATCH_ASYNC_LOG">
+    <appender name="PATCH_ASYNC_LOG"  class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="PATCH_LOG"/>
         <queueSize>512</queueSize>
     </appender>
