@@ -191,7 +191,7 @@ public class ShuHeUserServiceImpl {
         CaseShuheUser caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType
                 , jsonDTO, apiCode, jsonData);
         boolean sendToQueueBool = iUserType instanceof UnknownUserType;
-        res.put("userTypeMark",sendToQueueBool);
+        res.put("userTypeUknow",sendToQueueBool);
         if (sendToQueueBool) {
             caseShuheUser.setStatus(1);
             msg = "未知的业务类型\"" + userType + "\"!";

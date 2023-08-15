@@ -282,10 +282,10 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             }
             return responseShuheDTO;
         }
-        Boolean userTypeMark = (Boolean) res.getOrDefault("userTypeMark", Boolean.FALSE);
+        Boolean userTypeUknow = (Boolean) res.getOrDefault("userTypeUknow", Boolean.TRUE);
         Long transferInfoId = (Long) res.getOrDefault("transferInfoId", 0L);
         List<String> universalProcessApiCode = marketingCommonConfig.getUniversalProcessApiCode();
-        if (userTypeMark && transferInfoId>0 && universalProcessApiCode.contains(apiCode)) {
+        if (!userTypeUknow && transferInfoId>0 && universalProcessApiCode.contains(apiCode)) {
             final MqFact mqFact = new MqFact();
             mqFact.setSourceId(transferInfoId);
             mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
