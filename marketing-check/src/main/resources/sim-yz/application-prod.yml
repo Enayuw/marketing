@@ -211,7 +211,7 @@ api:
     channelId: 3140738836439875
     isProxy: true
   zhongyou:
-    baseUrl: https://alissl.youcash.com/facadeuat/outmarketing-fileserver/file/out
+    baseUrl: https://facade.youcash.com/facade/outfileserver/file/out
     query: ${api.zhongyou.baseUrl}/query
     download: ${api.zhongyou.baseUrl}/download
     keyAlgorithm: RSA
