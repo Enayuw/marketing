@@ -95,13 +95,13 @@ public class CuShenWan extends IUserType {
     @Override
     public boolean ifTransfer(CaseShuheUser caseShuheUser, Date creatTime) {
         boolean ifTransfer;
-        if (StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim())) {
+        if (StringUtils.isEmpty(caseShuheUser.getClcUsrIsoAtoTim()) || caseShuheUser.getClcUsrIsoAtoTim().length()<10) {
             ifTransfer = Boolean.FALSE;
         } else {
             if (creatTime == null) {
                 ifTransfer = Boolean.FALSE;
             } else {
-                LocalDate isoAtoTim = DateHelper.strToLocalDate(caseShuheUser.getClcUsrIsoAtoTim());
+                LocalDate isoAtoTim = DateHelper.strToLocalDate(caseShuheUser.getClcUsrIsoAtoTim().substring(0,10));
                 LocalDate appletDate = creatTime.toInstant().atZone(
                         ZoneId.systemDefault()).toLocalDateTime().toLocalDate();
                 ifTransfer = isoAtoTim.isAfter(appletDate) || isoAtoTim.isEqual(appletDate);
