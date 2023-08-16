@@ -142,7 +142,7 @@
 
     <job:simple id="ZhongYouTransferToFileTaskJob"
                 class="com.br.marketing.check.job.zhongyou.ZhongYouTransferToFileTaskJob"
-                cron="0 1/10 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="中邮转化数据作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
