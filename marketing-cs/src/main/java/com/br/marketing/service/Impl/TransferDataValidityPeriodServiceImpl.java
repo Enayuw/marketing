@@ -1160,7 +1160,8 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         final Map<String, MarketingDataValidConfig> configMap = configList.stream().collect(Collectors.toMap(
                 config -> config.getUserType() + config.getAppletDate()
                 , Function.identity()
-                , BinaryOperator.maxBy(Comparator.comparing(MarketingDataValidConfig::getCreateTime))));
+                , BinaryOperator.maxBy(Comparator.comparing(c -> c.getUpdateTime() == null
+                        ? c.getCreateTime() : c.getUpdateTime()))));
         return syncUserList.stream().collect(Collectors.toConcurrentMap(
                 keyMapper, user -> {
                     // 组装原始数据有效期
