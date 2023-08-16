@@ -166,7 +166,7 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
 
             for (MarketingTransferSyncUser transferSyncUser : data) {
                 String custNum = transferSyncUser.getCustNum();
-                String userType = transferSyncUser.getUserType();
+//                String userType = transferSyncUser.getUserType();
 
                 SyncUserValidityPeriodBO boMap = validityPeriodCustNumBatchFirstVersion.get(custNum);
 //                SyncUserValidityPeriodBO boMap = validityPeriodCustNumBatchFirstVersion.get(custNum + userType);
@@ -240,7 +240,6 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
                     fw.append(sb);
                     totalSize = totalSize + 1;
                 } catch (Exception e) {
-                    e.printStackTrace();
                     log.error("{}:{}数据异常", transferSyncUser.getCustNum(), transferSyncUser.getUserType(),e);
                 }
             }
@@ -305,12 +304,6 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
             return deleteNull(dateString);
         }
     }
-//
-//    public static void main(String[] args) {
-//        String dateString = "2021-05-04 19:14:58";
-//        String s = formDateStr2(dateString);
-//        System.out.println(s);
-//    }
 
     private String getReserFieldVal(String reserStr,String field){
         return StringUtils.isNotEmpty(JSON.parseObject(reserStr).getString(field)) ? JSON.parseObject(reserStr).getString(field) : "";
