@@ -320,7 +320,7 @@
         ) as a
         left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and a.user_type = b.user_type and
         a.applet_time = b.applet_time where
-        b.status=1
+        b.status=1 and b.is_repeat in (1,2)
     </select>
 
     <select id="getSyncUserLastByNotInAppletDateList" resultType="com.br.marketing.entity.MarketingSyncUser">
