@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.dto.SyncUserTypeNumDTO;
 import com.br.marketing.entity.MarketingSyncReport;
 import com.br.marketing.entity.MarketingSyncReportExample;
 import com.br.marketing.mysqlInterceptor.AddDataAuth;
@@ -54,4 +55,6 @@ public interface MarketingSyncReportMapper {
     int updateByPrimaryKey(MarketingSyncReport record);
 
     int deleteByAppletDate(@Param("apiCode") String apiCode,@Param("appletDate") String appletDate);
+
+    List<SyncUserTypeNumDTO> uploadSyncCount(@Param("apiCode") String apiCode,@Param("appletDate") String appletDate);
 }

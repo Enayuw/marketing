@@ -236,4 +236,12 @@ public interface MarketingSyncUserMapper {
             , @Param("configList") List<MarketingDataValidConfig> configList
             , @Param("custNumSet") Set<String> custNumSet);
 
+    /**
+     * 修改数据状态
+     * @param apiCode
+     * @param custNum
+     * @param appletDate
+     * @return
+     */
+    Integer updateStatus(@Param("apiCode") String apiCode,@Param("custNum") String custNum,@Param("appletDate") String appletDate);
 }

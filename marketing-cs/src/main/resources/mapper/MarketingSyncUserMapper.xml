@@ -731,4 +731,8 @@
         a.applet_time = b.applet_time where
         b.status=1 and b.is_repeat in (1,2)
     </select>
+
+    <update id="updateStatus">
+        update b_marketing_sync_${apiCode} set  status = 2,fail_type = concat(ifnull(fail_type,''),',营销失败数据') where cust_num = #{custNum} and applet_date = #{appletDate} and status=1
+    </update>
 </mapper>

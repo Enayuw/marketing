@@ -1,6 +1,7 @@
 package com.br.marketing.dto.shuhe.strategy;
 
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.Impl.CaseUserServiceImpl;
@@ -9,6 +10,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Map;
 
@@ -99,8 +101,7 @@ public class CuShenWan extends IUserType {
             if (creatTime == null) {
                 ifTransfer = Boolean.FALSE;
             } else {
-                LocalDate isoAtoTim = LocalDateTime.parse(
-                        caseShuheUser.getClcUsrIsoAtoTim(), dateTimeFormatter).toLocalDate();
+                LocalDate isoAtoTim = DateHelper.strToLocalDate(caseShuheUser.getClcUsrIsoAtoTim());
                 LocalDate appletDate = creatTime.toInstant().atZone(
                         ZoneId.systemDefault()).toLocalDateTime().toLocalDate();
                 ifTransfer = isoAtoTim.isAfter(appletDate) || isoAtoTim.isEqual(appletDate);
