@@ -88,17 +88,17 @@ public class ZhongYouClient {
      * 中邮接口请求调用
      * @param param 参数
      * @param url 地址
-     * @param isPorxy 是否dialing
+     * @param isProxy 是否dialing
      * @param isStream 是否是数据流
      * @param fileId 文件id
      * @return
      */
-    public HashMap<String, String> sendByCodeWithLog(Object param, String url, Boolean isPorxy, Boolean isStream,Long fileId) {
+    public HashMap<String, String> sendByCodeWithLog(Object param, String url, Boolean isProxy, Boolean isStream,Long fileId) {
         InterfaceLog interfaceLog = new InterfaceLog();
         interfaceLog.setRequestId(UUID.randomUUID().toString());
         interfaceLog.setUrl(url);
         interfaceLog.setCreateTime(new Date());
-        HttpClient httpClient = getHttpClientInner(isPorxy);
+        HttpClient httpClient = getHttpClientInner(isProxy);
 
         HashMap<String, String> res = new HashMap<>();
         long start = System.currentTimeMillis();
@@ -110,10 +110,10 @@ public class ZhongYouClient {
             post.setHeader("content-type", MediaType.APPLICATION_JSON_UTF8_VALUE);
             post.setHeader("Accept", MediaType.APPLICATION_JSON_UTF8_VALUE);
             interfaceLog.setHeader(Arrays.toString(post.getAllHeaders()));
-            post.setConfig(getRequestConfig(isPorxy));
+            post.setConfig(getRequestConfig(isProxy));
             HttpResponse response;
             start = System.currentTimeMillis();
-            if (isPorxy) {
+            if (isProxy) {
                 AuthCache authCache = new BasicAuthCache();
                 AuthScheme authScheme = new BasicScheme(ChallengeState.PROXY);
                 authCache.put(new HttpHost(proxyHost, proxyPort), authScheme);

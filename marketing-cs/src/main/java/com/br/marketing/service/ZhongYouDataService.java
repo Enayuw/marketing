@@ -71,7 +71,7 @@ public class ZhongYouDataService {
                 zhongYouClient.sendByCodeWithLog(
                         zhongYouClientData.fileNameListData(fileDate),
                         zhongYouClientData.getQueryUrl(),
-                        zhongYouClientData.getIsPorxy(),
+                        zhongYouClientData.getIsProxy(),
                         false,
                         null);
         if (!"200".equals(stringStringHashMap.get("httpcode"))) {
@@ -93,7 +93,7 @@ public class ZhongYouDataService {
                 zhongYouClient.sendByCodeWithLog(
                         zhongYouClientData.fileDownLoadData(zhongyouFile.getFileName()),
                         zhongYouClientData.getDownloadUrl(),
-                        zhongYouClientData.getIsPorxy(),
+                        zhongYouClientData.getIsProxy(),
                         true,
                         fileId);
         if (!"200".equals(stringStringHashMap.get("httpcode"))) {

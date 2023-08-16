@@ -87,8 +87,8 @@ public class ZhongYouClientData {
     @Value("${api.zhongyou.download:00}")
     String downloadUrl;
 
-    @Value("${api.zhongyou.isPorxy:false}")
-    Boolean isPorxy;
+    @Value("${api.zhongyou.isProxy:false}")
+    Boolean isProxy;
 
 
 
