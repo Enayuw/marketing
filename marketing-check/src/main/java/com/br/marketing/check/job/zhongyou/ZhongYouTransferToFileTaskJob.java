@@ -12,7 +12,7 @@ import com.br.marketing.mapper.SyncLogMapper;
 import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.SftpInnerServiceImpl;
-import com.br.marketing.service.Impl.transfertofile.*;
+import com.br.marketing.service.Impl.transfertofile.TransferToFileByZhongYouServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;

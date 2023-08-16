@@ -179,7 +179,6 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
             // 存储数据
             zhongyouFileDataList.add(zhongyouFileData);
         }catch (Exception e){
-            e.printStackTrace();
             log.error("中邮行数据读取解析异常：{}",e);
         }
 
