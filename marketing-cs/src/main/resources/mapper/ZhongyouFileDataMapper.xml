@@ -46,7 +46,7 @@
     </select>
     <select id="selectZhongYoustrategyIds" resultType="java.lang.String">
         SELECT strategy_id FROM b_zhongyou_file_data data
-        where file_id = #{fileId}  and `type` =2  group by strategy_id;
+        where file_id = #{fileId}  and `type` =2  and status =1  group by strategy_id;
     </select>
 
 </mapper>
