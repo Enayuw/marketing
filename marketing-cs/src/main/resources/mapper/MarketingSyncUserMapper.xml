@@ -315,11 +315,12 @@
             </otherwise>
         </choose>
         and status=1
+        and is_repeat in (1,2)
         group by cust_num,user_type
         ) as a
         left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and a.user_type = b.user_type and
         a.applet_time = b.applet_time where
-        b.status=1
+        b.status=1 and b.is_repeat in (1,2)
     </select>
 
     <select id="getSyncUserLastByNotInAppletDateList" resultType="com.br.marketing.entity.MarketingSyncUser">
@@ -533,7 +534,7 @@
         select *
         from b_marketing_sync_${marketingTransferSyncUser.apiCode}
         <where>
-            cust_num = #{marketingTransferSyncUser.custNum} and status =1
+            cust_num = #{marketingTransferSyncUser.custNum} and status =1 and is_repeat in (1,2)
             and (applet_date,user_type) in
             <foreach collection="collectRequestDate" item="item" open="(" close=")" separator=",">
                 (#{item.appletDate},#{item.userType})
@@ -662,12 +663,12 @@
                 1!=1
             </otherwise>
         </choose>
-        and status=1
+        and status=1 and is_repeat in (1,2)
         group by cell,user_type
         ) as a
         left join b_marketing_sync_${apiCode} b on a.cell = b.cell and a.user_type = b.user_type and
         a.applet_time = b.applet_time where
-        b.status=1
+        b.status=1 and b.is_repeat in (1,2)
     </select>
 
     <select id="getSyncUserLastByCellAndInAppletDatList"
@@ -675,7 +676,7 @@
         select
         <include refid="Last_Column_List"/>
         from
-        (select cell,max(applet_time) as applet_time
+        (select cell,user_type,max(applet_time) as applet_time
         from b_marketing_sync_${apiCode}
         where cell in
         <foreach collection="cellSet" item="cell" open="(" separator="," close=")">
@@ -692,12 +693,12 @@
                 1!=1
             </otherwise>
         </choose>
-        and status=1
-        group by cell
+        and status=1 and is_repeat in (1,2)
+        group by cell,user_type
         ) as a
-        left join b_marketing_sync_${apiCode} b on a.cell = b.cell and
+        left join b_marketing_sync_${apiCode} b on a.cell = b.cell and a.user_type = b.user_type and
         a.applet_time = b.applet_time where
-        b.status=1
+        b.status=1 and b.is_repeat in (1,2)
     </select>
 
     <select id="getSyncUserLastByCustNumAndInAppletDatList"
@@ -705,7 +706,7 @@
         select
         <include refid="Last_Column_List"/>
         from
-        (select cust_num,max(applet_time) as applet_time
+        (select cust_num,user_type,max(applet_time) as applet_time
         from b_marketing_sync_${apiCode}
         where cust_num in
         <foreach collection="custNumSet" item="custNum" open="(" separator="," close=")">
@@ -723,11 +724,12 @@
             </otherwise>
         </choose>
         and status=1
-        group by cust_num
+        and is_repeat in (1,2)
+        group by cust_num,user_type
         ) as a
-        left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and
+        left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and a.user_type = b.user_type and
         a.applet_time = b.applet_time where
-        b.status=1
+        b.status=1 and b.is_repeat in (1,2)
     </select>
 
     <update id="updateStatus">

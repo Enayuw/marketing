@@ -411,6 +411,16 @@ public class MarketingCommonConfig {
     private List<String> xieChengTransferInsertApiCodes;
 
     /**
+     * 中邮转化数据提取apiCode集合
+     */
+    private List<String> ZhongYouTransferApiCodes;
+
+    /**
+     * 中邮转化数据提取执行时间
+     */
+    private String ZhongYouTransferExecuteTime;
+
+    /**
      * 众安异业撞库数据提取apiCode集合
      */
     private List<String> ZhongAnTransferApiCodes;
@@ -874,5 +884,25 @@ public class MarketingCommonConfig {
      * 滴滴接口mediaNm配置{“pushSmsTrafficAccess”:“bairongA”}
      */
     private Map<String, String> didiMediaNm;
+
+    /**
+     * 中邮数据文件流读取落库apiCode
+     */
+    private String zhongyouApiCode;
+
+    /**
+     * 中邮清洗数据线程数
+     */
+    private Integer zhongYouCleanDataThreadNum;
+
+    /**
+     * 中邮数据文件流读取落库字段数
+     */
+    private Integer zhongyouColumnsSize;
+
+    /**
+     * 中邮落库数据线程数
+     */
+    private Integer zhongYouFileDataThreadNum;
 }
 

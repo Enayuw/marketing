@@ -1,6 +1,5 @@
-package com.br.marketing.check.job;
+package com.br.marketing.check.job.zhongyou;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
@@ -10,12 +9,10 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.mapper.SyncLogMapper;
-import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.SftpInnerServiceImpl;
-import com.br.marketing.service.Impl.transfertofile.*;
-import com.br.marketing.service.TransferToFileByTongChengServiceImpl;
+import com.br.marketing.service.Impl.transfertofile.TransferToFileByZhongYouServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -32,22 +29,11 @@ import java.util.*;
 
 @Component
 @Slf4j
-public class TransferFileTaskJob extends AbstractSimpleElasticJob {
+public class ZhongYouTransferToFileTaskJob extends AbstractSimpleElasticJob {
     private static int initCollectionSize = 64;
 
     @Autowired
     MarketingCustomerMapper customerMapper;
-
-    @Resource
-    TransferFileTaskMapper transferFileTaskMapper;
-
-    /*萨摩耶的实现*/
-    @Resource
-    ITransferToFileService transferToFileBySamoyeServiveImpl;
-
-    /*哈罗的实现*/
-    @Resource
-    ITransferToFileService transferToFileByHaluoServiceImpl;
 
     @Autowired
     SftpInnerServiceImpl sftpInnerService;
@@ -61,88 +47,14 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
-    /**
-     * 数禾
-     */
-    @Resource
-    private TransferToFileByShuHeServiceImpl transferToFileByShuHeService;
-
-    /**
-     * 宜信
-     */
-    @Resource
-    private TransferToFileByYiXinRealTimeServiceImpl transferToFileByYiXinRealTimeService;
-    /**
-     * 玖富
-     */
-    @Resource
-    private TransferToFileByJiuFuServiceImpl transferToFileByJiuFuService;
-    /**
-     * 同城
-     */
-    @Resource
-    private TransferToFileByTongChengServiceImpl transferToFileByTongChengService;
-
     @Resource
     private SyncLogMapper loanSyncLogMapper;
-    /**
-     * 小赢
-     */
-    @Resource
-    private TransferToFileByXiaoYingRealTimeServiceImpl xiaoYingRealTimeService;
-    /**
-     * 拍拍贷
-     */
-    @Resource
-    private TransferToFileByPPDServiceImpl transferToFileByPPDService;
-    /**
-     * 众安
-     */
-    @Resource
-    private TransferToFileByZhongAnServiceImpl transferToFileByZhongAnService;
-    /**
-     * 携程
-     */
-    @Resource
-    private TransferToFileByXieChengServiceImpl transferToFileByXieChengService;
-    /**
-     * 携程新场景
-     */
-    @Resource
-    private NewTransferToFileByXieChengServiceImpl newTransferToFileByXieChengService;
 
     /**
-     * 拍拍贷老客
+     * 中邮转化数据提取
      */
     @Resource
-    private TransferToFileByPPDOldServiceImpl transferToFileByPPDOldService;
-
-    @Autowired
-    private TransferToFileByYouMeDServiceImpl transferToFileByYouMeDService;
-    @Autowired
-    private TransferToFileByGomeServiceImpl transferToFileByGomeService;
-
-    @Autowired
-    private TransferToFileByDiDiServiceImpl transferToFileByDiDiService;
-
-    /**
-     * 桔子
-     */
-    @Resource
-    private TransferToFileByOrangeServiceImpl orangeService;
-
-    /**
-     * 海尔
-     */
-    @Resource
-    private TransferToFileByHaierServiceImpl transferToFileByHaierService;
-
-
-    /**
-     * 永辉
-     */
-    @Resource
-    private TransferToFileByYonghuiServiceImpl transferToFileByYonghuiService;
+    private TransferToFileByZhongYouServiceImpl transferToFileByZhongYouService;
 
     @Autowired
     ICompatibleService iCompatibleService;
@@ -223,90 +135,10 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
      */
     private BindApiCodeServiceImplBean bindApiCode() {
         return BindApiCodeServiceImplBean.BindApiCodeServiceImplBeanBuilder.create()
-                // 萨摩耶转化数据提取
-                .addBind(transferToFileBySamoyeServiveImpl, marketingCommonConfig.getSaMoYeTransferFileApiCodes())
-                // 哈啰转化数据提取
-                .addBind(transferToFileByHaluoServiceImpl, marketingCommonConfig.getHaLuoTransferFileApiCodes())
-                // 数禾转化数据提取
-                .addBind(transferToFileByShuHeService, ObjectUtil.isEmpty(
-                        marketingCommonConfig.getShuHeTransferExtractApiCodes())
-                        ? null : marketingCommonConfig.getShuHeTransferExtractApiCodes().keySet())
-                // 宜信实时转化数据提取
-                .addBind(transferToFileByYiXinRealTimeService, marketingCommonConfig.getYinXinTransferRealTimeApiCodes())
-                // 玖富转化数据提取
-                .addBind(transferToFileByJiuFuService, marketingCommonConfig.getJiuFuTransferApiCodes())
-                // 拍拍贷新客实时转化数据提取
-                .addBind(transferToFileByPPDService, marketingCommonConfig.getPPDTransferFileApiCodes())
-                // 同程转化数据提取
-                .addBind(transferToFileByTongChengService, marketingCommonConfig.getTongChengTransferFileApiCodes())
-                // 小赢转化数据提取
-                .addBind(xiaoYingRealTimeService, marketingCommonConfig.getXiaoYingTransferExtractApiCodes())
-                // 众安异业撞库、转化数据提取
-                .addBind(transferToFileByZhongAnService, marketingCommonConfig.getZhongAnTransferApiCodes())
-                // 携程转化数据提取
-                .addBind(transferToFileByXieChengService, marketingCommonConfig.getXieChengTransferApiCodes())
-                // 携程新场景转化数据提取
-                .addBind(newTransferToFileByXieChengService, marketingCommonConfig.getXieChengNewTransferApiCodes())
-                // 拍拍贷老客转人工数据提取
-                .addBind(transferToFileByPPDOldService, marketingCommonConfig.getPPDOldTransferFileApiCodes())
-                // 桔子转化数据提取
-                .addBind(orangeService, marketingCommonConfig.getOrangeTransferFileApiCodes())
-                .addBind(transferToFileByYouMeDService, marketingCommonConfig.getYouMeDApiCodes())
-                // 海尔转化数据提取
-                .addBind(transferToFileByHaierService, marketingCommonConfig.getHaierApiCodes())
-                // 国美转化数据提取
-                .addBind(transferToFileByGomeService, marketingCommonConfig.getGomeApiCodes())
-                // 永辉转化数据提取
-                .addBind(transferToFileByYonghuiService, marketingCommonConfig.getYonghuiTransferExtractApiCodes())
-                // 滴滴转化数据提取
-                .addBind(transferToFileByDiDiService,marketingCommonConfig.getDidiApiCodes())
+                // 中邮转化数据提取
+                .addBind(transferToFileByZhongYouService, marketingCommonConfig.getZhongYouTransferApiCodes())
                 .build();
     }
-
-    /**
-     * 2022-12-24 17:15
-     * 已弃用，最好不要用，用了也不会起作用
-     * ，如果非要用，需要修改主业务逻辑（👆{@link TransferFileTaskJob#process(JobExecutionMultipleShardingContext)}）的内容。
-     * <p>
-     * 新方法{@link TransferFileTaskJob#bindApiCode()}
-     */
-    @Deprecated
-    ITransferToFileService getServiceImpl(MarketingCustomer customer) {
-        if (marketingCommonConfig.getSaMoYeTransferFileApiCodes().contains(customer.getApiCode())) {
-            return transferToFileBySamoyeServiveImpl;
-        } else if (marketingCommonConfig.getHaLuoTransferFileApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByHaluoServiceImpl;
-        } else if (marketingCommonConfig.getShuHeTransferExtractApiCodes().containsKey(customer.getApiCode())) {
-            return transferToFileByShuHeService;
-        } else if (marketingCommonConfig.getYinXinTransferRealTimeApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByYiXinRealTimeService;
-        }
-        if (marketingCommonConfig.getJiuFuTransferApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByJiuFuService;
-        }
-        if (marketingCommonConfig.getPPDTransferFileApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByPPDService;
-        }
-        if (marketingCommonConfig.getTongChengTransferFileApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByTongChengService;
-        }
-        if (marketingCommonConfig.getXiaoYingTransferExtractApiCodes().contains(customer.getApiCode())) {
-            return xiaoYingRealTimeService;
-        }
-        if (marketingCommonConfig.getZhongAnTransferApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByZhongAnService;
-        }
-        if (marketingCommonConfig.getYouMeDApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByYouMeDService;
-        }
-        if (marketingCommonConfig.getXieChengTransferApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByXieChengService;
-        }
-        else {
-            return null;
-        }
-    }
-
 
     private static class BindApiCodeServiceImplBean {
         Map<String, Set<ITransferToFileService>> bind;

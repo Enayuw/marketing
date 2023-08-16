@@ -168,4 +168,10 @@ public interface PushRuleService {
     Result<Boolean> consumerBlack(Long id);
 
     Result<Boolean> consumerHaLuo(Long id);
+
+    /**
+     * 中邮清洗数据接口
+     * @return Result
+     */
+    Result<Boolean> HandleZhongYouData(Long id);
 }

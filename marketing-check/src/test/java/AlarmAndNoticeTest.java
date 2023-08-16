@@ -10,6 +10,7 @@ import com.br.marketing.service.EmailService;
 import com.br.marketing.service.Impl.transfertofile.NewTransferToFileByXieChengServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.TransferToFileByDiDiServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.TransferToFileBySamoyeServiveImpl;
+import com.br.marketing.service.Impl.transfertofile.TransferToFileByZhongYouServiceImpl;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.SyncConfigService;
 import org.junit.Test;
@@ -63,6 +64,11 @@ public class AlarmAndNoticeTest {
 
     @Resource
     TransferFileTaskMapper transferFileTaskMapper;
+
+    final static String FILE_HEADER = "taskId,custNum,userType,customName,registerTime,ifLogin,loginTime," +
+            "ifApply,applyDt,applyResult,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount," +
+            "pushTime,loginChannel,auditRate,couponType,validityAmt,rateType,lentRate,validityRate,applyLentTime,cps," +
+            "lentAmountFirst,lentTimeFirst,cpsRate,fileName,firstName,gender,cell";
 
     @Test
     public void testNew(){
@@ -169,6 +175,11 @@ public class AlarmAndNoticeTest {
     @Resource
     private NewTransferToFileByXieChengServiceImpl newTransferToFileByXieChengServiceImpl;
 
+    @Resource
+    private TransferToFileByZhongYouServiceImpl transferToFileByZhongYouService;
+
+    final static String ZHONGYOU_TRANSFER_FILE = "transform_";
+
     @Test
     public void newTransferFileTest() {
         TransferFileTask transferFileTask = new TransferFileTask();
@@ -196,6 +207,38 @@ public class AlarmAndNoticeTest {
         }
 
     }
+
+    @Test
+    public void ZhongYouTransferFileTest() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7434636");
+        transferFileTask.setStartDate("2023-08-15 ");
+        String recordDate = transferFileTask.getStartDate();
+        StringBuilder fileName = new StringBuilder();
+        fileName.append(ZHONGYOU_TRANSFER_FILE).append(recordDate).append(".txt");
+        transferFileTask.setFileName(fileName.toString());
+        log.warn("中邮转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String apiCode = transferFileTask.getApiCode();
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(file), "UTF-8"));) {
+            fw.append(FILE_HEADER);
+            fw.append("\r\n");
+            transferToFileByZhongYouService.writeXieChengTransferToFile(fw, apiCode, transferFileTask);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+
+    }
+
 
     @Test
     public void transferFileTest(){
