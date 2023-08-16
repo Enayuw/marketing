@@ -3179,11 +3179,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<MarketingPreUserDetailDTO> dataItems = new ArrayList<>();
         List<TransferDataItemDTO> transferDataItemDTOS = new ArrayList<>();
         zhongyouFileDataList.forEach(zhongyouFileData -> {
-            List<String> list = new ArrayList<>(Arrays.asList(zhongyouFileData.getFileData().split("\\|\\|")));
-            //兼容最后一位是null
-            if (list.size() == marketingCommonConfig.getZhongyouColumnsSize()) {
-                list.add("");
-            }
+            List<String> list = new ArrayList<>(Arrays.asList(zhongyouFileData.getFileData().split("\\|\\|",-1)));
             MarketingPreUserDetailDTO detailDTO = new MarketingPreUserDetailDTO();
             TransferDataItemDTO transferDataItemDTO = new TransferDataItemDTO();
             JSONObject uploadJsonObject = new JSONObject();

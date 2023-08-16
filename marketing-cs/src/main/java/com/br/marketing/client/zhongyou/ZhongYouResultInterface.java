@@ -18,7 +18,16 @@ import java.util.Map;
  * --------------------------------------
  **/
 public interface ZhongYouResultInterface {
-    //
+    /**
+     * 中邮数据流结果处理
+     * @param inputStream 数据流
+     * @param fileId 文件id
+     */
     Map<String,String> applyStream(InputStream inputStream,Long fileId) ;
+
+    /**
+     * 中邮entity 结果处理
+     * @param httpEntity 返回实体
+     */
     Map<String,String> applyEntity(HttpEntity httpEntity) ;
 }

@@ -893,5 +893,10 @@ public class MarketingCommonConfig {
      * 中邮数据文件流读取落库字段数
      */
     private Integer zhongyouColumnsSize;
+
+    /**
+     * 中邮落库数据线程数
+     */
+    private Integer zhongYouFileDataThreadNum;
 }
 

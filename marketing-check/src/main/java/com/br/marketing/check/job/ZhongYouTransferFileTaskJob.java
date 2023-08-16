@@ -1,4 +1,4 @@
-package com.br.marketing.check.job;
+package com.br.marketing.check.job.zhongyou;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
@@ -29,7 +29,7 @@ import java.util.*;
 
 @Component
 @Slf4j
-public class ZhongYouTransferFileTaskJob extends AbstractSimpleElasticJob {
+public class ZhongYouTransferToFileTaskJob extends AbstractSimpleElasticJob {
     private static int initCollectionSize = 64;
 
     @Autowired
@@ -170,7 +170,7 @@ public class ZhongYouTransferFileTaskJob extends AbstractSimpleElasticJob {
                 return this;
             }
 
-            private ZhongYouTransferFileTaskJob.BindApiCodeServiceImplBean build() {
+            private BindApiCodeServiceImplBean build() {
                 if (this.serviceLinkedList == null) {
                     this.serviceLinkedList = new LinkedList<>();
                 }
@@ -193,7 +193,7 @@ public class ZhongYouTransferFileTaskJob extends AbstractSimpleElasticJob {
                         }
                     }
                 }
-                return new ZhongYouTransferFileTaskJob.BindApiCodeServiceImplBean(bind);
+                return new BindApiCodeServiceImplBean(bind);
             }
         }
     }

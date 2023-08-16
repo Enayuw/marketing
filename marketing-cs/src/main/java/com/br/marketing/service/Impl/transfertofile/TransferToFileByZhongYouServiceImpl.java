@@ -240,7 +240,8 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
                     fw.append(sb);
                     totalSize = totalSize + 1;
                 } catch (Exception e) {
-                    log.error("{}:{}数据异常", transferSyncUser.getCustNum(), transferSyncUser.getUserType());
+                    e.printStackTrace();
+                    log.error("{}:{}数据异常", transferSyncUser.getCustNum(), transferSyncUser.getUserType(),e);
                 }
             }
         }
@@ -260,7 +261,7 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
      * @param value
      * @return
      */
-    private String deleteNull(String value) {
+    private static String deleteNull(String value) {
         return (StringUtils.isNotEmpty(value) ? value : "").concat(",");
     }
 
@@ -278,29 +279,38 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
         }
     }
 
-    private String formDateStr2(String dateString) {
-        String[] patterns = {"yyyy-MM-dd", "yyyy/MM/dd", "yyyy.MM.dd", "dd-MM-yyyy", "dd/MM/yyyy", "dd.MM.yyyy", "yyyy-MM-dd HH:mm:ss"};
-        Date date = null;
+    private static String formDateStr2(String dateString) {
+        try {
+//            String[] patterns = {"yyyy-MM-dd", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss.SSS", "yyyy-MM-dd HH:mm:ss:SSS"};
+            String[] patterns = {"yyyy-MM-dd HH:mm:ss" , "yyyy-MM-dd HH:mm:ss[:SSS]"};
+            Date date = null;
 
-        for (String pattern : patterns) {
-            SimpleDateFormat formatter = new SimpleDateFormat(pattern);
-            try {
-                date = formatter.parse(dateString);
-                break;
-            } catch (ParseException e) {
-                // 解析失败，尝试下一个格式
+            for (String pattern : patterns) {
+                SimpleDateFormat formatter = new SimpleDateFormat(pattern);
+                try {
+                    date = formatter.parse(dateString);
+                    break;
+                } catch (ParseException e) {
+                    // 解析失败，尝试下一个格式
+                }
             }
+            if (date != null) {
+                SimpleDateFormat targetFormatter = new SimpleDateFormat("yyyy-MM-dd");
+                return targetFormatter.format(date).concat(",");
+            } else {
+                // 未能解析成功，返回原始字符串或者其他默认值
+                return deleteNull(dateString);
+            }
+        } catch (Exception e) {
+            return deleteNull(dateString);
         }
-
-        if (date != null) {
-            SimpleDateFormat targetFormatter = new SimpleDateFormat("yyyy-MM-dd");
-            return targetFormatter.format(date).concat(",");
-        } else {
-            // 未能解析成功，返回原始字符串或者其他默认值
-            return dateString.concat(",");
-        }
-
     }
+//
+//    public static void main(String[] args) {
+//        String dateString = "2021-05-04 19:14:58";
+//        String s = formDateStr2(dateString);
+//        System.out.println(s);
+//    }
 
     private String getReserFieldVal(String reserStr,String field){
         return StringUtils.isNotEmpty(JSON.parseObject(reserStr).getString(field)) ? JSON.parseObject(reserStr).getString(field) : "";

@@ -269,8 +269,8 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="ZhongYouTransferFileTaskJob"
-                class="com.br.marketing.check.job.ZhongYouTransferFileTaskJob"
+    <job:simple id="ZhongYouTransferToFileTaskJob"
+                class="com.br.marketing.check.job.zhongyou.ZhongYouTransferToFileTaskJob"
                 cron="0 1/10 * * * ? "
                 description="中邮转化数据作业"
                 registry-center-ref="regCenter"

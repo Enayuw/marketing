@@ -61,18 +61,19 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
 
     @Override
     public Map<String, String> applyStream(InputStream inputStream, Long fileId) {
-        ThreadPoolExecutor zhongyouThread = BrExecutors.getThreadPool(5, 5);
+        ThreadPoolExecutor zhongyouThread = BrExecutors.getThreadPool(marketingCommonConfig.getZhongYouFileDataThreadNum(), marketingCommonConfig.getZhongYouFileDataThreadNum());
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         Map<String, String> resultMap = new HashMap<>();
         try {
             List<ZhongyouFileData> zhongyouFileDataList = new ArrayList<>();
-
+            zhongyouThread.setCorePoolSize(marketingCommonConfig.getZhongYouFileDataThreadNum());
+            zhongyouThread.setMaximumPoolSize(marketingCommonConfig.getZhongYouFileDataThreadNum());
             while (dealStream(fileId, reader, zhongyouFileDataList, resultMap, zhongyouThread)) {
                 // do nothing;
             }
             shutdownThread(zhongyouThread);
         } catch (Exception e) {
-            log.error("数据流处理异常：{}", e.toString());
+            log.error("数据流处理异常：{}", e);
             resultMap.put("result", "数据流处理异常");
         }
         return resultMap;
@@ -123,8 +124,8 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
     private void zhongyouDataListSave(List<ZhongyouFileData> zhongyouFileDataList, ThreadPoolExecutor zhongyouThread) {
         if (zhongyouFileDataList.size() == SAVE_PARTITION_SIZE) {
             // 线程池存储
+            List<ZhongyouFileData> saveZhongyouFileDataList = new ArrayList<>(zhongyouFileDataList);
             zhongyouThread.submit(() -> {
-                List<ZhongyouFileData> saveZhongyouFileDataList = new ArrayList<>(zhongyouFileDataList);
                 zhongyouFileDataMapper.saveBatch(saveZhongyouFileDataList);
             });
             // 清空集合
@@ -142,48 +143,55 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
      */
     private void zhongyouDataListBuild(Long fileId, List<ZhongyouFileData> zhongyouFileDataList,
                                        Map<String, String> resultMap, String lineData) {
-        ZhongyouFileData zhongyouFileData = new ZhongyouFileData();
-        zhongyouFileData.setFileId(fileId);
-        zhongyouFileData.setStatus(1);
-        zhongyouFileData.setType("2");
-        zhongyouFileData.setApiCode(marketingCommonConfig.getZhongyouApiCode());
+        try {
+            ZhongyouFileData zhongyouFileData = new ZhongyouFileData();
+            zhongyouFileData.setFileId(fileId);
+            zhongyouFileData.setStatus(1);
+            zhongyouFileData.setType("2");
+            zhongyouFileData.setApiCode(marketingCommonConfig.getZhongyouApiCode());
 
-        // 如果第一行返回是一个json 格式则说明接口请求异常
-        if (isJson(lineData)) {
-            zhongyouFileData.setDataMessage(lineData);
-            zhongyouFileData.setStatus(2);
-            resultMap.put("result", lineData);
-            log.error("中邮文件内数据接口请求异常 lineData:{}", lineData);
-            return;
-        } else if (isNumeric(lineData)) {
-            // 设置第一行数据标记
-            zhongyouFileData.setType("1");
-        } else if (lineData.contains("||")) {
-            int count = getCount(lineData, "||");
-            if (count == marketingCommonConfig.getZhongyouColumnsSize()) {
-                String strategyId = lineData.split("\\|\\|")[0];
-                zhongyouFileData.setStrategyId(strategyId);
-            }else {
+            // 如果第一行返回是一个json 格式则说明接口请求异常
+            if (lineData.contains("||")) {
+                int count = getCount(lineData, "||");
+                if (count == marketingCommonConfig.getZhongyouColumnsSize()) {
+                    String strategyId = lineData.split("\\|\\|")[0];
+                    zhongyouFileData.setStrategyId(strategyId);
+                } else {
+                    zhongyouFileData.setStatus(2);
+                    zhongyouFileData.setDataMessage("字段数不匹配");
+                }
+            } else if (isNumeric(lineData)) {
+                // 设置第一行数据标记
+                zhongyouFileData.setType("1");
+            } else if (isJson(lineData)) {
+                resultMap.put("result", lineData);
+                log.error("中邮文件内行数据异常 lineData:{}", lineData);
+                return;
+            } else {
                 zhongyouFileData.setStatus(2);
-                zhongyouFileData.setDataMessage("字段数不匹配");
+                zhongyouFileData.setDataMessage("数据格式异常");
             }
+            zhongyouFileData.setFileData(lineData);
+            String format = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            zhongyouFileData.setCreateDate(Integer.parseInt(format));
+            zhongyouFileData.setCreateTime(new Date());
+            zhongyouFileData.setUpdateTime(new Date());
+            // 存储数据
+            zhongyouFileDataList.add(zhongyouFileData);
+        }catch (Exception e){
+            e.printStackTrace();
+            log.error("中邮行数据读取解析异常：{}",e);
         }
-        zhongyouFileData.setFileData(lineData);
-        String format = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        zhongyouFileData.setCreateDate(Integer.parseInt(format));
-        zhongyouFileData.setCreateTime(new Date());
-        zhongyouFileData.setUpdateTime(new Date());
-        // 存储数据
-        zhongyouFileDataList.add(zhongyouFileData);
+
     }
 
     public int getCount(String str, String key) {
-        if (str == null || key == null || "".equals(str.trim()) || "".equals(key.trim())) {
+        if (str == null || key == null || str.trim().isEmpty() || key.trim().isEmpty()) {
             return 0;
         }
         int count = 0;
         int index = 0;
-        while ((index = str.indexOf(key, index)) != -1 && count <= marketingCommonConfig.getZhongyouColumnsSize()+1) {
+        while ((index = str.indexOf(key, index)) != -1 && count <= marketingCommonConfig.getZhongyouColumnsSize() + 1) {
             index = index + key.length();
             count++;
         }
@@ -207,7 +215,7 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
             }
             return null;
         }
-        return tempString.trim();
+        return tempString;
     }
 
     @Override
@@ -224,11 +232,11 @@ public class ZhongYouResultImpl implements ZhongYouResultInterface {
                 String responseData = resultJson.getString("responseData");
                 String resultString = zhongYouClientData.decryptData(responseData, sysSign);
                 resultMap.put("responseData", resultString);
-            }else {
-                log.error("中邮文件接口返回code 码异常：{}",resultJson.toJSONString());
+            } else {
+                log.error("中邮文件接口返回code 码异常：{}", resultJson.toJSONString());
             }
         } catch (Exception e) {
-            log.error("解析中邮Entity数据异常");
+            log.error("解析中邮Entity数据异常：{}",e);
         }
 
         return resultMap;

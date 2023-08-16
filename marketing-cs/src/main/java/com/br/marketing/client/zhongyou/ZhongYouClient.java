@@ -99,6 +99,7 @@ public class ZhongYouClient {
         interfaceLog.setUrl(url);
         interfaceLog.setCreateTime(new Date());
         HttpClient httpClient = getHttpClientInner(isPorxy);
+
         HashMap<String, String> res = new HashMap<>();
         long start = System.currentTimeMillis();
         try {
@@ -189,16 +190,16 @@ public class ZhongYouClient {
     private RequestConfig getRequestConfig(Boolean isProxy) {
         if (isProxy) {
             return RequestConfig.custom()
-                    .setSocketTimeout(50000)
-                    .setConnectTimeout(50000)
+                    .setSocketTimeout(60000)
+                    .setConnectTimeout(60000)
                     .setProxy(new HttpHost(proxyHost, proxyPort))
-                    .setConnectionRequestTimeout(50000)
+                    .setConnectionRequestTimeout(60000)
                     .build();
         } else {
             return RequestConfig.custom()
-                    .setSocketTimeout(10000)
-                    .setConnectTimeout(10000)
-                    .setConnectionRequestTimeout(10000)
+                    .setSocketTimeout(60000)
+                    .setConnectTimeout(60000)
+                    .setConnectionRequestTimeout(60000)
                     .build();
         }
     }
