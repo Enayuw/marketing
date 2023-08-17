@@ -97,7 +97,7 @@ public class RsTransferServiceImpl implements RsTransferService {
         Integer sort = 1;
         while (actionMark){
             List<PushMarketingUserDetailDTO> list = new ArrayList<>();
-            List<MarketingTransferSyncUser> rsToPolicyData = transferSyncUserMapper.getRsToPolicyData(date, tcId, Arrays.asList("1", "2"), "1", date, ifApply, applyDt, minId, 500);
+            List<MarketingTransferSyncUser> rsToPolicyData = transferSyncUserMapper.getRsToPolicyData(date, tcId, Arrays.asList("1", "201" ,"202"), "1", date, ifApply, applyDt, minId, 500);
             if(rsToPolicyData.size()<=0){
                 actionMark = Boolean.FALSE;
                 continue;
