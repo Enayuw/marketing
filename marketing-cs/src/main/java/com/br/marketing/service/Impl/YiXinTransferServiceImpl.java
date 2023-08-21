@@ -200,12 +200,16 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
             threadPool.submit(() -> {
                 try {
                     //region 获取7天实时和60天非实时 推送记录
+
+                    // 获取不包含当天的前7天实时推人工的custNum _7filerCustNumSet
                     Set<String> _7filerCustNumSet = iDxService
                             .getCustNumByPhoneDx(custNums, _tApicode, _7startDay, _endDay, "1");
                     PhoneSaleRecordInfoDTO _60recordInfoDTO = new PhoneSaleRecordInfoDTO();
                     _60recordInfoDTO.setCustNums(custNums);
                     _60recordInfoDTO.setApiCode(_tApicode);
                     _60recordInfoDTO.setTransferType("0");
+
+                    // 获取最新的一条推送记录 dxRecordLastOne
                     List<PhoneSaleInfoVO> dxRecordLastOne = phoneSaleExtendInfoMapper.getDxRecordLastOne(_60recordInfoDTO);
 //                    List<PhoneSaleInfoVO> _60records = phoneSaleExtendInfoMapper.getDxRecordByTransferType(_60recordInfoDTO);
                     Map<String, PhoneSaleInfoVO> _dxRecordLastOneCustNumsMap = new HashMap<>();
@@ -226,6 +230,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                             _dxRecordLastConditionList.add(_dxRecordLastCondition);
                         }
                         _60recordInfoDTOpart.setCustNumAndApplets(_dxRecordLastConditionList);
+                        // 获取案件倒数第二条的推送人工记录 _dxRecordLastTwo
                         List<PhoneSaleInfoVO> dxRecordLastTwo = phoneSaleExtendInfoMapper.getDxRecordLastTwo(_60recordInfoDTOpart);
                         if (dxRecordLastTwo != null && dxRecordLastTwo.size() > 0) {
                             _dxRecordLastTwo.putAll(dxRecordLastTwo.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum)));
