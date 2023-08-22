@@ -3,16 +3,22 @@ import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.EmailService;
+import com.br.marketing.service.Impl.JobManager;
+import com.br.marketing.service.Impl.RsTransferServiceImpl;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.NewTransferToFileByXieChengServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.TransferToFileByDiDiServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.TransferToFileBySamoyeServiveImpl;
 import com.br.marketing.service.Impl.transfertofile.TransferToFileByZhongYouServiceImpl;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -30,9 +36,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Bairong on 2020/7/13.
@@ -264,4 +268,47 @@ public class AlarmAndNoticeTest {
         msg.put("isNewFile", false);
         pushDataService.pushXieChengSmsCollidingToDbData(msg.toJSONString());
     }
+
+    @Autowired
+    TableCreateServiceImpl tableCreateService;
+
+    @Autowired
+    JobManager jobManager;
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
+    @Autowired
+    RsTransferServiceImpl rsTransferService;
+    @Test
+    public void actionTest(){
+        String apiCode = "7492800";
+        apiCode = StringUtils.isNotBlank(apiCode)?apiCode:"7492800";
+        String tcId = tableCreateService.getTcId(apiCode);
+        String date = "2023-08-20";
+        LocalDate now = LocalDate.now();
+        String actionDay = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        date = StringUtils.isNotBlank(date) ? date : now.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        Result<TransferActionFront> frontData = jobManager.getFrontData(apiCode, actionDay, 1);
+        if(!ResultCode.SUCCESS.getValue().equals(frontData.getCode())){
+            System.err.println(new Result().setCode(ResultCode.FAIL.getValue()));
+        }
+        Long jobId  = 0L;
+        TransferActionFront actionFront = frontData.getData();
+        if(actionFront ==null){
+            jobId = jobManager.saveFrontData(apiCode,date,1);
+        }else{
+            jobId = actionFront.getId();
+        }
+        HashSet cellSet = new HashSet();
+        HashMap<String, JSONObject> rsStrategyCodes = marketingCommonConfig.getRsStrategyCodes();
+        JSONObject strategyCode = rsStrategyCodes.get(apiCode);
+        rsTransferService.action(date,apiCode,tcId,cellSet,"1",date,"c",strategyCode.getString("c"));
+        rsTransferService.action(date,apiCode,tcId,cellSet,"0",null,"d",strategyCode.getString("d"));
+        int size = cellSet.size();
+        log.warn("榕树推送决策推送了"+size+"条");
+        jobManager.updateFrontDataStatus(jobId,2);
+        System.err.println(new Result().setCode(ResultCode.SUCCESS.getValue()));;
+    }
+
 }
