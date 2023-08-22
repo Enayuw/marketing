@@ -1317,10 +1317,13 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
             //cell sha256
             res = RpcClientProxy.decode(name, "name", "sha", "");
         }
-        if (StringUtils.isEmpty(res)) {
-            return "1";
+        if (!StringUtils.isEmpty(res)) {
+            return res;
         }
-        return res;
+        if(StringUtils.isNotBlank(name)){
+            return name;
+        }
+        return "1";
     }
 
     @Override
