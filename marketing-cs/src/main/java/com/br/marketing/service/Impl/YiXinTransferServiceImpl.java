@@ -213,7 +213,8 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                     List<PhoneSaleInfoVO> dxRecordLastOne = phoneSaleExtendInfoMapper.getDxRecordLastOne(_60recordInfoDTO);
 //                    List<PhoneSaleInfoVO> _60records = phoneSaleExtendInfoMapper.getDxRecordByTransferType(_60recordInfoDTO);
                     Map<String, PhoneSaleInfoVO> _dxRecordLastOneCustNumsMap = new HashMap<>();
-                    Map<String, List<PhoneSaleInfoVO>> _dxRecordLastTwo = new HashMap<>();
+                    Map<String, PhoneSaleInfoVO> _dxRecordLastTwo = new HashMap<>();
+                    Map<String, PhoneSaleInfoVO> _dxRecordLastThree = new HashMap<>();
 
                     List<List<PhoneSaleInfoVO>> onwPart = Lists.partition(dxRecordLastOne, 200);
                     for (List<PhoneSaleInfoVO> phoneSaleInfoVOS : onwPart) {
@@ -230,11 +231,32 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                             _dxRecordLastConditionList.add(_dxRecordLastCondition);
                         }
                         _60recordInfoDTOpart.setCustNumAndApplets(_dxRecordLastConditionList);
+                        List<HashMap<String, String>> _dxRecordTwoConditionList = new ArrayList<>();
                         // 获取案件倒数第二条的推送人工记录 _dxRecordLastTwo
                         List<PhoneSaleInfoVO> dxRecordLastTwo = phoneSaleExtendInfoMapper.getDxRecordLastTwo(_60recordInfoDTOpart);
                         if (dxRecordLastTwo != null && dxRecordLastTwo.size() > 0) {
-                            _dxRecordLastTwo.putAll(dxRecordLastTwo.stream().collect(Collectors.groupingBy(PhoneSaleInfoVO::getCustNum)));
+                            for (PhoneSaleInfoVO phoneSaleInfoVO : dxRecordLastTwo) {
+                                if (!_dxRecordLastTwo.containsKey(phoneSaleInfoVO.getCustNum())) {
+                                    _dxRecordLastTwo.put(phoneSaleInfoVO.getCustNum(),phoneSaleInfoVO);
+                                    HashMap _dxRecordTwoCondition = new HashMap<String, String>();
+                                    _dxRecordTwoCondition.put("custNum", phoneSaleInfoVO.getCustNum());
+                                    _dxRecordTwoCondition.put("appletDate", phoneSaleInfoVO.getAppletDate());
+                                    _dxRecordTwoConditionList.add(_dxRecordTwoCondition);
+                                }
+                            }
                         }
+
+                        // 获取案件倒数第三条的推送人工记录 _dxRecordLastThree
+                        PhoneSaleRecordInfoDTO _90recordInfoDTOpart = new PhoneSaleRecordInfoDTO();
+                        _90recordInfoDTOpart.setCustNums(custNums);
+                        _90recordInfoDTOpart.setApiCode(_tApicode);
+                        _90recordInfoDTOpart.setTransferType("0");
+                        _90recordInfoDTOpart.setCustNumAndApplets(_dxRecordTwoConditionList);
+                        List<PhoneSaleInfoVO> dxRecordLastThree = phoneSaleExtendInfoMapper.getDxRecordLastTwo(_90recordInfoDTOpart);
+                        dxRecordLastThree.forEach(t->{
+                            if(!_dxRecordLastThree.containsKey(t.getCustNum())){
+                                _dxRecordLastThree.put(t.getCustNum(),t);
+                        }});
                     }
                     //endregion
 
@@ -254,24 +276,34 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         }
                         PhoneSaleInfoVO phoneSaleInfoVO = _dxRecordLastOneCustNumsMap.get(transferSyncUser.getCustNum());
                         if (phoneSaleInfoVO != null) {
-                            //type不同就可以推送
+                            //与最新的人工记录type进行比较
                             if (!phoneSaleInfoVO.getType().equals(transferSyncUser.getType())) {
                                 dataFilter2.add(transferSyncUser);
                                 continue;
                             }
-                            List<PhoneSaleInfoVO> phoneSaleInfoVOS = _dxRecordLastTwo.get(transferSyncUser.getCustNum());
-                            if (phoneSaleInfoVOS != null && phoneSaleInfoVOS.size() > 0) {
-                                PhoneSaleInfoVO phoneSaleInfoVO1 = phoneSaleInfoVOS.get(0);
-                                if (phoneSaleInfoVO.getType().equals(phoneSaleInfoVO1.getType())) {
+                            //与倒数第二新的人工记录type不相同
+                            PhoneSaleInfoVO phoneSaleTwo = _dxRecordLastTwo.get(transferSyncUser.getCustNum());
+                            if (phoneSaleTwo == null ||
+                                    (phoneSaleTwo!=null && !phoneSaleInfoVO.getType().equals(phoneSaleTwo.getType())) ) {
+                                long distanceDays = DateHelper
+                                        .getDistanceDays(phoneSaleInfoVO.getAppletDate(), transferSyncUser.getRequestData()) + 1;
+                                if (distanceDays > 30 && distanceDays <= 90) {
+                                    dataFilter2.add(transferSyncUser);
                                     continue;
                                 }
                             }
 
-                            long distanceDays = DateHelper
-                                    .getDistanceDays(phoneSaleInfoVO.getAppletDate(), transferSyncUser.getRequestData()) + 1;
-                            if (distanceDays > 30 && distanceDays <= 60) {
-                                dataFilter2.add(transferSyncUser);
-                                continue;
+                            //与倒数第三新的人工记录type相同
+                            if(phoneSaleTwo!=null && phoneSaleInfoVO.getType().equals(phoneSaleTwo.getType())){
+                                PhoneSaleInfoVO phoneSaleThree = _dxRecordLastThree.get(transferSyncUser.getCustNum());
+                                if(phoneSaleThree == null ||
+                                        (phoneSaleThree !=null && !phoneSaleTwo.getType().equals(phoneSaleThree.getType()))){
+                                    long distanceDays = DateHelper
+                                            .getDistanceDays(phoneSaleTwo.getAppletDate(), transferSyncUser.getRequestData()) + 1;
+                                    if (distanceDays > 60 && distanceDays <= 90) {
+                                        dataFilter2.add(transferSyncUser);
+                                    }
+                                }
                             }
                         } else {
                             dataFilter2.add(transferSyncUser);
