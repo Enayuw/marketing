@@ -1,0 +1,78 @@
+package com.br.marketing.webhook.dingding.msgtype;
+
+import java.util.List;
+
+/**
+ * 只有在群内的成员才可被@
+ *
+ * @author Guo Zeqiang
+ * @dateTime 2023-08-17 17:57
+ */
+public class At {
+
+    /**
+     * 2023-08-17 13:57
+     * 被@人的手机号。
+     * <p>
+     * 注意
+     * 在text内容里要有@人的手机号，只有在群内的成员才可被@，非群内成员手机号会被脱敏。
+     */
+    private List<String> atMobiles;
+
+    /**
+     * 2023-08-17 13:57
+     * 被@人的用户userid。
+     * <p>
+     * 注意
+     * 在content里添加@人的userid
+     */
+    private List<String> atUserIds;
+
+    /**
+     * 2023-08-17 13:57
+     * 是否@所有人。
+     */
+    private Boolean isAtAll;
+
+    public At(List<String> atMobiles, List<String> atUserIds, Boolean isAtAll) {
+        this.atMobiles = atMobiles;
+        this.atUserIds = atUserIds;
+        this.isAtAll = isAtAll;
+    }
+
+    public At() {
+    }
+
+    public List<String> getAtMobiles() {
+        return atMobiles;
+    }
+
+    public void setAtMobiles(List<String> atMobiles) {
+        this.atMobiles = atMobiles;
+    }
+
+    public List<String> getAtUserIds() {
+        return atUserIds;
+    }
+
+    public void setAtUserIds(List<String> atUserIds) {
+        this.atUserIds = atUserIds;
+    }
+
+    public Boolean getAtAll() {
+        return isAtAll;
+    }
+
+    public void setAtAll(Boolean atAll) {
+        isAtAll = atAll;
+    }
+
+    @Override
+    public String toString() {
+        return "At{" +
+                "atMobiles=" + atMobiles +
+                ", atUserIds=" + atUserIds +
+                ", isAtAll=" + isAtAll +
+                '}';
+    }
+}
