@@ -178,6 +178,7 @@ public class ShuHeUserServiceImpl {
         return syncInfo.getId();
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public Map saveShTransferData(String apiCode, String jsonData,String requestId, ResponseShuheDTO responseShuheDTO,Date createTime){
         HashMap<String, Object> res = new HashMap<>();
         String msg="";
@@ -227,12 +228,6 @@ public class ShuHeUserServiceImpl {
             caseShuheUser.setCreateTime(createTime);
         }
         caseShuheUserMapper.insertSelective(caseShuheUser);
-        //todo 测试pulsar 上线删除
-        JSONObject testJb = JSONObject.parseObject(jsonData);
-        if("1".equals(testJb.getString("test"))){
-            throw new RuntimeException("模拟DB异常");
-        }
-
         // 6、转化信息入转化标准库
         Long id = saveTransferNew(apiCode, caseShuheUser, transferSyncUser, !sendToQueueBool,createTime);
         res.put("transferInfoId",id);
@@ -259,6 +254,8 @@ public class ShuHeUserServiceImpl {
         transferInfo.setJsonData(JSONObject.toJSONString(transferSyncUser));
         transferInfo.setActualNum(1);
         marketingTransferInfoMapper.insertSelective(transferInfo);
+        //todo 模拟异常上线后要删除
+        pushRuleService.mockDbOrRedisError(1,apiCode);
         marketingTransferSyncUserMapper.insertSelective(transferSyncUser);
         return transferInfo.getId();
     }
