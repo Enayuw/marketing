@@ -904,5 +904,12 @@ public class MarketingCommonConfig {
      * 中邮落库数据线程数
      */
     private Integer zhongYouFileDataThreadNum;
+
+    /**
+     * 2023-08-23 15:15
+     * 众邦状态分组与开关，状态优先级与配置顺序对应，最先配置的优先级也最高；
+     * map key 为状态 value 状态对应的分组及开关，groupNumber为组号；switch为开关标识，true为开
+     */
+    private LinkedHashMap<String, JSONObject> zhongbangStatusTypeMap;
 }
 
