@@ -8,7 +8,9 @@ package com.br.marketing.service;
  * @date 2023/6/16 17:19
  */
 public interface ZhongBangToDassFilterProcessService {
+    // 首次
     void doProcessFirst();
+    // 非首次
     void doProcessNoFirst();
 
 }

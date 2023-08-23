@@ -709,4 +709,16 @@
         </foreach>
         limit 1
     </select>
+
+    <select id="getZhongBangTransferByApiCodetikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select id, cust_num, if_apply, if_lent
+        from b_marketing_transfer_sync_${tCid}
+                where api_code = #{apiCode}
+                  and request_data = #{requestDate}
+                  and (if_apply = '1' or if_lent = '1')
+        <if test="indexId != null and indexId != ''">
+            and id > #{indexId}
+        </if>
+        order by id limit 20000;
+    </select>
 </mapper>

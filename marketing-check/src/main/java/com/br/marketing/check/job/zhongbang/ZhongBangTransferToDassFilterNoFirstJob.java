@@ -21,7 +21,6 @@ public class ZhongBangTransferToDassFilterNoFirstJob extends AbstractSimpleElast
     @Resource
     private ZhongBangToDassFilterProcessService zhongBangToDassFilterProcessService;
 
-
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         try {
@@ -29,7 +28,6 @@ public class ZhongBangTransferToDassFilterNoFirstJob extends AbstractSimpleElast
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
-
     }
 }
 
