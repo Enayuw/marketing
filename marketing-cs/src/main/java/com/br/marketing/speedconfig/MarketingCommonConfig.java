@@ -916,5 +916,10 @@ public class MarketingCommonConfig {
      * 众邦转化数据推人工转化过滤接口 apiCode
      */
     private List<String> zhongBangToDassFilterApiCodes;
+
+    /**
+     * 众邦转化数据推人工转化过滤接口线程数
+     */
+    private Integer zhongBangToDassFilterThreadNum;
 }
 
