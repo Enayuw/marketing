@@ -911,5 +911,10 @@ public class MarketingCommonConfig {
      * map key 为状态 value 状态对应的分组及开关，groupNumber为组号；switch为开关标识，true为开
      */
     private LinkedHashMap<String, JSONObject> zhongbangStatusTypeMap;
+
+    /**
+     * 众邦转化数据推人工转化过滤接口 apiCode
+     */
+    private List<String> zhongBangToDassFilterApiCodes;
 }
 
