@@ -247,16 +247,19 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         }
 
                         // 获取案件倒数第三条的推送人工记录 _dxRecordLastThree
-                        PhoneSaleRecordInfoDTO _90recordInfoDTOpart = new PhoneSaleRecordInfoDTO();
-                        _90recordInfoDTOpart.setCustNums(custNums);
-                        _90recordInfoDTOpart.setApiCode(_tApicode);
-                        _90recordInfoDTOpart.setTransferType("0");
-                        _90recordInfoDTOpart.setCustNumAndApplets(_dxRecordTwoConditionList);
-                        List<PhoneSaleInfoVO> dxRecordLastThree = phoneSaleExtendInfoMapper.getDxRecordLastTwo(_90recordInfoDTOpart);
-                        dxRecordLastThree.forEach(t->{
-                            if(!_dxRecordLastThree.containsKey(t.getCustNum())){
-                                _dxRecordLastThree.put(t.getCustNum(),t);
-                        }});
+                        if(_dxRecordTwoConditionList.size()>0) {
+                            PhoneSaleRecordInfoDTO _90recordInfoDTOpart = new PhoneSaleRecordInfoDTO();
+                            _90recordInfoDTOpart.setCustNums(custNums);
+                            _90recordInfoDTOpart.setApiCode(_tApicode);
+                            _90recordInfoDTOpart.setTransferType("0");
+                            _90recordInfoDTOpart.setCustNumAndApplets(_dxRecordTwoConditionList);
+                            List<PhoneSaleInfoVO> dxRecordLastThree = phoneSaleExtendInfoMapper.getDxRecordLastTwo(_90recordInfoDTOpart);
+                            dxRecordLastThree.forEach(t -> {
+                                if (!_dxRecordLastThree.containsKey(t.getCustNum())) {
+                                    _dxRecordLastThree.put(t.getCustNum(), t);
+                                }
+                            });
+                        }
                     }
                     //endregion
 
