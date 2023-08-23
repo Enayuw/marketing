@@ -171,4 +171,11 @@ public interface PushRuleService {
     Result<Boolean> consumerBlack(Long id);
 
     Result<Boolean> consumerHaLuo(Long id);
+
+    /**
+     * 模拟数据库或者redis异常
+     * @param mockType 1-数据库异常；2-redis异常
+     * @param apiCode
+     */
+    void mockDbOrRedisError(Integer mockType,String apiCode);
 }

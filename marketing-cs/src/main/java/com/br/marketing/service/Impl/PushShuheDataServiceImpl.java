@@ -860,4 +860,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     private String serialNumberAddId(CaseShuheUploadData data) {
         return data.getRequestId() + (data.getId() > 0 ? data.getId() : "");
     }
+
+
+
 }

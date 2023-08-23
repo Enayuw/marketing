@@ -66,4 +66,5 @@ public interface IPushShuheDataService {
     ResponseCustomDTO saveUploadData(String apiCode, String jsonData);
 
     Result<Boolean> consumerShUpload(String msg);
+
 }

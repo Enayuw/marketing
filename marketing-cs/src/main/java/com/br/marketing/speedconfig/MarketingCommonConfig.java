@@ -852,5 +852,11 @@ public class MarketingCommonConfig {
      * 携程新场景短信撞库,mq推送客服转化线程数
      */
     private Integer xieChengSmsMqPushCustomerThreadNum;
+
+    /**
+     * 模拟db异常，redis异常，true是开启，false是关闭
+     * {"apiCode":true,"redis":true}
+     */
+    private HashMap<String,Boolean> mockError;
 }
 

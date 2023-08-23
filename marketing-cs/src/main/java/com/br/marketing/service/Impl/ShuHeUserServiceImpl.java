@@ -27,6 +27,7 @@ import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
+import com.br.marketing.service.PushRuleService;
 import com.br.marketing.util.ShuHeAESencUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +76,9 @@ public class ShuHeUserServiceImpl {
     @Autowired
     TableCreateServiceImpl tableCreateService;
 
+    @Autowired
+    PushRuleService pushRuleService;
+
     DateTimeFormatter ymdhms = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
@@ -86,6 +90,8 @@ public class ShuHeUserServiceImpl {
         if("1".equals(uploadDataDTO.getString("test"))){
             throw new RuntimeException("数据库异常");
         }
+        //todo 模拟异常上线后要删除
+        pushRuleService.mockDbOrRedisError(1,shuheUploadData.getApiCode());
         return saveSyncInfo(adapterMarketingPreUserDTO(uploadDataDTO, listInfo, shuheUploadData), shuheUploadData);
     }
 

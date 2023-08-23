@@ -953,6 +953,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfo.setCreateTime(new Date());
             syncInfo.setJsonData(jsonData);
             syncInfo.setActualNum(size);
+            mockDbOrRedisError(1,apiCode);
             marketingUserMapper.insertMarketingPreUserByText(syncInfo);
             syncInfoId = syncInfo.getId().toString();
             if (log.isInfoEnabled()) {
@@ -1018,6 +1019,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private Long requestIdWriteRedis(String key,String requestId){
         try {
+            mockDbOrRedisError(2,null);
             Long res = redisChgService.saddMember(key, requestId);
             return res;
         }catch (Exception ex){
@@ -1390,6 +1392,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             transferInfo.setActualNum(size);
             transferInfo.setLast(transferDataDTO.getLast());
             transferInfo.setTotal(transferDataDTO.getTotal());
+            //todo 模拟异常上线后要删除
+            mockDbOrRedisError(1,apiCode);
             marketingTransferInfoMapper.insertSelective(transferInfo);
             transferInfoId = transferInfo.getId().toString();
             requestIdWriteRedis(transferKey,transferDataDTO.getRequestId());
@@ -1660,6 +1664,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         transferInfoExample.createCriteria().andRequestIdEqualTo(requestId).andApiCodeEqualTo(apiCode);
         List<MarketingTransferInfo> marketingTransferInfos = new ArrayList<>();
         try {
+            //todo 模拟异常上线后要删除
+            mockDbOrRedisError(1,apiCode);
             marketingTransferInfos = marketingTransferInfoMapper.selectByExample(transferInfoExample);
             if (marketingTransferInfos.size() <= 0) {
                 selectBad = Boolean.TRUE;
@@ -1670,6 +1676,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         String transferKey = RedisKeyConstant.transferKey.concat(":").concat(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         if(dbBad||selectBad){
             try {
+                //todo 模拟异常上线后要删除
+                mockDbOrRedisError(2,null);
                 Boolean sismember = redisChgService.sismember(transferKey, requestId);
                 if (sismember) {
                     MarketingTransferUserStatusVO vo = new MarketingTransferUserStatusVO();
@@ -1980,6 +1988,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         //数据库未查得 查询redis
         if(dbBad || selectBad){
             try {
+                //todo 模拟异常上线后要删除
+                mockDbOrRedisError(2,null);
                 Boolean sismember = redisChgService.sismember(uploadKey, dto.getRequestId());
                 if (sismember) {
                     MarketingSyncInfo syncInfo = new MarketingSyncInfo();
@@ -3270,5 +3280,29 @@ public class PushRuleServiceImpl implements PushRuleService {
                     .setDate("9999".equals(reqBlackPhoneVO.getCode()) ? "9999" : "部分成功");
         }
         return new Result().setCode(ResultCode.FAIL.getValue()).setDate(reqBlackPhoneVO.getCode());
+    }
+
+    /**
+     * 模拟数据库或者redis异常
+     * @param mockType 1-数据库异常；2-redis异常
+     * @param apiCode
+     */
+    @Override
+    public void mockDbOrRedisError(Integer mockType, String apiCode) {
+        HashMap<String, Boolean> mockError = marketingCommonConfig.getMockError();
+        if(mockError == null){
+            return;
+        }
+        if(new Integer(1).equals(mockType)){
+            if(mockError.get(apiCode)!=null && mockError.get(apiCode)){
+                throw new KnowException("DB异常");
+            }
+        }
+        if(new Integer(2).equals(mockType)){
+            if(mockError.get("redis")!=null && mockError.get("redis")){
+                throw new KnowException("redis异常");
+            }
+        }
+        return;
     }
 }
