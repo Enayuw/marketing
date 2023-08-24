@@ -921,5 +921,11 @@ public class MarketingCommonConfig {
      * 众邦转化数据推人工转化过滤接口线程数
      */
     private Integer zhongBangToDassFilterThreadNum;
+
+    /**
+     * 众邦转化数据推人工转化过滤接口 查询近n+1天命中人工（sftp和api）的数据
+     * zhongBangToDassLastDays=2（T-2~T）
+     */
+    private Integer zhongBangToDassLastDays;
 }
 
