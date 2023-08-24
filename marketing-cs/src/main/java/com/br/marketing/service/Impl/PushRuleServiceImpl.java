@@ -1679,22 +1679,23 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         String transferKey = RedisKeyConstant.transferKey.concat(":").concat(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         if(dbBad||selectBad){
+            Boolean sismember = Boolean.FALSE;
             try {
                 //todo 模拟异常上线后要删除
                 mockDbOrRedisError(2,null);
-                Boolean sismember = redisChgService.sismember(transferKey, requestId);
-                if (sismember) {
-                    MarketingTransferUserStatusVO vo = new MarketingTransferUserStatusVO();
-                    vo.setApiCode(apiCode);
-                    vo.setRequestId(requestId);
-                    vo.setStatus(1);
-                    return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
-                } else {
-                    throw new CommonException(MarketingErrorInfo.DATA_NOT_EXIST_ERROR);
-                }
+                sismember = redisChgService.sismember(transferKey, requestId);
             }catch (Exception ex){
                 log.error(ex.getMessage(),ex);
                 redisBad = Boolean.TRUE;
+            }
+            if (!redisBad && sismember) {
+                MarketingTransferUserStatusVO vo = new MarketingTransferUserStatusVO();
+                vo.setApiCode(apiCode);
+                vo.setRequestId(requestId);
+                vo.setStatus(1);
+                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
+            } else if(!redisBad) {
+                throw new CommonException(MarketingErrorInfo.DATA_NOT_EXIST_ERROR);
             }
         }
         if(dbBad&&redisBad){
