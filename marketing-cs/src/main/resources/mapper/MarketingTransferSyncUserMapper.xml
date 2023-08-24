@@ -721,4 +721,30 @@
         </if>
         order by id limit 20000;
     </select>
+
+    <select id="getZhongBangNoFirstCuShentikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select cust_num
+        from b_marketing_transfer_sync_${tCid}
+                where api_code = #{apiCode}
+                  and request_data = #{requestDate}
+                  and if_apply = '1'
+                   <![CDATA[ and apply_dt >= #{lastDateStart} and apply_dt <= #{lastDateEnd} ]]>
+                  and cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+    </select>
+
+    <select id="getZhongBangNoFirstCuTitikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select id, cust_num, if_apply, if_lent
+        from b_marketing_transfer_sync_${tCid}
+                where api_code = #{apiCode}
+                  and request_data = #{requestDate}
+                  and if_lent = '1'
+                   <![CDATA[ and lent_time >= #{lastDateStart} and lent_time <= #{lastDateEnd} ]]>
+                  and cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+    </select>
 </mapper>

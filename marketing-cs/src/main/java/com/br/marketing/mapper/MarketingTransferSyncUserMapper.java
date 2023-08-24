@@ -416,4 +416,18 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                  @Param("apiCode") String apiCode,
                                                                  @Param("requestDate") String requestDate,
                                                                  @Param("indexId") Long indexId);
+
+    List<MarketingTransferSyncUser> getZhongBangNoFirstCuShentikv_(@Param("tCid") String tCid,
+                                                                 @Param("apiCode") String apiCode,
+                                                                 @Param("requestDate") String requestDate,
+                                                                 @Param("lastDateStart") String lastDateStart,
+                                                                 @Param("lastDateEnd") String lastDateEnd,
+                                                                 @Param("custNums") List<String> custNums);
+
+    List<MarketingTransferSyncUser> getZhongBangNoFirstCuTitikv_(@Param("tCid") String tCid,
+                                                                 @Param("apiCode") String apiCode,
+                                                                 @Param("requestDate") String requestDate,
+                                                                 @Param("lastDateStart") String lastDateStart,
+                                                                 @Param("lastDateEnd") String lastDateEnd,
+                                                                 @Param("custNums") List<String> custNums);
 }
