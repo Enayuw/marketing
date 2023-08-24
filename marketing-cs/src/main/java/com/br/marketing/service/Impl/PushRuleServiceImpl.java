@@ -1994,24 +1994,25 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         //数据库未查得 查询redis
         if(dbBad || selectBad){
+            Boolean sismember = Boolean.FALSE;
             try {
                 //todo 模拟异常上线后要删除
                 mockDbOrRedisError(2,null);
-                Boolean sismember = redisChgService.sismember(uploadKey, dto.getRequestId());
-                if (sismember) {
-                    MarketingSyncInfo syncInfo = new MarketingSyncInfo();
-                    vo.setApiCode(syncInfo.getApiCode());
-                    vo.setTaskId(syncInfo.getCusBatch());
-                    vo.setRequestId(syncInfo.getRequestBatch());
-                    vo.setStatus(1);
-                    marketingPreUserSyncDetailVOResult.setMessage("运行中");
-                    return marketingPreUserSyncDetailVOResult.setCode(ResultCode.SUCCESS.getValue()).setDate(vo);
-                } else {
-                    throw new CommonException(MarketingErrorInfo.DATA_NOT_EXIST_ERROR);
-                }
+                sismember = redisChgService.sismember(uploadKey, dto.getRequestId());
             }catch (Exception ex){
                 log.error(ex.getMessage());
                 redisBad = Boolean.TRUE;
+            }
+            if (!redisBad&&sismember) {
+                MarketingSyncInfo syncInfo = new MarketingSyncInfo();
+                vo.setApiCode(syncInfo.getApiCode());
+                vo.setTaskId(syncInfo.getCusBatch());
+                vo.setRequestId(syncInfo.getRequestBatch());
+                vo.setStatus(1);
+                marketingPreUserSyncDetailVOResult.setMessage("运行中");
+                return marketingPreUserSyncDetailVOResult.setCode(ResultCode.SUCCESS.getValue()).setDate(vo);
+            } else if(!redisBad){
+                throw new CommonException(MarketingErrorInfo.DATA_NOT_EXIST_ERROR);
             }
         }
         //数据库异常并且redis异常
