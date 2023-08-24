@@ -2,6 +2,7 @@ package com.br.marketing.rule.zhongbang;
 
 import com.alibaba.fastjson.JSON;
 import com.br.common.util.BrCipherMaker;
+import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
 import com.br.marketing.common.utils.AESUtil;
@@ -49,14 +50,14 @@ public class ZhongBangCallRecordToDaas implements AssembleData<BatchRealTimeUser
         CallRecordBO dto = (CallRecordBO) transmitFact;
         ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData ruleNecessaryData =
                 (ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData) context.getRuleNecessaryData();
-        Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCallRecordCustomerMap();
+        /*Map<String, SyncUserValidityPeriodBO>  customerMap = ruleNecessaryData.getCallRecordCustomerMap();
         MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, dto.getCaseNum());
         if (marketingSyncUser == null) {
             return null;
         }
         BatchRealTimeUserDataDTO dataDTO = new BatchRealTimeUserDataDTO();
         dataDTO.setDassImportDataDTO(packageDassImportData(dto, marketingSyncUser));
-        dataDTO.setPhoneSaleExtendInfo(packagePhoneSaleExtendInfo(dto, marketingSyncUser));
+        dataDTO.setPhoneSaleExtendInfo(packagePhoneSaleExtendInfo(dto, marketingSyncUser));*/
         return dataDTO;
     }
 
@@ -70,7 +71,7 @@ public class ZhongBangCallRecordToDaas implements AssembleData<BatchRealTimeUser
         phoneSaleExtendInfo.setAppletTime(dto.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                 .toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         phoneSaleExtendInfo.setTaskId(marketingSyncUser.getCusBatch());
-        phoneSaleExtendInfo.setStatus(pushDataService.getStatusByGrade(this.label(),dto.getDetail().getIntentionGrade()));
+        phoneSaleExtendInfo.setStatus(pushDataService.getStatusByGrade(this.label(), dto.getDetail().getIntentionGrade()));
         phoneSaleExtendInfo.setPStatus(1);
         phoneSaleExtendInfo.setCreateTime(new Date());
         phoneSaleExtendInfo.setPushDxTime(new Date());
@@ -100,6 +101,8 @@ public class ZhongBangCallRecordToDaas implements AssembleData<BatchRealTimeUser
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         if (transmitFact instanceof CallRecordBO) {
+            boolean ASwitch = marketingCommonConfig.getZhongbangStatusTypeMap().get("a").getBooleanValue("switch");
+            boolean BSwitch = marketingCommonConfig.getZhongbangStatusTypeMap().get("b").getBooleanValue("switch");
             CallRecordBO bo = (CallRecordBO) transmitFact;
             String intentionGrade = bo.getDetail().getIntentionGrade();
             return pushDataService.isPushDassWithCallGrade(this.label(), intentionGrade);
