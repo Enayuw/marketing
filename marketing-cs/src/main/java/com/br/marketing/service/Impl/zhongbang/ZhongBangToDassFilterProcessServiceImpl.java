@@ -1,19 +1,22 @@
 package com.br.marketing.service.Impl.zhongbang;
 
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.client.dassservice.input.transfer.DassAssembleTransferDataSoleDTO;
+import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
+import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExample;
 import com.br.marketing.entity.PhoneSaleExtendInfoExample;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.mapper.PhoneSaleMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.ZhongBangToDassFilterProcessService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.strategy.ArtificialTransferSoleHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
@@ -40,16 +43,10 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private MethodRetryHandlerService methodRetryHandlerService;
-
-    @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     @Resource
     private TableCreateServiceImpl tableCreateService;
-
-    @Resource
-    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
     @Resource
     private ZhongBangToDassFilterGetDataService service;
@@ -60,7 +57,17 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
     @Resource
     private PhoneSaleMapper phoneSaleMapper;
 
+    @Resource
+    private ArtificialTransferSoleHandler artificialTransferSoleHandler;
+
     private static final Integer PARTITION = 2000;
+
+    private static HashMap<String, String> dxUserTypeMap = new HashMap<>();
+
+    static {
+        dxUserTypeMap.put("apply", "1");
+        dxUserTypeMap.put("lent", "2");
+    }
 
     @Override
     public void doProcessFirst() {
@@ -113,19 +120,19 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
     }
 
     private void filterAndPushData(List<MarketingTransferSyncUser> list, String apiCode) {
-        for (String type : Arrays.asList("apply", "lent")) {
+        for (Map.Entry<String, String> entry : dxUserTypeMap.entrySet()) {
             // 1.捞取
-            List<MarketingTransferSyncUser> filterList = list.stream().filter(ifApplyOrLent(type)).collect(Collectors.toList());
+            List<MarketingTransferSyncUser> filterList = list.stream().filter(ifApplyOrLent(entry.getKey())).collect(Collectors.toList());
             if (CollectionUtils.isEmpty(filterList)) {
-                break;
+                continue;
             }
             // 2.有效期
             List<MarketingSyncUser> validedList = getValidedList(apiCode, filterList);
             if (CollectionUtils.isEmpty(validedList)) {
-                break;
+                continue;
             }
             // 3.推送
-
+            pushToDass(validedList, entry.getKey());
         }
     }
 
@@ -165,10 +172,9 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(threadNum, threadNum);
 
         for (String apiCode : apiCodes) {
-            // 1:促申，2:促提
-            for (String type : Arrays.asList("1", "2")) {
-                doProcess(apiCode, pool, type);
-            }
+            dxUserTypeMap.forEach((k, v) -> {
+                doProcess(apiCode, pool, k);
+            });
         }
 
         pool.shutdown();
@@ -193,16 +199,17 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
         Date dateEnd = Date.from(LocalDate.now().atTime(23, 59, 59, 999999999)
                 .atZone(ZoneId.systemDefault()).toInstant());
 
+        String userType = dxUserTypeMap.get(type);
         // 查询近3天命中推dass人工的数据，包括sftp和api
         PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
-        example.createCriteria().andDxUserTypeEqualTo(type)
+        example.createCriteria().andDxUserTypeEqualTo(userType)
                 .andApiCodeEqualTo(apiCode)
                 .andCreateTimeBetween(dateStart, dateEnd);
         example.setDistinct(true);
         List<String> custNumSet = phoneSaleExtendInfoMapper.selectCustNumByExampletikv_(example);
 
         PhoneSaleExample example1 = new PhoneSaleExample();
-        example1.createCriteria().andUserTypeEqualTo(type).andApiCodeEqualTo(apiCode)
+        example1.createCriteria().andUserTypeEqualTo(userType).andApiCodeEqualTo(apiCode)
                 .andCreateTimeBetween(dateStart, dateEnd);
         example1.setDistinct(true);
         List<String> uidSet = phoneSaleMapper.selectUidByExampletikv_(example1);
@@ -214,11 +221,11 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
         }
 
         List<MarketingTransferSyncUser> transferSyncUserList = new ArrayList<>();
-        if (("1").equals(type)) {
+        if (("1").equals(userType)) {
             // request_date=T日且ifApply=1且applyDt=T-1
             transferSyncUserList = service.getNoFirstCuShen(tcId, apiCode,
                     requestDate, lastDateStart, lastDateEnd, custNumSet);
-        } else if (("2").equals(type)) {
+        } else if (("2").equals(userType)) {
             // request_date=T日且ifLent=1且lentTime=T-1
             transferSyncUserList = service.getNoFirstCuTi(tcId, apiCode,
                     requestDate, lastDateStart, lastDateEnd, custNumSet);
@@ -240,6 +247,30 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
             return;
         }
         // 3.推送
+        pushToDass(validedList, type);
 
+    }
+
+    public void pushToDass(List<MarketingSyncUser> marketingSyncUserList, String type) {
+        List<DassAssembleTransferDataSoleDTO> dtoList = new ArrayList<>();
+        for (MarketingSyncUser marketingSyncUser : marketingSyncUserList) {
+            DassTransferDataDTO dassDataDTO = new DassTransferDataDTO();
+            dassDataDTO.setUid(marketingSyncUser.getCustNum());
+            dassDataDTO.setSource("33");
+            dassDataDTO.setUserType(dxUserTypeMap.get(type));
+            String phone = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
+            dassDataDTO.setPhone(phone);
+            dassDataDTO.setOrgName("zhongbang");
+            dassDataDTO.setIfTransform("1");
+            dassDataDTO.setTransformStatus("4");
+
+            DassAssembleTransferDataSoleDTO dto = new DassAssembleTransferDataSoleDTO();
+            dto.setDassTransferDataDTO(dassDataDTO);
+            dto.setStatus(type);
+            dto.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.TRANSFER);
+            dtoList.add(dto);
+        }
+
+        artificialTransferSoleHandler.call(dtoList, null);
     }
 }

@@ -533,7 +533,7 @@ public class MethodRetryHandlerService {
                     dassTransferDataAdapDTO.getTransferInfoId());
             return result;
         }
-        log.error("调用电销转化接口失败 -- {}", JSON.toJSONString(result));
+        log.error("调用电销去重转化接口失败 -- {}", JSON.toJSONString(result));
         result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         return result;
     }
