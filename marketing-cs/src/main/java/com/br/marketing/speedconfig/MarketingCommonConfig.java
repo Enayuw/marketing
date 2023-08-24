@@ -927,5 +927,11 @@ public class MarketingCommonConfig {
      * zhongBangToDassLastDays=2（T-2~T）
      */
     private Integer zhongBangToDassLastDays;
+
+    /**
+     * 众邦转化数据推外呼首次非首次开关：true为首次，false非首次
+     */
+    private Boolean zhongBangToAIFirstSwitch;
+
 }
 
