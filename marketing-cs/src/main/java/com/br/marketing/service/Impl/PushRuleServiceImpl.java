@@ -1317,7 +1317,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             marketingUserMapper.insertMarketingPreUserByText(syncInfo);
             syncInfoId = syncInfo.getId().toString();
         } catch (DuplicateKeyException keyException) {
-            alarmClient.sendAlarm(String.format("pulsar上传数据消费requestId冲突 requestId：%",jsonData.getRequestId())
+            alarmClient.sendAlarm(String.format("pulsar上传数据消费requestId冲突 requestId：%s",jsonData.getRequestId())
                     , "pulsar上传数据消费异常", AlarmSendCodeEnum.REQUESTID_CONFLICT.getCode());
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         } catch (Exception ex) {
@@ -1470,7 +1470,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             transferInfoId = transferInfo.getId().toString();
 
         } catch (DuplicateKeyException keyException) {
-            alarmClient.sendAlarm(String.format("pulsar转化数据消费requestId冲突 requestId：%",transferDataDTO.getRequestId())
+            alarmClient.sendAlarm(String.format("pulsar转化数据消费requestId冲突 requestId：%s",transferDataDTO.getRequestId())
                     , "pulsar转化数据消费异常", AlarmSendCodeEnum.REQUESTID_CONFLICT.getCode());
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         } catch (Exception ex) {
