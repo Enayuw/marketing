@@ -26,6 +26,7 @@ public enum InterfaceHandlerEnum {
     CUSTOMER_TRANSFER_BY_CONVTYPE(22, "根据转化规则，推送客服转化"),
     ARTIFICIAL_REAL_TIME_USERDATA_SOLE(23, "人工实时推送用户名单-有去重能力"),
     ARTIFICIAL_TRANSFER_SOLE(24, "人工转化-有去重能力"),
+    ARTIFICIAL_REAL_TIME_USERDATA_AND_CUSTOMER_TRANSFER_SOLE(25, "(人工实时推送用户名单-有去重能力)+客服转化去重"),
     ;
 
 
