@@ -234,8 +234,7 @@ public class MethodRetryHandlerService {
     /**
      * 2023-08-24 13:28
      * 人工实时推送用户名单(单条)处理，带去重的方法
-     * 同{@link MethodRetryHandlerService#callDassRealTimeUserData(com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO, java.lang.Integer)}
-     * 方法一毛一样，只是增加了接口标识灵活传输
+     * 与callDassRealTimeUserData方法逻辑一毛一样
      */
     @DistributeLog
     @RetryMethod(isOrNoDbRetry = true)
@@ -244,7 +243,7 @@ public class MethodRetryHandlerService {
         if (CollectionUtils.isEmpty(data)) {
             Result<JSONObject> result = new Result<>();
             result.setCode(ResultCode.SUCCESS.getValue());
-            result.setMessage("重复");
+            result.setMessage("去重后，数据为空");
             return result;
         }
         DassSingleImportAdapDTO dassSingleImportAdapDTO = new DassSingleImportAdapDTO();
@@ -516,7 +515,7 @@ public class MethodRetryHandlerService {
         if (CollectionUtils.isEmpty(dassTransferDataAdapDTO.getData())) {
             Result<?> result = new Result<>();
             result.setCode(ResultCode.SUCCESS.getValue());
-            result.setMessage("重复");
+            result.setMessage("去重后，数据为空");
             return result;
         }
         List<DassTransferDataDTO> list = dassTransferDataAdapDTO.getData().stream().map(
