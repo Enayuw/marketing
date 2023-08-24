@@ -4,6 +4,7 @@ import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.entity.PhoneSaleTransferInfo;
 import com.br.marketing.rule.SourceData;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * 调电销推转化数据入参
@@ -13,6 +14,7 @@ import lombok.Data;
  */
 
 @Data
+@EqualsAndHashCode
 public class DassAssembleTransferDataSoleDTO extends SourceData {
 
     /**

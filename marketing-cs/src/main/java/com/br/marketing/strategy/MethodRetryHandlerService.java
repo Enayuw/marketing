@@ -11,6 +11,7 @@ import com.br.marketing.client.dassservice.input.DassImportAdapHaluoDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
+import com.br.marketing.client.dassservice.input.transfer.DassAssembleTransferDataSoleDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapSoleDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
@@ -518,14 +519,15 @@ public class MethodRetryHandlerService {
             result.setMessage("重复");
             return result;
         }
+        List<DassTransferDataDTO> list = dassTransferDataAdapDTO.getData().stream().map(
+                DassAssembleTransferDataSoleDTO::getDassTransferDataDTO).collect(Collectors.toList());
         DassTransferDataAdapDTO dto = new DassTransferDataAdapDTO();
-        dto.setDassTransferDataDTOList(dassTransferDataAdapDTO.getData());
+        dto.setDassTransferDataDTOList(list);
         dto.setTransferInfoId(dassTransferDataAdapDTO.getTransferInfoId());
         dto.setPhoneSaleExtendInfoList(dassTransferDataAdapDTO.getPhoneSaleExtendInfoList());
         Result<?> result = dassServiceClient.postTransferData(dto);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            Set<String> set = dassTransferDataAdapDTO.getData().stream()
-                    .map(DassTransferDataDTO::getId).map(String::valueOf).collect(Collectors.toSet());
+            Set<String> set = list.stream().map(DassTransferDataDTO::getId).map(String::valueOf).collect(Collectors.toSet());
             saveBizLog(String.join(",", set), dassTransferDataAdapDTO.getInterfaceHandlerEnum() == null
                             ? InterfaceHandlerEnum.ARTIFICIAL_TRANSFER.getCode()
                             : dassTransferDataAdapDTO.getInterfaceHandlerEnum().getCode(),

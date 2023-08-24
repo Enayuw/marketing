@@ -4,6 +4,7 @@ import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.rule.SourceData;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * 实时推送用户名单 接口入参
@@ -12,6 +13,7 @@ import lombok.Data;
  * @dateTime 2023/08/23 17:13
  */
 @Data
+@EqualsAndHashCode
 public class RealTimeUserDataSoleDTO extends SourceData {
 
     /**

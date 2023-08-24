@@ -11,6 +11,7 @@ import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.es.util.BrCipherMaker;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.Collections;
@@ -37,16 +38,22 @@ public class ArtificialRealTimeUserDataSoleHandler extends AbstractExternalInter
         for (RealTimeUserDataSoleDTO realTimeUserDataDTO : transferData) {
             Date date = new Date();
             PhoneSaleExtendInfo phoneSaleExtendInfo = realTimeUserDataDTO.getPhoneSaleExtendInfo();
-            //插入b_phone_sale_extend_info
-            phoneSaleExtendInfo.setCreateTime(date);
-            phoneSaleExtendInfoMapper.insertSelective(phoneSaleExtendInfo);
             //调用Dass
             DassSingleImportAdapSoleDTO dassImportAdapDTO = realTimeUserDataDTO.getDassSingleImportAdapDTO();
             dassImportAdapDTO.setExtendInfo(phoneSaleExtendInfo.getId().toString());
             dassImportAdapDTO.setTransferInfoId(context.getTransferInfoId());
             // 组装去重内容，如果内容去重
             makeDistribute(dassImportAdapDTO, phoneSaleExtendInfo, realTimeUserDataDTO, context.getApiCode());
-            methodRetryHandlerService.callDassRealTimeUserDataSole(dassImportAdapDTO, 0);
+            try {
+                methodRetryHandlerService.callDassRealTimeUserDataSole(dassImportAdapDTO, 0);
+            } catch (Exception ignored) {
+            }
+            if (CollectionUtils.isEmpty(dassImportAdapDTO.getData())) {
+                return null;
+            }
+            //插入b_phone_sale_extend_info
+            phoneSaleExtendInfo.setCreateTime(date);
+            phoneSaleExtendInfoMapper.insertSelective(phoneSaleExtendInfo);
         }
         return null;
     }

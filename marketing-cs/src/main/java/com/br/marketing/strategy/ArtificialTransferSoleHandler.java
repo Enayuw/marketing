@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 人工转化接口处理类 有去重功能
@@ -36,40 +37,31 @@ public class ArtificialTransferSoleHandler extends AbstractExternalInterfaceHand
 
     @Override
     public JSONObject call(List<DassAssembleTransferDataSoleDTO> transferData, ProcessHandlerContext context) {
-        /**
-         * 电销转化接口 每500条数据一个批次
-         */
+        //  电销转化接口 每500条数据一个批次
         int pageSize = 500;
         int totalCount = transferData.size();
-        List<DassTransferDataDTO> datas = new ArrayList<>(pageSize);
+        List<DassAssembleTransferDataSoleDTO> dtoList = new ArrayList<>(pageSize);
         List<DataJoinLogDTO> logList = new ArrayList<>(pageSize);
-        List<PhoneSaleTransferInfo> phoneSaleTransferInfoList = new ArrayList<>(pageSize);
         int sum = 0;
         for (DassAssembleTransferDataSoleDTO transferDatum : transferData) {
             sum++;
             DassTransferDataDTO dassTransferDataDTO = transferDatum.getDassTransferDataDTO();
             PhoneSaleTransferInfo phoneSaleTransferInfo = transferDatum.getPhoneSaleTransferInfo();
-            datas.add(dassTransferDataDTO);
-            Long sourceId = null;
-            if (phoneSaleTransferInfo != null) {
-                phoneSaleTransferInfoList.add(phoneSaleTransferInfo);
-                sourceId = phoneSaleTransferInfo.getSourceId();
-            }
+            dtoList.add(transferDatum);
             // 去重功能记录
-            logList.add(methodRetryHandlerService.dataJoinLogFix(
-                    dassTransferDataDTO
+            logList.add(methodRetryHandlerService.dataJoinLogFix(transferDatum
                     , DistributeTypeEnum.DAAS_TRANSFER
                     , context.getApiCode()
                     , dassTransferDataDTO.getUid()
                     , BrCipherMaker.getInstance().encode(dassTransferDataDTO.getPhone())
-                    , sourceId
+                    , phoneSaleTransferInfo.getSourceId()
                     , transferDatum.getDistributeSourceTypeEnum()
                     , transferDatum.getStatus()
                     , transferDatum.getExpireEndDate()));
-            if (datas.size() == pageSize || sum == totalCount) {
+            if (dtoList.size() == pageSize || sum == totalCount) {
                 DassTransferDataAdapSoleDTO dassTransferDataAdapDTO = new DassTransferDataAdapSoleDTO();
                 dassTransferDataAdapDTO.setIsSole(true);
-                dassTransferDataAdapDTO.setData(datas);
+                dassTransferDataAdapDTO.setData(dtoList);
                 dassTransferDataAdapDTO.setDetailLogList(logList);
                 if (transferDatum.getSoleField() == null) {
                     // 默认手机号去重
@@ -83,13 +75,17 @@ public class ArtificialTransferSoleHandler extends AbstractExternalInterfaceHand
                 } else {
                     dassTransferDataAdapDTO.setSoleDay(transferDatum.getSoleType());
                 }
-                if (phoneSaleTransferInfoList.size() > 0) {
-                    phoneSaleTransferInfoMapper.insertBatch(phoneSaleTransferInfoList);
+                try {
+                    methodRetryHandlerService.callDassTransferDataSole(dassTransferDataAdapDTO, 0);
+                } catch (Exception ignored) {
                 }
-                methodRetryHandlerService.callDassTransferDataSole(dassTransferDataAdapDTO, 0);
-                datas = new ArrayList<>(pageSize);
+                List<PhoneSaleTransferInfo> list = dassTransferDataAdapDTO.getData().stream().map(
+                        DassAssembleTransferDataSoleDTO::getPhoneSaleTransferInfo).collect(Collectors.toList());
+                if (list.size() > 0) {
+                    phoneSaleTransferInfoMapper.insertBatch(list);
+                }
+                dtoList = new ArrayList<>(pageSize);
                 logList = new ArrayList<>(pageSize);
-                phoneSaleTransferInfoList = new ArrayList<>(pageSize);
             }
         }
         return null;

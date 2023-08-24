@@ -14,7 +14,7 @@ import java.util.List;
  * @dateTime 2023/08/23 17:13
  */
 @Data
-public class DassTransferDataAdapSoleDTO extends DataDistributeLogBase<DassTransferDataDTO> {
+public class DassTransferDataAdapSoleDTO extends DataDistributeLogBase<DassAssembleTransferDataSoleDTO> {
 
     private List<PhoneSaleExtendInfo> phoneSaleExtendInfoList;
 
