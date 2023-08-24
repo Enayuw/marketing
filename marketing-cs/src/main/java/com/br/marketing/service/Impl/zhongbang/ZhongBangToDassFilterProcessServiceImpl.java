@@ -171,11 +171,7 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
         Integer threadNum = marketingCommonConfig.getZhongBangToDassFilterThreadNum();
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(threadNum, threadNum);
 
-        for (String apiCode : apiCodes) {
-            dxUserTypeMap.forEach((k, v) -> {
-                doProcess(apiCode, pool, k);
-            });
-        }
+        apiCodes.forEach(apiCode -> dxUserTypeMap.forEach((k, v) -> doProcess(apiCode, pool, k)));
 
         pool.shutdown();
         try {
