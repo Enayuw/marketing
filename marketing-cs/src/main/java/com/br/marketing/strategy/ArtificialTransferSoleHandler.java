@@ -50,8 +50,8 @@ public class ArtificialTransferSoleHandler extends AbstractExternalInterfaceHand
             DassTransferDataDTO dassTransferDataDTO = transferDatum.getDassTransferDataDTO();
             PhoneSaleTransferInfo phoneSaleTransferInfo = transferDatum.getPhoneSaleTransferInfo();
             datas.add(dassTransferDataDTO);
-            if (transferDatum.getPhoneSaleTransferInfo() != null) {
-                phoneSaleTransferInfoList.add(transferDatum.getPhoneSaleTransferInfo());
+            if (phoneSaleTransferInfo != null) {
+                phoneSaleTransferInfoList.add(phoneSaleTransferInfo);
             }
             // 去重功能记录
             logList.add(methodRetryHandlerService.dataJoinLogFix(
