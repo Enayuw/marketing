@@ -1,0 +1,46 @@
+package com.br.marketing.client.dassservice.input.transfer;
+
+import com.br.marketing.common.enums.DistributeSourceTypeEnum;
+import com.br.marketing.entity.PhoneSaleTransferInfo;
+import com.br.marketing.rule.SourceData;
+import lombok.Data;
+
+/**
+ * @Description :调电销推转化数据入参
+ * ---------------------------------
+ * @Author : lizhen
+ * @Date : Create in 2022/4/21 16:39
+ */
+
+@Data
+public class DassAssembleTransferDataSoleDTO extends SourceData {
+
+    /**
+     * 调用电销转化入参
+     */
+    private DassTransferDataDTO dassTransferDataDTO;
+
+
+    /**
+     * 2022-8-10 10:53:00
+     * 电销转化信息
+     * 插入b_phone_sale_transfer_info表入参
+     */
+    private PhoneSaleTransferInfo phoneSaleTransferInfo;
+
+    /**
+     * 2023-08-23 21:28
+     * 数据来源
+     */
+    private DistributeSourceTypeEnum distributeSourceTypeEnum;
+
+
+    public DassAssembleTransferDataSoleDTO() {
+    }
+
+    public DassAssembleTransferDataSoleDTO(DassTransferDataDTO dassTransferDataDTO
+            , PhoneSaleTransferInfo phoneSaleTransferInfo) {
+        this.dassTransferDataDTO = dassTransferDataDTO;
+        this.phoneSaleTransferInfo = phoneSaleTransferInfo;
+    }
+}

@@ -12,8 +12,11 @@ import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
+import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapSoleDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
+import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSoleDTO;
+import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
 import com.br.marketing.client.dassservice.output.DassExportAdapterDTO;
 import com.br.marketing.client.didi.DiDiClient;
@@ -225,6 +228,39 @@ public class MethodRetryHandlerService {
         }
         log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
+
+    /**
+     * 2023-08-24 13:28
+     * 人工实时推送用户名单(单条)处理，带去重的方法
+     * 同{@link MethodRetryHandlerService#callDassRealTimeUserData(com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO, java.lang.Integer)}
+     * 方法一毛一样，只是增加了接口标识灵活传输
+     */
+    @DistributeLog
+    @RetryMethod(isOrNoDbRetry = true)
+    public Result<JSONObject> callDassRealTimeUserDataSole(DassSingleImportAdapSoleDTO dassImportAdapDTO, Integer retry) {
+        List<DassSingleImportDataDTO> data = dassImportAdapDTO.getData();
+        if (CollectionUtils.isEmpty(data)) {
+            Result<JSONObject> result = new Result<>();
+            result.setCode(ResultCode.SUCCESS.getValue());
+            result.setMessage("重复");
+            return result;
+        }
+        DassSingleImportAdapDTO dassSingleImportAdapDTO = new DassSingleImportAdapDTO();
+        dassSingleImportAdapDTO.setDassSingleImportDataDTO(dassImportAdapDTO.getDassSingleImportDataDTO());
+        dassSingleImportAdapDTO.setExtendInfo(dassImportAdapDTO.getExtendInfo());
+        dassSingleImportAdapDTO.setTransferInfoId(dassImportAdapDTO.getTransferInfoId());
+        Result<JSONObject> result = dassServiceClient.postRealTimeUserData(dassSingleImportAdapDTO);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            saveBizLog(dassImportAdapDTO.getExtendInfo(), dassImportAdapDTO.getInterfaceHandlerEnum() == null
+                            ? InterfaceHandlerEnum.ARTIFICIAL_REAL_TIME_USERDATA_SOLE.getCode()
+                            : dassImportAdapDTO.getInterfaceHandlerEnum().getCode(),
+                    dassImportAdapDTO.getTransferInfoId());
+            return result;
+        }
+        log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
+        result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        return result;
     }
 
     /**
@@ -469,9 +505,42 @@ public class MethodRetryHandlerService {
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
+    /**
+     * 调用电销转化接口 带去重功能
+     * 调用成功，将该批数据记录到数据库中以便数据对比
+     */
+    @RetryMethod(isOrNoDbRetry = true)
+    @DistributeLog
+    public Result<?> callDassTransferDataSole(DassTransferDataAdapSoleDTO dassTransferDataAdapDTO, Integer retry) {
+        if (CollectionUtils.isEmpty(dassTransferDataAdapDTO.getData())) {
+            Result<?> result = new Result<>();
+            result.setCode(ResultCode.SUCCESS.getValue());
+            result.setMessage("重复");
+            return result;
+        }
+        DassTransferDataAdapDTO dto = new DassTransferDataAdapDTO();
+        dto.setDassTransferDataDTOList(dassTransferDataAdapDTO.getData());
+        dto.setTransferInfoId(dassTransferDataAdapDTO.getTransferInfoId());
+        dto.setPhoneSaleExtendInfoList(dassTransferDataAdapDTO.getPhoneSaleExtendInfoList());
+        Result<?> result = dassServiceClient.postTransferData(dto);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            Set<String> set = dassTransferDataAdapDTO.getData().stream()
+                    .map(DassTransferDataDTO::getId).map(String::valueOf).collect(Collectors.toSet());
+            saveBizLog(String.join(",", set), dassTransferDataAdapDTO.getInterfaceHandlerEnum() == null
+                            ? InterfaceHandlerEnum.ARTIFICIAL_TRANSFER.getCode()
+                            : dassTransferDataAdapDTO.getInterfaceHandlerEnum().getCode(),
+                    dassTransferDataAdapDTO.getTransferInfoId());
+            return result;
+        }
+        log.error("调用电销转化接口失败 -- {}", JSON.toJSONString(result));
+        result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        return result;
+    }
+
 
     /**
      * 萨摩耶转化数据剔除
+     *
      * @param dassTransferDataAdapDTO
      * @param retry
      * @return
