@@ -301,9 +301,11 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                                 PhoneSaleInfoVO phoneSaleThree = _dxRecordLastThree.get(transferSyncUser.getCustNum());
                                 if(phoneSaleThree == null ||
                                         (phoneSaleThree !=null && !phoneSaleTwo.getType().equals(phoneSaleThree.getType()))){
-                                    long distanceDays = DateHelper
+                                    long distanceDaysOne = DateHelper
+                                            .getDistanceDays(phoneSaleInfoVO.getAppletDate(), transferSyncUser.getRequestData()) + 1;
+                                    long distanceDaysTwo = DateHelper
                                             .getDistanceDays(phoneSaleTwo.getAppletDate(), transferSyncUser.getRequestData()) + 1;
-                                    if (distanceDays > 60 && distanceDays <= 90) {
+                                    if (distanceDaysTwo > 60 && distanceDaysTwo <= 90 && distanceDaysOne> 30 && distanceDaysOne<=60) {
                                         dataFilter2.add(transferSyncUser);
                                     }
                                 }
