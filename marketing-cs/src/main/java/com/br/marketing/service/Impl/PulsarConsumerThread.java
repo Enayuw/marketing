@@ -78,7 +78,7 @@ public class PulsarConsumerThread extends Thread {
                                 isAck = Boolean.TRUE;
                             }
                         } catch (Exception ex) {
-                            log.error(String.format("pulsar消费异常,topic【%s】，message【%s】", topic, messageData));
+                            log.error(String.format("pulsar消费异常,topic【%s】，message【%s】", topic, messageData),ex);
                         }
                     }
                     if(isAck){
