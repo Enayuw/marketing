@@ -1312,6 +1312,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfo.setCreateTime(dataTime);
             syncInfo.setJsonData(jdStr);
             syncInfo.setActualNum(size);
+            //todo 模拟异常
+            mockDbOrRedisError(1,apiCode);
             marketingUserMapper.insertMarketingPreUserByText(syncInfo);
             syncInfoId = syncInfo.getId().toString();
         } catch (DuplicateKeyException keyException) {
@@ -1462,6 +1464,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             transferInfo.setActualNum(size);
             transferInfo.setLast(transferDataDTO.getLast());
             transferInfo.setTotal(transferDataDTO.getTotal());
+            //todo 模拟异常
+            mockDbOrRedisError(1,apiCode);
             marketingTransferInfoMapper.insertSelective(transferInfo);
             transferInfoId = transferInfo.getId().toString();
 
