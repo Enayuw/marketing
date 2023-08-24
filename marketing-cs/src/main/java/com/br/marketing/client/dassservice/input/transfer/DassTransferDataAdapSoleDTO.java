@@ -7,6 +7,12 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * 调电销推转化数据入参 数据组合
+ *
+ * @author zeqiang.guo
+ * @dateTime 2023/08/23 17:13
+ */
 @Data
 public class DassTransferDataAdapSoleDTO extends DataDistributeLogBase<DassTransferDataDTO> {
 

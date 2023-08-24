@@ -8,10 +8,9 @@ import lombok.Data;
 /**
  * 实时推送用户名单 接口入参
  *
- * @author lizhen
- * @dateTime 2022/3/17 13:36
+ * @author zeqiang.guo
+ * @dateTime 2023/08/23 17:13
  */
-
 @Data
 public class RealTimeUserDataSoleDTO extends SourceData {
 

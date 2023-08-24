@@ -6,10 +6,10 @@ import com.br.marketing.rule.SourceData;
 import lombok.Data;
 
 /**
- * @Description :调电销推转化数据入参
- * ---------------------------------
- * @Author : lizhen
- * @Date : Create in 2022/4/21 16:39
+ * 调电销推转化数据入参
+ *
+ * @author zeqiang.guo
+ * @dateTime 2023/08/23 17:13
  */
 
 @Data
