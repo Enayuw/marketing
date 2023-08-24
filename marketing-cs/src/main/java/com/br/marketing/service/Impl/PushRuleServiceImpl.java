@@ -1982,6 +1982,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         Boolean redisBad = Boolean.FALSE;
         Boolean selectBad = Boolean.FALSE;
         try {
+            //todo 模拟异常上线后要删除
+            mockDbOrRedisError(1,dto.getApiCode());
             marketingSyncInfos = marketingSyncInfoMapper.selectByExample(syncInfoExample);
             if (marketingSyncInfos.size() <= 0) {
                 selectBad = Boolean.TRUE;
