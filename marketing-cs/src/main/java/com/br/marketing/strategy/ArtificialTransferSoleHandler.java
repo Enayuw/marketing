@@ -50,8 +50,10 @@ public class ArtificialTransferSoleHandler extends AbstractExternalInterfaceHand
             DassTransferDataDTO dassTransferDataDTO = transferDatum.getDassTransferDataDTO();
             PhoneSaleTransferInfo phoneSaleTransferInfo = transferDatum.getPhoneSaleTransferInfo();
             datas.add(dassTransferDataDTO);
+            Long sourceId = null;
             if (phoneSaleTransferInfo != null) {
                 phoneSaleTransferInfoList.add(phoneSaleTransferInfo);
+                sourceId = phoneSaleTransferInfo.getSourceId();
             }
             // 去重功能记录
             logList.add(methodRetryHandlerService.dataJoinLogFix(
@@ -60,9 +62,9 @@ public class ArtificialTransferSoleHandler extends AbstractExternalInterfaceHand
                     , context.getApiCode()
                     , dassTransferDataDTO.getUid()
                     , BrCipherMaker.getInstance().encode(dassTransferDataDTO.getPhone())
-                    , phoneSaleTransferInfo.getSourceId()
+                    , sourceId
                     , transferDatum.getDistributeSourceTypeEnum()
-                    , null
+                    , transferDatum.getStatus()
                     , transferDatum.getExpireEndDate()));
             if (datas.size() == pageSize || sum == totalCount) {
                 DassTransferDataAdapSoleDTO dassTransferDataAdapDTO = new DassTransferDataAdapSoleDTO();

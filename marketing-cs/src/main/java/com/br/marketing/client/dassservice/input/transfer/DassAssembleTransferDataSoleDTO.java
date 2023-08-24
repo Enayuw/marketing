@@ -34,6 +34,12 @@ public class DassAssembleTransferDataSoleDTO extends SourceData {
      */
     private DistributeSourceTypeEnum distributeSourceTypeEnum;
 
+    /**
+     * 2023-08-24 17:31
+     * 状态
+     */
+    private String status;
+
 
     public DassAssembleTransferDataSoleDTO() {
     }
