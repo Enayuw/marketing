@@ -7,15 +7,15 @@ import com.br.marketing.context.RuleNecessaryData;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.service.TransferDataValidityPeriodService;
+import com.google.common.collect.Lists;
 import lombok.Data;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -29,7 +29,8 @@ public class ZhongBangRuleCollectDataImpl extends CommonMethodHandlerService {
 
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
-
+    @Resource
+    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
@@ -44,12 +45,19 @@ public class ZhongBangRuleCollectDataImpl extends CommonMethodHandlerService {
                         transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(set, context.getApiCode(), new Date());
                 ruleNecessaryData.setCustomerMap(syncUser);
             } else if (o instanceof CallRecordBO) {
+
                 @SuppressWarnings("unchecked")
+                String tCid = String.valueOf(((CallRecordBO) o).getCid());
                 Set<String> set = ((List<CallRecordBO>) transmitFacts).stream()
                         .map(CallRecordBO::getCaseNum).collect(Collectors.toSet());
                 Map<String, SyncUserValidityPeriodBO> callRecordSyncUser =
                         transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(set, context.getApiCode(), new Date());
                 ruleNecessaryData.setCallRecordCustomerMap(callRecordSyncUser);
+                List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getTransferByCustNumOrderDatatikv_(tCid, new ArrayList<>(set));
+
+                ruleNecessaryData.setTransferMap(marketingTransferSyncUserList.stream()
+                        .collect(Collectors.toMap(MarketingTransferSyncUser::getCustNum, Function.identity())));
+
             }
             context.setRuleNecessaryData(ruleNecessaryData);
         }
@@ -72,6 +80,11 @@ public class ZhongBangRuleCollectDataImpl extends CommonMethodHandlerService {
          * 存在有效期的上传数据
          */
         private Map<String, SyncUserValidityPeriodBO> customerMap;
+
+        /**
+         * 最新的转化数据
+         */
+        private Map<String, MarketingTransferSyncUser> transferMap;
 
     }
 

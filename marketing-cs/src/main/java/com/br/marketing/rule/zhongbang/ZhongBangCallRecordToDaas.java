@@ -14,6 +14,7 @@ import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.Impl.PhoneSaleExtendServiceImpl;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
@@ -44,19 +45,23 @@ public class ZhongBangCallRecordToDaas implements AssembleData<BatchRealTimeUser
     @Autowired
     PushDataService pushDataService;
 
+    @Autowired
+    PhoneSaleExtendServiceImpl phoneSaleExtendService;
 
     @Override
     public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+
         CallRecordBO dto = (CallRecordBO) transmitFact;
         ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData ruleNecessaryData =
                 (ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData) context.getRuleNecessaryData();
-        /*Map<String, SyncUserValidityPeriodBO>  customerMap = ruleNecessaryData.getCallRecordCustomerMap();
-        MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, dto.getCaseNum());
-        if (marketingSyncUser == null) {
+        Map<String, SyncUserValidityPeriodBO> syncUserPeriodMap = ruleNecessaryData.getCustomerMap();
+        SyncUserValidityPeriodBO bo = syncUserPeriodMap.get(dto.getCaseNum());
+        if (bo == null) {
             return null;
         }
+
         BatchRealTimeUserDataDTO dataDTO = new BatchRealTimeUserDataDTO();
-        dataDTO.setDassImportDataDTO(packageDassImportData(dto, marketingSyncUser));
+        /*dataDTO.setDassImportDataDTO(packageDassImportData(dto, marketingSyncUser));
         dataDTO.setPhoneSaleExtendInfo(packagePhoneSaleExtendInfo(dto, marketingSyncUser));*/
         return dataDTO;
     }
@@ -101,11 +106,29 @@ public class ZhongBangCallRecordToDaas implements AssembleData<BatchRealTimeUser
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         if (transmitFact instanceof CallRecordBO) {
-            boolean ASwitch = marketingCommonConfig.getZhongbangStatusTypeMap().get("a").getBooleanValue("switch");
-            boolean BSwitch = marketingCommonConfig.getZhongbangStatusTypeMap().get("b").getBooleanValue("switch");
             CallRecordBO bo = (CallRecordBO) transmitFact;
             String intentionGrade = bo.getDetail().getIntentionGrade();
-            return pushDataService.isPushDassWithCallGrade(this.label(), intentionGrade);
+            Boolean intentionA = Boolean.FALSE, intentionB = Boolean.FALSE;
+            ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData ruleNecessaryData =
+                    (ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData) context.getRuleNecessaryData();
+            Map<String, SyncUserValidityPeriodBO> syncUserPeriodMap = ruleNecessaryData.getCustomerMap();
+            SyncUserValidityPeriodBO syncUserValidityPeriodBO = syncUserPeriodMap.get(bo.getCaseNum());
+            //有效期判斷
+            if (syncUserValidityPeriodBO == null) {
+                return false;
+            }
+            boolean ASwitch = marketingCommonConfig.getZhongbangStatusTypeMap().get("a").getBooleanValue("switch");
+            boolean BSwitch = marketingCommonConfig.getZhongbangStatusTypeMap().get("b").getBooleanValue("switch");
+            if (ASwitch) {
+                intentionA = "A".equals(intentionGrade);
+            }
+            if (BSwitch) {
+                intentionB = "B".equals(intentionGrade);
+            }
+            if (intentionA || intentionB) {
+                //去重逻辑判断
+                return phoneSaleExtendService.groupRule(bo.getApiCode(), 6, syncUserValidityPeriodBO.getSyncUser().getCell(), 1);
+            }
         }
         return false;
     }
