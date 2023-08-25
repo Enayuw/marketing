@@ -18,7 +18,7 @@ import java.util.List;
  * @dateTime 2023/08/23 17:13
  */
 @Service
-public class ArtificialRealTimeUserDataAndCustomerTransferSoleHandler extends AbstractExternalInterfaceHandler<DaasAndConversionData> {
+public class ArtificialRealTimeUserAndCustomerTransferSoleFacade extends AbstractExternalInterfaceHandler<DaasAndConversionData> {
 
     @Resource
     private ArtificialRealTimeUserDataSoleHandler artificialRealTimeUserDataSoleHandler;
