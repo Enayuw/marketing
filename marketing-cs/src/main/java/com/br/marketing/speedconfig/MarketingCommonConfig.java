@@ -904,5 +904,10 @@ public class MarketingCommonConfig {
      * 中邮落库数据线程数
      */
     private Integer zhongYouFileDataThreadNum;
+
+    /**
+     * 中邮转化数据job api
+     */
+    private Set<String> zhongYouJobApiCodes;
 }
 

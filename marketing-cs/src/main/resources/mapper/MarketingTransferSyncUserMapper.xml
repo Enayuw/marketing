@@ -709,4 +709,14 @@
         </foreach>
         limit 1
     </select>
+    <select id="getZhongYuanTransferByRequestDate" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tCid}
+        where register_time is not null
+        <if test="indexId != null and indexId!=''">
+            and id > #{indexId}
+        </if>
+        order by id asc limit 5000
+    </select>
+
 </mapper>
