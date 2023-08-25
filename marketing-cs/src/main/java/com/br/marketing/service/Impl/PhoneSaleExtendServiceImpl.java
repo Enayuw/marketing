@@ -20,13 +20,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -71,6 +75,9 @@ public class PhoneSaleExtendServiceImpl {
 
     @Autowired
     MultipleDassAndBlackHandler multipleDassAndBlackHandler;
+
+    @Resource
+    private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
 
     public HashSet<String> getStatus() {
         HashSet status = new HashSet();
@@ -447,5 +454,92 @@ public class PhoneSaleExtendServiceImpl {
         }
 
         return time;
+    }
+
+    /**
+     * 2023-08-25 10:10
+     * 组规则判断
+     * 查询{@code day}天内（包含当天）是否推送过该手机号:
+     * 不存在  推送；
+     * 存在，取最近推送状态：
+     * 组1→组2 推送
+     * 组2→组1 不推送
+     * 组1→组1 不推送
+     * 组2→组2 不推送
+     *
+     * @param apiCode     apiCode
+     * @param day         天
+     * @param cell        手机号
+     * @param groupNumber 组号
+     * @return true 推送
+     */
+    public boolean groupRule(String apiCode
+            , int day
+            , String cell
+            , int groupNumber) {
+        PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
+        LocalDate now = LocalDate.now();
+        Instant instantStart = now.minusDays(day).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+        Instant instantEnd = now.atTime(23, 59, 59, 999999999)
+                .atZone(ZoneId.systemDefault()).toInstant();
+        example.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andCellEqualTo(cell)
+                .andPushDxTimeBetween(Date.from(instantStart), Date.from(instantEnd))
+                .andPStatusEqualTo(2);
+        example.setOrderByClause("push_dx_time desc");
+        List<PhoneSaleExtendInfo> list = phoneSaleExtendInfoMapper.findInfoByMaxPushDxTimeAndCellList(example);
+        if (CollectionUtils.isEmpty(list)) {
+            return true;
+        }
+        PhoneSaleExtendInfo info = list.get(0);
+        return info.getGroupNumber() < groupNumber;
+    }
+
+    /**
+     * 2023-08-25 10:15
+     * 批量组规则判断
+     * 查询{@code day}天内（包含当天）是否推送过该手机号:
+     * 不存在  推送；
+     * 存在，取最近推送状态：
+     * 组1→组2 推送
+     * 组2→组1 不推送
+     * 组1→组1 不推送
+     * 组2→组2 不推送
+     *
+     * @param apiCode            apiCode
+     * @param day                天
+     * @param cellGroupNumberMap key cell手机号；value groupNumber组号
+     * @return map{@code cellGroupNumberMap} map中存在则推送
+     */
+    public Map<String, Integer> groupRule(String apiCode
+            , int day
+            , Map<String, Integer> cellGroupNumberMap) {
+        PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
+        LocalDate now = LocalDate.now();
+        Instant instantStart = now.minusDays(day).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+        Instant instantEnd = now.atTime(23, 59, 59, 999999999)
+                .atZone(ZoneId.systemDefault()).toInstant();
+        Set<String> cellSet = cellGroupNumberMap.keySet();
+        example.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andCellIn(new ArrayList<>(cellSet))
+                .andPushDxTimeBetween(Date.from(instantStart), Date.from(instantEnd))
+                .andPStatusEqualTo(2);
+        example.setOrderByClause("push_dx_time desc");
+        List<PhoneSaleExtendInfo> list = phoneSaleExtendInfoMapper.findInfoByMaxPushDxTimeAndCellList(example);
+        if (CollectionUtils.isEmpty(list)) {
+            return cellGroupNumberMap;
+        }
+        Map<String, Integer> dbCellGroupMap = list.stream().collect(Collectors.toConcurrentMap(PhoneSaleExtendInfo::getCell
+                , PhoneSaleExtendInfo::getGroupNumber, (v1, v2) -> v1 > v2 ? v1 : v2));
+        Map<String, Integer> map = new ConcurrentHashMap<>(cellGroupNumberMap.size());
+        cellGroupNumberMap.forEach((k, v) -> {
+            Integer groupNumber = dbCellGroupMap.get(k);
+            if (groupNumber == null || groupNumber < v) {
+                map.put(k, v);
+            }
+        });
+        return map;
     }
 }
