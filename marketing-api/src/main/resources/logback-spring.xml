@@ -83,7 +83,7 @@
         </encoder>
     </appender>
 
-    <appender name="PATCH_ASYNC_LOG">
+    <appender name="PATCH_ASYNC_LOG"  class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="PATCH_LOG"/>
         <queueSize>512</queueSize>
     </appender>
@@ -93,20 +93,21 @@
     <logger name="org.springframework.boot.context.embedded.tomcat" level="INFO"/>
     <logger name="com.netflix.discovery.shared.resolver.aws.ConfigClusterResolver" level="ERROR"/>
     <logger name="com.br.bsf.ext.app.util" level="ERROR"/>
+    <logger name="PATCH_LOG" level="ERROR" additivity="false">
+        <appender-ref ref="PATCH_ASYNC_LOG" />
+    </logger>
 
     <springProfile name="pre">
         <root level="ERROR">
             <appender-ref ref="STDOUT"/>
             <appender-ref ref="ASYNC"/>
             <appender-ref ref="ALARM_ERROR_ASYNC"/>
-            <appender-ref ref="PATCH_ASYNC_LOG"/>
         </root>
     </springProfile>
     <springProfile name="prod">
         <root level="ERROR">
             <appender-ref ref="ASYNC"/>
             <appender-ref ref="ALARM_ERROR_ASYNC"/>
-            <appender-ref ref="PATCH_ASYNC_LOG"/>
         </root>
     </springProfile>
 </configuration>
