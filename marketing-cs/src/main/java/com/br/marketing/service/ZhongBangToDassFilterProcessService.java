@@ -1,6 +1,8 @@
 package com.br.marketing.service;
 
 
+import java.time.LocalDate;
+
 /**
  * 众邦转化数据推人工转化过滤接口
  * @author chenh
@@ -9,8 +11,8 @@ package com.br.marketing.service;
  */
 public interface ZhongBangToDassFilterProcessService {
     // 首次
-    void doProcessFirst();
+    void doProcessFirst(LocalDate requestDate);
     // 非首次
-    void doProcessNoFirst();
+    void doProcessNoFirst(LocalDate requestDate);
 
 }

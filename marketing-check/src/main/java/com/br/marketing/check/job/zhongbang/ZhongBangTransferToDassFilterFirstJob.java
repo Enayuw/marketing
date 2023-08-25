@@ -1,6 +1,6 @@
 package com.br.marketing.check.job.zhongbang;
 
-
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.ZhongBangToDassFilterProcessService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 
 /**
@@ -24,7 +26,13 @@ public class ZhongBangTransferToDassFilterFirstJob extends AbstractSimpleElastic
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         try {
-            zhongBangToDassFilterProcessService.doProcessFirst();
+            // requestDate可配置，param样例：2023-08-08
+            String parameter = context.getJobParameter();
+            LocalDate requestDate = LocalDate.now();
+            if (StringUtils.isNotBlank(parameter)) {
+                requestDate = LocalDate.parse(parameter, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            }
+            zhongBangToDassFilterProcessService.doProcessFirst(requestDate);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

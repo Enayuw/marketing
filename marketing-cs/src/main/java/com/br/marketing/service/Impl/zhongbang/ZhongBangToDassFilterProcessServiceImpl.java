@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -70,11 +71,12 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
     }
 
     @Override
-    public void doProcessFirst() {
+    public void doProcessFirst(LocalDate date) {
+        log.warn("众邦推Dass转化过滤，首次JOB开始");
         List<String> apiCodes = marketingCommonConfig.getZhongBangToDassFilterApiCodes();
         apiCodes.forEach(apiCode -> {
             String tcId = tableCreateService.getTcId(apiCode);
-            String requestDate = LocalDate.now().toString();
+            String requestDate = date.toString();
             Long indexId = 0l;
 
             // 创建线程池
@@ -110,6 +112,7 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
+            log.warn("众邦推Dass转化过滤，首次JOB结束");
         });
     }
 
@@ -120,9 +123,9 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
     }
 
     private void filterAndPushData(List<MarketingTransferSyncUser> list, String apiCode) {
-        for (Map.Entry<String, String> entry : dxUserTypeMap.entrySet()) {
+        for (String type : dxUserTypeMap.keySet()) {
             // 1.捞取
-            List<MarketingTransferSyncUser> filterList = list.stream().filter(ifApplyOrLent(entry.getKey())).collect(Collectors.toList());
+            List<MarketingTransferSyncUser> filterList = list.stream().filter(ifApplyOrLent(type)).collect(Collectors.toList());
             if (CollectionUtils.isEmpty(filterList)) {
                 continue;
             }
@@ -132,7 +135,7 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
                 continue;
             }
             // 3.推送
-            pushToDass(validedList, entry.getKey());
+            pushToDass(validedList, type);
         }
     }
 
@@ -150,10 +153,6 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
         return validedList;
     }
 
-//    public static void main(String[] args) {
-//        ifApplyOrLent("type").test();
-//    }
-
     private Predicate<MarketingTransferSyncUser> ifApplyOrLent(String type) {
         return t -> {
             if (("apply").equals(type)) {
@@ -165,13 +164,14 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
     }
 
     @Override
-    public void doProcessNoFirst() {
+    public void doProcessNoFirst(LocalDate requestDate) {
+        log.warn("众邦推Dass转化过滤，非首次JOB开始");
         List<String> apiCodes = marketingCommonConfig.getZhongBangToDassFilterApiCodes();
         // 创建线程池
         Integer threadNum = marketingCommonConfig.getZhongBangToDassFilterThreadNum();
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(threadNum, threadNum);
 
-        apiCodes.forEach(apiCode -> dxUserTypeMap.forEach((k, v) -> doProcess(apiCode, pool, k)));
+        apiCodes.forEach(apiCode -> dxUserTypeMap.forEach((k, v) -> doProcess(apiCode, pool, k, requestDate)));
 
         pool.shutdown();
         try {
@@ -181,18 +181,19 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
+        log.warn("众邦推Dass转化过滤，非首次JOB结束");
     }
 
-    private void doProcess(String apiCode, ThreadPoolExecutor pool, String type) {
+    private void doProcess(String apiCode, ThreadPoolExecutor pool, String type, LocalDate date) {
         String tcId = tableCreateService.getTcId(apiCode);
-        String requestDate = LocalDate.now().toString();
-        String lastDate = LocalDate.now().minusDays(1).toString();
+        String requestDate = date.toString();
+        String lastDate = date.minusDays(1).toString();
         String lastDateStart = lastDate + " 00:00:00:000";
         String lastDateEnd = lastDate + " 23:59:59:999";
 
         Integer lastDays = marketingCommonConfig.getZhongBangToDassLastDays();
-        Date dateStart = Date.from(LocalDate.now().minusDays(lastDays).atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Date dateEnd = Date.from(LocalDate.now().atTime(23, 59, 59, 999999999)
+        Date dateStart = Date.from(date.minusDays(lastDays).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date dateEnd = Date.from(date.atTime(23, 59, 59, 999999999)
                 .atZone(ZoneId.systemDefault()).toInstant());
 
         String userType = dxUserTypeMap.get(type);
@@ -255,6 +256,10 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
             dassDataDTO.setSource("33");
             dassDataDTO.setUserType(dxUserTypeMap.get(type));
             String phone = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
+            if (StringUtils.isEmpty(phone)) {
+                log.error("众邦推Dass转化过滤，手机号log解密失败：{},上传明细表id：{}", marketingSyncUser.getCell(), marketingSyncUser.getId());
+                continue;
+            }
             dassDataDTO.setPhone(phone);
             dassDataDTO.setOrgName("zhongbang");
             dassDataDTO.setIfTransform("1");
@@ -265,6 +270,10 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
             dto.setStatus(type);
             dto.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.TRANSFER);
             dtoList.add(dto);
+        }
+
+        if (CollectionUtils.isEmpty(dtoList)) {
+            return;
         }
 
         artificialTransferSoleHandler.call(dtoList, null);
