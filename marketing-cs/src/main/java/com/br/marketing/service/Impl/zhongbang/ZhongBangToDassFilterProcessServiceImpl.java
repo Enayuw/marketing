@@ -273,7 +273,6 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
             dto.setStatus(type);
             dto.setSoleField(SoleFieldEnum.CELL_STATUS_SOLE.getValue());
             dto.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.TRANSFER);
-            dto.setApiCode(marketingSyncUser.getApiCode());
             dtoList.add(dto);
         }
 
