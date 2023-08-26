@@ -33,6 +33,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @Description ZhongBangToDassFilterProcessServiceImpl
@@ -214,9 +215,11 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
         example1.setDistinct(true);
         List<String> uidSet = phoneSaleMapper.selectUidByExampletikv_(example1);
 
-        // custNum集合合并
-        custNumSet.addAll(uidSet);
-        if (CollectionUtils.isEmpty(custNumSet)) {
+        // 集合合并
+        List<String> custNums = Stream.concat(custNumSet.stream(), uidSet.stream())
+                .distinct() // 使用distinct去重
+                .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(custNums)) {
             return;
         }
 
@@ -224,11 +227,11 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
         if (("1").equals(userType)) {
             // request_date=T日且ifApply=1且applyDt=T-1
             transferSyncUserList = service.getNoFirstCuShen(tcId, apiCode,
-                    requestDate, lastDateStart, lastDateEnd, custNumSet);
+                    requestDate, lastDateStart, lastDateEnd, custNums);
         } else if (("2").equals(userType)) {
             // request_date=T日且ifLent=1且lentTime=T-1
             transferSyncUserList = service.getNoFirstCuTi(tcId, apiCode,
-                    requestDate, lastDateStart, lastDateEnd, custNumSet);
+                    requestDate, lastDateStart, lastDateEnd, custNums);
         }
 
         List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(transferSyncUserList, PARTITION);
