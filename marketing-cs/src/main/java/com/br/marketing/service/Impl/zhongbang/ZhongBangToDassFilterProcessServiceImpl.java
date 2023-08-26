@@ -5,7 +5,9 @@ import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.client.dassservice.input.transfer.DassAssembleTransferDataSoleDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
+import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExample;
@@ -74,46 +76,47 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
     public void doProcessFirst(LocalDate date) {
         log.warn("众邦推Dass转化过滤，首次JOB开始");
         List<String> apiCodes = marketingCommonConfig.getZhongBangToDassFilterApiCodes();
-        apiCodes.forEach(apiCode -> {
-            String tcId = tableCreateService.getTcId(apiCode);
-            String requestDate = date.toString();
-            Long indexId = 0l;
-
-            // 创建线程池
-            Integer threadNum = marketingCommonConfig.getZhongBangToDassFilterThreadNum();
-            ThreadPoolExecutor pool = BrExecutors.getThreadPool(threadNum, threadNum);
-            while (true) {
-                // 动态修改线程池
-                modifyCorePoolSize(pool);
-
-                // 数据捞取：request_date=T日且(ifApply=1或ifLent=1)
-                List<MarketingTransferSyncUser> transferSyncUserList = service.getMarketingTransferSyncUserListFirst(tcId, apiCode,
-                        requestDate, indexId);
-
-                if (CollectionUtils.isEmpty(transferSyncUserList)) {
-                    break;
-                }
-                indexId = transferSyncUserList.get(transferSyncUserList.size() - 1).getId();
-
-                List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(transferSyncUserList, PARTITION);
-                partition.forEach(part -> {
-                    List<MarketingTransferSyncUser> list = new ArrayList<>();
-                    list.addAll(part);
-                    pool.execute(() ->
-                            filterAndPushData(list, apiCode));
-                });
-            }
-
-            pool.shutdown();
+        for (String apiCode : apiCodes) {
             try {
+                String tcId = tableCreateService.getTcId(apiCode);
+                String requestDate = date.toString();
+                Long indexId = 0l;
+
+                // 创建线程池
+                Integer threadNum = marketingCommonConfig.getZhongBangToDassFilterThreadNum();
+                ThreadPoolExecutor pool = BrExecutors.getThreadPool(threadNum, threadNum);
+                while (true) {
+                    // 动态修改线程池
+                    modifyCorePoolSize(pool);
+
+                    // 数据捞取：request_date=T日且(ifApply=1或ifLent=1)
+                    List<MarketingTransferSyncUser> transferSyncUserList = service.getMarketingTransferSyncUserListFirst(tcId, apiCode,
+                            requestDate, indexId);
+
+                    if (CollectionUtils.isEmpty(transferSyncUserList)) {
+                        break;
+                    }
+                    indexId = transferSyncUserList.get(transferSyncUserList.size() - 1).getId();
+
+                    List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(transferSyncUserList, PARTITION);
+                    partition.forEach(part -> {
+                        List<MarketingTransferSyncUser> list = new ArrayList<>();
+                        list.addAll(part);
+                        pool.execute(() ->
+                                filterAndPushData(list, apiCode));
+                    });
+                }
+
+                pool.shutdown();
+
                 while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
                     log.info("等待线程池结束");
                 }
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
-            log.warn("众邦推Dass转化过滤，首次JOB结束");
-        });
+        }
+        log.warn("众邦推Dass转化过滤，首次JOB结束");
     }
 
     private void modifyCorePoolSize(ThreadPoolExecutor pool) {
@@ -268,7 +271,9 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
             DassAssembleTransferDataSoleDTO dto = new DassAssembleTransferDataSoleDTO();
             dto.setDassTransferDataDTO(dassDataDTO);
             dto.setStatus(type);
+            dto.setSoleField(SoleFieldEnum.CELL_STATUS_SOLE.getValue());
             dto.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.TRANSFER);
+            dto.setApiCode(marketingSyncUser.getApiCode());
             dtoList.add(dto);
         }
 
@@ -276,6 +281,8 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
             return;
         }
 
-        artificialTransferSoleHandler.call(dtoList, null);
+        ProcessHandlerContext context = new ProcessHandlerContext();
+        context.setApiCode(marketingSyncUserList.get(0).getApiCode());
+        artificialTransferSoleHandler.call(dtoList, context);
     }
 }

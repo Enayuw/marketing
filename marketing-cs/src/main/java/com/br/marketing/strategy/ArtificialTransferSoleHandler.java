@@ -54,7 +54,7 @@ public class ArtificialTransferSoleHandler extends AbstractExternalInterfaceHand
                     , context.getApiCode()
                     , dassTransferDataDTO.getUid()
                     , BrCipherMaker.getInstance().encode(dassTransferDataDTO.getPhone())
-                    , phoneSaleTransferInfo.getSourceId()
+                    , phoneSaleTransferInfo != null ? phoneSaleTransferInfo.getSourceId() : null
                     , transferDatum.getDistributeSourceTypeEnum()
                     , transferDatum.getStatus()
                     , transferDatum.getExpireEndDate()));
