@@ -470,13 +470,13 @@ public class PhoneSaleExtendServiceImpl {
      * @param apiCode     apiCode
      * @param day         天
      * @param cell        手机号
-     * @param groupNumber 组号
+     * @param groupNo 组号
      * @return true 推送
      */
     public boolean groupRule(String apiCode
             , int day
             , String cell
-            , int groupNumber) {
+            , int groupNo) {
         PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
         LocalDate now = LocalDate.now();
         Instant instantStart = now.minusDays(day).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
@@ -493,7 +493,7 @@ public class PhoneSaleExtendServiceImpl {
             return true;
         }
         PhoneSaleExtendInfo info = list.get(0);
-        return info.getGroupNumber() < groupNumber;
+        return info.getGroupNo() < groupNo;
     }
 
     /**
@@ -532,11 +532,11 @@ public class PhoneSaleExtendServiceImpl {
             return cellGroupNumberMap;
         }
         Map<String, Integer> dbCellGroupMap = list.stream().collect(Collectors.toConcurrentMap(PhoneSaleExtendInfo::getCell
-                , PhoneSaleExtendInfo::getGroupNumber, (v1, v2) -> v1 > v2 ? v1 : v2));
+                , PhoneSaleExtendInfo::getGroupNo, (v1, v2) -> v1 > v2 ? v1 : v2));
         Map<String, Integer> map = new ConcurrentHashMap<>(cellGroupNumberMap.size());
         cellGroupNumberMap.forEach((k, v) -> {
-            Integer groupNumber = dbCellGroupMap.get(k);
-            if (groupNumber == null || groupNumber < v) {
+            Integer groupNo = dbCellGroupMap.get(k);
+            if (groupNo == null || groupNo < v) {
                 map.put(k, v);
             }
         });

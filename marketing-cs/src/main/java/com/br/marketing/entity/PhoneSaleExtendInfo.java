@@ -103,12 +103,12 @@ public class PhoneSaleExtendInfo implements Serializable {
     private Integer interfaceType;
 
     /**
-     * 组号，默认组号为0
-     */
-    private Integer groupNumber;
-
-    /**
      * 电销业务线使用的场景
      */
     private String dxUserType;
+
+    /**
+     * 组号，默认组号为0
+     */
+    private Integer groupNo;
 }
