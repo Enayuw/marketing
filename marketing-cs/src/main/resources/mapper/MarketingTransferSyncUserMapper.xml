@@ -712,7 +712,8 @@
     <select id="getZhongYuanTransferByRequestDate" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select *
         from b_marketing_transfer_sync_${tCid}
-        where register_time is not null
+        where register_time is not null and request_data >= #{requestStartDate} and
+        <![CDATA[ request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
         <if test="indexId != null and indexId!=''">
             and id > #{indexId}
         </if>

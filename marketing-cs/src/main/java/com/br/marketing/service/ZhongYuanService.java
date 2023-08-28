@@ -22,9 +22,9 @@ import java.util.List;
 public interface ZhongYuanService {
 
     /**
-     * T 日中原转化数据获取
+     * 时间范围内的中原转化数据获取
      */
-    List<MarketingTransferSyncUser> getMarketingTransferSyncUserList(String tcId,String apiCode,Long indexId, LocalDate localDate);
+    List<MarketingTransferSyncUser> getMarketingTransferSyncUserList(String tcId,String apiCode,Long indexId, LocalDate requestStartDate,LocalDate requestEndDate);
 
     /**
      * 中原转化数据推Daas

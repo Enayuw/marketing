@@ -50,9 +50,10 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
     private MarketingCommonConfig marketingCommonConfig;
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList(String tcId, String apiCode, Long indexId, LocalDate localDate) {
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList(String tcId, String apiCode, Long indexId,
+                                                                            LocalDate requestStartDate,LocalDate requestEndDate) {
 
-        return marketingTransferSyncUserMapper.getZhongYuanTransferByRequestDate(tcId, apiCode, localDate.toString(), indexId);
+        return marketingTransferSyncUserMapper.getZhongYuanTransferByRequestDate(tcId, apiCode, requestStartDate.toString(),requestEndDate.toString(), indexId);
 
     }
 

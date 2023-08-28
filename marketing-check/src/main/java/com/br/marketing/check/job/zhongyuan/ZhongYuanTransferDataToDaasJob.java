@@ -49,7 +49,7 @@ public class ZhongYuanTransferDataToDaasJob extends AbstractSimpleElasticJob {
                 String tcId = tableCreateService.getTcId(apiCode);
                 Long indexId = null;
                 while(true){
-                    List<MarketingTransferSyncUser> marketingTransferSyncUserList = zhongYuanService.getMarketingTransferSyncUserList(tcId, apiCode, indexId, LocalDate.now());
+                    List<MarketingTransferSyncUser> marketingTransferSyncUserList = zhongYuanService.getMarketingTransferSyncUserList(tcId, apiCode, indexId, LocalDate.now(),LocalDate.now());
                     if(marketingTransferSyncUserList.isEmpty()) break;
                     indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size()-1).getId();
                     // 推daas
