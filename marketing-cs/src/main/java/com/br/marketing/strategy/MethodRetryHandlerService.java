@@ -238,13 +238,24 @@ public class MethodRetryHandlerService {
      */
     @DistributeLog
     @RetryMethod(isOrNoDbRetry = true)
-    public Result<JSONObject> callDassRealTimeUserDataSole(DassSingleImportAdapSoleDTO dassImportAdapDTO, Integer retry) {
+    public Result<JSONObject> callDassRealTimeUserDataSole(DassSingleImportAdapSoleDTO dassImportAdapDTO, Integer retry
+            , PhoneSaleExtendInfo phoneSaleExtendInfo) {
         List<DassSingleImportDataDTO> data = dassImportAdapDTO.getData();
         if (CollectionUtils.isEmpty(data)) {
             Result<JSONObject> result = new Result<>();
             result.setCode(ResultCode.SUCCESS.getValue());
             result.setMessage("去重后，数据为空");
             return result;
+        }
+        //插入b_phone_sale_extend_info
+        if (phoneSaleExtendInfo != null) {
+            try {
+                phoneSaleExtendInfo.setCreateTime(new Date());
+                phoneSaleExtendInfoMapper.insertSelective(phoneSaleExtendInfo);
+                dassImportAdapDTO.setExtendInfo(phoneSaleExtendInfo.getId().toString());
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
         }
         DassSingleImportAdapDTO dassSingleImportAdapDTO = new DassSingleImportAdapDTO();
         dassSingleImportAdapDTO.setDassSingleImportDataDTO(dassImportAdapDTO.getDassSingleImportDataDTO());
