@@ -528,7 +528,7 @@ public class MethodRetryHandlerService {
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             Set<String> set = list.stream().map(DassTransferDataDTO::getId).map(String::valueOf).collect(Collectors.toSet());
             saveBizLog(String.join(",", set), dassTransferDataAdapDTO.getInterfaceHandlerEnum() == null
-                            ? InterfaceHandlerEnum.ARTIFICIAL_TRANSFER.getCode()
+                            ? InterfaceHandlerEnum.ARTIFICIAL_TRANSFER_SOLE.getCode()
                             : dassTransferDataAdapDTO.getInterfaceHandlerEnum().getCode(),
                     dassTransferDataAdapDTO.getTransferInfoId());
             return result;
