@@ -1,10 +1,18 @@
 package com.br.marketing.rule.zhongbang;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.common.util.DateUtils;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.client.DaasAndConversionData;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
-import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
+import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSoleDTO;
+import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
+import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataSoleDTO;
+import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.common.enums.DistributeSourceTypeEnum;
+import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -12,6 +20,7 @@ import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ZhongBangRuleCollectDataImpl;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.Impl.PhoneSaleExtendServiceImpl;
@@ -21,6 +30,7 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -34,7 +44,7 @@ import java.util.Map;
  * @dateTime 2023-08-01 16:44
  */
 @Service
-public class ZhongBangCallRecordToDaas implements AssembleData<BatchRealTimeUserDataDTO> {
+public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversionData> {
 
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
@@ -49,24 +59,93 @@ public class ZhongBangCallRecordToDaas implements AssembleData<BatchRealTimeUser
     PhoneSaleExtendServiceImpl phoneSaleExtendService;
 
     @Override
-    public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+    public DaasAndConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
 
         CallRecordBO dto = (CallRecordBO) transmitFact;
         ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData ruleNecessaryData =
                 (ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData) context.getRuleNecessaryData();
-        Map<String, SyncUserValidityPeriodBO> syncUserPeriodMap = ruleNecessaryData.getCustomerMap();
-        SyncUserValidityPeriodBO bo = syncUserPeriodMap.get(dto.getCaseNum());
-        if (bo == null) {
+        Map<String, SyncUserValidityPeriodBO> syncUserPeriodMap = ruleNecessaryData.getCallRecordCustomerMap();
+        SyncUserValidityPeriodBO syncUserData = syncUserPeriodMap.get(dto.getCaseNum());
+        Map<String, MarketingTransferSyncUser> transferDataMap = ruleNecessaryData.getTransferMap();
+        MarketingTransferSyncUser transferSyncUser = transferDataMap.get(dto.getCaseNum());
+        if (transferSyncUser == null) {
             return null;
         }
-
-        BatchRealTimeUserDataDTO dataDTO = new BatchRealTimeUserDataDTO();
-        /*dataDTO.setDassImportDataDTO(packageDassImportData(dto, marketingSyncUser));
-        dataDTO.setPhoneSaleExtendInfo(packagePhoneSaleExtendInfo(dto, marketingSyncUser));*/
+        DaasAndConversionData dataDTO = new DaasAndConversionData();
+        dataDTO.setConversionData(handleConversionData(dto, syncUserData));
+        dataDTO.setRealTimeUserDataSoleDTO(handleRealTimeUserData(dto, syncUserData, transferSyncUser));
         return dataDTO;
     }
 
-    private PhoneSaleExtendInfo packagePhoneSaleExtendInfo(CallRecordBO dto, MarketingSyncUser marketingSyncUser) {
+    private RealTimeUserDataSoleDTO handleRealTimeUserData(CallRecordBO dto, SyncUserValidityPeriodBO syncUserData, MarketingTransferSyncUser transferSyncUser) {
+
+        RealTimeUserDataSoleDTO realTimeUserDataSoleDTO = new RealTimeUserDataSoleDTO();
+
+        realTimeUserDataSoleDTO.setDassSingleImportAdapDTO(handlerDaasSingleData(syncUserData, transferSyncUser));
+
+        realTimeUserDataSoleDTO.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.CALL_RECORD);
+
+        realTimeUserDataSoleDTO.setPhoneSaleExtendInfo(handlerPhoneSaleInfo(dto, syncUserData.getSyncUser()));
+
+        realTimeUserDataSoleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
+        realTimeUserDataSoleDTO.setSoleType(1);
+
+        return realTimeUserDataSoleDTO;
+
+    }
+
+    private DassSingleImportAdapSoleDTO handlerDaasSingleData(SyncUserValidityPeriodBO syncUserData, MarketingTransferSyncUser transferSyncUser) {
+        DassSingleImportAdapSoleDTO dassSingleImportAdapSoleDTO = new DassSingleImportAdapSoleDTO();
+        DassSingleImportDataDTO dassSingleImportDataDTO = new DassSingleImportDataDTO();
+        MarketingSyncUser syncUser = syncUserData.getSyncUser();
+        // 根据custNum取上传接口最新的gender（0女1男）传男女
+        String reserveField1 = syncUser.getReserveField1();
+        if (org.springframework.util.StringUtils.hasText(reserveField1)) {
+            JSONObject jsonObject = JSON.parseObject(reserveField1);
+            String gender = jsonObject.getString("gender");
+            if ("0".equals(gender)) {
+                dassSingleImportDataDTO.setGender("女");
+            } else if ("1".equals(gender)) {
+                dassSingleImportDataDTO.setGender("男");
+            }
+            String firstName = jsonObject.getString("firstName");
+            if(StringUtils.isNotEmpty(firstName)) {
+                dassSingleImportDataDTO.setName(firstName.replaceAll("\\*", ""));
+            }
+        }
+        String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
+        String phone = AESUtil.aesEncrypty(cell, aesKey);
+        dassSingleImportDataDTO.setPhone(phone);
+        dassSingleImportDataDTO.setOrgname("zhongbang");
+        dassSingleImportDataDTO.setUid(syncUser.getCustNum());
+        dassSingleImportDataDTO.setUserType("1");
+        dassSingleImportDataDTO.setRegisterTime(transferSyncUser.getRegisterTime());
+        dassSingleImportDataDTO.setLoginTime(transferSyncUser.getLoginTime());
+        dassSingleImportDataDTO.setSource("33");
+        dassSingleImportDataDTO.setAuditTime(transferSyncUser.getAuditTime());
+        dassSingleImportDataDTO.setAuditAmount(transferSyncUser.getAuditAmount());
+        dassSingleImportAdapSoleDTO.setDassSingleImportDataDTO(dassSingleImportDataDTO);
+        return dassSingleImportAdapSoleDTO;
+
+    }
+
+    private ConversionData handleConversionData(CallRecordBO dto, SyncUserValidityPeriodBO bo) {
+        ConversionData conversionData = new ConversionData();
+        conversionData.setDataId(dto.getId().toString());
+        conversionData.setCid(dto.getCid().toString());
+        conversionData.setCaseNum(dto.getCaseNum());
+        conversionData.setPartnerProcessDate(DateUtils.format(bo.getSyncUser().getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+        conversionData.setInversionStatus("0");
+        conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
+        // 去重参数设置
+        conversionData.setInitId(dto.getId());
+        conversionData.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
+        conversionData.setSoleType(1);
+        return conversionData;
+
+    }
+
+    private PhoneSaleExtendInfo handlerPhoneSaleInfo(CallRecordBO dto, MarketingSyncUser marketingSyncUser) {
         PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
         phoneSaleExtendInfo.setApiCode(dto.getApiCode());
         phoneSaleExtendInfo.setCustNum(dto.getCaseNum());
@@ -76,7 +155,7 @@ public class ZhongBangCallRecordToDaas implements AssembleData<BatchRealTimeUser
         phoneSaleExtendInfo.setAppletTime(dto.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                 .toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         phoneSaleExtendInfo.setTaskId(marketingSyncUser.getCusBatch());
-        phoneSaleExtendInfo.setStatus(pushDataService.getStatusByGrade(this.label(), dto.getDetail().getIntentionGrade()));
+        phoneSaleExtendInfo.setStatus(dto.getDetail().getIntentionGrade().toLowerCase());
         phoneSaleExtendInfo.setPStatus(1);
         phoneSaleExtendInfo.setCreateTime(new Date());
         phoneSaleExtendInfo.setPushDxTime(new Date());
@@ -111,7 +190,10 @@ public class ZhongBangCallRecordToDaas implements AssembleData<BatchRealTimeUser
             Boolean intentionA = Boolean.FALSE, intentionB = Boolean.FALSE;
             ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData ruleNecessaryData =
                     (ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData) context.getRuleNecessaryData();
-            Map<String, SyncUserValidityPeriodBO> syncUserPeriodMap = ruleNecessaryData.getCustomerMap();
+            Map<String, SyncUserValidityPeriodBO> syncUserPeriodMap = ruleNecessaryData.getCallRecordCustomerMap();
+            if(CollectionUtils.isEmpty(syncUserPeriodMap)){
+                return false;
+            }
             SyncUserValidityPeriodBO syncUserValidityPeriodBO = syncUserPeriodMap.get(bo.getCaseNum());
             //有效期判斷
             if (syncUserValidityPeriodBO == null) {
@@ -140,7 +222,7 @@ public class ZhongBangCallRecordToDaas implements AssembleData<BatchRealTimeUser
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.ARTIFICIAL_BATCH_REALTIME_DATA.getCode();
+        return InterfaceHandlerEnum.ARTIFICIAL_REAL_TIME_USERDATA_AND_CUSTOMER_TRANSFER_SOLE.getCode();
     }
 
     @Override

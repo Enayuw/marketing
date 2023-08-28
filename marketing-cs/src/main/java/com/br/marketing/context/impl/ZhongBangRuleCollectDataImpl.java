@@ -8,6 +8,7 @@ import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.google.common.collect.Lists;
 import lombok.Data;
@@ -31,6 +32,8 @@ public class ZhongBangRuleCollectDataImpl extends CommonMethodHandlerService {
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
 
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
@@ -47,13 +50,14 @@ public class ZhongBangRuleCollectDataImpl extends CommonMethodHandlerService {
             } else if (o instanceof CallRecordBO) {
 
                 @SuppressWarnings("unchecked")
-                String tCid = String.valueOf(((CallRecordBO) o).getCid());
+                String apiCode = ((CallRecordBO) o).getApiCode();
+                String tcid = tableCreateService.getTcId(apiCode);
                 Set<String> set = ((List<CallRecordBO>) transmitFacts).stream()
                         .map(CallRecordBO::getCaseNum).collect(Collectors.toSet());
                 Map<String, SyncUserValidityPeriodBO> callRecordSyncUser =
                         transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(set, context.getApiCode(), new Date());
                 ruleNecessaryData.setCallRecordCustomerMap(callRecordSyncUser);
-                List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getTransferByCustNumOrderDatatikv_(tCid, new ArrayList<>(set));
+                List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getTransferByCustNumOrderDatatikv_(tcid, new ArrayList<>(set));
 
                 ruleNecessaryData.setTransferMap(marketingTransferSyncUserList.stream()
                         .collect(Collectors.toMap(MarketingTransferSyncUser::getCustNum, Function.identity())));
