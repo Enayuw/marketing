@@ -417,4 +417,8 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                  @Param("apiCode") String apiCode,
                                                                  @Param("requestDate") String requestDate,
                                                                  @Param("indexId") Long indexId);
+
+    Integer getCountIsBlackByCustNum(@Param("cid") String cId, @Param("custNum") String custNum);
+    Integer getCountIfApplyByCustNum(@Param("cid") String cId, @Param("custNum") String custNum,
+                                     @Param("dateStartStr") String dateStartStr,@Param("dateEndStr") String dateEndStr);
 }

@@ -718,5 +718,17 @@
         </if>
         order by id asc limit 5000
     </select>
-
+    <select id="getCountIsBlackByCustNum" resultType="java.lang.Integer">
+        select count(1)
+        from b_marketing_transfer_sync_${cid}
+        where  cust_num = #{custNum}
+        and  (reserve_field1->'$.isBlack' = '1' or reserve_field1->'$.isBlack' = 1)
+    </select>
+    <select id="getCountIfApplyByCustNum" resultType="java.lang.Integer">
+        select count(1)
+        from b_marketing_transfer_sync_${cid}
+        where  cust_num = #{custNum}
+        and  if_apply = '1'
+        and request_data between #{} and #{}
+    </select>
 </mapper>

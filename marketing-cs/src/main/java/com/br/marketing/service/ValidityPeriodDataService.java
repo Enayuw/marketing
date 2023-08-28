@@ -19,7 +19,8 @@ import java.util.List;
 public interface ValidityPeriodDataService {
 
     /**
-     * 根据apiCode 查询有效期并返回转化数据。
+     * 根据apiCode custNum 查询有效期并返回转化数据。
+     * 返回 ture则剔除 false 则不剔除
      */
-    Boolean getMarketingTransferDataWithValidityPeriod(String apiCode,String cell);
+    Boolean getMarketingTransferDataWithValidityPeriod(String apiCode,String custNum);
 }

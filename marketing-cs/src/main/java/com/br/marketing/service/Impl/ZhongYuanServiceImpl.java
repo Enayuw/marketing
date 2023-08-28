@@ -65,35 +65,37 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         // 获取custNum 集合
         Set<String> custNumCollect = ifLoginCollect.stream().map(m -> m.getCustNum()).collect(Collectors.toSet());
 
+        // 剔除并返回有效期内最新一条
+        Map<String, SyncUserValidityPeriodBO> periodBOMap = eliminateAndValidity(custNumCollect, apiCode, ifLoginCollect);
+
+        // 推 Daas
+
+    }
+
+    private Map<String, SyncUserValidityPeriodBO> eliminateAndValidity(Set<String> custNumCollect, String apiCode, List<MarketingTransferSyncUser> ifLoginCollect) {
         Map<String, SyncUserValidityPeriodBO> filterSyncUserValidityPeriodBO = new HashMap<>();
         // 判断有效期
         Map<String, SyncUserValidityPeriodBO> periodBOMap =
-                transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(custNumCollect,apiCode, new Date());
+                transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(custNumCollect, apiCode, new Date());
         if(periodBOMap!=null){
             ifLoginCollect.forEach(transferSyncUser->{
                 SyncUserValidityPeriodBO bo = periodBOMap.get(transferSyncUser.getCustNum());
                 if (bo == null) {
                     log.warn("{}:中原转化数据推Daas不满足案件编号“有效期内”条件", transferSyncUser.getCustNum());
                 }else {
-                    // 获取有效期内的数据
-                    String cell = bo.getSyncUser().getCell();
                     // ifApply =1 and isBlack =1 剔除
-                    Boolean ifApplyOrIsBlack = validityPeriodDataService.getMarketingTransferDataWithValidityPeriod(apiCode, cell);
+                    Boolean ifApplyOrIsBlack = validityPeriodDataService.getMarketingTransferDataWithValidityPeriod(apiCode, transferSyncUser.getCustNum());
                     if(!ifApplyOrIsBlack){
                         filterSyncUserValidityPeriodBO.put(transferSyncUser.getCustNum(),bo);
                     }else {
                         log.warn("{}:中原转化数据推Daas满足【isBlack=1 or ifApply=1】条件", transferSyncUser.getCustNum());
                     }
-                    PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
+//                    PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
 //                    contextRuleNecessaryData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
                 }
             });
-
-            // 推 Daas
-
-
         }
-
+        return filterSyncUserValidityPeriodBO;
     }
 
     @Override
