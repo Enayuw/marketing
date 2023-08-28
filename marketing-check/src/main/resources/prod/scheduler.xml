@@ -693,7 +693,7 @@
     />
     <job:simple id="ZhongYouDataPullJob"
                 class="com.br.marketing.check.job.zhongyou.ZhongYouDataPullJob"
-                cron="0 0/10 6-8 * * ? *"
+                cron="0 0/10 7-8 * * ? *"
                 description="中邮数据拉取"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
