@@ -28,7 +28,7 @@ public class RealTimeUserDataSoleDTO extends SourceData {
 
     /**
      * 2023-08-23 21:28
-     * 数据来源
+     * 数据来源,默认转化数据 TRANSFER
      */
     private DistributeSourceTypeEnum distributeSourceTypeEnum;
 

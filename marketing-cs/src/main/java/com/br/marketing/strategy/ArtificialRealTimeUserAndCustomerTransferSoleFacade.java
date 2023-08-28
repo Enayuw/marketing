@@ -5,6 +5,7 @@ import com.br.marketing.client.DaasAndConversionData;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataSoleDTO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -18,6 +19,7 @@ import java.util.List;
  * @dateTime 2023/08/23 17:13
  */
 @Service
+@Slf4j
 public class ArtificialRealTimeUserAndCustomerTransferSoleFacade extends AbstractExternalInterfaceHandler<DaasAndConversionData> {
 
     @Resource
@@ -36,8 +38,8 @@ public class ArtificialRealTimeUserAndCustomerTransferSoleFacade extends Abstrac
         }
         try {
             artificialRealTimeUserDataSoleHandler.call(realTimeUserDataSoleDTOList, context);
-        } catch (Exception ignored) {
-
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
         customerTransferSoleHandler.call(conversionDataList, context);
         return null;

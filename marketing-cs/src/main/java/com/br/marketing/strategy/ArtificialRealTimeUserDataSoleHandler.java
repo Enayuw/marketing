@@ -4,14 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSoleDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataSoleDTO;
+import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.es.util.BrCipherMaker;
-import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.Collections;
@@ -27,9 +26,6 @@ import java.util.List;
 public class ArtificialRealTimeUserDataSoleHandler extends AbstractExternalInterfaceHandler<RealTimeUserDataSoleDTO> {
 
     @Resource
-    private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
-
-    @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
 
     @Override
@@ -41,13 +37,7 @@ public class ArtificialRealTimeUserDataSoleHandler extends AbstractExternalInter
             dassImportAdapDTO.setTransferInfoId(context.getTransferInfoId());
             // 组装去重内容
             makeDistribute(dassImportAdapDTO, phoneSaleExtendInfo, realTimeUserDataDTO, context.getApiCode());
-            try {
-                methodRetryHandlerService.callDassRealTimeUserDataSole(dassImportAdapDTO, 0, phoneSaleExtendInfo);
-            } catch (Exception ignored) {
-            }
-            if (CollectionUtils.isEmpty(dassImportAdapDTO.getData())) {
-                return null;
-            }
+            methodRetryHandlerService.callDassRealTimeUserDataSole(dassImportAdapDTO, 0, phoneSaleExtendInfo);
         }
         return null;
     }
@@ -85,7 +75,8 @@ public class ArtificialRealTimeUserDataSoleHandler extends AbstractExternalInter
                 , dassSingleImportDataDTO.getUid()
                 , BrCipherMaker.getInstance().encode(dassSingleImportDataDTO.getPhone())
                 , phoneSaleExtendInfo == null ? null : phoneSaleExtendInfo.getSourceId()
-                , realTimeUserDataDTO.getDistributeSourceTypeEnum()
+                , realTimeUserDataDTO.getDistributeSourceTypeEnum() == null
+                        ? DistributeSourceTypeEnum.TRANSFER : realTimeUserDataDTO.getDistributeSourceTypeEnum()
                 , phoneSaleExtendInfo == null ? null : phoneSaleExtendInfo.getStatus()
                 , dassSingleImportDataDTO.getExtend())));
         dassImportAdapDTO.setIsSole(true);
