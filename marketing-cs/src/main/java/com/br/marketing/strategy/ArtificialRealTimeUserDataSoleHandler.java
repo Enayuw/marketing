@@ -39,7 +39,7 @@ public class ArtificialRealTimeUserDataSoleHandler extends AbstractExternalInter
             //调用Dass
             DassSingleImportAdapSoleDTO dassImportAdapDTO = realTimeUserDataDTO.getDassSingleImportAdapDTO();
             dassImportAdapDTO.setTransferInfoId(context.getTransferInfoId());
-            // 组装去重内容，如果内容去重
+            // 组装去重内容
             makeDistribute(dassImportAdapDTO, phoneSaleExtendInfo, realTimeUserDataDTO, context.getApiCode());
             try {
                 methodRetryHandlerService.callDassRealTimeUserDataSole(dassImportAdapDTO, 0, phoneSaleExtendInfo);
