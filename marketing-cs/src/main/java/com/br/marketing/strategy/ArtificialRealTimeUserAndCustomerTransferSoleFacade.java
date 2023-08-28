@@ -27,7 +27,7 @@ public class ArtificialRealTimeUserAndCustomerTransferSoleFacade extends Abstrac
     private CustomerTransferSoleHandler customerTransferSoleHandler;
 
     @Override
-    JSONObject call(List<DaasAndConversionData> transferData, ProcessHandlerContext context) {
+    public JSONObject call(List<DaasAndConversionData> transferData, ProcessHandlerContext context) {
         List<RealTimeUserDataSoleDTO> realTimeUserDataSoleDTOList = new ArrayList<>();
         List<ConversionData> conversionDataList = new ArrayList<>();
         for (DaasAndConversionData daasAndConversionData : transferData) {

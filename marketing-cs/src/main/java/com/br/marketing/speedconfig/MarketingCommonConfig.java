@@ -908,6 +908,7 @@ public class MarketingCommonConfig {
     /**
      * 2023-08-23 15:15
      * 众邦状态分组与开关，状态优先级与配置顺序对应，最先配置的优先级也最高；
+     * eg：{"d":{"groupNo":2,"dxUserType":"2","switch":true},"c":{"groupNo":1,"dxUserType":"1","switch":true},"b":{"groupNo":1,"dxUserType":"1","switch":true},"a":{"groupNo":1,"dxUserType":"1","switch":true}}
      * map key 为状态 value 状态对应的分组及开关，groupNumber为组号；dxUserType为人工电销业务线场景；switch为开关标识，true为开
      */
     private LinkedHashMap<String, JSONObject> zhongbangStatusTypeMap;
@@ -933,5 +934,16 @@ public class MarketingCommonConfig {
      */
     private Boolean zhongBangToAIFirstSwitch;
 
+    /**
+     * 2023-08-27 15:19
+     * 众邦转化数据推送daas线程数,默认1
+     */
+    private int zhongBangTransferPushDaasThreadPoolSize = 1;
+
+    /**
+     * 2023-08-27 15:19
+     * 众邦手机去重天数，默认7天
+     */
+    private int zhongbangCellDistributeDay = 7;
 }
 

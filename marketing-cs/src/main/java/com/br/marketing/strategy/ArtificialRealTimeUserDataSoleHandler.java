@@ -34,13 +34,13 @@ public class ArtificialRealTimeUserDataSoleHandler extends AbstractExternalInter
     private MethodRetryHandlerService methodRetryHandlerService;
 
     @Override
-    JSONObject call(List<RealTimeUserDataSoleDTO> transferData, ProcessHandlerContext context) {
+    public JSONObject call(List<RealTimeUserDataSoleDTO> transferData, ProcessHandlerContext context) {
         for (RealTimeUserDataSoleDTO realTimeUserDataDTO : transferData) {
             Date date = new Date();
             PhoneSaleExtendInfo phoneSaleExtendInfo = realTimeUserDataDTO.getPhoneSaleExtendInfo();
             //调用Dass
             DassSingleImportAdapSoleDTO dassImportAdapDTO = realTimeUserDataDTO.getDassSingleImportAdapDTO();
-            dassImportAdapDTO.setExtendInfo(phoneSaleExtendInfo.getId().toString());
+            dassImportAdapDTO.setExtendInfo(phoneSaleExtendInfo == null ? null : phoneSaleExtendInfo.getId().toString());
             dassImportAdapDTO.setTransferInfoId(context.getTransferInfoId());
             // 组装去重内容，如果内容去重
             makeDistribute(dassImportAdapDTO, phoneSaleExtendInfo, realTimeUserDataDTO, context.getApiCode());
@@ -52,8 +52,10 @@ public class ArtificialRealTimeUserDataSoleHandler extends AbstractExternalInter
                 return null;
             }
             //插入b_phone_sale_extend_info
-            phoneSaleExtendInfo.setCreateTime(date);
-            phoneSaleExtendInfoMapper.insertSelective(phoneSaleExtendInfo);
+            if (phoneSaleExtendInfo != null) {
+                phoneSaleExtendInfo.setCreateTime(date);
+                phoneSaleExtendInfoMapper.insertSelective(phoneSaleExtendInfo);
+            }
         }
         return null;
     }
@@ -90,9 +92,9 @@ public class ArtificialRealTimeUserDataSoleHandler extends AbstractExternalInter
                 , apiCode
                 , dassSingleImportDataDTO.getUid()
                 , BrCipherMaker.getInstance().encode(dassSingleImportDataDTO.getPhone())
-                , phoneSaleExtendInfo.getSourceId()
+                , phoneSaleExtendInfo == null ? null : phoneSaleExtendInfo.getSourceId()
                 , realTimeUserDataDTO.getDistributeSourceTypeEnum()
-                , phoneSaleExtendInfo.getStatus()
+                , phoneSaleExtendInfo == null ? null : phoneSaleExtendInfo.getStatus()
                 , dassSingleImportDataDTO.getExtend())));
         dassImportAdapDTO.setIsSole(true);
         dassImportAdapDTO.setSoleField(realTimeUserDataDTO.getSoleField());

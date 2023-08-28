@@ -1365,66 +1365,6 @@ public class PhoneSaleExtendInfoExample {
             return (Criteria) this;
         }
 
-        public Criteria andGroupNumberIsNull() {
-            addCriterion("group_number is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupNumberIsNotNull() {
-            addCriterion("group_number is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupNumberEqualTo(Integer value) {
-            addCriterion("group_number =", value, "groupNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupNumberNotEqualTo(Integer value) {
-            addCriterion("group_number <>", value, "groupNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupNumberGreaterThan(Integer value) {
-            addCriterion("group_number >", value, "groupNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupNumberGreaterThanOrEqualTo(Integer value) {
-            addCriterion("group_number >=", value, "groupNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupNumberLessThan(Integer value) {
-            addCriterion("group_number <", value, "groupNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupNumberLessThanOrEqualTo(Integer value) {
-            addCriterion("group_number <=", value, "groupNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupNumberIn(List<Integer> values) {
-            addCriterion("group_number in", values, "groupNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupNumberNotIn(List<Integer> values) {
-            addCriterion("group_number not in", values, "groupNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupNumberBetween(Integer value1, Integer value2) {
-            addCriterion("group_number between", value1, value2, "groupNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andGroupNumberNotBetween(Integer value1, Integer value2) {
-            addCriterion("group_number not between", value1, value2, "groupNumber");
-            return (Criteria) this;
-        }
-
         public Criteria andDxUserTypeIsNull() {
             addCriterion("dx_user_type is null");
             return (Criteria) this;
@@ -1492,6 +1432,66 @@ public class PhoneSaleExtendInfoExample {
 
         public Criteria andDxUserTypeNotBetween(String value1, String value2) {
             addCriterion("dx_user_type not between", value1, value2, "dxUserType");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupNoIsNull() {
+            addCriterion("group_no is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupNoIsNotNull() {
+            addCriterion("group_no is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupNoEqualTo(Integer value) {
+            addCriterion("group_no =", value, "groupNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupNoNotEqualTo(Integer value) {
+            addCriterion("group_no <>", value, "groupNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupNoGreaterThan(Integer value) {
+            addCriterion("group_no >", value, "groupNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupNoGreaterThanOrEqualTo(Integer value) {
+            addCriterion("group_no >=", value, "groupNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupNoLessThan(Integer value) {
+            addCriterion("group_no <", value, "groupNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupNoLessThanOrEqualTo(Integer value) {
+            addCriterion("group_no <=", value, "groupNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupNoIn(List<Integer> values) {
+            addCriterion("group_no in", values, "groupNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupNoNotIn(List<Integer> values) {
+            addCriterion("group_no not in", values, "groupNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupNoBetween(Integer value1, Integer value2) {
+            addCriterion("group_no between", value1, value2, "groupNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupNoNotBetween(Integer value1, Integer value2) {
+            addCriterion("group_no not between", value1, value2, "groupNo");
             return (Criteria) this;
         }
     }

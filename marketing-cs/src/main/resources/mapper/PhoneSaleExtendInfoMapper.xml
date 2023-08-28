@@ -334,7 +334,7 @@
 
     <select id="findInfoByMaxPushDxTimeAndCellList" resultType="com.br.marketing.entity.PhoneSaleExtendInfo"
             parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample">
-        select t2.push_dx_time, t2.cell, t2.status, t2.group_number, t2.create_time
+        select t2.push_dx_time, t2.cell, t2.status, t2.group_no, t2.create_time
         from (select max(push_dx_time) as push_dx_time, cell
         from b_phone_sale_extend_info
         <if test="_parameter != null">
