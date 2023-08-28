@@ -582,7 +582,7 @@ public class PhoneSaleExtendServiceImpl {
         Set<String> set = new HashSet<>(cellSet.size());
         cellSet.forEach(cell -> {
             Integer groupNoOld = dbCellGroupMap.get(cell);
-            if (groupNoOld == null || groupNoOld = 0 || groupNoOld < groupNo) {
+            if (groupNoOld == null || groupNoOld == 0 || groupNoOld < groupNo) {
                 set.add(cell);
             }
         });
