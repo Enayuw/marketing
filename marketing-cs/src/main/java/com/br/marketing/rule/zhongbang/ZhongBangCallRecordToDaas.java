@@ -98,20 +98,25 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
         DassSingleImportAdapSoleDTO dassSingleImportAdapSoleDTO = new DassSingleImportAdapSoleDTO();
         DassSingleImportDataDTO dassSingleImportDataDTO = new DassSingleImportDataDTO();
         MarketingSyncUser syncUser = syncUserData.getSyncUser();
-        // 根据custNum取上传接口最新的gender（0女1男）传男女
         String reserveField1 = syncUser.getReserveField1();
         if (org.springframework.util.StringUtils.hasText(reserveField1)) {
             JSONObject jsonObject = JSON.parseObject(reserveField1);
-            String gender = jsonObject.getString("gender");
-            if ("0".equals(gender)) {
-                dassSingleImportDataDTO.setGender("女");
-            } else if ("1".equals(gender)) {
-                dassSingleImportDataDTO.setGender("男");
-            }
             String firstName = jsonObject.getString("firstName");
             if(StringUtils.isNotEmpty(firstName)) {
                 dassSingleImportDataDTO.setName(firstName.replaceAll("\\*", ""));
             }
+        }
+        String idCard = BrCipherMaker.getInstance().decode(syncUser.getIdCard());
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(idCard)) {
+            int gender;
+            int idCardLen = 18;
+            int length = idCard.length();
+            if (length == idCardLen) {
+                gender = Integer.parseInt(idCard.substring(16, 17));
+            } else {
+                gender = Integer.parseInt(idCard.substring(length - 1, length - 1));
+            }
+            dassSingleImportDataDTO.setGender((gender % 2 == 0) ? "女" : "男");
         }
         String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
         String phone = AESUtil.aesEncrypty(cell, aesKey);
@@ -161,6 +166,8 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
         phoneSaleExtendInfo.setPushDxTime(new Date());
         phoneSaleExtendInfo.setSourceId(dto.getId());
         phoneSaleExtendInfo.setCell(marketingSyncUser.getCell());
+        phoneSaleExtendInfo.setGroupNo(1);
+        phoneSaleExtendInfo.setDxType("1");
         return phoneSaleExtendInfo;
     }
 
