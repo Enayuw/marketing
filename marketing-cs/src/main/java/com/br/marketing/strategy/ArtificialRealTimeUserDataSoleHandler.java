@@ -40,7 +40,7 @@ public class ArtificialRealTimeUserDataSoleHandler extends AbstractExternalInter
             PhoneSaleExtendInfo phoneSaleExtendInfo = realTimeUserDataDTO.getPhoneSaleExtendInfo();
             //调用Dass
             DassSingleImportAdapSoleDTO dassImportAdapDTO = realTimeUserDataDTO.getDassSingleImportAdapDTO();
-            dassImportAdapDTO.setExtendInfo(phoneSaleExtendInfo.getId().toString());
+            dassImportAdapDTO.setExtendInfo(phoneSaleExtendInfo == null ? null : phoneSaleExtendInfo.getId().toString());
             dassImportAdapDTO.setTransferInfoId(context.getTransferInfoId());
             // 组装去重内容，如果内容去重
             makeDistribute(dassImportAdapDTO, phoneSaleExtendInfo, realTimeUserDataDTO, context.getApiCode());
@@ -52,8 +52,10 @@ public class ArtificialRealTimeUserDataSoleHandler extends AbstractExternalInter
                 return null;
             }
             //插入b_phone_sale_extend_info
-            phoneSaleExtendInfo.setCreateTime(date);
-            phoneSaleExtendInfoMapper.insertSelective(phoneSaleExtendInfo);
+            if (phoneSaleExtendInfo != null) {
+                phoneSaleExtendInfo.setCreateTime(date);
+                phoneSaleExtendInfoMapper.insertSelective(phoneSaleExtendInfo);
+            }
         }
         return null;
     }
