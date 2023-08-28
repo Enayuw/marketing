@@ -53,6 +53,7 @@ import com.br.marketing.vo.MarketingPreUserErrorDetailVO;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
+import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.ListUtils;
@@ -1339,7 +1340,7 @@ public class PushDataServiceImpl implements PushDataService {
                     }
                 }
                 // 将查询出来的明细数据进行分组，每组50个数据
-                sendXieChengDataVt(result, xieChengSmsCollidingDataVtList);
+                sendXieChengDataVt(result, xieChengSmsCollidingDataVtList,sendDate);
             }
             // 线程池关门
             closedThreadPoll(result);
@@ -1391,12 +1392,12 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
 
-    private void sendXieChengDataVt(ThreadResult result, List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataVtList) {
+    private void sendXieChengDataVt(ThreadResult result, List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataVtList,Integer sendDate) {
         List<List<XieChengSmsCollidingDataVt>> xieChengSmsCollidingDataVtPartitions =
                 Lists.partition(xieChengSmsCollidingDataVtList, XIECHENGSMSCOLLIDINGPARTATIONNUM);
         for (List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataListVtPartition : xieChengSmsCollidingDataVtPartitions) {
             result.xieChengSmsCollidingThreadVt.submit(() ->
-                    pushXieChengSmsCollidingDataVt(xieChengSmsCollidingDataListVtPartition, result));
+                    pushXieChengSmsCollidingDataVt(xieChengSmsCollidingDataListVtPartition, result,sendDate));
         }
     }
 
@@ -1464,7 +1465,7 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     public void pushXieChengSmsCollidingDataVt(List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataVtPartition,
-                                               ThreadResult result) {
+                                               ThreadResult result,Integer sendDate) {
         try {
             List<String> sha256CodeList = xieChengSmsCollidingDataVtPartition.stream()
                     .map(XieChengSmsCollidingDataVt::getSha256CodeList).collect(Collectors.toList());
@@ -1478,7 +1479,7 @@ public class PushDataServiceImpl implements PushDataService {
 
                     JSONArray returnDataList = resultJson.getJSONArray("data");
                     // mq 更新日志
-                    List<XieChengSmsCollidingDataLogVt> xieChengSmsCollidingDataLogVtList= initLogVt(returnDataList);
+                    List<XieChengSmsCollidingDataLogVt> xieChengSmsCollidingDataLogVtList= initLogVt(returnDataList,sendDate);
                     for (int i = 0; i < xieChengSmsCollidingDataLogVtList.size(); i++){
                         XieChengSmsCollidingDataLogVt xieChengSmsCollidingDataLogVt = xieChengSmsCollidingDataLogVtList.get(i);
                         result.xieChengSmsCollidingThreadLogUpdateVt.submit(() -> {
@@ -1495,7 +1496,7 @@ public class PushDataServiceImpl implements PushDataService {
                 } else {
                     // 异常请求 只更新日志表状态3
                     String msg = resultJson.getString("msg");
-                    xieChengSmsCollidingDataLogVtMapper.updateBatchVt(sha256CodeList, 3, msg);
+                    xieChengSmsCollidingDataLogVtMapper.updateBatchVt(sha256CodeList, 3, msg,sendDate);
                 }
             }
         } catch (Exception e) {
@@ -1503,7 +1504,7 @@ public class PushDataServiceImpl implements PushDataService {
         }
     }
 
-    private List<XieChengSmsCollidingDataLogVt> initLogVt(JSONArray returnDataList) {
+    private List<XieChengSmsCollidingDataLogVt> initLogVt(JSONArray returnDataList, Integer sendDate) {
         List<XieChengSmsCollidingDataLogVt> xieChengSmsCollidingDataLogVtList = new ArrayList<>();
         for (int i = 0; i < returnDataList.size(); i++) {
             JSONObject returnData = returnDataList.getJSONObject(i);
@@ -1514,6 +1515,7 @@ public class PushDataServiceImpl implements PushDataService {
             xieChengSmsCollidingDataLogVt.setResult(returnData.getBoolean("result"));
             xieChengSmsCollidingDataLogVt.setOrgChannel(returnData.getString("orgChannel"));
             xieChengSmsCollidingDataLogVt.setStatus(2);
+            xieChengSmsCollidingDataLogVt.setSendDate(sendDate);
             xieChengSmsCollidingDataLogVtList.add(xieChengSmsCollidingDataLogVt);
         }
         return xieChengSmsCollidingDataLogVtList;
