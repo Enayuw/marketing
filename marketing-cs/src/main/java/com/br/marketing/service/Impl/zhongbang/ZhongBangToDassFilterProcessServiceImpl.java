@@ -127,17 +127,20 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
     }
 
     private void filterAndPushData(List<MarketingTransferSyncUser> list, String apiCode) {
+        log.warn("众邦推Dass转化过滤，首次JOB过滤前量级：{}", list.size());
         for (String type : dxUserTypeMap.keySet()) {
             // 1.捞取
             List<MarketingTransferSyncUser> filterList = list.stream().filter(ifApplyOrLent(type)).collect(Collectors.toList());
             if (CollectionUtils.isEmpty(filterList)) {
                 continue;
             }
+            log.warn("众邦推Dass转化过滤，首次JOB{}，有效期过滤前量级：{}", type, filterList.size());
             // 2.有效期
             List<MarketingSyncUser> validedList = getValidedList(apiCode, filterList);
             if (CollectionUtils.isEmpty(validedList)) {
                 continue;
             }
+            log.warn("众邦推Dass转化过滤，首次JOB{}，有效期过滤后量级：{}", type, validedList.size());
             // 3.推送
             pushToDass(validedList, type, apiCode);
         }
@@ -222,6 +225,7 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
         if (CollectionUtils.isEmpty(custNums)) {
             return;
         }
+        log.warn("众邦推Dass转化过滤，非首次JOB{}，近3天命中推dass人工量级：{}", type, custNums.size());
 
         List<MarketingTransferSyncUser> transferSyncUserList = new ArrayList<>();
         if (("1").equals(userType)) {
@@ -234,6 +238,7 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
                     requestDate, lastDateStart, lastDateEnd, custNums);
         }
 
+        log.warn("众邦推Dass转化过滤，非首次JOB{}，有效期过滤前量级：{}", type, transferSyncUserList.size());
         List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(transferSyncUserList, PARTITION);
         partition.forEach(part -> {
             List<MarketingTransferSyncUser> list = new ArrayList<>();
@@ -255,6 +260,7 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
     }
 
     public void pushToDass(List<MarketingSyncUser> marketingSyncUserList, String type, String apiCode) {
+        log.warn("众邦推Dass转化过滤，{}推送数据去重前的量级：{}", type, marketingSyncUserList.size());
         List<DassAssembleTransferDataSoleDTO> dtoList = new ArrayList<>();
         for (MarketingSyncUser marketingSyncUser : marketingSyncUserList) {
             DassTransferDataDTO dassDataDTO = new DassTransferDataDTO();
