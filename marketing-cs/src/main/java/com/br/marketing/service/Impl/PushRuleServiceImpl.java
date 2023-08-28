@@ -2004,10 +2004,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                 redisBad = Boolean.TRUE;
             }
             if (!redisBad&&sismember) {
-                MarketingSyncInfo syncInfo = new MarketingSyncInfo();
-                vo.setApiCode(syncInfo.getApiCode());
-                vo.setTaskId(syncInfo.getCusBatch());
-                vo.setRequestId(syncInfo.getRequestBatch());
+                vo.setApiCode(dto.getApiCode());
+                vo.setTaskId(dto.getTaskId());
+                vo.setRequestId(dto.getRequestId());
                 vo.setStatus(1);
                 marketingPreUserSyncDetailVOResult.setMessage("运行中");
                 return marketingPreUserSyncDetailVOResult.setCode(ResultCode.SUCCESS.getValue()).setDate(vo);

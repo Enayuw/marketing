@@ -113,6 +113,12 @@
             <groupId>com.br.common</groupId>
             <artifactId>redisengine</artifactId>
             <version>1.0.0</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>jedis</artifactId>
+                    <groupId>redis.clients</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.br.ice.service</groupId>
