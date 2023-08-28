@@ -90,7 +90,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                     }else {
                         log.warn("{}:中原转化数据推Daas满足【isBlack=1 or ifApply=1】条件", transferSyncUser.getCustNum());
                     }
-//                    PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
+                    PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
 //                    contextRuleNecessaryData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
                 }
             });
