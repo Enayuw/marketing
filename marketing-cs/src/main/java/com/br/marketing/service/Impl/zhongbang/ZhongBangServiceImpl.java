@@ -43,6 +43,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -167,7 +168,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
      * 组装推送daas信息
      */
     private DassSingleImportDataDTO packageDassSingleImportDataDTO(MarketingTransferSyncUser transferSyncUser
-            , MarketingSyncUser syncUser, String dxUserType) {
+            , MarketingSyncUser syncUser, String dxUserType, Map<String, MarketingTransferSyncUser> newTransferSyncUserMap) {
         String phone = AESUtil.aesEncrypty(BrCipherMaker.getInstance().decode(
                 syncUser.getCell()), aesKey);
         DassSingleImportDataDTO singleImportDataDTO = new DassSingleImportDataDTO();
@@ -184,6 +185,10 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 log.error(e.getMessage(), e);
             }
         }
+        MarketingTransferSyncUser newSyncUser = newTransferSyncUserMap.get(transferSyncUser.getCustNum());
+        if (newSyncUser == null) {
+            newSyncUser = transferSyncUser;
+        }
         singleImportDataDTO.setName(firstName);
         singleImportDataDTO.setOrgname("zhongbang");
         singleImportDataDTO.setPhone(phone);
@@ -191,6 +196,13 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         singleImportDataDTO.setSource("33");
         singleImportDataDTO.setUid(transferSyncUser.getCustNum());
         singleImportDataDTO.setId(transferSyncUser.getId());
+        singleImportDataDTO.setRegisterTime(StringUtils.isBlank(newSyncUser.getRegisterTime())
+                ? newSyncUser.getRegisterTime() : newSyncUser.getRegisterTime().replace(":000", ""));
+        singleImportDataDTO.setLoginTime(StringUtils.isBlank(newSyncUser.getLoginTime())
+                ? newSyncUser.getRegisterTime() : newSyncUser.getRegisterTime().replace(":000", ""));
+        singleImportDataDTO.setAuditTime(StringUtils.isBlank(newSyncUser.getAuditTime())
+                ? newSyncUser.getRegisterTime() : newSyncUser.getRegisterTime().replace(":000", ""));
+        singleImportDataDTO.setAuditAmount(newSyncUser.getAuditAmount());
         String idCard = BrCipherMaker.getInstance().decode(syncUser.getIdCard());
         if (StringUtils.isNotBlank(idCard)) {
             int gender;
@@ -267,6 +279,10 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 int groupNo = v.getIntValue(groupNoKey);
                 Set<String> newCellSet = phoneSaleExtendService.groupRule(apiCode, day, cellSet
                         , groupNo);
+                List<MarketingTransferSyncUser> newTransferSyncUser = marketingTransferSyncUserMapper
+                        .getTransferByCustNumOrderDatatikv_(dList.get(0).gettCid(), new ArrayList<>(custNumSet));
+                Map<String, MarketingTransferSyncUser> newTransferSyncUserMap = newTransferSyncUser.stream().collect(Collectors.toMap(
+                        MarketingTransferSyncUser::getCustNum, Function.identity(), (v1, v2) -> v2));
                 List<DaasAndConversionData> list = new ArrayList<>();
                 for (MarketingTransferSyncUser transferSyncUser : dList) {
                     SyncUserValidityPeriodBO bo = validityPeriodMap.get(transferSyncUser.getCustNum());
@@ -287,7 +303,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             transferSyncUser, syncUser, status, dxUserType, groupNo);
                     // 电销
                     DassSingleImportDataDTO dassImportDataDTO = packageDassSingleImportDataDTO(
-                            transferSyncUser, syncUser, dxUserType);
+                            transferSyncUser, syncUser, dxUserType, newTransferSyncUserMap);
                     soleDTO.setDassSingleImportDataDTO(dassImportDataDTO);
                     // 外呼
                     ConversionData conversionData = packageConversionData(transferSyncUser, bo);
