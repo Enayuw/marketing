@@ -12,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -20,7 +19,6 @@ import java.util.stream.Collectors;
  * 描述：： 中原接口实现
  * <p>
  * ------------------------------------
- *
  * @program: marketing
  * @ClassName ZhongYuanServiceImpl
  * @author: it-yml
@@ -51,9 +49,9 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList(String tcId, String apiCode, Long indexId,
-                                                                            LocalDate requestStartDate,LocalDate requestEndDate) {
+                                                                            String requestStartDate, String requestEndDate) {
 
-        return marketingTransferSyncUserMapper.getZhongYuanTransferByRequestDate(tcId, apiCode, requestStartDate.toString(),requestEndDate.toString(), indexId);
+        return marketingTransferSyncUserMapper.getZhongYuanTransferByRequestDate(tcId, apiCode, requestStartDate, requestEndDate, indexId);
 
     }
 
@@ -73,22 +71,24 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
     }
 
-    private Map<String, SyncUserValidityPeriodBO> eliminateAndValidity(Set<String> custNumCollect, String apiCode, List<MarketingTransferSyncUser> ifLoginCollect) {
+    private Map<String, SyncUserValidityPeriodBO> eliminateAndValidity(Set<String> custNumCollect, String apiCode,
+                                                                       List<MarketingTransferSyncUser> ifLoginCollect) {
         Map<String, SyncUserValidityPeriodBO> filterSyncUserValidityPeriodBO = new HashMap<>();
         // 判断有效期
         Map<String, SyncUserValidityPeriodBO> periodBOMap =
                 transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(custNumCollect, apiCode, new Date());
-        if(periodBOMap!=null){
-            ifLoginCollect.forEach(transferSyncUser->{
+        if (periodBOMap != null) {
+            ifLoginCollect.forEach(transferSyncUser -> {
                 SyncUserValidityPeriodBO bo = periodBOMap.get(transferSyncUser.getCustNum());
                 if (bo == null) {
                     log.warn("{}:中原转化数据推Daas不满足案件编号“有效期内”条件", transferSyncUser.getCustNum());
-                }else {
+                } else {
                     // ifApply =1 and isBlack =1 剔除
-                    Boolean ifApplyOrIsBlack = validityPeriodDataService.getMarketingTransferDataWithValidityPeriod(apiCode, transferSyncUser.getCustNum());
-                    if(!ifApplyOrIsBlack){
-                        filterSyncUserValidityPeriodBO.put(transferSyncUser.getCustNum(),bo);
-                    }else {
+                    Boolean ifApplyOrIsBlack = validityPeriodDataService.getMarketingTransferDataWithValidityPeriod(apiCode,
+                            transferSyncUser.getCustNum());
+                    if (!ifApplyOrIsBlack) {
+                        filterSyncUserValidityPeriodBO.put(transferSyncUser.getCustNum(), bo);
+                    } else {
                         log.warn("{}:中原转化数据推Daas满足【isBlack=1 or ifApply=1】条件", transferSyncUser.getCustNum());
                     }
                     PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();

@@ -1,10 +1,7 @@
 package com.br.marketing.service;
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.rule.zhongyuan.ZhongYuanTransferToDaas;
-import io.swagger.models.auth.In;
 
-import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -24,7 +21,7 @@ public interface ZhongYuanService {
     /**
      * 时间范围内的中原转化数据获取
      */
-    List<MarketingTransferSyncUser> getMarketingTransferSyncUserList(String tcId,String apiCode,Long indexId, LocalDate requestStartDate,LocalDate requestEndDate);
+    List<MarketingTransferSyncUser> getMarketingTransferSyncUserList(String tcId,String apiCode,Long indexId, String requestStartDate,String requestEndDate);
 
     /**
      * 中原转化数据推Daas

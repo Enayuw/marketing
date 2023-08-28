@@ -1,8 +1,6 @@
 package com.br.marketing.check.job.zhongyuan;
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.rule.zhongyuan.ZhongYuanTransferToDaas;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.ZhongYuanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -49,7 +47,7 @@ public class ZhongYuanTransferDataToDaasJob extends AbstractSimpleElasticJob {
                 String tcId = tableCreateService.getTcId(apiCode);
                 Long indexId = null;
                 while(true){
-                    List<MarketingTransferSyncUser> marketingTransferSyncUserList = zhongYuanService.getMarketingTransferSyncUserList(tcId, apiCode, indexId, LocalDate.now(),LocalDate.now());
+                    List<MarketingTransferSyncUser> marketingTransferSyncUserList = zhongYuanService.getMarketingTransferSyncUserList(tcId, apiCode, indexId, LocalDate.now().toString(),LocalDate.now().toString());
                     if(marketingTransferSyncUserList.isEmpty()) break;
                     indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size()-1).getId();
                     // 推daas

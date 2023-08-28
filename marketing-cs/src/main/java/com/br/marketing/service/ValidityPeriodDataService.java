@@ -1,8 +1,6 @@
 package com.br.marketing.service;
 
-import com.br.marketing.entity.MarketingTransferSyncUser;
-
-import java.util.List;
+import javafx.util.Pair;
 
 /**
  * 描述：： 根据有效期框定数据范围
@@ -23,4 +21,5 @@ public interface ValidityPeriodDataService {
      * 返回 ture则剔除 false 则不剔除
      */
     Boolean getMarketingTransferDataWithValidityPeriod(String apiCode,String custNum);
+    Pair<String, String> getMarketingTransferDataWithValidityRange(String apiCode);
 }

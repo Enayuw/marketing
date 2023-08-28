@@ -1,10 +1,10 @@
 package com.br.marketing.service.Impl;
 
 import com.br.marketing.entity.MarketingDataValidConfig;
-import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.service.ValidityPeriodDataService;
+import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -14,13 +14,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 
 /**
  * 描述：： 根据有效期框定数据范围实现
  * <p>
  * ------------------------------------
- *
  * @program: marketing
  * @ClassName ValidityPeriodDataServiceImpl
  * @author: it-yml
@@ -48,19 +46,33 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
         if (countIsBlackByCustNum > 0) {
             return Boolean.TRUE;
         }
-        MarketingDataValidConfig marketingTransferDataWithValidityPeriod = marketingDataValidConfigMapper.getMarketingTransferDataWithValidityPeriod(apiCode);
-        if (marketingTransferDataWithValidityPeriod != null) {
-            String validStartDate = marketingTransferDataWithValidityPeriod.getValidStartDate();
-            String validEndDate = marketingTransferDataWithValidityPeriod.getValidEndDate();
-            String dateStartStr = getDateStr(validStartDate, -1);
-            String dateEndStr = getDateStr(validEndDate, 1);
-            Integer countIfApplyByCustNum = marketingTransferSyncUserMapper.getCountIfApplyByCustNum(tcId, custNum, dateStartStr, dateEndStr);
-            if(countIfApplyByCustNum>0){
-                return Boolean.TRUE;
-            }
+
+        Pair<String, String> validityRange = getMarketingTransferDataWithValidityRange(apiCode);
+        if (validityRange == null) {
+            return Boolean.FALSE;
+        }
+        Integer countIfApplyByCustNum = marketingTransferSyncUserMapper.getCountIfApplyByCustNum(tcId, custNum, validityRange.getKey(), validityRange.getValue());
+        if (countIfApplyByCustNum > 0) {
+            return Boolean.TRUE;
         }
         return Boolean.FALSE;
     }
+
+    @Override
+    public Pair<String, String> getMarketingTransferDataWithValidityRange(String apiCode) {
+        MarketingDataValidConfig marketingTransferDataWithValidityPeriod =
+                marketingDataValidConfigMapper.getMarketingTransferDataWithValidityPeriod(apiCode);
+        if (marketingTransferDataWithValidityPeriod == null) {
+            return null;
+        }
+
+        String validStartDate = marketingTransferDataWithValidityPeriod.getValidStartDate();
+        String validEndDate = marketingTransferDataWithValidityPeriod.getValidEndDate();
+        String dateStartStr = getDateStr(validStartDate, -1);
+        String dateEndStr = getDateStr(validEndDate, 1);
+        return new Pair<>(dateStartStr, dateEndStr);
+    }
+
 
     /* 获取指定日后 后 dayAddNum 天的 日期
      * @param day  日期，格式为String："2013-9-3";
