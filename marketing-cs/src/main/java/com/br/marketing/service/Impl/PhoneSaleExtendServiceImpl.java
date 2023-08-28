@@ -493,7 +493,7 @@ public class PhoneSaleExtendServiceImpl {
             return true;
         }
         PhoneSaleExtendInfo info = list.get(0);
-        return info.getGroupNo() < groupNo;
+        return info.getGroupNo() == 0 || info.getGroupNo() < groupNo;
     }
 
     /**
@@ -536,7 +536,7 @@ public class PhoneSaleExtendServiceImpl {
         Map<String, Integer> map = new ConcurrentHashMap<>(cellGroupNumberMap.size());
         cellGroupNumberMap.forEach((cell, groupNo) -> {
             Integer groupNoOld = dbCellGroupMap.get(cell);
-            if (groupNoOld == null || groupNoOld < groupNo) {
+            if (groupNoOld == null || groupNoOld == 0 || groupNoOld < groupNo) {
                 map.put(cell, groupNo);
             }
         });
@@ -582,7 +582,7 @@ public class PhoneSaleExtendServiceImpl {
         Set<String> set = new HashSet<>(cellSet.size());
         cellSet.forEach(cell -> {
             Integer groupNoOld = dbCellGroupMap.get(cell);
-            if (groupNoOld == null || groupNoOld < groupNo) {
+            if (groupNoOld == null || groupNoOld = 0 || groupNoOld < groupNo) {
                 set.add(cell);
             }
         });
