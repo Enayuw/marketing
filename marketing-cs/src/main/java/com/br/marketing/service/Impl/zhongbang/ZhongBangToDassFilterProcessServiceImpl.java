@@ -139,7 +139,7 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
                 continue;
             }
             // 3.推送
-            pushToDass(validedList, type);
+            pushToDass(validedList, type, apiCode);
         }
     }
 
@@ -250,11 +250,11 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
             return;
         }
         // 3.推送
-        pushToDass(validedList, type);
+        pushToDass(validedList, type, apiCode);
 
     }
 
-    public void pushToDass(List<MarketingSyncUser> marketingSyncUserList, String type) {
+    public void pushToDass(List<MarketingSyncUser> marketingSyncUserList, String type, String apiCode) {
         List<DassAssembleTransferDataSoleDTO> dtoList = new ArrayList<>();
         for (MarketingSyncUser marketingSyncUser : marketingSyncUserList) {
             DassTransferDataDTO dassDataDTO = new DassTransferDataDTO();
@@ -284,7 +284,7 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
         }
 
         ProcessHandlerContext context = new ProcessHandlerContext();
-        context.setApiCode(marketingSyncUserList.get(0).getApiCode());
+        context.setApiCode(apiCode);
         artificialTransferSoleHandler.call(dtoList, context);
     }
 }
