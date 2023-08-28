@@ -34,7 +34,7 @@ public class ArtificialRealTimeUserDataSoleHandler extends AbstractExternalInter
     private MethodRetryHandlerService methodRetryHandlerService;
 
     @Override
-    JSONObject call(List<RealTimeUserDataSoleDTO> transferData, ProcessHandlerContext context) {
+    public JSONObject call(List<RealTimeUserDataSoleDTO> transferData, ProcessHandlerContext context) {
         for (RealTimeUserDataSoleDTO realTimeUserDataDTO : transferData) {
             Date date = new Date();
             PhoneSaleExtendInfo phoneSaleExtendInfo = realTimeUserDataDTO.getPhoneSaleExtendInfo();
@@ -90,9 +90,9 @@ public class ArtificialRealTimeUserDataSoleHandler extends AbstractExternalInter
                 , apiCode
                 , dassSingleImportDataDTO.getUid()
                 , BrCipherMaker.getInstance().encode(dassSingleImportDataDTO.getPhone())
-                , phoneSaleExtendInfo.getSourceId()
+                , phoneSaleExtendInfo == null ? null : phoneSaleExtendInfo.getSourceId()
                 , realTimeUserDataDTO.getDistributeSourceTypeEnum()
-                , phoneSaleExtendInfo.getStatus()
+                , phoneSaleExtendInfo == null ? null : phoneSaleExtendInfo.getStatus()
                 , dassSingleImportDataDTO.getExtend())));
         dassImportAdapDTO.setIsSole(true);
         dassImportAdapDTO.setSoleField(realTimeUserDataDTO.getSoleField());
