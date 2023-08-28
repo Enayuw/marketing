@@ -20,6 +20,6 @@ public interface ValidityPeriodDataService {
      * 根据apiCode custNum 查询有效期并返回转化数据。
      * 返回 ture则剔除 false 则不剔除
      */
-    Boolean getMarketingTransferDataWithValidityPeriod(String apiCode,String custNum);
+    Boolean judgmentMarketingTransferDataInvalidWithValidityPeriod(String apiCode,String custNum);
     Pair<String, String> getMarketingTransferDataWithValidityRange(String apiCode);
 }

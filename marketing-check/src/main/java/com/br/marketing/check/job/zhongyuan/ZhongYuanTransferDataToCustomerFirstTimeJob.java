@@ -22,7 +22,7 @@ import java.util.Set;
  * 中原转化数据推客服转化过滤
  * http://c.100credit.cn/pages/viewpage.action?pageId=125085427
  * @program: marketing
- * @ClassName ZhongYuanTransferDataToCustomerFirstJob
+ * @ClassName ZhongYuanTransferDataToCustomerFirstTimeJob
  * @author: chenh
  * @create: 2023-08-25 19:34
  * @Version 1.0
@@ -30,7 +30,7 @@ import java.util.Set;
  **/
 @Component
 @Slf4j
-public class ZhongYuanTransferDataToCustomerFirstJob extends AbstractSimpleElasticJob {
+public class ZhongYuanTransferDataToCustomerFirstTimeJob extends AbstractSimpleElasticJob {
 
     @Resource
     private ZhongYuanService zhongYuanService;
@@ -69,7 +69,7 @@ public class ZhongYuanTransferDataToCustomerFirstJob extends AbstractSimpleElast
 
                 Long indexId = null;
                 while (true) {
-                    List<MarketingTransferSyncUser> marketingTransferSyncUserList = zhongYuanService.getMarketingTransferSyncUserList(tcId, apiCode
+                    List<MarketingTransferSyncUser> marketingTransferSyncUserList = zhongYuanService.getMarketingTransferSyncUserListWithValidityPeriod(tcId, apiCode
                             , indexId, startDate, endDate);
                     if (marketingTransferSyncUserList.isEmpty()) break;
                     indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();

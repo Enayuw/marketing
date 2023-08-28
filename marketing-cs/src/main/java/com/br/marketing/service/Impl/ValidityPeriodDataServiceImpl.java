@@ -39,7 +39,7 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
     private MarketingDataValidConfigMapper marketingDataValidConfigMapper;
 
     @Override
-    public Boolean getMarketingTransferDataWithValidityPeriod(String apiCode, String custNum) {
+    public Boolean judgmentMarketingTransferDataInvalidWithValidityPeriod(String apiCode, String custNum) {
         String tcId = tableCreateService.getTcId(apiCode);
         // isBlack = 1
         Integer countIsBlackByCustNum = marketingTransferSyncUserMapper.getCountIsBlackByCustNum(tcId, custNum);

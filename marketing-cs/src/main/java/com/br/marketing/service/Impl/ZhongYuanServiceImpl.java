@@ -48,7 +48,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
     private MarketingCommonConfig marketingCommonConfig;
 
     @Override
-    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserList(String tcId, String apiCode, Long indexId,
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListWithValidityPeriod(String tcId, String apiCode, Long indexId,
                                                                             String requestStartDate, String requestEndDate) {
 
         return marketingTransferSyncUserMapper.getZhongYuanTransferByRequestDate(tcId, apiCode, requestStartDate, requestEndDate, indexId);
@@ -61,18 +61,19 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         // 获取ifLogin 的数据集合
         List<MarketingTransferSyncUser> ifLoginCollect = marketingTransferSyncUserList.stream().
                 filter(m -> "1".equals(m.getIfLogin())).collect(Collectors.toList());
-        // 获取custNum 集合
-        Set<String> custNumCollect = ifLoginCollect.stream().map(m -> m.getCustNum()).collect(Collectors.toSet());
 
-        // 剔除并返回有效期内最新一条
-        Map<String, SyncUserValidityPeriodBO> periodBOMap = eliminateAndValidity(custNumCollect, apiCode, ifLoginCollect);
+        // 剔除并返回有效期内最新一条的转化数据
+        Map<String, SyncUserValidityPeriodBO> periodBOMap = eliminateAndValidity(apiCode, ifLoginCollect);
 
         // 推 Daas
 
     }
 
-    private Map<String, SyncUserValidityPeriodBO> eliminateAndValidity(Set<String> custNumCollect, String apiCode,
+    private Map<String, SyncUserValidityPeriodBO> eliminateAndValidity(String apiCode,
                                                                        List<MarketingTransferSyncUser> ifLoginCollect) {
+        // 获取custNum 集合
+        Set<String> custNumCollect = ifLoginCollect.stream().map(m -> m.getCustNum()).collect(Collectors.toSet());
+
         Map<String, SyncUserValidityPeriodBO> filterSyncUserValidityPeriodBO = new HashMap<>();
         // 判断有效期
         Map<String, SyncUserValidityPeriodBO> periodBOMap =
@@ -84,14 +85,14 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                     log.warn("{}:中原转化数据推Daas不满足案件编号“有效期内”条件", transferSyncUser.getCustNum());
                 } else {
                     // ifApply =1 and isBlack =1 剔除
-                    Boolean ifApplyOrIsBlack = validityPeriodDataService.getMarketingTransferDataWithValidityPeriod(apiCode,
+                    Boolean ifApplyOrIsBlack = validityPeriodDataService.judgmentMarketingTransferDataInvalidWithValidityPeriod(apiCode,
                             transferSyncUser.getCustNum());
                     if (!ifApplyOrIsBlack) {
                         filterSyncUserValidityPeriodBO.put(transferSyncUser.getCustNum(), bo);
                     } else {
                         log.warn("{}:中原转化数据推Daas满足【isBlack=1 or ifApply=1】条件", transferSyncUser.getCustNum());
                     }
-                    PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
+//                    PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
 //                    contextRuleNecessaryData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
                 }
             });
