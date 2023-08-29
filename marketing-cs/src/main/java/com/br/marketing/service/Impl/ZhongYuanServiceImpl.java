@@ -2,12 +2,18 @@ package com.br.marketing.service.Impl;
 
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSoleDTO;
+import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataSoleDTO;
+import com.br.marketing.common.enums.DistributeSourceTypeEnum;
+import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.service.ZhongYuanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.strategy.ArtificialRealTimeUserDataSoleHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +25,7 @@ import java.util.stream.Collectors;
  * 描述：： 中原接口实现
  * <p>
  * ------------------------------------
+ *
  * @program: marketing
  * @ClassName ZhongYuanServiceImpl
  * @author: it-yml
@@ -42,6 +49,9 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
     private ValidityPeriodDataService validityPeriodDataService;
 
     @Resource
+    private ArtificialRealTimeUserDataSoleHandler artificialRealTimeUserDataSoleHandler;
+
+    @Resource
     private TableCreateServiceImpl tableCreateService;
 
     @Resource
@@ -49,7 +59,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListWithValidityPeriod(String tcId, String apiCode, Long indexId,
-                                                                            String requestStartDate, String requestEndDate) {
+                                                                                              String requestStartDate, String requestEndDate) {
 
         return marketingTransferSyncUserMapper.getZhongYuanTransferByRequestDate(tcId, apiCode, requestStartDate, requestEndDate, indexId);
 
@@ -64,9 +74,22 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
         // 剔除并返回有效期内最新一条的转化数据
         Map<String, SyncUserValidityPeriodBO> periodBOMap = eliminateAndValidity(apiCode, ifLoginCollect);
-
         // 推 Daas
+        List<RealTimeUserDataSoleDTO> transferData = new ArrayList<>();
+        for (SyncUserValidityPeriodBO bo : periodBOMap.values()) {
+            PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
+            System.out.println("Value = " + bo);
+            RealTimeUserDataSoleDTO realTimeUserDataSoleDTO = new RealTimeUserDataSoleDTO();
+            DassSingleImportAdapSoleDTO dassSingleImportAdapSoleDTO = new DassSingleImportAdapSoleDTO();
+            PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
 
+        }
+
+
+
+        ProcessHandlerContext context = new ProcessHandlerContext();
+        context.setApiCode(apiCode);
+        artificialRealTimeUserDataSoleHandler.call(transferData, context);
     }
 
     private Map<String, SyncUserValidityPeriodBO> eliminateAndValidity(String apiCode,
@@ -92,8 +115,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                     } else {
                         log.warn("{}:中原转化数据推Daas满足【isBlack=1 or ifApply=1】条件", transferSyncUser.getCustNum());
                     }
-//                    PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
-//                    contextRuleNecessaryData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
+//
                 }
             });
         }
