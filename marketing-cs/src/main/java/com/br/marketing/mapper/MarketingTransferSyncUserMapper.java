@@ -422,4 +422,6 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     Integer getCountIsBlackByCustNum(@Param("cid") String cId, @Param("custNum") String custNum);
     Integer getCountIfApplyByCustNum(@Param("cid") String cId, @Param("custNum") String custNum,
                                      @Param("dateStartStr") String dateStartStr,@Param("dateEndStr") String dateEndStr);
+
+    MarketingTransferSyncUser getRegisterTimeAndLoginTimeByCreateTimeOrderDesc(@Param("cid") String cId,@Param("custNum") String custNum);
 }
