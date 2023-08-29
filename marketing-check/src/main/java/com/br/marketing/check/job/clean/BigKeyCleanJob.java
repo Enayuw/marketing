@@ -32,7 +32,7 @@ public class BigKeyCleanJob extends AbstractSimpleElasticJob {
         long transferFirstTime = System.currentTimeMillis();
         String transferKey = RedisKeyConstant.transferKey.concat(":")
                 .concat(LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-        redisChgService.delBigSet(uploadKey,3000);
+        redisChgService.delBigSet(transferKey,3000);
         log.warn(String.format("删除转化key：%s,耗时：%dms",transferKey,System.currentTimeMillis()-transferFirstTime));
     }
 
