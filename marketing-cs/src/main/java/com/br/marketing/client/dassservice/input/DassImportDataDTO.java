@@ -18,6 +18,23 @@ public class DassImportDataDTO {
      */
     private String uid;
 
+    private String apiCode;
+
+    /**
+     * 去重类型：
+     * value = -1,表示单条数据计算有效期去重，expireBeginDate，expireEndDate 必传
+     * value = [0,+∞]，表示一批数据范围内去重,n表示n天内推送一次，
+     */
+    @JSONField(serialize = false)
+    private Integer soleType;
+
+    /**
+     * 去重维度：
+     * 见枚举：com.br.marketing.common.enums.SoleFieldEnum
+     */
+    @JSONField(serialize = false)
+    private Integer soleField;
+
     /**
      * 手机号
      */

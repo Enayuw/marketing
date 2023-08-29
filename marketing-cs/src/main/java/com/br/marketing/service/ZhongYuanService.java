@@ -1,5 +1,6 @@
 package com.br.marketing.service;
 
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 
 import java.util.List;
@@ -32,4 +33,9 @@ public interface ZhongYuanService {
      * 中原转化数据推客服转化过滤
      */
     void zhongYuanTransferDataToCustomerFilter(List<MarketingTransferSyncUser> marketingTransferSyncUserList);
+
+    /**
+     * 中原sftp文件数据推外呼（客服）
+     */
+    Result pushOutBoundData(Long id);
 }
