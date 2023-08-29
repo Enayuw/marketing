@@ -719,7 +719,7 @@
         <if test="indexId != null and indexId != ''">
             and id > #{indexId}
         </if>
-        order by id limit 20000;
+        order by id limit 2000;
     </select>
 
     <select id="getZhongBangNoFirstCuShentikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
