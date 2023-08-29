@@ -38,15 +38,11 @@ public class ZhongYuanTransferDataToCustomerFirstTimeJob extends AbstractSimpleE
     private TableCreateServiceImpl tableCreateService;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-
     @Resource
     private ValidityPeriodDataService validityPeriodDataService;
 
-
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-
-
         Set<String> zhongYouJobApiCodes = marketingCommonConfig.getZhongYouJobApiCodes();
         if (!zhongYouJobApiCodes.isEmpty()) {
             zhongYouJobApiCodes.forEach(apiCode -> {
@@ -82,8 +78,5 @@ public class ZhongYuanTransferDataToCustomerFirstTimeJob extends AbstractSimpleE
         } else {
             log.error("中原转化数据推daas job未配置apiCode,请检查配置字段 【zhongYouJobApiCodes】");
         }
-
-        // T日的转化数据 registerTime <> null
-
     }
 }
