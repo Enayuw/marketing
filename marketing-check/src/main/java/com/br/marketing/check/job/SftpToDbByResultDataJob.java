@@ -175,7 +175,7 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
         List xwList = dxFileCustomize.get("xw");
         List juziList = dxFileCustomize.get("juzi");
         List yixinList = dxFileCustomize.get("yixin");
-        List zhongYouList = dxFileCustomize.get("zhongYuan");
+        List zhongYuanList = dxFileCustomize.get("zhongYuan");
         for (Map.Entry<String, Set<String>> entry : map.entrySet()) {
             String srcPath = entry.getKey();
             Set<String> fileNames = entry.getValue();
@@ -230,7 +230,7 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                                         , MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE
                                         , iTxtToDbService::phoneTodbByYiXin
                                         ,iTxtToDbService::phoneTodbByYiXinAfterAction);
-                            } else if (zhongYouList.contains(apiCode)) {
+                            } else if (zhongYuanList.contains(apiCode)) {
                                 ArrayList<String> baseHeads = new ArrayList<>(Arrays.asList("uid", "phone", "name", "orgname", "user_type"));
                                 sftpToDbByCommonService.actionTxtFile(context
                                         , localFile
