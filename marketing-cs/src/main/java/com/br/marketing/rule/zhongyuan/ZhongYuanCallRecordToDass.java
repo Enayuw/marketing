@@ -12,9 +12,9 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.PushDataService;
+import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,8 +22,6 @@ import org.springframework.stereotype.Service;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,6 +41,9 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
 
     @Autowired
     PushDataService pushDataService;
+
+    @Autowired
+    ValidityPeriodDataService validityPeriodDataService;
 
     @Override
     public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -96,9 +97,15 @@ public class ZhongYuanCallRecordToDass implements AssembleData<BatchRealTimeUser
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         if (transmitFact instanceof CallRecordBO) {
+            // 判断intentionGrade意向等级 非A/B 则结束流程
             CallRecordBO bo = (CallRecordBO) transmitFact;
             String intentionGrade = bo.getDetail().getIntentionGrade();
-            return pushDataService.isPushDassWithCallGrade(this.label(),intentionGrade);
+            Boolean gradeOK = pushDataService.isPushDassWithCallGrade(this.label(), intentionGrade);
+            if (gradeOK) {
+                Boolean aBoolean = validityPeriodDataService.judgmentMarketingTransferDataInvalidWithValidityPeriod(bo.getApiCode(), bo.getCaseNum());
+            }
+
+
         }
         return false;
     }
