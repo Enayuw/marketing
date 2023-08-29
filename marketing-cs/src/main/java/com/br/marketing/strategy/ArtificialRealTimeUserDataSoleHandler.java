@@ -8,12 +8,12 @@ import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
-import com.br.marketing.es.util.BrCipherMaker;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -67,21 +67,23 @@ public class ArtificialRealTimeUserDataSoleHandler extends AbstractExternalInter
         } else {
             dassImportAdapDTO.setSoleDay(realTimeUserDataDTO.getSoleType());
         }
-        // 去重功能记录
-        dassImportAdapDTO.setDetailLogList(Collections.singletonList(methodRetryHandlerService.dataJoinLogFix(
+        List<DataJoinLogDTO> logDTOList = new ArrayList<>();
+        logDTOList.add(methodRetryHandlerService.dataJoinLogFix(
                 dassSingleImportDataDTO
                 , DistributeTypeEnum.DAAS_REAL_TIME_USER_ONE
                 , apiCode
                 , dassSingleImportDataDTO.getUid()
-                , BrCipherMaker.getInstance().encode(dassSingleImportDataDTO.getPhone())
+                , dassSingleImportDataDTO.getPhone()
                 , phoneSaleExtendInfo == null ? null : phoneSaleExtendInfo.getSourceId()
                 , realTimeUserDataDTO.getDistributeSourceTypeEnum() == null
                         ? DistributeSourceTypeEnum.TRANSFER : realTimeUserDataDTO.getDistributeSourceTypeEnum()
                 , phoneSaleExtendInfo == null ? null : phoneSaleExtendInfo.getStatus()
-                , dassSingleImportDataDTO.getExtend())));
+                , dassSingleImportDataDTO.getExtend()));
+        // 去重功能记录
+        dassImportAdapDTO.setDetailLogList(logDTOList);
         dassImportAdapDTO.setIsSole(true);
-        dassImportAdapDTO.setSoleField(realTimeUserDataDTO.getSoleField());
-        dassImportAdapDTO.setSoleDay(realTimeUserDataDTO.getSoleType());
-        dassImportAdapDTO.setData(Collections.singletonList(dassSingleImportDataDTO));
+        List<DassSingleImportDataDTO> list = new ArrayList<>();
+        list.add(dassSingleImportDataDTO);
+        dassImportAdapDTO.setData(list);
     }
 }
