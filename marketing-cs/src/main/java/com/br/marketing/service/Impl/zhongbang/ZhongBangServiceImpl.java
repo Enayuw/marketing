@@ -129,7 +129,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         criteriaD.andApplyResultEqualTo("1")
                                 .andApplyTimeBetween(yesterdayStartTime, yesterdayEndTime)
                                 .andIfLentNotEqualTo("1").andApiCodeEqualTo(apiCode);
-                        markPackagePushDaas(example, threadPool, apiCode, k, v, groupNoKey, dxUserTypeKey, day);
+                        markPackagePushDaas(example, criteriaD, threadPool, apiCode, k, v, groupNoKey, dxUserTypeKey, day);
                         break;
                     case "c":
                         example.clear();
@@ -144,7 +144,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                 .andIfApplyNotEqualTo("1")
                                 .andLoginTimeBetween(yesterdayStartTime, yesterdayEndTime)
                                 .andApiCodeEqualTo(apiCode);
-                        markPackagePushDaas(example, threadPool, apiCode, k, v, groupNoKey, dxUserTypeKey, day);
+                        markPackagePushDaas(example, criteriaC, threadPool, apiCode, k, v, groupNoKey, dxUserTypeKey, day);
                         break;
                     default:
                 }
@@ -292,6 +292,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
      * 推送daas及外呼
      */
     private void markPackagePushDaas(MarketingTransferSyncUserExample example
+            , MarketingTransferSyncUserExample.Criteria criteria
             , ThreadPoolExecutor threadPool
             , String apiCode
             , String status
@@ -358,13 +359,20 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 artificialRealTimeUserAndCustomerTransferSoleFacade.call(list, context);
                 if (LocalTime.now().isAfter(LocalTime.parse("10:00:00"))) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode()
-                            , "众邦转化数据推送到daas(单条)与外呼，推送时间已过“10点”，任务继续。。。，apiCode:" + apiCode
+                            , "众邦转化数据推送到daas(单条)与外呼，推送时间已过“10点”,但任务会继续...,apiCode:" + apiCode
                             , "众邦转化数据推送daas(单条)与外呼告警"));
                 }
             });
-            if (dList.size() < 2000) {
+            int size = dList.size();
+            if (size < 2000) {
                 break;
             }
+            List<MarketingTransferSyncUserExample.Criteria> oredCriteria = example.getOredCriteria();
+            for (MarketingTransferSyncUserExample.Criteria criteria1 : oredCriteria) {
+                List<MarketingTransferSyncUserExample.Criterion> criteria2 = criteria1.getCriteria();
+                criteria2.removeIf(criterion -> "id >".equals(criterion.getCondition()));
+            }
+            criteria.andIdGreaterThan(dList.get(size - 1).getId());
         }
         int activeCount = 0;
         do {
