@@ -2,6 +2,8 @@ package com.br.marketing.service.Impl.transferfieldprocess;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.dto.TransferDataDTO;
+import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.service.TransferFieldProcessFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -15,7 +17,7 @@ public class TransferFieldProcessByXiechengFactory implements TransferFieldProce
     }
 
     @Override
-    public void fieldProcess(MarketingTransferSyncUser transferSyncUser) {
+    public void fieldProcess(MarketingTransferSyncUser transferSyncUser, TransferDataItemDTO transferDataItemDTO) {
         Boolean isBlack = Boolean.FALSE;
         if (StringUtils.isNotBlank(transferSyncUser.getReserveField1())&&transferSyncUser.getReserveField1().contains("isBlack")) {
             JSONObject extendJb = JSONObject.parseObject(transferSyncUser.getReserveField1());
@@ -42,5 +44,10 @@ public class TransferFieldProcessByXiechengFactory implements TransferFieldProce
                 transferSyncUser.setReserveField1(JSON.toJSONString(json));
             }
         }
+    }
+
+    @Override
+    public TransferDataDTO formatTransferObj(String jsonData) {
+        return null;
     }
 }

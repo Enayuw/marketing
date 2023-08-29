@@ -8,6 +8,8 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.dto.TransferDataDTO;
+import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.enums.ThreeKeyTypeEnum;
@@ -51,7 +53,7 @@ public class TransferFieldProcessByZhongAnFactory implements TransferFieldProces
     }
 
     @Override
-    public void fieldProcess(MarketingTransferSyncUser transferSyncUser) {
+    public void fieldProcess(MarketingTransferSyncUser transferSyncUser, TransferDataItemDTO transferDataItemDTO) {
         String transferSyncUserCustNum = transferSyncUser.getCustNum();
         String cellByLog = transferSyncUserCustNum;
         String transferSyncUserUserType = transferSyncUser.getUserType();
@@ -92,5 +94,10 @@ public class TransferFieldProcessByZhongAnFactory implements TransferFieldProces
         jb.put(uKey, transferSyncUserUserType);
         jb.put(tKey, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(syncUser.getCreateTime()));
         transferSyncUser.setReserveField1(jb.toJSONString());
+    }
+
+    @Override
+    public TransferDataDTO formatTransferObj(String jsonData) {
+        return null;
     }
 }

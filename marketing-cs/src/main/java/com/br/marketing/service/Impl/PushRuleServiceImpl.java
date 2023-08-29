@@ -48,6 +48,7 @@ import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessImpl;
+import com.br.marketing.service.Impl.transferfieldprocess.dto.tongcheng.TransferDataItemByTongChengDTO;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.*;
 import com.github.pagehelper.PageHelper;
@@ -1326,8 +1327,14 @@ public class PushRuleServiceImpl implements PushRuleService {
         Integer soleNum = 20;
         Boolean isContinue = Boolean.FALSE;
         MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
-        TransferDataDTO dto = JSON.parseObject(transferInfo.getJsonData(), new TypeReference<TransferDataDTO>() {
-        }.getType());
+        TransferFieldProcessFactory transferFieldProcessFactory = transferFiledProcess.getTransferFieldProcessFactory(transferInfo.getApiCode());
+        TransferDataDTO<TransferDataItemDTO> dto = null;
+        if(transferFieldProcessFactory !=null && transferFieldProcessFactory.isFormat()){
+            dto =transferFieldProcessFactory.formatTransferObj(transferInfo.getJsonData());
+        }else{
+            dto = JSON.parseObject(transferInfo.getJsonData(), new TypeReference<TransferDataDTO<TransferDataItemDTO>>() {
+            }.getType());
+        }
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andApiCodeEqualTo(transferInfo.getApiCode()).andStatusEqualTo(customerStatus);
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
@@ -1337,7 +1344,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         String cid = marketingCustomers.get(0).getCid();
         String tcid = cid.replaceFirst("-", "");
         tableCreateService.createMarketingTransferUserTable(tcid);
-        TransferFieldProcessFactory transferFieldProcessFactory = transferFiledProcess.getTransferFieldProcessFactory(transferInfo.getApiCode());
         ArrayList<Callable<Result<MarketingPreUserErrorDetailVO>>> list = new ArrayList<>();
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             TransferDataItemDTO transferDataItemDTO = dto.getDataItems().get(i);
@@ -1385,46 +1391,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 transferSyncUser.setSettleTime(dateTimeComplet(transferDataItemDTO.getSettleTime()));
                 transferSyncUser.setTransformTime(dateTimeComplet(transferDataItemDTO.getTransformTime()));
                 if(transferFieldProcessFactory!=null){
-                    transferFieldProcessFactory.fieldProcess(transferSyncUser);
+                    transferFieldProcessFactory.fieldProcess(transferSyncUser,transferDataItemDTO);
                 }
-//                //桔子特殊处理
-//                if (marketingCommonConfig.getJuZiTransferInsertApiCodes().contains(transferSyncUser.getApiCode())
-//                        && StringUtils.isNotBlank(transferDataItemDTO.getCustNum()) && transferDataItemDTO.getCustNum().length() > 15) {
-//                    transferSyncUser.setCustNum(transferDataItemDTO.getCustNum().substring(15));
-//                    String reserveField1 = transferDataItemDTO.getReserveField1();
-//                    if (StringUtils.isNotBlank(reserveField1)) {
-//                        try {
-//                            JSONObject json = JSON.parseObject(reserveField1);
-//                            json.put("initCustNum", transferDataItemDTO.getCustNum());
-//                            transferSyncUser.setReserveField1(JSON.toJSONString(json));
-//                        } catch (Exception e) {
-//                            transferSyncUser.setReserveField1(reserveField1 + "," + transferDataItemDTO.getCustNum());
-//                        }
-//                    } else {
-//                        JSONObject json = new JSONObject();
-//                        json.put("initCustNum", transferDataItemDTO.getCustNum());
-//                        transferSyncUser.setReserveField1(JSON.toJSONString(json));
-//                    }
-//                }
-//                //携程特殊处理
-//                if (marketingCommonConfig.getXieChengTransferInsertApiCodes().contains(transferSyncUser.getApiCode())
-//                        && StringUtils.isNotBlank(transferDataItemDTO.getCustNum()) && transferDataItemDTO.getCustNum().length() > 18){
-//                    transferSyncUser.setCustNum(transferDataItemDTO.getCustNum().substring(18));
-//                    String reserveField1 = transferDataItemDTO.getReserveField1();
-//                    if (StringUtils.isNotBlank(reserveField1)) {
-//                        try {
-//                            JSONObject json = JSON.parseObject(reserveField1);
-//                            json.put("initCustNum", transferDataItemDTO.getCustNum());
-//                            transferSyncUser.setReserveField1(JSON.toJSONString(json));
-//                        } catch (Exception e) {
-//                            transferSyncUser.setReserveField1(reserveField1 + "," + transferDataItemDTO.getCustNum());
-//                        }
-//                    } else {
-//                        JSONObject json = new JSONObject();
-//                        json.put("initCustNum", transferDataItemDTO.getCustNum());
-//                        transferSyncUser.setReserveField1(JSON.toJSONString(json));
-//                    }
-//                }
                 try {
                     marketingTransferSyncUserMapper.insertSelective(transferSyncUser);
                 } catch (Exception ex) {
