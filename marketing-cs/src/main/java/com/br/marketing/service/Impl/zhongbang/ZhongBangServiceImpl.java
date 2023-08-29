@@ -196,12 +196,9 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         singleImportDataDTO.setSource("33");
         singleImportDataDTO.setUid(transferSyncUser.getCustNum());
         singleImportDataDTO.setId(transferSyncUser.getId());
-        singleImportDataDTO.setRegisterTime(StringUtils.isBlank(newSyncUser.getRegisterTime())
-                ? newSyncUser.getRegisterTime() : newSyncUser.getRegisterTime().replace(":000", ""));
-        singleImportDataDTO.setLoginTime(StringUtils.isBlank(newSyncUser.getLoginTime())
-                ? newSyncUser.getRegisterTime() : newSyncUser.getRegisterTime().replace(":000", ""));
-        singleImportDataDTO.setAuditTime(StringUtils.isBlank(newSyncUser.getAuditTime())
-                ? newSyncUser.getRegisterTime() : newSyncUser.getRegisterTime().replace(":000", ""));
+        singleImportDataDTO.setRegisterTime(replaceZero(newSyncUser.getRegisterTime(), transferSyncUser.getRegisterTime()));
+        singleImportDataDTO.setLoginTime(replaceZero(newSyncUser.getLoginTime(), transferSyncUser.getLoginTime()));
+        singleImportDataDTO.setAuditTime(replaceZero(newSyncUser.getAuditTime(), transferSyncUser.getAuditTime()));
         singleImportDataDTO.setAuditAmount(newSyncUser.getAuditAmount());
         String idCard = BrCipherMaker.getInstance().decode(syncUser.getIdCard());
         if (StringUtils.isNotBlank(idCard)) {
@@ -216,6 +213,15 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             singleImportDataDTO.setGender((gender % 2 == 0) ? "女" : "男");
         }
         return singleImportDataDTO;
+    }
+
+    /**
+     * 2023-08-29 9:31
+     * 替换0
+     */
+    private String replaceZero(String s1, String s2) {
+        return StringUtils.isBlank(s1) ? (StringUtils.isBlank(s2) ? s2 : s2.replace(":000", ""))
+                : s1.replace(":000", "");
     }
 
     /**
