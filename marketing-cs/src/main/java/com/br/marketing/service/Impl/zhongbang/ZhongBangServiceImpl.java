@@ -261,6 +261,18 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         return conversionData;
     }
 
+    /**
+     * 2023-08-29 14:08
+     * 动态调整线程大小
+     */
+    private void updatePoolSize(ThreadPoolExecutor threadPool) {
+        int poolSize = marketingCommonConfig.getZhongBangTransferPushDaasThreadPoolSize();
+        int corePoolSize = threadPool.getCorePoolSize();
+        if (corePoolSize != poolSize || threadPool.getMaximumPoolSize() != poolSize) {
+            threadPool.setMaximumPoolSize(poolSize);
+            threadPool.setCorePoolSize(poolSize);
+        }
+    }
 
     /**
      * 2023-08-28 9:47
@@ -280,6 +292,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             if (CollectionUtils.isEmpty(dList)) {
                 break;
             }
+            updatePoolSize(threadPool);
             Set<String> custNumSet = dList.stream().map(MarketingTransferSyncUser::getCustNum)
                     .collect(Collectors.toSet());
             threadPool.execute(() -> {
