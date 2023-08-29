@@ -89,7 +89,12 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         LinkedHashMap<String, JSONObject> statusTypeMap = marketingCommonConfig.getZhongbangStatusTypeMap();
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
         example.settCid(tcId);
-        LocalDate now = LocalDate.now();
+        LocalDate now;
+        if (bool) {
+            now = LocalDateTime.parse(dateTimeStr[1]).toLocalDate();
+        } else {
+            now = LocalDate.parse(dateTimeStr[0], DateTimeFormatter.ISO_LOCAL_DATE);
+        }
         LocalDate yesterdayDate = now.minusDays(1);
         String yesterdayStartTime = yesterdayDate.atStartOfDay().format(DATE_TIME_FORMATTER);
         String yesterdayEndTime = yesterdayDate.atTime(23, 59, 59, 999999999)
@@ -167,6 +172,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
      * 2023-08-28 9:52
      * 组装推送daas信息
      */
+    @SuppressWarnings("all")
     private DassSingleImportDataDTO packageDassSingleImportDataDTO(MarketingTransferSyncUser transferSyncUser
             , MarketingSyncUser syncUser, String dxUserType, Map<String, MarketingTransferSyncUser> newTransferSyncUserMap) {
         String phone = AESUtil.aesEncrypty(BrCipherMaker.getInstance().decode(

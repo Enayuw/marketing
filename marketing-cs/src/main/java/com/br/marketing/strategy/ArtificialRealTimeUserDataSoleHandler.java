@@ -80,8 +80,6 @@ public class ArtificialRealTimeUserDataSoleHandler extends AbstractExternalInter
                 , phoneSaleExtendInfo == null ? null : phoneSaleExtendInfo.getStatus()
                 , dassSingleImportDataDTO.getExtend())));
         dassImportAdapDTO.setIsSole(true);
-        dassImportAdapDTO.setSoleField(realTimeUserDataDTO.getSoleField());
-        dassImportAdapDTO.setSoleDay(realTimeUserDataDTO.getSoleType());
         dassImportAdapDTO.setData(Collections.singletonList(dassSingleImportDataDTO));
     }
 }
