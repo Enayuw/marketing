@@ -6,7 +6,6 @@ import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.client.DaasAndConversionData;
-import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSoleDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataSoleDTO;
@@ -68,9 +67,6 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
         SyncUserValidityPeriodBO syncUserData = syncUserPeriodMap.get(dto.getCaseNum());
         Map<String, MarketingTransferSyncUser> transferDataMap = ruleNecessaryData.getTransferMap();
         MarketingTransferSyncUser transferSyncUser = transferDataMap.get(dto.getCaseNum());
-        if (transferSyncUser == null) {
-            return null;
-        }
         DaasAndConversionData dataDTO = new DaasAndConversionData();
         dataDTO.setConversionData(handleConversionData(dto, syncUserData));
         dataDTO.setRealTimeUserDataSoleDTO(handleRealTimeUserData(dto, syncUserData, transferSyncUser));
@@ -124,11 +120,13 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
         dassSingleImportDataDTO.setOrgname("zhongbang");
         dassSingleImportDataDTO.setUid(syncUser.getCustNum());
         dassSingleImportDataDTO.setUserType("1");
-        dassSingleImportDataDTO.setRegisterTime(transferSyncUser.getRegisterTime());
-        dassSingleImportDataDTO.setLoginTime(transferSyncUser.getLoginTime());
+        if (transferSyncUser != null) {
+            dassSingleImportDataDTO.setRegisterTime(replaceZero(transferSyncUser.getRegisterTime(),""));
+            dassSingleImportDataDTO.setLoginTime(replaceZero(transferSyncUser.getLoginTime(),""));
+            dassSingleImportDataDTO.setAuditTime(replaceZero(transferSyncUser.getAuditTime(),""));
+            dassSingleImportDataDTO.setAuditAmount(transferSyncUser.getAuditAmount());
+        }
         dassSingleImportDataDTO.setSource("33");
-        dassSingleImportDataDTO.setAuditTime(transferSyncUser.getAuditTime());
-        dassSingleImportDataDTO.setAuditAmount(transferSyncUser.getAuditAmount());
         dassSingleImportAdapSoleDTO.setDassSingleImportDataDTO(dassSingleImportDataDTO);
         return dassSingleImportAdapSoleDTO;
 
@@ -171,22 +169,13 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
         return phoneSaleExtendInfo;
     }
 
-    private DassImportDataDTO packageDassImportData(CallRecordBO dto, MarketingSyncUser marketingSyncUser) {
-        String phone = AESUtil.aesEncrypty(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()), aesKey);
-        String firstName = "";
-        if (StringUtils.isNotEmpty(marketingSyncUser.getReserveField1())) {
-            firstName = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("firstName");
-        }
-        DassImportDataDTO batchImportData = new DassImportDataDTO();
-        batchImportData.setName(StringUtils.isNotEmpty(firstName) ? firstName : "1");
-        batchImportData.setOrgname("zhongbang");
-        batchImportData.setPhone(phone);
-        batchImportData.setUserType("1");
-        batchImportData.setSource("33");
-        batchImportData.setUid(dto.getCaseNum());
-        batchImportData.setId(dto.getId());
-        return batchImportData;
-
+    /**
+     * 2023-08-29 9:31
+     * 替换0
+     */
+    private String replaceZero(String s1, String s2) {
+        return org.apache.commons.lang3.StringUtils.isBlank(s1) ? (org.apache.commons.lang3.StringUtils.isBlank(s2) ? s2 : s2.replace(":000", ""))
+                : s1.replace(":000", "");
     }
 
     @Override
