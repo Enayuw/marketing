@@ -68,7 +68,7 @@ public class ArtificialRealTimeUserDataSoleHandler extends AbstractExternalInter
             dassImportAdapDTO.setSoleDay(realTimeUserDataDTO.getSoleType());
         }
         List<DataJoinLogDTO> logDTOList = new ArrayList<>();
-        logDTOList.add((methodRetryHandlerService.dataJoinLogFix(
+        logDTOList.add(methodRetryHandlerService.dataJoinLogFix(
                 dassSingleImportDataDTO
                 , DistributeTypeEnum.DAAS_REAL_TIME_USER_ONE
                 , apiCode
@@ -78,7 +78,7 @@ public class ArtificialRealTimeUserDataSoleHandler extends AbstractExternalInter
                 , realTimeUserDataDTO.getDistributeSourceTypeEnum() == null
                         ? DistributeSourceTypeEnum.TRANSFER : realTimeUserDataDTO.getDistributeSourceTypeEnum()
                 , phoneSaleExtendInfo == null ? null : phoneSaleExtendInfo.getStatus()
-                , dassSingleImportDataDTO.getExtend())));
+                , dassSingleImportDataDTO.getExtend()));
         // 去重功能记录
         dassImportAdapDTO.setDetailLogList(logDTOList);
         dassImportAdapDTO.setIsSole(true);
