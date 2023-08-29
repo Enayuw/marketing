@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl.zhongbang;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
@@ -11,6 +12,7 @@ import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSo
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataSoleDTO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.common.utils.AESUtil;
@@ -38,6 +40,7 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -94,6 +97,15 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             now = LocalDateTime.parse(dateTimeStr[1]).toLocalDate();
         } else {
             now = LocalDate.parse(dateTimeStr[0], DateTimeFormatter.ISO_LOCAL_DATE);
+        }
+        example.createCriteria().andApiCodeEqualTo(apiCode).andRequestDataEqualTo(now.toString());
+        int count = marketingTransferSyncUserMapper.countByExample(example);
+        if (count < 1) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode()
+                    , "众邦“" + now + "”未传输转化数据，不能推送数据到daas(单条)与外呼，如需重新推送需手动执行任务，apiCode:"
+                            + apiCode + ";cid:" + tcId
+                    , "众邦转化数据推送daas(单条)与外呼告警"));
+            return;
         }
         LocalDate yesterdayDate = now.minusDays(1);
         String yesterdayStartTime = yesterdayDate.atStartOfDay().format(DATE_TIME_FORMATTER);
@@ -344,6 +356,11 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 ProcessHandlerContext context = new ProcessHandlerContext();
                 context.setApiCode(apiCode);
                 artificialRealTimeUserAndCustomerTransferSoleFacade.call(list, context);
+                if (LocalTime.now().isAfter(LocalTime.parse("10:00:00"))) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode()
+                            , "众邦转化数据推送到daas(单条)与外呼，推送时间已过“10点”，任务继续。。。，apiCode:" + apiCode
+                            , "众邦转化数据推送daas(单条)与外呼告警"));
+                }
             });
             if (dList.size() < 2000) {
                 break;
