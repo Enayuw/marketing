@@ -152,7 +152,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                                         List<MarketingTransferSyncUser> ifLoginCollectTransferSyncUserList) {
         List<RealTimeUserDataSoleDTO> realTimeUserDataSoleDTOS =
                 packageRealTimeUserDataSoleDTO(periodBOMap, ifLoginCollectTransferSyncUserList);
-        if(!ObjectUtil.isEmpty(realTimeUserDataSoleDTOS)){
+        if (!ObjectUtil.isEmpty(realTimeUserDataSoleDTOS)) {
             ProcessHandlerContext context = new ProcessHandlerContext();
             context.setApiCode(ifLoginCollectTransferSyncUserList.get(0).getApiCode());
             artificialRealTimeUserDataSoleHandler.call(realTimeUserDataSoleDTOS, context);
@@ -161,6 +161,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
     /**
      * 组装推Daas数据逻辑
+     *
      * @param periodBOMap
      * @param ifLoginCollectTransferSyncUserList
      * @return
@@ -180,7 +181,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                     // 组装Daas 接口数据单条
                     DassSingleImportDataDTO dassSingleImportDataDTO =
                             packageDassSingleImportData(marketingTransferSyncUser, marketingSyncUser, syncUserValidityPeriodBOCondition.getDxUserType());
-                    if(ObjectUtil.isEmpty(dassSingleImportDataDTO)){
+                    if (ObjectUtil.isEmpty(dassSingleImportDataDTO)) {
                         continue;
                     }
                     DassSingleImportAdapSoleDTO dassSingleImportAdapSoleDTO = new DassSingleImportAdapSoleDTO();
@@ -206,8 +207,9 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         }
         return transferData;
     }
+
     private DassSingleImportDataDTO packageDassSingleImportData(MarketingTransferSyncUser transfer, MarketingSyncUser marketingSyncUser,
-                                                    String dxUserType) {
+                                                                String dxUserType) {
         // 根据custNum 找到转化数据里最新的一条转化数据  获取里面的 loginTime 和 registerTime。
 //        String tcId = tableCreateService.getTcId(transfer.getApiCode());
 //        MarketingTransferSyncUser registerTimeAndLoginTimeByCreateTimeOrderDesc =
@@ -215,7 +217,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         String cell = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
         //解密失败报警,当前数据不推送
         if (StringUtils.isEmpty(cell)) {
-            log.error("数据推电销业务：电话解密失败 cell：{}",marketingSyncUser.getCell());
+            log.error("数据推电销业务：电话解密失败 cell：{}", marketingSyncUser.getCell());
             return new DassSingleImportDataDTO();
         }
         String phone = AESUtil.aesEncrypty(cell, aesKey);
@@ -235,6 +237,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
     /**
      * 电销记录表数据组装
+     *
      * @param transfer
      * @param marketingSyncUser
      * @param condition
@@ -265,6 +268,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
     /**
      * 剔除数据
+     *
      * @param marketingTransferSyncUserList
      * @return
      */
@@ -273,7 +277,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         Map<String, SyncUserValidityPeriodBOCondition> filterSyncUserValidityPeriodBOCondition = new HashMap<>();
         for (int i = 0; i < CONDITION_LIST.size(); i++) {
             String userType = CONDITION_LIST.get(i);
-            marketingTransferSyncUserList.forEach(item ->item.setUserType(userType));
+            marketingTransferSyncUserList.forEach(item -> item.setUserType(userType));
             // 判断有效期
             Map<String, SyncUserValidityPeriodBO> periodBOMap =
                     transferDataValidityPeriodService.getValidityPeriodUserTypeBatchFirstVersion(marketingTransferSyncUserList, apiCode, new Date());
@@ -320,12 +324,31 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         }
 
 
-
         return filterSyncUserValidityPeriodBOCondition;
     }
 
     @Override
     public void zhongYuanTransferDataToCustomerFilter(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+        Set<String> collectCustNumSet = marketingTransferSyncUserList.stream().map(item -> item.getCustNum()).collect(toSet());
+        String apiCode = marketingTransferSyncUserList.get(0).getApiCode();
+        Map<String, SyncUserValidityPeriodBO> periodBOMap =
+                transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(collectCustNumSet, apiCode, new Date());
+        if (!ObjectUtil.isEmpty(periodBOMap)) {
+            List<ConversionData> conversionDataList = new ArrayList<>();
+            marketingTransferSyncUserList.forEach(transferSyncUser -> {
+                String custNum = transferSyncUser.getCustNum();
+                SyncUserValidityPeriodBO bo = periodBOMap.get(custNum);
+                if (ObjectUtil.isEmpty(bo)) {
+                    log.warn("{}:中原转化数据推Daas不满足案件编号“有效期内”条件", custNum);
+                } else {
+                    ConversionData conversionData = packageConversionDataWithTransferData(transferSyncUser, bo);
+                    conversionDataList.add(conversionData);
+                }
+            });
+            ProcessHandlerContext context = new ProcessHandlerContext();
+            context.setApiCode(apiCode);
+            customerTransferSoleHandler.call(conversionDataList, context);
+        }
 
     }
 
@@ -351,7 +374,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
         Integer number = 0;
         example.setOrderByClause(" create_time,id limit 1000");
-        while(actionMark){
+        while (actionMark) {
             List<DassImportDataDTO> phoneSales = phoneSaleMapper.getPushDassData(id, minId);
             Set<String> cellSet = new HashSet<>();
             phoneSales.forEach(list -> cellSet.add(list.getPhone()));
@@ -379,7 +402,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                             continue;
                         }
                         // 外呼
-                        ConversionData conversionData = packageConversionData(transferSyncUser, bo , tcId);
+                        ConversionData conversionData = packageConversionData(transferSyncUser, bo, tcId);
                         list.add(conversionData);
                     }
                     ProcessHandlerContext context = new ProcessHandlerContext();
@@ -438,13 +461,41 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
             threadPool.setCorePoolSize(poolSize);
         }
     }
-
+    /**
+     * 组装推送客服转化数据
+     */
+    private ConversionData packageConversionDataWithTransferData(MarketingTransferSyncUser transferSyncUser
+            , SyncUserValidityPeriodBO bo) {
+        ConversionData conversionData = new ConversionData();
+        conversionData.setDataId(transferSyncUser.getId().toString());
+        conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
+        conversionData.setCid(transferSyncUser.getCid());
+        conversionData.setCaseNum(transferSyncUser.getCustNum());
+        conversionData.setGroupType(transferSyncUser.getUserType());
+        conversionData.setPartnerProcessDate(ObjectUtils.isEmpty(transferSyncUser.getCreateTime())
+                ? LocalDateTime.now().format(DATE_TIME_FORMATTER) : DateUtils.format(transferSyncUser.getCreateTime()
+                , DateHelper.LINE_DATE_COLON_TIME_FORMAT));
+        conversionData.setInversionStatus("0");
+        TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
+        BeanUtils.copyProperties(transferSyncUser, vo);
+        conversionData.setInversionInfo(JSON.toJSONString(vo));
+        // 去重参数设置
+        conversionData.setInitId(transferSyncUser.getId());
+        conversionData.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
+        conversionData.setSoleType(-1);
+        // 有效期设置
+        PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
+        conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
+        conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
+        conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
+        return conversionData;
+    }
     /**
      * 2023-08-28 9:52
      * 组装推送daas信息
      */
     private ConversionData packageConversionData(DassImportDataDTO dto
-            , SyncUserValidityPeriodBO bo , String tcid) {
+            , SyncUserValidityPeriodBO bo, String tcid) {
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(dto.getId().toString());
         conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
