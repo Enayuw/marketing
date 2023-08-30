@@ -858,5 +858,10 @@ public class MarketingCommonConfig {
      * {"apiCode":true,"redis":true}
      */
     private HashMap<String,Boolean> mockError;
+
+    /**
+     * pulsar消费的开关，false关闭开关；true 打开开关
+     */
+    private Boolean pulsarSwitch;
 }
 

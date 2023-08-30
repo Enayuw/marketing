@@ -5,12 +5,16 @@ import com.br.arch.geo.pulsar.ProductPulsarConsumer;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.context.spring.ContainerContext;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.Messages;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.SubscriptionType;
+import org.springframework.context.ApplicationContext;
 
+import java.util.Map;
 import java.util.function.Function;
 
 @Slf4j
@@ -64,6 +68,18 @@ public class PulsarConsumerThread extends Thread {
                 consumer = ProductPulsarClientManager.newConsumer(topic, subscription, SubscriptionType.Shared);
             }
             while (true) {
+                Map<String, MarketingCommonConfig> beansOfType = ContainerContext.applicationContext.getBeansOfType(MarketingCommonConfig.class);
+                if(beansOfType !=null){
+                    MarketingCommonConfig marketingCommonConfig = beansOfType.get("marketingCommonConfig");
+                    if(marketingCommonConfig.getPulsarSwitch() != null && marketingCommonConfig.getPulsarSwitch()){
+                        try {
+                            Thread.sleep(5000L);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                        continue;
+                    }
+                }
                 Messages<byte[]> messages = consumer.batchReceive();
                 for (Message<byte[]> message : messages) {
                     Boolean isAck = Boolean.FALSE;

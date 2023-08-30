@@ -64,10 +64,10 @@
 
     <appender name="PATCH_LOG"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/opt/logs/${APP_NAME}/${POD_NAME}/${APP_NAME}.patch</file>
+        <file>${LOG_HOME}/${APP_NAME}.patch</file>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter"></filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/opt/logs/${APP_NAME}/${POD_NAME}/${APP_NAME}.patch.%d{yyyy-MM-dd}
+            <fileNamePattern>${LOG_HOME}/${APP_NAME}.patch.%d{yyyy-MM-dd}
             </fileNamePattern>
             <maxHistory>15</maxHistory>
         </rollingPolicy>
