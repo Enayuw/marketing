@@ -207,7 +207,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         return transferData;
     }
     private DassSingleImportDataDTO packageDassSingleImportData(MarketingTransferSyncUser transfer, MarketingSyncUser marketingSyncUser,
-                                                    String dxUserType) {
+                                                                String dxUserType) {
         // 根据custNum 找到转化数据里最新的一条转化数据  获取里面的 loginTime 和 registerTime。
 //        String tcId = tableCreateService.getTcId(transfer.getApiCode());
 //        MarketingTransferSyncUser registerTimeAndLoginTimeByCreateTimeOrderDesc =
@@ -370,7 +370,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
         Integer number = 0;
         example.setOrderByClause(" create_time,id limit 1000");
-        while(actionMark){
+        while (actionMark) {
             List<DassImportDataDTO> phoneSales = phoneSaleMapper.getPushDassData(id, minId);
             Set<String> custNumSet = new HashSet<>();
             phoneSales.forEach(list -> custNumSet.add(list.getUid()));
@@ -379,7 +379,6 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
             }
             updatePoolSize(threadPool);
             localFile.setPushStartTime(new Date());
-
             number += phoneSales.size();
             if (phoneSales.size() > 0) {
                 DassImportDataDTO phoneSale = phoneSales.get(phoneSales.size() - 1);
@@ -390,14 +389,14 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                                     custNumSet, apiCode, new Date());
 
                     List<ConversionData> list = new ArrayList<>();
-                    for (DassImportDataDTO dataDTO : phoneSales) {
-                        SyncUserValidityPeriodBO bo = validityPeriodMap.get(dataDTO.getUid());
+                    for (DassImportDataDTO transferSyncUser : phoneSales) {
+                        SyncUserValidityPeriodBO bo = validityPeriodMap.get(transferSyncUser.getUid());
                         // 有效期判断
                         if (bo == null) {
                             continue;
                         }
                         // 外呼
-                        ConversionData conversionData = packageConversionData(dataDTO, bo , tcId);
+                        ConversionData conversionData = packageConversionData(transferSyncUser, bo, tcId);
                         list.add(conversionData);
                     }
                     ProcessHandlerContext context = new ProcessHandlerContext();
@@ -417,6 +416,12 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                 } catch (Exception e) {
                 }
             }
+
+            List<MarketingTransferSyncUserExample.Criteria> oredCriteria = example.getOredCriteria();
+            for (MarketingTransferSyncUserExample.Criteria criteria1 : oredCriteria) {
+                List<MarketingTransferSyncUserExample.Criterion> criteria2 = criteria1.getCriteria();
+                criteria2.removeIf(criterion -> "id >".equals(criterion.getCondition()));
+            }
         }
 
         localFile.setPushEndTime(new Date());
@@ -428,7 +433,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                     .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
                     .append("数量：".concat(number.toString()).concat("\r\n"))
                     .append("文件推送dass结束".concat("\r\n"));
-            alarmClient.sendAlarm(content.toString(), "推外呼结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
+            alarmClient.sendAlarm(content.toString(), "Dass结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
     }
@@ -445,13 +450,41 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
             threadPool.setCorePoolSize(poolSize);
         }
     }
-
+    /**
+     * 组装推送客服转化数据
+     */
+    private ConversionData packageConversionDataWithTransferData(MarketingTransferSyncUser transferSyncUser
+            , SyncUserValidityPeriodBO bo) {
+        ConversionData conversionData = new ConversionData();
+        conversionData.setDataId(transferSyncUser.getId().toString());
+        conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
+        conversionData.setCid(transferSyncUser.getCid());
+        conversionData.setCaseNum(transferSyncUser.getCustNum());
+        conversionData.setGroupType(transferSyncUser.getUserType());
+        conversionData.setPartnerProcessDate(ObjectUtils.isEmpty(transferSyncUser.getCreateTime())
+                ? LocalDateTime.now().format(DATE_TIME_FORMATTER) : DateUtils.format(transferSyncUser.getCreateTime()
+                , DateHelper.LINE_DATE_COLON_TIME_FORMAT));
+        conversionData.setInversionStatus("0");
+        TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
+        BeanUtils.copyProperties(transferSyncUser, vo);
+        conversionData.setInversionInfo(JSON.toJSONString(vo));
+        // 去重参数设置
+        conversionData.setInitId(transferSyncUser.getId());
+        conversionData.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
+        conversionData.setSoleType(-1);
+        // 有效期设置
+        PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
+        conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
+        conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
+        conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
+        return conversionData;
+    }
     /**
      * 2023-08-28 9:52
-     * 组装推送外呼信息
+     * 组装推送daas信息
      */
     private ConversionData packageConversionData(DassImportDataDTO dto
-            , SyncUserValidityPeriodBO bo , String tcid) {
+            , SyncUserValidityPeriodBO bo, String tcid) {
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(dto.getId().toString());
         conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
