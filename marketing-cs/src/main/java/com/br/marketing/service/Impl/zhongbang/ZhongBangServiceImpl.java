@@ -287,6 +287,34 @@ public class ZhongBangServiceImpl implements ZhongBangService {
     }
 
     /**
+     * 2023-08-29 10:06
+     * 删除id条件
+     */
+    private void updateExample(MarketingTransferSyncUserExample example) {
+        List<MarketingTransferSyncUserExample.Criteria> oredCriteria = example.getOredCriteria();
+        for (MarketingTransferSyncUserExample.Criteria criteria1 : oredCriteria) {
+            List<MarketingTransferSyncUserExample.Criterion> criteria2 = criteria1.getCriteria();
+            criteria2.removeIf(criterion -> "id >".equals(criterion.getCondition())
+                    || "create_time >=".equals(criterion.getCondition()));
+        }
+    }
+
+    /**
+     * 2023-08-29 10:06
+     * 更新查询条件
+     */
+    private void checkActiveCount(ThreadPoolExecutor threadPool) {
+        int activeCount = 0;
+        do {
+            try {
+                activeCount = threadPool.getActiveCount();
+                TimeUnit.SECONDS.sleep(5);
+            } catch (InterruptedException ignored) {
+            }
+        } while (activeCount != 0);
+    }
+
+    /**
      * 2023-08-28 9:47
      * 过滤数据
      * 推送daas及外呼
@@ -300,6 +328,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             , String groupNoKey
             , String dxUserTypeKey
             , int day) {
+        int countOld = marketingTransferSyncUserMapper.countByExample(example);
         for (; ; ) {
             List<MarketingTransferSyncUser> dList = marketingTransferSyncUserMapper.selectByExample(example);
             if (CollectionUtils.isEmpty(dList)) {
@@ -319,8 +348,8 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         , groupNo);
                 List<MarketingTransferSyncUser> newTransferSyncUser = marketingTransferSyncUserMapper
                         .getTransferByCustNumOrderDatatikv_(dList.get(0).gettCid(), new ArrayList<>(custNumSet));
-                Map<String, MarketingTransferSyncUser> newTransferSyncUserMap = newTransferSyncUser.stream().collect(Collectors.toMap(
-                        MarketingTransferSyncUser::getCustNum, Function.identity(), (v1, v2) -> v2));
+                Map<String, MarketingTransferSyncUser> newTransferSyncUserMap = newTransferSyncUser.stream().collect(
+                        Collectors.toMap(MarketingTransferSyncUser::getCustNum, Function.identity(), (v1, v2) -> v2));
                 List<DaasAndConversionData> list = new ArrayList<>();
                 for (MarketingTransferSyncUser transferSyncUser : dList) {
                     SyncUserValidityPeriodBO bo = validityPeriodMap.get(transferSyncUser.getCustNum());
@@ -357,30 +386,28 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 ProcessHandlerContext context = new ProcessHandlerContext();
                 context.setApiCode(apiCode);
                 artificialRealTimeUserAndCustomerTransferSoleFacade.call(list, context);
-                if (LocalTime.now().isAfter(LocalTime.parse("10:00:00"))) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode()
-                            , "众邦转化数据推送到daas(单条)与外呼，推送时间已过“10点”,但任务会继续...,apiCode:" + apiCode
-                            , "众邦转化数据推送daas(单条)与外呼告警"));
-                }
+                pushWarnMessage(apiCode);
             });
             int size = dList.size();
             if (size < 2000) {
                 break;
             }
-            List<MarketingTransferSyncUserExample.Criteria> oredCriteria = example.getOredCriteria();
-            for (MarketingTransferSyncUserExample.Criteria criteria1 : oredCriteria) {
-                List<MarketingTransferSyncUserExample.Criterion> criteria2 = criteria1.getCriteria();
-                criteria2.removeIf(criterion -> "id >".equals(criterion.getCondition()));
+            updateExample(example);
+            int count = marketingTransferSyncUserMapper.countByExample(example);
+            MarketingTransferSyncUser syncUser = dList.get(size - 1);
+            if (countOld == count) {
+                criteria.andIdGreaterThan(syncUser.getId());
             }
-            criteria.andIdGreaterThan(dList.get(size - 1).getId());
+            criteria.andCreateTimeGreaterThanOrEqualTo(syncUser.getCreateTime());
         }
-        int activeCount = 0;
-        do {
-            try {
-                activeCount = threadPool.getActiveCount();
-                TimeUnit.SECONDS.sleep(5);
-            } catch (InterruptedException ignored) {
-            }
-        } while (activeCount != 0);
+        checkActiveCount(threadPool);
+    }
+
+    private void pushWarnMessage(String apiCode) {
+        if (LocalTime.now().isAfter(LocalTime.parse("10:00:00"))) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode()
+                    , "众邦转化数据推送到daas(单条)与外呼，推送时间已过“10点”,但任务会继续...,apiCode:" + apiCode
+                    , "众邦转化数据推送daas(单条)与外呼告警"));
+        }
     }
 }
