@@ -348,7 +348,6 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
             number += phoneSales.size();
             if (phoneSales.size() > 0) {
                 DassImportDataDTO phoneSale = phoneSales.get(phoneSales.size() - 1);
-
                 minId = phoneSale.getId();
                 threadPool.execute(() -> {
                     Map<String, SyncUserValidityPeriodBO> validityPeriodMap =
@@ -356,14 +355,14 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                                     cellSet, apiCode, new Date());
 
                     List<ConversionData> list = new ArrayList<>();
-                    for (DassImportDataDTO transferSyncUser : phoneSales) {
-                        SyncUserValidityPeriodBO bo = validityPeriodMap.get(transferSyncUser.getUid());
+                    for (DassImportDataDTO dataDTO : phoneSales) {
+                        SyncUserValidityPeriodBO bo = validityPeriodMap.get(dataDTO.getUid());
                         // 有效期判断
                         if (bo == null) {
                             continue;
                         }
                         // 外呼
-                        ConversionData conversionData = packageConversionData(transferSyncUser, bo , tcId);
+                        ConversionData conversionData = packageConversionData(dataDTO, bo , tcId);
                         list.add(conversionData);
                     }
                     ProcessHandlerContext context = new ProcessHandlerContext();
@@ -388,12 +387,6 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                 } catch (Exception e) {
                 }
             }
-
-            List<MarketingTransferSyncUserExample.Criteria> oredCriteria = example.getOredCriteria();
-            for (MarketingTransferSyncUserExample.Criteria criteria1 : oredCriteria) {
-                List<MarketingTransferSyncUserExample.Criterion> criteria2 = criteria1.getCriteria();
-                criteria2.removeIf(criterion -> "id >".equals(criterion.getCondition()));
-            }
         }
 
         localFile.setPushEndTime(new Date());
@@ -405,7 +398,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                     .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
                     .append("数量：".concat(number.toString()).concat("\r\n"))
                     .append("文件推送dass结束".concat("\r\n"));
-            alarmClient.sendAlarm(content.toString(), "Dass结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
+            alarmClient.sendAlarm(content.toString(), "推外呼结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
     }
