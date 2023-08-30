@@ -9,8 +9,6 @@ import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBOCondition;
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSoleDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
@@ -31,13 +29,10 @@ import com.br.marketing.service.ZhongYuanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.ArtificialRealTimeUserDataSoleHandler;
 import com.br.marketing.strategy.CustomerTransferSoleHandler;
-import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.velocity.runtime.directive.Foreach;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -101,17 +96,11 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
-    @Autowired
-    RedisChgService redisChgService;
-
     @Resource
     LocalFileMapper localFileMapper;
 
     @Resource
     PhoneSaleMapper phoneSaleMapper;
-
-    @Autowired
-    DassServiceClient dassServiceClient;
 
 
     @Resource
@@ -161,9 +150,9 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
     /**
      * 组装推Daas数据逻辑
-     * @param periodBOMap
-     * @param ifLoginCollectTransferSyncUserList
-     * @return
+     * @param periodBOMap 有效期数据封装
+     * @param ifLoginCollectTransferSyncUserList iflogin 数据集合
+     * @return 返回
      */
     private List<RealTimeUserDataSoleDTO> packageRealTimeUserDataSoleDTO(Map<String, SyncUserValidityPeriodBOCondition> periodBOMap,
                                                                          List<MarketingTransferSyncUser> ifLoginCollectTransferSyncUserList) {
@@ -191,14 +180,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                             syncUserValidityPeriodBOCondition.getCondition());
 
                     // 接口数据封装
-                    RealTimeUserDataSoleDTO realTimeUserDataSoleDTO = new RealTimeUserDataSoleDTO();
-                    realTimeUserDataSoleDTO.setDassSingleImportAdapDTO(dassSingleImportAdapSoleDTO);
-                    realTimeUserDataSoleDTO.setPhoneSaleExtendInfo(phoneSaleExtendInfo);
-                    realTimeUserDataSoleDTO.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.TRANSFER);
-
-                    // 设置去重逻辑 单一cell 7 天内只推送一次
-                    realTimeUserDataSoleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
-                    realTimeUserDataSoleDTO.setSoleType(7);
+                    RealTimeUserDataSoleDTO realTimeUserDataSoleDTO = getRealTimeUserDataSoleDTO(dassSingleImportAdapSoleDTO, phoneSaleExtendInfo);
                     transferData.add(realTimeUserDataSoleDTO);
                 }
 
@@ -206,8 +188,21 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         }
         return transferData;
     }
+
+    private static RealTimeUserDataSoleDTO getRealTimeUserDataSoleDTO(DassSingleImportAdapSoleDTO dassSingleImportAdapSoleDTO, PhoneSaleExtendInfo phoneSaleExtendInfo) {
+        RealTimeUserDataSoleDTO realTimeUserDataSoleDTO = new RealTimeUserDataSoleDTO();
+        realTimeUserDataSoleDTO.setDassSingleImportAdapDTO(dassSingleImportAdapSoleDTO);
+        realTimeUserDataSoleDTO.setPhoneSaleExtendInfo(phoneSaleExtendInfo);
+        realTimeUserDataSoleDTO.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.TRANSFER);
+
+        // 设置去重逻辑 单一cell 7 天内只推送一次
+        realTimeUserDataSoleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
+        realTimeUserDataSoleDTO.setSoleType(7);
+        return realTimeUserDataSoleDTO;
+    }
+
     private DassSingleImportDataDTO packageDassSingleImportData(MarketingTransferSyncUser transfer, MarketingSyncUser marketingSyncUser,
-                                                                String dxUserType) {
+                                                    String dxUserType) {
         // 根据custNum 找到转化数据里最新的一条转化数据  获取里面的 loginTime 和 registerTime。
 //        String tcId = tableCreateService.getTcId(transfer.getApiCode());
 //        MarketingTransferSyncUser registerTimeAndLoginTimeByCreateTimeOrderDesc =
@@ -219,6 +214,11 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
             return new DassSingleImportDataDTO();
         }
         String phone = AESUtil.aesEncrypty(cell, aesKey);
+
+        return getDassSingleImportDataDTO(transfer, dxUserType, phone);
+    }
+
+    private static DassSingleImportDataDTO getDassSingleImportDataDTO(MarketingTransferSyncUser transfer, String dxUserType, String phone) {
         DassSingleImportDataDTO dassSingleImportDataDTO = new DassSingleImportDataDTO();
         dassSingleImportDataDTO.setName("1");
         dassSingleImportDataDTO.setOrgname("zhongyuanxj");
@@ -229,16 +229,15 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         dassSingleImportDataDTO.setUid(transfer.getCustNum());
         dassSingleImportDataDTO.setRegisterTime(transfer.getRegisterTime());
         dassSingleImportDataDTO.setLoginTime(transfer.getLoginTime());
-
         return dassSingleImportDataDTO;
     }
 
     /**
      * 电销记录表数据组装
-     * @param transfer
-     * @param marketingSyncUser
-     * @param condition
-     * @return
+     * @param transfer 转化
+     * @param marketingSyncUser 上传
+     * @param condition 情况
+     * @return 电销数据集
      */
     private PhoneSaleExtendInfo packagePhoneSaleExtendInfo(MarketingTransferSyncUser transfer,
                                                            MarketingSyncUser marketingSyncUser,
@@ -265,15 +264,14 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
     /**
      * 剔除数据
-     * @param marketingTransferSyncUserList
-     * @return
+     * @param marketingTransferSyncUserList 转化数据集
+     * @return 返回需要推送bo集
      */
     private Map<String, SyncUserValidityPeriodBOCondition> eliminateAndValidity(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
         String apiCode = marketingTransferSyncUserList.get(0).getApiCode();
         Map<String, SyncUserValidityPeriodBOCondition> filterSyncUserValidityPeriodBOCondition = new HashMap<>();
-        for (int i = 0; i < CONDITION_LIST.size(); i++) {
-            String userType = CONDITION_LIST.get(i);
-            marketingTransferSyncUserList.forEach(item ->item.setUserType(userType));
+        for (String userType : CONDITION_LIST) {
+            marketingTransferSyncUserList.forEach(item -> item.setUserType(userType));
             // 判断有效期
             Map<String, SyncUserValidityPeriodBO> periodBOMap =
                     transferDataValidityPeriodService.getValidityPeriodUserTypeBatchFirstVersion(marketingTransferSyncUserList, apiCode, new Date());
@@ -325,7 +323,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
     @Override
     public void zhongYuanTransferDataToCustomerFilter(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
-        Set<String> collectCustNumSet = marketingTransferSyncUserList.stream().map(item -> item.getCustNum()).collect(toSet());
+        Set<String> collectCustNumSet = marketingTransferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(toSet());
         String apiCode = marketingTransferSyncUserList.get(0).getApiCode();
         Map<String, SyncUserValidityPeriodBO> periodBOMap =
                 transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(collectCustNumSet, apiCode, new Date());
@@ -372,21 +370,23 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         example.setOrderByClause(" create_time,id limit 1000");
         while (actionMark) {
             List<DassImportDataDTO> phoneSales = phoneSaleMapper.getPushDassData(id, minId);
-            Set<String> custNumSet = new HashSet<>();
-            phoneSales.forEach(list -> custNumSet.add(list.getUid()));
+            Set<String> cellSet = new HashSet<>();
+            phoneSales.forEach(list -> cellSet.add(list.getPhone()));
             if (org.springframework.util.CollectionUtils.isEmpty(phoneSales)) {
                 break;
             }
             updatePoolSize(threadPool);
             localFile.setPushStartTime(new Date());
+
             number += phoneSales.size();
-            if (phoneSales.size() > 0) {
+            if (!phoneSales.isEmpty()) {
                 DassImportDataDTO phoneSale = phoneSales.get(phoneSales.size() - 1);
+
                 minId = phoneSale.getId();
                 threadPool.execute(() -> {
                     Map<String, SyncUserValidityPeriodBO> validityPeriodMap =
-                            transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(
-                                    custNumSet, apiCode, new Date());
+                            transferDataValidityPeriodService.getValidityPeriodCellBatchFirstVersion(
+                                    cellSet, apiCode, new Date());
 
                     List<ConversionData> list = new ArrayList<>();
                     for (DassImportDataDTO transferSyncUser : phoneSales) {
@@ -402,6 +402,11 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                     ProcessHandlerContext context = new ProcessHandlerContext();
                     context.setApiCode(apiCode);
                     customerTransferSoleHandler.call(list, context);
+                    if (LocalTime.now().isAfter(LocalTime.parse("10:00:00"))) {
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode()
+                                , "众邦转化数据推送到daas(单条)与外呼，推送时间已过“10点”,但任务会继续...,apiCode:" + apiCode
+                                , "众邦转化数据推送daas(单条)与外呼告警"));
+                    }
                 });
             } else {
                 actionMark = false;
