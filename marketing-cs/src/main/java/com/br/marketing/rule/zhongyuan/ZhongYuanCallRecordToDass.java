@@ -1,4 +1,4 @@
-//package com.br.marketing.rule.zhongyuan;
+//-package com.br.marketing.rule.zhongyuan;
 //
 //import com.br.common.util.BrCipherMaker;
 //import com.br.common.util.DateUtils;
@@ -6,6 +6,7 @@
 //import com.br.marketing.client.DaasAndConversionData;
 //import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 //import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
+//import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSoleDTO;
 //import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataSoleDTO;
 //import com.br.marketing.client.robotaiapi.input.ConversionData;
 //import com.br.marketing.common.utils.AESUtil;
@@ -23,7 +24,6 @@
 //import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.beans.factory.annotation.Value;
 //import org.springframework.stereotype.Service;
-//import org.springframework.util.StringUtils;
 //
 //import java.time.ZoneId;
 //import java.time.format.DateTimeFormatter;
@@ -59,14 +59,18 @@
 ////        Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCallRecordCustomerMap();
 //        Map<String, SyncUserValidityPeriodBO> boMap = ruleNecessaryData.getPeriodBOMap();
 //        SyncUserValidityPeriodBO bo = boMap.get(dto.getCaseNum());
-//
-//        MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, dto.getCaseNum());
-//        if (marketingSyncUser == null) {
+//        // 不在有效期
+//        if (bo == null) {
 //            return null;
 //        }
+//        bo.getSyncUser();
+//
 ////        BatchRealTimeUserDataDTO dataDTO = new BatchRealTimeUserDataDTO();
 ////        dataDTO.setDassImportDataDTO(packageDassImportData(dto, marketingSyncUser));
 ////        dataDTO.setPhoneSaleExtendInfo(packagePhoneSaleExtendInfo(dto, marketingSyncUser));
+//        RealTimeUserDataSoleDTO realTimeUserDataSoleDTO = new RealTimeUserDataSoleDTO();
+//        realTimeUserDataSoleDTO.setDassSingleImportAdapDTO(dassSingleImportAdapDTO);
+//
 //        DaasAndConversionData dataDTO = new DaasAndConversionData();
 //        dataDTO.setConversionData();
 //        dataDTO.setRealTimeUserDataSoleDTO();
@@ -106,20 +110,29 @@
 //        return batchImportData;
 //    }
 //
-//    private ConversionData buildConversionData(){
+//    private ConversionData buildConversionData(CallRecordBO dto){
 //        ConversionData conversionData = new ConversionData();
-//        conversionData.setDataId(transferSyncUser.getId().toString());
-//        conversionData.setCid(transferSyncUser.getCid());
-//        conversionData.setCaseNum(transferSyncUser.getCustNum());
+//        conversionData.setDataId(dto.getId().toString());
+//        conversionData.setExpireDate();
+//        conversionData.setExpireBeginDate();
+//        conversionData.setPartnerProcessDate(DateUtils.format(dto.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+//        conversionData.setCid(dto.getCid().toString());
+//        conversionData.setPhone();
 //        conversionData.setInversionStatus("2");
-//        if (!StringUtils.isEmpty(transferSyncUser.getCreateTime())){
-//            conversionData.setPartnerProcessDate(DateUtils.format(transferSyncUser.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-//        }
+//        conversionData.setCaseNum(dto.getCaseNum());
+//
+//        // 有效期内转化数据以cell为维度仅推送一次
+//        conversionData.setSoleType(-1);
 //
 //        return conversionData;
 //    }
 //
-//    private RealTimeUserDataSoleDTO buildRealTimeUserDataSoleDTO(){
+//    private DassSingleImportAdapSoleDTO buildDassSingleImportAdapSoleDTO(CallRecordBO dto){
+//        DassSingleImportAdapSoleDTO dassSingleImportAdapDTO = new DassSingleImportAdapSoleDTO();
+//        dassSingleImportAdapDTO.setDassSingleImportDataDTO();
+//
+//
+//
 //
 //    }
 //
