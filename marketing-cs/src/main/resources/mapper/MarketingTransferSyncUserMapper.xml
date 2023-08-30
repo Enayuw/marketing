@@ -734,7 +734,7 @@
     </select>
     <select id="getRegisterTimeAndLoginTimeByCreateTimeOrderDesc" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select register_time,login_time
-        from b_marketing_transfer_sync_${tCid}
+        from b_marketing_transfer_sync_${cid}
         where cust_num = #{custNum}
         order by create_time desc limit 1
     </select>
