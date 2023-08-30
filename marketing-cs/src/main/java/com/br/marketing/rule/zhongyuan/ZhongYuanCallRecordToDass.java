@@ -88,7 +88,6 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
         if (bo == null) {
             return null;
         }
-        bo.getSyncUser();
 
         String syncUserType = bo.getSyncUser().getUserType();
         String grade = pushDataService.getStatusByGrade(this.label(), dto.getDetail().getIntentionGrade());
