@@ -322,10 +322,10 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             log.error(String.format("数禾转化数据pulsar消费重复requestId requestId:%s,jsonData:%s,apiCode:%s",requestId,jsonData,apiCode));
             return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue());
         }
-        Boolean userTypeMark = (Boolean) res.getOrDefault("userTypeMark", Boolean.FALSE);
+        Boolean userTypeMark = (Boolean) res.getOrDefault("userTypeMark", Boolean.TRUE);
         Long transferInfoId = (Long) res.getOrDefault("transferInfoId", 0L);
         List<String> universalProcessApiCode = marketingCommonConfig.getUniversalProcessApiCode();
-        if (userTypeMark && transferInfoId>0 && universalProcessApiCode.contains(apiCode)) {
+        if (!userTypeMark && transferInfoId>0 && universalProcessApiCode.contains(apiCode)) {
             final MqFact mqFact = new MqFact();
             mqFact.setSourceId(transferInfoId);
             mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
