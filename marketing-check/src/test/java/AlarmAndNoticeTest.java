@@ -18,6 +18,7 @@ import com.br.marketing.service.Impl.transfertofile.TransferToFileBySamoyeServiv
 import com.br.marketing.service.Impl.transfertofile.TransferToFileByZhongYouServiceImpl;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.service.ZhongYuanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,6 +74,15 @@ public class AlarmAndNoticeTest {
             "ifApply,applyDt,applyResult,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount," +
             "pushTime,loginChannel,auditRate,couponType,validityAmt,rateType,lentRate,validityRate,applyLentTime,cps," +
             "lentAmountFirst,lentTimeFirst,cpsRate,fileName,firstName,gender,cell";
+
+    @Resource
+    ZhongYuanService zhongYuanService;
+    @Test
+    public void pushOutBoundDataTest(){
+        Long id = Long.valueOf(11);
+        Result result = zhongYuanService.pushOutBoundData(id);
+        System.out.println(result.getMessage());
+    }
 
     @Test
     public void testNew(){

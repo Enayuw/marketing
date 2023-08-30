@@ -355,6 +355,9 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         Boolean actionMark = true;
         LocalDate now = LocalDate.now();
         LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
+        if (localFile == null) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(isContiue);
+        }
         String apiCode = localFile.getApiCode();
         String tcId = tableCreateService.getTcId(apiCode);
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
@@ -364,9 +367,6 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         Long minId = null;
         Integer threadNum = marketingCommonConfig.getZhongYuanTransferPushOutBoundThreadPoolSize();
 
-        if (localFile == null) {
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(isContiue);
-        }
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
         Integer number = 0;
         example.setOrderByClause(" create_time,id limit 1000");
