@@ -909,6 +909,11 @@ public class MarketingCommonConfig {
      * 中邮转化数据job api
      */
     private Set<String> zhongYouJobApiCodes;
+
+    /**
+     * 中原线程池配置
+     */
+    private int ZhongYuanTransferPushOutBoundThreadPoolSize;
     /**
      * 中原转化数据、拨打明细推电销开关
      * {"condition_1":true,"condition_2":true,"condition_3":true,"condition_4":true,"condition_5":true,"condition_6":true}

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -310,4 +311,6 @@ public class DassImportDataDTO {
      * 筛选项1
      */
     private String raiseLimiSuccess;
+
+    private Date createTime;
 }

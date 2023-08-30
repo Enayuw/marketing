@@ -1,7 +1,10 @@
 package com.br.marketing.service.Impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSON;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
+import com.br.common.util.DateUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBOCondition;
@@ -12,11 +15,13 @@ import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSoleDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataSoleDTO;
+import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.*;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
@@ -25,18 +30,21 @@ import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.service.ZhongYuanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.ArtificialRealTimeUserDataSoleHandler;
+import com.br.marketing.strategy.CustomerTransferSoleHandler;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -92,17 +100,18 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
     @Autowired
     DassServiceClient dassServiceClient;
 
-    @Resource
-    RetryMainLogMapper retryMainLogMapper;
 
     @Resource
     private AlarmApiClient alarmClient;
 
-    @Resource
-    private MethodRetryHandlerService methodRetryHandlerService;
 
     @Resource
     private TableCreateServiceImpl tableCreateService;
+
+    @Resource
+    private CustomerTransferSoleHandler customerTransferSoleHandler;
+
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS");
 
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListWithValidityPeriod(String tcId, String apiCode, Long indexId,
@@ -309,42 +318,81 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
         Boolean isContiue = false;
         Boolean actionMark = true;
-        Long minId = null;
-        Integer threadNum = 5;
-
+        LocalDate now = LocalDate.now();
         LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
+        String apiCode = localFile.getApiCode();
+        String tcId = tableCreateService.getTcId(apiCode);
+        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+        example.settCid(tcId);
+        example.createCriteria().andApiCodeEqualTo(apiCode).andRequestDataEqualTo(now.toString());
+
+        Long minId = null;
+        Integer threadNum = marketingCommonConfig.getZhongYuanTransferPushOutBoundThreadPoolSize();
+
         if (localFile == null) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(isContiue);
         }
-
-        localFile.setPushStartTime(new Date());
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
-
         Integer number = 0;
-        while (actionMark) {
+        example.setOrderByClause(" create_time,id limit 1000");
+        while(actionMark){
             List<DassImportDataDTO> phoneSales = phoneSaleMapper.getPushDassData(id, minId);
+            Set<String> cellSet = new HashSet<>();
+            phoneSales.forEach(list -> cellSet.add(list.getPhone()));
+            if (org.springframework.util.CollectionUtils.isEmpty(phoneSales)) {
+                break;
+            }
+            updatePoolSize(threadPool);
+            localFile.setPushStartTime(new Date());
+
             number += phoneSales.size();
             if (phoneSales.size() > 0) {
                 DassImportDataDTO phoneSale = phoneSales.get(phoneSales.size() - 1);
+
                 minId = phoneSale.getId();
-                threadPool.submit(() -> {
+                threadPool.execute(() -> {
+                    Map<String, SyncUserValidityPeriodBO> validityPeriodMap =
+                            transferDataValidityPeriodService.getValidityPeriodCellBatchFirstVersion(
+                                    cellSet, apiCode, new Date());
 
-
+                    List<ConversionData> list = new ArrayList<>();
+                    for (DassImportDataDTO transferSyncUser : phoneSales) {
+                        SyncUserValidityPeriodBO bo = validityPeriodMap.get(transferSyncUser.getUid());
+                        // 有效期判断
+                        if (bo == null) {
+                            continue;
+                        }
+                        // 外呼
+                        ConversionData conversionData = packageConversionData(transferSyncUser, bo , tcId);
+                        list.add(conversionData);
+                    }
+                    ProcessHandlerContext context = new ProcessHandlerContext();
+                    context.setApiCode(apiCode);
+                    customerTransferSoleHandler.call(list, context);
+                    if (LocalTime.now().isAfter(LocalTime.parse("10:00:00"))) {
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode()
+                                , "众邦转化数据推送到daas(单条)与外呼，推送时间已过“10点”,但任务会继续...,apiCode:" + apiCode
+                                , "众邦转化数据推送daas(单条)与外呼告警"));
+                    }
                 });
             } else {
                 actionMark = false;
             }
-
-        }
-
-        threadPool.shutdown();
-        while (true) {
-            if (threadPool.isTerminated()) {
-                break;
+            threadPool.shutdown();
+            while (true) {
+                if (threadPool.isTerminated()) {
+                    break;
+                }
+                try {
+                    Thread.sleep(3000);
+                } catch (Exception e) {
+                }
             }
-            try {
-                Thread.sleep(3000);
-            } catch (Exception e) {
+
+            List<MarketingTransferSyncUserExample.Criteria> oredCriteria = example.getOredCriteria();
+            for (MarketingTransferSyncUserExample.Criteria criteria1 : oredCriteria) {
+                List<MarketingTransferSyncUserExample.Criterion> criteria2 = criteria1.getCriteria();
+                criteria2.removeIf(criterion -> "id >".equals(criterion.getCondition()));
             }
         }
 
@@ -360,6 +408,50 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
             alarmClient.sendAlarm(content.toString(), "Dass结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
+    }
+
+    /**
+     * 2023-08-29 14:08
+     * 动态调整线程大小
+     */
+    private void updatePoolSize(ThreadPoolExecutor threadPool) {
+        int poolSize = marketingCommonConfig.getZhongYuanTransferPushOutBoundThreadPoolSize();
+        int corePoolSize = threadPool.getCorePoolSize();
+        if (corePoolSize != poolSize || threadPool.getMaximumPoolSize() != poolSize) {
+            threadPool.setMaximumPoolSize(poolSize);
+            threadPool.setCorePoolSize(poolSize);
+        }
+    }
+
+    /**
+     * 2023-08-28 9:52
+     * 组装推送daas信息
+     */
+    private ConversionData packageConversionData(DassImportDataDTO dto
+            , SyncUserValidityPeriodBO bo , String tcid) {
+        ConversionData conversionData = new ConversionData();
+        conversionData.setDataId(dto.getId().toString());
+        conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
+        conversionData.setCid(tcid);
+        conversionData.setCaseNum(dto.getUid());
+        conversionData.setGroupType(dto.getUserType());
+        conversionData.setPartnerProcessDate(ObjectUtils.isEmpty(dto.getCreateTime())
+                ? LocalDateTime.now().format(DATE_TIME_FORMATTER) : DateUtils.format(dto.getCreateTime()
+                , DateHelper.LINE_DATE_COLON_TIME_FORMAT));
+        conversionData.setInversionStatus("0");
+        TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
+        BeanUtils.copyProperties(dto, vo);
+        conversionData.setInversionInfo(JSON.toJSONString(vo));
+        // 去重参数设置
+        conversionData.setInitId(dto.getId());
+        conversionData.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
+        conversionData.setSoleType(-1);
+        // 有效期设置
+        PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
+        conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
+        conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
+        conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
+        return conversionData;
     }
 
 }
