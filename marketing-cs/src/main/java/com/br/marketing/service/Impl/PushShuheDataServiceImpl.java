@@ -275,8 +275,10 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 jsonObject.put("jsonData",jsonData);
                 jsonObject.put("requestId",requestId);
                 jsonObject.put("time",LocalDateTime.now().format(dateTimeFormatter));
-                byte[] message = jsonObject.toJSONString().getBytes();
+                String jsonString = jsonObject.toJSONString();
+                byte[] message = jsonString.getBytes();
                 producer.send(message);
+                log.warn(String.format("写入Pulsar 主题:%s 数据:%s",PulsarTopic.transferShTopic,jsonString));
             } catch (PulsarClientException e) {
                 responseShuheDTO.failed();
             }
@@ -550,8 +552,10 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 jsonObject.put("requestId",requestId);
                 jsonObject.put("jsonData",jsonData);
                 jsonObject.put("time",LocalDateTime.now().format(dateTimeFormatter));
-                byte[] message = jsonObject.toJSONString().getBytes();
+                String jsonString = jsonObject.toJSONString();
+                byte[] message = jsonString.getBytes();
                 producer.send(message);
+                log.warn(String.format("写入Pulsar 主题:%s 数据:%s",PulsarTopic.upLoadShTopic,jsonString));
             } catch (PulsarClientException e) {
                 response2ShuheDTO.failed(",内部错误");
                 return response2ShuheDTO;

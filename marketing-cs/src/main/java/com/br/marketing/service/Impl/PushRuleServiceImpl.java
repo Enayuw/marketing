@@ -980,8 +980,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 jsonObject.put("apiCode",apiCode);
                 jsonObject.put("jsonData",jsonData);
                 jsonObject.put("time",LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-                byte[] message = jsonObject.toJSONString().getBytes();
+                String jsonString = jsonObject.toJSONString();
+                byte[] message = jsonString.getBytes();
                 producer.send(message);
+                log.warn(String.format("写入Pulsar 主题:%s 数据:%s",PulsarTopic.upLoadTopic,jsonString));
                 Long res = requestIdWriteRedis(uploadKey, dto.getJsonData().getRequestId());
                 if(res!=null&&res<1){
                     throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
@@ -1414,8 +1416,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 jsonObject.put("apiCode",apiCode);
                 jsonObject.put("jsonData",jsonData);
                 jsonObject.put("time",LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-                byte[] message = jsonObject.toJSONString().getBytes();
+                String jsonString = jsonObject.toJSONString();
+                byte[] message = jsonString.getBytes();
                 producer.send(message);
+                log.warn(String.format("写入Pulsar 主题:%s 数据:%s",PulsarTopic.transferTopic,jsonString));
                 Long res = requestIdWriteRedis(transferKey, transferDataDTO.getRequestId());
                 if(res!=null&&res<1){
                     throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
