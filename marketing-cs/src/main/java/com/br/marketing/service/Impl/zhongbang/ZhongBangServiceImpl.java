@@ -115,6 +115,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         String groupNoKey = "groupNo";
         String dxUserTypeKey = "dxUserType";
         statusTypeMap.forEach((k, v) -> {
+            String sqlWhereClause;
             if (v.getBooleanValue(switchKey)) {
                 switch (k) {
                     case "d":
@@ -128,8 +129,10 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         example.setOrderByClause(" create_time,id limit 2000");
                         criteriaD.andApplyResultEqualTo("1")
                                 .andApplyTimeBetween(yesterdayStartTime, yesterdayEndTime)
-                                .andIfLentNotEqualTo("1").andApiCodeEqualTo(apiCode);
-                        markPackagePushDaas(example, criteriaD, threadPool, apiCode, k, v, groupNoKey, dxUserTypeKey, day);
+                                .andApiCodeEqualTo(apiCode);
+                        sqlWhereClause = " and (if_lent <> '1' or if_lent is null)";
+                        markPackagePushDaas(example, criteriaD, threadPool, apiCode, k, v, groupNoKey, dxUserTypeKey
+                                , day, sqlWhereClause);
                         break;
                     case "c":
                         example.clear();
@@ -141,10 +144,11 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             criteriaC.andRequestDataEqualTo(dateTimeStr[0]);
                         }
                         criteriaC.andIfLoginEqualTo("1")
-                                .andIfApplyNotEqualTo("1")
                                 .andLoginTimeBetween(yesterdayStartTime, yesterdayEndTime)
                                 .andApiCodeEqualTo(apiCode);
-                        markPackagePushDaas(example, criteriaC, threadPool, apiCode, k, v, groupNoKey, dxUserTypeKey, day);
+                        sqlWhereClause = " and (if_apply <> '1' or if_apply is null)";
+                        markPackagePushDaas(example, criteriaC, threadPool, apiCode, k, v, groupNoKey, dxUserTypeKey
+                                , day, sqlWhereClause);
                         break;
                     default:
                 }
@@ -213,7 +217,6 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         singleImportDataDTO.setUserType(dxUserType);
         singleImportDataDTO.setSource("33");
         singleImportDataDTO.setUid(transferSyncUser.getCustNum());
-        singleImportDataDTO.setId(transferSyncUser.getId());
         singleImportDataDTO.setRegisterTime(replaceZero(newSyncUser.getRegisterTime(), transferSyncUser.getRegisterTime()));
         singleImportDataDTO.setLoginTime(replaceZero(newSyncUser.getLoginTime(), transferSyncUser.getLoginTime()));
         singleImportDataDTO.setAuditTime(replaceZero(newSyncUser.getAuditTime(), transferSyncUser.getAuditTime()));
@@ -327,10 +330,12 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             , JSONObject v
             , String groupNoKey
             , String dxUserTypeKey
-            , int day) {
-        int countOld = marketingTransferSyncUserMapper.countByExample(example);
+            , int day
+            , String sqlWhereClause) {
+        int countOld = marketingTransferSyncUserMapper.countByExampleSql(example, sqlWhereClause);
         for (; ; ) {
-            List<MarketingTransferSyncUser> dList = marketingTransferSyncUserMapper.selectByExample(example);
+            List<MarketingTransferSyncUser> dList = marketingTransferSyncUserMapper.selectByExampleSql(example
+                    , sqlWhereClause);
             if (CollectionUtils.isEmpty(dList)) {
                 break;
             }
@@ -393,7 +398,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 break;
             }
             updateExample(example);
-            int count = marketingTransferSyncUserMapper.countByExample(example);
+            int count = marketingTransferSyncUserMapper.countByExampleSql(example, sqlWhereClause);
             MarketingTransferSyncUser syncUser = dList.get(size - 1);
             if (countOld == count) {
                 criteria.andIdGreaterThan(syncUser.getId());
@@ -405,7 +410,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
 
     private void pushWarnMessage(String apiCode) {
         if (LocalTime.now().isAfter(LocalTime.parse("10:00:00"))) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode()
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode()
                     , "众邦转化数据推送到daas(单条)与外呼，推送时间已过“10点”,但任务会继续...,apiCode:" + apiCode
                     , "众邦转化数据推送daas(单条)与外呼告警"));
         }
