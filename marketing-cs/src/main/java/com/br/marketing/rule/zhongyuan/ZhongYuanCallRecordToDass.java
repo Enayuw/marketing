@@ -25,6 +25,7 @@ import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import javafx.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -68,13 +69,13 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS");
 
-    private static final HashMap<String, String> userTypeMap = new HashMap<>();
+    private static final Map<String, Pair<String, String>> userTypeMap = new HashMap<>();
 
     static {
-        userTypeMap.put("a1", "3");
-        userTypeMap.put("a2", "4");
-        userTypeMap.put("b1", "5");
-        userTypeMap.put("b2", "6");
+        userTypeMap.put("a1", new Pair<>("3","2"));
+        userTypeMap.put("a2", new Pair<>("4","3"));
+        userTypeMap.put("b1", new Pair<>("5","2"));
+        userTypeMap.put("b2", new Pair<>("6","3"));
     }
 
     @Override
@@ -95,16 +96,24 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
         String tcId = tableCreateService.getTcId(dto.getApiCode());
         MarketingTransferSyncUser time =
                 marketingTransferSyncUserMapper.getRegisterTimeAndLoginTimeByCreateTimeOrderDesc(tcId, dto.getCaseNum());
-        String userType = userTypeMap.get(grade + syncUserType);
+        Pair<String, String> pair = userTypeMap.get(grade + syncUserType);
+        // syncUserType非（1，2）
+        if (pair == null) {
+            return null;
+        }
+
+        String conditionType = pair.getKey();
+        String userType = pair.getValue();
+
 
         // 判断开关
         Map<String, Boolean> pushSwitch = marketingCommonConfig.getZhongYuanConditionMap();
-        if (!pushSwitch.get("condition_" + userType)) {
+        if (!pushSwitch.get("condition_" + conditionType)) {
             return null;
         }
 
         RealTimeUserDataSoleDTO realTimeUserDataSoleDTO = new RealTimeUserDataSoleDTO();
-        realTimeUserDataSoleDTO.setPhoneSaleExtendInfo(buildPhoneSaleExtendInfo(dto, bo));
+        realTimeUserDataSoleDTO.setPhoneSaleExtendInfo(buildPhoneSaleExtendInfo(dto, bo, userType));
         realTimeUserDataSoleDTO.setDassSingleImportAdapDTO(buildDassSingleImportAdapSoleDTO(dto, bo, userType, time));
         realTimeUserDataSoleDTO.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.TRANSFER);
 
@@ -116,7 +125,7 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
         return dataDTO;
     }
 
-    private PhoneSaleExtendInfo buildPhoneSaleExtendInfo(CallRecordBO dto, SyncUserValidityPeriodBO bo) {
+    private PhoneSaleExtendInfo buildPhoneSaleExtendInfo(CallRecordBO dto, SyncUserValidityPeriodBO bo, String userType) {
         PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
         phoneSaleExtendInfo.setApiCode(dto.getApiCode());
         phoneSaleExtendInfo.setCustNum(dto.getCaseNum());
@@ -132,9 +141,9 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
         phoneSaleExtendInfo.setPushDxTime(new Date());
         phoneSaleExtendInfo.setSourceId(dto.getId());
         phoneSaleExtendInfo.setCell(bo.getSyncUser().getCell());
-        // todo
-//        phoneSaleExtendInfo.setDxUserType(dxUserType);
-//        phoneSaleExtendInfo.setGroupNo(groupNo);
+        // 推电销的userType
+        // todo 等待泽强迁移
+//        phoneSaleExtendInfo.setDxUserType(userType);
         return phoneSaleExtendInfo;
     }
 
@@ -146,12 +155,13 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
                 , DateHelper.LINE_DATE_COLON_TIME_FORMAT));
         conversionData.setCid(dto.getCid().toString());
         conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
-        conversionData.setInversionStatus("2");
+        conversionData.setInversionStatus("0");
         conversionData.setCaseNum(dto.getCaseNum());
         conversionData.setInversionInfo("{}");
 
         // 去重参数设置
         // 有效期内转化数据以cell为维度仅推送一次
+        conversionData.setInitId(dto.getId());
         conversionData.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
         conversionData.setSoleType(-1);
 
