@@ -38,4 +38,14 @@ public interface ZhongYuanService {
      * 中原sftp文件数据推外呼（客服）
      */
     Result pushOutBoundData(Long id);
+
+    /**
+     * 中原推Daas转化首次
+     */
+    void zhongYuanPushDaasTransferFirst(String apiCode);
+
+    /**
+     * 中原推Daas转化非首次
+     */
+    void zhongYuanPushDaasTransfer(String apiCode);
 }

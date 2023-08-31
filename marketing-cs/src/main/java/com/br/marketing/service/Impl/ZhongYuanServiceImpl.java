@@ -30,6 +30,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.ArtificialRealTimeUserDataSoleHandler;
 import com.br.marketing.strategy.CustomerTransferSoleHandler;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
+import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -515,5 +516,61 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         return conversionData;
     }
 
+
+
+    @Override
+    public void zhongYuanPushDaasTransferFirst(String apiCode) {
+
+        Pair<String, String> validityRange =
+                validityPeriodDataService.getMarketingTransferDataWithValidityRange(apiCode);
+        String startDate = validityRange.getKey();
+        String endDate = validityRange.getValue();
+        String tcId = tableCreateService.getTcId(apiCode);
+        Long indexId = null;
+        while (true) {
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getZhongYuanTransferByPage(tcId,apiCode,startDate,endDate,indexId,"if_apply=1");
+            if (marketingTransferSyncUserList.isEmpty()){
+                break;
+            }
+            indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
+            Set<String> custNumSets = marketingTransferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            // 判断有效期
+            Map<String, SyncUserValidityPeriodBO> periodBOMap =
+                    transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(custNumSets, apiCode, new Date());
+            List<MarketingSyncUser> marketingSyncUserList = periodBOMap.values().stream().map(SyncUserValidityPeriodBO::getSyncUser).collect(Collectors.toList());
+            // 推人工转化
+            PushDaasTransferFirstProcess(marketingSyncUserList);
+        }
+        indexId = null;
+        while (true) {
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getZhongYuanTransferByPage(tcId,apiCode,null,null,indexId,"isBlack=1");
+            if (marketingTransferSyncUserList.isEmpty()){
+                break;
+            }
+            indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
+            Set<String> custNumSets = marketingTransferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            // 判断有效期
+            Map<String, SyncUserValidityPeriodBO> periodBOMap =
+                    transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(custNumSets, apiCode, new Date());
+            List<MarketingSyncUser> marketingSyncUserList = periodBOMap.values().stream().map(SyncUserValidityPeriodBO::getSyncUser).collect(Collectors.toList());
+            // 推人工转化
+            PushDaasTransferFirstProcess(marketingSyncUserList);
+        }
+    }
+
+
+    private void PushDaasTransferFirstProcess(List<MarketingSyncUser> marketingSyncUserList) {
+
+
+
+
+
+
+    }
+
+    @Override
+    public void zhongYuanPushDaasTransfer(String apiCode) {
+
+    }
 
 }

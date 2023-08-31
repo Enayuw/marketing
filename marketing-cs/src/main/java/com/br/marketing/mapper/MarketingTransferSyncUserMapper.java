@@ -424,4 +424,13 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                      @Param("dateStartStr") String dateStartStr,@Param("dateEndStr") String dateEndStr);
 
     MarketingTransferSyncUser getRegisterTimeAndLoginTimeByCreateTimeOrderDesc(@Param("cid") String cId,@Param("custNum") String custNum);
+
+    List<MarketingTransferSyncUser> getZhongYuanTransferByPage(@Param("tCid") String tCid,
+                                                                      @Param("apiCode") String apiCode,
+                                                                      @Param("requestStartDate") String requestStartDate,
+                                                                      @Param("requestEndDate") String requestEndDate,
+                                                                      @Param("indexId") Long indexId,
+                                                                      @Param("querySql") String querySql);
+
+
 }

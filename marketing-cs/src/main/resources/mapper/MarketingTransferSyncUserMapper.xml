@@ -738,4 +738,29 @@
         where cust_num = #{custNum}
         order by create_time desc limit 1
     </select>
+
+
+    <select id="getZhongYuanTransferByPage" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tCid}
+        <where>
+            <if test="apiCode != null">
+                AND api_code =#{apiCode}
+            </if>
+            <if test="indexId != null and indexId!=''">
+                and id > #{indexId}
+            </if>
+            <if test="indexId != null and indexId!=''">
+                and <![CDATA[ request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
+            </if>
+            and ${querySql}
+            order by id asc limit 2000;
+        </where>
+    </select>
+
+
+
+
+
+
 </mapper>
