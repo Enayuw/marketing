@@ -144,7 +144,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         criteriaC.andIfLoginEqualTo("1")
                                 .andLoginTimeBetween(yesterdayStartTime, yesterdayEndTime)
                                 .andApiCodeEqualTo(apiCode);
-                        sqlWhereClause = " and (if_lent <> '1' or if_lent is null)";
+                        sqlWhereClause = " and (if_apply <> '1' or if_apply is null)";
                         markPackagePushDaas(example, threadPool, apiCode, k, v, groupNoKey, dxUserTypeKey
                                 , day, sqlWhereClause);
                         break;
