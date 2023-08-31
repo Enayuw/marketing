@@ -65,9 +65,13 @@ public class ZhongYuanTransferDataToCustomerFirstTimeJob extends AbstractSimpleE
 
                 Long indexId = null;
                 while (true) {
-                    List<MarketingTransferSyncUser> marketingTransferSyncUserList = zhongYuanService.getMarketingTransferSyncUserListWithValidityPeriod(tcId, apiCode
-                            , indexId, startDate, endDate);
-                    if (marketingTransferSyncUserList.isEmpty()) break;
+                    List<MarketingTransferSyncUser> marketingTransferSyncUserList =
+                            zhongYuanService.getMarketingTransferSyncUserListWithValidityPeriod(tcId, apiCode
+                                    , indexId, startDate, endDate);
+                    if (marketingTransferSyncUserList.isEmpty()) {
+                        break;
+                    }
+
                     indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
 
                     // 推客服转化
