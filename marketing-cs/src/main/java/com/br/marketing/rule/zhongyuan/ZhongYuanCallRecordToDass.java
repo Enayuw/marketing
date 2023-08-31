@@ -97,6 +97,12 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
                 marketingTransferSyncUserMapper.getRegisterTimeAndLoginTimeByCreateTimeOrderDesc(tcId, dto.getCaseNum());
         String userType = userTypeMap.get(grade + syncUserType);
 
+        // 判断开关
+        Map<String, Boolean> pushSwitch = marketingCommonConfig.getZhongYuanConditionMap();
+        if (!pushSwitch.get("condition_" + userType)) {
+            return null;
+        }
+
         RealTimeUserDataSoleDTO realTimeUserDataSoleDTO = new RealTimeUserDataSoleDTO();
         realTimeUserDataSoleDTO.setPhoneSaleExtendInfo(buildPhoneSaleExtendInfo(dto, bo));
         realTimeUserDataSoleDTO.setDassSingleImportAdapDTO(buildDassSingleImportAdapSoleDTO(dto, bo, userType, time));
@@ -175,6 +181,10 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
 
         DassSingleImportAdapSoleDTO soleDTO = new DassSingleImportAdapSoleDTO();
         soleDTO.setDassSingleImportDataDTO(singleImportDataDTO);
+
+        // 去重参数设置：7天内单一手机号仅推送一次
+        soleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
+        soleDTO.setSoleDay(7);
 
         return soleDTO;
     }
