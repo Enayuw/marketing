@@ -291,7 +291,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
      * 删除id条件
      */
     private void updateExamplePage(MarketingTransferSyncUserExample example, int pageNo, int pageSize) {
-        example.setOrderByClause(" applet_time limit " + pageNo * pageSize + "," + pageSize);
+        example.setOrderByClause(" request_time limit " + pageNo * pageSize + "," + pageSize);
     }
 
     /**
