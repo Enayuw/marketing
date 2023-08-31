@@ -204,10 +204,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
     private DassSingleImportDataDTO packageDassSingleImportData(MarketingTransferSyncUser transfer, MarketingSyncUser marketingSyncUser,
                                                     String dxUserType) {
-        // 根据custNum 找到转化数据里最新的一条转化数据  获取里面的 loginTime 和 registerTime。
-//        String tcId = tableCreateService.getTcId(transfer.getApiCode());
-//        MarketingTransferSyncUser registerTimeAndLoginTimeByCreateTimeOrderDesc =
-//                marketingTransferSyncUserMapper.getRegisterTimeAndLoginTimeByCreateTimeOrderDesc(tcId, transfer.getCustNum());
+
         String cell = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
         //解密失败报警,当前数据不推送
         if (StringUtils.isEmpty(cell)) {
@@ -219,7 +216,12 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         return getDassSingleImportDataDTO(transfer, dxUserType, phone);
     }
 
-    private static DassSingleImportDataDTO getDassSingleImportDataDTO(MarketingTransferSyncUser transfer, String dxUserType, String phone) {
+    private  DassSingleImportDataDTO getDassSingleImportDataDTO(MarketingTransferSyncUser transfer, String dxUserType, String phone) {
+        // 根据custNum 找到转化数据里最新的一条转化数据  获取里面的 loginTime 和 registerTime。
+        String tcId = tableCreateService.getTcId(transfer.getApiCode());
+        MarketingTransferSyncUser registerTimeAndLoginTimeByCreateTimeOrderDesc =
+                marketingTransferSyncUserMapper.getRegisterTimeAndLoginTimeByCreateTimeOrderDesc(tcId, transfer.getCustNum());
+
         DassSingleImportDataDTO dassSingleImportDataDTO = new DassSingleImportDataDTO();
         dassSingleImportDataDTO.setName("1");
         dassSingleImportDataDTO.setOrgname("zhongyuanxj");
@@ -228,11 +230,13 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         dassSingleImportDataDTO.setSource("30");
         dassSingleImportDataDTO.setId(transfer.getId());
         dassSingleImportDataDTO.setUid(transfer.getCustNum());
-        dassSingleImportDataDTO.setRegisterTime(transfer.getRegisterTime());
-        dassSingleImportDataDTO.setLoginTime(transfer.getLoginTime());
+        dassSingleImportDataDTO.setRegisterTime(formatDate(registerTimeAndLoginTimeByCreateTimeOrderDesc.getRegisterTime()));
+        dassSingleImportDataDTO.setLoginTime(formatDate(registerTimeAndLoginTimeByCreateTimeOrderDesc.getLoginTime()));
         return dassSingleImportDataDTO;
     }
-
+    private static String formatDate(String str) {
+        return org.springframework.util.StringUtils.isEmpty(str) ? str : str.replace(":000", "");
+    }
     /**
      * 电销记录表数据组装
      * @param transfer 转化
