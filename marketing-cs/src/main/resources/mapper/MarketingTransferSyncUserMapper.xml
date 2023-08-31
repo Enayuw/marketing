@@ -797,7 +797,8 @@
             distinct
         </if>
         <include refid="Base_Column_List"/>
-        from b_marketing_transfer_sync_${example.tCid}
+        from b_marketing_transfer_sync_${example.tCid} t2,(select id as t1_id from
+        b_marketing_transfer_sync_${example.tCid}
         <if test="_parameter != null">
             <include refid="Example_Where_Clause_1"/>
         </if>
@@ -806,6 +807,6 @@
         </if>
         <if test="example.orderByClause != null">
             order by ${example.orderByClause}
-        </if>
+        </if>) as t1 where t2.id= t1.t1_id;
     </select>
 </mapper>
