@@ -227,6 +227,46 @@
             </foreach>
         </where>
     </sql>
+
+    <sql id="Example_Where_Clause_Custom_1">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test='criterion.condition.contains("cell") or criterion.condition.contains("push_dx_time")'>
+                                </when>
+                                <otherwise>
+                                    <choose>
+                                        <when test='criterion.condition.startsWith("cell") or criterion.condition.startsWith("push_dx_time")'>
+                                        </when>
+
+                                        <when test="criterion.noValue">
+                                            and ${criterion.condition}
+                                        </when>
+                                        <when test="criterion.singleValue">
+                                            and ${criterion.condition} #{criterion.value}
+                                        </when>
+                                        <when test="criterion.betweenValue">
+                                            and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                        </when>
+                                        <when test="criterion.listValue">
+                                            and ${criterion.condition}
+                                            <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                                     separator=",">
+                                                #{listItem}
+                                            </foreach>
+                                        </when>
+                                    </choose>
+                                </otherwise>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
     <select id="findListPageByExample" resultType="com.br.marketing.entity.PhoneSaleExtendInfo"
             parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample">
         select
@@ -288,8 +328,28 @@
             <include refid="Example_Where_Clause_Custom"/>
         </if>
         <if test="example.orderByClause != null">
-            order by ${orderByClause}
+            order by ${example.orderByClause}
         </if>
+    </select>
+
+    <select id="findInfoByMaxPushDxTimeAndCellList" resultType="com.br.marketing.entity.PhoneSaleExtendInfo"
+            parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample">
+        select t2.push_dx_time, t2.cell, t2.status, t2.group_no, t2.create_time
+        from (select max(push_dx_time) as push_dx_time, cell
+        from b_phone_sale_extend_info
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause_Custom"/>
+        </if>
+        group by cell) t1
+        left join b_phone_sale_extend_info as t2
+        on t1.push_dx_time = t2.push_dx_time and t1.cell = t2.cell
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause_Custom_1"/>
+        </if>
+        <if test="example.orderByClause != null">
+            order by ${example.orderByClause}
+        </if>
+
     </select>
 
 </mapper>

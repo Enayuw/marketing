@@ -6,9 +6,9 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Data
-public class PhoneSaleExtendInfo  implements Serializable {
+public class PhoneSaleExtendInfo implements Serializable {
     /**
-     * 
+     *
      */
     private Long id;
 
@@ -102,5 +102,13 @@ public class PhoneSaleExtendInfo  implements Serializable {
      */
     private Integer interfaceType;
 
-    private static final long serialVersionUID = 1L;
+    /**
+     * 电销业务线使用的场景
+     */
+    private String dxUserType;
+
+    /**
+     * 组号，默认组号为0
+     */
+    private Integer groupNo;
 }
