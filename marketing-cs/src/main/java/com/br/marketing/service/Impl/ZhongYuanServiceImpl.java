@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import IceInternal.Ex;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.br.common.log.AlertLog;
@@ -126,15 +127,19 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
     @Override
     public void zhongYuanTransferDataToDaas(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
-        // 获取ifLogin 的数据集合
-        List<MarketingTransferSyncUser> ifLoginCollectTransferSyncUserList = marketingTransferSyncUserList.stream().
-                filter(m -> "1".equals(m.getIfLogin())).collect(Collectors.toList());
+        try {
+            // 获取ifLogin 的数据集合
+            List<MarketingTransferSyncUser> ifLoginCollectTransferSyncUserList = marketingTransferSyncUserList.stream().
+                    filter(m -> "1".equals(m.getIfLogin())).collect(Collectors.toList());
 
-        // 剔除并返回有效期内最新一条的转化数据
-        Map<String, SyncUserValidityPeriodBOCondition> periodBOMap = eliminateAndValidity(ifLoginCollectTransferSyncUserList);
+            // 剔除并返回有效期内最新一条的转化数据
+            Map<String, SyncUserValidityPeriodBOCondition> periodBOMap = eliminateAndValidity(ifLoginCollectTransferSyncUserList);
 
-        // 推 Daas
-        pushTransferDataToDaas(periodBOMap, ifLoginCollectTransferSyncUserList);
+            // 推 Daas
+            pushTransferDataToDaas(periodBOMap, ifLoginCollectTransferSyncUserList);
+        }catch (Exception e){
+            log.error("中原转化数据推Daas异常：{}",e);
+        }
 
     }
 
@@ -282,42 +287,47 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                     transferDataValidityPeriodService.getValidityPeriodUserTypeBatchFirstVersion(marketingTransferSyncUserList, apiCode, new Date());
             if (!ObjectUtil.isEmpty(periodBOMap)) {
                 marketingTransferSyncUserList.forEach(transferSyncUser -> {
-                    String custNum = transferSyncUser.getCustNum();
-                    SyncUserValidityPeriodBO bo = periodBOMap.get(custNum);
-                    if (ObjectUtil.isEmpty(bo)) {
-                        log.warn("{}:中原转化数据推Daas不满足案件编号“有效期内”条件", custNum);
-                    } else {
-                        Boolean ifApplyOrIsBlack = validityPeriodDataService.judgmentMarketingTransferDataInvalidWithValidityPeriod(apiCode,
-                                transferSyncUser.getCustNum());
-                        // ifApply =1 and isBlack =1 剔除
-                        if (!ifApplyOrIsBlack) {
-                            MarketingSyncUser syncUser = bo.getSyncUser();
-                            SyncUserValidityPeriodBOCondition sbo = new SyncUserValidityPeriodBOCondition();
-                            BeanUtils.copyProperties(bo, sbo);
-                            // 电销userType = 1
-                            sbo.setDxUserType("1");
-                            Map<String, Boolean> zhongYuanConditionMap = marketingCommonConfig.getZhongYuanConditionMap();
-                            switch (syncUser.getUserType()) {
-                                case "1":
-                                    // 判断开关是否推送
-                                    Boolean condition1 = zhongYuanConditionMap.get("condition_1");
-                                    if (condition1) {
-                                        sbo.setCondition("1");
-                                        filterSyncUserValidityPeriodBOCondition.put(custNum, sbo);
-                                    }
-                                    break;
-                                case "2":
-                                    Boolean condition2 = zhongYuanConditionMap.get("condition_2");
-                                    if (condition2) {
-                                        sbo.setCondition("2");
-                                        filterSyncUserValidityPeriodBOCondition.put(custNum, sbo);
-                                    }
-                                    break;
-                            }
+                    try{
+                        String custNum = transferSyncUser.getCustNum();
+                        SyncUserValidityPeriodBO bo = periodBOMap.get(custNum);
+                        if (ObjectUtil.isEmpty(bo)) {
+                            log.warn("{}:中原转化数据推Daas不满足案件编号“有效期内”条件", custNum);
                         } else {
-                            log.warn("{}:中原转化数据推Daas满足【isBlack=1 or ifApply=1】条件", transferSyncUser.getCustNum());
+                            Boolean ifApplyOrIsBlack = validityPeriodDataService.judgmentMarketingTransferDataInvalidWithValidityPeriod(apiCode,
+                                    transferSyncUser.getCustNum());
+                            // ifApply =1 and isBlack =1 剔除
+                            if (!ifApplyOrIsBlack) {
+                                MarketingSyncUser syncUser = bo.getSyncUser();
+                                SyncUserValidityPeriodBOCondition sbo = new SyncUserValidityPeriodBOCondition();
+                                BeanUtils.copyProperties(bo, sbo);
+                                // 电销userType = 1
+                                sbo.setDxUserType("1");
+                                Map<String, Boolean> zhongYuanConditionMap = marketingCommonConfig.getZhongYuanConditionMap();
+                                switch (syncUser.getUserType()) {
+                                    case "1":
+                                        // 判断开关是否推送
+                                        Boolean condition1 = zhongYuanConditionMap.get("condition_1");
+                                        if (condition1) {
+                                            sbo.setCondition("1");
+                                            filterSyncUserValidityPeriodBOCondition.put(custNum, sbo);
+                                        }
+                                        break;
+                                    case "2":
+                                        Boolean condition2 = zhongYuanConditionMap.get("condition_2");
+                                        if (condition2) {
+                                            sbo.setCondition("2");
+                                            filterSyncUserValidityPeriodBOCondition.put(custNum, sbo);
+                                        }
+                                        break;
+                                }
+                            } else {
+                                log.warn("{}:中原转化数据推Daas满足【isBlack=1 or ifApply=1】条件", transferSyncUser.getCustNum());
+                            }
                         }
+                    }catch (Exception e) {
+                        log.error("中原转化数据推Daas剔除报错:{}",e);
                     }
+
                 });
             }
         }
@@ -328,26 +338,31 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
     @Override
     public void zhongYuanTransferDataToCustomerFilter(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
-        Set<String> collectCustNumSet = marketingTransferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(toSet());
-        String apiCode = marketingTransferSyncUserList.get(0).getApiCode();
-        Map<String, SyncUserValidityPeriodBO> periodBOMap =
-                transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(collectCustNumSet, apiCode, new Date());
-        if (!ObjectUtil.isEmpty(periodBOMap)) {
-            List<ConversionData> conversionDataList = new ArrayList<>();
-            marketingTransferSyncUserList.forEach(transferSyncUser -> {
-                String custNum = transferSyncUser.getCustNum();
-                SyncUserValidityPeriodBO bo = periodBOMap.get(custNum);
-                if (ObjectUtil.isEmpty(bo)) {
-                    log.warn("{}:中原转化数据推Daas不满足案件编号“有效期内”条件", custNum);
-                } else {
-                    ConversionData conversionData = packageConversionDataWithTransferData(transferSyncUser, bo);
-                    conversionDataList.add(conversionData);
-                }
-            });
-            ProcessHandlerContext context = new ProcessHandlerContext();
-            context.setApiCode(apiCode);
-            customerTransferSoleHandler.call(conversionDataList, context);
+        try {
+            Set<String> collectCustNumSet = marketingTransferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(toSet());
+            String apiCode = marketingTransferSyncUserList.get(0).getApiCode();
+            Map<String, SyncUserValidityPeriodBO> periodBOMap =
+                    transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(collectCustNumSet, apiCode, new Date());
+            if (!ObjectUtil.isEmpty(periodBOMap)) {
+                List<ConversionData> conversionDataList = new ArrayList<>();
+                marketingTransferSyncUserList.forEach(transferSyncUser -> {
+                    String custNum = transferSyncUser.getCustNum();
+                    SyncUserValidityPeriodBO bo = periodBOMap.get(custNum);
+                    if (ObjectUtil.isEmpty(bo)) {
+                        log.warn("{}:中原转化数据推Daas不满足案件编号“有效期内”条件", custNum);
+                    } else {
+                        ConversionData conversionData = packageConversionDataWithTransferData(transferSyncUser, bo);
+                        conversionDataList.add(conversionData);
+                    }
+                });
+                ProcessHandlerContext context = new ProcessHandlerContext();
+                context.setApiCode(apiCode);
+                customerTransferSoleHandler.call(conversionDataList, context);
+            }
+        }catch (Exception e){
+            log.error("中原转化数据推客服转化异常：{}",e);
         }
+
 
     }
 
