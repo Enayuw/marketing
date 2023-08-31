@@ -86,8 +86,13 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
             return null;
         }
 
+        // 上传表userType
         String syncUserType = bo.getSyncUser().getUserType();
+        // 意向等级
         String grade = pushDataService.getStatusByGrade(this.label(), dto.getDetail().getIntentionGrade());
+//        if (StringUtils.isEmpty(grade)) {
+//            return null;
+//        }
 
         String tcId = tableCreateService.getTcId(dto.getApiCode());
         MarketingTransferSyncUser time =
@@ -137,8 +142,7 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
         phoneSaleExtendInfo.setSourceId(dto.getId());
         phoneSaleExtendInfo.setCell(bo.getSyncUser().getCell());
         // 推电销的userType
-        // todo 等待泽强迁移
-//        phoneSaleExtendInfo.setDxUserType(userType);
+        phoneSaleExtendInfo.setDxUserType(userType);
         return phoneSaleExtendInfo;
     }
 
