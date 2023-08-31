@@ -27,7 +27,6 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import javafx.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -48,9 +47,6 @@ import java.util.Map;
  */
 @Service
 public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversionData> {
-
-    @Value("${api.dass.aesKey:00}")
-    private String aesKey;
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
@@ -104,7 +100,6 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
 
         String conditionType = pair.getKey();
         String userType = pair.getValue();
-
 
         // 判断开关
         Map<String, Boolean> pushSwitch = marketingCommonConfig.getZhongYuanConditionMap();
