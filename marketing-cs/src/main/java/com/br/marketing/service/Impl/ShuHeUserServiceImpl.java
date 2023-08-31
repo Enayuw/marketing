@@ -169,7 +169,7 @@ public class ShuHeUserServiceImpl {
         syncInfo.setRequestBatch(userDTO.getRequestId());
         syncInfo.setLast((byte) 0);
         syncInfo.setTotal(0L);
-        syncInfo.setCreateTime(new Date());
+        syncInfo.setCreateTime(shuheUploadData.getCreateTime());
         syncInfo.setActualNum(userDTO.getDataItems().size());
         syncInfo.setJsonData(JSON.toJSONString(userDTO, SerializerFeature.WriteNullStringAsEmpty
                 , SerializerFeature.WriteNullListAsEmpty));
