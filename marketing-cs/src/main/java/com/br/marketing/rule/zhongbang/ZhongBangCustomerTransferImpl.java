@@ -2,6 +2,7 @@ package com.br.marketing.rule.zhongbang;
 
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
+import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.enums.SoleFieldEnum;
@@ -50,11 +51,13 @@ public class ZhongBangCustomerTransferImpl implements AssembleData<ConversionDat
             return null;
         }
         conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
-
         // 去重参数设置
         conversionData.setInitId(transfer.getId());
         conversionData.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
-        conversionData.setSoleType(1);
+        conversionData.setSoleType(-1);
+        PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
+        conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
+        conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
         return conversionData;
     }
 
