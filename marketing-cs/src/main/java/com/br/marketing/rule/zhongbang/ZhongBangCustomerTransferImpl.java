@@ -58,6 +58,7 @@ public class ZhongBangCustomerTransferImpl implements AssembleData<ConversionDat
         PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
         conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
         conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
+        conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
         return conversionData;
     }
 
