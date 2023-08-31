@@ -1,9 +1,40 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.MarketingTransferSyncUserMapper" >
+<mapper namespace="com.br.marketing.mapper.MarketingTransferSyncUserMapper">
+    <sql id="Example_Where_Clause_1">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
     <select id="getNewestByCusnum" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-        select * from b_marketing_transfer_sync_${cid}
-        where cust_num=#{caseNum}
+        select *
+        from b_marketing_transfer_sync_${cid}
+        where cust_num = #{caseNum}
         order by create_time desc limit 1;
     </select>
 
@@ -738,13 +769,43 @@
     <select id="getZhongBangNoFirstCuTitikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select id, cust_num, if_apply, if_lent
         from b_marketing_transfer_sync_${tCid}
-                where api_code = #{apiCode}
-                  and request_data = #{requestDate}
-                  and if_lent = '1'
-                   <![CDATA[ and lent_time >= #{lastDateStart} and lent_time <= #{lastDateEnd} ]]>
-                  and cust_num in
+        where api_code = #{apiCode}
+        and request_data = #{requestDate}
+        and if_lent = '1'
+        <![CDATA[ and lent_time >= #{lastDateStart} and lent_time <= #{lastDateEnd} ]]>
+        and cust_num in
         <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
             #{custNum}
         </foreach>
+    </select>
+
+    <select id="countByExampleSql" parameterType="com.br.marketing.entity.MarketingTransferSyncUserExample"
+            resultType="java.lang.Integer">
+        select count(*) from b_marketing_transfer_sync_${example.tCid}
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause_1"/>
+        </if>
+        <if test="sqlWhereClause != null and sqlWhereClause !=''">
+            ${sqlWhereClause}
+        </if>
+    </select>
+
+    <select id="selectByExampleSql" resultMap="BaseResultMap"
+            parameterType="com.br.marketing.entity.MarketingTransferSyncUserExample">
+        select
+        <if test="example.distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from b_marketing_transfer_sync_${example.tCid}
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause_1"/>
+        </if>
+        <if test="sqlWhereClause != null and sqlWhereClause !=''">
+            ${sqlWhereClause}
+        </if>
+        <if test="example.orderByClause != null">
+            order by ${example.orderByClause}
+        </if>
     </select>
 </mapper>

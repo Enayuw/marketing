@@ -4,6 +4,7 @@ package com.br.marketing.mapper;
 import com.alibaba.fastjson.JSONArray;
 import com.br.marketing.entity.MarketingNewTransferData;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUserExample;
 import com.br.marketing.vo.TransferOfCnIdVO;
 import com.br.marketing.vo.TransferOfRdRFVO;
 import org.apache.ibatis.annotations.Param;
@@ -418,11 +419,11 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                  @Param("indexId") Long indexId);
 
     List<MarketingTransferSyncUser> getZhongBangNoFirstCuShentikv_(@Param("tCid") String tCid,
-                                                                 @Param("apiCode") String apiCode,
-                                                                 @Param("requestDate") String requestDate,
-                                                                 @Param("lastDateStart") String lastDateStart,
-                                                                 @Param("lastDateEnd") String lastDateEnd,
-                                                                 @Param("custNums") List<String> custNums);
+                                                                   @Param("apiCode") String apiCode,
+                                                                   @Param("requestDate") String requestDate,
+                                                                   @Param("lastDateStart") String lastDateStart,
+                                                                   @Param("lastDateEnd") String lastDateEnd,
+                                                                   @Param("custNums") List<String> custNums);
 
     List<MarketingTransferSyncUser> getZhongBangNoFirstCuTitikv_(@Param("tCid") String tCid,
                                                                  @Param("apiCode") String apiCode,
@@ -430,4 +431,8 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                  @Param("lastDateStart") String lastDateStart,
                                                                  @Param("lastDateEnd") String lastDateEnd,
                                                                  @Param("custNums") List<String> custNums);
+
+    int countByExampleSql(@Param("example") MarketingTransferSyncUserExample example, @Param("sqlWhereClause") String sqlWhereClause);
+
+    List<MarketingTransferSyncUser> selectByExampleSql(@Param("example") MarketingTransferSyncUserExample example, @Param("sqlWhereClause") String sqlWhereClause);
 }
