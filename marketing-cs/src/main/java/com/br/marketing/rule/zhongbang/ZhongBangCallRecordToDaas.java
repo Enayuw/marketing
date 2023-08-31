@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
+import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.client.DaasAndConversionData;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSoleDTO;
@@ -143,7 +144,11 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
         // 去重参数设置
         conversionData.setInitId(dto.getId());
         conversionData.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
-        conversionData.setSoleType(1);
+        conversionData.setSoleType(-1);
+        PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
+        conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
+        conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
+        conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
         return conversionData;
 
     }
