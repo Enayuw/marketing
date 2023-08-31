@@ -387,7 +387,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 pushWarnMessage(apiCode);
             });
             int size = dList.size();
-            if (size < 2000) {
+            if (size < pageSize) {
                 break;
             }
             pageNo++;
