@@ -244,94 +244,98 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
             , ThreadPoolExecutor pushPool) {
         Result<List<ZhonganRosterLockingDataBO>> result = new Result<>();
         result.setCode(ResultCode.FAIL.getValue());
-        ZhonganRosterLockingData data = inList.get(0);
-        String apiCode = data.getApiCode();
-        String tag = data.getTag();
-        Map<String, String> cellMap = md5ToLogMap(inList);
-        Set<String> mobileMd5Set = new HashSet<>(cellMap.values());
-        Map<String, SyncUserValidityPeriodBO> syncUserMap = transferDataValidityPeriodService
-                .getValidityPeriodCellBatchFirstVersion(mobileMd5Set, apiCode, data.getBizDate());
-        boolean emptyBool = CollectionUtils.isEmpty(syncUserMap);
-        if (emptyBool) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
-                    , "tag:" + tag + ",apiCode:" + apiCode + "未获取到上传数据或未配置有效期！"
-                    , apiCode + "," + tag + "锁定名单推送众安异常"));
-            List<Long> ids = inList.parallelStream().map(ZhonganRosterLockingData::getId).collect(Collectors.toList());
-            // 未获取到上传数据
-            updatePushStatusById(ids, 4);
-            return result;
-        }
-        HashMap<String, JSONObject> zhongAnDetailPush = marketingCommonConfig.getZhongAnDetailPush();
-        //失效集合
-        List<Long> notValidity = new ArrayList<>();
-        Map<String, MarketingSyncUser> syncUserMapNew = inList.stream().filter(l -> {
-            if (syncUserMap.containsKey(cellMap.get(l.getMobileMd5()))) {
-                return true;
+        try {
+            ZhonganRosterLockingData data = inList.get(0);
+            String apiCode = data.getApiCode();
+            String tag = data.getTag();
+            Map<String, String> cellMap = md5ToLogMap(inList);
+            Set<String> mobileMd5Set = new HashSet<>(cellMap.values());
+            Map<String, SyncUserValidityPeriodBO> syncUserMap = transferDataValidityPeriodService
+                    .getValidityPeriodCellBatchFirstVersion(mobileMd5Set, apiCode, data.getBizDate());
+            boolean emptyBool = CollectionUtils.isEmpty(syncUserMap);
+            if (emptyBool) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
+                        , "tag:" + tag + ",apiCode:" + apiCode + "未获取到上传数据或未配置有效期！"
+                        , apiCode + "," + tag + "锁定名单推送众安异常"));
+                List<Long> ids = inList.parallelStream().map(ZhonganRosterLockingData::getId).collect(Collectors.toList());
+                // 未获取到上传数据
+                updatePushStatusById(ids, 4);
+                return result;
             }
-            notValidity.add(l.getId());
-            return false;
-        }).collect(Collectors.toConcurrentMap(d -> d.getMobileMd5() + d.getBizDate()
-                , l -> syncUserMap.get(cellMap.get(l.getMobileMd5())).getSyncUser()));
-        Iterator<ZhonganRosterLockingData> iterator = inList.iterator();
-        List<ZhonganRosterLockingDataBO> list = new ArrayList<>();
-        List<Long> notPushData = new ArrayList<>();
-        MarketingSyncUser syncUser;
-        switch (tag) {
-            case "CG":
-                // 对照组
-                Set<String> cellZkDateMap = getMarketingBanMap(apiCode, inList, cellMap);
-                List<Long> notMarketingList = new ArrayList<>();
-                while (iterator.hasNext()) {
-                    ZhonganRosterLockingData next = iterator.next();
-                    if ((syncUser = isPush(syncUserMapNew, zhongAnDetailPush, next, notPushData)) != null) {
-                        String cell = cellMap.getOrDefault(next.getMobileMd5(), "");
-                        if (cellZkDateMap.contains(cell + next.getBizDate())) {
-                            // 不营销
-                            notMarketingList.add(next.getId());
+            HashMap<String, JSONObject> zhongAnDetailPush = marketingCommonConfig.getZhongAnDetailPush();
+            //失效集合
+            List<Long> notValidity = new ArrayList<>();
+            Map<String, MarketingSyncUser> syncUserMapNew = inList.stream().filter(l -> {
+                if (syncUserMap.containsKey(cellMap.get(l.getMobileMd5()))) {
+                    return true;
+                }
+                notValidity.add(l.getId());
+                return false;
+            }).collect(Collectors.toConcurrentMap(d -> d.getMobileMd5() + d.getBizDate()
+                    , l -> syncUserMap.get(cellMap.get(l.getMobileMd5())).getSyncUser()));
+            Iterator<ZhonganRosterLockingData> iterator = inList.iterator();
+            List<ZhonganRosterLockingDataBO> list = new ArrayList<>();
+            List<Long> notPushData = new ArrayList<>();
+            MarketingSyncUser syncUser;
+            switch (tag) {
+                case "CG":
+                    // 对照组
+                    Set<String> cellZkDateMap = getMarketingBanMap(apiCode, inList, cellMap);
+                    List<Long> notMarketingList = new ArrayList<>();
+                    while (iterator.hasNext()) {
+                        ZhonganRosterLockingData next = iterator.next();
+                        if ((syncUser = isPush(syncUserMapNew, zhongAnDetailPush, next, notPushData)) != null) {
+                            String cell = cellMap.getOrDefault(next.getMobileMd5(), "");
+                            if (cellZkDateMap.contains(cell + next.getBizDate())) {
+                                // 不营销
+                                notMarketingList.add(next.getId());
+                                continue;
+                            }
+                            list.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
+                        }
+                    }
+                    updatePushStatusById(notMarketingList, 7);
+                    break;
+                case "MG":
+                    // 营销组
+                    Set<String> custNumBlackListSet = mgFilterCgPushNew(inList, syncUserMapNew, apiCode, syncUserMap);
+                    iterator = inList.iterator();
+                    List<Long> hitBlackList = new ArrayList<>();
+                    while (iterator.hasNext()) {
+                        ZhonganRosterLockingData next = iterator.next();
+                        if ((syncUser = isPush(syncUserMapNew, zhongAnDetailPush, next, notPushData)) != null) {
+                            // 判断黑名单
+                            if (custNumBlackListSet.contains(syncUser.getCustNum() + next.getBizDate())) {
+                                // 命中黑名单
+                                hitBlackList.add(next.getId());
+                                continue;
+                            }
+                            list.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
+                        }
+                    }
+                    updatePushStatusById(hitBlackList, 5);
+                    break;
+                default:
+                    while (iterator.hasNext()) {
+                        ZhonganRosterLockingData next = iterator.next();
+                        String key = next.getMobileMd5() + next.getBizDate();
+                        MarketingSyncUser user = syncUserMapNew.get(key);
+                        if (ObjectUtils.isEmpty(user)) {
                             continue;
                         }
-                        list.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
+                        list.add(new ZhonganRosterLockingDataBO(next, user, apiCode, tag));
                     }
-                }
-                updatePushStatusById(notMarketingList, 7);
-                break;
-            case "MG":
-                // 营销组
-                Set<String> custNumBlackListSet = mgFilterCgPushNew(inList, syncUserMapNew, apiCode, syncUserMap);
-                iterator = inList.iterator();
-                List<Long> hitBlackList = new ArrayList<>();
-                while (iterator.hasNext()) {
-                    ZhonganRosterLockingData next = iterator.next();
-                    if ((syncUser = isPush(syncUserMapNew, zhongAnDetailPush, next, notPushData)) != null) {
-                        // 判断黑名单
-                        if (custNumBlackListSet.contains(syncUser.getCustNum() + next.getBizDate())) {
-                            // 命中黑名单
-                            hitBlackList.add(next.getId());
-                            continue;
-                        }
-                        list.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
-                    }
-                }
-                updatePushStatusById(hitBlackList, 5);
-                break;
-            default:
-                while (iterator.hasNext()) {
-                    ZhonganRosterLockingData next = iterator.next();
-                    String key = next.getMobileMd5() + next.getBizDate();
-                    MarketingSyncUser user = syncUserMapNew.get(key);
-                    if (ObjectUtils.isEmpty(user)) {
-                        continue;
-                    }
-                    list.add(new ZhonganRosterLockingDataBO(next, user, apiCode, tag));
-                }
+            }
+            updatePushStatusById(notValidity, 4);
+            updatePushStatusById(notPushData, 8);
+            if (CollectionUtils.isEmpty(list)) {
+                return result;
+            }
+            Result<?> resultAction = resultAction(list, pushPool);
+            result.setCode(resultAction.getCode());
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
-        updatePushStatusById(notValidity, 4);
-        updatePushStatusById(notPushData, 8);
-        if (CollectionUtils.isEmpty(list)) {
-            return result;
-        }
-        Result<?> resultAction = resultAction(list, pushPool);
-        result.setCode(resultAction.getCode());
         return result;
     }
 
