@@ -46,6 +46,7 @@ public class ZhongYuanTransferDataToCustomerFirstTimeJob extends AbstractSimpleE
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
+        log.warn("中原转化数据推送客服转化过滤，首次JOB开始");
         Set<String> zhongYouJobApiCodes = marketingCommonConfig.getZhongYuanJobApiCodes();
         if (!zhongYouJobApiCodes.isEmpty()) {
             zhongYouJobApiCodes.forEach(apiCode -> {
@@ -99,6 +100,7 @@ public class ZhongYuanTransferDataToCustomerFirstTimeJob extends AbstractSimpleE
         } else {
             log.error("中原转化数据推daas job未配置apiCode,请检查配置字段 【zhongYouJobApiCodes】");
         }
+        log.warn("中原转化数据推送客服转化过滤，首次JOB结束");
     }
 
     private void modifyCorePoolSize(ThreadPoolExecutor pool){
