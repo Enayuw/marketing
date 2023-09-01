@@ -262,13 +262,21 @@ public class MethodRetryHandlerService {
         dassSingleImportAdapDTO.setExtendInfo(dassImportAdapDTO.getExtendInfo());
         dassSingleImportAdapDTO.setTransferInfoId(dassImportAdapDTO.getTransferInfoId());
         Result<JSONObject> result = dassServiceClient.postRealTimeUserData(dassSingleImportAdapDTO);
+        PhoneSaleExtendInfo info = new PhoneSaleExtendInfo();
+        info.setId(Long.valueOf(dassImportAdapDTO.getExtendInfo()));
+        info.setUpdateTime(new Date());
+        info.setPushDxTime(new Date());
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             saveBizLog(dassImportAdapDTO.getExtendInfo(), dassImportAdapDTO.getInterfaceHandlerEnum() == null
                             ? InterfaceHandlerEnum.ARTIFICIAL_REAL_TIME_USERDATA_SOLE.getCode()
                             : dassImportAdapDTO.getInterfaceHandlerEnum().getCode(),
                     dassImportAdapDTO.getTransferInfoId());
+            info.setPStatus(2);
+            phoneSaleExtendInfoMapper.updateByPrimaryKeySelective(info);
             return result;
         }
+        info.setPStatus(3);
+        phoneSaleExtendInfoMapper.updateByPrimaryKey(info);
         log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
         result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         return result;
