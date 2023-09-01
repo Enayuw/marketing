@@ -170,7 +170,7 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
         phoneSaleExtendInfo.setSourceId(dto.getId());
         phoneSaleExtendInfo.setCell(marketingSyncUser.getCell());
         phoneSaleExtendInfo.setGroupNo(1);
-        phoneSaleExtendInfo.setDxType("1");
+        phoneSaleExtendInfo.setDxUserType("1");
         return phoneSaleExtendInfo;
     }
 
