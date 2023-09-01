@@ -32,7 +32,7 @@ public class ZhongYuanTransferDataToDaasFilterJob extends AbstractSimpleElasticJ
     public void process(JobExecutionMultipleShardingContext context) {
 
         String parameter = context.getJobParameter();
-        Set<String> zhongYuanJobApiCodes = marketingCommonConfig.getZhongYouJobApiCodes();
+        Set<String> zhongYuanJobApiCodes = marketingCommonConfig.getZhongYuanJobApiCodes();
         zhongYuanJobApiCodes.forEach(apiCode -> {
         if("1".equals(parameter)){
             zhongYuanService.zhongYuanPushDaasTransferFirst(apiCode);

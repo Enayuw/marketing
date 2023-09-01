@@ -121,7 +121,7 @@ public class ZhongYuanTransferDataToDaasJob extends AbstractSimpleElasticJob {
      * @return 返回 apiCode
      */
     private Set<String> getZhongYuanApiCodes() {
-        return marketingCommonConfig.getZhongYouJobApiCodes();
+        return marketingCommonConfig.getZhongYuanJobApiCodes();
     }
 
     /**

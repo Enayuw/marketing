@@ -46,7 +46,7 @@ public class ZhongYuanTransferDataToCustomerFirstTimeJob extends AbstractSimpleE
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        Set<String> zhongYouJobApiCodes = marketingCommonConfig.getZhongYouJobApiCodes();
+        Set<String> zhongYouJobApiCodes = marketingCommonConfig.getZhongYuanJobApiCodes();
         if (!zhongYouJobApiCodes.isEmpty()) {
             zhongYouJobApiCodes.forEach(apiCode -> {
                 String tcId = tableCreateService.getTcId(apiCode);

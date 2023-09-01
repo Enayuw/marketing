@@ -908,7 +908,7 @@ public class MarketingCommonConfig {
     /**
      * 中邮转化数据job api
      */
-    private Set<String> zhongYouJobApiCodes;
+    private Set<String> zhongYuanJobApiCodes;
 
     /**
      * 中原线程池配置
