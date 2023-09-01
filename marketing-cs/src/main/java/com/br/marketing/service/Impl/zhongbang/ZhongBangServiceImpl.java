@@ -15,7 +15,6 @@ import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
-import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -32,7 +31,6 @@ import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -58,10 +56,6 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class ZhongBangServiceImpl implements ZhongBangService {
-
-
-    @Value("${api.dass.aesKey:00}")
-    private String aesKey;
 
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
@@ -189,8 +183,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
     @SuppressWarnings("all")
     private DassSingleImportDataDTO packageDassSingleImportDataDTO(MarketingTransferSyncUser transferSyncUser
             , MarketingSyncUser syncUser, String dxUserType, Map<String, MarketingTransferSyncUser> newTransferSyncUserMap) {
-        String phone = AESUtil.aesEncrypty(BrCipherMaker.getInstance().decode(
-                syncUser.getCell()), aesKey);
+        String phone = BrCipherMaker.getInstance().decode(syncUser.getCell());
         DassSingleImportDataDTO singleImportDataDTO = new DassSingleImportDataDTO();
         String reserveField1 = syncUser.getReserveField1();
         String firstName = null;
