@@ -270,7 +270,6 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
                     return true;
                 }
                 notValidity.add(l.getId());
-                inList.remove(l);
                 return false;
             }).collect(Collectors.toConcurrentMap(d -> d.getMobileMd5() + d.getBizDate()
                     , l -> syncUserMap.get(cellMap.get(l.getMobileMd5())).getSyncUser()));
