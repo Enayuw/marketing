@@ -336,55 +336,59 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             Set<String> custNumSet = dList.stream().map(MarketingTransferSyncUser::getCustNum)
                     .collect(Collectors.toSet());
             threadPool.execute(() -> {
-                Map<String, SyncUserValidityPeriodBO> validityPeriodMap =
-                        transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(
-                                custNumSet, apiCode, new Date());
-                Set<String> cellSet = validityPeriodMap.values().stream().map(
-                        m -> m.getSyncUser().getCell()).collect(Collectors.toSet());
-                int groupNo = v.getIntValue(groupNoKey);
-                Set<String> newCellSet = phoneSaleExtendService.groupRule(apiCode, day, cellSet
-                        , groupNo);
-                List<MarketingTransferSyncUser> newTransferSyncUser = marketingTransferSyncUserMapper
-                        .getTransferByCustNumOrderDatatikv_(dList.get(0).gettCid(), new ArrayList<>(custNumSet));
-                Map<String, MarketingTransferSyncUser> newTransferSyncUserMap = newTransferSyncUser.stream().collect(
-                        Collectors.toMap(MarketingTransferSyncUser::getCustNum, Function.identity(), (v1, v2) -> v2));
-                List<DaasAndConversionData> list = new ArrayList<>();
-                for (MarketingTransferSyncUser transferSyncUser : dList) {
-                    SyncUserValidityPeriodBO bo = validityPeriodMap.get(transferSyncUser.getCustNum());
-                    // 有效期判断
-                    if (bo == null) {
-                        continue;
+                try {
+                    Map<String, SyncUserValidityPeriodBO> validityPeriodMap =
+                            transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(
+                                    custNumSet, apiCode, new Date());
+                    Set<String> cellSet = validityPeriodMap.values().stream().map(
+                            m -> m.getSyncUser().getCell()).collect(Collectors.toSet());
+                    int groupNo = v.getIntValue(groupNoKey);
+                    Set<String> newCellSet = phoneSaleExtendService.groupRule(apiCode, day, cellSet
+                            , groupNo);
+                    List<MarketingTransferSyncUser> newTransferSyncUser = marketingTransferSyncUserMapper
+                            .getTransferByCustNumOrderDatatikv_(dList.get(0).gettCid(), new ArrayList<>(custNumSet));
+                    Map<String, MarketingTransferSyncUser> newTransferSyncUserMap = newTransferSyncUser.stream().collect(
+                            Collectors.toMap(MarketingTransferSyncUser::getCustNum, Function.identity(), (v1, v2) -> v2));
+                    List<DaasAndConversionData> list = new ArrayList<>();
+                    for (MarketingTransferSyncUser transferSyncUser : dList) {
+                        SyncUserValidityPeriodBO bo = validityPeriodMap.get(transferSyncUser.getCustNum());
+                        // 有效期判断
+                        if (bo == null) {
+                            continue;
+                        }
+                        // 最新的上传数据
+                        MarketingSyncUser syncUser = bo.getSyncUser();
+                        String cell = syncUser.getCell();
+                        if (!newCellSet.contains(cell)) {
+                            continue;
+                        }
+                        DassSingleImportAdapSoleDTO soleDTO = new DassSingleImportAdapSoleDTO();
+                        String dxUserType = v.getString(dxUserTypeKey);
+                        // 电销本地推送记录
+                        PhoneSaleExtendInfo info = packagePhoneSaleExtendInfo(
+                                transferSyncUser, syncUser, status, dxUserType, groupNo);
+                        // 电销
+                        DassSingleImportDataDTO dassImportDataDTO = packageDassSingleImportDataDTO(
+                                transferSyncUser, syncUser, dxUserType, newTransferSyncUserMap);
+                        soleDTO.setDassSingleImportDataDTO(dassImportDataDTO);
+                        // 外呼
+                        ConversionData conversionData = packageConversionData(transferSyncUser, bo);
+                        RealTimeUserDataSoleDTO dto = new RealTimeUserDataSoleDTO();
+                        dto.setPhoneSaleExtendInfo(info);
+                        dto.setDassSingleImportAdapDTO(soleDTO);
+                        dto.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.TRANSFER);
+                        DaasAndConversionData data = new DaasAndConversionData();
+                        data.setConversionData(conversionData);
+                        data.setRealTimeUserDataSoleDTO(dto);
+                        list.add(data);
                     }
-                    // 最新的上传数据
-                    MarketingSyncUser syncUser = bo.getSyncUser();
-                    String cell = syncUser.getCell();
-                    if (!newCellSet.contains(cell)) {
-                        continue;
-                    }
-                    DassSingleImportAdapSoleDTO soleDTO = new DassSingleImportAdapSoleDTO();
-                    String dxUserType = v.getString(dxUserTypeKey);
-                    // 电销本地推送记录
-                    PhoneSaleExtendInfo info = packagePhoneSaleExtendInfo(
-                            transferSyncUser, syncUser, status, dxUserType, groupNo);
-                    // 电销
-                    DassSingleImportDataDTO dassImportDataDTO = packageDassSingleImportDataDTO(
-                            transferSyncUser, syncUser, dxUserType, newTransferSyncUserMap);
-                    soleDTO.setDassSingleImportDataDTO(dassImportDataDTO);
-                    // 外呼
-                    ConversionData conversionData = packageConversionData(transferSyncUser, bo);
-                    RealTimeUserDataSoleDTO dto = new RealTimeUserDataSoleDTO();
-                    dto.setPhoneSaleExtendInfo(info);
-                    dto.setDassSingleImportAdapDTO(soleDTO);
-                    dto.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.TRANSFER);
-                    DaasAndConversionData data = new DaasAndConversionData();
-                    data.setConversionData(conversionData);
-                    data.setRealTimeUserDataSoleDTO(dto);
-                    list.add(data);
+                    ProcessHandlerContext context = new ProcessHandlerContext();
+                    context.setApiCode(apiCode);
+                    artificialRealTimeUserAndCustomerTransferSoleFacade.call(list, context);
+                    pushWarnMessage(apiCode);
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
                 }
-                ProcessHandlerContext context = new ProcessHandlerContext();
-                context.setApiCode(apiCode);
-                artificialRealTimeUserAndCustomerTransferSoleFacade.call(list, context);
-                pushWarnMessage(apiCode);
             });
             int size = dList.size();
             if (size < pageSize) {
