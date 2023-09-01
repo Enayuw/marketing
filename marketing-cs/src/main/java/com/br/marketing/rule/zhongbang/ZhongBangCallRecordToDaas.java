@@ -116,8 +116,8 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
             dassSingleImportDataDTO.setGender((gender % 2 == 0) ? "女" : "男");
         }
         String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
-        String phone = AESUtil.aesEncrypty(cell, aesKey);
-        dassSingleImportDataDTO.setPhone(phone);
+        //传输明文
+        dassSingleImportDataDTO.setPhone(cell);
         dassSingleImportDataDTO.setOrgname("zhongbang");
         dassSingleImportDataDTO.setUid(syncUser.getCustNum());
         dassSingleImportDataDTO.setUserType("1");
