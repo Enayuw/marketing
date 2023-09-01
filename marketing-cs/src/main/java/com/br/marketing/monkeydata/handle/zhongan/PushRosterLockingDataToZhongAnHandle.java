@@ -270,6 +270,7 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
                     return true;
                 }
                 notValidity.add(l.getId());
+                inList.remove(l);
                 return false;
             }).collect(Collectors.toConcurrentMap(d -> d.getMobileMd5() + d.getBizDate()
                     , l -> syncUserMap.get(cellMap.get(l.getMobileMd5())).getSyncUser()));
@@ -350,6 +351,10 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
         String mobileMd5 = next.getMobileMd5();
         String key = mobileMd5 + next.getBizDate();
         MarketingSyncUser syncUser = syncUserMapNew.get(key);
+        // 不在有效期
+        if (syncUser == null) {
+            return null;
+        }
         JSONObject push = pushConfig.get(syncUser.getUserType());
         // 未配置可推送
         if (push == null || !"1".equals(push.getString("isPush"))) {
