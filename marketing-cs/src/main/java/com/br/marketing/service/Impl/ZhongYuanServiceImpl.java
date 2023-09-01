@@ -390,23 +390,21 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         example.setOrderByClause(" create_time,id limit 1000");
         while (actionMark) {
             List<DassImportDataDTO> phoneSales = phoneSaleMapper.getPushDassData(id, minId);
-            Set<String> cellSet = new HashSet<>();
-            phoneSales.forEach(list -> cellSet.add(list.getPhone()));
+            Set<String> custNumSet = new HashSet<>();
+            phoneSales.forEach(list -> custNumSet.add(list.getUid()));
             if (org.springframework.util.CollectionUtils.isEmpty(phoneSales)) {
                 break;
             }
             updatePoolSize(threadPool);
             localFile.setPushStartTime(new Date());
-
             number += phoneSales.size();
-            if (!phoneSales.isEmpty()) {
+            if (phoneSales.size() > 0) {
                 DassImportDataDTO phoneSale = phoneSales.get(phoneSales.size() - 1);
-
                 minId = phoneSale.getId();
                 threadPool.execute(() -> {
                     Map<String, SyncUserValidityPeriodBO> validityPeriodMap =
-                            transferDataValidityPeriodService.getValidityPeriodCellBatchFirstVersion(
-                                    cellSet, apiCode, new Date());
+                            transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(
+                                    custNumSet, apiCode, new Date());
 
                     List<ConversionData> list = new ArrayList<>();
                     for (DassImportDataDTO transferSyncUser : phoneSales) {
@@ -422,11 +420,6 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                     ProcessHandlerContext context = new ProcessHandlerContext();
                     context.setApiCode(apiCode);
                     customerTransferSoleHandler.call(list, context);
-                    if (LocalTime.now().isAfter(LocalTime.parse("10:00:00"))) {
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode()
-                                , "众邦转化数据推送到daas(单条)与外呼，推送时间已过“10点”,但任务会继续...,apiCode:" + apiCode
-                                , "众邦转化数据推送daas(单条)与外呼告警"));
-                    }
                 });
             } else {
                 actionMark = false;
@@ -442,23 +435,15 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                 }
             }
 
-            List<MarketingTransferSyncUserExample.Criteria> oredCriteria = example.getOredCriteria();
-            for (MarketingTransferSyncUserExample.Criteria criteria1 : oredCriteria) {
-                List<MarketingTransferSyncUserExample.Criterion> criteria2 = criteria1.getCriteria();
-                criteria2.removeIf(criterion -> "id >".equals(criterion.getCondition()));
-            }
         }
 
-        localFile.setPushEndTime(new Date());
-        localFile.setPushNumber(number);
-        localFileMapper.updateByPrimaryKeySelective(localFile);
         if (SftpFileTypeEnum.DX.getValue().equals(localFile.getFileType())) {
             StringBuilder content = new StringBuilder();
             content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
                     .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
                     .append("数量：".concat(number.toString()).concat("\r\n"))
                     .append("文件推送dass结束".concat("\r\n"));
-            alarmClient.sendAlarm(content.toString(), "Dass结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
+            alarmClient.sendAlarm(content.toString(), "外呼结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
     }
