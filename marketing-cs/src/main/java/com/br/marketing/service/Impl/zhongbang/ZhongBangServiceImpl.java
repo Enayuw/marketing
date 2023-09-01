@@ -370,6 +370,8 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         dto.setPhoneSaleExtendInfo(info);
                         dto.setDassSingleImportAdapDTO(soleDTO);
                         dto.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.TRANSFER);
+                        dto.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
+                        dto.setSoleType(1);
                         DaasAndConversionData data = new DaasAndConversionData();
                         data.setConversionData(conversionData);
                         data.setRealTimeUserDataSoleDTO(dto);
