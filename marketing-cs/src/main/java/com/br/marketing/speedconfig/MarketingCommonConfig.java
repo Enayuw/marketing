@@ -906,7 +906,7 @@ public class MarketingCommonConfig {
     private Integer zhongYouFileDataThreadNum;
 
     /**
-     * 中邮转化数据job api
+     * 中原转化数据job api
      */
     private Set<String> zhongYuanJobApiCodes;
 
