@@ -10,6 +10,7 @@ import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.es.util.BrCipherMaker;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -73,7 +74,7 @@ public class ArtificialRealTimeUserDataSoleHandler extends AbstractExternalInter
                 , DistributeTypeEnum.DAAS_REAL_TIME_USER_ONE
                 , apiCode
                 , dassSingleImportDataDTO.getUid()
-                , dassSingleImportDataDTO.getPhone()
+                , BrCipherMaker.getInstance().encode(dassSingleImportDataDTO.getPhone())
                 , phoneSaleExtendInfo == null ? null : phoneSaleExtendInfo.getSourceId()
                 , realTimeUserDataDTO.getDistributeSourceTypeEnum() == null
                         ? DistributeSourceTypeEnum.TRANSFER : realTimeUserDataDTO.getDistributeSourceTypeEnum()
