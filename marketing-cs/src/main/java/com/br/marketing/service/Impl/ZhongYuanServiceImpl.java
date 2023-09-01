@@ -402,39 +402,43 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                 DassImportDataDTO phoneSale = phoneSales.get(phoneSales.size() - 1);
                 minId = phoneSale.getId();
                 threadPool.execute(() -> {
-                    Map<String, SyncUserValidityPeriodBO> validityPeriodMap =
-                            transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(
-                                    custNumSet, apiCode, new Date());
+                    try {
+                        Map<String, SyncUserValidityPeriodBO> validityPeriodMap =
+                                transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(
+                                        custNumSet, apiCode, new Date());
 
-                    List<ConversionData> list = new ArrayList<>();
-                    for (DassImportDataDTO transferSyncUser : phoneSales) {
-                        SyncUserValidityPeriodBO bo = validityPeriodMap.get(transferSyncUser.getUid());
-                        // 有效期判断
-                        if (bo == null) {
-                            continue;
+                        List<ConversionData> list = new ArrayList<>();
+                        for (DassImportDataDTO transferSyncUser : phoneSales) {
+                            SyncUserValidityPeriodBO bo = validityPeriodMap.get(transferSyncUser.getUid());
+                            // 有效期判断
+                            if (bo == null) {
+                                continue;
+                            }
+                            // 外呼
+                            ConversionData conversionData = packageConversionData(transferSyncUser, bo, tcId);
+                            list.add(conversionData);
                         }
-                        // 外呼
-                        ConversionData conversionData = packageConversionData(transferSyncUser, bo, tcId);
-                        list.add(conversionData);
+                        ProcessHandlerContext context = new ProcessHandlerContext();
+                        context.setApiCode(apiCode);
+                        customerTransferSoleHandler.call(list, context);
+                    } catch (Exception e) {
+                        log.error(e.getMessage(), e);
                     }
-                    ProcessHandlerContext context = new ProcessHandlerContext();
-                    context.setApiCode(apiCode);
-                    customerTransferSoleHandler.call(list, context);
                 });
             } else {
                 actionMark = false;
             }
-            threadPool.shutdown();
-            while (true) {
-                if (threadPool.isTerminated()) {
-                    break;
-                }
-                try {
-                    Thread.sleep(3000);
-                } catch (Exception e) {
-                }
-            }
+        }
 
+        threadPool.shutdown();
+        while (true) {
+            if (threadPool.isTerminated()) {
+                break;
+            }
+            try {
+                Thread.sleep(3000);
+            } catch (Exception e) {
+            }
         }
 
         if (SftpFileTypeEnum.DX.getValue().equals(localFile.getFileType())) {
@@ -442,7 +446,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
             content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
                     .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
                     .append("数量：".concat(number.toString()).concat("\r\n"))
-                    .append("文件推送dass结束".concat("\r\n"));
+                    .append("文件推外呼结束".concat("\r\n"));
             alarmClient.sendAlarm(content.toString(), "外呼结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
