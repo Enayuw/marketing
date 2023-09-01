@@ -1,5 +1,6 @@
 package com.br.marketing.check.job.zhongyuan;
 
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
@@ -17,6 +18,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 中原转化数据推客服转化过滤
@@ -64,6 +67,11 @@ public class ZhongYuanTransferDataToCustomerFirstTimeJob extends AbstractSimpleE
                 }
 
                 Long indexId = null;
+
+                // 开启线程池
+                Integer threadNum =
+                        marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum();
+                ThreadPoolExecutor pool = BrExecutors.getThreadPool(threadNum, threadNum);
                 while (true) {
                     List<MarketingTransferSyncUser> marketingTransferSyncUserList =
                             zhongYuanService.getMarketingTransferSyncUserListWithValidityPeriod(tcId, apiCode
@@ -74,13 +82,29 @@ public class ZhongYuanTransferDataToCustomerFirstTimeJob extends AbstractSimpleE
 
                     indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
 
-                    // 推客服转化
-                    zhongYuanService.zhongYuanTransferDataToCustomerFilter(marketingTransferSyncUserList);
+                    modifyCorePoolSize(pool);
+                    pool.execute(() -> zhongYuanService.zhongYuanTransferDataToCustomerFilter(marketingTransferSyncUserList));
                 }
 
+                // 关闭线程池
+                pool.shutdown();
+                try {
+                    while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                        log.info("等待线程池结束");
+                    }
+                } catch (Exception ex) {
+                    log.error(ex.getMessage(), ex);
+                }
             });
         } else {
             log.error("中原转化数据推daas job未配置apiCode,请检查配置字段 【zhongYouJobApiCodes】");
         }
+    }
+
+    private void modifyCorePoolSize(ThreadPoolExecutor pool){
+        Integer threadNum =
+                marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum();
+        pool.setCorePoolSize(threadNum);
+        pool.setMaximumPoolSize(threadNum);
     }
 }
