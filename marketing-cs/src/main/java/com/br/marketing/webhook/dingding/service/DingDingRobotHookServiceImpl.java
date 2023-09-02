@@ -42,7 +42,7 @@ public class DingDingRobotHookServiceImpl implements DingDingRobotHookService {
             , AbstractRobotSendRequest robotSendRequest) {
         ApiResult<String> apiResult = new ApiResult<>();
         String robotUrl;
-        if (StringUtils.isNotBlank(webHook)) {
+        if (StringUtils.isBlank(webHook)) {
             if (StringUtils.isNotBlank(accessToken)) {
                 robotUrl = DINGDING_ROBOT_URL.concat("?access_token=").concat(accessToken);
             } else {

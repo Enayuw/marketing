@@ -1,5 +1,6 @@
 package com.br.marketing.webhook.dingding.msgtype;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -15,6 +16,10 @@ public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
      * FeedCard
      */
     private FeedCard feedCard;
+
+    public DingDingFeedCardMessage() {
+        super(MsgType.FEED_CARD);
+    }
 
     public DingDingFeedCardMessage(FeedCard feedCard) {
         super(MsgType.FEED_CARD);
@@ -44,6 +49,9 @@ public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
          */
         private List<Link> links;
 
+        public FeedCard() {
+        }
+
         public FeedCard(List<Link> links) {
             this.links = links;
         }
@@ -64,7 +72,7 @@ public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
         }
     }
 
-    public static class Link {
+    public static class Link implements Serializable {
         /**
          * 2023-08-17 17:48
          * 单条信息文本
@@ -87,6 +95,8 @@ public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
          */
         private String picUrl;
 
+        public Link() {
+        }
 
         public Link(String title, String messageUrl, String picUrl) {
             this.title = title;

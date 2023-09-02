@@ -63,6 +63,7 @@ public interface DingDingRobotHookService {
      * }
      * @dateTime 2023-07-27 21:27
      */
-    ApiResult<String> sendMessageGroup(String webHook, String accessToken, String secret, AbstractRobotSendRequest robotSendRequest);
+    ApiResult<String> sendMessageGroup(String webHook, String accessToken, String secret
+            , AbstractRobotSendRequest robotSendRequest);
 
 }

@@ -1,5 +1,7 @@
 package com.br.marketing.webhook.dingding.msgtype;
 
+import java.io.Serializable;
+
 /**
  * 链接 (link) 消息
  *
@@ -13,6 +15,10 @@ public class DingDingLinkMessage extends AbstractRobotSendRequest {
      */
     private Link link;
 
+
+    public DingDingLinkMessage() {
+        super(MsgType.LINK);
+    }
 
     public DingDingLinkMessage(Link link) {
         super(MsgType.LINK);
@@ -34,7 +40,7 @@ public class DingDingLinkMessage extends AbstractRobotSendRequest {
                 '}';
     }
 
-    public static class Link {
+    public static class Link implements Serializable {
         /**
          * 2023-08-17 17:48
          * 消息标题
@@ -62,6 +68,9 @@ public class DingDingLinkMessage extends AbstractRobotSendRequest {
          * 非必填
          */
         private String picUrl;
+
+        public Link() {
+        }
 
         public Link(String title, String text, String messageUrl) {
             this.title = title;

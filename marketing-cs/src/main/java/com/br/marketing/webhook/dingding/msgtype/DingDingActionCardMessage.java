@@ -1,5 +1,6 @@
 package com.br.marketing.webhook.dingding.msgtype;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -15,10 +16,35 @@ public class DingDingActionCardMessage extends AbstractRobotSendRequest {
      */
     private ActionCard actionCard;
 
+
+    public DingDingActionCardMessage() {
+        super(MsgType.ACTION_CARD);
+    }
+
+    public DingDingActionCardMessage(ActionCard actionCard) {
+        super(MsgType.ACTION_CARD);
+        this.actionCard = actionCard;
+    }
+
+    public ActionCard getActionCard() {
+        return actionCard;
+    }
+
+    public void setActionCard(ActionCard actionCard) {
+        this.actionCard = actionCard;
+    }
+
+    @Override
+    public String toString() {
+        return "DingDingActionCardMessage{" +
+                "actionCard=" + actionCard +
+                '}';
+    }
+
     /**
      * 2023-08-17 18:05
      */
-    public static class ActionCard {
+    public static class ActionCard implements Serializable {
         /**
          * 2023-08-17 17:48
          * 首屏会话透出的展示内容。
@@ -62,6 +88,9 @@ public class DingDingActionCardMessage extends AbstractRobotSendRequest {
          * 非必填
          */
         private String btnOrientation;
+
+        public ActionCard() {
+        }
 
         public ActionCard(String title, String text, String singleTitle, String singleURL) {
             this.title = title;
@@ -172,6 +201,9 @@ public class DingDingActionCardMessage extends AbstractRobotSendRequest {
          */
         private String actionURL;
 
+        public Btn() {
+        }
+
         public Btn(String title, String actionURL) {
             this.title = title;
             this.actionURL = actionURL;
@@ -201,4 +233,5 @@ public class DingDingActionCardMessage extends AbstractRobotSendRequest {
                     '}';
         }
     }
+
 }

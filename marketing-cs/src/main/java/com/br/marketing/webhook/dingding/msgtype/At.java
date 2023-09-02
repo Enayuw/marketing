@@ -1,5 +1,6 @@
 package com.br.marketing.webhook.dingding.msgtype;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -8,7 +9,7 @@ import java.util.List;
  * @author Guo Zeqiang
  * @dateTime 2023-08-17 17:57
  */
-public class At {
+public class At implements Serializable {
 
     /**
      * 2023-08-17 13:57

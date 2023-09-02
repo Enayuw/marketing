@@ -1,12 +1,14 @@
 package com.br.marketing.webhook.dingding.msgtype;
 
+import java.io.Serializable;
+
 /**
  * 机器人发送请求
  *
  * @author Guo Zeqiang
  * @dateTime 2023-08-17 13:47
  */
-public abstract class AbstractRobotSendRequest {
+public abstract class AbstractRobotSendRequest implements Serializable {
     /**
      * 2023-08-17 13:56
      * 消息类型

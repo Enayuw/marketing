@@ -1,5 +1,7 @@
 package com.br.marketing.webhook.dingding.msgtype;
 
+import java.io.Serializable;
+
 /**
  * 文本 (text)消息
  *
@@ -19,6 +21,10 @@ public class DingDingTextMessage extends AbstractRobotSendRequest {
      * 只有在群内的成员才可被@
      */
     private At at;
+
+    public DingDingTextMessage() {
+        super(MsgType.TEXT);
+    }
 
     public DingDingTextMessage(Text text) {
         super(MsgType.TEXT);
@@ -55,13 +61,16 @@ public class DingDingTextMessage extends AbstractRobotSendRequest {
                 '}';
     }
 
-    public static class Text {
+    public static class Text implements Serializable {
         /**
          * 2023-08-17 17:28
          * 消息内容
          * 必填
          */
         private String content;
+
+        public Text() {
+        }
 
         public Text(String content) {
             this.content = content;

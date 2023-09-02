@@ -1,5 +1,7 @@
 package com.br.marketing.webhook.dingding.msgtype;
 
+import java.io.Serializable;
+
 /**
  * markdown(markdown) 消息
  *
@@ -18,6 +20,10 @@ public class DingDingMarkdownMessage extends AbstractRobotSendRequest {
      * 只有在群内的成员才可被@
      */
     private At at;
+
+    public DingDingMarkdownMessage() {
+        super(MsgType.MARKDOWN);
+    }
 
     public DingDingMarkdownMessage(Markdown markdown) {
         super(MsgType.MARKDOWN);
@@ -54,7 +60,7 @@ public class DingDingMarkdownMessage extends AbstractRobotSendRequest {
                 '}';
     }
 
-    public static class Markdown {
+    public static class Markdown implements Serializable {
         /**
          * 2023-08-17 18:00
          * 首屏会话透出的展示内容。
@@ -67,6 +73,9 @@ public class DingDingMarkdownMessage extends AbstractRobotSendRequest {
          * 必填
          */
         private String text;
+
+        public Markdown() {
+        }
 
         public Markdown(String title, String text) {
             this.title = title;
