@@ -233,6 +233,7 @@ public class MethodRetryHandlerService {
 
     /**
      * 2023-08-24 13:28
+     * 灵明石猴
      * 人工实时推送用户名单(单条)处理，带去重的方法
      * 与callDassRealTimeUserData方法逻辑一毛一样
      */
@@ -280,6 +281,14 @@ public class MethodRetryHandlerService {
         log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
         result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         return result;
+    }
+
+    /**
+     * 2023-09-02 14:22
+     * 六耳猕猴
+     */
+    public Result<JSONObject> callDassRealTimeUserDataSole(DassSingleImportAdapSoleDTO dassImportAdapDTO, Integer retry) {
+        return callDassRealTimeUserDataSole(dassImportAdapDTO, retry, null);
     }
 
     /**
