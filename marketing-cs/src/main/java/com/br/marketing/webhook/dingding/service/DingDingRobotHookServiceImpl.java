@@ -68,9 +68,12 @@ public class DingDingRobotHookServiceImpl implements DingDingRobotHookService {
                 , true
                 , MediaType.APPLICATION_JSON_UTF8_VALUE, null);
         String key = "httpcode";
-        String httpcode = response.get(key);
-        if (httpcode.contains("5") || httpcode.contains("4")) {
-            apiResult.fail("访问地址错误或服务端异常！httpcode:" + httpcode);
+        String httpCode = response.get(key);
+        String httpCodeStart5 = "5";
+        String httpCodeStart4 = "4";
+        if (httpCode.contains(httpCodeStart5) || httpCode.contains(httpCodeStart4)) {
+            apiResult.fail("访问地址错误或服务端异常！httpcode:" + httpCode);
+            log.error(apiResult.getMessage());
             return apiResult;
         }
         apiResult.success(response.get("content"), ServiceResultEnum.SUCCESS);
