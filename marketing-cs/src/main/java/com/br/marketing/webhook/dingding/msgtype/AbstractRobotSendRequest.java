@@ -14,16 +14,24 @@ public abstract class AbstractRobotSendRequest implements Serializable {
      * 消息类型
      * 必填
      */
-    private MsgType msgtype;
+    private String msgtype;
 
     public AbstractRobotSendRequest(MsgType msgtype) {
-        this.msgtype = msgtype;
+        this.msgtype = msgtype.getValue();
     }
 
-    public AbstractRobotSendRequest() {
+    public String getMsgtype() {
+        return msgtype;
     }
 
-    enum MsgType {
+    @Override
+    public String toString() {
+        return "AbstractRobotSendRequest{" +
+                "msgtype=" + msgtype +
+                '}';
+    }
+
+    protected enum MsgType {
         /**
          * 2023-08-17 17:17
          * 文本
@@ -51,27 +59,27 @@ public abstract class AbstractRobotSendRequest implements Serializable {
          */
         FEED_CARD("feedCard");
 
-        private String name;
+        private String value;
 
-        MsgType(String name) {
-            this.name = name;
+        MsgType(String value) {
+            this.value = value;
         }
 
         MsgType() {
         }
 
-        public String getName() {
-            return name;
+        public String getValue() {
+            return value;
         }
 
-        public void setName(String name) {
-            this.name = name;
+        public void setValue(String value) {
+            this.value = value;
         }
 
         @Override
         public String toString() {
             return "MsgType{" +
-                    "name='" + name + '\'' +
+                    "value='" + value + '\'' +
                     '}';
         }
     }

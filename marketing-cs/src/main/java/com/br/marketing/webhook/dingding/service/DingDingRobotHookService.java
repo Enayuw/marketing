@@ -33,7 +33,6 @@ public interface DingDingRobotHookService {
      * 1.1.1.1      开发者的出口公网IP地址（非局域网地址）
      * 1.1.1.0/24   用CIDR表示的一个网段
      *
-     * @param webHook          Webhook地址 例如：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX
      * @param accessToken      访问令牌 使用{@code webHook}时该字段可为空
      * @param secret           加签密钥 安全设置为非加签时可为空
      * @param robotSendRequest 请求发送的消息
@@ -63,7 +62,40 @@ public interface DingDingRobotHookService {
      * }
      * @dateTime 2023-07-27 21:27
      */
-    ApiResult<String> sendMessageGroup(String webHook, String accessToken, String secret
+    ApiResult<String> sendMessageGroup(String accessToken, String secret
+            , AbstractRobotSendRequest robotSendRequest);
+
+    /**
+     * 系统事件同步到钉钉的聊天群一定义webHook
+     *
+     * @param webHook          Webhook地址 例如：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX
+     * @param secret           加签密钥 安全设置为非加签时可为空
+     * @param robotSendRequest 请求发送的消息
+     * @return 响应
+     * // 消息内容中不包含任何关键词
+     * {
+     * "errcode":310000,
+     * "errmsg":"keywords not in content"
+     * }
+     * <p>
+     * // timestamp 无效
+     * {
+     * "errcode":310000,
+     * "errmsg":"invalid timestamp"
+     * }
+     * <p>
+     * // 签名不匹配
+     * {
+     * "errcode":310000,
+     * "errmsg":"sign not match"
+     * }
+     * <p>
+     * // IP地址不在白名单
+     * {
+     * "errcode":310000,
+     * "errmsg":"ip X.X.X.X not in whitelist"
+     */
+    ApiResult<String> sendMessageGroupWebHook(String webHook, String secret
             , AbstractRobotSendRequest robotSendRequest);
 
 }

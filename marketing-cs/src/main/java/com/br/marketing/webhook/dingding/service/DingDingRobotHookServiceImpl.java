@@ -38,45 +38,30 @@ public class DingDingRobotHookServiceImpl implements DingDingRobotHookService {
     private static final String DINGDING_ROBOT_URL = "https://oapi.dingtalk.com/robot/send";
 
     @Override
-    public ApiResult<String> sendMessageGroup(String webHook, String accessToken, String secret
+    public ApiResult<String> sendMessageGroup(String accessToken, String secret
             , AbstractRobotSendRequest robotSendRequest) {
         ApiResult<String> apiResult = new ApiResult<>();
-        String robotUrl;
-        if (StringUtils.isBlank(webHook)) {
-            if (StringUtils.isNotBlank(accessToken)) {
-                robotUrl = DINGDING_ROBOT_URL.concat("?access_token=").concat(accessToken);
-            } else {
-                apiResult.fail("访问令牌,不可为空");
-                return apiResult;
-            }
+        String webHook;
+        if (StringUtils.isNotBlank(accessToken)) {
+            webHook = DINGDING_ROBOT_URL.concat("?access_token=").concat(accessToken);
         } else {
-            robotUrl = webHook;
-        }
-        if (StringUtils.isNotBlank(secret)) {
-            Long timestamp = System.currentTimeMillis();
-            try {
-                String sign = createSign(timestamp, secret);
-                robotUrl = robotUrl + "&timestamp=" + timestamp + "&sign=" + sign;
-            } catch (UnsupportedEncodingException | NoSuchAlgorithmException | InvalidKeyException e) {
-                log.error(e.getMessage(), e);
-                apiResult.fail(e.getMessage());
-                return apiResult;
-            }
-        }
-        HashMap<String, String> response = httpProxyClient.sendByCode(robotSendRequest
-                , robotUrl
-                , true
-                , MediaType.APPLICATION_JSON_UTF8_VALUE, null);
-        String key = "httpcode";
-        String httpCode = response.get(key);
-        String httpCodeStart5 = "5";
-        String httpCodeStart4 = "4";
-        if (httpCode.contains(httpCodeStart5) || httpCode.contains(httpCodeStart4)) {
-            apiResult.fail("访问地址错误或服务端异常！httpcode:" + httpCode);
-            log.error(apiResult.getMessage());
+            apiResult.fail("访问令牌,不可为空");
             return apiResult;
         }
-        apiResult.success(response.get("content"), ServiceResultEnum.SUCCESS);
+        sendWebHook(webHook, secret, robotSendRequest, apiResult);
+        return apiResult;
+    }
+
+    @Override
+    public ApiResult<String> sendMessageGroupWebHook(String webHook
+            , String secret
+            , AbstractRobotSendRequest robotSendRequest) {
+        ApiResult<String> apiResult = new ApiResult<>();
+        if (StringUtils.isBlank(webHook)) {
+            apiResult.fail("webHook(web地址),不可为空");
+            return apiResult;
+        }
+        sendWebHook(webHook, secret, robotSendRequest, apiResult);
         return apiResult;
     }
 
@@ -93,5 +78,40 @@ public class DingDingRobotHookServiceImpl implements DingDingRobotHookService {
         mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
         byte[] signData = mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8));
         return URLEncoder.encode(new String(Base64.encodeBase64(signData)), StandardCharsets.UTF_8.toString());
+    }
+
+    /**
+     * 2023-09-02 17:14
+     * 发送消息到web地址
+     */
+    private void sendWebHook(String webHook
+            , String secret
+            , AbstractRobotSendRequest robotSendRequest
+            , ApiResult<String> apiResult) {
+        if (StringUtils.isNotBlank(secret)) {
+            Long timestamp = System.currentTimeMillis();
+            try {
+                String sign = createSign(timestamp, secret);
+                webHook = webHook + "&timestamp=" + timestamp + "&sign=" + sign;
+            } catch (UnsupportedEncodingException | NoSuchAlgorithmException | InvalidKeyException e) {
+                log.error(e.getMessage(), e);
+                apiResult.fail(e.getMessage());
+                return;
+            }
+        }
+        HashMap<String, String> response = httpProxyClient.sendByCode(robotSendRequest
+                , webHook
+                , false
+                , MediaType.APPLICATION_JSON_UTF8_VALUE, null);
+        String key = "httpcode";
+        String httpCode = response.get(key);
+        String httpCodeStart5 = "5";
+        String httpCodeStart4 = "4";
+        if (httpCode.contains(httpCodeStart5) || httpCode.contains(httpCodeStart4)) {
+            apiResult.fail("访问地址错误或服务端异常！httpcode:" + httpCode);
+            log.error(apiResult.getMessage());
+            return;
+        }
+        apiResult.success(response.get("content"), ServiceResultEnum.SUCCESS);
     }
 }
