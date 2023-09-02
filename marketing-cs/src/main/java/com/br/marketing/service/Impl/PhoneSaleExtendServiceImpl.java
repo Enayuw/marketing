@@ -477,17 +477,11 @@ public class PhoneSaleExtendServiceImpl {
             , int day
             , String cell
             , int groupNo) {
+        if (StringUtils.isBlank(cell)) {
+            return false;
+        }
         PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
-        LocalDate now = LocalDate.now();
-        Instant instantStart = now.minusDays(day).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        Instant instantEnd = now.atTime(23, 59, 59, 999999999)
-                .atZone(ZoneId.systemDefault()).toInstant();
-        example.createCriteria()
-                .andApiCodeEqualTo(apiCode)
-                .andCellEqualTo(cell)
-                .andPushDxTimeBetween(Date.from(instantStart), Date.from(instantEnd))
-                .andPStatusEqualTo(2);
-        example.setOrderByClause("push_dx_time desc");
+        getInfoExampleGroup(example, day, apiCode).andCellEqualTo(cell);
         List<PhoneSaleExtendInfo> list = phoneSaleExtendInfoMapper.findInfoByMaxPushDxTimeAndCellList(example);
         if (CollectionUtils.isEmpty(list)) {
             return true;
@@ -515,18 +509,16 @@ public class PhoneSaleExtendServiceImpl {
     public Map<String, Integer> groupRule(String apiCode
             , int day
             , Map<String, Integer> cellGroupNumberMap) {
+        if (CollectionUtils.isEmpty(cellGroupNumberMap)) {
+            return cellGroupNumberMap;
+        }
         PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
         LocalDate now = LocalDate.now();
         Instant instantStart = now.minusDays(day).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
         Instant instantEnd = now.atTime(23, 59, 59, 999999999)
                 .atZone(ZoneId.systemDefault()).toInstant();
         Set<String> cellSet = cellGroupNumberMap.keySet();
-        example.createCriteria()
-                .andApiCodeEqualTo(apiCode)
-                .andCellIn(new ArrayList<>(cellSet))
-                .andPushDxTimeBetween(Date.from(instantStart), Date.from(instantEnd))
-                .andPStatusEqualTo(2);
-        example.setOrderByClause("push_dx_time desc");
+        getInfoExampleGroup(example, day, apiCode).andCellIn(new ArrayList<>(cellSet));
         List<PhoneSaleExtendInfo> list = phoneSaleExtendInfoMapper.findInfoByMaxPushDxTimeAndCellList(example);
         if (CollectionUtils.isEmpty(list)) {
             return cellGroupNumberMap;
@@ -561,18 +553,13 @@ public class PhoneSaleExtendServiceImpl {
      */
     public Set<String> groupRule(String apiCode
             , int day
-            , Set<String> cellSet, int groupNo) {
+            , Set<String> cellSet
+            , int groupNo) {
+        if (CollectionUtils.isEmpty(cellSet)) {
+            return cellSet;
+        }
         PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
-        LocalDate now = LocalDate.now();
-        Instant instantStart = now.minusDays(day).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        Instant instantEnd = now.atTime(23, 59, 59, 999999999)
-                .atZone(ZoneId.systemDefault()).toInstant();
-        example.createCriteria()
-                .andCellIn(new ArrayList<>(cellSet))
-                .andPushDxTimeBetween(Date.from(instantStart), Date.from(instantEnd))
-                .andApiCodeEqualTo(apiCode)
-                .andPStatusEqualTo(2);
-        example.setOrderByClause("push_dx_time desc");
+        getInfoExampleGroup(example, day, apiCode).andCellIn(new ArrayList<>(cellSet));
         List<PhoneSaleExtendInfo> list = phoneSaleExtendInfoMapper.findInfoByMaxPushDxTimeAndCellList(example);
         if (CollectionUtils.isEmpty(list)) {
             return cellSet;
@@ -587,5 +574,24 @@ public class PhoneSaleExtendServiceImpl {
             }
         });
         return set;
+    }
+
+    /**
+     * 2023-09-02 16:29
+     * 构造公共参数
+     */
+    private PhoneSaleExtendInfoExample.Criteria getInfoExampleGroup(PhoneSaleExtendInfoExample example
+            , int day
+            , String apiCode) {
+        example.setOrderByClause("push_dx_time desc");
+        LocalDate now = LocalDate.now();
+        Instant instantStart = now.minusDays(day).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+        Instant instantEnd = now.atTime(23, 59, 59, 999999999)
+                .atZone(ZoneId.systemDefault()).toInstant();
+        return example.createCriteria()
+                .andPushDxTimeBetween(Date.from(instantStart), Date.from(instantEnd))
+                .andApiCodeEqualTo(apiCode)
+                .andPStatusEqualTo(2);
+
     }
 }

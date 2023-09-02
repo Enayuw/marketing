@@ -333,6 +333,9 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                     Map<String, SyncUserValidityPeriodBO> validityPeriodMap =
                             transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(
                                     custNumSet, apiCode, new Date());
+                    if (CollectionUtils.isEmpty(validityPeriodMap)) {
+                        return;
+                    }
                     Set<String> cellSet = validityPeriodMap.values().stream().map(
                             m -> m.getSyncUser().getCell()).collect(Collectors.toSet());
                     int groupNo = v.getIntValue(groupNoKey);
