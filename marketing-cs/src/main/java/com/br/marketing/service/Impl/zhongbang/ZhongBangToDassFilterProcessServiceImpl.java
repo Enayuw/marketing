@@ -20,7 +20,6 @@ import com.br.marketing.service.ZhongBangToDassFilterProcessService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.ArtificialTransferSoleHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -99,13 +98,8 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
                     }
                     indexId = transferSyncUserList.get(transferSyncUserList.size() - 1).getId();
 
-                    List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(transferSyncUserList, PARTITION);
-                    partition.forEach(part -> {
-                        List<MarketingTransferSyncUser> list = new ArrayList<>();
-                        list.addAll(part);
-                        pool.execute(() ->
-                                filterAndPushData(list, apiCode));
-                    });
+                    pool.execute(() ->
+                            filterAndPushData(transferSyncUserList, apiCode));
                 }
 
                 pool.shutdown();
@@ -231,25 +225,7 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
                 }
                 indexId = transferSyncUserList.get(transferSyncUserList.size() - 1).getId();
 
-                List<String> transferCustNums = transferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
-                // 查询近3天命中推dass人工的数据，包括sftp和api
-                PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
-                example.createCriteria().andDxUserTypeEqualTo(userType)
-                        .andApiCodeEqualTo(apiCode).andCustNumIn(transferCustNums)
-                        .andCreateTimeBetween(dateStart, dateEnd);
-                example.setDistinct(true);
-                List<String> custNumSet = phoneSaleExtendInfoMapper.selectCustNumByExampletikv_(example);
-
-                PhoneSaleExample example1 = new PhoneSaleExample();
-                example1.createCriteria().andUserTypeEqualTo(userType).andApiCodeEqualTo(apiCode).andUidIn(transferCustNums)
-                        .andCreateTimeBetween(dateStart, dateEnd);
-                example1.setDistinct(true);
-                List<String> uidSet = phoneSaleMapper.selectUidByExampletikv_(example1);
-
-                // 集合合并
-                List<String> custNums = Stream.concat(custNumSet.stream(), uidSet.stream())
-                        .distinct() // 使用distinct去重
-                        .collect(Collectors.toList());
+                List<String> custNums = findCustNumsBySftpAndApi(apiCode, dateStart, dateEnd, userType, transferSyncUserList);
                 if (CollectionUtils.isEmpty(custNums)) {
                     return;
                 }
@@ -257,17 +233,38 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
 
                 List<MarketingTransferSyncUser> transferSyncUsers =
                         transferSyncUserList.stream().filter(t -> custNums.contains(t.getCustNum())).collect(Collectors.toList());
-                List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(transferSyncUsers, PARTITION);
-                partition.forEach(part -> {
-                    List<MarketingTransferSyncUser> list = new ArrayList<>();
-                    list.addAll(part);
-                    pool.execute(() ->
-                            validAndPushData(list, apiCode, type));
-                });
+                log.warn("众邦推Dass转化过滤，非首次JOB：{}，有效期过滤前量级：{}", type, transferSyncUsers.size());
+
+                pool.execute(() ->
+                        validAndPushData(transferSyncUsers, apiCode, type));
             }
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
+    }
+
+    private List<String> findCustNumsBySftpAndApi(String apiCode, Date dateStart, Date dateEnd, String userType,
+                                                  List<MarketingTransferSyncUser> transferSyncUserList) {
+        List<String> transferCustNums = transferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
+        // 查询近3天命中推dass人工的数据，包括sftp和api
+        PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
+        example.createCriteria().andDxUserTypeEqualTo(userType)
+                .andApiCodeEqualTo(apiCode).andCustNumIn(transferCustNums)
+                .andCreateTimeBetween(dateStart, dateEnd);
+        example.setDistinct(true);
+        List<String> custNumSet = phoneSaleExtendInfoMapper.selectCustNumByExampletikv_(example);
+
+        PhoneSaleExample example1 = new PhoneSaleExample();
+        example1.createCriteria().andUserTypeEqualTo(userType).andApiCodeEqualTo(apiCode).andUidIn(transferCustNums)
+                .andCreateTimeBetween(dateStart, dateEnd);
+        example1.setDistinct(true);
+        List<String> uidSet = phoneSaleMapper.selectUidByExampletikv_(example1);
+
+        // 集合合并
+        List<String> custNums = Stream.concat(custNumSet.stream(), uidSet.stream())
+                .distinct() // 使用distinct去重
+                .collect(Collectors.toList());
+        return custNums;
     }
 
 //    private void doProcess(String apiCode, ThreadPoolExecutor pool, String type, LocalDate date) {

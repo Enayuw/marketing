@@ -750,11 +750,11 @@
         <if test="indexId != null and indexId != ''">
             and id > #{indexId}
         </if>
-        order by id limit 20000;
+        order by id limit 2000;
     </select>
 
     <select id="getZhongBangNoFirstCuShentikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-        select cust_num
+        select id, cust_num, if_apply, if_lent
         from b_marketing_transfer_sync_${tCid}
                 where api_code = #{apiCode}
                   and request_data = #{requestDate}
@@ -765,7 +765,7 @@
         <if test="indexId != null and indexId != ''">
             and id > #{indexId}
         </if>
-        order by id limit 20000;
+        order by id limit 2000;
     </select>
 
     <select id="getZhongBangNoFirstCuTitikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
@@ -780,7 +780,7 @@
         <if test="indexId != null and indexId != ''">
             and id > #{indexId}
         </if>
-        order by id limit 20000;
+        order by id limit 2000;
     </select>
 
     <select id="countByExampleSql" parameterType="com.br.marketing.entity.MarketingTransferSyncUserExample"
