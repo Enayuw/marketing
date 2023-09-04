@@ -1,10 +1,14 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.*;
+
+import com.br.cloud.counter.BrCounter;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.monitor.PrometheusMonitorUtils;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
@@ -1081,6 +1085,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                     Long et1 = null;
                     Long et2 = null;
                     marketingSyncUserMapper.insertMarketingSyncUser(marketingSyncUser);
+                    try {
+                        //上传请求监控统计
+                        BrCounter.count(PrometheusMonitorUtils.COUNT_UPLOAD_API_REQUEST_APICODE_METRIC_NAME, apiCode, marketingSyncUser.getUserType());
+                    } catch (Exception ex) {
+                        log.error("客户上传接口统计异常" + ex.getMessage(), ex);
+                    }
                     et1 = System.currentTimeMillis() - st1;
                     if (ResultCode.SUCCESS.getValue().equals(soleConfig.getCode())) {
                         Long st2 = System.currentTimeMillis();
@@ -1395,6 +1405,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 try {
                     marketingTransferSyncUserMapper.insertSelective(transferSyncUser);
+                    //转化请求监控统
+                    //是否影响性能待观察
+                    try {
+                        BrCounter.count(PrometheusMonitorUtils.COUNT_TRANSFER_API_REQUEST_CID_METRIC_NAME, transferSyncUser.getApiCode(), transferSyncUser.getUserType());
+                    } catch (Exception ex) {
+                        log.error("客户转化接口统计异常" + ex.getMessage(), ex);
+                    }
                 } catch (Exception ex) {
                     MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
                     errorDetailVO.setCustNum(transferDataItemDTO.getCustNum());
@@ -1425,6 +1442,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         errorSize++;
                         errorBuild.add(result.getData());
                     }
+
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                 }
