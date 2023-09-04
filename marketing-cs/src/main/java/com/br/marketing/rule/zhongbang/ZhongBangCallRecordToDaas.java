@@ -105,15 +105,7 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
         }
         String idCard = BrCipherMaker.getInstance().decode(syncUser.getIdCard());
         if (org.apache.commons.lang3.StringUtils.isNotBlank(idCard)) {
-            int gender;
-            int idCardLen = 18;
-            int length = idCard.length();
-            if (length == idCardLen) {
-                gender = Integer.parseInt(idCard.substring(16, 17));
-            } else {
-                gender = Integer.parseInt(idCard.substring(length - 1, length - 1));
-            }
-            dassSingleImportDataDTO.setGender((gender % 2 == 0) ? "女" : "男");
+            dassSingleImportDataDTO.setGender(StringUtils.getGenderByIdCard(idCard));
         }
         String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
         //传输明文
@@ -210,7 +202,7 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
             }
             if (intentionA || intentionB) {
                 //去重逻辑判断
-                return phoneSaleExtendService.groupRule(bo.getApiCode(), 6, syncUserValidityPeriodBO.getSyncUser().getCell(), 1);
+                return phoneSaleExtendService.groupRule(bo.getApiCode(), marketingCommonConfig.getZhongbangCellDistributeDay(), syncUserValidityPeriodBO.getSyncUser().getCell(), 1);
             }
         }
         return false;

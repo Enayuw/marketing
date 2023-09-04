@@ -176,4 +176,25 @@ public class StringUtils {
         matcher.appendTail(sb);
         return sb.toString();
     }
+
+    public static String getGenderByIdCard(String IdCard) {
+
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(IdCard)) {
+            int gender;
+            int idCardLen = 18;
+            int length = IdCard.length();
+            if (length == idCardLen) {
+                gender = Integer.parseInt(IdCard.substring(16, 17));
+            } else {
+                gender = Integer.parseInt(IdCard.substring(length - 1, length - 1));
+            }
+            return (gender % 2 == 0) ? "女" : "男";
+        }
+        return null;
+    }
+
+
+
+
+
 }
