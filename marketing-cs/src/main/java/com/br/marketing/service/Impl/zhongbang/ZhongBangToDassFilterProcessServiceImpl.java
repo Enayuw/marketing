@@ -81,7 +81,7 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
             try {
                 String tcId = tableCreateService.getTcId(apiCode);
                 String requestDate = date.toString();
-                Long indexId = 0l;
+                Long indexId = null;
 
                 // 创建线程池
                 Integer threadNum = marketingCommonConfig.getZhongBangToDassFilterThreadNum();
@@ -127,22 +127,26 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
     }
 
     private void filterAndPushData(List<MarketingTransferSyncUser> list, String apiCode) {
-        log.warn("众邦推Dass转化过滤，首次JOB过滤前量级：{}", list.size());
-        for (String type : dxUserTypeMap.keySet()) {
-            // 1.捞取
-            List<MarketingTransferSyncUser> filterList = list.stream().filter(ifApplyOrLent(type)).collect(Collectors.toList());
-            if (CollectionUtils.isEmpty(filterList)) {
-                continue;
+        try {
+            log.warn("众邦推Dass转化过滤，首次JOB过滤前量级：{}", list.size());
+            for (String type : dxUserTypeMap.keySet()) {
+                // 1.捞取
+                List<MarketingTransferSyncUser> filterList = list.stream().filter(ifApplyOrLent(type)).collect(Collectors.toList());
+                if (CollectionUtils.isEmpty(filterList)) {
+                    continue;
+                }
+                log.warn("众邦推Dass转化过滤，首次JOB：{}，有效期过滤前量级：{}", type, filterList.size());
+                // 2.有效期
+                List<MarketingSyncUser> validedList = getValidedList(apiCode, filterList);
+                if (CollectionUtils.isEmpty(validedList)) {
+                    continue;
+                }
+                log.warn("众邦推Dass转化过滤，首次JOB：{}，有效期过滤后量级：{}", type, validedList.size());
+                // 3.推送
+                pushToDass(validedList, type, apiCode);
             }
-            log.warn("众邦推Dass转化过滤，首次JOB：{}，有效期过滤前量级：{}", type, filterList.size());
-            // 2.有效期
-            List<MarketingSyncUser> validedList = getValidedList(apiCode, filterList);
-            if (CollectionUtils.isEmpty(validedList)) {
-                continue;
-            }
-            log.warn("众邦推Dass转化过滤，首次JOB：{}，有效期过滤后量级：{}", type, validedList.size());
-            // 3.推送
-            pushToDass(validedList, type, apiCode);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
     }
 
