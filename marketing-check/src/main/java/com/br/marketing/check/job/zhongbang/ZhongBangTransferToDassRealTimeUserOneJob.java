@@ -35,18 +35,19 @@ public class ZhongBangTransferToDassRealTimeUserOneJob extends AbstractSimpleEla
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
+        long start = System.currentTimeMillis();
+        /* param 格式：apiCode或{"apiCode":"yyyy-MM-dd或yyyy-MM-dd HH:mm:ss,yyyy-MM-dd HH:mm:ss"}
+         * eg1：7410994
+         * 或
+         * eg2：{"7410994":"2023-08-25"}
+         * 或
+         * eg2：{"7410994":"2023-08-25 00:00:00,2023-08-25 23:59:59"}
+         */
+        String parameter = context.getJobParameter();
+        JSONObject jsonObject = new JSONObject();
         int poolSize = marketingCommonConfig.getZhongBangTransferPushDaasThreadPoolSize();
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(poolSize, poolSize);
         try {
-            /* param 格式：apiCode或{"apiCode":"yyyy-MM-dd或yyyy-MM-dd HH:mm:ss,yyyy-MM-dd HH:mm:ss"}
-             * eg1：7410994
-             * 或
-             * eg2：{"7410994":"2023-08-25"}
-             * 或
-             * eg2：{"7410994":"2023-08-25 00:00:00,2023-08-25 23:59:59"}
-             */
-            String parameter = context.getJobParameter();
-            JSONObject jsonObject = new JSONObject();
             if (StringUtils.isBlank(parameter)) {
                 jsonObject.put("3710094", LocalDate.now().toString());
 
@@ -77,6 +78,9 @@ public class ZhongBangTransferToDassRealTimeUserOneJob extends AbstractSimpleEla
             log.error(e.getMessage(), e);
             threadPool.shutdownNow();
         }
+        long end = System.currentTimeMillis();
+        log.warn("众邦自动化转Daas任务结束，参数信息:{}，运行耗时:{}"
+                , jsonObject, end - start);
     }
 }
 
