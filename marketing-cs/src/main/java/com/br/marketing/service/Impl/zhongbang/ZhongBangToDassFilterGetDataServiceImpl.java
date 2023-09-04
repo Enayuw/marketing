@@ -32,25 +32,25 @@ public class ZhongBangToDassFilterGetDataServiceImpl implements ZhongBangToDassF
 
     @Override
     public List<MarketingTransferSyncUser> getNoFirstCuShen(String tCid, String apiCode, String requestDate, String lastDateStart,
-                                                            String lastDateEnd, List<String> custNums) {
+                                                            String lastDateEnd, Long indexId) {
         return marketingTransferSyncUserMapper
                 .getZhongBangNoFirstCuShentikv_(
                         tCid,
                         apiCode,
                         requestDate,
-                        lastDateStart, lastDateEnd, custNums
+                        lastDateStart, lastDateEnd, indexId
                 );
     }
 
     @Override
     public List<MarketingTransferSyncUser> getNoFirstCuTi(String tCid, String apiCode, String requestDate, String lastDateStart, String lastDateEnd
-            , List<String> custNums) {
+            , Long indexId) {
         return marketingTransferSyncUserMapper
                 .getZhongBangNoFirstCuTitikv_(
                         tCid,
                         apiCode,
                         requestDate,
-                        lastDateStart, lastDateEnd, custNums
+                        lastDateStart, lastDateEnd, indexId
                 );
     }
 }

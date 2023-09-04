@@ -750,7 +750,7 @@
         <if test="indexId != null and indexId != ''">
             and id > #{indexId}
         </if>
-        order by id limit 2000;
+        order by id limit 20000;
     </select>
 
     <select id="getZhongBangNoFirstCuShentikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
@@ -759,24 +759,28 @@
                 where api_code = #{apiCode}
                   and request_data = #{requestDate}
                   and if_apply = '1'
-                   <![CDATA[ and apply_dt >= #{lastDateStart} and apply_dt <= #{lastDateEnd} ]]>
-                  and cust_num in
-        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
-            #{custNum}
-        </foreach>
+                   <![CDATA[ and apply_dt >= #{lastDateStart}
+                  and apply_dt <= #{lastDateEnd}
+        ]]>
+        <if test="indexId != null and indexId != ''">
+            and id > #{indexId}
+        </if>
+        order by id limit 20000;
     </select>
 
     <select id="getZhongBangNoFirstCuTitikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select id, cust_num, if_apply, if_lent
         from b_marketing_transfer_sync_${tCid}
-        where api_code = #{apiCode}
-        and request_data = #{requestDate}
-        and if_lent = '1'
-        <![CDATA[ and lent_time >= #{lastDateStart} and lent_time <= #{lastDateEnd} ]]>
-        and cust_num in
-        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
-            #{custNum}
-        </foreach>
+                where api_code = #{apiCode}
+                  and request_data = #{requestDate}
+                  and if_lent = '1'
+        <![CDATA[ and lent_time >= #{lastDateStart}
+                  and lent_time <= #{lastDateEnd}
+        ]]>
+        <if test="indexId != null and indexId != ''">
+            and id > #{indexId}
+        </if>
+        order by id limit 20000;
     </select>
 
     <select id="countByExampleSql" parameterType="com.br.marketing.entity.MarketingTransferSyncUserExample"

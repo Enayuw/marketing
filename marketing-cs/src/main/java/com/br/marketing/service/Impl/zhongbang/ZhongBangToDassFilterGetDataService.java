@@ -20,11 +20,13 @@ public interface ZhongBangToDassFilterGetDataService {
      * 非首次JOB获取促申数据，根据custNum：request_date=T日且ifApply=1且applyDt=t-1
      * @return 转化数据列表
      */
-    List<MarketingTransferSyncUser> getNoFirstCuShen(String tCid, String apiCode, String requestDate, String lastDateStart, String lastDateEnd, List<String> custNums);
+    List<MarketingTransferSyncUser> getNoFirstCuShen(String tCid, String apiCode, String requestDate, String lastDateStart, String lastDateEnd,
+                                                     Long indexId);
 
     /**
      * 非首次JOB获取促提数据，根据custNum：request_date=T日且ifLent=1且lentTime=T-1
      * @return 转化数据列表
      */
-    List<MarketingTransferSyncUser> getNoFirstCuTi(String tCid, String apiCode, String requestDate, String lastDateStart, String lastDateEnd, List<String> custNums);
+    List<MarketingTransferSyncUser> getNoFirstCuTi(String tCid, String apiCode, String requestDate, String lastDateStart, String lastDateEnd,
+                                                   Long indexId);
 }

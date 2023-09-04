@@ -423,14 +423,14 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                    @Param("requestDate") String requestDate,
                                                                    @Param("lastDateStart") String lastDateStart,
                                                                    @Param("lastDateEnd") String lastDateEnd,
-                                                                   @Param("custNums") List<String> custNums);
+                                                                   @Param("indexId") Long indexId);
 
     List<MarketingTransferSyncUser> getZhongBangNoFirstCuTitikv_(@Param("tCid") String tCid,
                                                                  @Param("apiCode") String apiCode,
                                                                  @Param("requestDate") String requestDate,
                                                                  @Param("lastDateStart") String lastDateStart,
                                                                  @Param("lastDateEnd") String lastDateEnd,
-                                                                 @Param("custNums") List<String> custNums);
+                                                                 @Param("indexId") Long indexId);
 
     int countByExampleSql(@Param("example") MarketingTransferSyncUserExample example, @Param("sqlWhereClause") String sqlWhereClause);
 
