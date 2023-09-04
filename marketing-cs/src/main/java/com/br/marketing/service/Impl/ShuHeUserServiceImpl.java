@@ -85,13 +85,9 @@ public class ShuHeUserServiceImpl {
 
     @Transactional(rollbackFor = Exception.class)
     public Long saveShUploadData(CaseShuheUploadData shuheUploadData, JSONObject uploadDataDTO, JSONArray listInfo) {
-        caseShuheUploadDataMapper.insertSelective(shuheUploadData);
-        //todo 测试pulsar 上线删除
-        if("1".equals(uploadDataDTO.getString("test"))){
-            throw new RuntimeException("数据库异常");
-        }
         //todo 模拟异常上线后要删除
         pushRuleService.mockDbOrRedisError(1,shuheUploadData.getApiCode());
+        caseShuheUploadDataMapper.insertSelective(shuheUploadData);
         return saveSyncInfo(adapterMarketingPreUserDTO(uploadDataDTO, listInfo, shuheUploadData), shuheUploadData);
     }
 
@@ -185,6 +181,8 @@ public class ShuHeUserServiceImpl {
         ShuheTransferJsonDTO jsonDTO = JSONObject.parseObject(jsonData, new TypeReference<ShuheTransferJsonDTO>() {
         }.getType());
         String userType = jsonDTO.getBizType();
+        //todo 模拟异常上线后要删除
+        pushRuleService.mockDbOrRedisError(1,apiCode);
         // 2、判断场景类型
         if (StringUtils.isEmpty(userType)) {
             /*
@@ -254,8 +252,6 @@ public class ShuHeUserServiceImpl {
         transferInfo.setJsonData(JSONObject.toJSONString(transferSyncUser));
         transferInfo.setActualNum(1);
         marketingTransferInfoMapper.insertSelective(transferInfo);
-        //todo 模拟异常上线后要删除
-        pushRuleService.mockDbOrRedisError(1,apiCode);
         marketingTransferSyncUserMapper.insertSelective(transferSyncUser);
         return transferInfo.getId();
     }

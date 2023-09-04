@@ -940,10 +940,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         //region 数据入库
         try {
-            //todo 测试pulsar 上线删除
-            if("20230724-wjm-pulsar-test-01".equals(dto.getJsonData().getRequestId())){
-                throw new KnowException("手动db报错");
-            }
             MarketingSyncInfo syncInfo = new MarketingSyncInfo();
             syncInfo.setApiCode(dto.getApiCode());
             syncInfo.setCusBatch(dto.getJsonData().getTaskId());
@@ -967,6 +963,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
         } catch (Exception ex) {
+            log.error(String.format("返回DB异常耗时：%d",System.currentTimeMillis()-l));
             dbException = Boolean.TRUE;
         }
         //endregion
@@ -3305,6 +3302,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             return;
         }
         if(new Integer(1).equals(mockType)){
+            if(mockError.get("db")!=null && mockError.get("db")){
+                throw new KnowException("DB全局异常");
+            }
             if(mockError.get(apiCode)!=null && mockError.get(apiCode)){
                 throw new KnowException("DB异常");
             }
