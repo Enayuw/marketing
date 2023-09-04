@@ -11,7 +11,7 @@ sharding:
         filters: stat
         maxActive: 300
         initialSize: 10
-        maxWait: 3000
+        maxWait: 30000
         minIdle: 10
         timeBetweenEvictionRunsMillis: 60000
         minEvictableIdleTimeMillis: 300000
