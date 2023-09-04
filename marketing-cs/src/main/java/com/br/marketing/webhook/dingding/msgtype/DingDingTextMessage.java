@@ -2,7 +2,6 @@ package com.br.marketing.webhook.dingding.msgtype;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import org.hibernate.validator.constraints.NotEmpty;
 
 import java.io.Serializable;
 
@@ -76,8 +75,7 @@ public class DingDingTextMessage extends AbstractRobotSendRequest {
          * 消息内容
          * 必填
          */
-        @ApiModelProperty(value = "消息内容")
-        @NotEmpty
+        @ApiModelProperty(value = "消息内容", required = true)
         private String content;
 
         public Text() {

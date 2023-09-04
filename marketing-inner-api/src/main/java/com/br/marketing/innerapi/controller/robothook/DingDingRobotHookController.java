@@ -36,12 +36,15 @@ public class DingDingRobotHookController {
     @ApiOperation(value = "发送文本消息", notes = "发送文本消息")
     @ApiImplicitParams({@ApiImplicitParam(name = "accessToken", value = "访问令牌", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "secret", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "isProxy", paramType = "query", dataType = "boolean")
     })
     @PostMapping(path = {"text"})
     public ApiResult<String> sendTextMessage(@RequestParam String accessToken
             , @RequestParam(required = false) String secret
+            , @RequestParam(required = false, value = "true") Boolean isProxy
             , @RequestBody DingDingTextMessage dingDingTextMessage) {
-        return dingDingRobotHookService.sendMessageGroup(accessToken, secret, dingDingTextMessage);
+        return dingDingRobotHookService.sendMessageGroup(accessToken, secret, dingDingTextMessage
+                , isProxy == null || isProxy);
     }
 
     /**
@@ -55,12 +58,15 @@ public class DingDingRobotHookController {
     @ApiOperation(value = "使用webHook发送文本消息", notes = "使用webHook发送文本消息")
     @ApiImplicitParams({@ApiImplicitParam(name = "webHook", value = "Webhook地址 例如：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "secret", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "isProxy", paramType = "query", dataType = "boolean")
     })
     @PostMapping(path = {"webHook/text"})
     public ApiResult<String> sendTextMessageWebHook(@RequestParam String webHook
             , @RequestParam(required = false) String secret
+            , @RequestParam(required = false, value = "true") Boolean isProxy
             , @RequestBody DingDingTextMessage dingDingTextMessage) {
-        return dingDingRobotHookService.sendMessageGroupWebHook(webHook, secret, dingDingTextMessage);
+        return dingDingRobotHookService.sendMessageGroupWebHook(webHook, secret, dingDingTextMessage
+                , isProxy == null || isProxy);
     }
 
     /**
@@ -74,12 +80,15 @@ public class DingDingRobotHookController {
     @ApiOperation(value = "发送markdown(markdown) 消息", notes = "发送markdown(markdown) 消息")
     @ApiImplicitParams({@ApiImplicitParam(name = "accessToken", value = "访问令牌", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "secret", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "isProxy", paramType = "query", dataType = "boolean")
     })
     @PostMapping(path = {"markdown"})
     public ApiResult<String> sendMarkdownMessage(@RequestParam String accessToken
             , @RequestParam(required = false) String secret
+            , @RequestParam(required = false, value = "true") Boolean isProxy
             , @RequestBody DingDingMarkdownMessage dingDingMarkdownMessage) {
-        return dingDingRobotHookService.sendMessageGroup(accessToken, secret, dingDingMarkdownMessage);
+        return dingDingRobotHookService.sendMessageGroup(accessToken, secret, dingDingMarkdownMessage
+                , isProxy == null || isProxy);
     }
 
     /**
@@ -93,12 +102,15 @@ public class DingDingRobotHookController {
     @ApiOperation(value = "使用webHook发送markdown(markdown) 消息", notes = "使用webHook发送markdown(markdown) 消息")
     @ApiImplicitParams({@ApiImplicitParam(name = "webHook", value = "Webhook地址 例如：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "secret", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "isProxy", paramType = "query", dataType = "boolean")
     })
     @PostMapping(path = {"webHook/markdown"})
     public ApiResult<String> sendMarkdownMessageWebHook(@RequestParam String webHook
             , @RequestParam(required = false) String secret
+            , @RequestParam(required = false, value = "true") Boolean isProxy
             , @RequestBody DingDingMarkdownMessage dingDingMarkdownMessage) {
-        return dingDingRobotHookService.sendMessageGroupWebHook(webHook, secret, dingDingMarkdownMessage);
+        return dingDingRobotHookService.sendMessageGroupWebHook(webHook, secret, dingDingMarkdownMessage
+                , isProxy == null || isProxy);
     }
 
     /**
@@ -112,12 +124,15 @@ public class DingDingRobotHookController {
     @ApiOperation(value = "发送链接 (link) 消息", notes = "发送链接 (link) 消息")
     @ApiImplicitParams({@ApiImplicitParam(name = "accessToken", value = "访问令牌", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "secret", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "isProxy", paramType = "query", dataType = "boolean")
     })
     @PostMapping(path = {"link"})
     public ApiResult<String> sendLinkMessage(@RequestParam String accessToken
             , @RequestParam(required = false) String secret
+            , @RequestParam(required = false, value = "true") Boolean isProxy
             , @RequestBody DingDingLinkMessage dingDingLinkMessage) {
-        return dingDingRobotHookService.sendMessageGroup(accessToken, secret, dingDingLinkMessage);
+        return dingDingRobotHookService.sendMessageGroup(accessToken, secret, dingDingLinkMessage
+                , isProxy == null || isProxy);
     }
 
     /**
@@ -131,12 +146,15 @@ public class DingDingRobotHookController {
     @ApiOperation(value = "使用webHook发送链接 (link) 消息", notes = "使用webHook发送链接 (link) 消息")
     @ApiImplicitParams({@ApiImplicitParam(name = "webHook", value = "Webhook地址 例如：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "secret", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "isProxy", paramType = "query", dataType = "boolean")
     })
     @PostMapping(path = {"webHook/link"})
     public ApiResult<String> sendLinkMessageWebHook(@RequestParam String webHook
             , @RequestParam(required = false) String secret
+            , @RequestParam(required = false, value = "true") Boolean isProxy
             , @RequestBody DingDingLinkMessage dingDingLinkMessage) {
-        return dingDingRobotHookService.sendMessageGroupWebHook(webHook, secret, dingDingLinkMessage);
+        return dingDingRobotHookService.sendMessageGroupWebHook(webHook, secret, dingDingLinkMessage
+                , isProxy == null || isProxy);
     }
 
     /**
@@ -150,12 +168,15 @@ public class DingDingRobotHookController {
     @ApiOperation(value = "发送FeedCard消息", notes = "发送FeedCard消息")
     @ApiImplicitParams({@ApiImplicitParam(name = "accessToken", value = "访问令牌", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "secret", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "isProxy", paramType = "query", dataType = "boolean")
     })
     @PostMapping(path = {"feedCard"})
     public ApiResult<String> sendFeedCardMessage(@RequestParam String accessToken
             , @RequestParam(required = false) String secret
+            , @RequestParam(required = false, value = "true") Boolean isProxy
             , @RequestBody DingDingFeedCardMessage dingDingFeedCardMessage) {
-        return dingDingRobotHookService.sendMessageGroup(accessToken, secret, dingDingFeedCardMessage);
+        return dingDingRobotHookService.sendMessageGroup(accessToken, secret, dingDingFeedCardMessage
+                , isProxy == null || isProxy);
     }
 
     /**
@@ -169,12 +190,15 @@ public class DingDingRobotHookController {
     @ApiOperation(value = "使用webHook发送FeedCard消息", notes = "使用webHook发送FeedCard消息")
     @ApiImplicitParams({@ApiImplicitParam(name = "webHook", value = "Webhook地址 例如：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "secret", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "isProxy", paramType = "query", dataType = "boolean")
     })
     @PostMapping(path = {"webHook/feedCard"})
     public ApiResult<String> sendFeedCardMessageWebHook(@RequestParam String webHook
             , @RequestParam(required = false) String secret
+            , @RequestParam(required = false, value = "true") Boolean isProxy
             , @RequestBody DingDingFeedCardMessage dingDingFeedCardMessage) {
-        return dingDingRobotHookService.sendMessageGroupWebHook(webHook, secret, dingDingFeedCardMessage);
+        return dingDingRobotHookService.sendMessageGroupWebHook(webHook, secret, dingDingFeedCardMessage
+                , isProxy == null || isProxy);
     }
 
     /**
@@ -188,12 +212,15 @@ public class DingDingRobotHookController {
     @ApiOperation(value = "发送ActionCard消息", notes = "发送ActionCard消息")
     @ApiImplicitParams({@ApiImplicitParam(name = "accessToken", value = "访问令牌", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "secret", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "isProxy", paramType = "query", dataType = "boolean")
     })
     @PostMapping(path = {"actionCard"})
     public ApiResult<String> sendActionCardMessage(@RequestParam String accessToken
             , @RequestParam(required = false) String secret
+            , @RequestParam(required = false, value = "true") Boolean isProxy
             , @RequestBody DingDingActionCardMessage dingDingActionCardMessage) {
-        return dingDingRobotHookService.sendMessageGroup(accessToken, secret, dingDingActionCardMessage);
+        return dingDingRobotHookService.sendMessageGroup(accessToken, secret, dingDingActionCardMessage
+                , isProxy == null || isProxy);
     }
 
     /**
@@ -206,11 +233,14 @@ public class DingDingRobotHookController {
     @ApiOperation(value = "使用webHook发送ActionCard消息", notes = "发送ActionCard消息")
     @ApiImplicitParams({@ApiImplicitParam(name = "webHook", value = "Webhook地址 例如：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "secret", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "isProxy", paramType = "query", dataType = "boolean")
     })
     @PostMapping(path = {"webHook/actionCard"})
     public ApiResult<String> sendActionCardMessageWebHook(@RequestParam String webHook
             , @RequestParam(required = false) String secret
+            , @RequestParam(required = false, value = "true") Boolean isProxy
             , @RequestBody DingDingActionCardMessage dingDingActionCardMessage) {
-        return dingDingRobotHookService.sendMessageGroupWebHook(webHook, secret, dingDingActionCardMessage);
+        return dingDingRobotHookService.sendMessageGroupWebHook(webHook, secret, dingDingActionCardMessage
+                , isProxy == null || isProxy);
     }
 }

@@ -39,7 +39,7 @@ public class DingDingRobotHookServiceImpl implements DingDingRobotHookService {
 
     @Override
     public ApiResult<String> sendMessageGroup(String accessToken, String secret
-            , AbstractRobotSendRequest robotSendRequest) {
+            , AbstractRobotSendRequest robotSendRequest, boolean isProxy) {
         ApiResult<String> apiResult = new ApiResult<>();
         String webHook;
         if (StringUtils.isNotBlank(accessToken)) {
@@ -48,20 +48,33 @@ public class DingDingRobotHookServiceImpl implements DingDingRobotHookService {
             apiResult.fail("访问令牌,不可为空");
             return apiResult;
         }
-        sendWebHook(webHook, secret, robotSendRequest, apiResult);
+        sendWebHook(webHook, secret, robotSendRequest, apiResult, isProxy);
         return apiResult;
+    }
+
+    @Override
+    public ApiResult<String> sendMessageGroup(String accessToken, String secret
+            , AbstractRobotSendRequest robotSendRequest) {
+        return sendMessageGroup(accessToken, secret, robotSendRequest, true);
+    }
+
+    @Override
+    public ApiResult<String> sendMessageGroupWebHook(String webHook, String secret
+            , AbstractRobotSendRequest robotSendRequest) {
+        return sendMessageGroup(webHook, secret, robotSendRequest, true);
     }
 
     @Override
     public ApiResult<String> sendMessageGroupWebHook(String webHook
             , String secret
-            , AbstractRobotSendRequest robotSendRequest) {
+            , AbstractRobotSendRequest robotSendRequest
+            , boolean isProxy) {
         ApiResult<String> apiResult = new ApiResult<>();
         if (StringUtils.isBlank(webHook)) {
             apiResult.fail("webHook(web地址),不可为空");
             return apiResult;
         }
-        sendWebHook(webHook, secret, robotSendRequest, apiResult);
+        sendWebHook(webHook, secret, robotSendRequest, apiResult, isProxy);
         return apiResult;
     }
 
@@ -87,7 +100,8 @@ public class DingDingRobotHookServiceImpl implements DingDingRobotHookService {
     private void sendWebHook(String webHook
             , String secret
             , AbstractRobotSendRequest robotSendRequest
-            , ApiResult<String> apiResult) {
+            , ApiResult<String> apiResult
+            , boolean isProxy) {
         if (StringUtils.isNotBlank(secret)) {
             Long timestamp = System.currentTimeMillis();
             try {
@@ -101,7 +115,7 @@ public class DingDingRobotHookServiceImpl implements DingDingRobotHookService {
         }
         HashMap<String, String> response = httpProxyClient.sendByCode(robotSendRequest
                 , webHook
-                , false
+                , isProxy
                 , MediaType.APPLICATION_JSON_UTF8_VALUE, null);
         String key = "httpcode";
         String httpCode = response.get(key);

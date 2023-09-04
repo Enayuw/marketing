@@ -2,7 +2,6 @@ package com.br.marketing.webhook.dingding.msgtype;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import org.hibernate.validator.constraints.NotEmpty;
 
 import java.io.Serializable;
 import java.util.List;
@@ -55,8 +54,7 @@ public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
          * 多条文本
          * 必填
          */
-        @ApiModelProperty(value = "多条文本")
-        @NotEmpty
+        @ApiModelProperty(value = "多条文本", required = true)
         private List<Link> links;
 
         public FeedCard() {
@@ -89,8 +87,7 @@ public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
          * 单条信息文本
          * 必填
          */
-        @ApiModelProperty(value = "单条信息文本")
-        @NotEmpty
+        @ApiModelProperty(value = "单条信息文本", required = true)
         private String title;
 
 
@@ -99,8 +96,7 @@ public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
          * 点击单条信息到跳转链接。
          * 必填
          */
-        @ApiModelProperty(value = "点击单条信息到跳转链接")
-        @NotEmpty
+        @ApiModelProperty(value = "点击单条信息到跳转链接", required = true)
         private String messageUrl;
 
         /**
@@ -108,8 +104,7 @@ public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
          * 单条信息后面图片的URL。
          * 必填
          */
-        @ApiModelProperty(value = "单条信息后面图片的URL")
-        @NotEmpty
+        @ApiModelProperty(value = "单条信息后面图片的URL", required = true)
         private String picUrl;
 
         public Link() {

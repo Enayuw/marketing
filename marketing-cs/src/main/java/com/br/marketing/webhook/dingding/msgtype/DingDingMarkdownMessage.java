@@ -2,7 +2,6 @@ package com.br.marketing.webhook.dingding.msgtype;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import org.hibernate.validator.constraints.NotEmpty;
 
 import java.io.Serializable;
 
@@ -75,16 +74,14 @@ public class DingDingMarkdownMessage extends AbstractRobotSendRequest {
          * 首屏会话透出的展示内容。
          * 必填
          */
-        @ApiModelProperty(value = "首屏会话透出的展示内容")
-        @NotEmpty
+        @ApiModelProperty(value = "首屏会话透出的展示内容", required = true)
         private String title;
         /**
          * 2023-08-17 18:00
          * markdown格式的消息。
          * 必填
          */
-        @ApiModelProperty(value = "markdown格式的消息")
-        @NotEmpty
+        @ApiModelProperty(value = "markdown格式的消息", required = true)
         private String text;
 
         public Markdown() {

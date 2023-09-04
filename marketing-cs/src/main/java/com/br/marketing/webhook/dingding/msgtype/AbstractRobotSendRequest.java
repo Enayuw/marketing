@@ -1,5 +1,7 @@
 package com.br.marketing.webhook.dingding.msgtype;
 
+import io.swagger.annotations.ApiModelProperty;
+
 import java.io.Serializable;
 
 /**
@@ -14,6 +16,7 @@ public abstract class AbstractRobotSendRequest implements Serializable {
      * 消息类型
      * 必填
      */
+    @ApiModelProperty(value = "文本消息", hidden = true)
     private String msgtype;
 
     public AbstractRobotSendRequest(MsgType msgtype) {

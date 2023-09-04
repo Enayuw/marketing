@@ -66,6 +66,13 @@ public interface DingDingRobotHookService {
             , AbstractRobotSendRequest robotSendRequest);
 
     /**
+     * 2023-09-04 14:56
+     * 是否使用代理
+     */
+    ApiResult<String> sendMessageGroup(String accessToken, String secret
+            , AbstractRobotSendRequest robotSendRequest, boolean isProxy);
+
+    /**
      * 系统事件同步到钉钉的聊天群一定义webHook
      *
      * @param webHook          Webhook地址 例如：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX
@@ -97,5 +104,12 @@ public interface DingDingRobotHookService {
      */
     ApiResult<String> sendMessageGroupWebHook(String webHook, String secret
             , AbstractRobotSendRequest robotSendRequest);
+
+    /**
+     * 2023-09-04 14:56
+     * 是否使用代理
+     */
+    ApiResult<String> sendMessageGroupWebHook(String webHook, String secret
+            , AbstractRobotSendRequest robotSendRequest, boolean isProxy);
 
 }

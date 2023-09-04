@@ -2,7 +2,6 @@ package com.br.marketing.webhook.dingding.msgtype;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import org.hibernate.validator.constraints.NotEmpty;
 
 import java.io.Serializable;
 
@@ -54,8 +53,7 @@ public class DingDingLinkMessage extends AbstractRobotSendRequest {
          * 消息标题
          * 必填
          */
-        @ApiModelProperty(value = "消息标题")
-        @NotEmpty
+        @ApiModelProperty(value = "消息标题", required = true)
         private String title;
 
         /**
@@ -63,8 +61,7 @@ public class DingDingLinkMessage extends AbstractRobotSendRequest {
          * 消息内容。如果太长只会部分展示。
          * 必填
          */
-        @ApiModelProperty(value = "消息内容。如果太长只会部分展示")
-        @NotEmpty
+        @ApiModelProperty(value = "消息内容。如果太长只会部分展示", required = true)
         private String text;
 
         /**
@@ -72,8 +69,7 @@ public class DingDingLinkMessage extends AbstractRobotSendRequest {
          * 点击消息跳转的URL
          * 必填
          */
-        @ApiModelProperty(value = "点击消息跳转的UR")
-        @NotEmpty
+        @ApiModelProperty(value = "点击消息跳转的UR", required = true)
         private String messageUrl;
 
         /**
