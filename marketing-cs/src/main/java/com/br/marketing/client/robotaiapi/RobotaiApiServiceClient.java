@@ -95,8 +95,6 @@ public class RobotaiApiServiceClient {
             if(!Integer.valueOf(200).equals(transfer.getHttpCode())){
                 throw new RuntimeException("客服中心：".concat(String.valueOf(transfer.getHttpCode())));
             }
-            TransferRobotOutboundVO<UnsuccessfulData> result = JSON.parseObject(transfer.getResult()
-                    ,new TypeReference<TransferRobotOutboundVO>(){}.getType());
             try {
                 //调用数量监控
                 BrCounter.count(PrometheusMonitorUtils.COUNT_ROBOTAI_TRANSFER_METRIC_NAME, dto.getApiCode(), "transferData-api",
