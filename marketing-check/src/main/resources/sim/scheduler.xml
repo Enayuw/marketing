@@ -676,4 +676,18 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+    <job:simple id="ZhongYuanTransferDataToDaasJob"
+                class="com.br.marketing.check.job.zhongyuan.ZhongYuanTransferDataToDaasJob"
+                cron="0 10/15 8-11 * * ?"
+                description="中原转化数据推Daas"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>

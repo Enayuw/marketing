@@ -924,5 +924,9 @@ public class MarketingCommonConfig {
      * 中原转化数据推Daas 和 客服 数据线程数
      */
     private Integer zhongYuanTransferDataToDaasAndCustomerFilterThreadNum;
+    /**
+     * 中原转化数据推Daas 7天内推送一次
+     */
+    private Integer zhongYuanDaysToSend;
 }
 

@@ -55,21 +55,14 @@ public class ZhongYuanTransferDataToDaasJob extends AbstractSimpleElasticJob {
             zhongYouJobApiCodes.forEach(apiCode -> {
                 String tcId = tableCreateService.getTcId(apiCode);
                 Long indexId = null;
+                // 线程池创建
                 ThreadPoolExecutor zhongYuanTransferToDaasAndCustomerFilterThreadPool = createThreadPoolExecutor();
                 while (true) {
-                    String startDate = LocalDate.now().toString();
-                    String endDate = LocalDate.now().toString();
-                    if (StringUtils.isNotBlank(parameter)) {
-                        String[] split = parameter.split(",");
-                        startDate = LocalDate.parse(split[0], DateTimeFormatter.ofPattern("yyyy-MM-dd")).toString();
-                        endDate = LocalDate.parse(split[1], DateTimeFormatter.ofPattern("yyyy-MM-dd")).toString();
-                    }
-                    List<MarketingTransferSyncUser> marketingTransferSyncUserList =
-                            zhongYuanService.getMarketingTransferSyncUserListWithValidityPeriod(tcId, apiCode, indexId, startDate, endDate);
-                    if (marketingTransferSyncUserList.isEmpty()) {
-                        break;
-                    }
+                    // 基础数据获取
+                    List<MarketingTransferSyncUser> marketingTransferSyncUserList = getMarketingTransferSyncUsers(apiCode, parameter, tcId, indexId);
+                    if (marketingTransferSyncUserList == null) break;
                     indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
+                    // 数据处理逻辑
                     dealTransferDataWithThread(zhongYuanTransferToDaasAndCustomerFilterThreadPool, marketingTransferSyncUserList);
                 }
                 threadClosed(zhongYuanTransferToDaasAndCustomerFilterThreadPool);
@@ -77,6 +70,30 @@ public class ZhongYuanTransferDataToDaasJob extends AbstractSimpleElasticJob {
         } else {
             log.error("中原转化数据推daas job未配置apiCode,请检查配置字段 【zhongYouJobApiCodes】");
         }
+    }
+
+    /**
+     * 获取基础转化数据
+     * @param apiCode apiCode
+     * @param parameter job 入参
+     * @param tcId tcid
+     * @param indexId 起始id
+     * @return
+     */
+    private List<MarketingTransferSyncUser> getMarketingTransferSyncUsers(String apiCode, String parameter, String tcId, Long indexId) {
+        String startDate = LocalDate.now().toString();
+        String endDate = LocalDate.now().toString();
+        if (StringUtils.isNotBlank(parameter)) {
+            String[] split = parameter.split(",");
+            startDate = LocalDate.parse(split[0], DateTimeFormatter.ofPattern("yyyy-MM-dd")).toString();
+            endDate = LocalDate.parse(split[1], DateTimeFormatter.ofPattern("yyyy-MM-dd")).toString();
+        }
+        List<MarketingTransferSyncUser> marketingTransferSyncUserList =
+                zhongYuanService.getMarketingTransferSyncUserListWithValidityPeriod(tcId, apiCode, indexId, startDate, endDate);
+        if (marketingTransferSyncUserList.isEmpty()) {
+            return null;
+        }
+        return marketingTransferSyncUserList;
     }
 
     /**

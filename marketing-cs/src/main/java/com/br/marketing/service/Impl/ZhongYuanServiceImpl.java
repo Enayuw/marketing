@@ -1,9 +1,7 @@
 package com.br.marketing.service.Impl;
 
-import IceInternal.Ex;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
-import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
@@ -42,7 +40,6 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -138,7 +135,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
             // 推 Daas
             pushTransferDataToDaas(periodBOMap, ifLoginCollectTransferSyncUserList);
         }catch (Exception e){
-            log.error("中原转化数据推Daas异常：{}",e);
+            log.error("中原转化数据推Daas异常：",e);
         }
 
     }
@@ -195,7 +192,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         return transferData;
     }
 
-    private static RealTimeUserDataSoleDTO getRealTimeUserDataSoleDTO(DassSingleImportAdapSoleDTO dassSingleImportAdapSoleDTO, PhoneSaleExtendInfo phoneSaleExtendInfo) {
+    private  RealTimeUserDataSoleDTO getRealTimeUserDataSoleDTO(DassSingleImportAdapSoleDTO dassSingleImportAdapSoleDTO, PhoneSaleExtendInfo phoneSaleExtendInfo) {
         RealTimeUserDataSoleDTO realTimeUserDataSoleDTO = new RealTimeUserDataSoleDTO();
         realTimeUserDataSoleDTO.setDassSingleImportAdapDTO(dassSingleImportAdapSoleDTO);
         realTimeUserDataSoleDTO.setPhoneSaleExtendInfo(phoneSaleExtendInfo);
@@ -203,7 +200,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
         // 设置去重逻辑 单一cell 7 天内只推送一次
         realTimeUserDataSoleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
-        realTimeUserDataSoleDTO.setSoleType(7);
+        realTimeUserDataSoleDTO.setSoleType(marketingCommonConfig.getZhongYuanDaysToSend()-1);
         return realTimeUserDataSoleDTO;
     }
 
@@ -289,7 +286,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                 marketingTransferSyncUserList.forEach(transferSyncUser -> {
                     try{
                         String custNum = transferSyncUser.getCustNum();
-                        SyncUserValidityPeriodBO bo = periodBOMap.get(custNum);
+                        SyncUserValidityPeriodBO bo = periodBOMap.get(custNum+userType);
                         if (ObjectUtil.isEmpty(bo)) {
                             log.warn("{}:中原转化数据推Daas不满足案件编号“有效期内”条件", custNum);
                         } else {
@@ -325,14 +322,12 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                             }
                         }
                     }catch (Exception e) {
-                        log.error("中原转化数据推Daas剔除报错:{}",e);
+                        log.error("中原转化数据推Daas剔除报错:",e);
                     }
 
                 });
             }
         }
-
-
         return filterSyncUserValidityPeriodBOCondition;
     }
 
@@ -360,7 +355,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                 customerTransferSoleHandler.call(conversionDataList, context);
             }
         }catch (Exception e){
-            log.error("中原转化数据推客服转化异常：{}",e);
+            log.error("中原转化数据推客服转化异常：",e);
         }
 
 
