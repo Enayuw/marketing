@@ -513,10 +513,6 @@ public class PhoneSaleExtendServiceImpl {
             return cellGroupNumberMap;
         }
         PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
-        LocalDate now = LocalDate.now();
-        Instant instantStart = now.minusDays(day).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
-        Instant instantEnd = now.atTime(23, 59, 59, 999999999)
-                .atZone(ZoneId.systemDefault()).toInstant();
         Set<String> cellSet = cellGroupNumberMap.keySet();
         getInfoExampleGroup(example, day, apiCode).andCellIn(new ArrayList<>(cellSet));
         List<PhoneSaleExtendInfo> list = phoneSaleExtendInfoMapper.findInfoByMaxPushDxTimeAndCellList(example);
@@ -590,8 +586,7 @@ public class PhoneSaleExtendServiceImpl {
                 .atZone(ZoneId.systemDefault()).toInstant();
         return example.createCriteria()
                 .andPushDxTimeBetween(Date.from(instantStart), Date.from(instantEnd))
-                .andApiCodeEqualTo(apiCode)
-                .andPStatusEqualTo(2);
+                .andApiCodeEqualTo(apiCode);
 
     }
 }
