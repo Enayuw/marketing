@@ -2,8 +2,11 @@ package com.br.marketing.client;
 
 import com.br.redisengin.MultiRedisClusterUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.ScanParams;
+import redis.clients.jedis.ScanResult;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -201,5 +204,33 @@ public class RedisChgService {
         String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
         Object result = jedisCluster.eval(script, Collections.singletonList(lockKey), Collections.singletonList(requestId));
         return RELEASE_SUCCESS.equals(result);
+    }
+
+    public void delBigSet(String bigSetKey, int deleteCount) {
+        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
+        ScanParams scanParams = new ScanParams().count(deleteCount);
+        String cursor = ScanParams.SCAN_POINTER_START;
+        do {
+            ScanResult<String> scanResult = jedis.sscan(bigSetKey, cursor, scanParams);
+            List<String> memberList = scanResult.getResult();
+            if (CollectionUtils.isNotEmpty(memberList)) {
+                String[] members = memberList.stream().map(Object::toString).toArray(String[]::new);
+                jedis.srem(bigSetKey, members);
+                sleep(bigSetKey, members);
+            }
+            cursor = scanResult.getStringCursor();
+        } while (!"0".equals(cursor));
+
+        //删除bigkey
+        jedis.del(bigSetKey);
+    }
+
+    private void sleep(String key, String[] members) {
+        try {
+                Thread.sleep(10);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error(e.getMessage(), e);
+        }
     }
 }

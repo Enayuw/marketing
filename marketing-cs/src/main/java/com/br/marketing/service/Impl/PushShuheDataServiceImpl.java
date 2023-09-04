@@ -5,14 +5,22 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.br.arch.geo.pulsar.ProductPulsarClientManager;
+import com.br.arch.geo.pulsar.ProductPulsarProducer;
 import com.br.common.encryption.Md5Utils;
 import com.br.marketing.adapter.transfer.TransferSyncAdapter;
 import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.MarketingErrorInfo;
+import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.exception.BusinessException;
+import com.br.marketing.common.exception.CommonException;
+import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.MQConstants;
@@ -39,7 +47,10 @@ import com.br.marketing.service.ITransferSyncUserService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.ShuHeAESencUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pulsar.client.api.PulsarClientException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -48,6 +59,8 @@ import org.springframework.util.StringUtils;
 import javax.annotation.Resource;
 import java.security.SecureRandom;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -96,6 +109,9 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final DateTimeFormatter yyMMddHH = DateTimeFormatter.ofPattern("yyMMdd");
     private static final Set<String> FIELD_SET = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+    @Autowired
+    ShuHeUserServiceImpl shuHeUserService;
 
     static {
         // D20220824数禾定制版上传接口改造一期 初始化字段 2022-9-1 16:49:53
@@ -217,6 +233,107 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             exceptionSave(jsonDTO, jsonData, apiCode, e);
             return responseShuheDTO.failed();
         }
+    }
+
+
+    @Override
+    public ResponseCustomDTO saveShuheTransferDataTwoVersion(String apiCode, String jsonData) {
+        ResponseShuheDTO responseShuheDTO = new ResponseShuheDTO();
+        responseShuheDTO.success();
+        ShuheTransferJsonDTO jsonDTO = null;
+        try {
+            jsonDTO = JSONObject.parseObject(jsonData, new TypeReference<ShuheTransferJsonDTO>() {
+            }.getType());
+        }catch (Exception ex){
+            log.error(ex.getMessage(), ex);
+            responseShuheDTO.failed("抱歉,解析json数据失败！");
+            return responseShuheDTO;
+        }
+        // 1、校验参数合法性
+        String msg = nonNullCheck(jsonDTO);
+        if (!"".equals(msg)) {
+            responseShuheDTO.failed("抱歉,缺失必填参数！缺失参数为：".concat(msg));
+            msg = "缺失必填参数:".concat(msg).concat("\napiCode“" + apiCode).concat("”\nuserType“"
+                            + jsonDTO.getBizType()).concat("”\n案件编号“" + jsonDTO.getOrderId())
+                    .concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^");
+            this.sendAlarmMgsUrgent(title, msg, alarmClient);
+            return responseShuheDTO;
+        }
+        SecureRandom random = new SecureRandom();
+        String requestId = Md5Utils.cell32(jsonData
+                .concat("@" + System.currentTimeMillis()).concat("#" + random.nextInt(10000)));
+        Map res = null;
+        try {
+            res = shuHeUserService.saveShTransferData(apiCode, jsonData, requestId, responseShuheDTO,null);
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+            ProductPulsarProducer producer = null;
+            try {
+                producer = ProductPulsarClientManager.newProducer(PulsarTopic.transferShTopic);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("apiCode",apiCode);
+                jsonObject.put("jsonData",jsonData);
+                jsonObject.put("requestId",requestId);
+                jsonObject.put("time",LocalDateTime.now().format(dateTimeFormatter));
+                String jsonString = jsonObject.toJSONString();
+                byte[] message = jsonString.getBytes();
+                producer.send(message);
+                log.warn(String.format("写入Pulsar 主题:%s 数据:%s",PulsarTopic.transferShTopic,jsonString));
+            } catch (PulsarClientException e) {
+                responseShuheDTO.failed();
+            }
+            return responseShuheDTO;
+        }
+        Boolean userTypeUknow = (Boolean) res.getOrDefault("userTypeUknow", Boolean.TRUE);
+        Long transferInfoId = (Long) res.getOrDefault("transferInfoId", 0L);
+        List<String> universalProcessApiCode = marketingCommonConfig.getUniversalProcessApiCode();
+        if (!userTypeUknow && transferInfoId>0 && universalProcessApiCode.contains(apiCode)) {
+            final MqFact mqFact = new MqFact();
+            mqFact.setSourceId(transferInfoId);
+            mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
+            producter.sendToUniversalTransferQueue(mqFact);
+        }
+        return responseShuheDTO;
+
+    }
+
+    @Override
+    public Result<Boolean> consumerShTransfer(String msg) {
+        JSONObject jb = JSON.parseObject(msg);
+        String requestId = jb.getString("requestId");
+        String jsonData = jb.getString("jsonData");
+        String apiCode = jb.getString("apiCode");
+        String time = jb.getString("time");
+        Date createTime = null;
+        try {
+             createTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(time);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+        Map res = null;
+        try {
+            ResponseShuheDTO responseShuheDTO = new ResponseShuheDTO();
+            //todo 测试pulsar 上线删除
+            JSONObject testJb = JSONObject.parseObject(jsonData);
+            if("1".equals(testJb.getString("test"))){
+                testJb.remove("test");
+                jsonData = JSON.toJSONString(testJb);
+            }
+            res = shuHeUserService.saveShTransferData(apiCode, jsonData, requestId, responseShuheDTO,createTime);
+        }catch (DuplicateKeyException keyException) {
+            log.error(String.format("数禾转化数据pulsar消费重复requestId requestId:%s,jsonData:%s,apiCode:%s",requestId,jsonData,apiCode));
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue());
+        }
+        Boolean userTypeUknow = (Boolean) res.getOrDefault("userTypeUknow", Boolean.TRUE);
+        Long transferInfoId = (Long) res.getOrDefault("transferInfoId", 0L);
+        List<String> universalProcessApiCode = marketingCommonConfig.getUniversalProcessApiCode();
+        if (!userTypeUknow && transferInfoId>0 && universalProcessApiCode.contains(apiCode)) {
+            final MqFact mqFact = new MqFact();
+            mqFact.setSourceId(transferInfoId);
+            mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
+            producter.sendToUniversalTransferQueue(mqFact);
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue());
     }
 
     private String nonNullCheck(ShuheTransferJsonDTO jsonDTO) {
@@ -385,13 +502,14 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
 
     @Override
     public ResponseCustomDTO saveUploadData(String apiCode, String jsonData) {
+        String requestId = buildRequestId(apiCode);
         CaseShuheUploadData shuheUploadData = new CaseShuheUploadData();
         shuheUploadData.setJsonData(jsonData);
         shuheUploadData.setUploadDate(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
         shuheUploadData.setCreateTime(new Date());
         shuheUploadData.setUpdateTime(shuheUploadData.getCreateTime());
         shuheUploadData.setApiCode(apiCode);
-        shuheUploadData.setRequestId(getSerialNumber(apiCode));
+        shuheUploadData.setRequestId(requestId);
         Response2ShuheDTO response2ShuheDTO = new Response2ShuheDTO();
         response2ShuheDTO.setMsgId(shuheUploadData.getRequestId());
         if (org.apache.commons.lang3.StringUtils.isBlank(jsonData)) {
@@ -417,27 +535,84 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             String userType = uploadDataDTO.getString("extraInfo");
             shuheUploadData.setUserType(StringUtils.isEmpty(userType) ? "" : userType);
         }
+        Long infoId = null;
         try {
-            int i = caseShuheUploadDataMapper.insertSelective(shuheUploadData);
-            if (i != 1) {
-                String mgs = "数禾上传数据前置表入库失败";
-                BusinessException exception = new BusinessException(mgs);
-                exception.setExceptionMessage(mgs);
-            }
-            response2ShuheDTO.setMsgId(serialNumberAddId(shuheUploadData));
-            shuheUploadData.setRequestId(response2ShuheDTO.getMsgId());
-        } catch (Exception e) {
-            log.error(e.getMessage()
-                    + "\nrequestId:" + shuheUploadData.getRequestId()
-                    + "\napiCode:" + apiCode
-                    + "\njsonData:" + jsonData, e);
-            response2ShuheDTO.setMsgId(shuheUploadData.getRequestId());
-            return response2ShuheDTO.failed();
+            infoId = shuHeUserService.saveShUploadData(shuheUploadData, uploadDataDTO, listInfo);
+        } catch (DuplicateKeyException keyException) {
+            log.error(String.format("数禾上传数据重复requestId requestId:%s,jsonData:%s,apiCode:%s",requestId,jsonData,apiCode));
+            return response2ShuheDTO.success();
         }
-        saveSyncInfo(adapterMarketingPreUserDTO(uploadDataDTO, listInfo, shuheUploadData), shuheUploadData);
+        catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+            ProductPulsarProducer producer = null;
+            try {
+                producer = ProductPulsarClientManager.newProducer(PulsarTopic.upLoadShTopic);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("apiCode",apiCode);
+                jsonObject.put("requestId",requestId);
+                jsonObject.put("jsonData",jsonData);
+                jsonObject.put("time",LocalDateTime.now().format(dateTimeFormatter));
+                String jsonString = jsonObject.toJSONString();
+                byte[] message = jsonString.getBytes();
+                producer.send(message);
+                log.warn(String.format("写入Pulsar 主题:%s 数据:%s",PulsarTopic.upLoadShTopic,jsonString));
+            } catch (PulsarClientException e) {
+                response2ShuheDTO.failed(",内部错误");
+                return response2ShuheDTO;
+            }
+        }
+        if(infoId!=null){
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, infoId.toString());
+        }
         BR_EXECUTORS.execute(() -> checkField(uploadDataDTO, listInfo));
         return response2ShuheDTO.success();
     }
+
+
+    @Override
+    public Result<Boolean> consumerShUpload(String msg) {
+        JSONObject jb = JSON.parseObject(msg);
+        String requestId = jb.getString("requestId");
+        String jsonData = jb.getString("jsonData");
+        String apiCode = jb.getString("apiCode");
+        String time = jb.getString("time");
+        Date dataTime = null;
+        try {
+            dataTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(time);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+        CaseShuheUploadData shuheUploadData = new CaseShuheUploadData();
+        shuheUploadData.setJsonData(jsonData);
+        shuheUploadData.setUploadDate(new SimpleDateFormat("yyyy-MM-dd").format(dataTime));
+        shuheUploadData.setCreateTime(dataTime);
+        shuheUploadData.setUpdateTime(shuheUploadData.getCreateTime());
+        shuheUploadData.setApiCode(apiCode);
+        shuheUploadData.setRequestId(requestId);
+        JSONObject uploadDataDTO = JSONObject.parseObject(jsonData);
+        if (uploadDataDTO.containsKey("extraInfo")) {
+            String userType = uploadDataDTO.getString("extraInfo");
+            shuheUploadData.setUserType(StringUtils.isEmpty(userType) ? "" : userType);
+        }
+        final JSONArray listInfo = uploadDataDTO.getJSONArray("listInfo");
+        Long infoId = null;
+        try {
+            //todo 测试pulsar 上线删除
+            if("1".equals(uploadDataDTO.getString("test"))){
+                uploadDataDTO.remove("test");
+            }
+            infoId = shuHeUserService.saveShUploadData(shuheUploadData, uploadDataDTO, listInfo);
+        } catch (DuplicateKeyException keyException) {
+            log.error(String.format("数禾上传数据pulsar消费重复requestId requestId:%s,jsonData:%s,apiCode:%s",requestId,jsonData,apiCode));
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue());
+        }
+        if(infoId!=null){
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, infoId.toString());
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue());
+        }
+        return  new Result<Boolean>().setCode(ResultCode.FAIL.getValue());
+    }
+
 
     /**
      * 2022/9/1 11:46
@@ -664,6 +839,21 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     }
 
     /**
+     * 数禾上传接口创建requestID
+     * @param apiCode
+     * 日期（6，年后2+月2+日2）_apiCode（7）_毫秒（13）_随机数（6）
+     * @return
+     */
+    private String buildRequestId(String apiCode) {
+        SecureRandom random = new SecureRandom();
+        return LocalDateTime.now().format(yyMMddHH)
+                .concat("_"+apiCode)
+                .concat("_"+System.currentTimeMillis())
+                .concat("_"+random.nextInt(999999));
+    }
+
+
+    /**
      * 2022/8/30 18:04
      * 业务流水流水号生成规则：
      * 1.流水号+数据库id
@@ -674,4 +864,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     private String serialNumberAddId(CaseShuheUploadData data) {
         return data.getRequestId() + (data.getId() > 0 ? data.getId() : "");
     }
+
+
+
 }

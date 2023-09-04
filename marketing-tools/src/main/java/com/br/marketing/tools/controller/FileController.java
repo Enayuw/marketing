@@ -3,6 +3,7 @@ package com.br.marketing.tools.controller;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.tools.rpcclient.RpcClientProxy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -151,40 +152,17 @@ public class FileController {
                     Integer threaNum = rownum;
                     mergeExecutor.submit(()->{
                         try {
-                            String decode = BrCipherMaker.getInstance().decode(content.trim());
-                            if(decode.equals(content.trim())){
-                                log.error("错误数据");
-                            }
                             if(new Integer(1).equals(threaNum)){
 //                                String[] split = content.split(",");
                                 StringBuilder sb = new StringBuilder();
-                                sb.append(DigestUtils.md5DigestAsHex(decode.getBytes()));
-//                                sb.append(",");
-//                                sb.append(split[1].trim());
-//                                sb.append(",");
-//                                sb.append(split[2].trim());
-////                                sb.append(",");
-////                                sb.append(split[3].trim());
-////                                sb.append(",");
-////                                sb.append(split[4].trim());
+                                sb.append(content.trim());
                                 sb.append("\r\n");
                                 writer.append(sb.toString());
                             }else{
+                                String cell = RpcClientProxy.decode(content.trim(), "cell", "sha", "");
 //                                String[] split = content.split(",");
                                 StringBuilder sb = new StringBuilder();
-                                sb.append(DigestUtils.md5DigestAsHex(decode.getBytes()));
-//                                sb.append(",");
-//                                sb.append(concent(split[1].trim()));
-//                                sb.append(",");
-//                                sb.append(concent(split[2]));
-//                                sb.append(",");
-//                                sb.append(concent(split[3]));
-//                                sb.append(",");
-//                                sb.append(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(split[4].trim()).getBytes()));
-//                                sb.append(",");
-//                                sb.append(concent(split[5]));
-//                                sb.append(",");
-//                                sb.append(concent(split[6]));
+                                sb.append(BrCipherMaker.getInstance().encode(cell));
                                 sb.append("\r\n");
                                 writer.append(sb.toString());
                             }

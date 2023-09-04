@@ -904,5 +904,16 @@ public class MarketingCommonConfig {
      * 中邮落库数据线程数
      */
     private Integer zhongYouFileDataThreadNum;
+
+    /**
+     * 模拟db异常，redis异常，true是开启，false是关闭
+     * {"apiCode":true,"redis":true}
+     */
+    private HashMap<String,Boolean> mockError;
+
+    /**
+     * pulsar消费的开关，false关闭开关；true 打开开关
+     */
+    private Boolean pulsarSwitch;
 }
 

@@ -109,4 +109,14 @@ public class RedisKeyConstant {
      * 上传有效期
      */
     public static final String validKey = prefix.concat("upload:valid");
+
+    /**
+     * 代运营数据requestId的key
+     */
+    public static final String uploadKey = prefix.concat("upload");
+
+    /**
+     * 转化数据requestId的key
+     */
+    public static final String transferKey = prefix.concat("transfer");
 }
