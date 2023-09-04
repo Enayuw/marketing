@@ -1,5 +1,9 @@
 package com.br.marketing.webhook.dingding.msgtype;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import org.hibernate.validator.constraints.NotEmpty;
+
 import java.io.Serializable;
 
 /**
@@ -8,18 +12,22 @@ import java.io.Serializable;
  * @author Guo Zeqiang
  * @dateTime 2023-08-17 10:28
  */
+@ApiModel(value = "文本 (text)消息")
 public class DingDingTextMessage extends AbstractRobotSendRequest {
 
+    private static final long serialVersionUID = -1553310938306395447L;
     /**
      * 2023-08-17 13:56
      * 文本消息
      */
+    @ApiModelProperty(value = "文本消息")
     private Text text;
 
     /**
      * 2023-08-17 13:56
      * 只有在群内的成员才可被@
      */
+    @ApiModelProperty(value = "只有在群内的成员才可被@")
     private At at;
 
     public DingDingTextMessage() {
@@ -62,11 +70,14 @@ public class DingDingTextMessage extends AbstractRobotSendRequest {
     }
 
     public static class Text implements Serializable {
+        private static final long serialVersionUID = -7746259722316543385L;
         /**
          * 2023-08-17 17:28
          * 消息内容
          * 必填
          */
+        @ApiModelProperty(value = "消息内容")
+        @NotEmpty
         private String content;
 
         public Text() {

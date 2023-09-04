@@ -33,7 +33,7 @@ public interface DingDingRobotHookService {
      * 1.1.1.1      开发者的出口公网IP地址（非局域网地址）
      * 1.1.1.0/24   用CIDR表示的一个网段
      *
-     * @param accessToken      访问令牌 使用{@code webHook}时该字段可为空
+     * @param accessToken      访问令牌
      * @param secret           加签密钥 安全设置为非加签时可为空
      * @param robotSendRequest 请求发送的消息
      * @return 响应

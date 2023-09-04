@@ -1,5 +1,9 @@
 package com.br.marketing.webhook.dingding.msgtype;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import org.hibernate.validator.constraints.NotEmpty;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -9,8 +13,10 @@ import java.util.List;
  * @author Guo Zeqiang
  * @dateTime 2023-08-17 10:28
  */
+@ApiModel(value = "ActionCard 消息")
 public class DingDingActionCardMessage extends AbstractRobotSendRequest {
 
+    private static final long serialVersionUID = 8105948213103026617L;
     /**
      * 2023-08-17 18:06
      */
@@ -45,11 +51,14 @@ public class DingDingActionCardMessage extends AbstractRobotSendRequest {
      * 2023-08-17 18:05
      */
     public static class ActionCard implements Serializable {
+        private static final long serialVersionUID = -2528482535169987688L;
         /**
          * 2023-08-17 17:48
          * 首屏会话透出的展示内容。
          * 必填
          */
+        @ApiModelProperty(value = "首屏会话透出的展示内容")
+        @NotEmpty
         private String title;
 
         /**
@@ -57,6 +66,8 @@ public class DingDingActionCardMessage extends AbstractRobotSendRequest {
          * markdown格式的消息。
          * 必填
          */
+        @ApiModelProperty(value = "markdown格式的消息")
+        @NotEmpty
         private String text;
 
         /**
@@ -65,6 +76,8 @@ public class DingDingActionCardMessage extends AbstractRobotSendRequest {
          * 单个按钮的标题
          * 必填
          */
+        @ApiModelProperty(value = "单个按钮的标题")
+        @NotEmpty
         private String singleTitle;
 
         /**
@@ -73,12 +86,16 @@ public class DingDingActionCardMessage extends AbstractRobotSendRequest {
          * 点击消息跳转的URL
          * 必填
          */
+        @ApiModelProperty(value = "点击消息跳转的UR")
+        @NotEmpty
         private String singleURL;
 
         /**
          * 2023-08-17 19:10
          * 按钮 独立跳转ActionCard类型 使用
          */
+        @ApiModelProperty(value = "按钮 独立跳转ActionCard类型 使用")
+        @NotEmpty
         private List<Btn> btns;
 
         /**
@@ -87,6 +104,8 @@ public class DingDingActionCardMessage extends AbstractRobotSendRequest {
          * 1：按钮横向排列
          * 非必填
          */
+        @ApiModelProperty(value = "0：按钮竖直排列\n" +
+                "1：按钮横向排列")
         private String btnOrientation;
 
         public ActionCard() {
@@ -186,12 +205,15 @@ public class DingDingActionCardMessage extends AbstractRobotSendRequest {
      * 2023-08-17 19:10
      * 独立跳转ActionCard类型
      */
-    public static class Btn {
+    public static class Btn implements Serializable {
+        private static final long serialVersionUID = 869982469449289384L;
         /**
          * 2023-08-17 17:48
          * 按钮标题。
          * 必填
          */
+        @ApiModelProperty(value = "按钮标题")
+        @NotEmpty
         private String title;
 
         /**
@@ -199,6 +221,8 @@ public class DingDingActionCardMessage extends AbstractRobotSendRequest {
          * 点击消息跳转的URL
          * 必填
          */
+        @ApiModelProperty(value = "点击消息跳转的URL")
+        @NotEmpty
         private String actionURL;
 
         public Btn() {

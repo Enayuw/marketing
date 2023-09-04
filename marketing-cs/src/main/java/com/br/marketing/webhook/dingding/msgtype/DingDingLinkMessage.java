@@ -1,5 +1,9 @@
 package com.br.marketing.webhook.dingding.msgtype;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import org.hibernate.validator.constraints.NotEmpty;
+
 import java.io.Serializable;
 
 /**
@@ -8,11 +12,14 @@ import java.io.Serializable;
  * @author Guo Zeqiang
  * @dateTime 2023-08-17 10:28
  */
+@ApiModel(value = "链接 (link) 消息")
 public class DingDingLinkMessage extends AbstractRobotSendRequest {
+    private static final long serialVersionUID = -5990088343011061132L;
     /**
      * 2023-08-17 17:51
      * 连接
      */
+    @ApiModelProperty(value = "连接")
     private Link link;
 
 
@@ -41,11 +48,14 @@ public class DingDingLinkMessage extends AbstractRobotSendRequest {
     }
 
     public static class Link implements Serializable {
+        private static final long serialVersionUID = -1815793754941303923L;
         /**
          * 2023-08-17 17:48
          * 消息标题
          * 必填
          */
+        @ApiModelProperty(value = "消息标题")
+        @NotEmpty
         private String title;
 
         /**
@@ -53,6 +63,8 @@ public class DingDingLinkMessage extends AbstractRobotSendRequest {
          * 消息内容。如果太长只会部分展示。
          * 必填
          */
+        @ApiModelProperty(value = "消息内容。如果太长只会部分展示")
+        @NotEmpty
         private String text;
 
         /**
@@ -60,6 +72,8 @@ public class DingDingLinkMessage extends AbstractRobotSendRequest {
          * 点击消息跳转的URL
          * 必填
          */
+        @ApiModelProperty(value = "点击消息跳转的UR")
+        @NotEmpty
         private String messageUrl;
 
         /**
@@ -67,6 +81,7 @@ public class DingDingLinkMessage extends AbstractRobotSendRequest {
          * 图片URL
          * 非必填
          */
+        @ApiModelProperty(value = "图片URL")
         private String picUrl;
 
         public Link() {

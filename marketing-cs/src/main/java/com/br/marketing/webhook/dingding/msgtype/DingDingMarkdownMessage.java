@@ -1,5 +1,9 @@
 package com.br.marketing.webhook.dingding.msgtype;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import org.hibernate.validator.constraints.NotEmpty;
+
 import java.io.Serializable;
 
 /**
@@ -8,17 +12,21 @@ import java.io.Serializable;
  * @author Guo Zeqiang
  * @dateTime 2023-08-17 10:28
  */
+@ApiModel(value = "markdown(markdown) 消息")
 public class DingDingMarkdownMessage extends AbstractRobotSendRequest {
+    private static final long serialVersionUID = 3546629080992848571L;
     /**
      * 2023-08-17 17:58
      * markdown
      */
+    @ApiModelProperty(value = "markdown")
     private Markdown markdown;
 
     /**
      * 2023-08-17 13:56
      * 只有在群内的成员才可被@
      */
+    @ApiModelProperty(value = "只有在群内的成员才可被@")
     private At at;
 
     public DingDingMarkdownMessage() {
@@ -61,17 +69,22 @@ public class DingDingMarkdownMessage extends AbstractRobotSendRequest {
     }
 
     public static class Markdown implements Serializable {
+        private static final long serialVersionUID = 7528190617245323310L;
         /**
          * 2023-08-17 18:00
          * 首屏会话透出的展示内容。
          * 必填
          */
+        @ApiModelProperty(value = "首屏会话透出的展示内容")
+        @NotEmpty
         private String title;
         /**
          * 2023-08-17 18:00
          * markdown格式的消息。
          * 必填
          */
+        @ApiModelProperty(value = "markdown格式的消息")
+        @NotEmpty
         private String text;
 
         public Markdown() {

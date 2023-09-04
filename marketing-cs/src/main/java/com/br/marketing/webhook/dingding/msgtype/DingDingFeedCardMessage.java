@@ -1,5 +1,9 @@
 package com.br.marketing.webhook.dingding.msgtype;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import org.hibernate.validator.constraints.NotEmpty;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -9,12 +13,15 @@ import java.util.List;
  * @author Guo Zeqiang
  * @dateTime 2023-08-17 10:28
  */
+@ApiModel(value = "FeedCard 消息")
 public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
 
+    private static final long serialVersionUID = 2930193924823528243L;
     /**
      * 2023-08-17 19:23
      * FeedCard
      */
+    @ApiModelProperty(value = "FeedCard")
     private FeedCard feedCard;
 
     public DingDingFeedCardMessage() {
@@ -41,12 +48,15 @@ public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
                 '}';
     }
 
-    public static class FeedCard {
+    public static class FeedCard implements Serializable {
+        private static final long serialVersionUID = -40076153064340268L;
         /**
          * 2023-08-17 19:22
          * 多条文本
          * 必填
          */
+        @ApiModelProperty(value = "多条文本")
+        @NotEmpty
         private List<Link> links;
 
         public FeedCard() {
@@ -73,11 +83,14 @@ public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
     }
 
     public static class Link implements Serializable {
+        private static final long serialVersionUID = 8880452160992860287L;
         /**
          * 2023-08-17 17:48
          * 单条信息文本
          * 必填
          */
+        @ApiModelProperty(value = "单条信息文本")
+        @NotEmpty
         private String title;
 
 
@@ -86,6 +99,8 @@ public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
          * 点击单条信息到跳转链接。
          * 必填
          */
+        @ApiModelProperty(value = "点击单条信息到跳转链接")
+        @NotEmpty
         private String messageUrl;
 
         /**
@@ -93,6 +108,8 @@ public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
          * 单条信息后面图片的URL。
          * 必填
          */
+        @ApiModelProperty(value = "单条信息后面图片的URL")
+        @NotEmpty
         private String picUrl;
 
         public Link() {
