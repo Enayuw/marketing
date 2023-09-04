@@ -287,6 +287,7 @@ public class MethodRetryHandlerService {
      * 2023-09-02 14:22
      * 六耳猕猴
      */
+    @DistributeLog
     public Result<JSONObject> callDassRealTimeUserDataSole(DassSingleImportAdapSoleDTO dassImportAdapDTO, Integer retry) {
         return callDassRealTimeUserDataSole(dassImportAdapDTO, retry, null);
     }
