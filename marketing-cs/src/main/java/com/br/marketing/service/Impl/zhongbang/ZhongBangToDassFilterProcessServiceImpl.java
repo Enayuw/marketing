@@ -63,8 +63,6 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
     @Resource
     private ArtificialTransferSoleHandler artificialTransferSoleHandler;
 
-    private static final Integer PARTITION = 2000;
-
     private static HashMap<String, String> dxUserTypeMap = new HashMap<>();
 
     static {
@@ -243,6 +241,10 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
         }
     }
 
+    /**
+     * 根据转化数据custNum查询近3天命中推dass人工的数据，包括sftp和api
+     * @return 返回sftp和api的并集custNum
+     */
     private List<String> findCustNumsBySftpAndApi(String apiCode, Date dateStart, Date dateEnd, String userType,
                                                   List<MarketingTransferSyncUser> transferSyncUserList) {
         List<String> transferCustNums = transferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
@@ -279,7 +281,6 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
-
     }
 
     public void pushToDass(List<MarketingSyncUser> marketingSyncUserList, String type, String apiCode) {
