@@ -267,64 +267,6 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
         return custNums;
     }
 
-//    private void doProcess(String apiCode, ThreadPoolExecutor pool, String type, LocalDate date) {
-//        String tcId = tableCreateService.getTcId(apiCode);
-//        String requestDate = date.toString();
-//        String lastDate = date.minusDays(1).toString();
-//        String lastDateStart = lastDate + " 00:00:00:000";
-//        String lastDateEnd = lastDate + " 23:59:59:999";
-//
-//        Integer lastDays = marketingCommonConfig.getZhongBangToDassLastDays();
-//        Date dateStart = Date.from(date.minusDays(lastDays).atStartOfDay(ZoneId.systemDefault()).toInstant());
-//        Date dateEnd = Date.from(date.atTime(23, 59, 59, 999999999)
-//                .atZone(ZoneId.systemDefault()).toInstant());
-//
-//        String userType = dxUserTypeMap.get(type);
-//        // 查询近3天命中推dass人工的数据，包括sftp和api
-//        PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
-//        example.createCriteria().andDxUserTypeEqualTo(userType)
-//                .andApiCodeEqualTo(apiCode)
-//                .andCreateTimeBetween(dateStart, dateEnd);
-//        example.setDistinct(true);
-////        }
-//        List<String> custNumSet = phoneSaleExtendInfoMapper.selectCustNumByExampletikv_(example);
-//
-//        PhoneSaleExample example1 = new PhoneSaleExample();
-//        example1.createCriteria().andUserTypeEqualTo(userType).andApiCodeEqualTo(apiCode)
-//                .andCreateTimeBetween(dateStart, dateEnd);
-//        example1.setDistinct(true);
-//        List<String> uidSet = phoneSaleMapper.selectUidByExampletikv_(example1);
-//
-//        // 集合合并
-//        List<String> custNums = Stream.concat(custNumSet.stream(), uidSet.stream())
-//                .distinct() // 使用distinct去重
-//                .collect(Collectors.toList());
-//        if (CollectionUtils.isEmpty(custNums)) {
-//            return;
-//        }
-//        log.warn("众邦推Dass转化过滤，非首次JOB：{}，近3天命中推dass人工量级：{}", type, custNums.size());
-//
-//        List<MarketingTransferSyncUser> transferSyncUserList = new ArrayList<>();
-//        if (("1").equals(userType)) {
-//            // request_date=T日且ifApply=1且applyDt=T-1
-//            transferSyncUserList = service.getNoFirstCuShen(tcId, apiCode,
-//                    requestDate, lastDateStart, lastDateEnd, custNums);
-//        } else if (("2").equals(userType)) {
-//            // request_date=T日且ifLent=1且lentTime=T-1
-//            transferSyncUserList = service.getNoFirstCuTi(tcId, apiCode,
-//                    requestDate, lastDateStart, lastDateEnd, custNums);
-//        }
-//
-//        log.warn("众邦推Dass转化过滤，非首次JOB：{}，有效期过滤前量级：{}", type, transferSyncUserList.size());
-//        List<List<MarketingTransferSyncUser>> partition = ListUtils.partition(transferSyncUserList, PARTITION);
-//        partition.forEach(part -> {
-//            List<MarketingTransferSyncUser> list = new ArrayList<>();
-//            list.addAll(part);
-//            pool.execute(() ->
-//                    validAndPushData(list, apiCode, type));
-//        });
-//    }
-
     private void validAndPushData(List<MarketingTransferSyncUser> list, String apiCode, String type) {
         try {
             // 2.有效期
