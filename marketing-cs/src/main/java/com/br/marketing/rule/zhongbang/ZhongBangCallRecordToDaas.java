@@ -202,7 +202,7 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
             }
             if (intentionA || intentionB) {
                 //去重逻辑判断
-                return phoneSaleExtendService.groupRule(bo.getApiCode(), marketingCommonConfig.getZhongbangCellDistributeDay(), syncUserValidityPeriodBO.getSyncUser().getCell(), 1);
+                return phoneSaleExtendService.groupRule(bo.getApiCode(), marketingCommonConfig.getZhongbangCellDistributeDay() - 1, syncUserValidityPeriodBO.getSyncUser().getCell(), 1);
             }
         }
         return false;
