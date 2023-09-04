@@ -83,6 +83,7 @@ public class RedisKeyConstant {
      * 携程拨打数据推送缓存锁  key
      */
     public static final String pushXieChengSmsCollidingLock = prefix.concat("xieCheng:pushXieChengSmsColliding");
+    public static final String pushXieChengSmsCollidingVtLock = prefix.concat("xieCheng:pushXieChengSmsCollidingVtLock");
     /**
      * 滴滴拨打数据推送缓存锁  key
      */
@@ -102,4 +103,10 @@ public class RedisKeyConstant {
      * 3k加密类型
      */
     public static final String encryptyKey = prefix.concat("threek:encrypty");
+
+    /**
+     * 2023-07-06 15:00
+     * 上传有效期
+     */
+    public static final String validKey = prefix.concat("upload:valid");
 }

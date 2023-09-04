@@ -203,6 +203,20 @@ public class MarketingTransferSyncUser {
      */
     private String tCid;
 
+    /**
+     * 渠道 1永辉金融  2永辉生活
+     * @return
+     */
+    private String channel;
+
+    public String getChannel() {
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
+    }
+
     public Long getId() {
         return id;
     }

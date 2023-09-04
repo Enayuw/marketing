@@ -164,6 +164,21 @@
 			AND `api_code` =#{apiCode}
 		</if>
     </select>
+
+	<select id="queryFileById" resultType="com.br.marketing.entity.LoanFile" parameterType="java.lang.Long">
+		SELECT
+		id,
+		batch_number,
+		api_code,
+		`type`,
+		file_path,
+		create_time,
+		index_num
+		FROM
+		stra_his_file
+		WHERE
+		`status` = 1 and id = #{id}
+	</select>
 	<select id="queryUploadFile" resultType="com.br.marketing.entity.LoanFile" parameterType="java.lang.String">
 		SELECT
 		id,

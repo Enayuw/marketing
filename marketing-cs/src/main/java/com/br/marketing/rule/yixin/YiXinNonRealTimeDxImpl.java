@@ -13,18 +13,20 @@ import com.br.marketing.context.impl.YiXinRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import javax.annotation.Resource;
+import java.util.*;
 
 /**
  * 非实时转化数据推送客服
@@ -39,6 +41,9 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
 
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
+
+    @Resource
+    MarketingTransferSyncUserMapper transferSyncUserMapper;
 
     @Override
     public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -55,10 +60,10 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         if(StringUtils.isEmpty(cell)){
             return null;
         }
-        String phone = AESUtil.aesEncrypty(cell, aesKey);
+        //String phone = AESUtil.aesEncrypty(cell, aesKey);
         MarketingSyncUser syncUser = new MarketingSyncUser();
         BeanUtils.copyProperties(marketingSyncUser,syncUser);
-        syncUser.setCell(phone);
+        //syncUser.setCell(phone);
         List<String> grades = callRecordMap.get(transfer.getCustNum());
         String grade = (grades != null && grades.size() > 0) ? grades.get(0) : "";
         BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
@@ -77,13 +82,29 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
             if (transformType) {
                 return Boolean.FALSE;
             }
+            //过滤type=13，registerChannel！=1的数据
+            if ("13".equals(transfer.getType())) {
+                boolean registerChannel = !"1".equals(json.getString("registerChannel"));
+                if (registerChannel) {
+                    return Boolean.FALSE;
+                }
+            }
+
         }
         if (context.getRuleNecessaryData() == null
                 || !(context.getRuleNecessaryData() instanceof YiXinRuleCollectDataImpl.YiXinRuleNecessaryData)) {
             return Boolean.FALSE;
         }
-        if(!context.getMqFact().getSource().equals(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode())){
+        if (!context.getMqFact().getSource().equals(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode())) {
             return Boolean.FALSE;
+        }
+        String tCid = transfer.gettCid();
+        String apiCode = transfer.getApiCode();
+        Set<String> custNums = Sets.newHashSet(transfer.getCustNum());
+        List caseEffectiveCust = transferSyncUserMapper.getByInCustAndCaseEffective(tCid, apiCode,custNums);
+        if (!CollectionUtils.isEmpty(caseEffectiveCust)) {
+            log.warn("id:{} cust_num:{}caseEffetive=0 剔除", transfer.getId(), transfer.getCustNum());
+            return false;
         }
         return Boolean.TRUE;
     }
@@ -116,7 +137,9 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         batchImportData.setName(name);
         batchImportData.setOrgname("yixin");
         // 根据custNum取上传接口最新的cell转aes加密
-        batchImportData.setPhone(syncUser.getCell());
+        String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
+        String phone = AESUtil.aesEncrypty(cell, aesKey);
+        batchImportData.setPhone(phone);
         batchImportData.setUid(transfer.getCustNum());
         batchImportData.setUserType("A");
         batchImportData.setSource("16");
@@ -144,11 +167,19 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
                     JSONObject extend = new JSONObject();
                     String raiseLimiSuccess = json.getString("raiseLimiSuccess");
                     String raiseLimiType = json.getString("raiseLimiType");
+                    String availableAmount = json.getString("availableAmount");
+                    String recommendType = json.getString("recommendType");
                     if (!StringUtils.isEmpty(raiseLimiType)) {
                         extend.put("raiseLimiType", raiseLimiType);
                     }
                     if (!StringUtils.isEmpty(raiseLimiSuccess)) {
                         extend.put("raiseLimiSuccess", raiseLimiSuccess);
+                    }
+                    if (!StringUtils.isEmpty(availableAmount)) {
+                        extend.put("availableAmount", availableAmount);
+                    }
+                    if (!StringUtils.isEmpty(recommendType)) {
+                        extend.put("recommendType", recommendType);
                     }
                     batchImportData.setExtend(extend.keySet().size() > 0 ? JSON.toJSONString(extend) : null);
                 }
@@ -175,6 +206,7 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         phoneSaleExtendInfo.setPushDxTime(new Date());
         phoneSaleExtendInfo.setTransformType("0");
         phoneSaleExtendInfo.setSourceId(transfer.getId());
+        phoneSaleExtendInfo.setCell(syncUser.getCell());
         return phoneSaleExtendInfo;
     }
 }

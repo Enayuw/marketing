@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XieChengSmsCollidingDataLogVtMapper" >
+    <insert id="saveBatchLogVt" parameterType="list">
+        insert into b_xiecheng_sms_colliding_data_log_vt (api_code, local_id,sms_colliding_data_vt_id,
+        type, sha256_code_list,status,send_date, create_time,update_time)values
+        <foreach collection="list" item="data" separator=",">
+            (#{data.apiCode,jdbcType=VARCHAR}, #{data.localId,jdbcType=BIGINT},#{data.smsCollidingDataVtId,jdbcType=BIGINT},
+            #{data.type,jdbcType=VARCHAR}, #{data.sha256CodeList,jdbcType=VARCHAR},
+            #{data.status,jdbcType=INTEGER}, #{data.sendDate,jdbcType=VARCHAR}, now(),now()
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateSelectiveVt" parameterType="map" >
+        update b_xiecheng_sms_colliding_data_log_vt
+        <set >
+            <if test="md5Code != null" >
+                md5_code = #{md5Code,jdbcType=VARCHAR},
+            </if>
+
+            <if test="orgChannel != null" >
+                org_channel = #{orgChannel,jdbcType=VARCHAR},
+            </if>
+            <if test="mktLevel != null" >
+                mkt_level = #{mktLevel,jdbcType=VARCHAR},
+            </if>
+            <if test="info != null" >
+                info = #{info,jdbcType=VARCHAR},
+            </if>
+            <if test="result != null" >
+                result = #{result,jdbcType=BIT},
+            </if>
+            <if test="status != null" >
+                status = #{status,jdbcType=INTEGER},
+            </if>
+            <if test="dataMessage != null" >
+                data_message = #{dataMessage,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where sha256_code_list = #{sha256CodeList,jdbcType=VARCHAR}
+        and send_date = #{sendDate} and status = 1
+    </update>
+
+    <update id="updateBatchVt" parameterType="com.br.marketing.entity.XieChengSmsCollidingDataLogVt" >
+        update b_xiecheng_sms_colliding_data_log_vt
+        set  status = #{status}, data_message = #{msg}
+        where sha256_code_list in
+        <foreach collection="list" item="xc" open="(" separator="," close=")">
+            #{xc}
+        </foreach>
+        and send_date = #{sendDate} and status = 1
+    </update>
+</mapper>

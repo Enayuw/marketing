@@ -72,7 +72,7 @@ public class TaskScoreStartJob extends AbstractSimpleElasticJob {
                 }
             }
         }
-        Result<MarketingTask> scoreTask = iTaskService.getScoreTask(date, taskId, isTimeLimit);
+        Result<MarketingTask> scoreTask = iTaskService.getScoreTask(date, taskId, isTimeLimit, context.getJobName());
         if (ResultCode.SUCCESS.getValue().equals(scoreTask.getCode())) {
             MarketingTask marketingTask = scoreTask.getData();
             marketingTask.setIndex(context.getShardingItems().get(0));

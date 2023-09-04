@@ -1,11 +1,19 @@
 package com.br.marketing.monkey.job;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.entity.TransferActionFront;
+import com.br.marketing.entity.TransferActionFrontExample;
 import com.br.marketing.entity.ZhonganRosterLockingData;
 import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
-import com.br.marketing.monkeydata.service.PushRosterLockingDataToZhongAn;
+import com.br.marketing.monkeydata.handle.zhongan.PushRosterLockingDataToZhongAnHandle;
+import com.br.marketing.service.Impl.YiXinTransferServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -17,6 +25,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -31,7 +40,7 @@ import java.util.*;
 public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
 
     @Resource
-    private PushRosterLockingDataToZhongAn rosterLockingDataToZhongAn;
+    private PushRosterLockingDataToZhongAnHandle rosterLockingDataToZhongAn;
 
     @Resource
     private ZhonganRosterLockingDataMapper zhonganRosterLockingDataMapper;
@@ -42,19 +51,47 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    private RedisChgService redisChgService;
+
+    @Resource
+    private YiXinTransferServiceImpl yiXinTransferService;
+
+    @Resource
+    private TransferActionFrontMapper transferActionFrontMapper;
+
+    private final static String EXECUTE_TIME = "21:00:00";
+    private final static String CLEAR_REDIS_TIME = "23:40:00";
+
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
-        long start = System.currentTimeMillis();
-        List<String> list = new ArrayList<>(Collections.singletonList("3710048"));
+        String zhongAnRosterLockingTime = marketingCommonConfig.getZhongAnRosterLockingTime();
+        LocalTime localTimeLockingTime = LocalTime.parse(StringUtils.isNotBlank(zhongAnRosterLockingTime)
+                ? zhongAnRosterLockingTime : EXECUTE_TIME);
+        if (LocalTime.now().isBefore(localTimeLockingTime)) {
+            log.warn("【名单锁定推送众安】未到配置的运行时间:{}", zhongAnRosterLockingTime);
+            return;
+        }
         String parameter = shardingContext.getJobParameter();
+        long start = System.currentTimeMillis();
+        List<String> list = new ArrayList<>();
+        String bizDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+        List<String> dateList = new ArrayList<>();
         if (StringUtils.isNotEmpty(parameter)) {
             StringTokenizer string = new StringTokenizer(parameter, ",");
             while (string.hasMoreTokens()) {
-                list.add(string.nextToken());
+                String[] split = string.nextToken().split("#");
+                list.add(split[0]);
+                if (split.length > 1) {
+                    dateList.add(split[1]);
+                    continue;
+                }
+                dateList.add(bizDate);
             }
+        } else {
+            list.add("3710048");
+            dateList.add(bizDate);
         }
-        String bizDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
-
         HashMap<String, JSONObject> zhongAnDetailPush = marketingCommonConfig.getZhongAnDetailPush();
         if (zhongAnDetailPush == null) {
             return;
@@ -63,33 +100,84 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
         Page2Condition<ZhonganRosterLockingData> data = new Page2Condition<>();
         data.setPageIndex(0);
         data.setPageSize(2000);
+        int i = 0;
         for (String apiCode : list) {
+            bizDate = dateList.get(i);
+            ++i;
+            //查询推送记录
+            List<TransferActionFront> actionFrontList = getActionFront(apiCode, bizDate);
+            Long frontId;
+            if (actionFrontList.size() > 0) {
+                TransferActionFront actionFront = actionFrontList.get(0);
+                if (2 == actionFront.getStatus()) {
+                    log.warn("api_code:{},biz_date:{}【名单锁定推送众安】该任务今日已经推送", apiCode, bizDate);
+                    continue;
+                } else {
+                    frontId = actionFront.getId();
+                }
+            } else {
+                frontId = yiXinTransferService.saveFrontData(apiCode, bizDate, 3);
+            }
             List<Long> sftpFileIdList = zhonganRosterLockingDataMapper.getSftpFileIdList(apiCode, bizDate);
             if (!CollectionUtils.isEmpty(sftpFileIdList)) {
                 localFileMapper.updateUploadStartTimeById(sftpFileIdList, new Date());
             }
             long startcg = System.currentTimeMillis();
-            action("CG", apiCode, bizDate, data);
+            Result<?> cg = action("CG", apiCode, bizDate, data);
             long endcg = System.currentTimeMillis();
-            log.warn("{}【CG名单锁定推送众安】结束，耗时:{}", apiCode, endcg - startcg);
+            log.warn("api_code:{},biz_date:{}【CG名单锁定推送众安】结束，耗时:{}", apiCode, bizDate, endcg - startcg);
 
             long startmg = System.currentTimeMillis();
-            action("MG", apiCode, bizDate, data);
+            Result<?> mg = action("MG", apiCode, bizDate, data);
             long endmg = System.currentTimeMillis();
-            log.warn("{}【MG名单锁定推送众安】结束，耗时:{}", apiCode, endmg - startmg);
+            log.warn("api_code:{},biz_date:{}【MG名单锁定推送众安】结束，耗时:{}", apiCode, bizDate, endmg - startmg);
+            if (ResultCode.SUCCESS.getValue().equals(cg.getCode()) && ResultCode.SUCCESS.getValue().equals(mg.getCode())) {
+                yiXinTransferService.updateFrontDataStatus(frontId, 2);
+            }
             rosterLockingDataToZhongAn.localFilePushStatis(apiCode, bizDate);
         }
+        // 清理缓存
+        if (LocalTime.now().isAfter(LocalTime.parse(CLEAR_REDIS_TIME))) {
+            popCache(RedisKeyConstant.zhongAnblackCusNumToday, 3000);
+        }
         long end = System.currentTimeMillis();
-        log.warn("【名单锁定推送众安】调度结束，耗时:{}", end - start);
+        log.warn("【名单锁定推送众安】调度结束apiCodes:{},bizDate:{}，耗时:{}", Arrays.toString(list.toArray())
+                , Arrays.toString(dateList.toArray()), end - start);
     }
 
-    private void action(String tag, String apiCode, String bizDate, Page2Condition<ZhonganRosterLockingData> data) {
+    /**
+     * 2023-05-25 18:03
+     * 清理缓存
+     */
+    private void popCache(String key, int count) {
+        try {
+            Set<String> custNumCache = redisChgService.spop(key, count);
+            if (custNumCache != null && custNumCache.size() > 1) {
+                popCache(key, count);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    private Result<?> action(String tag, String apiCode, String bizDate, Page2Condition<ZhonganRosterLockingData> data) {
         ZhonganRosterLockingData zhonganRosterLockingData = new ZhonganRosterLockingData();
         zhonganRosterLockingData.setApiCode(apiCode);
         zhonganRosterLockingData.setTag(tag);
         zhonganRosterLockingData.setBizDate(bizDate);
         zhonganRosterLockingData.setPushStatus(1);
         data.setParam(zhonganRosterLockingData);
-        rosterLockingDataToZhongAn.action(data);
+        return rosterLockingDataToZhongAn.action(data);
+    }
+
+
+    private List<TransferActionFront> getActionFront(String apiCode, String bizDate) {
+        TransferActionFrontExample example = new TransferActionFrontExample();
+        TransferActionFrontExample.Criteria criteria = example.createCriteria();
+        criteria.andApiCodeEqualTo(apiCode)
+                .andActionDataEqualTo(bizDate)
+                .andActionTypeEqualTo(3)
+                .andIsDelEqualTo(1);
+        return transferActionFrontMapper.selectByExample(example);
     }
 }

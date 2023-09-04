@@ -4,7 +4,7 @@ import com.br.marketing.entity.ZhonganRosterLockingData;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
-import com.br.marketing.monkeydata.service.PushRosterLockingDataToZhongAn;
+import com.br.marketing.monkeydata.handle.zhongan.PushRosterLockingDataToZhongAnHandle;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ import java.util.*;
 public class ZhongAnPushRosterLockingDataOtherTagJob extends AbstractSimpleElasticJob {
 
     @Resource
-    private PushRosterLockingDataToZhongAn rosterLockingDataToZhongAn;
+    private PushRosterLockingDataToZhongAnHandle rosterLockingDataToZhongAn;
 
     @Resource
     private ZhonganRosterLockingDataMapper zhonganRosterLockingDataMapper;

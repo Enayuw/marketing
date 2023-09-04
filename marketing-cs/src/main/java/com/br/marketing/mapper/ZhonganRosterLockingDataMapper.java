@@ -69,17 +69,48 @@ public interface ZhonganRosterLockingDataMapper extends ZhonganRosterLockingData
     List<Long> getSftpFileIdList(@Param("apiCode") String apiCode
             , @Param("dateStr") String dateStr);
 
-    List<Long> getSftpFileIdListByTags(@Param("apiCode") String apiCode,@Param("tags") List<String> tags);
+    List<Long> getSftpFileIdListByTags(@Param("apiCode") String apiCode, @Param("tags") List<String> tags);
 
     List<Long> getSftpFileIdListByNoTags(@Param("apiCode") String apiCode, @Param("dateStr") String dateStr
-            ,@Param("tags") List<String> tags);
+            , @Param("tags") List<String> tags);
 
     List<String> getTagByApiCodeBizDateList(@Param("apiCode") String apiCode
             , @Param("dateStr") String dateStr);
 
     List<String> getTagsByApiCodeTagList(@Param("apiCode") String apiCode
-            ,@Param("tags") List<String> tags);
+            , @Param("tags") List<String> tags);
 
     List<String> getTagsByApiCodeBizDateNoTagList(@Param("apiCode") String apiCode, @Param("dateStr") String dateStr
-            ,@Param("tags") List<String> tags);
+            , @Param("tags") List<String> tags);
+
+    /**
+     * 2023/05/18 14:56
+     * 获取需要推送的日期
+     *
+     * @param data 过滤条件
+     * @return Set
+     */
+    Set<String> getBizDateListtikv_(@Param("data") ZhonganRosterLockingData data);
+
+    /**
+     * 2022/11/14 14:56
+     * 分页获取部分字段数据集合
+     *
+     * @param data     过滤条件
+     * @param pageNo   页号，从0页开始
+     * @param pageSize 页面大小
+     * @return List
+     */
+    List<ZhonganRosterLockingData> findPartColumnListPage(@Param("data") ZhonganRosterLockingData data
+            , @Param("pageNo") int pageNo
+            , @Param("pageSize") int pageSize);
+
+    /**
+     * 2023/05/29 14:56
+     * 获取主键
+     *
+     * @return List
+     */
+    List<ZhonganRosterLockingData> getDuplicateMobileMd5List(@Param("apiCode") String apiCode
+            , @Param("dateStr") String dateStr, @Param("tag") String tag, @Param("mobileMd5") String mobileMd5);
 }

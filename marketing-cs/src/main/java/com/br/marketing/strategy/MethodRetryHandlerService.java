@@ -18,6 +18,8 @@ import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDT
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
 import com.br.marketing.client.dassservice.output.DassExportAdapterDTO;
 import com.br.marketing.client.didi.DiDiClient;
+import com.br.marketing.client.didi.input.DiDiReachBO;
+import com.br.marketing.client.didi.input.DiDiReachRequestTO;
 import com.br.marketing.client.didi.input.DiDiReqVO;
 import com.br.marketing.client.didi.output.DiDiResponseTO;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
@@ -28,8 +30,8 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
+import com.br.marketing.client.robotaiapi.output.TransferRobotDataVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
-import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.client.zhongan.ZhongAnClient;
 import com.br.marketing.common.annoation.DistributeLog;
 import com.br.marketing.common.annoation.RetryMethod;
@@ -56,7 +58,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -120,9 +121,6 @@ public class MethodRetryHandlerService {
 
     @Resource
     private ZhonganRosterLockingDataMapper zhonganRosterLockingDataMapper;
-
-    @Resource
-    private PushRosterLockingDataToZhongAn rosterLockingDataToZhongAn;
 
     @Resource
     ZhonganMarketingBanMapper zhonganMarketingBanMapper;
@@ -309,9 +307,9 @@ public class MethodRetryHandlerService {
      * @return
      */
     @RetryMethod(isOrNoDbRetry = true)
-    public Result<TransferRobotOutboundVO<UnsuccessfulData>> callCustomerTransfer(TransferRobotOutboundDTO robotOutboundDTO, Integer retry) {
-        TransferRobotOutboundVO<UnsuccessfulData> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
-        if (!"9999".equals(transferRobotOutboundVO.getCode())) {
+    public Result<TransferRobotOutboundVO<TransferRobotDataVO>> callCustomerTransfer(TransferRobotOutboundDTO robotOutboundDTO, Integer retry) {
+        TransferRobotOutboundVO<TransferRobotDataVO> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
+        if (!"9999".equals(transferRobotOutboundVO.getCode()) && getAllSuccessful(transferRobotOutboundVO)) {
             List<ConversionData> conversionData = robotOutboundDTO.getJsonData().getConversionData();
             Set<String> set = conversionData.stream().map(ConversionData::getDataId).collect(Collectors.toSet());
             saveBizLog(String.join(",", set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), robotOutboundDTO.getTransferInfoId());
@@ -330,7 +328,7 @@ public class MethodRetryHandlerService {
      */
     @RetryMethod(isOrNoDbRetry = true)
     @DistributeLog
-    public Result<TransferRobotOutboundVO<UnsuccessfulData>> callCustomerTransfer(TransferRobotOutboundSoleDTO robotOutboundDTO, Integer retry) {
+    public Result<TransferRobotOutboundVO<TransferRobotDataVO>> callCustomerTransfer(TransferRobotOutboundSoleDTO robotOutboundDTO, Integer retry) {
         if(robotOutboundDTO.getData().size()<=0){
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         }
@@ -338,8 +336,8 @@ public class MethodRetryHandlerService {
         transferRobotOutboundDTO.setTransferInfoId(robotOutboundDTO.getTransferInfoId());
         transferRobotOutboundDTO.setApiCode(robotOutboundDTO.getApiCode());
         transferRobotOutboundDTO.setJsonData(new TransferJsonDataDTO(robotOutboundDTO.getData(),robotOutboundDTO.getLast()));
-        TransferRobotOutboundVO<UnsuccessfulData> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(transferRobotOutboundDTO);
-        if (!"9999".equals(transferRobotOutboundVO.getCode())) {
+        TransferRobotOutboundVO<TransferRobotDataVO> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(transferRobotOutboundDTO);
+        if (!"9999".equals(transferRobotOutboundVO.getCode()) && getAllSuccessful(transferRobotOutboundVO)) {
             Set<Long> set = robotOutboundDTO.getDetailLogList().stream().map(DataDistributeDetailLog::getSourceId).collect(toSet());
             saveBizLog(Joiner.on(",").join(set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), robotOutboundDTO.getTransferInfoId());
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(transferRobotOutboundVO);
@@ -349,6 +347,29 @@ public class MethodRetryHandlerService {
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
     }
 
+    public Result<TransferRobotOutboundVO<TransferRobotDataVO>> xieChengSmsCallCustomerTransfer(TransferRobotOutboundDTO robotOutboundDTO, Integer retry) {
+        TransferRobotOutboundVO<TransferRobotDataVO> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
+        if (!"9999".equals(transferRobotOutboundVO.getCode()) && getAllSuccessful(transferRobotOutboundVO)) {
+            List<ConversionData> conversionData = robotOutboundDTO.getJsonData().getConversionData();
+            Set<String> set = conversionData.stream().map(ConversionData::getDataId).collect(Collectors.toSet());
+            DataCompare dataCompare = new DataCompare(String.join(",", set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), null);
+            dataCompare.setRemark("xieChengSmsPushToTransfer");
+            dataCompareMapper.insertSelective(dataCompare);
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(transferRobotOutboundVO);
+        }
+        log.error("携程新场景短信撞库，调用客服接口失败 -- {}", JSON.toJSONString(transferRobotOutboundVO));
+        //调用客户转化接口失败，记录数据入库，定时任务重试
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
+    }
+
+    private static Boolean getAllSuccessful(TransferRobotOutboundVO<TransferRobotDataVO> transferRobotOutboundVO) {
+        // 当unsuccessfulData数组中有值时，需要重试
+        Boolean allSuccessful = Boolean.FALSE;
+        if (null != transferRobotOutboundVO.getData() && CollectionUtils.isEmpty(transferRobotOutboundVO.getData().getUnsuccessfulData())) {
+            allSuccessful = Boolean.TRUE;
+        }
+        return allSuccessful;
+    }
 
     void saveBizLog(String data, Integer handlerEnum, Long infoId) {
         DataCompare dataCompare = new DataCompare(data, handlerEnum, infoId);
@@ -527,15 +548,32 @@ public class MethodRetryHandlerService {
             if (infoId != null) {
                 saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(), infoId);
             }
-            /*//调用数量监控
-            BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME,dto.getPushMarketingUserDTO().getApiCode(),"policy-api",
-                    ids.size());*/
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
+    /**
+     * 宜信情况L调用推送决策接口
+     * @param dto
+     * @param retry
+     * @return
+     */
+    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = true)
+    public Result callPolicyDataYiXinToJueCe(PolicyRetryByRuleDTO dto, Integer retry) {
+        List<Long> ids = dto.getIds();
+        PushMarketingUserDTO pushMarketingUserDTO = dto.getPushMarketingUserDTO();
+        Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            DataCompare dataCompare = new DataCompare(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(), null);
+            dataCompare.setRemark("yixinToJueCeL");
+            dataCompareMapper.insertSelective(dataCompare);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
     /**
      * 推送众安接口
      *
@@ -559,10 +597,6 @@ public class MethodRetryHandlerService {
                 updatePushStatus(bo, 2, null);
         }
         result.setCode(zhongAnResult.getCode());
-        if (retry != null) {
-            rosterLockingDataToZhongAn.localFilePushStatis(bo.getApiCode()
-                    , LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
-        }
         return result;
     }
 
@@ -647,9 +681,18 @@ public class MethodRetryHandlerService {
     }
 
     private void updatePushStatus(ZaMarketDataBO bo, Integer updatePushStatus, Integer updateStatus) {
-        zhonganRosterLockingDataMapper.updatePushStatusOrStatus(bo.getApiCode(), updatePushStatus, updateStatus
-                , null, bo.getTag(), bo.getList(), LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-                , new Date());
+        if (CollectionUtils.isEmpty(bo.getIds())) {
+            return;
+        }
+        ZhonganRosterLockingData data = new ZhonganRosterLockingData();
+        if (updateStatus != null) {
+            data.setStatus(updateStatus);
+        }
+        data.setPushStatus(updatePushStatus);
+        data.setUpdateTime(new Date());
+        ZhonganRosterLockingDataExample example = new ZhonganRosterLockingDataExample();
+        example.createCriteria().andIdIn(bo.getIds());
+        zhonganRosterLockingDataMapper.updateByExampleSelective(data, example);
     }
 
     /**
@@ -683,9 +726,6 @@ public class MethodRetryHandlerService {
             if(ids!=null && ids.size()>0){
                 saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY_SOLE.getCode(), soleDTO.getInfoId());
             }
-            /*//调用数量监控
-            BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME,soleDTO.getApiCode(),"policy-api",
-                    ids.size());*/
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
@@ -706,7 +746,6 @@ public class MethodRetryHandlerService {
             String custNum = didiCallRecord.getCustNum();
             String apiCode = didiCallRecord.getApiCode();
             Integer createDate = didiCallRecord.getCreateDate();
-            Date createTime = didiCallRecord.getCreateTime();
             // 获取redis 锁
             String key = RedisKeyConstant.pushDidiCollRecordLock.concat(":")
                     .concat(apiCode)
@@ -720,25 +759,38 @@ public class MethodRetryHandlerService {
             DidiCallRecordExample didiCallRecordExample = new DidiCallRecordExample();
             didiCallRecordExample.createCriteria()
                     .andCustNumEqualTo(custNum)
-                    .andStatusEqualTo(1)
+                    .andStatusEqualTo(3)
                     .andCreateDateEqualTo(createDate);
             if (didiCallRecordMapper.countByExample(didiCallRecordExample)==0) {
                 MarketingTransferSyncUser marketingTransferSyncUser = new MarketingTransferSyncUser();
                 marketingTransferSyncUser.setApiCode(apiCode);
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                marketingTransferSyncUser.setRequestData( sdf.format(new Date()));
+                marketingTransferSyncUser.setRequestData(LocalDate.now().toString());
                 marketingTransferSyncUser.setCustNum(custNum);
                 // 判断是否有效
                 MarketingSyncUser newValidityPeriodData = transferDataValidityPeriodService.getMarketingSyncUserDidi(marketingTransferSyncUser,null);
-                if(newValidityPeriodData!=null){
+                if(newValidityPeriodData!=null) {
                     updateDidiCallRecord.setCell(newValidityPeriodData.getCell());
-
                     // 调接口推送
                     DiDiReqVO diDiReqVO = new DiDiReqVO();
+                    diDiReqVO.setMediaName(didiCallRecord.getMediaName());
                     diDiReqVO.setCustMobileMd5(custNum);
-                    Result<DiDiResponseTO> resResultResult = diDiClient.pushReachSuccess(diDiReqVO);
+                    boolean isNotError;
+                    Result<DiDiResponseTO> resResultResult;
+                    if ("bairong".equals(didiCallRecord.getMediaName())) {
+                        resResultResult = diDiClient.pushReachSuccess(diDiReqVO);
+                        isNotError = true;
+                    } else {
+                        DiDiReachBO diDiReachBO = new DiDiReachBO();
+                        DiDiReachRequestTO diDiReachRequestTO = new DiDiReachRequestTO();
+                        diDiReachRequestTO.setScas(didiCallRecord.getScas());
+                        diDiReachBO.setDiDiReachRequestTO(diDiReachRequestTO);
+                        diDiReachBO.setDiDiReqVO(diDiReqVO);
+                        resResultResult = diDiClient.pushReachSuccess(diDiReachBO);
+                        isNotError = resResultResult.getData() != null
+                                && "10000".equals(resResultResult.getData().getErrorCode());
+                    }
                     // 500 异常需要进入阶梯重试
-                    if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(resResultResult.getCode())){
+                    if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(resResultResult.getCode())) {
                         updateDidiCallRecord.setStatus(2);
                         updateDidiCallRecord.setSysMessage("重试数据");
                         updateDidiCallRecord.setUpdateTime(new Date());
@@ -748,17 +800,17 @@ public class MethodRetryHandlerService {
                         return new Result<Boolean>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
                     }
                     // 成功则更新数据状态
-                    if(resResultResult.getCode().equals(ResultCode.SUCCESS.getValue())){
+                    if (resResultResult.getCode().equals(ResultCode.SUCCESS.getValue()) && isNotError) {
                         res = Boolean.TRUE;
                         DiDiResponseTO diDiResponseTO = resResultResult.getData();
                         DiDiResponseTO.ResResult data = diDiResponseTO.getData();
                         Boolean result = null;
-                        if(data !=null){
+                        if (data != null) {
                             result = data.getResult();
                         }
                         String errorMessage = diDiResponseTO.getErrorMessage();
                         String errorCode = diDiResponseTO.getErrorCode();
-                        updateDidiCallRecord.setStatus(1);
+                        updateDidiCallRecord.setStatus(3);
                         updateDidiCallRecord.setResult(result);
                         updateDidiCallRecord.setErrorCode(errorCode);
                         updateDidiCallRecord.setErrorMessage(errorMessage);

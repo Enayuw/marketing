@@ -22,6 +22,7 @@ import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.strategy.PolicySoleHandler;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,6 @@ import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.security.SecureRandom;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -65,6 +65,8 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
 
     @Resource
     private PolicySoleHandler policySoleHandler;
+
+    private static final List<String> eventTypes = Lists.newArrayList("LOGIN","APP_LAUNCH");
 
     @Override
     public CustomerPushDecisionActionEnum customerAction() {
@@ -147,14 +149,9 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             log.error("{}_{}未配置场景,配置参数:{}", customerAction(), apiCode, parameter);
             return sum;
         }
-        List<PushMarketingUserDetailDTO> dtoList = new ArrayList<>();
-        List<Long> ids = new ArrayList<>();
-        Map<String, Map<String, SyncUserValidityPeriodBO>> validityPeriodUserTypeMap = null;
-        try {
-            validityPeriodUserTypeMap = transferDataValidityPeriodService.getSyncUserValidityPeriodUserTypeMap(
-                    list, apiCode, new Date(),null);
-        } catch (ParseException ignored) {
-        }
+        Map<String, SyncUserValidityPeriodBO> validityPeriodUserTypeMap =
+                transferDataValidityPeriodService.getValidityPeriodUserTypeBatchFirstVersion(
+                        list, apiCode, new Date());
         List<PushMarketingUserDetailByRuleDTO> pushMarketingUserDetailByRuleDTOList = new ArrayList<>();
         for (MarketingTransferSyncUser transferSyncUser : list) {
             String reserveField1 = transferSyncUser.getReserveField1();
@@ -180,19 +177,18 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             }
             try {
                 JSONObject jsonObject = JSON.parseObject(reserveField1);
-                if (!"LOGIN".equals(jsonObject.get("eventType")) || validityPeriodUserTypeMap == null) {
+                if (!eventTypes.contains(jsonObject.get("eventType")) || validityPeriodUserTypeMap == null) {
                     continue;
                 }
                 // 有效期判断
-                Map<String, SyncUserValidityPeriodBO> boMap = validityPeriodUserTypeMap.get(transferSyncUser.getCustNum());
+                SyncUserValidityPeriodBO boMap = validityPeriodUserTypeMap.get(transferSyncUser.getCustNum() + userType);
                 if (boMap == null) {
                     continue;
                 }
-                SyncUserValidityPeriodBO bo = boMap.get(userType);
-                if (bo == null) {
+                cell = jsonObject.getString("initCustNum");
+                if (StringUtils.isBlank(cell)) {
                     continue;
                 }
-                cell = jsonObject.getString("initCustNum");
             } catch (Exception e) {
                 log.warn(e.getMessage(), e);
                 continue;

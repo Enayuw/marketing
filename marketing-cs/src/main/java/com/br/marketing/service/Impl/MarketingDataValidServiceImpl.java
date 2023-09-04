@@ -44,13 +44,13 @@ public class MarketingDataValidServiceImpl implements IMarketingDataValidService
     @Override
     public Boolean isValidByThreeType(Map<String, Integer> userTypeTN, MarketingSyncUser syncUser) {
         Integer day = userTypeTN.get(syncUser.getUserType());
-        if(day == null){
+        if (day == null) {
             return Boolean.FALSE;
         }
         Boolean periodOfValidity = marketingSyncUserService.isPeriodOfValidity(new Date(), day, syncUser.getAppletTime());
-        if(periodOfValidity){
+        if (periodOfValidity) {
             return Boolean.TRUE;
-        }else{
+        } else {
             return Boolean.FALSE;
         }
     }

@@ -16,12 +16,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 @Service
@@ -294,6 +292,7 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
             String updateValidSql = String.format("update b_marketing_sync_%s set is_repeat=2 where id = %d"
                     ,syncUser.getApiCode(),syncUser.getId());
             iMarketingSyncUserService.updateRepeatUserStatus(updateValidSql);
+            syncUser.setIsRepeat(2);
             long et3 = System.currentTimeMillis()-st3;
             if(log.isInfoEnabled()){
                 log.info(String.format("去重数据：%d,去重具体耗时：匹配规则加去重sql拼接：%d,去重sql执行：%d,修改去重数据：%d",syncUser.getId(),et1,et2,et3));
@@ -303,6 +302,7 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
             String updateInValidSql = String.format("update b_marketing_sync_%s set is_repeat=3 where id = %d"
                     ,syncUser.getApiCode(),syncUser.getId());
             iMarketingSyncUserService.updateRepeatUserStatus(updateInValidSql);
+            syncUser.setIsRepeat(3);
             long et3 = System.currentTimeMillis()-st3;
             if(log.isInfoEnabled()){
                 log.info(String.format("去重数据：%d,去重具体耗时：匹配规则加去重sql拼接：%d,去重sql执行：%d,修改去重数据：%d",syncUser.getId(),et1,et2,et3));

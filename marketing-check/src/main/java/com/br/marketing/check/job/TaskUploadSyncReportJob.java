@@ -49,7 +49,7 @@ public class TaskUploadSyncReportJob extends AbstractSimpleElasticJob {
         log.warn("【上传数据统计报表任务】调度开始");
         if (dateList != null && !dateList.isEmpty()) {
             for (String uploadDate : dateList) {
-                syncReportService.syncReportProcess(uploadDate);
+                syncReportService.syncReportProcess(uploadDate, context.getJobName());
             }
         }
         Long end = System.currentTimeMillis();

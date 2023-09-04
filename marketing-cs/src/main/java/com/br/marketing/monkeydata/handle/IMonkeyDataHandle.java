@@ -6,6 +6,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.monkeydata.entity.InputDataCondition;
 import com.br.marketing.monkeydata.entity.IterationResult;
+import com.br.marketing.monkeydata.entity.commonobj.MonkeyContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,15 +117,11 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
         return thread;
     }
 
-    ;
-
     public void removelistenThreadPool(Thread thread) {
         if (thread != null) {
             thread.interrupt();
         }
     }
-
-    ;
 
     /**
      * 调用入口
@@ -167,7 +164,9 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
                 condition = inputRes.getData().getInDatacondition();
                 List inputDataList = inputRes.getData().getInputDataList();
                 if (isThread() && pool != null) {
+//                    Object context =  MonkeyContext.getProcessContext();
                     pool.submit(() -> {
+//                        MonkeyContext.setProcessContext(context);
                         try {
                             if (!isPause()) {
                                 Result<List<O>> outRes = processData(inputDataList);
@@ -183,8 +182,10 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
                                 System.out.println("线程暂停");
                             }
                         } catch (Exception ex) {
+//                            MonkeyContext.clearProcessContext();
                             log.error(ex.getMessage(), ex);
                         }
+//                        MonkeyContext.clearProcessContext();
                     });
                 } else {
                     Result<List<O>> outRes = processData(inputDataList);
@@ -212,6 +213,7 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
                 }
                 removelistenThreadPool(threadReport);
             }
+//            MonkeyContext.clearProcessContext();
             log.warn("执行结束 执行id：{}，执行耗时：{}", id, System.currentTimeMillis() - start);
             return res;
         } catch (Exception ex) {

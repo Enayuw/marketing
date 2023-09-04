@@ -251,7 +251,7 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
         if (CollectionUtils.isEmpty(cellByCellAndMaxAppletTime)) {
             return null;
         }
-        return cellByCellAndMaxAppletTime.parallelStream().collect(Collectors.toMap(MarketingSyncUser::getCell
+        return cellByCellAndMaxAppletTime.parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCell
                 , Function.identity()));
     }
 }

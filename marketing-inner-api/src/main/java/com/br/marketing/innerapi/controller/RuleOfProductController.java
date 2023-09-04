@@ -24,7 +24,7 @@ public class RuleOfProductController {
     }
 
 
-    @GetMapping("/updateProductContent")
+    @PostMapping("/updateProductContent")
     @ApiOperation(value = "修改产品集合信息")
     public ApiResult updateProductContent(@RequestParam("flagScoreContent") String flagScoreContent){
         return new ApiResult().fromResult(iProductResultSimpleService.updateFlagProduct(flagScoreContent),1);

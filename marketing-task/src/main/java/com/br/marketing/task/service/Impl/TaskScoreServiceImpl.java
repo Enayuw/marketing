@@ -254,6 +254,8 @@ public class TaskScoreServiceImpl {
                 marketingTaskMapper.updateByPrimaryKeySelective(updateTask);
                 if (isOffline) {
                     producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE, task.getFileId().toString());
+                }else{
+                    producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getFileId().toString());
                 }
             } else {
                 updateFile.setStatus(ScoreStatusEnum.PAUSEED.getValue());
@@ -316,7 +318,7 @@ public class TaskScoreServiceImpl {
         String dateAddYyMmDd = DateHelper.getDateAddYyMmDd(0);
         String s = dateAddYyMmDd + num.toString();
         String row = null;
-        int currentPage = Integer.parseInt(s);
+        Long currentPage = Long.parseLong(s);
         try (FileReader read = new FileReader(errorFile);
              BufferedReader br = new BufferedReader(read);) {
             List<MarketingSyncUser> list = new ArrayList<>();
@@ -525,7 +527,7 @@ public class TaskScoreServiceImpl {
             Result<List<String>> dataCondition = scoreRuleConfigService.getDataCondition(marketingTaskExtend, blt, day);
             AssertResult.assertResult(dataCondition);
             List<String> conditionDatas = dataCondition.getData();
-            int currentPage = 1;
+            Long currentPage = 1L;
             Integer sumNum = 0;
             long startTime = System.currentTimeMillis();
             //是否是预览跑分
@@ -628,7 +630,7 @@ public class TaskScoreServiceImpl {
      * @param page   页码
      * @return false-为暂未跑完；true-已经跑完；
      */
-    boolean getCoreDataStatus(String fileId, Integer page) {
+    boolean getCoreDataStatus(String fileId, Long page) {
         String key = RedisKeyConstant.scoreStatus.concat(fileId).concat(":").concat(page.toString());
         String s = redisChgService.get(key);
         if (StringUtils.isBlank(s)) {

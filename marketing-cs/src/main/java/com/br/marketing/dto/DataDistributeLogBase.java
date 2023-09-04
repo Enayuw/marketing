@@ -23,6 +23,8 @@ public class DataDistributeLogBase<T> {
      * 1-apiCode,custNum
      * 2-apiCode,cell
      * 3-apiCode,cell,status
+     * 4-apiCode,custNum,status
+     *
      * @return
      */
     Integer soleField;

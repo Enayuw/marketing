@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.ZhongyouFileDataMapper">
+    <insert id="saveBatch" parameterType="list">
+        insert into b_zhongyou_file_data (
+        api_code,
+        file_id,
+        `type`,
+        status,
+        data_message,
+        strategy_id,
+        file_data,
+        create_time,
+        update_time,
+        create_date
+        )values
+        <foreach collection="list" item="data" separator=",">
+        (
+        #{data.apiCode,jdbcType=VARCHAR},
+        #{data.fileId,jdbcType=BIGINT},
+        #{data.type,jdbcType=VARCHAR},
+        #{data.status,jdbcType=INTEGER},
+        #{data.dataMessage,jdbcType=VARCHAR},
+        #{data.strategyId,jdbcType=VARCHAR},
+        #{data.fileData},
+        #{data.createTime,jdbcType=TIMESTAMP},
+        #{data.updateTime,jdbcType=TIMESTAMP},
+        #{data.createDate,jdbcType=INTEGER}
+        )
+        </foreach>
+    </insert>
+    <select id="selectZhongyouCount" resultType="com.br.marketing.entity.ZhongyouDataCountDTO" parameterType="java.lang.Long">
+        select count(1) as num ,file_data,`type` from b_zhongyou_file_data where file_id = #{fileId} group by `type` order by type asc
+    </select>
+
+    <select id="selectZhongYouDataPage" resultType="com.br.marketing.entity.ZhongyouFileData">
+        select * from
+        b_zhongyou_file_data
+        where
+        <if test="minId != null and minId >0">
+            id >=#{minId} and
+        </if>
+        file_id = #{fileId}  and strategy_id=#{strategyId}  and status =1  and `type` =2
+        order by id asc limit 2000;
+
+    </select>
+    <select id="selectZhongYoustrategyIds" resultType="java.lang.String">
+        SELECT strategy_id FROM b_zhongyou_file_data data
+        where file_id = #{fileId}  and `type` =2  and status =1  group by strategy_id;
+    </select>
+
+</mapper>

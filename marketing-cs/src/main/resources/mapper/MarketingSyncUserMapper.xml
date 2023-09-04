@@ -315,11 +315,12 @@
             </otherwise>
         </choose>
         and status=1
+        and is_repeat in (1,2)
         group by cust_num,user_type
         ) as a
         left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and a.user_type = b.user_type and
         a.applet_time = b.applet_time where
-        b.status=1
+        b.status=1 and b.is_repeat in (1,2)
     </select>
 
     <select id="getSyncUserLastByNotInAppletDateList" resultType="com.br.marketing.entity.MarketingSyncUser">
@@ -533,7 +534,7 @@
         select *
         from b_marketing_sync_${marketingTransferSyncUser.apiCode}
         <where>
-            cust_num = #{marketingTransferSyncUser.custNum} and status =1
+            cust_num = #{marketingTransferSyncUser.custNum} and status =1 and is_repeat in (1,2)
             and (applet_date,user_type) in
             <foreach collection="collectRequestDate" item="item" open="(" close=")" separator=",">
                 (#{item.appletDate},#{item.userType})
@@ -639,4 +640,99 @@
           AND status = 1
         order by applet_time desc, id desc limit #{limitStart}, 2000;
     </select>
+
+    <select id="getSyncUserLastByCellAndInAppletDateUserTypeList"
+            resultType="com.br.marketing.entity.MarketingSyncUser">
+        select
+        <include refid="Last_Column_List"/>
+        from
+        (select cell,user_type,max(applet_time) as applet_time
+        from b_marketing_sync_${apiCode}
+        where cell in
+        <foreach collection="cellValidityPeriodBOList" item="bo" open="(" separator="," close=")">
+            '${bo.cell}'
+        </foreach>
+        <choose>
+            <when test="configList != null and configList.size()>0">
+                and (applet_date,user_type) in
+                <foreach collection="configList" item="item" open="(" close=")" separator=",">
+                    (#{item.appletDate},#{item.userType})
+                </foreach>
+            </when>
+            <otherwise>
+                1!=1
+            </otherwise>
+        </choose>
+        and status=1 and is_repeat in (1,2)
+        group by cell,user_type
+        ) as a
+        left join b_marketing_sync_${apiCode} b on a.cell = b.cell and a.user_type = b.user_type and
+        a.applet_time = b.applet_time where
+        b.status=1 and b.is_repeat in (1,2)
+    </select>
+
+    <select id="getSyncUserLastByCellAndInAppletDatList"
+            resultType="com.br.marketing.entity.MarketingSyncUser">
+        select
+        <include refid="Last_Column_List"/>
+        from
+        (select cell,user_type,max(applet_time) as applet_time
+        from b_marketing_sync_${apiCode}
+        where cell in
+        <foreach collection="cellSet" item="cell" open="(" separator="," close=")">
+            '${cell}'
+        </foreach>
+        <choose>
+            <when test="configList != null and configList.size()>0">
+                and (applet_date,user_type) in
+                <foreach collection="configList" item="item" open="(" close=")" separator=",">
+                    (#{item.appletDate},#{item.userType})
+                </foreach>
+            </when>
+            <otherwise>
+                1!=1
+            </otherwise>
+        </choose>
+        and status=1 and is_repeat in (1,2)
+        group by cell,user_type
+        ) as a
+        left join b_marketing_sync_${apiCode} b on a.cell = b.cell and a.user_type = b.user_type and
+        a.applet_time = b.applet_time where
+        b.status=1 and b.is_repeat in (1,2)
+    </select>
+
+    <select id="getSyncUserLastByCustNumAndInAppletDatList"
+            resultType="com.br.marketing.entity.MarketingSyncUser">
+        select
+        <include refid="Last_Column_List"/>
+        from
+        (select cust_num,user_type,max(applet_time) as applet_time
+        from b_marketing_sync_${apiCode}
+        where cust_num in
+        <foreach collection="custNumSet" item="custNum" open="(" separator="," close=")">
+            '${custNum}'
+        </foreach>
+        <choose>
+            <when test="configList != null and configList.size()>0">
+                and (applet_date,user_type) in
+                <foreach collection="configList" item="item" open="(" close=")" separator=",">
+                    (#{item.appletDate},#{item.userType})
+                </foreach>
+            </when>
+            <otherwise>
+                1!=1
+            </otherwise>
+        </choose>
+        and status=1
+        and is_repeat in (1,2)
+        group by cust_num,user_type
+        ) as a
+        left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and a.user_type = b.user_type and
+        a.applet_time = b.applet_time where
+        b.status=1 and b.is_repeat in (1,2)
+    </select>
+
+    <update id="updateStatus">
+        update b_marketing_sync_${apiCode} set  status = 2,fail_type = concat(ifnull(fail_type,''),',营销失败数据') where cust_num = #{custNum} and applet_date = #{appletDate} and status=1
+    </update>
 </mapper>

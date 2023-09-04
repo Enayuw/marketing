@@ -1,5 +1,6 @@
 package com.br.marketing.check.job;
 
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.MarketingSmyPushService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -24,7 +25,9 @@ public class SmyUploadDataToDaasJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        marketingSmyPushService.pushSmyUploadDataToDaas();
+        String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
+        String apiCode = StringUtils.isNotBlank(jobParameter)?jobParameter:"";
+        marketingSmyPushService.pushSmyUploadDataToDaas(apiCode);
     }
 
 

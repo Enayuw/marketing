@@ -11,4 +11,9 @@ import lombok.Data;
 public class DiDiReqVO {
     // md5手机号
     private String custMobileMd5;
+
+    // 媒体名称
+    // bairong/bairongA
+    private String mediaName;
+
 }

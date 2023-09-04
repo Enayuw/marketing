@@ -151,32 +151,40 @@ public class FileController {
                     Integer threaNum = rownum;
                     mergeExecutor.submit(()->{
                         try {
+                            String decode = BrCipherMaker.getInstance().decode(content.trim());
+                            if(decode.equals(content.trim())){
+                                log.error("错误数据");
+                            }
                             if(new Integer(1).equals(threaNum)){
-                                String[] split = content.split("\t");
+//                                String[] split = content.split(",");
                                 StringBuilder sb = new StringBuilder();
-                                sb.append(split[0].trim());
-                                sb.append(",");
-                                sb.append(split[1].trim());
-                                sb.append(",");
-                                sb.append(split[2].trim());
+                                sb.append(DigestUtils.md5DigestAsHex(decode.getBytes()));
 //                                sb.append(",");
-//                                sb.append(split[3].trim());
+//                                sb.append(split[1].trim());
 //                                sb.append(",");
-//                                sb.append(split[4].trim());
+//                                sb.append(split[2].trim());
+////                                sb.append(",");
+////                                sb.append(split[3].trim());
+////                                sb.append(",");
+////                                sb.append(split[4].trim());
                                 sb.append("\r\n");
                                 writer.append(sb.toString());
                             }else{
-                                String[] split = content.split("\t");
+//                                String[] split = content.split(",");
                                 StringBuilder sb = new StringBuilder();
-                                sb.append(split[0].trim());
-                                sb.append(",");
-                                sb.append(Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(split[1].trim())));
-                                sb.append(",");
-                                sb.append(concent(split[2]));
+                                sb.append(DigestUtils.md5DigestAsHex(decode.getBytes()));
+//                                sb.append(",");
+//                                sb.append(concent(split[1].trim()));
+//                                sb.append(",");
+//                                sb.append(concent(split[2]));
 //                                sb.append(",");
 //                                sb.append(concent(split[3]));
 //                                sb.append(",");
-//                                sb.append(concent(split[4]));
+//                                sb.append(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(split[4].trim()).getBytes()));
+//                                sb.append(",");
+//                                sb.append(concent(split[5]));
+//                                sb.append(",");
+//                                sb.append(concent(split[6]));
                                 sb.append("\r\n");
                                 writer.append(sb.toString());
                             }

@@ -12,9 +12,11 @@ import com.br.marketing.context.impl.YiXinRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -26,9 +28,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 
 /**
  * code is far away from bug with the animal protecting
@@ -64,6 +64,9 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
 
     @Resource
     private ZnkfPushService znkfPushService;
+
+    @Resource
+    MarketingTransferSyncUserMapper transferSyncUserMapper;
 
     private final static String CUSTOMER_NUMBER_IS_FIRST = "customer:realtime:first";
 
@@ -106,6 +109,7 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
         phoneSaleExtendInfo.setPushDxTime(new Date());
         phoneSaleExtendInfo.setTransformType("1");
         phoneSaleExtendInfo.setSourceId(transfer.getId());
+        phoneSaleExtendInfo.setCell(marketingSyncUser.getCell());
 
         return phoneSaleExtendInfo;
     }
@@ -165,7 +169,6 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-
         String reserveField1 = transfer.getReserveField1();
         if (StringUtils.hasText(reserveField1)){
             YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
@@ -211,6 +214,14 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<BatchRealTi
             }
             if (!znkfPushService.cusNumIsFirstToday(key)){
                 log.warn("id:{} cust_num:{}不满足当天推送条件", transfer.getId(), transfer.getCustNum());
+                return false;
+            }
+            String tCid = transfer.gettCid();
+            String apiCode = transfer.getApiCode();
+            Set<String> custNums = Sets.newHashSet(transfer.getCustNum());
+            List caseEffectiveCust = transferSyncUserMapper.getByInCustAndCaseEffective(tCid, apiCode,custNums);
+            if (!CollectionUtils.isEmpty(caseEffectiveCust)) {
+                log.warn("id:{} cust_num:{}caseEffetive=0 剔除", transfer.getId(), transfer.getCustNum());
                 return false;
             }
 

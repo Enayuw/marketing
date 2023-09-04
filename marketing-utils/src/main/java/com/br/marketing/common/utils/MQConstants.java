@@ -36,6 +36,7 @@ public class MQConstants {
     public static final String MARKETING_PUSH_TWOSEVEN_FILETRANSFER = "Marketing_Push_Seven_FileTransfer";
     public static final String MARKETING_QUEUE_PUSH_TRANSFER_HAIER = "marketing_queue_push_transfer_haier";
     public static final String MARKETING_UNIVERSAL_SFTPTODB_RECEIVE = "Marketing_Universal_SftpToDb_Receive";
+    public static final String MARKETING_XIECHENG_SMSCOLLIDINGVT_CUSTOMER = "Marketing_XieChengSmsCollidingVt_Customer";
 
 
 
@@ -61,12 +62,22 @@ public class MQConstants {
     // 文件合并队列
     public static final String MARKETING_PUSHTASK_FILE_MERGE = "Marketing_PushTask_File_Merge";
 
+    public static final String MARKETING_PUSHTASK_FILE_INITMERGE = "Marketing_PushTask_File_InitMerge";
+
     public static final String MARKETING_PUSHTASK_FILE_MERGE_ERRORDELAY = "Marketing_PushTask_File_Merge_ErrorDelay";
 
     // 离线跑批回调队列
     public static final String MARKETING_OFFLINETASK_FILE_CALLBACK = "Marketing_OffLineTask_File_CallBack";
 
     public static final String MARKETING_OFFLINETASK_FILE_CALLBACK_ERRORDELAY = "Marketing_OffLineTask_File_CallBack_ErrorDelay";
+
+    // 设置默认有效日期队列
+    public static final String MARKETING_CONFIG_DEFAULT_VALID_DATE = "marketing_config_default_valid_date";
+
+    //中邮数据清洗 队列
+    public static final String MARKETING_ZHONGYOU_DATA_CLEAN = "Marketing_Zhongyou_Data_Clean";
+
+
     /**
      * routingkey
      */
@@ -105,11 +116,14 @@ public class MQConstants {
 
     // 携程营销数据
     public static final String ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE = "Marketing.Universal.SftpToDb.XieChengReceive";
+    public static final String ROUTING_KEY_XIECHENG_SMSCOLLIDINGVT_CUSTOMER = "Marketing.XieChengSmsCollidingVt.Customer";
 
     // 携程短信撞库
     public static final String ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGSMSCOLLIDINGRECEIVE = "Marketing.Universal.SftpToDb.XieChengSmsCollidingReceive";
     //文件合并
     public static final String ROUTING_KEY_PUSHTASK_FILE_MERGE = "Marketing.PushTask.File.Merge";
+
+    public static final String ROUTING_KEY_PUSHTASK_FILE_INITMERGE = "Marketing.PushTask.File.InitMerge";
 
     public static final String ROUTING_KEY_PUSHTASK_FILE_MERGE_ERRORDELAY ="Marketing.PushTask.File.Merge.ErrorDelay";
 
@@ -117,4 +131,10 @@ public class MQConstants {
     public static final String ROUTING_KEY_OFFLINETASK_FILE_CALLBACK = "Marketing.OffLineTask.File.CallBack";
 
     public static final String ROUTING_KEY_OFFLINETASK_FILE_CALLBACK_ERRORDELAY = "Marketing.OffLineTask.File.CallBack.ErrorDelay";
+
+    // 设置默认有效日期队列路由key
+    public static final String ROUTING_KEY_MARKETING_CONFIG_DEFAULT_VALID_DATE = "marketing.config.default.valid.date";
+
+    //中邮数据清洗队列路由key
+    public static final String ROUTING_KEY_MARKETING_ZHONGYOU_DATA_CLEAN = "Marketing.Zhongyou.Data.Clean";
 }

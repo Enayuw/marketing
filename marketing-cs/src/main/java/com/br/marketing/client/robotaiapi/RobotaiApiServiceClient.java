@@ -78,7 +78,6 @@ public class RobotaiApiServiceClient {
             return result;
         }catch (Exception ex){
             log.warn(ex.getMessage(), ex);
-            alarmApiClient.sendAlarm(ex.getMessage(), "", AlarmSendCodeEnum.ERROR_UNKNOWN.getCode());
             TransferRobotOutboundVO<UnsuccessfulData> result = new TransferRobotOutboundVO();
             result.setCode("9999");
             result.setMessage(ex.getMessage());
@@ -86,7 +85,7 @@ public class RobotaiApiServiceClient {
         }
     }
 
-    public TransferRobotOutboundVO<UnsuccessfulData> pushRobotai(TransferRobotOutboundDTO dto){
+    public TransferRobotOutboundVO<TransferRobotDataVO> pushRobotai(TransferRobotOutboundDTO dto){
         dto.getJsonData().setPlatApiCode(customerServiceApiCode);
         try{
             ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate,interfaceLogMapper,logDbpool)
@@ -105,11 +104,12 @@ public class RobotaiApiServiceClient {
             } catch (Exception ex) {
                 log.error("推送客服转化接口统计异常" + ex.getMessage(), ex);
             }
+            TransferRobotOutboundVO<TransferRobotDataVO> result = JSON.parseObject(transfer.getResult()
+                    ,new TypeReference<TransferRobotOutboundVO<TransferRobotDataVO>>(){}.getType());
             return result;
         }catch (Exception ex){
             log.warn(ex.getMessage(), ex);
-            alarmApiClient.sendAlarm(ex.getMessage(), "", AlarmSendCodeEnum.ERROR_UNKNOWN.getCode());
-            TransferRobotOutboundVO<UnsuccessfulData> result = new TransferRobotOutboundVO();
+            TransferRobotOutboundVO<TransferRobotDataVO> result = new TransferRobotOutboundVO();
             result.setCode("9999");
             result.setMessage(ex.getMessage());
             return result;

@@ -12,12 +12,14 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.mapper.MarketingSyncReportMapper;
 import com.br.marketing.mapper.VariableDicMapper;
+import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.MarketingSyncReportService;
 import com.br.marketing.vo.MarketingSyncReportNumVO;
 import com.br.marketing.vo.MarketingSyncReportVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -51,6 +53,14 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     @Resource
     private MarketingSyncReportMapper syncReportMapper;
 
+    @Autowired
+    ICompatibleService iCompatibleService;
+
+    @Override
+    public void syncReportProcess(String uploadDate, String jobName) {
+        this.doSyncReportProcess(uploadDate,null,jobName);
+    }
+
     /**
      * 上传数据统计报表流程
      *
@@ -59,14 +69,14 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
      */
     @Override
     public void syncReportProcess(String uploadDate) {
-        this.doSyncReportProcess(uploadDate,null);
+        this.doSyncReportProcess(uploadDate,null,null);
     }
     @Override
     public void syncReportProcessByApiCode(String uploadDate,String apiCode) {
-        this.doSyncReportProcess(uploadDate,apiCode);
+        this.doSyncReportProcess(uploadDate,apiCode,null);
     }
 
-    public void doSyncReportProcess(String uploadDate, String apiCodes) {
+    public void doSyncReportProcess(String uploadDate, String apiCodes,String jobName) {
         long l = System.currentTimeMillis();
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
         List<Customer> customers = new ArrayList<>();
@@ -79,6 +89,13 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         Map<String, Set<String>> userTypeMap = getUserTypeMap();
         CountDownLatch countDownLatch = new CountDownLatch(customers.size());
         for (Customer customer : customers) {
+            if(StringUtils.isNoneBlank(jobName)){
+                Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo(),jobName);
+                if(!action){
+                    countDownLatch.countDown();
+                    continue;
+                }
+            }
             threadPool.submit(() -> {
                 try {
                     if (AuthShowProductor.NORMAL.getCode().equals(customer.getStatus())) {
@@ -92,7 +109,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                 String createStartDate = uploadDate;
                                 String createEndDate = LocalDate.parse(uploadDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                                         .plusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                                List<String> appletDateList = syncReportMapper.getAppletDatetiflash_(apiCode, userType, createStartDate, createEndDate);
+                                List<String> appletDateList = syncReportMapper.getAppletDatetikv_(apiCode, userType, createStartDate, createEndDate);
                                 for (String appletDate : appletDateList) {
                                     //上传开始时间
                                     String appletBeginTime = getAppletTime(apiCode, userType, appletDate, Boolean.TRUE);

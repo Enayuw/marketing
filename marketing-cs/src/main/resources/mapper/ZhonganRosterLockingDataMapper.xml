@@ -3,6 +3,49 @@
 <mapper namespace="com.br.marketing.mapper.ZhonganRosterLockingDataMapper">
 
 
+    <select id="getBizDateListtikv_" resultType="java.lang.String">
+        select distinct biz_date from b_zhongan_roster_locking_data
+        <where>
+            <if test="data.apiCode!=null and data.apiCode!=''">
+                api_code='${data.apiCode}'
+            </if>
+            <if test="data.bizDate!=null and data.bizDate!=''">
+                and <![CDATA[ biz_date <= '${data.bizDate}' ]]>
+            </if>
+            <if test="data.tag!=null and data.tag!=''">
+                and tag='${data.tag}'
+            </if>
+            <if test="data.pushStatus!=null and data.pushStatus!=''">
+                and push_status=${data.pushStatus}
+            </if>
+            and status=1 order by biz_date
+        </where>
+    </select>
+
+    <select id="findPartColumnListPage" resultType="com.br.marketing.entity.ZhonganRosterLockingData">
+        select t1.id,mobile_md5,biz_date,tag,data_source,local_id,api_code from b_zhongan_roster_locking_data t1,
+        (select id from b_zhongan_roster_locking_data
+        <where>
+            <if test="data.apiCode!=null and data.apiCode!=''">
+                api_code='${data.apiCode}'
+            </if>
+            <if test="data.bizDate!=null and data.bizDate!=''">
+                and biz_date='${data.bizDate}'
+            </if>
+            <if test="data.tag!=null and data.tag!=''">
+                and tag='${data.tag}'
+            </if>
+            <if test="data.pushStatus!=null and data.pushStatus!=''">
+                and push_status=${data.pushStatus}
+            </if>
+            and status=1
+            <if test="data.id!=null and data.id!=''">
+                and id>${data.id}
+            </if>
+            order by id limit ${pageNo * pageSize},${pageSize}) t2 where t1.id=t2.id
+        </where>
+    </select>
+
     <select id="findGroupMobileMd5ListPage" resultType="com.br.marketing.entity.ZhonganRosterLockingData">
         select mobile_md5,biz_date,tag,data_source,local_id,api_code from b_zhongan_roster_locking_data
         <where>
@@ -62,7 +105,7 @@
     <select id="getSftpFilePushSuccessSum" resultType="com.br.marketing.dto.SftpFilePushSuccessDTO">
         select count(*) as number, t.local_id as localId
         from (
-                 select mobile_md5, local_id
+                 select mobile_md5, local_id, biz_date
                  from b_zhongan_roster_locking_data
                  WHERE api_code = '${apiCode}'
                    and <![CDATA[ update_time >= '${dateStr}' ]]>
@@ -70,7 +113,7 @@
                    and push_status = 2
                    and status = 1
                    and data_source = 1
-                 group by mobile_md5, local_id) as t
+                 group by mobile_md5, local_id, biz_date) as t
         group by t.local_id
     </select>
 
@@ -155,5 +198,15 @@
         and data_source = 1
         group by tag
         order by tag;
+    </select>
+
+    <select id="getDuplicateMobileMd5List" resultType="com.br.marketing.entity.ZhonganRosterLockingData">
+        select id, push_status
+        from b_zhongan_roster_locking_data
+        where api_code = '${apiCode}'
+          and biz_date = '${dateStr}'
+          and tag = '${tag}'
+          and mobile_md5 = '${mobileMd5}'
+          and status = 1
     </select>
 </mapper>
