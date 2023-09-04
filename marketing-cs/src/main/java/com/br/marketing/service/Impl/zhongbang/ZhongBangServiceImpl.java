@@ -214,15 +214,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         singleImportDataDTO.setAuditAmount(newSyncUser.getAuditAmount());
         String idCard = BrCipherMaker.getInstance().decode(syncUser.getIdCard());
         if (StringUtils.isNotBlank(idCard)) {
-            int gender;
-            int idCardLen = 18;
-            int length = idCard.length();
-            if (length == idCardLen) {
-                gender = Integer.parseInt(idCard.substring(16, 17));
-            } else {
-                gender = Integer.parseInt(idCard.substring(length - 1, length - 1));
-            }
-            singleImportDataDTO.setGender((gender % 2 == 0) ? "女" : "男");
+            singleImportDataDTO.setGender(com.br.marketing.common.utils.StringUtils.getGenderByIdCard(idCard));
         }
         return singleImportDataDTO;
     }
