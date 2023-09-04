@@ -84,6 +84,9 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
         String stringDate = null;
         //需要加减的字符串型日期
         try {
+            if (("9999-12-31").equals(day)) {
+                return day;
+            }
             Date classDate = format.parse(day);
             //把字符串转化成指定格式的日期
             Calendar calendar = Calendar.getInstance(); //使用Calendar日历类对日期进行加减
