@@ -71,6 +71,30 @@
             </exclusion>
         </exclusions>
     </dependency>
+    <dependency>
+        <groupId>com.br</groupId>
+        <artifactId>grpc-encode-mapping-rely</artifactId>
+        <version>1.0.0</version>
+        <classifier>shaded</classifier>
+    </dependency>
+    <dependency>
+        <groupId>com.br.transfer</groupId>
+        <artifactId>header-transfer-spring-boot-starter</artifactId>
+        <version>1.0.5</version>
+        <!-- 排除ribbon依赖 -->
+        <exclusions>
+            <exclusion>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-ribbon</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+        <groupId>com.br</groupId>
+        <artifactId>br-grpc-common</artifactId>
+        <version>1.0.6</version>
+        <classifier>shaded</classifier>
+    </dependency>
 </dependencies>
 
     <build>

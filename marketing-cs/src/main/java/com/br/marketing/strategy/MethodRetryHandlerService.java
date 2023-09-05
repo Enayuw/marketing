@@ -2,6 +2,7 @@ package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.counter.BrCounter;
 import com.br.marketing.bo.ZaMarketDataBO;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
@@ -47,6 +48,7 @@ import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.DiDiAllowMarketingEnum;
 import com.br.marketing.mapper.*;
+import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.DiDiAllowReqDTO;
@@ -233,6 +235,7 @@ public class MethodRetryHandlerService {
 
     /**
      * 2023-08-24 13:28
+     * 灵明石猴
      * 人工实时推送用户名单(单条)处理，带去重的方法
      * 与callDassRealTimeUserData方法逻辑一毛一样
      */
@@ -262,16 +265,33 @@ public class MethodRetryHandlerService {
         dassSingleImportAdapDTO.setExtendInfo(dassImportAdapDTO.getExtendInfo());
         dassSingleImportAdapDTO.setTransferInfoId(dassImportAdapDTO.getTransferInfoId());
         Result<JSONObject> result = dassServiceClient.postRealTimeUserData(dassSingleImportAdapDTO);
+        PhoneSaleExtendInfo info = new PhoneSaleExtendInfo();
+        info.setId(Long.valueOf(dassImportAdapDTO.getExtendInfo()));
+        info.setUpdateTime(new Date());
+        info.setPushDxTime(new Date());
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             saveBizLog(dassImportAdapDTO.getExtendInfo(), dassImportAdapDTO.getInterfaceHandlerEnum() == null
                             ? InterfaceHandlerEnum.ARTIFICIAL_REAL_TIME_USERDATA_SOLE.getCode()
                             : dassImportAdapDTO.getInterfaceHandlerEnum().getCode(),
                     dassImportAdapDTO.getTransferInfoId());
+            info.setPStatus(2);
+            phoneSaleExtendInfoMapper.updateByPrimaryKeySelective(info);
             return result;
         }
+        info.setPStatus(3);
+        phoneSaleExtendInfoMapper.updateByPrimaryKeySelective(info);
         log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
         result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         return result;
+    }
+
+    /**
+     * 2023-09-02 14:22
+     * 六耳猕猴
+     */
+    @DistributeLog
+    public Result<JSONObject> callDassRealTimeUserDataSole(DassSingleImportAdapSoleDTO dassImportAdapDTO, Integer retry) {
+        return callDassRealTimeUserDataSole(dassImportAdapDTO, retry, null);
     }
 
     /**

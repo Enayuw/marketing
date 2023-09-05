@@ -1,9 +1,7 @@
-package com.br.marketing.service;
+package com.br.marketing.client.zhongyou;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.zhongyou.ZhongYouClient;
-import com.br.marketing.client.zhongyou.ZhongYouClientData;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -21,7 +19,10 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 import static com.br.marketing.common.utils.MQConstants.ROUTING_KEY_MARKETING_ZHONGYOU_DATA_CLEAN;
 

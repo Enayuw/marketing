@@ -103,7 +103,7 @@ public class MarketingTransferDataController {
         RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
         RuntimeDataContext.getData().setApiCode(apiCode);
         RuntimeDataContext.getData().setJsonData(jsonData);
-        return iPushShuheDataService.saveShuheTransferData(apiCode, jsonData);
+        return iPushShuheDataService.saveShuheTransferDataTwoVersion(apiCode, jsonData);
     }
 
 

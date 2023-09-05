@@ -39,6 +39,7 @@
             </if>
         </set>
         where sha256_code_list = #{sha256CodeList,jdbcType=VARCHAR}
+        and send_date = #{sendDate} and status = 1
     </update>
 
     <update id="updateBatchVt" parameterType="com.br.marketing.entity.XieChengSmsCollidingDataLogVt" >
@@ -48,5 +49,6 @@
         <foreach collection="list" item="xc" open="(" separator="," close=")">
             #{xc}
         </foreach>
+        and send_date = #{sendDate} and status = 1
     </update>
 </mapper>

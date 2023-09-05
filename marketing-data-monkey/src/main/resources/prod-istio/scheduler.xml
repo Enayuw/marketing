@@ -85,7 +85,7 @@
     />
     <job:simple id="DidiAllowJob"
                 class="com.br.marketing.monkey.job.didi.DidiAllowJob"
-                cron="0 0 0/1 * * ?"
+                cron="0 0/2 7-10 * * ?"
                 description="滴滴流量准入"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
