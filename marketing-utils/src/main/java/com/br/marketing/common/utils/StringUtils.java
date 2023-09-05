@@ -186,15 +186,10 @@ public class StringUtils {
             if (length == idCardLen) {
                 gender = Integer.parseInt(IdCard.substring(16, 17));
             } else {
-                gender = Integer.parseInt(IdCard.substring(length - 1, length - 1));
+                gender = Integer.parseInt(IdCard.substring(length - 1, length));
             }
             return (gender % 2 == 0) ? "女" : "男";
         }
         return null;
     }
-
-
-
-
-
 }
