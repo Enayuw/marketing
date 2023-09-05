@@ -27,5 +27,5 @@ public interface XieChengSmsCollidingDataLogVtMapper extends XieChengSmsCollidin
      * @param status
      * @param msg
      */
-    void updateBatchVt(@Param("list") List<String> list,@Param("status") Integer status,@Param("msg")String msg);
+    void updateBatchVt(@Param("list") List<String> list,@Param("status") Integer status,@Param("msg")String msg,@Param("sendDate") Integer sendDate);
 }

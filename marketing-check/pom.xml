@@ -60,11 +60,11 @@
             <version>3.14.9</version>
         </dependency>
         <!-- exporter 监控 http://c.100credit.cn/pages/viewpage.action?pageId=38205220 -->
-        <dependency>
+       <!-- <dependency>
             <groupId>com.br.cloud</groupId>
             <artifactId>spring_boot_exporter</artifactId>
             <version>1.0-SNAPSHOT</version>
-        </dependency>
+        </dependency>-->
     </dependencies>
     <build>
         <resources>

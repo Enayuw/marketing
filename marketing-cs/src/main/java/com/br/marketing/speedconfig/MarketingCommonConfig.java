@@ -906,6 +906,17 @@ public class MarketingCommonConfig {
     private Integer zhongYouFileDataThreadNum;
 
     /**
+     * 模拟db异常，redis异常，true是开启，false是关闭
+     * {"apiCode":true,"redis":true}
+     */
+    private HashMap<String,Boolean> mockError;
+
+    /**
+     * pulsar消费的开关，false关闭开关；true 打开开关
+     */
+    private Boolean pulsarSwitch;
+
+    /**
      * 2023-08-23 15:15
      * 众邦状态分组与开关，状态优先级与配置顺序对应，最先配置的优先级也最高；
      * eg：{"d":{"groupNo":2,"dxUserType":"2","switch":true},"c":{"groupNo":1,"dxUserType":"1","switch":true},"b":{"groupNo":1,"dxUserType":"1","switch":true},"a":{"groupNo":1,"dxUserType":"1","switch":true}}

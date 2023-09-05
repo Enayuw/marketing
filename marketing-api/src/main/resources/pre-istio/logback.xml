@@ -62,11 +62,31 @@
         <queueSize>512</queueSize>
     </appender>
 
+    <appender name="PATCH_LOG"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/${APP_NAME}.patch</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter"></filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/${APP_NAME}.patch.%d{yyyy-MM-dd}
+            </fileNamePattern>
+            <maxHistory>15</maxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>${ENCODER_PATTERN}</Pattern>
+        </encoder>
+    </appender>
+
+    <appender name="PATCH_ASYNC_LOG" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="PATCH_LOG"/>
+        <queueSize>512</queueSize>
+    </appender>
 
     <logger name="com.br" level="${LOG_LEVEL}"/>
     <logger name="org.springframework.boot.context.embedded.tomcat" level="INFO"/>
     <logger name="com.netflix.discovery.shared.resolver.aws.ConfigClusterResolver" level="ERROR"/>
-
+    <logger name="PATCH_LOG" level="ERROR" additivity="false">
+        <appender-ref ref="PATCH_ASYNC_LOG" />
+    </logger>
     <!--TRACE, DEBUG, INFO, WARN, ERROR, ALL and OFF -->
     <root>
         <level value="${LOG_LEVEL}"/>

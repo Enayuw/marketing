@@ -3,16 +3,16 @@ sharding:
     datasource:
       names: ds0
       ds0:
-        url: jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+        url: jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&autoReconnect=false&failOverReadOnly=false
         username: u_pd_marketing
         password: f9daIYUIAXQkeyVbDoOI
         type: com.alibaba.druid.pool.DruidDataSource
         driver-class-name: com.mysql.jdbc.Driver
         filters: stat
         maxActive: 300
-        initialSize: 5
-        maxWait: 60000
-        minIdle: 5
+        initialSize: 10
+        maxWait: 30000
+        minIdle: 10
         timeBetweenEvictionRunsMillis: 60000
         minEvictableIdleTimeMillis: 300000
         validationQuery: select 'x'

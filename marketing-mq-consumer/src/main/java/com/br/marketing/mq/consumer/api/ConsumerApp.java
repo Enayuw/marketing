@@ -2,9 +2,12 @@ package com.br.marketing.mq.consumer.api;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.common.constants.PulsarSubscription;
+import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.service.IPeriodOfValidityService;
+import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.PushRuleService;
 import com.rabbitmq.client.Channel;
@@ -19,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import javax.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -37,6 +41,8 @@ public class ConsumerApp {
 
     @Resource
     private IPeriodOfValidityService periodOfValidityService;
+    @Autowired
+    IPushShuheDataService pushShuheDataService;
 
 
     /**
@@ -117,4 +123,21 @@ public class ConsumerApp {
 
 
 
+
+    @PostConstruct
+    void init(){
+        // 标准上传数据pulsar消费端
+        consumerService.consumerPulsar(PulsarSubscription.upLoadSubscription,pushRuleService::consumerSyncInfo,2, PulsarTopic.upLoadTopic);
+
+        // 数禾上传数据pulsar消费端
+        consumerService.consumerPulsar(PulsarSubscription.upLoadShSubscription,pushShuheDataService::consumerShUpload,2, PulsarTopic.upLoadShTopic);
+
+        //标准转化数据pulsar消费端
+        consumerService.consumerPulsar(PulsarSubscription.transferSubscription,pushRuleService::consumerTransferInfo,2, PulsarTopic.transferTopic);
+
+        //数禾转化数据pulsar消费端
+        consumerService.consumerPulsar(PulsarSubscription.transferShSubscription,pushShuheDataService::consumerShTransfer,2, PulsarTopic.transferShTopic);
+
+
+    }
 }

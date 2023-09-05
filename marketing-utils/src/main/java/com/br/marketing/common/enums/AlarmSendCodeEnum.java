@@ -33,6 +33,8 @@ public enum AlarmSendCodeEnum {
     EXCEPTION_SPEEDCOMMONCONFIG("62004", "marketingCommonConfigAlarm"),
     // 有效期配置异常,阶梯推送，一般
     EXCEPTION_VALIDITY_PERIOD("62005", "未配置有效期规则"),
+    //pulsar消费requestId冲突
+    REQUESTID_CONFLICT("62006", "requestIdConflict"),
     ;
 
     /**

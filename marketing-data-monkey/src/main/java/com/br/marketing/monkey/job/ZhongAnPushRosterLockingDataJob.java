@@ -74,9 +74,9 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
         }
         String parameter = shardingContext.getJobParameter();
         long start = System.currentTimeMillis();
-        List<String> list = new ArrayList<>(Collections.singletonList("3710048"));
+        List<String> list = new ArrayList<>();
         String bizDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
-        List<String> dateList = new ArrayList<>(Collections.singletonList(bizDate));
+        List<String> dateList = new ArrayList<>();
         if (StringUtils.isNotEmpty(parameter)) {
             StringTokenizer string = new StringTokenizer(parameter, ",");
             while (string.hasMoreTokens()) {
@@ -88,6 +88,9 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
                 }
                 dateList.add(bizDate);
             }
+        } else {
+            list.add("3710048");
+            dateList.add(bizDate);
         }
         HashMap<String, JSONObject> zhongAnDetailPush = marketingCommonConfig.getZhongAnDetailPush();
         if (zhongAnDetailPush == null) {
