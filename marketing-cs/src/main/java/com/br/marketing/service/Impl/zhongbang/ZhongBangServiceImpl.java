@@ -116,7 +116,8 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         example.clear();
                         MarketingTransferSyncUserExample.Criteria criteriaD = example.createCriteria();
                         if (bool) {
-                            criteriaD.andRequestTimeBetween(dateTimeStr[0], dateTimeStr[1]);
+                            criteriaD.andRequestTimeBetween(dateTimeStr[0].replace("T", " ")
+                                    , dateTimeStr[1].replace("T", " "));
                         } else {
                             criteriaD.andRequestDataEqualTo(dateTimeStr[0]);
                         }
@@ -350,27 +351,9 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         if (!newCellSet.contains(cell)) {
                             continue;
                         }
-                        DassSingleImportAdapSoleDTO soleDTO = new DassSingleImportAdapSoleDTO();
                         String dxUserType = v.getString(dxUserTypeKey);
-                        // 电销本地推送记录
-                        PhoneSaleExtendInfo info = packagePhoneSaleExtendInfo(
-                                transferSyncUser, syncUser, status, dxUserType, groupNo);
-                        // 电销
-                        DassSingleImportDataDTO dassImportDataDTO = packageDassSingleImportDataDTO(
-                                transferSyncUser, syncUser, dxUserType, newTransferSyncUserMap);
-                        soleDTO.setDassSingleImportDataDTO(dassImportDataDTO);
-                        // 外呼
-                        ConversionData conversionData = packageConversionData(transferSyncUser, bo);
-                        RealTimeUserDataSoleDTO dto = new RealTimeUserDataSoleDTO();
-                        dto.setPhoneSaleExtendInfo(info);
-                        dto.setDassSingleImportAdapDTO(soleDTO);
-                        dto.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.TRANSFER);
-                        dto.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
-                        dto.setSoleType(1);
-                        DaasAndConversionData data = new DaasAndConversionData();
-                        data.setConversionData(conversionData);
-                        data.setRealTimeUserDataSoleDTO(dto);
-                        list.add(data);
+                        list.add(buildDaasAndConversionData(transferSyncUser, syncUser, status, dxUserType
+                                , groupNo, newTransferSyncUserMap, bo));
                     }
                     ProcessHandlerContext context = new ProcessHandlerContext();
                     context.setApiCode(apiCode);
@@ -388,6 +371,31 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             updateExamplePage(example, pageNo, pageSize);
         }
         checkActiveCount(threadPool);
+    }
+
+    private DaasAndConversionData buildDaasAndConversionData(MarketingTransferSyncUser transferSyncUser
+            , MarketingSyncUser syncUser, String status, String dxUserType, int groupNo
+            , Map<String, MarketingTransferSyncUser> newTransferSyncUserMap, SyncUserValidityPeriodBO bo) {
+        DassSingleImportAdapSoleDTO soleDTO = new DassSingleImportAdapSoleDTO();
+        // 电销本地推送记录
+        PhoneSaleExtendInfo info = packagePhoneSaleExtendInfo(
+                transferSyncUser, syncUser, status, dxUserType, groupNo);
+        // 电销
+        DassSingleImportDataDTO dassImportDataDTO = packageDassSingleImportDataDTO(
+                transferSyncUser, syncUser, dxUserType, newTransferSyncUserMap);
+        soleDTO.setDassSingleImportDataDTO(dassImportDataDTO);
+        // 外呼
+        ConversionData conversionData = packageConversionData(transferSyncUser, bo);
+        RealTimeUserDataSoleDTO dto = new RealTimeUserDataSoleDTO();
+        dto.setPhoneSaleExtendInfo(info);
+        dto.setDassSingleImportAdapDTO(soleDTO);
+        dto.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.TRANSFER);
+        dto.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
+        dto.setSoleType(1);
+        DaasAndConversionData data = new DaasAndConversionData();
+        data.setConversionData(conversionData);
+        data.setRealTimeUserDataSoleDTO(dto);
+        return data;
     }
 
     private void pushWarnMessage(String apiCode) {
