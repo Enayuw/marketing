@@ -203,7 +203,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         if (newSyncUser == null) {
             newSyncUser = transferSyncUser;
         }
-        singleImportDataDTO.setName(firstName);
+        singleImportDataDTO.setName(StringUtils.isNotBlank(firstName) ? firstName : "1");
         singleImportDataDTO.setOrgname("zhongbang");
         singleImportDataDTO.setPhone(phone);
         singleImportDataDTO.setUserType(dxUserType);
