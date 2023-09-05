@@ -6,7 +6,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum DistributeSourceTypeEnum {
-    TRANSFER("1", "转化数据");
+    TRANSFER("1", "转化数据"),
+    CALL_RECORD("2", "客服拨打记录"),
+    ;
 
     private String value;
     private String desc;

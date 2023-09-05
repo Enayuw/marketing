@@ -12,9 +12,13 @@ import com.br.marketing.client.dassservice.input.DassImportAdapHaluoDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
+import com.br.marketing.client.dassservice.input.transfer.DassAssembleTransferDataSoleDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
+import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapSoleDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
+import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSoleDTO;
+import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
 import com.br.marketing.client.dassservice.output.DassExportAdapterDTO;
 import com.br.marketing.client.didi.DiDiClient;
@@ -227,6 +231,67 @@ public class MethodRetryHandlerService {
         }
         log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
+
+    /**
+     * 2023-08-24 13:28
+     * 灵明石猴
+     * 人工实时推送用户名单(单条)处理，带去重的方法
+     * 与callDassRealTimeUserData方法逻辑一毛一样
+     */
+    @DistributeLog
+    @RetryMethod(isOrNoDbRetry = true)
+    public Result<JSONObject> callDassRealTimeUserDataSole(DassSingleImportAdapSoleDTO dassImportAdapDTO, Integer retry
+            , PhoneSaleExtendInfo phoneSaleExtendInfo) {
+        List<DassSingleImportDataDTO> data = dassImportAdapDTO.getData();
+        if (CollectionUtils.isEmpty(data)) {
+            Result<JSONObject> result = new Result<>();
+            result.setCode(ResultCode.SUCCESS.getValue());
+            result.setMessage("去重后，数据为空");
+            return result;
+        }
+        //插入b_phone_sale_extend_info
+        if (phoneSaleExtendInfo != null) {
+            try {
+                phoneSaleExtendInfo.setCreateTime(new Date());
+                phoneSaleExtendInfoMapper.insertSelective(phoneSaleExtendInfo);
+                dassImportAdapDTO.setExtendInfo(phoneSaleExtendInfo.getId().toString());
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+        DassSingleImportAdapDTO dassSingleImportAdapDTO = new DassSingleImportAdapDTO();
+        dassSingleImportAdapDTO.setDassSingleImportDataDTO(dassImportAdapDTO.getDassSingleImportDataDTO());
+        dassSingleImportAdapDTO.setExtendInfo(dassImportAdapDTO.getExtendInfo());
+        dassSingleImportAdapDTO.setTransferInfoId(dassImportAdapDTO.getTransferInfoId());
+        Result<JSONObject> result = dassServiceClient.postRealTimeUserData(dassSingleImportAdapDTO);
+        PhoneSaleExtendInfo info = new PhoneSaleExtendInfo();
+        info.setId(Long.valueOf(dassImportAdapDTO.getExtendInfo()));
+        info.setUpdateTime(new Date());
+        info.setPushDxTime(new Date());
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            saveBizLog(dassImportAdapDTO.getExtendInfo(), dassImportAdapDTO.getInterfaceHandlerEnum() == null
+                            ? InterfaceHandlerEnum.ARTIFICIAL_REAL_TIME_USERDATA_SOLE.getCode()
+                            : dassImportAdapDTO.getInterfaceHandlerEnum().getCode(),
+                    dassImportAdapDTO.getTransferInfoId());
+            info.setPStatus(2);
+            phoneSaleExtendInfoMapper.updateByPrimaryKeySelective(info);
+            return result;
+        }
+        info.setPStatus(3);
+        phoneSaleExtendInfoMapper.updateByPrimaryKeySelective(info);
+        log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
+        result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        return result;
+    }
+
+    /**
+     * 2023-09-02 14:22
+     * 六耳猕猴
+     */
+    @DistributeLog
+    public Result<JSONObject> callDassRealTimeUserDataSole(DassSingleImportAdapSoleDTO dassImportAdapDTO, Integer retry) {
+        return callDassRealTimeUserDataSole(dassImportAdapDTO, retry, null);
     }
 
     /**
@@ -471,9 +536,43 @@ public class MethodRetryHandlerService {
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
+    /**
+     * 调用电销转化接口 带去重功能
+     * 调用成功，将该批数据记录到数据库中以便数据对比
+     */
+    @RetryMethod(isOrNoDbRetry = true)
+    @DistributeLog
+    public Result<?> callDassTransferDataSole(DassTransferDataAdapSoleDTO dassTransferDataAdapDTO, Integer retry) {
+        if (CollectionUtils.isEmpty(dassTransferDataAdapDTO.getData())) {
+            Result<?> result = new Result<>();
+            result.setCode(ResultCode.SUCCESS.getValue());
+            result.setMessage("去重后，数据为空");
+            return result;
+        }
+        List<DassTransferDataDTO> list = dassTransferDataAdapDTO.getData().stream().map(
+                DassAssembleTransferDataSoleDTO::getDassTransferDataDTO).collect(Collectors.toList());
+        DassTransferDataAdapDTO dto = new DassTransferDataAdapDTO();
+        dto.setDassTransferDataDTOList(list);
+        dto.setTransferInfoId(dassTransferDataAdapDTO.getTransferInfoId());
+        dto.setPhoneSaleExtendInfoList(dassTransferDataAdapDTO.getPhoneSaleExtendInfoList());
+        Result<?> result = dassServiceClient.postTransferData(dto);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            Set<String> set = list.stream().map(DassTransferDataDTO::getId).map(String::valueOf).collect(Collectors.toSet());
+            saveBizLog(String.join(",", set), dassTransferDataAdapDTO.getInterfaceHandlerEnum() == null
+                            ? InterfaceHandlerEnum.ARTIFICIAL_TRANSFER_SOLE.getCode()
+                            : dassTransferDataAdapDTO.getInterfaceHandlerEnum().getCode(),
+                    dassTransferDataAdapDTO.getTransferInfoId());
+            return result;
+        }
+        log.error("调用电销去重转化接口失败 -- {}", JSON.toJSONString(result));
+        result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        return result;
+    }
+
 
     /**
      * 萨摩耶转化数据剔除
+     *
      * @param dassTransferDataAdapDTO
      * @param retry
      * @return

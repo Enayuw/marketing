@@ -148,4 +148,10 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
      */
     List<String> selectCustNumByExampletikv_(@Param("example") PhoneSaleExtendInfoExample example);
 
+    /**
+     * 2023-08-25 17:34
+     * 近推送的记录
+     */
+    List<PhoneSaleExtendInfo> findInfoByMaxPushDxTimeAndCellList(@Param("example") PhoneSaleExtendInfoExample example);
+
 }
