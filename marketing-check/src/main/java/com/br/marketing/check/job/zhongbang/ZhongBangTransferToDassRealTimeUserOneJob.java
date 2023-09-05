@@ -36,12 +36,12 @@ public class ZhongBangTransferToDassRealTimeUserOneJob extends AbstractSimpleEla
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         long start = System.currentTimeMillis();
-        /* param 格式：apiCode或{"apiCode":"yyyy-MM-dd或yyyy-MM-dd HH:mm:ss,yyyy-MM-dd HH:mm:ss"}
+        /* param 格式：apiCode或{"apiCode":"yyyy-MM-dd或yyyy-MM-ddTHH:mm:ss,yyyy-MM-ddTHH:mm:ss"}
          * eg1：7410994
          * 或
          * eg2：{"7410994":"2023-08-25"}
          * 或
-         * eg2：{"7410994":"2023-08-25 00:00:00,2023-08-25 23:59:59"}
+         * eg2：{"7410994":"2023-08-25T00:00:00,2023-08-25T23:59:59"}
          */
         String parameter = context.getJobParameter();
         JSONObject jsonObject = new JSONObject();
