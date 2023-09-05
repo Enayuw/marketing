@@ -26,6 +26,7 @@ import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import javafx.util.Pair;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -46,6 +47,7 @@ import java.util.Map;
  * @dateTime 2023-06-08 16:44
  */
 @Service
+@Slf4j
 public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversionData> {
 
     @Autowired
@@ -68,10 +70,10 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
     private static final Map<String, Pair<String, String>> userTypeMap = new HashMap<>();
 
     static {
-        userTypeMap.put("a1", new Pair<>("3","2"));
-        userTypeMap.put("a2", new Pair<>("4","3"));
-        userTypeMap.put("b1", new Pair<>("5","2"));
-        userTypeMap.put("b2", new Pair<>("6","3"));
+        userTypeMap.put("a1", new Pair<>("3", "2"));
+        userTypeMap.put("a2", new Pair<>("4", "3"));
+        userTypeMap.put("b1", new Pair<>("5", "2"));
+        userTypeMap.put("b2", new Pair<>("6", "3"));
     }
 
     @Override
@@ -88,15 +90,9 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
 
         // 上传表userType
         String syncUserType = bo.getSyncUser().getUserType();
-        // 意向等级
+        // 意向等级（已在过滤时做过判空处理）
         String grade = pushDataService.getStatusByGrade(this.label(), dto.getDetail().getIntentionGrade());
-//        if (StringUtils.isEmpty(grade)) {
-//            return null;
-//        }
 
-        String tcId = tableCreateService.getTcId(dto.getApiCode());
-        MarketingTransferSyncUser time =
-                marketingTransferSyncUserMapper.getRegisterTimeAndLoginTimeByCreateTimeOrderDesc(tcId, dto.getCaseNum());
         Pair<String, String> pair = userTypeMap.get(grade + syncUserType);
         // syncUserType非（1，2）
         if (pair == null) {
@@ -112,19 +108,35 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
             return null;
         }
 
+        String tcId = tableCreateService.getTcId(dto.getApiCode());
+        MarketingTransferSyncUser time =
+                marketingTransferSyncUserMapper.getRegisterTimeAndLoginTimeByCreateTimeOrderDesc(tcId, dto.getCaseNum());
+        String phone = BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell());
+
         RealTimeUserDataSoleDTO realTimeUserDataSoleDTO = new RealTimeUserDataSoleDTO();
         realTimeUserDataSoleDTO.setPhoneSaleExtendInfo(buildPhoneSaleExtendInfo(dto, bo, userType));
-        realTimeUserDataSoleDTO.setDassSingleImportAdapDTO(buildDassSingleImportAdapSoleDTO(dto, bo, userType, time));
-        realTimeUserDataSoleDTO.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.TRANSFER);
+        realTimeUserDataSoleDTO.setDassSingleImportAdapDTO(buildDassSingleImportAdapSoleDTO(dto, phone, userType, time));
+        realTimeUserDataSoleDTO.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.CALL_RECORD);
+        // 去重参数设置：7天内单一手机号仅推送一次
+        realTimeUserDataSoleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
+        realTimeUserDataSoleDTO.setSoleType(marketingCommonConfig.getZhongYuanDaysToSend() - 1);
 
         DaasAndConversionData dataDTO = new DaasAndConversionData();
         // 封装dass参数
         dataDTO.setRealTimeUserDataSoleDTO(realTimeUserDataSoleDTO);
         // 封装外呼参数
-        dataDTO.setConversionData(buildConversionData(dto, bo));
+        dataDTO.setConversionData(buildConversionData(dto, bo, phone));
+        log.warn("中原通话明细推送Dass人工和客服转化,apicode={}", dto.getApiCode());
         return dataDTO;
     }
 
+    /**
+     * 组装记录到Dass人工记录表参数
+     * @param dto
+     * @param bo
+     * @param userType
+     * @return
+     */
     private PhoneSaleExtendInfo buildPhoneSaleExtendInfo(CallRecordBO dto, SyncUserValidityPeriodBO bo, String userType) {
         PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
         phoneSaleExtendInfo.setApiCode(dto.getApiCode());
@@ -135,7 +147,7 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
         phoneSaleExtendInfo.setAppletTime(dto.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                 .toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         phoneSaleExtendInfo.setTaskId(bo.getSyncUser().getCusBatch());
-        phoneSaleExtendInfo.setStatus(pushDataService.getStatusByGrade(this.label(), dto.getDetail().getIntentionGrade()));
+//        phoneSaleExtendInfo.setStatus(pushDataService.getStatusByGrade(this.label(), dto.getDetail().getIntentionGrade()));
         phoneSaleExtendInfo.setPStatus(1);
         phoneSaleExtendInfo.setCreateTime(new Date());
         phoneSaleExtendInfo.setPushDxTime(new Date());
@@ -146,14 +158,21 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
         return phoneSaleExtendInfo;
     }
 
-    private ConversionData buildConversionData(CallRecordBO dto, SyncUserValidityPeriodBO bo) {
+    /**
+     * 组装推送客服转化参数
+     * @param dto
+     * @param bo
+     * @param phone
+     * @return
+     */
+    private ConversionData buildConversionData(CallRecordBO dto, SyncUserValidityPeriodBO bo, String phone) {
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(dto.getId().toString());
         conversionData.setPartnerProcessDate(ObjectUtils.isEmpty(dto.getCreateTime())
                 ? LocalDateTime.now().format(DATE_TIME_FORMATTER) : DateUtils.format(dto.getCreateTime()
                 , DateHelper.LINE_DATE_COLON_TIME_FORMAT));
         conversionData.setCid(dto.getCid().toString());
-        conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
+        conversionData.setPhone(phone);
         conversionData.setInversionStatus("0");
         conversionData.setCaseNum(dto.getCaseNum());
         conversionData.setInversionInfo("{}");
@@ -172,12 +191,20 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
         return conversionData;
     }
 
-    private DassSingleImportAdapSoleDTO buildDassSingleImportAdapSoleDTO(CallRecordBO dto, SyncUserValidityPeriodBO bo, String userType,
+    /**
+     * 组装推送Dass人工参数
+     * @param dto
+     * @param phone
+     * @param userType
+     * @param time
+     * @return
+     */
+    private DassSingleImportAdapSoleDTO buildDassSingleImportAdapSoleDTO(CallRecordBO dto, String phone, String userType,
                                                                          MarketingTransferSyncUser time) {
         DassSingleImportDataDTO singleImportDataDTO = new DassSingleImportDataDTO();
         singleImportDataDTO.setName("1");
         singleImportDataDTO.setOrgname("zhongyuanxj");
-        singleImportDataDTO.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
+        singleImportDataDTO.setPhone(phone);
         singleImportDataDTO.setUid(dto.getCaseNum());
 
         // userType
@@ -190,10 +217,6 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
 
         DassSingleImportAdapSoleDTO soleDTO = new DassSingleImportAdapSoleDTO();
         soleDTO.setDassSingleImportDataDTO(singleImportDataDTO);
-
-        // 去重参数设置：7天内单一手机号仅推送一次
-        soleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
-        soleDTO.setSoleDay(7);
 
         return soleDTO;
     }
