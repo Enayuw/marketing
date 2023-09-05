@@ -119,7 +119,7 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
         realTimeUserDataSoleDTO.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.CALL_RECORD);
         // 去重参数设置：7天内单一手机号仅推送一次
         realTimeUserDataSoleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
-        realTimeUserDataSoleDTO.setSoleType(marketingCommonConfig.getZhongYuanDaysToSend() - 1);
+        realTimeUserDataSoleDTO.setSoleType(marketingCommonConfig.getZhongYuanDaysToSend());
 
         DaasAndConversionData dataDTO = new DaasAndConversionData();
         // 封装dass参数
