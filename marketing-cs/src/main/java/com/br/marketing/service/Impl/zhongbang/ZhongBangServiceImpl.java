@@ -271,6 +271,9 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             threadPool.setMaximumPoolSize(poolSize);
             threadPool.setCorePoolSize(poolSize);
         }
+        if (poolSize < 1) {
+            throw new IllegalArgumentException();
+        }
     }
 
     /**
