@@ -213,11 +213,9 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
                 // 判断剔除条件：有效期内的全量转化数据根据custNum找有效期内最新的cell且ifApply=1 或 isBlack=1（全局不判断有效期）
                 Boolean isExclude = validityPeriodDataService.judgmentMarketingTransferDataInvalidWithValidityPeriod(bo.getApiCode(),
                         bo.getCaseNum());
-                if (isExclude) {
-                    return false;
+                if (!isExclude) {
+                    return true;
                 }
-
-                return true;
             }
         }
         return false;
