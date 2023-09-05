@@ -366,33 +366,28 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
         Boolean isContiue = false;
         Boolean actionMark = true;
-        LocalDate now = LocalDate.now();
+        Long minId = null;
         LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
         if (localFile == null) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(isContiue);
         }
         String apiCode = localFile.getApiCode();
         String tcId = tableCreateService.getTcId(apiCode);
-        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
-        example.settCid(tcId);
-        example.createCriteria().andApiCodeEqualTo(apiCode).andRequestDataEqualTo(now.toString());
 
-        Long minId = null;
         Integer threadNum = marketingCommonConfig.getZhongYuanTransferPushOutBoundThreadPoolSize();
 
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
         Integer number = 0;
-        example.setOrderByClause(" create_time,id limit 1000");
         while (actionMark) {
             List<DassImportDataDTO> phoneSales = phoneSaleMapper.getPushDassData(id, minId);
-            Set<String> custNumSet = new HashSet<>();
-            phoneSales.forEach(list -> custNumSet.add(list.getUid()));
             if (org.springframework.util.CollectionUtils.isEmpty(phoneSales)) {
                 break;
             }
-            updatePoolSize(threadPool);
-            localFile.setPushStartTime(new Date());
             number += phoneSales.size();
+            Set<String> custNumSet = new HashSet<>();
+            phoneSales.forEach(list -> custNumSet.add(list.getUid()));
+
+            updatePoolSize(threadPool);
             if (phoneSales.size() > 0) {
                 DassImportDataDTO phoneSale = phoneSales.get(phoneSales.size() - 1);
                 minId = phoneSale.getId();
