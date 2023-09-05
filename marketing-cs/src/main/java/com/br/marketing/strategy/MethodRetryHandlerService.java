@@ -277,7 +277,7 @@ public class MethodRetryHandlerService {
             return result;
         }
         info.setPStatus(3);
-        phoneSaleExtendInfoMapper.updateByPrimaryKey(info);
+        phoneSaleExtendInfoMapper.updateByPrimaryKeySelective(info);
         log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
         result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         return result;
