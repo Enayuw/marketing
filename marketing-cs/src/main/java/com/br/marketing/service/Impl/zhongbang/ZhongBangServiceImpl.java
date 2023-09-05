@@ -132,7 +132,8 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         example.clear();
                         MarketingTransferSyncUserExample.Criteria criteriaC = example.createCriteria();
                         if (bool) {
-                            criteriaC.andRequestTimeBetween(dateTimeStr[0], dateTimeStr[1]);
+                            criteriaC.andRequestTimeBetween(dateTimeStr[0].replace("T", " ")
+                                    , dateTimeStr[1].replace("T", " "));
                         } else {
                             criteriaC.andRequestDataEqualTo(dateTimeStr[0]);
                         }
