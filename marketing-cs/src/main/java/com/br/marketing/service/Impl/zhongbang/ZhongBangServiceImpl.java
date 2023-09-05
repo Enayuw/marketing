@@ -263,7 +263,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
      * 2023-08-29 14:08
      * 动态调整线程大小
      */
-    private void updatePoolSize(ThreadPoolExecutor threadPool) {
+    private synchronized void updatePoolSize(ThreadPoolExecutor threadPool) {
         int poolSize = marketingCommonConfig.getZhongBangTransferPushDaasThreadPoolSize();
         int corePoolSize = threadPool.getCorePoolSize();
         if (corePoolSize != poolSize || threadPool.getMaximumPoolSize() != poolSize) {
@@ -323,6 +323,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                     .collect(Collectors.toSet());
             threadPool.execute(() -> {
                 try {
+                    updatePoolSize(threadPool);
                     Map<String, SyncUserValidityPeriodBO> validityPeriodMap =
                             transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(
                                     custNumSet, apiCode, new Date());

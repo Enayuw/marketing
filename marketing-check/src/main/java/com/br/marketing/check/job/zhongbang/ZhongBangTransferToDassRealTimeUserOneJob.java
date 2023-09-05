@@ -46,7 +46,7 @@ public class ZhongBangTransferToDassRealTimeUserOneJob extends AbstractSimpleEla
         String parameter = context.getJobParameter();
         JSONObject jsonObject = new JSONObject();
         int poolSize = marketingCommonConfig.getZhongBangTransferPushDaasThreadPoolSize();
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(poolSize, poolSize);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(poolSize, poolSize, 5);
         try {
             if (StringUtils.isBlank(parameter)) {
                 jsonObject.put("3710094", LocalDate.now().toString());
