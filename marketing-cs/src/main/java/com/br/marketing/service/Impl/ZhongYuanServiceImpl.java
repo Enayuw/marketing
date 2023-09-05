@@ -387,7 +387,6 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
             Set<String> custNumSet = new HashSet<>();
             phoneSales.forEach(list -> custNumSet.add(list.getUid()));
 
-            updatePoolSize(threadPool);
             if (phoneSales.size() > 0) {
                 DassImportDataDTO phoneSale = phoneSales.get(phoneSales.size() - 1);
                 minId = phoneSale.getId();
@@ -442,18 +441,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
     }
 
-    /**
-     * 2023-08-29 14:08
-     * 动态调整线程大小
-     */
-    private void updatePoolSize(ThreadPoolExecutor threadPool) {
-        int poolSize = marketingCommonConfig.getZhongYuanTransferPushOutBoundThreadPoolSize();
-        int corePoolSize = threadPool.getCorePoolSize();
-        if (corePoolSize != poolSize || threadPool.getMaximumPoolSize() != poolSize) {
-            threadPool.setMaximumPoolSize(poolSize);
-            threadPool.setCorePoolSize(poolSize);
-        }
-    }
+
     /**
      * 组装推送客服转化数据
      */
@@ -485,7 +473,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
     }
     /**
      * 2023-08-28 9:52
-     * 组装推送daas信息
+     * 组装推送外呼信息
      */
     private ConversionData packageConversionData(DassImportDataDTO dto
             , SyncUserValidityPeriodBO bo, String tcid) {
