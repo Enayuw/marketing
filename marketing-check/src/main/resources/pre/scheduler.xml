@@ -703,7 +703,7 @@
     <job:simple id="ZhongBangTransferToDassRealTimeUserOneJob"
                 class="com.br.marketing.check.job.zhongbang.ZhongBangTransferToDassRealTimeUserOneJob"
                 cron="0 0 9 * * ?"
-                description="众邦转化数据定时推送人工实时推送用户名单(单条);param格式：apiCode或{apiCode:yyyy-MM-dd或yyyy-MM-dd HH:mm:ss,yyyy-MM-dd HH:mm:ss}"
+                description="众邦转化数据定时推送人工实时推送用户名单(单条);param格式：apiCode或{apiCode:yyyy-MM-dd或yyyy-MM-ddTHH:mm:ss,yyyy-MM-ddTHH:mm:ss}"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
