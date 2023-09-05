@@ -182,7 +182,6 @@ public class ZhongBangServiceImpl implements ZhongBangService {
      * 2023-08-28 9:52
      * 组装推送daas信息
      */
-    @SuppressWarnings("all")
     private DassSingleImportDataDTO packageDassSingleImportDataDTO(MarketingTransferSyncUser transferSyncUser
             , MarketingSyncUser syncUser, String dxUserType, Map<String, MarketingTransferSyncUser> newTransferSyncUserMap) {
         String phone = BrCipherMaker.getInstance().decode(syncUser.getCell());
