@@ -456,5 +456,12 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                       @Param("indexId") Long indexId,
                                                                       @Param("querySql") String querySql);
 
+    List<MarketingTransferSyncUser> getZhongYuanTransferBySql(@Param("tCid") String tCid,
+                                                               @Param("apiCode") String apiCode,
+                                                               @Param("requestStartDate") String requestStartDate,
+                                                               @Param("requestEndDate") String requestEndDate,
+                                                               @Param("querySql") String querySql,
+                                                               @Param("custNums") Set<String> custNums);
+
 
 }

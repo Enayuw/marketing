@@ -9,6 +9,8 @@ import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBOCondition;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.dassservice.input.transfer.DassAssembleTransferDataSoleDTO;
+import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSoleDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataSoleDTO;
@@ -27,23 +29,29 @@ import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.service.ZhongYuanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.ArtificialRealTimeUserDataSoleHandler;
+import com.br.marketing.strategy.ArtificialTransferSoleHandler;
 import com.br.marketing.strategy.CustomerTransferSoleHandler;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
+import com.google.common.collect.Lists;
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
@@ -75,6 +83,8 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         CONDITION_LIST.add("2");
     }
 
+    private static final List<String> dxUserTypeList = Lists.newArrayList("1","2","3");
+
 
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
@@ -101,6 +111,8 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
     @Resource
     PhoneSaleMapper phoneSaleMapper;
 
+    @Resource
+    private ArtificialTransferSoleHandler artificialTransferSoleHandler;
 
     @Resource
     private AlarmApiClient alarmClient;
@@ -111,6 +123,9 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
     @Resource
     private CustomerTransferSoleHandler customerTransferSoleHandler;
+
+    @Resource
+    private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS");
 
@@ -511,6 +526,9 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                 validityPeriodDataService.getMarketingTransferDataWithValidityRange(apiCode);
         String startDate = validityRange.getKey();
         String endDate = validityRange.getValue();
+        if(StringUtils.isEmpty(startDate)||StringUtils.isEmpty(endDate)){
+            log.warn("中原获取有效期时间区间为空,请检查");
+        }
         String tcId = tableCreateService.getTcId(apiCode);
         Long indexId = null;
         while (true) {
@@ -525,11 +543,13 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                     transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(custNumSets, apiCode, new Date());
             List<MarketingSyncUser> marketingSyncUserList = periodBOMap.values().stream().map(SyncUserValidityPeriodBO::getSyncUser).collect(Collectors.toList());
             // 推人工转化
-            PushDaasTransferFirstProcess(marketingSyncUserList);
+            if(!CollectionUtils.isEmpty(marketingSyncUserList)) {
+                pushDaasTransferFirstProcess(marketingSyncUserList);
+            }
         }
         indexId = null;
         while (true) {
-            List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getZhongYuanTransferByPage(tcId,apiCode,null,null,indexId,"isBlack=1");
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getZhongYuanTransferByPage(tcId,apiCode,null,null,indexId,"reserve_field1->'$.isBlack'=\"1\"");
             if (marketingTransferSyncUserList.isEmpty()){
                 break;
             }
@@ -540,23 +560,179 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                     transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(custNumSets, apiCode, new Date());
             List<MarketingSyncUser> marketingSyncUserList = periodBOMap.values().stream().map(SyncUserValidityPeriodBO::getSyncUser).collect(Collectors.toList());
             // 推人工转化
-            PushDaasTransferFirstProcess(marketingSyncUserList);
+            if(!CollectionUtils.isEmpty(marketingSyncUserList)) {
+                pushDaasTransferFirstProcess(marketingSyncUserList);
+            }
         }
     }
 
 
-    private void PushDaasTransferFirstProcess(List<MarketingSyncUser> marketingSyncUserList) {
+    private void pushDaasTransferFirstProcess(List<MarketingSyncUser> marketingSyncUserList) {
+        List<DassAssembleTransferDataSoleDTO> transferData = new ArrayList<>();
+        dxUserTypeList.forEach(dxUserType -> {
+                    marketingSyncUserList.forEach(marketingSyncUser -> {
+                        DassAssembleTransferDataSoleDTO dassAssembleTransferDataSoleDTO = new DassAssembleTransferDataSoleDTO();
+                        DassTransferDataDTO dassTransferDataDTO = new DassTransferDataDTO();
+                        dassTransferDataDTO.setUid(marketingSyncUser.getCustNum());
+                        dassTransferDataDTO.setSource("30");
+                        dassTransferDataDTO.setUserType(dxUserType);
+                        dassTransferDataDTO.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
+                        dassTransferDataDTO.setOrgName("zhongyuanxj");
+                        dassTransferDataDTO.setIfTransform("1");
+                        dassTransferDataDTO.setTransformStatus("4");
+                        PhoneSaleTransferInfo phoneSaleTransferInfo = new PhoneSaleTransferInfo();
+                        phoneSaleTransferInfo.setApiCode(marketingSyncUser.getApiCode());
+                        phoneSaleTransferInfo.setCreateTime(new Date());
+                        phoneSaleTransferInfo.setTransformStatus("4");
+                        phoneSaleTransferInfo.setCustNum(marketingSyncUser.getCustNum());
+                        phoneSaleTransferInfo.setOrgName("zhongyuanxj");
+                        phoneSaleTransferInfo.setUserType(dxUserType);
+                        phoneSaleTransferInfo.setSourceId(marketingSyncUser.getId());
 
+                        dassAssembleTransferDataSoleDTO.setDassTransferDataDTO(dassTransferDataDTO);
+                        dassAssembleTransferDataSoleDTO.setPhoneSaleTransferInfo(phoneSaleTransferInfo);
+                        dassAssembleTransferDataSoleDTO.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.TRANSFER);
+                        dassAssembleTransferDataSoleDTO.setSoleField(SoleFieldEnum.CELL_STATUS_SOLE.getValue());
+                        dassAssembleTransferDataSoleDTO.setStatus(dxUserType);
+                        transferData.add(dassAssembleTransferDataSoleDTO);
+                    });
+                });
 
-
-
-
+        ProcessHandlerContext context = new ProcessHandlerContext();
+        context.setApiCode(marketingSyncUserList.get(0).getApiCode());
+        artificialTransferSoleHandler.call(transferData, context);
 
     }
 
     @Override
     public void zhongYuanPushDaasTransfer(String apiCode) {
+        String tcId = tableCreateService.getTcId(apiCode);
+        Pair<String, String> validityRange =
+                validityPeriodDataService.getMarketingTransferDataWithValidityRange(apiCode);
+        if(StringUtils.isEmpty(validityRange.getKey())||StringUtils.isEmpty(validityRange.getValue())){
+            log.warn("中原获取有效期时间区间为空,请检查");
+        }
+        String startDate = validityRange.getKey()+" 00:00:00";
+        String endDate = validityRange.getValue()+" 23:59:59";
+        Date startDateFormat=new Date();
+        Date endDateFormat = new Date();
+        try {
+            startDateFormat = DateUtils.parse(startDate, "yyyy-MM-dd HH:mm:ss");
+            endDateFormat = DateUtils.parse(endDate, "yyyy-MM-dd HH:mm:ss");
+        } catch (ParseException e) {
+            log.error("格式化日期错误", e);
+        }
+        int pageSize = 2000;
+        int pageNum = 1;
+        PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).andDxUserTypeIn(dxUserTypeList)
+                .andCreateTimeBetween(startDateFormat, endDateFormat);
+        example.setOrderByClause("id asc");
+        while (true) {
+            List<PhoneSaleExtendInfo> list = phoneSaleExtendInfoMapper.findListPageByExample(
+                    example, pageNum, pageSize);
+            if(CollectionUtils.isEmpty(list)){
+                break;
+            }
+            pageNum++;
+            Map<String,PhoneSaleExtendInfo> phoneSaleExtendInfoMap =  list.stream().collect(Collectors.toMap(PhoneSaleExtendInfo::getCustNum, Function.identity(), BinaryOperator.maxBy(Comparator.comparing(PhoneSaleExtendInfo::getCreateTime))));
+            Map<String,String>   custNumAndDxUserTypeMap = phoneSaleExtendInfoMap.entrySet().stream().collect(Collectors.toMap(
+                    Map.Entry::getKey,entry->{
+                        return entry.getValue().getDxUserType();
+                    }
+            ));
+            //剔除custNum
+            Map<String,String> filterCustNumMap = filterCustNum(apiCode,tcId,startDate,endDate,custNumAndDxUserTypeMap);
+            //推Daas转化
+            if(!CollectionUtils.isEmpty(filterCustNumMap)) {
+                pushDaasTransferNoFirstProcess(apiCode, filterCustNumMap, custNumAndDxUserTypeMap);
+            }
+        }
+        pageNum = 1;
+        while (true) {
+            List<PhoneSale> list = phoneSaleMapper.getZhongYuanSaleByPage(
+                    apiCode,dxUserTypeList,startDateFormat,endDateFormat, pageNum, pageSize);
+            if(CollectionUtils.isEmpty(list)){
+                break;
+            }
+            pageNum++;
+            Map<String,PhoneSale> phoneSaleMap =  list.stream().collect(Collectors.toMap(PhoneSale::getUid, Function.identity(), BinaryOperator.maxBy(Comparator.comparing(PhoneSale::getCreateTime))));
+            Map<String,String>   custNumAndDxUserTypeMap = phoneSaleMap.entrySet().stream().collect(Collectors.toMap(
+                    Map.Entry::getKey,entry->{
+                        return entry.getValue().getUserType();
+                    }
+            ));
+            //剔除custNum
+            Map<String,String> filterCustNumMap = filterCustNum(apiCode,tcId,startDate,endDate,custNumAndDxUserTypeMap);
+            //推Daas转化
+            if(!CollectionUtils.isEmpty(filterCustNumMap)) {
+                pushDaasTransferNoFirstProcess(apiCode, filterCustNumMap, custNumAndDxUserTypeMap);
+            }
+        }
 
+    }
+
+    private Map<String,String> filterCustNum(String apiCode,String tcId,String startDate,String endDate,Map<String, String> custNumAndDxUserTypeMap) {
+        Set<String>  custNums = custNumAndDxUserTypeMap.keySet();
+        List<MarketingTransferSyncUser> IfApplyTransferData = marketingTransferSyncUserMapper.getZhongYuanTransferBySql(tcId,apiCode,startDate,endDate,"if_apply=1",custNums);
+
+        List<MarketingTransferSyncUser> IsBlackTrasnferData = marketingTransferSyncUserMapper.getZhongYuanTransferBySql(tcId,apiCode,null,null,"reserve_field1->'$.isBlack'=\"1\"",custNums);
+
+        Set<String> IfApplyCustNums= IfApplyTransferData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+
+        Set<String> IsBlackCustNums= IsBlackTrasnferData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        //并集
+        IfApplyCustNums.addAll(IsBlackCustNums);
+        //交集
+        custNums.retainAll(IfApplyCustNums);
+        // 判断有效期
+        Map<String, SyncUserValidityPeriodBO> periodBOMap =
+                transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(custNums, apiCode, new Date());
+
+
+        Map<String,String>custNumAndCellMap = periodBOMap.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,entry->{
+                    return entry.getValue().getSyncUser().getCell();
+                }
+        ));
+
+        return custNumAndCellMap;
+
+    }
+
+
+    private void pushDaasTransferNoFirstProcess(String apiCode,Map<String,String>filterCustNumMap,Map<String,String> custNumAndDxUserTypeMap) {
+        List<DassAssembleTransferDataSoleDTO> transferData = new ArrayList<>();
+        filterCustNumMap.forEach((custNum,cell) -> {
+                DassAssembleTransferDataSoleDTO dassAssembleTransferDataSoleDTO = new DassAssembleTransferDataSoleDTO();
+                DassTransferDataDTO dassTransferDataDTO = new DassTransferDataDTO();
+                dassTransferDataDTO.setUid(custNum);
+                dassTransferDataDTO.setSource("30");
+                dassTransferDataDTO.setUserType(custNumAndDxUserTypeMap.get(custNum));
+                dassTransferDataDTO.setPhone(BrCipherMaker.getInstance().decode(cell));
+                dassTransferDataDTO.setOrgName("zhongyuanxj");
+                dassTransferDataDTO.setIfTransform("1");
+                dassTransferDataDTO.setTransformStatus("4");
+                PhoneSaleTransferInfo phoneSaleTransferInfo = new PhoneSaleTransferInfo();
+                phoneSaleTransferInfo.setApiCode(apiCode);
+                phoneSaleTransferInfo.setCreateTime(new Date());
+                phoneSaleTransferInfo.setTransformStatus("4");
+                phoneSaleTransferInfo.setCustNum(custNum);
+                phoneSaleTransferInfo.setOrgName("zhongyuanxj");
+                phoneSaleTransferInfo.setUserType(custNumAndDxUserTypeMap.get(custNum));
+
+                dassAssembleTransferDataSoleDTO.setDassTransferDataDTO(dassTransferDataDTO);
+                dassAssembleTransferDataSoleDTO.setPhoneSaleTransferInfo(phoneSaleTransferInfo);
+                dassAssembleTransferDataSoleDTO.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.TRANSFER);
+                dassAssembleTransferDataSoleDTO.setSoleField(SoleFieldEnum.CELL_STATUS_SOLE.getValue());
+                dassAssembleTransferDataSoleDTO.setStatus(custNumAndDxUserTypeMap.get(custNum));
+                transferData.add(dassAssembleTransferDataSoleDTO);
+            });
+
+        ProcessHandlerContext context = new ProcessHandlerContext();
+        context.setApiCode(apiCode);
+        artificialTransferSoleHandler.call(transferData, context);
+        log.warn("中原推送Daas转化流程结束,推送量num = {}",transferData.size());
     }
 
 }

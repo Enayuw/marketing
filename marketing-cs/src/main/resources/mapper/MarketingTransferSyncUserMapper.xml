@@ -854,7 +854,7 @@
             <if test="indexId != null and indexId!=''">
                 and id > #{indexId}
             </if>
-            <if test="indexId != null and indexId!=''">
+            <if test="requestStartDate != null and requestStartDate!='' and requestEndDate !=null and requestEndDate !=''">
                 and <![CDATA[ request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
             </if>
             and ${querySql}
@@ -862,9 +862,25 @@
         </where>
     </select>
 
-
-
-
+    <select id="getZhongYuanTransferBySql" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tCid}
+        <where>
+            <if test="apiCode != null">
+                AND api_code =#{apiCode}
+            </if>
+            <if test="requestStartDate != null and requestStartDate!='' and requestEndDate !=null and requestEndDate !=''">
+                and <![CDATA[ request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
+            </if>
+            <if test="custNums !=null and custNums.size() !=0">
+                and cust_num in
+                <foreach collection="custNums" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            and ${querySql}
+        </where>
+    </select>
 
 
 </mapper>
