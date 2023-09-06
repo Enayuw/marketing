@@ -635,17 +635,13 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                 break;
             }
             pageNum++;
-            Map<String,PhoneSaleExtendInfo> phoneSaleExtendInfoMap =  list.stream().collect(Collectors.toMap(PhoneSaleExtendInfo::getCustNum, Function.identity(), BinaryOperator.maxBy(Comparator.comparing(PhoneSaleExtendInfo::getCreateTime))));
-            Map<String,String>   custNumAndDxUserTypeMap = phoneSaleExtendInfoMap.entrySet().stream().collect(Collectors.toMap(
-                    Map.Entry::getKey,entry->{
-                        return entry.getValue().getDxUserType();
-                    }
-            ));
+            Map<String,Set<String>> custNumAndDxUserTypeSet =  list.stream().collect(Collectors.groupingBy(PhoneSaleExtendInfo::getCustNum, Collectors.mapping(PhoneSaleExtendInfo::getDxUserType, Collectors.toSet())));
+
             //剔除custNum
-            Map<String,String> filterCustNumMap = filterCustNum(apiCode,tcId,startDate,endDate,custNumAndDxUserTypeMap);
+            Map<String,String> filterCustNumMap = filterCustNum(apiCode,tcId,startDate,endDate,custNumAndDxUserTypeSet.keySet());
             //推Daas转化
             if(!CollectionUtils.isEmpty(filterCustNumMap)) {
-                pushDaasTransferNoFirstProcess(apiCode, filterCustNumMap, custNumAndDxUserTypeMap);
+                pushDaasTransferNoFirstProcess(apiCode, filterCustNumMap, custNumAndDxUserTypeSet);
             }
         }
         pageNum = 1;
@@ -656,24 +652,18 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                 break;
             }
             pageNum++;
-            Map<String,PhoneSale> phoneSaleMap =  list.stream().collect(Collectors.toMap(PhoneSale::getUid, Function.identity(), BinaryOperator.maxBy(Comparator.comparing(PhoneSale::getCreateTime))));
-            Map<String,String>   custNumAndDxUserTypeMap = phoneSaleMap.entrySet().stream().collect(Collectors.toMap(
-                    Map.Entry::getKey,entry->{
-                        return entry.getValue().getUserType();
-                    }
-            ));
+            Map<String,Set<String>> custNumAndDxUserTypeSet =  list.stream().collect(Collectors.groupingBy(PhoneSale::getUid, Collectors.mapping(PhoneSale::getUserType,Collectors.toSet())));
             //剔除custNum
-            Map<String,String> filterCustNumMap = filterCustNum(apiCode,tcId,startDate,endDate,custNumAndDxUserTypeMap);
+            Map<String,String> filterCustNumMap = filterCustNum(apiCode,tcId,startDate,endDate,custNumAndDxUserTypeSet.keySet());
             //推Daas转化
             if(!CollectionUtils.isEmpty(filterCustNumMap)) {
-                pushDaasTransferNoFirstProcess(apiCode, filterCustNumMap, custNumAndDxUserTypeMap);
+                pushDaasTransferNoFirstProcess(apiCode, filterCustNumMap, custNumAndDxUserTypeSet);
             }
         }
 
     }
 
-    private Map<String,String> filterCustNum(String apiCode,String tcId,String startDate,String endDate,Map<String, String> custNumAndDxUserTypeMap) {
-        Set<String>  custNums = custNumAndDxUserTypeMap.keySet();
+    private Map<String,String> filterCustNum(String apiCode,String tcId,String startDate,String endDate,Set<String>  custNums) {
         List<MarketingTransferSyncUser> IfApplyTransferData = marketingTransferSyncUserMapper.getZhongYuanTransferBySql(tcId,apiCode,startDate,endDate,"if_apply=1",custNums);
 
         List<MarketingTransferSyncUser> IsBlackTrasnferData = marketingTransferSyncUserMapper.getZhongYuanTransferBySql(tcId,apiCode,null,null,"reserve_field1->'$.isBlack'=\"1\"",custNums);
@@ -701,14 +691,15 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
     }
 
 
-    private void pushDaasTransferNoFirstProcess(String apiCode,Map<String,String>filterCustNumMap,Map<String,String> custNumAndDxUserTypeMap) {
+    private void pushDaasTransferNoFirstProcess(String apiCode,Map<String,String>filterCustNumMap,Map<String,Set<String>> custNumAndDxUserTypeMap) {
         List<DassAssembleTransferDataSoleDTO> transferData = new ArrayList<>();
         filterCustNumMap.forEach((custNum,cell) -> {
+                custNumAndDxUserTypeMap.get(custNum).forEach(dxUserType->{
                 DassAssembleTransferDataSoleDTO dassAssembleTransferDataSoleDTO = new DassAssembleTransferDataSoleDTO();
                 DassTransferDataDTO dassTransferDataDTO = new DassTransferDataDTO();
                 dassTransferDataDTO.setUid(custNum);
                 dassTransferDataDTO.setSource("30");
-                dassTransferDataDTO.setUserType(custNumAndDxUserTypeMap.get(custNum));
+                dassTransferDataDTO.setUserType(dxUserType);
                 dassTransferDataDTO.setPhone(BrCipherMaker.getInstance().decode(cell));
                 dassTransferDataDTO.setOrgName("zhongyuanxj");
                 dassTransferDataDTO.setIfTransform("1");
@@ -719,15 +710,16 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                 phoneSaleTransferInfo.setTransformStatus("4");
                 phoneSaleTransferInfo.setCustNum(custNum);
                 phoneSaleTransferInfo.setOrgName("zhongyuanxj");
-                phoneSaleTransferInfo.setUserType(custNumAndDxUserTypeMap.get(custNum));
+                phoneSaleTransferInfo.setUserType(dxUserType);
 
                 dassAssembleTransferDataSoleDTO.setDassTransferDataDTO(dassTransferDataDTO);
                 dassAssembleTransferDataSoleDTO.setPhoneSaleTransferInfo(phoneSaleTransferInfo);
                 dassAssembleTransferDataSoleDTO.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.TRANSFER);
                 dassAssembleTransferDataSoleDTO.setSoleField(SoleFieldEnum.CELL_STATUS_SOLE.getValue());
-                dassAssembleTransferDataSoleDTO.setStatus(custNumAndDxUserTypeMap.get(custNum));
+                dassAssembleTransferDataSoleDTO.setStatus(dxUserType);
                 transferData.add(dassAssembleTransferDataSoleDTO);
             });
+        });
 
         ProcessHandlerContext context = new ProcessHandlerContext();
         context.setApiCode(apiCode);
