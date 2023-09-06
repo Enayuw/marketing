@@ -127,7 +127,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
     @Resource
     private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
 
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
     public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListWithValidityPeriod(String tcId, String apiCode, Long indexId,
@@ -498,9 +498,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         conversionData.setCid(tcid);
         conversionData.setCaseNum(dto.getUid());
         conversionData.setGroupType(dto.getUserType());
-        conversionData.setPartnerProcessDate(ObjectUtils.isEmpty(dto.getCreateTime())
-                ? LocalDateTime.now().format(DATE_TIME_FORMATTER) : DateUtils.format(dto.getCreateTime()
-                , DateHelper.LINE_DATE_COLON_TIME_FORMAT));
+        conversionData.setPartnerProcessDate(LocalDateTime.now().format(DATE_TIME_FORMATTER));
         conversionData.setInversionStatus("0");
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(dto, vo);
