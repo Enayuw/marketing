@@ -80,14 +80,9 @@ public class RabbitMqConfig {
         return new Queue(MQConstants.MARKETING_PUSH_OUTBOUND_SCORE, true, false, false);
     }
 
-    @Bean
+    @Bean(MQConstants.ROUTING_KEY_MARKETING_PUSH_DATA_SCORE)
     public Binding bindingPushZhongYuanDassQueue() {
         return BindingBuilder.bind(pushDassQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PUSH_DATA_SCORE);
-    }
-
-    @Bean
-    public Binding bindingPushOutBoundQueue() {
-        return BindingBuilder.bind(pushOutBoundQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PUSH_DATA_SCORE);
     }
 
     @Bean(name = MQConstants.MARKETING_PUSH_TWOSEVEN_FILETRANSFER)
