@@ -64,7 +64,7 @@ public class ConsumerApp {
      * @param channel
      * @param message
      */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.ROUTING_KEY_MARKETING_PUSH_DATA_SCORE, durable = "true")
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_PUSH_OUTBOUND_SCORE, durable = "true")
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
             , key = MQConstants.ROUTING_KEY_MARKETING_PUSH_DATA_SCORE)}, containerFactory = "containerFactory")
     public void consumerPushData(Channel channel, Message message) {
