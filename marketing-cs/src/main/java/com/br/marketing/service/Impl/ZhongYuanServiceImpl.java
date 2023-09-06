@@ -601,7 +601,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         ProcessHandlerContext context = new ProcessHandlerContext();
         context.setApiCode(marketingSyncUserList.get(0).getApiCode());
         artificialTransferSoleHandler.call(transferData, context);
-
+        log.warn("中原推送Daas首次转化流程结束,推送量num = {}",transferData.size());
     }
 
     @Override
@@ -732,7 +732,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         ProcessHandlerContext context = new ProcessHandlerContext();
         context.setApiCode(apiCode);
         artificialTransferSoleHandler.call(transferData, context);
-        log.warn("中原推送Daas转化流程结束,推送量num = {}",transferData.size());
+        log.warn("中原推送Daas非首次转化流程结束,推送量num = {}",transferData.size());
     }
 
 }
