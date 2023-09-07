@@ -230,9 +230,8 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
             log.error("数据推电销业务：电话解密失败 cell：{}",marketingSyncUser.getCell());
             return new DassSingleImportDataDTO();
         }
-        String phone = AESUtil.aesEncrypty(cell, aesKey);
 
-        return getDassSingleImportDataDTO(transfer, dxUserType, phone);
+        return getDassSingleImportDataDTO(transfer, dxUserType, cell);
     }
 
     private  DassSingleImportDataDTO getDassSingleImportDataDTO(MarketingTransferSyncUser transfer, String dxUserType, String phone) {
