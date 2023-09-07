@@ -143,12 +143,14 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
             // 获取ifLogin 的数据集合
             List<MarketingTransferSyncUser> ifLoginCollectTransferSyncUserList = marketingTransferSyncUserList.stream().
                     filter(m -> "1".equals(m.getIfLogin())).collect(Collectors.toList());
+            if(!ifLoginCollectTransferSyncUserList.isEmpty()){
+                // 剔除并返回有效期内最新一条的转化数据
+                Map<String, SyncUserValidityPeriodBOCondition> periodBOMap = eliminateAndValidity(ifLoginCollectTransferSyncUserList);
 
-            // 剔除并返回有效期内最新一条的转化数据
-            Map<String, SyncUserValidityPeriodBOCondition> periodBOMap = eliminateAndValidity(ifLoginCollectTransferSyncUserList);
+                // 推 Daas
+                pushTransferDataToDaas(periodBOMap, ifLoginCollectTransferSyncUserList);
+            }
 
-            // 推 Daas
-            pushTransferDataToDaas(periodBOMap, ifLoginCollectTransferSyncUserList);
         }catch (Exception e){
             log.error("中原转化数据推Daas异常：",e);
         }
