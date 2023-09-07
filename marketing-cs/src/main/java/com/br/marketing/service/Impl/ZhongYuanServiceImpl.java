@@ -217,7 +217,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
         // 设置去重逻辑 单一cell 7 天内只推送一次
         realTimeUserDataSoleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
-        realTimeUserDataSoleDTO.setSoleType(marketingCommonConfig.getZhongYuanDaysToSend()-1);
+        realTimeUserDataSoleDTO.setSoleType(marketingCommonConfig.getZhongYuanDaysToSend());
         return realTimeUserDataSoleDTO;
     }
 
