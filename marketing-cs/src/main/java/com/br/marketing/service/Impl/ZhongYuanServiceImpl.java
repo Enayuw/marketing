@@ -447,15 +447,6 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
             } catch (Exception e) {
             }
         }
-
-        if (SftpFileTypeEnum.DX.getValue().equals(localFile.getFileType())) {
-            StringBuilder content = new StringBuilder();
-            content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
-                    .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
-                    .append("数量：".concat(number.toString()).concat("\r\n"))
-                    .append("文件推外呼结束".concat("\r\n"));
-            alarmClient.sendAlarm(content.toString(), "外呼结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
-        }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
     }
 
@@ -500,7 +491,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
         conversionData.setCid(tcid);
         conversionData.setCaseNum(dto.getUid());
-        conversionData.setGroupType(dto.getUserType());
+//        conversionData.setGroupType(dto.getUserType());
         conversionData.setPartnerProcessDate(LocalDateTime.now().format(DATE_TIME_FORMATTER));
         conversionData.setInversionStatus("0");
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
