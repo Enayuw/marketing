@@ -362,7 +362,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                     String custNum = transferSyncUser.getCustNum();
                     SyncUserValidityPeriodBO bo = periodBOMap.get(custNum);
                     if (ObjectUtil.isEmpty(bo)) {
-                        log.warn("{}:中原转化数据推Daas不满足案件编号“有效期内”条件", custNum);
+                        log.warn("{}:中原转化数据推客服转化不满足案件编号“有效期内”条件", custNum);
                     } else {
                         ConversionData conversionData = packageConversionDataWithTransferData(transferSyncUser, bo);
                         conversionDataList.add(conversionData);

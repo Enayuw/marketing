@@ -817,7 +817,7 @@
         select *
         from b_marketing_transfer_sync_${tCid}
         where
-        <![CDATA[  register_time is not null and register <> '' and api_code = #{apiCode} and request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
+        <![CDATA[  register_time is not null and register_time <> '' and api_code = #{apiCode} and request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
         <if test="indexId != null and indexId!=''">
             and id > #{indexId}
         </if>
