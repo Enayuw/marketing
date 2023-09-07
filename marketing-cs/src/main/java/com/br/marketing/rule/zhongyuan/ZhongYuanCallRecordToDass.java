@@ -209,9 +209,11 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
 
         // userType
         singleImportDataDTO.setUserType(userType);
-        // loginTime 和 registerTime。
-        singleImportDataDTO.setRegisterTime(formatDate(time.getRegisterTime()));
-        singleImportDataDTO.setLoginTime(formatDate(time.getLoginTime()));
+        // loginTime 和 registerTime查询不到转化数据赋值为空
+        if (time != null) {
+            singleImportDataDTO.setRegisterTime(formatDate(time.getRegisterTime()));
+            singleImportDataDTO.setLoginTime(formatDate(time.getLoginTime()));
+        }
         singleImportDataDTO.setSource("30");
         singleImportDataDTO.setId(dto.getId());
 

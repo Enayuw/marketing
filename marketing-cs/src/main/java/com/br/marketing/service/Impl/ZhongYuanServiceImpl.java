@@ -217,7 +217,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
         // 设置去重逻辑 单一cell 7 天内只推送一次
         realTimeUserDataSoleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
-        realTimeUserDataSoleDTO.setSoleType(marketingCommonConfig.getZhongYuanDaysToSend()-1);
+        realTimeUserDataSoleDTO.setSoleType(marketingCommonConfig.getZhongYuanDaysToSend());
         return realTimeUserDataSoleDTO;
     }
 
@@ -230,9 +230,8 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
             log.error("数据推电销业务：电话解密失败 cell：{}",marketingSyncUser.getCell());
             return new DassSingleImportDataDTO();
         }
-        String phone = AESUtil.aesEncrypty(cell, aesKey);
 
-        return getDassSingleImportDataDTO(transfer, dxUserType, phone);
+        return getDassSingleImportDataDTO(transfer, dxUserType, cell);
     }
 
     private  DassSingleImportDataDTO getDassSingleImportDataDTO(MarketingTransferSyncUser transfer, String dxUserType, String phone) {
@@ -362,7 +361,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                     String custNum = transferSyncUser.getCustNum();
                     SyncUserValidityPeriodBO bo = periodBOMap.get(custNum);
                     if (ObjectUtil.isEmpty(bo)) {
-                        log.warn("{}:中原转化数据推Daas不满足案件编号“有效期内”条件", custNum);
+                        log.warn("{}:中原转化数据推客服转化不满足案件编号“有效期内”条件", custNum);
                     } else {
                         ConversionData conversionData = packageConversionDataWithTransferData(transferSyncUser, bo);
                         conversionDataList.add(conversionData);
