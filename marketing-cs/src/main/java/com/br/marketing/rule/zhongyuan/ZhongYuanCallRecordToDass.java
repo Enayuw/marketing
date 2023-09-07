@@ -204,7 +204,8 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
      * @param dto
      * @param phone
      * @param userType
-     * @param time
+     * @param registerTime
+     * @param loginTime
      * @return
      */
     private DassSingleImportAdapSoleDTO buildDassSingleImportAdapSoleDTO(CallRecordBO dto, String phone, String userType,
