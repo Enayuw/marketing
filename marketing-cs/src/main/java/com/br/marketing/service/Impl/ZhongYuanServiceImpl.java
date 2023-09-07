@@ -395,13 +395,8 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         Integer threadNum = marketingCommonConfig.getZhongYuanTransferPushOutBoundThreadPoolSize();
 
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
-        Integer number = 0;
         while (actionMark) {
             List<DassImportDataDTO> phoneSales = phoneSaleMapper.getPushDassData(id, minId);
-            if (org.springframework.util.CollectionUtils.isEmpty(phoneSales)) {
-                break;
-            }
-            number += phoneSales.size();
             Set<String> custNumSet = new HashSet<>();
             phoneSales.forEach(list -> custNumSet.add(list.getUid()));
 
