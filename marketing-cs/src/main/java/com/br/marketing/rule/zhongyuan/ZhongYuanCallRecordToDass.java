@@ -111,19 +111,11 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
         String tcId = tableCreateService.getTcId(dto.getApiCode());
         MarketingTransferSyncUser time =
                 marketingTransferSyncUserMapper.getRegisterTimeAndLoginTimeByCreateTimeOrderDesc(tcId, dto.getCaseNum());
-        // 查询不到转化数据赋值为空字符串
-        String registerTime = time.getRegisterTime();
-        String loginTime = time.getLoginTime();
-        if (time == null) {
-            registerTime = "";
-            loginTime = "";
-        }
-
         String phone = BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell());
 
         RealTimeUserDataSoleDTO realTimeUserDataSoleDTO = new RealTimeUserDataSoleDTO();
         realTimeUserDataSoleDTO.setPhoneSaleExtendInfo(buildPhoneSaleExtendInfo(dto, bo, userType));
-        realTimeUserDataSoleDTO.setDassSingleImportAdapDTO(buildDassSingleImportAdapSoleDTO(dto, phone, userType, registerTime, loginTime));
+        realTimeUserDataSoleDTO.setDassSingleImportAdapDTO(buildDassSingleImportAdapSoleDTO(dto, phone, userType, time));
         realTimeUserDataSoleDTO.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.CALL_RECORD);
         // 去重参数设置：7天内单一手机号仅推送一次
         realTimeUserDataSoleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
@@ -204,12 +196,11 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
      * @param dto
      * @param phone
      * @param userType
-     * @param registerTime
-     * @param loginTime
+     * @param time
      * @return
      */
     private DassSingleImportAdapSoleDTO buildDassSingleImportAdapSoleDTO(CallRecordBO dto, String phone, String userType,
-                                                                         String registerTime, String loginTime) {
+                                                                         MarketingTransferSyncUser time) {
         DassSingleImportDataDTO singleImportDataDTO = new DassSingleImportDataDTO();
         singleImportDataDTO.setName("1");
         singleImportDataDTO.setOrgname("zhongyuanxj");
@@ -218,9 +209,11 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
 
         // userType
         singleImportDataDTO.setUserType(userType);
-        // loginTime 和 registerTime。
-        singleImportDataDTO.setRegisterTime(formatDate(registerTime));
-        singleImportDataDTO.setLoginTime(formatDate(loginTime));
+        // loginTime 和 registerTime查询不到转化数据赋值为空
+        if (time != null) {
+            singleImportDataDTO.setRegisterTime(formatDate(time.getRegisterTime()));
+            singleImportDataDTO.setLoginTime(formatDate(time.getLoginTime()));
+        }
         singleImportDataDTO.setSource("30");
         singleImportDataDTO.setId(dto.getId());
 
