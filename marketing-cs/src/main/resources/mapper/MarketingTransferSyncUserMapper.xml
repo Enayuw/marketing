@@ -816,8 +816,8 @@
     <select id="getZhongYuanTransferByRequestDate" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select *
         from b_marketing_transfer_sync_${tCid}
-        where register_time is not null and api_code = #{apiCode} and
-        <![CDATA[ request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
+        where
+        <![CDATA[  register_time is not null and register <> '' and api_code = #{apiCode} and request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
         <if test="indexId != null and indexId!=''">
             and id > #{indexId}
         </if>

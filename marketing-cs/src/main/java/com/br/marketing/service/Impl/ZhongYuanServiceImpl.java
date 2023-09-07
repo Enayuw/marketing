@@ -197,7 +197,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
                     // 组装b_phone_sale_extend_ino 表信息
                     PhoneSaleExtendInfo phoneSaleExtendInfo = packagePhoneSaleExtendInfo(marketingTransferSyncUser, marketingSyncUser,
-                            syncUserValidityPeriodBOCondition.getCondition());
+                            syncUserValidityPeriodBOCondition.getCondition(),syncUserValidityPeriodBOCondition.getDxUserType());
 
                     // 接口数据封装
                     RealTimeUserDataSoleDTO realTimeUserDataSoleDTO = getRealTimeUserDataSoleDTO(dassSingleImportAdapSoleDTO, phoneSaleExtendInfo);
@@ -265,7 +265,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
      */
     private PhoneSaleExtendInfo packagePhoneSaleExtendInfo(MarketingTransferSyncUser transfer,
                                                            MarketingSyncUser marketingSyncUser,
-                                                           String condition) {
+                                                           String condition,String dxUserType) {
         LocalDateTime localDateTime = transfer.getCreateTime().toInstant()
                 .atZone(ZoneId.systemDefault()).toLocalDateTime();
         LocalDate localDate = localDateTime.toLocalDate();
@@ -282,6 +282,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         phoneSaleExtendInfo.setPushDxTime(new Date());
         phoneSaleExtendInfo.setSourceId(transfer.getId());
         phoneSaleExtendInfo.setStatus(condition);
+        phoneSaleExtendInfo.setDxUserType(dxUserType);
         phoneSaleExtendInfo.setCell(marketingSyncUser.getCell());
         return phoneSaleExtendInfo;
     }
