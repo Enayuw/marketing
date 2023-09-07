@@ -263,7 +263,7 @@ cluster:
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置
-SERVER_LISTS: zk-strategy-01.brapp.com:2181,zk-strategy-02.brapp.com:2181,zk-strategy-03.brapp.com:2181
+SERVER_LISTS: pd-zk-yz-01.brapp.com:2181,pd-zk-yz-02.brapp.com:2181,pd-zk-yz-03.brapp.com:2181
 NAMESPACE: marketing-job
 BASE_SLEEP_TIME_MILLISECONDS: 1000
 MAX_SLEEP_TIME_MILLISECONDS: 3000

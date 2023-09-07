@@ -146,7 +146,7 @@ api:
     executeTask: ${api.bi.baseUrl}/api/distribute/offlineBatch/executeTask
     token: 340c206cebae452680975e1e36c04bfc
 #elastic-job配置
-SERVER_LISTS: chanyan-zk-01.brapp.com:2181,chanyan-zk-02.brapp.com:2181,chanyan-zk-03.brapp.com:2181
+SERVER_LISTS: pd-zk-yz-01.brapp.com:2181,pd-zk-yz-02.brapp.com:2181,pd-zk-yz-03.brapp.com:2181
 NAMESPACE: marketing-yz-job
 BASE_SLEEP_TIME_MILLISECONDS: 1000
 MAX_SLEEP_TIME_MILLISECONDS: 3000
