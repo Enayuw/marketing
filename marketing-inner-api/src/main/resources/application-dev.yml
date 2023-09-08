@@ -97,13 +97,3 @@ api:
     batchHermesUserData: ${api.dass.ibuBaseUrl}/ibu-daas/api/batchHermesUserData
     ibuAk: d87a6e0ab4dc2903
     ibuSk: fbd1478a51d88954
-#elastic-job配置
-SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
-NAMESPACE: marketing-job
-BASE_SLEEP_TIME_MILLISECONDS: 1000
-MAX_SLEEP_TIME_MILLISECONDS: 3000
-MAX_RETRIES: 3
-NESTED_PORT: -1
-NESTED_DATA_DIR: target/test_zk_data/
-corn:
-  taskJob: 0 0/30 * * * ?
