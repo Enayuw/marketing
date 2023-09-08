@@ -18,7 +18,6 @@ import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.*;
-import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -37,7 +36,6 @@ import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -50,8 +48,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
@@ -85,10 +81,6 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
     private static final List<String> dxUserTypeList = Lists.newArrayList("1","2","3");
 
-
-    @Value("${api.dass.aesKey:00}")
-    private String aesKey;
-
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
@@ -113,10 +105,6 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
     @Resource
     private ArtificialTransferSoleHandler artificialTransferSoleHandler;
-
-    @Resource
-    private AlarmApiClient alarmClient;
-
 
     @Resource
     private TableCreateServiceImpl tableCreateService;
@@ -305,7 +293,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                         String custNum = transferSyncUser.getCustNum();
                         SyncUserValidityPeriodBO bo = periodBOMap.get(custNum+userType);
                         if (ObjectUtil.isEmpty(bo)) {
-                            log.warn("{}:中原转化数据推Daas不满足案件编号“有效期内”条件", custNum);
+                            log.warn("{}:中原转化数据推Daas,type:【{}】,不满足案件编号“有效期内”条件", custNum,userType);
                         } else {
                             Boolean ifApplyOrIsBlack = validityPeriodDataService.judgmentMarketingTransferDataInvalidWithValidityPeriod(apiCode,
                                     transferSyncUser.getCustNum());
