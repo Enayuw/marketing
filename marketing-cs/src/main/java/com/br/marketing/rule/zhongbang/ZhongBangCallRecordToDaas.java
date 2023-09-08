@@ -13,7 +13,6 @@ import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataSoleDT
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
-import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
@@ -141,6 +140,7 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
         conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
         conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
+        conversionData.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.CALL_RECORD);
         return conversionData;
 
     }
