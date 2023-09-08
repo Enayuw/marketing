@@ -7,7 +7,6 @@ import com.br.common.util.DateUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBOCondition;
-import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassAssembleTransferDataSoleDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
@@ -75,8 +74,8 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
     private static final LinkedList<String> CONDITION_LIST = new LinkedList<>();
 
     static {
-        CONDITION_LIST.add("1");
         CONDITION_LIST.add("2");
+        CONDITION_LIST.add("1");
     }
 
     private static final List<String> dxUserTypeList = Lists.newArrayList("1","2","3");
