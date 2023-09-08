@@ -53,6 +53,7 @@ import java.util.stream.Collectors;
  */
 //@Component
 @Slf4j
+@Deprecated
 public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
 
     @Resource

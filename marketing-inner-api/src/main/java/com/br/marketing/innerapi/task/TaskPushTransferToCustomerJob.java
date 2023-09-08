@@ -49,6 +49,7 @@ import java.util.Map;
  */
 //@Component
 @Slf4j
+@Deprecated
 public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
 
 
