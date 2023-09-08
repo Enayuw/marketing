@@ -429,6 +429,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
             } catch (Exception e) {
             }
         }
+        log.warn("中原sftp文件推送外呼流程结束,apiCode: {} ,fileName：{}",localFile.getApiCode(),localFile.getFileName());
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
     }
 
