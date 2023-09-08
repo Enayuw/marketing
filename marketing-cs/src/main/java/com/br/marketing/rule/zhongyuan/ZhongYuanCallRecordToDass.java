@@ -188,6 +188,9 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
         conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
         conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
+
+        // 设置数据源类型
+        conversionData.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.CALL_RECORD);
         return conversionData;
     }
 
