@@ -443,7 +443,6 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
         conversionData.setCid(transferSyncUser.getCid());
         conversionData.setCaseNum(transferSyncUser.getCustNum());
-        conversionData.setGroupType(transferSyncUser.getUserType());
         conversionData.setPartnerProcessDate(ObjectUtils.isEmpty(transferSyncUser.getCreateTime())
                 ? LocalDateTime.now().format(DATE_TIME_FORMATTER) : DateUtils.format(transferSyncUser.getCreateTime()
                 , DateHelper.LINE_DATE_COLON_TIME_FORMAT));
