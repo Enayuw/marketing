@@ -562,6 +562,8 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                         phoneSaleTransferInfo.setOrgName("zhongyuanxj");
                         phoneSaleTransferInfo.setUserType(dxUserType);
                         phoneSaleTransferInfo.setSourceId(marketingSyncUser.getId());
+                        phoneSaleTransferInfo.setAppletDate(LocalDate.now().toString());
+                        phoneSaleTransferInfo.setDataType(1);
 
                         dassAssembleTransferDataSoleDTO.setDassTransferDataDTO(dassTransferDataDTO);
                         dassAssembleTransferDataSoleDTO.setPhoneSaleTransferInfo(phoneSaleTransferInfo);
@@ -685,7 +687,8 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                 phoneSaleTransferInfo.setCustNum(custNum);
                 phoneSaleTransferInfo.setOrgName("zhongyuanxj");
                 phoneSaleTransferInfo.setUserType(dxUserType);
-
+                phoneSaleTransferInfo.setAppletDate(LocalDate.now().toString());
+                phoneSaleTransferInfo.setDataType(1);
                 dassAssembleTransferDataSoleDTO.setDassTransferDataDTO(dassTransferDataDTO);
                 dassAssembleTransferDataSoleDTO.setPhoneSaleTransferInfo(phoneSaleTransferInfo);
                 dassAssembleTransferDataSoleDTO.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.TRANSFER);
