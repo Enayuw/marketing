@@ -114,7 +114,7 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
         String phone = BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell());
 
         RealTimeUserDataSoleDTO realTimeUserDataSoleDTO = new RealTimeUserDataSoleDTO();
-        realTimeUserDataSoleDTO.setPhoneSaleExtendInfo(buildPhoneSaleExtendInfo(dto, bo, userType));
+        realTimeUserDataSoleDTO.setPhoneSaleExtendInfo(buildPhoneSaleExtendInfo(dto, bo, userType, conditionType));
         realTimeUserDataSoleDTO.setDassSingleImportAdapDTO(buildDassSingleImportAdapSoleDTO(dto, phone, userType, time));
         realTimeUserDataSoleDTO.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.CALL_RECORD);
         // 去重参数设置：7天内单一手机号仅推送一次
@@ -137,7 +137,7 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
      * @param userType
      * @return
      */
-    private PhoneSaleExtendInfo buildPhoneSaleExtendInfo(CallRecordBO dto, SyncUserValidityPeriodBO bo, String userType) {
+    private PhoneSaleExtendInfo buildPhoneSaleExtendInfo(CallRecordBO dto, SyncUserValidityPeriodBO bo, String userType, String conditionType) {
         PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
         phoneSaleExtendInfo.setApiCode(dto.getApiCode());
         phoneSaleExtendInfo.setCustNum(dto.getCaseNum());
@@ -147,7 +147,7 @@ public class ZhongYuanCallRecordToDass implements AssembleData<DaasAndConversion
         phoneSaleExtendInfo.setAppletTime(dto.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                 .toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         phoneSaleExtendInfo.setTaskId(bo.getSyncUser().getCusBatch());
-        phoneSaleExtendInfo.setStatus(pushDataService.getStatusByGrade(this.label(), dto.getDetail().getIntentionGrade()));
+        phoneSaleExtendInfo.setStatus(conditionType);
         phoneSaleExtendInfo.setPStatus(1);
         phoneSaleExtendInfo.setCreateTime(new Date());
         phoneSaleExtendInfo.setPushDxTime(new Date());
