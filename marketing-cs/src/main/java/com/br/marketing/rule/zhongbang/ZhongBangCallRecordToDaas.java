@@ -95,6 +95,7 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
         DassSingleImportDataDTO dassSingleImportDataDTO = new DassSingleImportDataDTO();
         MarketingSyncUser syncUser = syncUserData.getSyncUser();
         String reserveField1 = syncUser.getReserveField1();
+        dassSingleImportDataDTO.setName("1");
         if (org.springframework.util.StringUtils.hasText(reserveField1)) {
             JSONObject jsonObject = JSON.parseObject(reserveField1);
             String firstName = jsonObject.getString("firstName");

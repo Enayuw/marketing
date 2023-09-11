@@ -26,29 +26,34 @@
         </encoder>
     </appender>
 
-    <!-- 错误日志：用于将错误日志输出到独立文件 -->
-    <appender name="ERROR_FILE" class="com.br.marketing.sync.alarm.AlarmAppender">
-        <file>${LOG_HOME}/${POD_NAME}_error.log</file>
+    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="RollingFile"/>
+    </appender>
+
+    <!-- 2023-06-15 11:23 发送告警的日志模板 -->
+    <property name="ALARM_ERROR_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [${POD_NAME}] [%thread] %-5level [%logger] -ALERT_LEVEL:ERROR ERROR_CODE:60000 SUBJECT:营销平台${APP_NAME}服务发生严重错误告警 MESSAGE:%msg%n"/>
+
+    <appender name="ALARM_ERROR_ROLLING_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/${POD_NAME}-alarm.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_HOME}/${POD_NAME}_error.%i.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <fileNamePattern>${LOG_HOME}/${POD_NAME}-alarm.%i.log.%d{yyyy-MM-dd}</fileNamePattern>
             <maxHistory>2</maxHistory>
             <maxFileSize>50MB</maxFileSize>
             <totalSizeCap>250MB</totalSizeCap>
             <cleanHistoryOnStart>true</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>${ENCODER_PATTERN}</pattern>
+            <pattern>${ALARM_ERROR_PATTERN}</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>ERROR</level>
         </filter>
     </appender>
 
-    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="RollingFile"/>
-    </appender>
-    <appender name="ASYNC_ERROR" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="ERROR_FILE"/>
+    <appender name="ALARM_ERROR_ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="ALARM_ERROR_ROLLING_FILE"/>
+        <queueSize>512</queueSize>
     </appender>
 
     <logger name="com.br" level="${LOG_LEVEL}"/>
@@ -59,6 +64,6 @@
     <root>
         <level value="${LOG_LEVEL}"/>
         <appender-ref ref="ASYNC"/>
-        <appender-ref ref="ASYNC_ERROR"/>
+        <appender-ref ref="ALARM_ERROR_ASYNC"/>
     </root>
 </configuration>
