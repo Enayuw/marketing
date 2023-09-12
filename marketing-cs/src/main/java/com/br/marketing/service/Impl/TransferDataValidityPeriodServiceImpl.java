@@ -313,8 +313,9 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      * 4.3、 v1的AppletTime为null时，v2的AppletTime为null；v1的CreateTime为null时，v2的CreateTime为null，返回v1
      */
     private synchronized MarketingSyncUser latestMarketingSyncUser(MarketingSyncUser o, MarketingSyncUser o1) {
-        return ObjectUtils.isEmpty(o) ? (ObjectUtils.isEmpty(o1) ? o : o1)
-                : (ObjectUtils.isEmpty(o1) ? (ObjectUtils.isEmpty(o.getAppletTime())
+        return ObjectUtils.isEmpty(o)
+                ? o1 : (ObjectUtils.isEmpty(o1)
+                ? o : (ObjectUtils.isEmpty(o.getAppletTime())
                 ? (ObjectUtils.isEmpty(o1.getAppletTime())
                 ? (ObjectUtils.isEmpty(o.getCreateTime())
                 ? (ObjectUtils.isEmpty(o1.getCreateTime())
@@ -322,7 +323,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
                 ? o : (o.getCreateTime().compareTo(o1.getCreateTime()) > 0
                 ? o : o1))) : o1) : (ObjectUtils.isEmpty(o1.getAppletTime())
                 ? o : (o.getAppletTime().compareTo(o1.getAppletTime()) > 0
-                ? o : o1))) : o1);
+                ? o : o1))));
     }
 
     /**
@@ -1074,18 +1075,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         return boMap;
     }
 
-
-    /**
-     * 2023-03-23 12:38
-     * apicode全量有效期配置
-     */
-    @Deprecated
-    private List<MarketingDataValidConfig> findConfigAllByApiCodeListFirstVersion(String apiCode) {
-        MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
-        example.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(1).andValidTypeEqualTo(1);
-        example.setOrderByClause("create_time desc, update_time desc");
-        return marketingDataValidConfigMapper.selectByExample(example);
-    }
 
     /**
      * 2023-07-13 17:31
