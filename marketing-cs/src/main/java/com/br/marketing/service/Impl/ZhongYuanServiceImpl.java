@@ -494,7 +494,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
     @Override
     public void zhongYuanPushDaasTransferFirst(String apiCode) {
-
+        log.warn("中原首次推送Daas转化接口任务开始执行");
         Pair<String, String> validityRange =
                 validityPeriodDataService.getMarketingTransferDataWithValidityRange(apiCode);
         String startDate = validityRange.getKey();
@@ -576,11 +576,12 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         ProcessHandlerContext context = new ProcessHandlerContext();
         context.setApiCode(marketingSyncUserList.get(0).getApiCode());
         artificialTransferSoleHandler.call(transferData, context);
-        log.warn("中原推送Daas首次转化流程结束,推送量num = {}",transferData.size());
+        log.warn("中原首次推送Daas转化流程结束,推送量num = {}",transferData.size());
     }
 
     @Override
     public void zhongYuanPushDaasTransfer(String apiCode) {
+        log.warn("中原非首次推送Daas转化接口任务开始执行");
         String tcId = tableCreateService.getTcId(apiCode);
         Pair<String, String> validityRange =
                 validityPeriodDataService.getMarketingTransferDataWithValidityRange(apiCode);
@@ -700,7 +701,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         ProcessHandlerContext context = new ProcessHandlerContext();
         context.setApiCode(apiCode);
         artificialTransferSoleHandler.call(transferData, context);
-        log.warn("中原推送Daas非首次转化流程结束,推送量num = {}",transferData.size());
+        log.warn("中原非首次推送Daas转化流程结束,推送量num = {}",transferData.size());
     }
 
 }

@@ -39,6 +39,6 @@ public class ZhongYuanTransferDataToDaasFilterJob extends AbstractSimpleElasticJ
         }else{
             zhongYuanService.zhongYuanPushDaasTransfer(apiCode);
         }});
-
+        log.warn("中原推送Daas转化接口任务结束");
     }
 }
