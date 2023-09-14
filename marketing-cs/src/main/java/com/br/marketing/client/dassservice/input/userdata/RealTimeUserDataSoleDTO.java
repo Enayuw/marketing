@@ -1,6 +1,5 @@
 package com.br.marketing.client.dassservice.input.userdata;
 
-import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.rule.SourceData;
 import lombok.Data;
@@ -25,11 +24,5 @@ public class RealTimeUserDataSoleDTO extends SourceData {
      * 插入b_phone_sale_extend_info表入参
      */
     private PhoneSaleExtendInfo phoneSaleExtendInfo;
-
-    /**
-     * 2023-08-23 21:28
-     * 数据来源,默认转化数据 TRANSFER
-     */
-    private DistributeSourceTypeEnum distributeSourceTypeEnum;
 
 }

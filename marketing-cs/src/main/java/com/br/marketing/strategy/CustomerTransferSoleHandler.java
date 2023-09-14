@@ -44,17 +44,23 @@ public class CustomerTransferSoleHandler extends AbstractExternalInterfaceHandle
             sum++;
             sendList.add(conversionData);
             // 把封装的日志插入到数组中
-            logList.add(methodRetryHandlerService.dataJoinLogFix(conversionData,DistributeTypeEnum.CUSTOMERTRANSFER
-                    ,context.getApiCode(), conversionData.getCaseNum(), BrCipherMaker.getInstance().encode(conversionData.getPhone())
-                    , Long.valueOf(conversionData.getDataId()), DistributeSourceTypeEnum.TRANSFER,null,conversionData.getExpireEndDate()));
-            if(sendList.size()==pageSize||sum == totalCount){
+            logList.add(methodRetryHandlerService.dataJoinLogFix(conversionData, DistributeTypeEnum.CUSTOMERTRANSFER
+                    , context.getApiCode()
+                    , conversionData.getCaseNum()
+                    , BrCipherMaker.getInstance().encode(conversionData.getPhone())
+                    , Long.valueOf(conversionData.getDataId())
+                    , conversionData.getDistributeSourceTypeEnum() == null
+                            ? DistributeSourceTypeEnum.TRANSFER : conversionData.getDistributeSourceTypeEnum()
+                    , null
+                    , conversionData.getExpireEndDate()));
+            if (sendList.size() == pageSize || sum == totalCount) {
                 // 对象继承 DataDistributeLogBase
                 TransferRobotOutboundSoleDTO robotOutboundDTO = new TransferRobotOutboundSoleDTO();
                 robotOutboundDTO.setApiCode(context.getApiCode());
                 robotOutboundDTO.setTransferInfoId(context.getTransferInfoId());
                 robotOutboundDTO.setData(sendList);
                 robotOutboundDTO.setDetailLogList(logList);
-                robotOutboundDTO.setLast(sum == totalCount?last:(last != null ? "0" : null));
+                robotOutboundDTO.setLast(sum == totalCount ? last : (last != null ? "0" : null));
                 //传参去重
                 //去重字段维度,根据传入值赋值，默认为cell维度去重
                 if(conversionData.getSoleField()!=null){

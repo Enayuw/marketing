@@ -349,7 +349,6 @@
         <if test="example.orderByClause != null">
             order by ${example.orderByClause}
         </if>
-
     </select>
 
 </mapper>

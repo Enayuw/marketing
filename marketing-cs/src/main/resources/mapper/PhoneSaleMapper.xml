@@ -58,4 +58,17 @@
             order by ${orderByClause}
         </if>
     </select>
+
+    <select id="getZhongYuanSaleByPage" resultType="com.br.marketing.entity.PhoneSale">
+    select
+      *
+    from b_phone_sale
+    where api_code = #{apiCode}
+      and <![CDATA[ create_time >= #{startDate} and create_time <= #{endDate}]]>
+      and user_type in
+        <foreach collection="dxUserTypeList" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        limit ${(pageNum - 1) * pageSize}, #{pageSize}
+    </select>
 </mapper>

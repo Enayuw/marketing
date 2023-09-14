@@ -37,11 +37,15 @@ public class ArtificialRealTimeUserAndCustomerTransferSoleFacade extends Abstrac
             conversionDataList.add(daasAndConversionData.getConversionData());
         }
         try {
-            artificialRealTimeUserDataSoleHandler.call(realTimeUserDataSoleDTOList, context);
+            if (realTimeUserDataSoleDTOList.size() > 0) {
+                artificialRealTimeUserDataSoleHandler.call(realTimeUserDataSoleDTOList, context);
+            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
-        customerTransferSoleHandler.call(conversionDataList, context);
+        if (conversionDataList.size() > 0) {
+            customerTransferSoleHandler.call(conversionDataList, context);
+        }
         return null;
     }
 

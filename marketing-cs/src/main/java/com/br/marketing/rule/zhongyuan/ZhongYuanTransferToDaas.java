@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.Map;
 
 /**
+ * 废弃：2023-08-29 http://c.100credit.cn/pages/viewpage.action?pageId=125085409
  * 中原消金断点数据推送人工
  *
  * @author zhen.Li
