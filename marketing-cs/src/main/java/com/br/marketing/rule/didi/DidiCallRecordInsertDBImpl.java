@@ -1,5 +1,7 @@
 package com.br.marketing.rule.didi;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDetailBO;
@@ -9,6 +11,7 @@ import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -52,6 +55,20 @@ public class DidiCallRecordInsertDBImpl implements AssembleData<DidiCallRecord> 
         }
         didiCallRecord.setScas(cbo.getDetail().getUserProperties());
         return didiCallRecord;
+        didiCallRecord.setUpdateTime(didiCallRecord.getCreateTime());
+        List<CallRecord> callRecordList = callRecordMapper.getLastCallRecordByCustNum(
+                Collections.singletonList(cbo.getCaseNum()), String.valueOf(cbo.getCid()));
+        String key = "scas";
+        CallRecord callRecord = callRecordList.get(0);
+        String userProperties = callRecord.getUserProperties();
+        if (StringUtils.isBlank(userProperties)) {
+            didiCallRecord.setScas(JSON.parseObject(cbo.getDetail().getUserProperties()).getString(key));
+        } else {
+            JSONObject userPropertiesObj = JSON.parseObject(userProperties);
+            didiCallRecord.setScas(userPropertiesObj.containsKey(key) ? userPropertiesObj.getString(key)
+                    : JSON.parseObject(cbo.getDetail().getUserProperties()).getString(key));
+        }
+        return StringUtils.isBlank(didiCallRecord.getScas()) ? null : didiCallRecord;
     }
 
     @Override
