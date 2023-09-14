@@ -13,7 +13,6 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -45,16 +44,6 @@ public class DidiCallRecordInsertDBImpl implements AssembleData<DidiCallRecord> 
         didiCallRecord.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
         didiCallRecord.setStatus(1);
         didiCallRecord.setCreateTime(new Date());
-        didiCallRecord.setUpdateTime(didiCallRecord.getCreateTime());
-        List<CallRecord> callRecordList = callRecordMapper.getLastCallRecordByCustNum(
-                Collections.singletonList(cbo.getCaseNum()), String.valueOf(cbo.getCid()));
-        if (CollectionUtils.isEmpty(callRecordList)) {
-            CallRecord callRecord = callRecordList.get(0);
-            didiCallRecord.setScas(callRecord.getUserProperties());
-            return didiCallRecord;
-        }
-        didiCallRecord.setScas(cbo.getDetail().getUserProperties());
-        return didiCallRecord;
         didiCallRecord.setUpdateTime(didiCallRecord.getCreateTime());
         List<CallRecord> callRecordList = callRecordMapper.getLastCallRecordByCustNum(
                 Collections.singletonList(cbo.getCaseNum()), String.valueOf(cbo.getCid()));
