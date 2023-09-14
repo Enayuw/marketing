@@ -8,6 +8,7 @@ import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.RegexConstants;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
@@ -232,16 +233,33 @@ public class ResultUtil {
                 if (marketingCondition != null) {
                     marketingCondition.setFlag(resultJson.get("flag_score") == null ? "" : resultJson.getString("flag_score"));
                     marketingCondition.setFieldKey(s);
-                    marketingCondition.setDValue(StringUtils.isBlank(esResult.getString(s)) ? 0 : Double.valueOf(esResult.getString(s)));
-                    marketingCondition.setStrValue(esResult.getString(s));
+                    String strValue =  esResult.getString(s);
+                    if (StringUtils.isNotBlank(strValue)) {
+                        if(Pattern.compile(RegexConstants.Numeric).matcher(strValue).matches()){
+                            marketingCondition.setDValue(Double.valueOf(esResult.getString(s)));
+                        }
+                        Long date = DateHelper.strToMill(strValue);
+                        if(date !=null){
+                            marketingCondition.setLValue(date);
+                        }
+                    }
+//                    marketingCondition.setDValue(StringUtils.isBlank(esResult.getString(s)) ? 0 : Double.valueOf(esResult.getString(s)));
+                    marketingCondition.setStrValue(strValue);
                     conditionList.add(marketingCondition);
                 } else {
                     String strValue = esResult.getString(s);
                     MarketingCondition marketingConditionStr = new MarketingCondition();
                     marketingConditionStr.setFieldKey(s);
                     marketingConditionStr.setStrValue(esResult.getString(s));
-                    if (StringUtils.isNotBlank(strValue) && Pattern.compile(RegexConstants.Numeric).matcher(strValue).matches()) {
-                        marketingConditionStr.setDValue(Double.valueOf(esResult.getString(s)));
+                    if (StringUtils.isNotBlank(strValue)) {
+                        if(Pattern.compile(RegexConstants.Numeric).matcher(strValue).matches()){
+                            marketingConditionStr.setDValue(Double.valueOf(esResult.getString(s)));
+                        }
+                        Long date = DateHelper.strToMill(strValue);
+                        if(date !=null){
+                            marketingConditionStr.setLValue(date);
+                        }
+
                     }
                     conditionList.add(marketingConditionStr);
                 }
