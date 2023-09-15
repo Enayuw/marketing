@@ -18,13 +18,13 @@ import java.util.List;
 import static com.br.marketing.common.utils.MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE;
 
 /**
- * 推送携程(3710058/3710078)
+ * 推送携程(3710090/3710091)
  *
- * @author Guo Zeqiang
- * @dateTime 2022/12/1 16:53
+ * @author chenh
+ * @dateTime 2023/09/15 16:53
  */
 @Service
-public class XieChengPushHandler extends AbstractExternalInterfaceHandler<XieChengDataDTO> {
+public class XieChengVTPushHandler extends AbstractExternalInterfaceHandler<XieChengDataDTO> {
 
     @Resource
     private XieChengDataMapper xieChengDataMapper;

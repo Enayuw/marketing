@@ -4,20 +4,21 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.XieChengDataDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.XieChengData;
+import com.br.marketing.origin.MqFact;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * 通话明细推送携程(3710058/3710078)
+ * 通话明细推送携程(3710090/3710091)
  *
- * @author Guo Zeqiang
- * @dateTime 2022/12/1 16:50
+ * @author chenh
+ * @dateTime 2023/09/15 16:50
  */
 @Service
 @Slf4j
-public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengDataDTO> {
+public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDataDTO> {
 
     @Override
     public XieChengDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -34,12 +35,18 @@ public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengData
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+        MqFact mqFact = context.getMqFact();
+        Integer isDelay = mqFact.getIsDelay();
+        if (isDelay != null && isDelay == 1) {
+            // 是延迟队列且有110且没有106
+            return false;
+        }
         return transmitFact instanceof CallRecordBO;
     }
 
     @Override
     public String label() {
-        return "XieCheng_CallRecord_Insert_DB";
+        return "XieCheng_CallRecord_Insert_DB_VT";
     }
 
     @Override
