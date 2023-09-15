@@ -210,7 +210,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
         Map<String, Object> params = queryParams(cidOrName, appletTimeStart, appletTimeEnd, apiCodes, userTypes);
         Map<String, String> map = new HashMap<>(2);
         List<TransferSyncReportNumVO> totalList = transferSyncReportMapper.getReportListTotaltiflash_(params);
-        map.put("numTotal", totalList.stream().collect(Collectors.summingInt(TransferSyncReportNumVO::getNumTotal)).toString());
+        map.put("numTotal", totalList.stream().collect(Collectors.summingLong(TransferSyncReportNumVO::getNumTotal)).toString());
         return map;
     }
 
