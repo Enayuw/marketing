@@ -4,7 +4,6 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.XieChengDataDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.XieChengData;
-import com.br.marketing.origin.MqFact;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -35,12 +34,6 @@ public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengData
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
-        MqFact mqFact = context.getMqFact();
-        Integer isDelay = mqFact.getIsDelay();
-        if (isDelay != null && isDelay == 1) {
-            // 90/91且是延迟队列且有110且没有106
-            return false;
-        }
         return transmitFact instanceof CallRecordBO;
     }
 
