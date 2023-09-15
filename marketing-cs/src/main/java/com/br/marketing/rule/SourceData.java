@@ -1,6 +1,7 @@
 package com.br.marketing.rule;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import lombok.Data;
 /**
  * @Description :去重参数构建
@@ -46,5 +47,12 @@ public class SourceData extends InterfaceParams{
      */
     @JSONField(serialize = false)
     private Integer soleField;
+
+    /**
+     * 2023-09-07 10:28
+     * 数据来源,默认转化数据 TRANSFER
+     */
+    @JSONField(serialize = false)
+    private DistributeSourceTypeEnum distributeSourceTypeEnum;
 
 }

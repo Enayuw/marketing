@@ -956,5 +956,29 @@ public class MarketingCommonConfig {
      * 众邦手机去重天数，默认7天
      */
     private int zhongbangCellDistributeDay = 7;
+
+    /**
+     * 中原转化数据job api
+     */
+    private Set<String> zhongYuanJobApiCodes;
+
+    /**
+     * 中原线程池配置
+     */
+    private int ZhongYuanTransferPushOutBoundThreadPoolSize;
+    /**
+     * 中原转化数据、拨打明细推电销开关
+     * {"condition_1":true,"condition_2":true,"condition_3":true,"condition_4":true,"condition_5":true,"condition_6":true}
+     */
+    private Map<String,Boolean> zhongYuanConditionMap;
+
+    /**
+     * 中原转化数据推Daas 和 客服 数据线程数
+     */
+    private Integer zhongYuanTransferDataToDaasAndCustomerFilterThreadNum;
+    /**
+     * 中原转化数据推Daas 7天内推送一次
+     */
+    private Integer zhongYuanDaysToSend;
 }
 

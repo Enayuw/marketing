@@ -1,14 +1,17 @@
 package com.br.marketing.context.impl;
 
+import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.RuleNecessaryData;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import lombok.Data;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,24 +25,21 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ZhongYuanRuleCollectDataImpl extends CommonMethodHandlerService {
-
+    @Resource
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
         if (!transmitFacts.isEmpty()) {
             Object o = transmitFacts.get(0);
             ZhongYuanRuleCollectDataImpl.ZhongYuanRuleNecessaryData ruleNecessaryData = new ZhongYuanRuleCollectDataImpl.ZhongYuanRuleNecessaryData();
-            if (o instanceof MarketingTransferSyncUser) {
-                @SuppressWarnings("unchecked")
-                List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
-                Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-                Map<String, MarketingSyncUser> collect = customerMarketingSyncUser(set, context.getApiCode());
-                ruleNecessaryData.setCustomerMap(collect);
-            } else if (o instanceof CallRecordBO) {
-                @SuppressWarnings("unchecked")
-                Set<String> set = ((List<CallRecordBO>) transmitFacts).stream()
+            if (o instanceof CallRecordBO) {
+                Set<String> custNumSet = ((List<CallRecordBO>) transmitFacts).stream()
                         .map(CallRecordBO::getCaseNum).collect(Collectors.toSet());
-                ruleNecessaryData.setCallRecordCustomerMap(customerMarketingSyncUser(set, context.getApiCode()));
+
+                Map<String, SyncUserValidityPeriodBO> periodBOMap =
+                        transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(custNumSet, context.getApiCode(), new Date());
+                ruleNecessaryData.setPeriodBOMap(periodBOMap);
             }
             context.setRuleNecessaryData(ruleNecessaryData);
         }
@@ -63,8 +63,11 @@ public class ZhongYuanRuleCollectDataImpl extends CommonMethodHandlerService {
          */
         private Map<String, MarketingSyncUser> callRecordCustomerMap;
 
+        /**
+         * 有效期内最新一条上传数据
+         */
+        private Map<String, SyncUserValidityPeriodBO> periodBOMap;
+
 
     }
-
-
 }

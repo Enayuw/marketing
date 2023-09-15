@@ -435,4 +435,33 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     int countByExampleSql(@Param("example") MarketingTransferSyncUserExample example, @Param("sqlWhereClause") String sqlWhereClause);
 
     List<MarketingTransferSyncUser> selectByExampleSql(@Param("example") MarketingTransferSyncUserExample example, @Param("sqlWhereClause") String sqlWhereClause);
+
+
+    List<MarketingTransferSyncUser> getZhongYuanTransferByRequestDate(@Param("tCid") String tCid,
+                                                                 @Param("apiCode") String apiCode,
+                                                                 @Param("requestStartDate") String requestStartDate,
+                                                                 @Param("requestEndDate") String requestEndDate,
+                                                                 @Param("indexId") Long indexId);
+
+    Integer getCountIsBlackByCustNum(@Param("cid") String cId, @Param("custNum") String custNum);
+    Integer getCountIfApplyByCustNum(@Param("cid") String cId, @Param("custNum") String custNum,
+                                     @Param("dateStartStr") String dateStartStr,@Param("dateEndStr") String dateEndStr);
+
+    MarketingTransferSyncUser getRegisterTimeAndLoginTimeByCreateTimeOrderDesc(@Param("cid") String cId,@Param("custNum") String custNum);
+
+    List<MarketingTransferSyncUser> getZhongYuanTransferByPage(@Param("tCid") String tCid,
+                                                                      @Param("apiCode") String apiCode,
+                                                                      @Param("requestStartDate") String requestStartDate,
+                                                                      @Param("requestEndDate") String requestEndDate,
+                                                                      @Param("indexId") Long indexId,
+                                                                      @Param("querySql") String querySql);
+
+    List<MarketingTransferSyncUser> getZhongYuanTransferBySql(@Param("tCid") String tCid,
+                                                               @Param("apiCode") String apiCode,
+                                                               @Param("requestStartDate") String requestStartDate,
+                                                               @Param("requestEndDate") String requestEndDate,
+                                                               @Param("querySql") String querySql,
+                                                               @Param("custNums") Set<String> custNums);
+
+
 }

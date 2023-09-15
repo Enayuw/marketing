@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.dassservice.input.transfer.DassAssembleTransferDataSoleDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapSoleDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
+import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -55,7 +56,8 @@ public class ArtificialTransferSoleHandler extends AbstractExternalInterfaceHand
                     , dassTransferDataDTO.getUid()
                     , BrCipherMaker.getInstance().encode(dassTransferDataDTO.getPhone())
                     , phoneSaleTransferInfo != null ? phoneSaleTransferInfo.getSourceId() : null
-                    , transferDatum.getDistributeSourceTypeEnum()
+                    , transferDatum.getDistributeSourceTypeEnum() == null
+                            ? DistributeSourceTypeEnum.TRANSFER : transferDatum.getDistributeSourceTypeEnum()
                     , transferDatum.getStatus()
                     , transferDatum.getExpireEndDate()));
             if (dtoList.size() == pageSize || sum == totalCount) {

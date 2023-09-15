@@ -141,6 +141,7 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
         conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
         conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
+        conversionData.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.CALL_RECORD);
         return conversionData;
 
     }

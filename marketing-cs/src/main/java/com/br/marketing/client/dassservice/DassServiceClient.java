@@ -15,7 +15,6 @@ import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDT
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
-import com.br.marketing.client.haier.output.Response2Entity;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
@@ -38,7 +37,6 @@ import org.springframework.util.DigestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
-import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
