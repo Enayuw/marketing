@@ -58,7 +58,7 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
         Integer isDelay = mqFact.getIsDelay();
         if (transmitFact instanceof CallRecordBO) {
             CallRecordBO bo = (CallRecordBO) transmitFact;
-            // 是延迟队列且没有106
+            // 是延迟队列且没有106：剔除
             if (isDelay != null && isDelay == 1) {
                 XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData = (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
                 Boolean hasApplySuccess = necessaryData.getMap().get(bo.getCaseNum()).getHasApplySuccess();
