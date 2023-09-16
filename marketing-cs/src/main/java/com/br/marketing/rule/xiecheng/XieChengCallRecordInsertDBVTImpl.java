@@ -2,7 +2,7 @@ package com.br.marketing.rule.xiecheng;
 
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.XieChengRuleCollectDataImpl;
+import com.br.marketing.context.impl.XieChengVTRuleCollectDataImpl;
 import com.br.marketing.dto.XieChengDataDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.XieChengData;
@@ -40,7 +40,7 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
             xieChengDataDTO.setToDelay(false);
         }else {
             // 有110的进入延迟队列，否则进携程队列
-            XieChengRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData = (XieChengRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
+            XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData = (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
             Boolean hasRiskControl = necessaryData.getMap().get(bo.getCaseNum()).getHasRiskControl();
             if (hasRiskControl) {
                 xieChengDataDTO.setToDelay(true);
@@ -60,7 +60,7 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
             CallRecordBO bo = (CallRecordBO) transmitFact;
             // 是延迟队列且没有106
             if (isDelay != null && isDelay == 1) {
-                XieChengRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData = (XieChengRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
+                XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData = (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
                 Boolean hasApplySuccess = necessaryData.getMap().get(bo.getCaseNum()).getHasApplySuccess();
                 if (!hasApplySuccess) {
                     return false;

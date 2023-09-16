@@ -410,7 +410,10 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     Integer getCountByRequestId(@Param("cid") String cId, @Param("requestId") String requestId);
 
-    MarketingTransferSyncUser getXcTransferNoAdDataByOnlyConvType(@Param("tCid") String tcId, @Param("custNum") String custNum, @Param("apiCodes") JSONArray apiCodes);
+    MarketingTransferSyncUser getXcTransferNoAdDataByOnlyConvType(@Param("tCid") String tcId, @Param("custNum") String custNum,
+                                                                  @Param("apiCodes") JSONArray apiCodes,
+                                                                  @Param("requestStartDate") String requestStartDate,
+                                                                  @Param("requestEndDate") String requestEndDate);
 
     MarketingTransferSyncUser getXcTransferNoAdDataByOnlyBlack(@Param("tCid") String tcId, @Param("custNum") String custNum, @Param("apiCodes") JSONArray apiCodes);
 

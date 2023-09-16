@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -47,17 +46,15 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.service.PushDataService;
+import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
-import com.br.marketing.vo.MarketingPreUserErrorDetailVO;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
-import io.swagger.models.auth.In;
+import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.ListUtils;
-import org.apache.velocity.runtime.directive.Foreach;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -194,11 +191,15 @@ public class PushDataServiceImpl implements PushDataService {
     @Autowired
     MethodRetryHandlerService methodRetryHandlerService;
 
+    @Resource
+    private ValidityPeriodDataService validityPeriodDataService;
+
     final static DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     private final static int XIECHENGSMSCOLLIDINGPARTATIONNUM = 50;
 
     private final static String XIECHENGSMSCOLLIDINGFORMATTER = "yyyy-MM-dd HH:mm:ss";
+
 
     @Override
     public Result pushDassData(Long id) {
@@ -1620,7 +1621,7 @@ public class PushDataServiceImpl implements PushDataService {
 
             //region 特定剔除规则
             if("1".equals(conditionKey)){
-                //region 剔除规则1 查询黑名单和convType106
+                //region 剔除规则1 查询黑名单和有效期内命中convType=106或107或110
                 MarketingTransferSyncUser xcTransferBlack = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyBlack(tcId, sha256Tel, isBlackApiCodes);
                 if(xcTransferBlack!=null){
                     resultData.setDataMessage("命中黑名单");
@@ -1630,7 +1631,12 @@ public class PushDataServiceImpl implements PushDataService {
                     return;
                 }
 
-                MarketingTransferSyncUser xcTransferConvType = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyConvType(tcId, sha256Tel,convTypeApiCodes);
+                Pair<String, String> validityRange =
+                        validityPeriodDataService.getMarketingTransferDataWithValidityRange(apiCode);
+                String startDate = validityRange.getKey();
+                String endDate = validityRange.getValue();
+                MarketingTransferSyncUser xcTransferConvType = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyConvType(tcId, sha256Tel,
+                        convTypeApiCodes, startDate, endDate);
                 if (xcTransferConvType != null) {
                     resultData.setDataMessage("命中convType106");
                     resultData.setStatus(2);

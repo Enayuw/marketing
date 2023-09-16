@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  * 携程规则所需要的数据
  */
 @Service
-public class XieChengRuleCollectDataImpl extends CommonMethodHandlerService {
+public class XieChengVTRuleCollectDataImpl extends CommonMethodHandlerService {
 
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
