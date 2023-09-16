@@ -44,12 +44,12 @@ public class XieChengVTRuleCollectDataImpl extends CommonMethodHandlerService {
             if (o instanceof MarketingTransferSyncUser) {
                 String apiCode = ((MarketingTransferSyncUser) o).getApiCode();
                 String tcid = tableCreateService.getTcId(apiCode);
+
                 Pair<String, String> validityRange =
                         validityPeriodDataService.getMarketingTransferDataWithValidityRange(apiCode);
                 String startDate = validityRange.getKey();
                 String endDate = validityRange.getValue();
 
-                // 遍历，根据每条的custnum110的数量，再根据每条的
                 List<MarketingTransferSyncUser> list = (List<MarketingTransferSyncUser>) transmitFacts;
                 Set<String> set = list.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
 
@@ -57,10 +57,12 @@ public class XieChengVTRuleCollectDataImpl extends CommonMethodHandlerService {
             } else if (o instanceof CallRecordBO) {
                 String apiCode = ((CallRecordBO) o).getApiCode();
                 String tcid = tableCreateService.getTcId(apiCode);
+
                 Pair<String, String> validityRange =
                         validityPeriodDataService.getMarketingTransferDataWithValidityRange(apiCode);
                 String startDate = validityRange.getKey();
                 String endDate = validityRange.getValue();
+
                 List<CallRecordBO> list = (List<CallRecordBO>) transmitFacts;
                 Set<String> set = list.stream()
                         .map(CallRecordBO::getCaseNum).collect(Collectors.toSet());
