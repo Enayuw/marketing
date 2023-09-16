@@ -1,6 +1,8 @@
 package com.br.marketing.rule.xiecheng;
 
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.context.RuleDataCollectionEnum;
+import com.br.marketing.context.impl.XieChengRuleCollectDataImpl;
 import com.br.marketing.dto.XieChengDataDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.XieChengData;
@@ -30,6 +32,23 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
         xieChengData.setActionType("IVR");
         xieChengDataDTO.setInitId(bo.getId());
         xieChengData.setSha256Tel(bo.getCaseNum());
+
+        // 来自延迟队列，且已判断过有106，进入携程队列(toDelay==true:要进延迟队列，toDelay==false:要进携程队列)
+        MqFact mqFact = context.getMqFact();
+        Integer isDelay = mqFact.getIsDelay();
+        if (isDelay != null && isDelay == 1) {
+            xieChengDataDTO.setToDelay(false);
+        }else {
+            // 有110的进入延迟队列，否则进携程队列
+            XieChengRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData = (XieChengRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
+            Boolean hasRiskControl = necessaryData.getMap().get(bo.getCaseNum()).getHasRiskControl();
+            if (hasRiskControl) {
+                xieChengDataDTO.setToDelay(true);
+            }else {
+                xieChengDataDTO.setToDelay(false);
+            }
+        }
+
         return xieChengDataDTO;
     }
 
@@ -37,11 +56,20 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MqFact mqFact = context.getMqFact();
         Integer isDelay = mqFact.getIsDelay();
-        if (isDelay != null && isDelay == 1) {
-            // 是延迟队列且有110且没有106
-            return false;
+        if (transmitFact instanceof CallRecordBO) {
+            CallRecordBO bo = (CallRecordBO) transmitFact;
+            // 是延迟队列且没有106
+            if (isDelay != null && isDelay == 1) {
+                XieChengRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData = (XieChengRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
+                Boolean hasApplySuccess = necessaryData.getMap().get(bo.getCaseNum()).getHasApplySuccess();
+                if (!hasApplySuccess) {
+                    return false;
+                }
+            }
+
+            return true;
         }
-        return transmitFact instanceof CallRecordBO;
+        return false;
     }
 
     @Override
@@ -51,12 +79,12 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.XIE_CHENG_CALL_RECORD_INSERT_DB.getCode();
+        return InterfaceHandlerEnum.XIE_CHENG_CALL_RECORD_INSERT_DB_VT.getCode();
     }
 
     @Override
     public Integer ruleDataCollection() {
-        return null;
+        return RuleDataCollectionEnum.XIECHENG_DATA_COLLECTION.getCode();
     }
 
 }
