@@ -871,15 +871,10 @@ public class MethodRetryHandlerService {
                     updateDidiCallRecord.setCell(newValidityPeriodData.getCell());
                     // 调接口推送
                     DiDiReqVO diDiReqVO = new DiDiReqVO();
-//                    diDiReqVO.setMediaName(didiCallRecord.getMediaName());
                     diDiReqVO.setMediaName(meidaName);
                     diDiReqVO.setCustMobileMd5(custNum);
                     boolean isNotError;
                     Result<DiDiResponseTO> resResultResult;
-//                    if ("bairong".equals(didiCallRecord.getMediaName())) {
-//                        resResultResult = diDiClient.pushReachSuccess(diDiReqVO);
-//                        isNotError = true;
-//                    } else {
                     DiDiReachBO diDiReachBO = new DiDiReachBO();
                     DiDiReachRequestTO diDiReachRequestTO = new DiDiReachRequestTO();
                     diDiReachRequestTO.setScas(didiCallRecord.getScas());
@@ -888,7 +883,6 @@ public class MethodRetryHandlerService {
                     resResultResult = diDiClient.pushReachSuccess(diDiReachBO);
                     isNotError = resResultResult.getData() != null
                             && "10000".equals(resResultResult.getData().getErrorCode());
-//                    }
                     // 500 异常需要进入阶梯重试
                     if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(resResultResult.getCode())) {
                         updateDidiCallRecord.setStatus(2);
