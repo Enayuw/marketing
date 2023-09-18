@@ -6,11 +6,15 @@ import com.br.marketing.context.impl.XieChengVTRuleCollectDataImpl;
 import com.br.marketing.dto.XieChengDataDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.XieChengData;
+import com.br.marketing.entity.XieChengJudgeConvTypeValue;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import java.util.Map;
 
 /**
  * 通话明细推送携程(3710090/3710091)
@@ -41,7 +45,13 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
         }else {
             // 有110的进入延迟队列，否则进携程队列
             XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData = (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
-            Boolean hasRiskControl = necessaryData.getMap().get(bo.getCaseNum()).getHasRiskControl();
+            Map<String, XieChengJudgeConvTypeValue> map = necessaryData.getMap();
+            if (CollectionUtils.isEmpty(map)) {
+                xieChengDataDTO.setToDelay(false);
+                return xieChengDataDTO;
+            }
+
+            Boolean hasRiskControl = map.get(bo.getCaseNum()).getHasRiskControl();
             if (hasRiskControl) {
                 xieChengDataDTO.setToDelay(true);
             }else {
@@ -61,7 +71,13 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
             // 是延迟队列且没有106：剔除
             if (isDelay != null && isDelay == 1) {
                 XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData = (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
-                Boolean hasApplySuccess = necessaryData.getMap().get(bo.getCaseNum()).getHasApplySuccess();
+                Map<String, XieChengJudgeConvTypeValue> map = necessaryData.getMap();
+                // todo 待确认：用通话明细custnum没查到转化明细，或不在有效期内
+                if (CollectionUtils.isEmpty(map)) {
+                    return false;
+                }
+
+                Boolean hasApplySuccess = map.get(bo.getCaseNum()).getHasApplySuccess();
                 if (!hasApplySuccess) {
                     return false;
                 }

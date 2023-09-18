@@ -79,7 +79,7 @@ public class XieChengVTPushHandler extends AbstractExternalInterfaceHandler<XieC
                 set.add("XieCheng_CallRecord_Insert_DB_VT");
                 mqFact.setIncludeRules(set);
 //                mqFact.setMessage(jsonObject.toJSONString());
-                mqFact.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
+                mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
                 String message = JSON.toJSONString(mqFact);
                 producter.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY, message, expireTime);
             }
