@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- *
  * @Description : 携程客服转化规则 cpa
  * https://c.100credit.cn/pages/viewpage.action?pageId=125100190
  * ---------------------------------
@@ -40,8 +39,6 @@ import java.util.Set;
 @Slf4j
 public class XieChengCustomerTransferCpaFromDelayImpl implements AssembleData<ConversionData> {
 
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -75,29 +72,28 @@ public class XieChengCustomerTransferCpaFromDelayImpl implements AssembleData<Co
             String reserveField1 = transfer.getReserveField1();
             if (StringUtils.hasText(reserveField1)) {
                 JSONObject json = JSON.parseObject(reserveField1);
-                Integer convType = json.getInteger("convType");
-                // 从配置中心获取convType
-                Set<String> convTypeSet = marketingCommonConfig.getPushConvTypeConfig().get(transfer.getApiCode()).keySet();
-                return  !StringUtils.isEmpty(convType) && convTypeSet.contains(convType.toString());
-            }
-
-            if (context.getMqFact().getIsDelay() == 1) {
-                XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData =
-                        (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
-                Map<String, XieChengJudgeConvTypeValue> map = necessaryData.getMap();
-                if (CollectionUtils.isEmpty(map)) {
-                    return Boolean.FALSE;
-                }
-                SyncUserValidityPeriodBO periodBO = necessaryData.getValidMap().get(transfer.getCustNum());
-                if(ObjectUtil.isEmpty(periodBO)){
-                    return Boolean.FALSE;
-                }
-                Boolean hasApplySuccess = map.get(transfer.getCustNum()).getHasApplySuccess();
-                // 转化数据convType没有106  true 是有106
-                if ( !hasApplySuccess) {
+                Integer  convType = json.getInteger("convType");
+                if (convType == 110) {
+                    XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData =
+                            (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
+                    Map<String, XieChengJudgeConvTypeValue> map = necessaryData.getMap();
+                    if (CollectionUtils.isEmpty(map)) {
+                        return Boolean.FALSE;
+                    }
+                    SyncUserValidityPeriodBO periodBO = necessaryData.getValidMap().get(transfer.getCustNum());
+                    if (ObjectUtil.isEmpty(periodBO)) {
+                        return Boolean.FALSE;
+                    }
+                    Boolean hasApplySuccess = map.get(transfer.getCustNum()).getHasApplySuccess();
+                    // 转化数据convType没有106  true 是有106
+                    if (!hasApplySuccess) {
+                        return Boolean.TRUE;
+                    }
+                }else {
                     return Boolean.TRUE;
                 }
             }
+
         }
         return Boolean.FALSE;
     }

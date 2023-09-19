@@ -34,13 +34,10 @@ public class XieChengCustomerTransferCpaToDelayImpl implements AssembleData<MqFa
 
     @Override
     public MqFact assemble(Object transmitFact, ProcessHandlerContext context) {
-        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         MqFact mqFact = new MqFact();
-        mqFact.setSourceId(transfer.getId());
         Set<String> set = new HashSet<>();
         set.add("XieCheng_TransferData_CPA_From_Delay_CustomerTransfer");
         mqFact.setIncludeRules(set);
-        mqFact.setIsDelay(1);
         return mqFact;
     }
 
