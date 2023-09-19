@@ -1590,6 +1590,7 @@ public class PushDataServiceImpl implements PushDataService {
             JSONArray soleCellApiCodes = condition.getJSONArray("soleCellApiCodes");
             JSONArray isBlackApiCodes = condition.getJSONArray("isBlackApiCodes");
             JSONArray convTypeApiCodes = condition.getJSONArray("convTypeApiCodes");
+            String mainApiCode = condition.getString("mainApiCode");
             //endregion
 
             XieChengData resultData = new XieChengData();
@@ -1636,7 +1637,7 @@ public class PushDataServiceImpl implements PushDataService {
                     return;
                 }
 
-                boolean hasConvType = hasConvType(apiCode, convTypeApiCodes, tcId, sha256Tel);
+                boolean hasConvType = hasConvType(mainApiCode, convTypeApiCodes, tcId, sha256Tel);
                 if (hasConvType) {
                     resultData.setDataMessage("有效期内命中convType106或107或110");
                     resultData.setStatus(2);
