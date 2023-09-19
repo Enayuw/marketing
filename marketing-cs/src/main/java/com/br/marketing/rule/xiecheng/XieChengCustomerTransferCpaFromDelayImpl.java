@@ -1,8 +1,10 @@
 package com.br.marketing.rule.xiecheng;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.DateUtils;
+import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.client.robotaiapi.input.ConvTypeConfigConversionData;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -44,7 +46,6 @@ public class XieChengCustomerTransferCpaFromDelayImpl implements AssembleData<Co
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        log.warn("携程推客服转化,apicode={}", transfer.getApiCode());
         ConvTypeConfigConversionData conversionData = new ConvTypeConfigConversionData();
         // 设置convType
         String reserveField1 = transfer.getReserveField1();
@@ -87,12 +88,15 @@ public class XieChengCustomerTransferCpaFromDelayImpl implements AssembleData<Co
                 if (CollectionUtils.isEmpty(map)) {
                     return Boolean.FALSE;
                 }
+                SyncUserValidityPeriodBO periodBO = necessaryData.getValidMap().get(transfer.getCustNum());
+                if(ObjectUtil.isEmpty(periodBO)){
+                    return Boolean.FALSE;
+                }
                 Boolean hasApplySuccess = map.get(transfer.getCustNum()).getHasApplySuccess();
                 // 转化数据convType没有106  true 是有106
-                if (!hasApplySuccess) {
+                if ( !hasApplySuccess) {
                     return Boolean.TRUE;
                 }
-
             }
         }
         return Boolean.FALSE;
