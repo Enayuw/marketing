@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
+import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
@@ -46,6 +47,7 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.service.PushDataService;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
@@ -135,6 +137,9 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Resource
     private XieChengSmsCollidingDataLogVtMapper xieChengSmsCollidingDataLogVtMapper;
+
+    @Resource
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
     @Resource
     @Qualifier("xieChengThreadPool")
     ThreadPoolExecutor xieChengThreadPool;
@@ -1631,14 +1636,9 @@ public class PushDataServiceImpl implements PushDataService {
                     return;
                 }
 
-                Pair<String, String> validityRange =
-                        validityPeriodDataService.getMarketingTransferDataWithValidityRange(apiCode);
-                String startDate = validityRange.getKey();
-                String endDate = validityRange.getValue();
-                MarketingTransferSyncUser xcTransferConvType = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyConvType(tcId, sha256Tel,
-                        convTypeApiCodes, startDate, endDate);
-                if (xcTransferConvType != null) {
-                    resultData.setDataMessage("命中convType106");
+                boolean hasConvType = hasConvType(apiCode, convTypeApiCodes, tcId, sha256Tel);
+                if (hasConvType) {
+                    resultData.setDataMessage("有效期内命中convType106或107或110");
                     resultData.setStatus(2);
                     xieChengDataMapper.updateByPrimaryKeySelective(resultData);
                     redisChgService.unlock(key, value);
@@ -1719,6 +1719,35 @@ public class PushDataServiceImpl implements PushDataService {
         }catch (Exception e){
             log.error(e.getMessage(),e);
         }
+    }
+
+    private boolean hasConvType(String apiCode, JSONArray convTypeApiCodes, String tcId, String sha256Tel) {
+        Set<String> custNumSet = new HashSet<>();
+        custNumSet.add(sha256Tel);
+        Map<String, SyncUserValidityPeriodBO> syncUser =
+                transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(custNumSet, apiCode, new Date());
+        SyncUserValidityPeriodBO bo = syncUser.get(sha256Tel);
+        if (bo != null) {
+            Pair<String, String> validityRange =
+                    validityPeriodDataService.getMarketingTransferDataWithValidityRange(apiCode);
+            String startDate = validityRange.getKey();
+            String endDate = validityRange.getValue();
+            List<XieChengJudgeConvTypeValue> xieChengJudgeConvType = marketingTransferSyncUserMapper.getXieChengJudgeConvType(tcId,
+                    convTypeApiCodes,
+                    startDate, endDate, custNumSet);
+
+            if (CollectionUtils.isEmpty(xieChengJudgeConvType)) {
+                return false;
+            }
+            XieChengJudgeConvTypeValue convTypeValue = xieChengJudgeConvType.get(0);
+
+            // 命中convType=106或107或110
+            if (convTypeValue.getHasApplySuccess() || convTypeValue.getHasInputSuccess() || convTypeValue.getHasRiskControl()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private JSONObject getJo(String condition,List<String> soleCellApiCodes){

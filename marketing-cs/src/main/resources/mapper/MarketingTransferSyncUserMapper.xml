@@ -721,8 +721,7 @@
         select *
         from b_marketing_transfer_sync_${tCid}
         where cust_num = #{custNum}
-        <![CDATA[and request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
-        and (reserve_field1->'$.convType' = '106' or reserve_field1->'$.convType' = '107' or reserve_field1->'$.convType' = '110')
+        and (reserve_field1->'$.convType' = '106')
         and api_code in
         <foreach collection="apiCodes" item="apiCode" separator="," open="(" close=")">
             #{apiCode}
