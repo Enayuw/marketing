@@ -1,5 +1,6 @@
 package com.br.marketing.rule.xiecheng;
 
+import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.XieChengVTRuleCollectDataImpl;
@@ -18,7 +19,6 @@ import java.util.Map;
 
 /**
  * 通话明细推送携程(3710090/3710091)
- *
  * @author chenh
  * @dateTime 2023/09/15 16:50
  */
@@ -42,19 +42,23 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
         Integer isDelay = mqFact.getIsDelay();
         if (isDelay != null && isDelay == 1) {
             xieChengDataDTO.setToDelay(false);
-        }else {
-            // 有110的进入延迟队列，否则进携程队列
-            XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData = (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
+        } else {
+            XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData =
+                    (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
+            SyncUserValidityPeriodBO periodBO = necessaryData.getValidMap().get(bo.getCaseNum());
             Map<String, XieChengJudgeConvTypeValue> map = necessaryData.getMap();
-            if (CollectionUtils.isEmpty(map)) {
+
+            // 该custNum不在有效期内，或用通话明细custNum没查到转化明细：进携程队列
+            if (periodBO == null || CollectionUtils.isEmpty(map)) {
                 xieChengDataDTO.setToDelay(false);
                 return xieChengDataDTO;
             }
 
+            // 有110的进入延迟队列，否则进携程队列
             Boolean hasRiskControl = map.get(bo.getCaseNum()).getHasRiskControl();
             if (hasRiskControl) {
                 xieChengDataDTO.setToDelay(true);
-            }else {
+            } else {
                 xieChengDataDTO.setToDelay(false);
             }
         }
@@ -70,14 +74,16 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
             CallRecordBO bo = (CallRecordBO) transmitFact;
             // 是延迟队列且没有106：剔除
             if (isDelay != null && isDelay == 1) {
-                XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData = (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
+                XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData =
+                        (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
                 Map<String, XieChengJudgeConvTypeValue> map = necessaryData.getMap();
-                // todo 待确认：用通话明细custnum没查到转化明细，或不在有效期内
+                // 通话明细custNum没查到转化明细(再校验一次)
                 if (CollectionUtils.isEmpty(map)) {
-                    return false;
+                    return true;
                 }
 
                 Boolean hasApplySuccess = map.get(bo.getCaseNum()).getHasApplySuccess();
+                // 转化数据convType没有106
                 if (!hasApplySuccess) {
                     return false;
                 }
@@ -100,7 +106,6 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
 
     @Override
     public Integer ruleDataCollection() {
-        return RuleDataCollectionEnum.XIECHENG_DATA_COLLECTION.getCode();
+        return RuleDataCollectionEnum.XIECHENG_DATA_COLLECTION_VT.getCode();
     }
-
 }

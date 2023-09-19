@@ -14,4 +14,6 @@ public class XieChengJudgeConvTypeValue {
     private Boolean hasRiskControl;
     // 转化数据convType有106
     private Boolean hasApplySuccess;
+    // 转化数据convType有107
+    private Boolean hasInputSuccess;
 }

@@ -1,5 +1,6 @@
 package com.br.marketing.context.impl;
 
+import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.RuleNecessaryData;
@@ -8,12 +9,14 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.XieChengJudgeConvTypeValue;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.ValidityPeriodDataService;
 import javafx.util.Pair;
 import lombok.Data;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,6 +38,8 @@ public class XieChengVTRuleCollectDataImpl extends CommonMethodHandlerService {
     private TableCreateServiceImpl tableCreateService;
     @Resource
     private ValidityPeriodDataService validityPeriodDataService;
+    @Resource
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
@@ -54,6 +59,8 @@ public class XieChengVTRuleCollectDataImpl extends CommonMethodHandlerService {
                 Set<String> set = list.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
 
                 buildData(ruleNecessaryData, apiCode, tcid, startDate, endDate, set);
+
+                buildValidData(context, ruleNecessaryData, set);
             } else if (o instanceof CallRecordBO) {
                 String apiCode = ((CallRecordBO) o).getApiCode();
                 String tcid = tableCreateService.getTcId(apiCode);
@@ -69,11 +76,33 @@ public class XieChengVTRuleCollectDataImpl extends CommonMethodHandlerService {
 
                 buildData(ruleNecessaryData, apiCode, tcid, startDate, endDate, set);
 
+                buildValidData(context, ruleNecessaryData, set);
             }
             context.setRuleNecessaryData(ruleNecessaryData);
         }
     }
 
+    /**
+     * 封装有效期数据map
+     * @param context
+     * @param ruleNecessaryData
+     * @param set
+     */
+    private void buildValidData(ProcessHandlerContext context, XieChengRuleNecessaryData ruleNecessaryData, Set<String> set) {
+        Map<String, SyncUserValidityPeriodBO> syncUser =
+                transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(set, context.getApiCode(), new Date());
+        ruleNecessaryData.setValidMap(syncUser);
+    }
+
+    /**
+     * 封装满足条件的转化数据map
+     * @param ruleNecessaryData
+     * @param apiCode
+     * @param tcid
+     * @param startDate
+     * @param endDate
+     * @param set
+     */
     private void buildData(XieChengRuleNecessaryData ruleNecessaryData, String apiCode, String tcid, String startDate, String endDate,
                            Set<String> set) {
         List<XieChengJudgeConvTypeValue> xieChengJudgeConvType = marketingTransferSyncUserMapper.getXieChengJudgeConvType(tcid, apiCode,
@@ -85,11 +114,12 @@ public class XieChengVTRuleCollectDataImpl extends CommonMethodHandlerService {
 
     @Override
     public RuleDataCollectionEnum label() {
-        return RuleDataCollectionEnum.XIECHENG_DATA_COLLECTION;
+        return RuleDataCollectionEnum.XIECHENG_DATA_COLLECTION_VT;
     }
 
     @Data
     public class XieChengRuleNecessaryData extends RuleNecessaryData {
         private Map<String, XieChengJudgeConvTypeValue> map;
+        private Map<String, SyncUserValidityPeriodBO> validMap;
     }
 }
