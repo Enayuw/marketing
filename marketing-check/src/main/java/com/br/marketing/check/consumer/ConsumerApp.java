@@ -7,6 +7,7 @@ import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.XieChengSmsPushToTransferService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.service.ZhongYuanService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,9 @@ public class ConsumerApp {
     PushRuleService pushRuleService;
 
     @Autowired
+    ZhongYuanService zhongYuanService;
+
+    @Autowired
     XieChengSmsPushToTransferService xieChengSmsPushToTransferService;
 
     /**
@@ -52,6 +56,24 @@ public class ConsumerApp {
         }.getType());
         consumerService.consumerRun(channel, message, pushDataService::pushDassData, o, "");
     }
+
+
+
+    /**
+     * 中原sftp文件数据推外呼（客服）
+     * @param channel
+     * @param message
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_PUSH_OUTBOUND_SCORE, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_PUSH_DATA_SCORE)}, containerFactory = "containerFactory")
+    public void consumerPushData(Channel channel, Message message) {
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        /*消费逻辑*/
+        consumerService.consumerRun(channel, message, zhongYuanService::pushOutBoundData, o, null);
+    }
+
 
     /**
      * 消费 黑名单

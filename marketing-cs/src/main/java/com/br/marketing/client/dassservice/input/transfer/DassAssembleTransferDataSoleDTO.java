@@ -1,6 +1,5 @@
 package com.br.marketing.client.dassservice.input.transfer;
 
-import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.entity.PhoneSaleTransferInfo;
 import com.br.marketing.rule.SourceData;
 import lombok.Data;
@@ -29,12 +28,6 @@ public class DassAssembleTransferDataSoleDTO extends SourceData {
      * 插入b_phone_sale_transfer_info表入参
      */
     private PhoneSaleTransferInfo phoneSaleTransferInfo;
-
-    /**
-     * 2023-08-23 21:28
-     * 数据来源
-     */
-    private DistributeSourceTypeEnum distributeSourceTypeEnum;
 
     /**
      * 2023-08-24 17:31

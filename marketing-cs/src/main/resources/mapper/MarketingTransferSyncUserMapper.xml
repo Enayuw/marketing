@@ -813,4 +813,74 @@
             order by ${example.orderByClause}
         </if>) as t1 where t2.id= t1.t1_id;
     </select>
+    <select id="getZhongYuanTransferByRequestDate" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tCid}
+        where
+        <![CDATA[  register_time is not null and register_time <> '' and api_code = #{apiCode} and request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
+        <if test="indexId != null and indexId!=''">
+            and id > #{indexId}
+        </if>
+        order by id asc limit 1000
+    </select>
+    <select id="getCountIsBlackByCustNum" resultType="java.lang.Integer">
+        select count(1)
+        from b_marketing_transfer_sync_${cid}
+        where  cust_num = #{custNum}
+        and  (reserve_field1->'$.isBlack' = '1' or reserve_field1->'$.isBlack' = 1)
+    </select>
+    <select id="getCountIfApplyByCustNum" resultType="java.lang.Integer">
+        select count(1)
+        from b_marketing_transfer_sync_${cid}
+        where  cust_num = #{custNum}
+        and  if_apply = '1'
+        and request_data between #{dateStartStr} and #{dateEndStr}
+    </select>
+    <select id="getRegisterTimeAndLoginTimeByCreateTimeOrderDesc" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select register_time,login_time
+        from b_marketing_transfer_sync_${cid}
+        where cust_num = #{custNum}
+        order by create_time desc limit 1
+    </select>
+
+
+    <select id="getZhongYuanTransferByPage" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tCid}
+        <where>
+            <if test="apiCode != null">
+                AND api_code =#{apiCode}
+            </if>
+            <if test="indexId != null and indexId!=''">
+                and id > #{indexId}
+            </if>
+            <if test="requestStartDate != null and requestStartDate!='' and requestEndDate !=null and requestEndDate !=''">
+                and <![CDATA[ request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
+            </if>
+            and ${querySql}
+            order by id asc limit 2000;
+        </where>
+    </select>
+
+    <select id="getZhongYuanTransferBySql" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tCid}
+        <where>
+            <if test="apiCode != null">
+                AND api_code =#{apiCode}
+            </if>
+            <if test="requestStartDate != null and requestStartDate!='' and requestEndDate !=null and requestEndDate !=''">
+                and <![CDATA[ request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
+            </if>
+            <if test="custNums !=null and custNums.size() !=0">
+                and cust_num in
+                <foreach collection="custNums" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            and ${querySql}
+        </where>
+    </select>
+
+
 </mapper>

@@ -26,7 +26,7 @@
 
     <job:simple id="ZhongAnPushRosterLockingDataJob"
                 class="com.br.marketing.monkey.job.ZhongAnPushRosterLockingDataJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/10 18-23 * * ?"
                 description="名单锁定推送众安"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -41,7 +41,7 @@
 
     <job:simple id="ZhongAnPushBlackDataJob"
                 class="com.br.marketing.monkey.job.ZhongAnPushBlackDataJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/30 * * * ?"
                 description="众安信贷自动化推送黑名单"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -71,7 +71,7 @@
     />
     <job:simple id="DidiCallingRecordJob"
                 class="com.br.marketing.monkey.job.didi.DidiCallingRecordJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 5/5 9-23 * * ?"
                 description="滴滴通话明细推送定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -85,7 +85,7 @@
     />
     <job:simple id="DidiAllowJob"
                 class="com.br.marketing.monkey.job.didi.DidiAllowJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/2 7-10 * * ?"
                 description="滴滴流量准入"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -100,7 +100,7 @@
 
     <job:simple id="DiDiModelingJob"
                 class="com.br.marketing.monkey.job.didi.DiDiModelingJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/30 * * * ?"
                 description="滴滴建模定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -115,7 +115,7 @@
 
     <job:simple id="DiDiNewModelingJob"
                 class="com.br.marketing.monkey.job.didi.DiDiNewModelingJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/30 * * * ?"
                 description="滴滴建模新接口定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -129,7 +129,7 @@
     />
     <job:simple id="DidiaInvalidityJob"
                 class="com.br.marketing.monkey.job.didi.DidiaInvalidityJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/10 21-23 * * ?"
                 description="滴滴营销失败"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

@@ -380,7 +380,7 @@
         b
         .
         id
-        , b.cus_batch, b.cust_num, b.id_card, b.name, b.cell, b.user_type, b.reserve_field1,
+        , b.api_code,b.cus_batch, b.cust_num, b.id_card, b.name, b.cell, b.user_type, b.reserve_field1,
         b.reserve_field2, b.create_time,b.update_time, b.applet_date, b.applet_time
     </sql>
 

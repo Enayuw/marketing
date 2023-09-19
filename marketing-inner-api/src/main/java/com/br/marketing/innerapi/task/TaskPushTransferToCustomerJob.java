@@ -3,7 +3,6 @@ package com.br.marketing.innerapi.task;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.PushTransferCustomerLog;
 import com.br.marketing.service.PushTransferCustomerLogService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -11,7 +10,6 @@ import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
@@ -49,8 +47,9 @@ import java.util.Map;
  * @author zeqiang.guo@brgroup.com
  * @dateTime 2021/10/14 17:48
  */
-@Component
+//@Component
 @Slf4j
+@Deprecated
 public class TaskPushTransferToCustomerJob extends AbstractSimpleElasticJob {
 
 

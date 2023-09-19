@@ -18,6 +18,7 @@ public class DassImportDataDTO {
      */
     private String uid;
 
+
     /**
      * 手机号
      */
@@ -293,4 +294,5 @@ public class DassImportDataDTO {
      * 筛选项1
      */
     private String raiseLimiSuccess;
+
 }
