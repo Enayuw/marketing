@@ -61,9 +61,12 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
                 return xieChengDataDTO;
             }
 
-            // 有110的进入延迟队列，否则进携程队列
+            // 有110且没有106的进入延迟队列，否则进携程队列（1：没有110、2：有110且有106）
+            // 有110
             Boolean hasRiskControl = map.get(bo.getCaseNum()).getHasRiskControl();
-            if (hasRiskControl) {
+            // 有106
+            Boolean hasApplySuccess = map.get(bo.getCaseNum()).getHasApplySuccess();
+            if (hasRiskControl && !hasApplySuccess) {
                 xieChengDataDTO.setToDelay(true);
             } else {
                 xieChengDataDTO.setToDelay(false);
@@ -79,43 +82,24 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
         Integer isDelay = mqFact.getIsDelay();
         if (transmitFact instanceof CallRecordBO) {
             CallRecordBO bo = (CallRecordBO) transmitFact;
-
-            // 有110且没有106：剔除，不进延迟队列
-            XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData =
-                    (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
-            Map<String, XieChengJudgeConvTypeValue> map = necessaryData.getMap();
-            // 通话明细custNum没查到转化明细(再校验一次)
-            if (CollectionUtils.isEmpty(map)) {
-                return true;
-            }
-            Boolean hasRiskControl = map.get(bo.getCaseNum()).getHasRiskControl();
-            Boolean hasApplySuccess = map.get(bo.getCaseNum()).getHasApplySuccess();
-            // 转化数据convType没有106
-            if (hasRiskControl && !hasApplySuccess) {
-                // 剔除数据也记录到表：b_xiecheng_data
-                keepRecord(bo);
-                return false;
-            }
-
-
             // 是延迟队列且没有106：剔除
-//            if (isDelay != null && isDelay == 1) {
-//                XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData =
-//                        (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
-//                Map<String, XieChengJudgeConvTypeValue> map = necessaryData.getMap();
-//                // 通话明细custNum没查到转化明细(再校验一次)
-//                if (CollectionUtils.isEmpty(map)) {
-//                    return true;
-//                }
-//
-//                Boolean hasApplySuccess = map.get(bo.getCaseNum()).getHasApplySuccess();
-//                // 转化数据convType没有106
-//                if (!hasApplySuccess) {
-//                    // 剔除数据也记录到表：b_xiecheng_data
-//                    keepRecord(bo);
-//                    return false;
-//                }
-//            }
+            if (isDelay != null && isDelay == 1) {
+                XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData =
+                        (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
+                Map<String, XieChengJudgeConvTypeValue> map = necessaryData.getMap();
+                // 通话明细custNum没查到转化明细(再校验一次)
+                if (CollectionUtils.isEmpty(map)) {
+                    return true;
+                }
+
+                Boolean hasApplySuccess = map.get(bo.getCaseNum()).getHasApplySuccess();
+                // 转化数据convType没有106
+                if (!hasApplySuccess) {
+                    // 剔除数据也记录到表：b_xiecheng_data
+                    keepRecord(bo);
+                    return false;
+                }
+            }
 
             return true;
         }
