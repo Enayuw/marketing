@@ -332,14 +332,14 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         params.put("userTypeList",userTypeList);
 
         Map map = new HashMap();
-        Integer normalNumTotal = 0;
-        Integer duplicateRemovalNumTotal = 0;
+        Long normalNumTotal = 0L;
+        Long duplicateRemovalNumTotal = 0L;
         List<MarketingSyncReportNumVO> listTotal = syncReportMapper.getReportListTotaltiflash_(params);
         if (!CollectionUtils.isEmpty(listTotal)) {
             //数据正常入库条数
-            normalNumTotal = listTotal.stream().collect(Collectors.summingInt(MarketingSyncReportNumVO::getNormalNumTotal));
+            normalNumTotal = listTotal.stream().collect(Collectors.summingLong(MarketingSyncReportNumVO::getNormalNumTotal));
             //去重后数据量
-            duplicateRemovalNumTotal = listTotal.stream().collect(Collectors.summingInt(MarketingSyncReportNumVO::getDuplicateRemovalNumTotal));
+            duplicateRemovalNumTotal = listTotal.stream().collect(Collectors.summingLong(MarketingSyncReportNumVO::getDuplicateRemovalNumTotal));
         }
         map.put("normalNumTotal", normalNumTotal);
         map.put("duplicateRemovalNumTotal", duplicateRemovalNumTotal);

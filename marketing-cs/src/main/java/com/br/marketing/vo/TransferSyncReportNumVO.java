@@ -11,7 +11,7 @@ public class TransferSyncReportNumVO {
 
     private String apiCode;
 
-    private Integer numTotal;
+    private Long numTotal;
 
 
 }

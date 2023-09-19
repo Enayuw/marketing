@@ -29,5 +29,5 @@ public interface SyncConfigMapper extends SyncConfigMapperBase {
      * @return
      */
     @AddDataAuth
-    List<SyncConfigEditVO> getSftpList(@Param("apiCode")String apiCode);
+    List<SyncConfigEditVO> getSftpList(@Param("apiCode")String apiCode,@Param("dataType")Integer dataType);
 }
