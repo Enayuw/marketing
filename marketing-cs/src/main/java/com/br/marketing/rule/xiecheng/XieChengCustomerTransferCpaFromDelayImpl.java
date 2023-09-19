@@ -6,7 +6,10 @@ import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConvTypeConfigConversionData;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.context.RuleDataCollectionEnum;
+import com.br.marketing.context.impl.XieChengVTRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.XieChengJudgeConvTypeValue;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -15,23 +18,25 @@ import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.util.Map;
 import java.util.Set;
 
 /**
  *
- * @Description : 携程客服转化规则
- * http://c.100credit.cn/pages/viewpage.action?pageId=92047371
+ * @Description : 携程客服转化规则 cpa
+ * https://c.100credit.cn/pages/viewpage.action?pageId=125100190
  * ---------------------------------
- * @Author : juanjuan.song
- * @Date : Create in 2022/12/05 10:28
- * 客服转化接口案件编号和手机号二选一必填，不满足则接收转化数据失败
+ * @Author : 张广超
+ * @Date : Create in 2023/09/19 10:28
+ * cpa 3710090 转化数据推客服 判断110 且无106 的数据推
  */
 @Service
 @Slf4j
-public class XieChengCustomerTransferAImpl implements AssembleData<ConversionData> {
+public class XieChengCustomerTransferCpaFromDelayImpl implements AssembleData<ConversionData> {
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -64,26 +69,38 @@ public class XieChengCustomerTransferAImpl implements AssembleData<ConversionDat
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
-        boolean flag = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             String reserveField1 = transfer.getReserveField1();
             if (StringUtils.hasText(reserveField1)) {
                 JSONObject json = JSON.parseObject(reserveField1);
                 Integer convType = json.getInteger("convType");
-//                flag = !StringUtils.isEmpty(convType) && 107 == convType;
-
                 // 从配置中心获取convType
                 Set<String> convTypeSet = marketingCommonConfig.getPushConvTypeConfig().get(transfer.getApiCode()).keySet();
-                flag = !StringUtils.isEmpty(convType) && convTypeSet.contains(convType.toString());
+                return  !StringUtils.isEmpty(convType) && convTypeSet.contains(convType.toString());
+            }
+
+            if (context.getMqFact().getIsDelay() == 1) {
+                XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData =
+                        (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
+                Map<String, XieChengJudgeConvTypeValue> map = necessaryData.getMap();
+                if (CollectionUtils.isEmpty(map)) {
+                    return Boolean.FALSE;
+                }
+                Boolean hasApplySuccess = map.get(transfer.getCustNum()).getHasApplySuccess();
+                // 转化数据convType没有106  true 是有106
+                if (!hasApplySuccess) {
+                    return Boolean.TRUE;
+                }
+
             }
         }
-        return flag;
+        return Boolean.FALSE;
     }
 
     @Override
     public String label() {
-        return "XieCheng_TransferData_CustomerTransfer";
+        return "XieCheng_TransferData_CPA_From_Delay_CustomerTransfer";
     }
 
     @Override
@@ -93,6 +110,6 @@ public class XieChengCustomerTransferAImpl implements AssembleData<ConversionDat
 
     @Override
     public Integer ruleDataCollection() {
-        return null;
+        return RuleDataCollectionEnum.XIECHENG_DATA_COLLECTION_VT.getCode();
     }
 }
