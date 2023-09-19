@@ -886,7 +886,7 @@
         select cust_num,
                if(sum(if(reserve_field1 -> '$.convType' = '110', 1, 0)) > 0, true, false) as hasRiskControl,
                if(sum(if(reserve_field1 -> '$.convType' = '106', 1, 0)) > 0, true, false) as hasApplySuccess,
-               if(sum(if(reserve_field1 -> '$.convType' = '107', 1, 0)) > 0, true, false) as hasInputSuccess,
+               if(sum(if(reserve_field1 -> '$.convType' = '107', 1, 0)) > 0, true, false) as hasInputSuccess
         from b_marketing_transfer_sync_${tCid}
                 where api_code in
         <foreach collection="apiCodes" item="apiCode" separator="," open="(" close=")">
