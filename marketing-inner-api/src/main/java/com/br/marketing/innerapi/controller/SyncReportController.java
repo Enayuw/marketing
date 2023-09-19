@@ -9,10 +9,7 @@ import com.br.marketing.service.MarketingSyncReportService;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.Map;
@@ -36,7 +33,7 @@ public class SyncReportController {
     @Resource
     private MarketingSyncReportService syncReportService;
 
-    @GetMapping("/getReportList")
+    @PostMapping("/getReportList")
     @ApiOperation(value = "客户上传数据统计报表列表", notes = "客户上传数据统计报表列表", httpMethod = "GET")
     @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
             , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
