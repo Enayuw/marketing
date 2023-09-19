@@ -79,24 +79,43 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
         Integer isDelay = mqFact.getIsDelay();
         if (transmitFact instanceof CallRecordBO) {
             CallRecordBO bo = (CallRecordBO) transmitFact;
-            // 是延迟队列且没有106：剔除
-            if (isDelay != null && isDelay == 1) {
-                XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData =
-                        (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
-                Map<String, XieChengJudgeConvTypeValue> map = necessaryData.getMap();
-                // 通话明细custNum没查到转化明细(再校验一次)
-                if (CollectionUtils.isEmpty(map)) {
-                    return true;
-                }
 
-                Boolean hasApplySuccess = map.get(bo.getCaseNum()).getHasApplySuccess();
-                // 转化数据convType没有106
-                if (!hasApplySuccess) {
-                    // 剔除数据也记录到表：b_xiecheng_data
-                    keepRecord(bo);
-                    return false;
-                }
+            // 有110且没有106：剔除，不进延迟队列
+            XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData =
+                    (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
+            Map<String, XieChengJudgeConvTypeValue> map = necessaryData.getMap();
+            // 通话明细custNum没查到转化明细(再校验一次)
+            if (CollectionUtils.isEmpty(map)) {
+                return true;
             }
+            Boolean hasRiskControl = map.get(bo.getCaseNum()).getHasRiskControl();
+            Boolean hasApplySuccess = map.get(bo.getCaseNum()).getHasApplySuccess();
+            // 转化数据convType没有106
+            if (hasRiskControl && !hasApplySuccess) {
+                // 剔除数据也记录到表：b_xiecheng_data
+                keepRecord(bo);
+                return false;
+            }
+
+
+            // 是延迟队列且没有106：剔除
+//            if (isDelay != null && isDelay == 1) {
+//                XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData =
+//                        (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
+//                Map<String, XieChengJudgeConvTypeValue> map = necessaryData.getMap();
+//                // 通话明细custNum没查到转化明细(再校验一次)
+//                if (CollectionUtils.isEmpty(map)) {
+//                    return true;
+//                }
+//
+//                Boolean hasApplySuccess = map.get(bo.getCaseNum()).getHasApplySuccess();
+//                // 转化数据convType没有106
+//                if (!hasApplySuccess) {
+//                    // 剔除数据也记录到表：b_xiecheng_data
+//                    keepRecord(bo);
+//                    return false;
+//                }
+//            }
 
             return true;
         }
