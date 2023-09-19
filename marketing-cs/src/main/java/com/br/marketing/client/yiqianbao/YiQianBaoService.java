@@ -55,6 +55,7 @@ public class YiQianBaoService {
 
     @RetryMethod(retryNowNum = 3)
     public Result<ResponseYqbDTO> pushMarketingData(YqbDetailVo yqbDetailVo) {
+        org.bouncycastle.jcajce.provider.asymmetric.rsa.RSAUtil
         try {
             log.warn("壹钱包明文参数 para={}", JSON.toJSONString(yqbDetailVo));
             RequestYqbDTO requestYqbDTO = new RequestYqbDTO();

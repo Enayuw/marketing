@@ -39,6 +39,21 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
+    <job:simple id="ZhongAnPushBlackDataJob"
+                class="com.br.marketing.monkey.job.ZhongAnPushBlackDataJob"
+                cron="0 0/30 * * * ?"
+                description="众安信贷自动化推送黑名单"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
     <job:simple id="ZhongAnPushRosterLockingDataOtherTagJob"
                 class="com.br.marketing.monkey.job.ZhongAnPushRosterLockingDataOtherTagJob"
                 cron="0 0 21 * * ? 2050-3000"
@@ -81,6 +96,37 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="DiDiModelingJob"
+                class="com.br.marketing.monkey.job.didi.DiDiModelingJob"
+                cron="0 0/30 * * * ?"
+                description="滴滴建模定时任务"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="DiDiNewModelingJob"
+                class="com.br.marketing.monkey.job.didi.DiDiNewModelingJob"
+                cron="0 0/30 * * * ?"
+                description="滴滴建模新接口定时任务"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
     <job:simple id="DidiaInvalidityJob"
                 class="com.br.marketing.monkey.job.didi.DidiaInvalidityJob"
                 cron="0 0/10 21-23 * * ?"
