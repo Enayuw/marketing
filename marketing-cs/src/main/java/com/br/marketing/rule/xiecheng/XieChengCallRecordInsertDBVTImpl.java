@@ -8,6 +8,7 @@ import com.br.marketing.dto.XieChengDataDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.entity.XieChengJudgeConvTypeValue;
+import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
@@ -15,6 +16,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -25,6 +30,8 @@ import java.util.Map;
 @Service
 @Slf4j
 public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDataDTO> {
+    @Resource
+    private XieChengDataMapper xieChengDataMapper;
 
     @Override
     public XieChengDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -85,6 +92,8 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
                 Boolean hasApplySuccess = map.get(bo.getCaseNum()).getHasApplySuccess();
                 // 转化数据convType没有106
                 if (!hasApplySuccess) {
+                    // 剔除数据也记录到表：b_xiecheng_data
+                    keepRecord(bo);
                     return false;
                 }
             }
@@ -92,6 +101,21 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
             return true;
         }
         return false;
+    }
+
+    private void keepRecord(CallRecordBO bo) {
+        XieChengData xieChengData = new XieChengData();
+        xieChengData.setApiCode(bo.getApiCode());
+        xieChengData.setActionType("IVR");
+        xieChengData.setSha256Tel(bo.getCaseNum());
+
+        xieChengData.setCreateTime(new Date());
+        xieChengData.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
+        xieChengData.setLocalId(bo.getId());
+        xieChengData.setPushStatus(1);
+        xieChengData.setStatus(1);
+        xieChengData.setType("1");
+        xieChengDataMapper.insertSelective(xieChengData);
     }
 
     @Override
