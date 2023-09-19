@@ -470,14 +470,14 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     /**
      * 转化数据对应的custNum，convType是否有110，convType是否有106
      * @param tCid
-     * @param apiCode
+     * @param apiCodes
      * @param requestStartDate
      * @param requestEndDate
      * @param custNums
      * @return
      */
     List<XieChengJudgeConvTypeValue> getXieChengJudgeConvType(@Param("tCid") String tCid,
-                                                              @Param("apiCode") String apiCode,
+                                                              @Param("apiCodes") JSONArray apiCodes,
                                                               @Param("requestStartDate") String requestStartDate,
                                                               @Param("requestEndDate") String requestEndDate,
                                                               @Param("custNums") Set<String> custNums);

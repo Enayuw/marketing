@@ -885,17 +885,21 @@
 
     <select id="getXieChengJudgeConvType" resultType="com.br.marketing.entity.XieChengJudgeConvTypeValue">
         select cust_num,
-               if(sum(if(reserve_field1 -> '$.convType' = '110', 1, 0)) > 0, true, false) as hasRiskControl,
-               if(sum(if(reserve_field1 -> '$.convType' = '106', 1, 0)) > 0, true, false) as hasApplySuccess,
-               if(sum(if(reserve_field1 -> '$.convType' = '107', 1, 0)) > 0, true, false) as hasInputSuccess,
+               if(sum(if(reserve_field1 - > '$.convType' = '110', 1, 0)) > 0, true, false) as hasRiskControl,
+               if(sum(if(reserve_field1 - > '$.convType' = '106', 1, 0)) > 0, true, false) as hasApplySuccess,
+               if(sum(if(reserve_field1 - > '$.convType' = '107', 1, 0)) > 0, true, false) as hasInputSuccess,
         from b_marketing_transfer_sync_${tCid}
-                where api_code = #{apiCode}
-     <![CDATA[and request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
-                  and cust_num in
+                where api_code in
+        <foreach collection="apiCodes" item="apiCode" separator="," open="(" close=")">
+            #{apiCode}
+        </foreach>
+        <![CDATA[
+        and request_data >= #{requestStartDate}
+        and request_data <= #{requestEndDate}]]>
+        and cust_num in
         <foreach collection="custNums" item="item" open="(" close=")" separator=",">
             #{item}
         </foreach>
         group by cust_num;
     </select>
-
 </mapper>
