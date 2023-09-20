@@ -47,16 +47,23 @@ public class XieChengVTRuleCollectDataImpl extends CommonMethodHandlerService {
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
         HashMap<String, JSONObject> xieChengCallPushCondition = marketingCommonConfig.getXieChengCallPushCondition();
+        if(xieChengCallPushCondition == null){
+            xieChengCallPushCondition=new HashMap<>();
+            xieChengCallPushCondition.put("3710090",getJo("2",Arrays.asList("3710090","3710091"), "3710090"));
+            xieChengCallPushCondition.put("3710091",getJo("2",Arrays.asList("3710090","3710091"), "3710090"));
+        }
         JSONObject condition = xieChengCallPushCondition.get(context.getApiCode());
+        // 查询有效期使用的apiCode
         String apiCode = condition.getString("mainApiCode");
+        // 查询转化数据convType使用的apiCode
+        JSONArray convTypeApiCodes = condition.getJSONArray("convTypeApiCodes");
         String tcid = tableCreateService.getTcId(apiCode);
 
+        // 获取有效期范围
         Pair<String, String> validityRange =
                 validityPeriodDataService.getMarketingTransferDataWithValidityRange(apiCode);
         String startDate = validityRange.getKey();
         String endDate = validityRange.getValue();
-
-        JSONArray convTypeApiCodes = condition.getJSONArray("convTypeApiCodes");
 
         if (!transmitFacts.isEmpty()) {
             Object o = transmitFacts.get(0);
@@ -105,5 +112,15 @@ public class XieChengVTRuleCollectDataImpl extends CommonMethodHandlerService {
     public class XieChengRuleNecessaryData extends RuleNecessaryData {
         private Map<String, XieChengJudgeConvTypeValue> map;
         private Map<String, SyncUserValidityPeriodBO> validMap;
+    }
+
+    private JSONObject getJo(String condition,List<String> soleCellApiCodes, String mainApiCode){
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("condition",condition);
+        jsonObject.put("isBlackApiCodes",soleCellApiCodes);
+        jsonObject.put("convTypeApiCodes",soleCellApiCodes);
+        jsonObject.put("soleCellApiCodes",soleCellApiCodes);
+        jsonObject.put("mainApiCode",mainApiCode);
+        return jsonObject;
     }
 }

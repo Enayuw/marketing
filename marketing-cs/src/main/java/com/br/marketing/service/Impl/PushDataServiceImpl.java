@@ -1580,10 +1580,10 @@ public class PushDataServiceImpl implements PushDataService {
             HashMap<String, JSONObject> xieChengCallPushCondition = marketingCommonConfig.getXieChengCallPushCondition();
             if(xieChengCallPushCondition == null){
                 xieChengCallPushCondition=new HashMap<>();
-                xieChengCallPushCondition.put("3710058",getJo("1",Arrays.asList("3710058","3710078")));
-                xieChengCallPushCondition.put("3710078",getJo("1",Arrays.asList("3710058","3710078")));
-                xieChengCallPushCondition.put("3710090",getJo("2",Arrays.asList("3710058","3710078")));
-                xieChengCallPushCondition.put("3710091",getJo("2",Arrays.asList("3710058","3710078")));
+                xieChengCallPushCondition.put("3710058",getJo("1",Arrays.asList("3710058","3710078"), "3710058"));
+                xieChengCallPushCondition.put("3710078",getJo("1",Arrays.asList("3710058","3710078"), "3710058"));
+                xieChengCallPushCondition.put("3710090",getJo("2",Arrays.asList("3710090","3710091"), "3710090"));
+                xieChengCallPushCondition.put("3710091",getJo("2",Arrays.asList("3710090","3710091"), "3710090"));
             }
             JSONObject condition = xieChengCallPushCondition.get(apiCode);
             String conditionKey = condition.getString("condition");
@@ -1751,12 +1751,13 @@ public class PushDataServiceImpl implements PushDataService {
         return false;
     }
 
-    private JSONObject getJo(String condition,List<String> soleCellApiCodes){
+    private JSONObject getJo(String condition,List<String> soleCellApiCodes, String mainApiCode){
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("condition",condition);
         jsonObject.put("isBlackApiCodes",soleCellApiCodes);
         jsonObject.put("convTypeApiCodes",soleCellApiCodes);
         jsonObject.put("soleCellApiCodes",soleCellApiCodes);
+        jsonObject.put("mainApiCode",mainApiCode);
         return jsonObject;
     }
 
