@@ -274,11 +274,6 @@ public class XieChengService {
         /**
          * data 组装
          */
-
-        String xieChengNewAppId = marketingCommonConfig.getXieChengNewAppId();
-        if(!StringUtils.isEmpty(xieChengNewAppId)){
-            smsCollidingAppId =  xieChengNewAppId;
-        }
         XieChengSmsCollidingReq xieChengSmsCollidingReq = new XieChengSmsCollidingReq(
                 smsCollidingAppId, sha256CodeList, CODETYPE, MARKETTYPE, MARKETFINANCEUSER
         );
@@ -325,6 +320,7 @@ public class XieChengService {
         XieChengSmsCollidingReq xieChengSmsCollidingReq = new XieChengSmsCollidingReq(
                 smsCollidingVtAppId, sha256CodeList, CODETYPE, MARKETTYPE, MARKETFINANCEUSER
         );
+        log.warn("携程appId:{}",smsCollidingVtAppId);
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         Map<String, Object> retMap = Maps.newHashMap();
         retMap.put("appId", smsCollidingVtAppId);
