@@ -79,9 +79,9 @@ public class XieChengVTRuleCollectDataImpl extends CommonMethodHandlerService {
                         .map(CallRecordBO::getCaseNum).collect(Collectors.toSet());
             }
 
-            // 封装满足条件的转化数据map
+            // 封装有110，106，107的custNum集合
             buildData(ruleNecessaryData, convTypeApiCodes, tcid, startDate, endDate, set);
-            // 封装有效期数据map
+            // 封装有效期数据集合
             buildValidData(apiCode, ruleNecessaryData, set);
             // 设置回上下文
             context.setRuleNecessaryData(ruleNecessaryData);
