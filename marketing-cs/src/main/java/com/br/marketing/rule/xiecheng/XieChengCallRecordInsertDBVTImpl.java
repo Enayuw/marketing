@@ -116,8 +116,10 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
         xieChengData.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
         xieChengData.setLocalId(bo.getId());
         xieChengData.setPushStatus(1);
-        xieChengData.setStatus(1);
         xieChengData.setType("1");
+
+        xieChengData.setDataMessage("有效期内命中convType110且一小时内没有命中106");
+        xieChengData.setStatus(2);
         xieChengDataMapper.insertSelective(xieChengData);
     }
 

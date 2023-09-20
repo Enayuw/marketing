@@ -51,6 +51,7 @@ public class XieChengVTPushHandler extends AbstractExternalInterfaceHandler<XieC
         for (XieChengDataDTO dto : list) {
             Boolean toDelay = dto.getToDelay();
             if (!toDelay) {
+                // 推送至携程队列
                 XieChengData xieChengData = dto.getXieChengData();
                 xieChengData.setCreateTime(new Date());
                 xieChengData.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
@@ -67,18 +68,13 @@ public class XieChengVTPushHandler extends AbstractExternalInterfaceHandler<XieC
                             , msg.toJSONString());
                 }
             } else {
-//                JSONObject jsonObject = new JSONObject();
-//                jsonObject.put("apiCode",context.getApiCode());
-//                jsonObject.put("ids",list.stream().map(XieChengDataDTO::getInitId).collect(Collectors.toSet()));
-//                jsonObject.put("tcId",handlerService.getTcIdFromRedis(context.getApiCode()));
-
+                // 推送至延迟队列
                 MqFact mqFact = new MqFact();
                 mqFact.setSourceId(context.getTransferInfoId());
                 mqFact.setIsDelay(1);
                 Set set = new HashSet<>();
                 set.add("XieCheng_CallRecord_Insert_DB_VT");
                 mqFact.setIncludeRules(set);
-//                mqFact.setMessage(jsonObject.toJSONString());
                 mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
                 String message = JSON.toJSONString(mqFact);
                 producter.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY, message, expireTime);
