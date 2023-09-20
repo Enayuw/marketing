@@ -57,6 +57,7 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
 
             // 该custNum不在有效期内，或用通话明细custNum没查到转化明细：进携程队列
             if (periodBO == null || CollectionUtils.isEmpty(map)) {
+                log.warn("携程通话明细数据推送客户接口，该custNum不在有效期内，或根据custNum和有效期范围没查询到转化数据，该数据直接进入推送携程队列，custNum：{}", bo.getCaseNum());
                 xieChengDataDTO.setToDelay(false);
                 return xieChengDataDTO;
             }
@@ -95,6 +96,7 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
                 Boolean hasApplySuccess = map.get(bo.getCaseNum()).getHasApplySuccess();
                 // 转化数据convType没有106
                 if (!hasApplySuccess) {
+                    log.warn("携程通话明细数据推送客户接口，有效期内命中convType110且一小时内没有命中106，该数据不推送客户接口。custNum：{}", bo.getCaseNum());
                     // 剔除数据也记录到表：b_xiecheng_data
                     keepRecord(bo);
                     return false;

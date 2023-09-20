@@ -16,8 +16,10 @@ import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import javafx.util.Pair;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -31,6 +33,7 @@ import java.util.stream.Collectors;
  * 携程规则所需要的数据
  */
 @Service
+@Slf4j
 public class XieChengVTRuleCollectDataImpl extends CommonMethodHandlerService {
 
     @Resource
@@ -47,10 +50,10 @@ public class XieChengVTRuleCollectDataImpl extends CommonMethodHandlerService {
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
         HashMap<String, JSONObject> xieChengCallPushCondition = marketingCommonConfig.getXieChengCallPushCondition();
-        if(xieChengCallPushCondition == null){
-            xieChengCallPushCondition=new HashMap<>();
-            xieChengCallPushCondition.put("3710090",getJo("2",Arrays.asList("3710090","3710091"), "3710090"));
-            xieChengCallPushCondition.put("3710091",getJo("2",Arrays.asList("3710090","3710091"), "3710090"));
+        if (xieChengCallPushCondition == null) {
+            xieChengCallPushCondition = new HashMap<>();
+            xieChengCallPushCondition.put("3710090", getJo("2", Arrays.asList("3710090", "3710091"), "3710090"));
+            xieChengCallPushCondition.put("3710091", getJo("2", Arrays.asList("3710090", "3710091"), "3710090"));
         }
         JSONObject condition = xieChengCallPushCondition.get(context.getApiCode());
         // 查询有效期使用的apiCode
@@ -69,18 +72,20 @@ public class XieChengVTRuleCollectDataImpl extends CommonMethodHandlerService {
             Object o = transmitFacts.get(0);
             XieChengRuleNecessaryData ruleNecessaryData = new XieChengRuleNecessaryData();
             Set<String> set = new HashSet<>();
-
+            Integer type = 0;
             if (o instanceof MarketingTransferSyncUser) {
                 List<MarketingTransferSyncUser> list = (List<MarketingTransferSyncUser>) transmitFacts;
                 set = list.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+                type = 1;
             } else if (o instanceof CallRecordBO) {
                 List<CallRecordBO> list = (List<CallRecordBO>) transmitFacts;
                 set = list.stream()
                         .map(CallRecordBO::getCaseNum).collect(Collectors.toSet());
+                type = 2;
             }
 
             // 封装有110，106，107的custNum集合
-            buildData(ruleNecessaryData, convTypeApiCodes, tcid, startDate, endDate, set);
+            buildData(ruleNecessaryData, convTypeApiCodes, tcid, startDate, endDate, set, type);
             // 封装有效期数据集合
             buildValidData(apiCode, ruleNecessaryData, set);
             // 设置回上下文
@@ -95,11 +100,15 @@ public class XieChengVTRuleCollectDataImpl extends CommonMethodHandlerService {
     }
 
     private void buildData(XieChengRuleNecessaryData ruleNecessaryData, JSONArray convTypeApiCodes, String tcid, String startDate, String endDate,
-                           Set<String> set) {
+                           Set<String> set, Integer type) {
         List<XieChengJudgeConvTypeValue> xieChengJudgeConvType = marketingTransferSyncUserMapper.getXieChengJudgeConvType(tcid, convTypeApiCodes,
                 startDate, endDate, set);
         Map<String, XieChengJudgeConvTypeValue> map =
                 xieChengJudgeConvType.stream().collect(Collectors.toMap(XieChengJudgeConvTypeValue::getCustNum, Function.identity()));
+        if (CollectionUtils.isEmpty(map)) {
+            String msg = type == 1 ? "携程转化数据推送客服转化过滤接口" : "携程通话明细数据推送客户接口";
+            log.warn(msg + "，根据custNum和有效期范围没查询到转化数据，custNum：{}，startDate：{}，endDate：{}", String.join(",", set), startDate, endDate);
+        }
         ruleNecessaryData.setMap(map);
     }
 
@@ -114,13 +123,13 @@ public class XieChengVTRuleCollectDataImpl extends CommonMethodHandlerService {
         private Map<String, SyncUserValidityPeriodBO> validMap;
     }
 
-    private JSONObject getJo(String condition,List<String> soleCellApiCodes, String mainApiCode){
+    private JSONObject getJo(String condition, List<String> soleCellApiCodes, String mainApiCode) {
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("condition",condition);
-        jsonObject.put("isBlackApiCodes",soleCellApiCodes);
-        jsonObject.put("convTypeApiCodes",soleCellApiCodes);
-        jsonObject.put("soleCellApiCodes",soleCellApiCodes);
-        jsonObject.put("mainApiCode",mainApiCode);
+        jsonObject.put("condition", condition);
+        jsonObject.put("isBlackApiCodes", soleCellApiCodes);
+        jsonObject.put("convTypeApiCodes", soleCellApiCodes);
+        jsonObject.put("soleCellApiCodes", soleCellApiCodes);
+        jsonObject.put("mainApiCode", mainApiCode);
         return jsonObject;
     }
 }
