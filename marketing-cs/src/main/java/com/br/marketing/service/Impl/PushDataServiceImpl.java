@@ -1314,7 +1314,7 @@ public class PushDataServiceImpl implements PushDataService {
             // 初始化线程池
             ThreadResult result = getThreadResult();
             Integer sendDate = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-            Long indexId = 1L;
+            Long indexId = null;
             while (true) {
                 // 动态修改线程参数
                 changeTpProperties(result.xieChengSmsCollidingThreadLogSaveVt,result.xieChengSmsCollidingThreadVt, result.xieChengSmsCollidingThreadLogUpdateVt);
