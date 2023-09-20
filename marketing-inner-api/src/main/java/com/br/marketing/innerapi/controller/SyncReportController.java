@@ -59,7 +59,7 @@ public class SyncReportController {
         return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
     }
 
-    @GetMapping("/getReportListTotal")
+    @PostMapping("/getReportListTotal")
     @ApiOperation(value = "客户上传数据统计报表总计", notes = "客户上传数据统计报表列表总计", httpMethod = "GET")
     @ApiImplicitParams({@ApiImplicitParam(name = "cidOrName", value = "客户名称/客户编号",paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "appletTimeStart", value = "上传日期开始",paramType = "query", dataType = "string")
