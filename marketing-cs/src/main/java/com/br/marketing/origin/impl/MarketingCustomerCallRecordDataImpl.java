@@ -38,18 +38,20 @@ public class MarketingCustomerCallRecordDataImpl implements OriginDataService {
 
         CallRecordBO bo = new CallRecordBO();
         CallRecordDetailBO callRecordDetailBO = new CallRecordDetailBO();
-        BeanUtils.copyProperties(callRecord,bo);
-        BeanUtils.copyProperties(callRecord,callRecordDetailBO);
+        BeanUtils.copyProperties(callRecord, bo);
+        BeanUtils.copyProperties(callRecord, callRecordDetailBO);
         bo.setDetail(callRecordDetailBO);
-
-        Map map = (Map) JSONObject.parse(bo.getDetail().getUserProperties());
-        if(StringUtils.isNotEmpty(map) && StringUtils.isNotEmpty(map.get("groupType"))){
-            String groupType = map.get("groupType").toString().trim();
-            bo.setUserType(groupType);
+        try {
+            Map map = (Map) JSONObject.parse(bo.getDetail().getUserProperties());
+            if (StringUtils.isNotEmpty(map) && StringUtils.isNotEmpty(map.get("groupType"))) {
+                String groupType = map.get("groupType").toString().trim();
+                bo.setUserType(groupType);
+            }
+        } catch (Exception ignored) {
         }
-        if(mqFact.getIsDelay()!=null && mqFact.getIsDelay()==1){
+        if (mqFact.getIsDelay() != null && mqFact.getIsDelay() == 1) {
             bo.setDataSource(1);
-        }else {
+        } else {
             bo.setDataSource(0);
         }
 //        log.warn("collect()拨打记录数据，id={}",mqFact.getSourceId());

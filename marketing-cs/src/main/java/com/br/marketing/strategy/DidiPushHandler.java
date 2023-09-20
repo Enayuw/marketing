@@ -26,6 +26,9 @@ public class DidiPushHandler extends AbstractExternalInterfaceHandler<DidiCallRe
     @Override
     JSONObject call(List<DidiCallRecord> list, ProcessHandlerContext context) {
         for (DidiCallRecord dto : list) {
+            if (dto == null) {
+                continue;
+            }
             int i = didiCallRecordMapper.insertSelective(dto);
         }
         return null;

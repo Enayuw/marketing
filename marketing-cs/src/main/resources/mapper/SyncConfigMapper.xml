@@ -54,30 +54,33 @@
 	</insert>
 
 	<select id="getSftpList" resultType="com.br.marketing.vo.SyncConfigEditVO">
-		select id
-		, api_code
-		, src_path as srcPath
-		, target_path as targetPath
-		, type as type
-		, data_type as dataType
-		,suffix as suffix
-		,src_sftp_host as srcSftpHost
-		,src_sftp_port as srcSftpPort
-		,src_sftp_user as srcSftpUser
-		,src_sftp_pwd as srcSftpPwd
-		,target_sftp_host as targetSftpHost
-		,target_sftp_port as targetSftpPort
-		,target_sftp_user as targetSftpUser
-		,target_sftp_pwd as targetSftpPwd
-		,src_type as srcType
-		,target_type as targetType
-		from b_sync_config sc
-		<where>
-			status = 1
-			<if test="apiCode != null and apiCode.trim() neq ''">
-				and api_code like CONCAT('%',#{apiCode},'%')
-			</if>
-		</where>
-		order by create_time desc
-	</select>
+        select id
+             , api_code
+             , src_path         as srcPath
+             , target_path      as targetPath
+             , type             as type
+             , data_type        as dataType
+             , suffix           as suffix
+             , src_sftp_host    as srcSftpHost
+             , src_sftp_port    as srcSftpPort
+             , src_sftp_user    as srcSftpUser
+             , src_sftp_pwd     as srcSftpPwd
+             , target_sftp_host as targetSftpHost
+             , target_sftp_port as targetSftpPort
+             , target_sftp_user as targetSftpUser
+             , target_sftp_pwd  as targetSftpPwd
+             , src_type         as srcType
+             , target_type      as targetType
+        from b_sync_config sc
+        <where>
+            status = 1
+            <if test="apiCode != null and apiCode.trim() neq ''">
+                and api_code like CONCAT('%', #{apiCode}, '%')
+            </if>
+            <if test="dataType != null">
+                and data_type = #{dataType}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
 </mapper>
