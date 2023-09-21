@@ -17,7 +17,7 @@
                                                         order by id asc
                    )dvt
                        left join
-                   (select id,sha256_code_list from  b_xiecheng_sms_colliding_data_log_vt where    send_date =#{sendDate}) dlvt
+                   (select id,sha256_code_list from  b_xiecheng_sms_colliding_data_log_vt where    send_date =#{sendDate} and status in(1,2,3)) dlvt
                    on dvt.sha256_code_list = dlvt.sha256_code_list
         where dlvt.id is null  limit #{xieChengSmsCollidingDataVtPageSize};
     </select>
