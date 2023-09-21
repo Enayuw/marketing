@@ -313,9 +313,14 @@ public class XieChengService {
         /*
           data 组装
          */
+        String xieChengNewAppId = marketingCommonConfig.getXieChengNewAppId();
+        if(!StringUtils.isEmpty(xieChengNewAppId)){
+            smsCollidingVtAppId =  xieChengNewAppId;
+        }
         XieChengSmsCollidingReq xieChengSmsCollidingReq = new XieChengSmsCollidingReq(
-                appIdVt, sha256CodeList, CODETYPE, MARKETTYPE, MARKETFINANCEUSER
+                smsCollidingVtAppId, sha256CodeList, CODETYPE, MARKETTYPE, MARKETFINANCEUSER
         );
+        log.warn("携程appId:{}",smsCollidingVtAppId);
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         Map<String, Object> retMap = Maps.newHashMap();
         retMap.put("appId", smsCollidingVtAppId);
