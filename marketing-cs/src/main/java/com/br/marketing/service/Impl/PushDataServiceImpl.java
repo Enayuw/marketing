@@ -384,26 +384,28 @@ public class PushDataServiceImpl implements PushDataService {
         AtomicInteger fail = new AtomicInteger(0);
         AtomicInteger retry = new AtomicInteger(0);
         while (actionMark) {
-            List<PhoneSaleIbu> phoneSaleIbus =  phoneSaleIbuMapper.getPushDassTransferData(id, minId);
+            List<PhoneSaleIbu> phoneSaleIbus = phoneSaleIbuMapper.getPushDassTransferData(id, minId);
             number += phoneSaleIbus.size();
             if (phoneSaleIbus.size() > 0) {
                 ArrayList<IbuReqDTO.Datum> reqlist = new ArrayList<>();
                 for (PhoneSaleIbu ibu : phoneSaleIbus) {
                     IbuReqDTO.Datum dataum = new IbuReqDTO.Datum();
-                    BeanUtils.copyProperties(ibu,dataum);
-                    dataum.setPlanId(StringUtils.isNotBlank(ibu.getPlanId())?Integer.valueOf(ibu.getPlanId()):null);
-                    dataum.setCallAccessScore(StringUtils.isNotBlank(ibu.getCallAccessScore())?Integer.valueOf(ibu.getCallAccessScore()):null);
-                    dataum.setPid(StringUtils.isNotBlank(ibu.getPid())?Integer.valueOf(ibu.getPid()):null);
-                    dataum.setConnectTimes(StringUtils.isNotBlank(ibu.getConnectTimes())?Integer.valueOf(ibu.getConnectTimes()):null);
-                    dataum.setZyTotalUsableAmount(StringUtils.isNotBlank(ibu.getZyTotalUsableAmount())?new BigDecimal(ibu.getZyTotalUsableAmount()):null);
-                    if(StringUtils.isNotBlank(ibu.getRecommendH5List())){
+                    BeanUtils.copyProperties(ibu, dataum);
+                    dataum.setPlanId(StringUtils.isNotBlank(ibu.getPlanId()) ? Integer.valueOf(ibu.getPlanId()) : null);
+                    dataum.setCallAccessScore(StringUtils.isNotBlank(ibu.getCallAccessScore()) ? Integer.valueOf(ibu.getCallAccessScore()) : null);
+                    dataum.setPid(StringUtils.isNotBlank(ibu.getPid()) ? Integer.valueOf(ibu.getPid()) : null);
+                    dataum.setConnectTimes(StringUtils.isNotBlank(ibu.getConnectTimes()) ? Integer.valueOf(ibu.getConnectTimes()) : null);
+                    dataum.setZyTotalUsableAmount(StringUtils.isNotBlank(ibu.getZyTotalUsableAmount()) ?
+                            new BigDecimal(ibu.getZyTotalUsableAmount()) : null);
+                    if (StringUtils.isNotBlank(ibu.getRecommendH5List())) {
                         dataum.setRecommendH5List(Arrays.asList(ibu.getRecommendList()));
                     }
-                    if(StringUtils.isNotBlank(ibu.getRecommendList())){
+                    if (StringUtils.isNotBlank(ibu.getRecommendList())) {
                         dataum.setRecommendList(Arrays.asList(ibu.getRecommendList()));
                     }
-                    dataum.setZyApplyFlag(StringUtils.isNotBlank(ibu.getZyApplyFlag())?Boolean.valueOf(ibu.getZyApplyFlag()):null);
-                    dataum.setZyApplySuccessFlag(StringUtils.isNotBlank(ibu.getZyApplySuccessFlag())?Boolean.valueOf(ibu.getZyApplySuccessFlag()):null);
+                    dataum.setZyApplyFlag(StringUtils.isNotBlank(ibu.getZyApplyFlag()) ? Boolean.valueOf(ibu.getZyApplyFlag()) : null);
+                    dataum.setZyApplySuccessFlag(StringUtils.isNotBlank(ibu.getZyApplySuccessFlag()) ?
+                            Boolean.valueOf(ibu.getZyApplySuccessFlag()) : null);
                     if (StringUtils.isNotBlank(ibu.getPhone())) {
                         dataum.setPhone(BrCipherMaker.getInstance().decode(ibu.getPhone()));
                     }
@@ -420,11 +422,11 @@ public class PushDataServiceImpl implements PushDataService {
                 threadPool.submit(() -> {
                     Result result = methodRetryHandlerService.dassIbuWithFile(reqlist, null);
                     int size = reqlist.size();
-                    if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                    if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                         success.addAndGet(size);
-                    }else if(ResultCode.FAIL.getValue().equals(result.getCode())){
+                    } else if (ResultCode.FAIL.getValue().equals(result.getCode())) {
                         fail.addAndGet(size);
-                    }else{
+                    } else {
                         retry.addAndGet(size);
                     }
                 });
@@ -451,9 +453,9 @@ public class PushDataServiceImpl implements PushDataService {
             content.append("apiCode：".concat(localFile.getApiCode()).concat("\r\n"))
                     .append("fileName：".concat(localFile.getFileName()).concat("\r\n"))
                     .append("数量：".concat(number.toString()).concat("\r\n"))
-                    .append("成功数量：".concat(success.get()+"").concat("\r\n"))
-                    .append("失败数量：".concat(fail.get()+"").concat("\r\n"))
-                    .append("需重试数量：".concat(retry.get()+"").concat("\r\n"))
+                    .append("成功数量：".concat(success.get() + "").concat("\r\n"))
+                    .append("失败数量：".concat(fail.get() + "").concat("\r\n"))
+                    .append("需重试数量：".concat(retry.get() + "").concat("\r\n"))
                     .append("文件推送dass转化结束".concat("\r\n"));
             alarmClient.sendAlarm(content.toString(), "Dass转化结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         }
@@ -801,17 +803,17 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     @Override
-    public Boolean isPushDassWithCallGrade(String ruleLabel,String intentionGrade) {
+    public Boolean isPushDassWithCallGrade(String ruleLabel, String intentionGrade) {
         HashMap<String, List<String>> gradeOfcallToDass = marketingCommonConfig.getGradeOfcallToDass();
         List<String> grades = gradeOfcallToDass.get(ruleLabel);
-        if(grades == null){
+        if (grades == null) {
             return false;
         }
-        if(org.apache.commons.lang3.StringUtils.isBlank(intentionGrade)){
+        if (org.apache.commons.lang3.StringUtils.isBlank(intentionGrade)) {
             return false;
         }
         for (String grade : grades) {
-            if(intentionGrade.toUpperCase().contains(grade)){
+            if (intentionGrade.toUpperCase().contains(grade)) {
                 return true;
             }
         }
@@ -822,14 +824,14 @@ public class PushDataServiceImpl implements PushDataService {
     public String getStatusByGrade(String ruleLabel, String intentionGrade) {
         HashMap<String, List<String>> gradeOfcallToDass = marketingCommonConfig.getGradeOfcallToDass();
         List<String> grades = gradeOfcallToDass.get(ruleLabel);
-        if(grades == null){
+        if (grades == null) {
             return "";
         }
-        if(org.apache.commons.lang3.StringUtils.isBlank(intentionGrade)){
+        if (org.apache.commons.lang3.StringUtils.isBlank(intentionGrade)) {
             return "";
         }
         for (String grade : grades) {
-            if(intentionGrade.toUpperCase().contains(grade)){
+            if (intentionGrade.toUpperCase().contains(grade)) {
                 return grade.toLowerCase();
             }
         }
@@ -999,7 +1001,6 @@ public class PushDataServiceImpl implements PushDataService {
 
     /**
      * 数禾推送电销
-     *
      * @param pushShDXDTO
      * @return 传输数据样例
      * LocalFile localFile = new LocalFile();
@@ -1158,7 +1159,6 @@ public class PushDataServiceImpl implements PushDataService {
      * // 7. 成功后释放锁
      * // 8. 全部推送结束  关闭线程池。
      * // 9. 若 type 为 0 ，则需要统计上传推送数量 和重复数据
-     *
      * @param
      * @return
      */
@@ -1271,14 +1271,15 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     @Override
-    public void  pushXieChengSmsCollidingToDbData(String data) {
+    public void pushXieChengSmsCollidingToDbData(String data) {
         try {
             JSONObject jsonObject = JSONObject.parseObject(data);
             Long localId = Long.valueOf(jsonObject.getInteger("localId"));
             Boolean isNewFile = jsonObject.getBooleanValue("isNewFile");
             // 创建线程池
             ThreadPoolExecutor xieChengSmsCollidingThread =
-                    BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingThread(), marketingCommonConfig.getXieChengSmsCollidingThread());
+                    BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingThread(),
+                            marketingCommonConfig.getXieChengSmsCollidingThread());
 
             boolean actionMark = true;
             // 根据id匹配 进行数据查询 每批次查询 20000
@@ -1314,6 +1315,7 @@ public class PushDataServiceImpl implements PushDataService {
             log.error("携程短信撞库接口推送异常:{}", e);
         }
     }
+
     @Override
     public void pushXieChengSmsCollidingToDbDataVt(Long localId) {
         try {
@@ -1323,30 +1325,32 @@ public class PushDataServiceImpl implements PushDataService {
             Long indexId = 1L;
             while (true) {
                 // 动态修改线程参数
-                changeTpProperties(result.xieChengSmsCollidingThreadLogSaveVt,result.xieChengSmsCollidingThreadVt, result.xieChengSmsCollidingThreadLogUpdateVt);
+                changeTpProperties(result.xieChengSmsCollidingThreadLogSaveVt, result.xieChengSmsCollidingThreadVt,
+                        result.xieChengSmsCollidingThreadLogUpdateVt);
 
                 // 查询需要推送的基础数据
                 List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataVtList =
-                        xieChengSmsCollidingDataVtMapper.selectByLocalIdVttikv_(indexId,localId,sendDate,marketingCommonConfig.getXieChengSmsCollidingDataVtPageSize());
+                        xieChengSmsCollidingDataVtMapper.selectByLocalIdVttikv_(indexId, localId, sendDate,
+                                marketingCommonConfig.getXieChengSmsCollidingDataVtPageSize());
                 if (xieChengSmsCollidingDataVtList.isEmpty()) break;
-                indexId = xieChengSmsCollidingDataVtList.get(xieChengSmsCollidingDataVtList.size()-1).getId();
+                indexId = xieChengSmsCollidingDataVtList.get(xieChengSmsCollidingDataVtList.size() - 1).getId();
                 // 存储推送日志
                 List<List<XieChengSmsCollidingDataVt>> partition = Lists.partition(xieChengSmsCollidingDataVtList, 1000);
                 List<Callable<Integer>> saveLogListTask = new ArrayList<>();
-                partition.forEach(p->{
-                    saveLogListTask.add(()->{
+                partition.forEach(p -> {
+                    saveLogListTask.add(() -> {
                         return saveXieChengSmsCollidingDataLogVts(sendDate, p);
                     });
                 });
                 List<Future<Integer>> futures = result.xieChengSmsCollidingThreadLogSaveVt.invokeAll(saveLogListTask);
-                for(int i=0;i<futures.size();i++){
+                for (int i = 0; i < futures.size(); i++) {
                     Integer integer = futures.get(i).get();
-                    if(integer==0){
+                    if (integer == 0) {
                         log.error("插入数据库异常");
                     }
                 }
                 // 将查询出来的明细数据进行分组，每组50个数据
-                sendXieChengDataVt(result, xieChengSmsCollidingDataVtList,sendDate);
+                sendXieChengDataVt(result, xieChengSmsCollidingDataVtList, sendDate);
             }
             // 线程池关门
             closedThreadPoll(result);
@@ -1362,7 +1366,7 @@ public class PushDataServiceImpl implements PushDataService {
     private void sendAlertMessage(Integer sendDate) {
         XieChengSmsCollidingDataLogVtExample xevt = new XieChengSmsCollidingDataLogVtExample();
         xevt.createCriteria().andStatusEqualTo(3).andSendDateEqualTo(sendDate);
-        AtomicInteger failNum  = new AtomicInteger(xieChengSmsCollidingDataLogVtMapper.countByExample(xevt));
+        AtomicInteger failNum = new AtomicInteger(xieChengSmsCollidingDataLogVtMapper.countByExample(xevt));
         xieChengSendAlarm(failNum, "携程短信撞库【VT】失败信息。");
     }
 
@@ -1398,12 +1402,12 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
 
-    private void sendXieChengDataVt(ThreadResult result, List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataVtList,Integer sendDate) {
+    private void sendXieChengDataVt(ThreadResult result, List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataVtList, Integer sendDate) {
         List<List<XieChengSmsCollidingDataVt>> xieChengSmsCollidingDataVtPartitions =
                 Lists.partition(xieChengSmsCollidingDataVtList, XIECHENGSMSCOLLIDINGPARTATIONNUM);
         for (List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataListVtPartition : xieChengSmsCollidingDataVtPartitions) {
             result.xieChengSmsCollidingThreadVt.submit(() ->
-                    pushXieChengSmsCollidingDataVt(xieChengSmsCollidingDataListVtPartition, result,sendDate));
+                    pushXieChengSmsCollidingDataVt(xieChengSmsCollidingDataListVtPartition, result, sendDate));
         }
     }
 
@@ -1422,7 +1426,8 @@ public class PushDataServiceImpl implements PushDataService {
         ThreadPoolExecutor xieChengSmsCollidingThreadLogUpdateVt = BrExecutors.getThreadPool(
                 marketingCommonConfig.getXieChengSmsCollidingThreadLogUpdateVt(),
                 marketingCommonConfig.getXieChengSmsCollidingThreadLogUpdateVt());
-        ThreadResult result = new ThreadResult(xieChengSmsCollidingThreadLogSaveVt,xieChengSmsCollidingThreadVt, xieChengSmsCollidingThreadLogUpdateVt);
+        ThreadResult result = new ThreadResult(xieChengSmsCollidingThreadLogSaveVt, xieChengSmsCollidingThreadVt,
+                xieChengSmsCollidingThreadLogUpdateVt);
         return result;
     }
 
@@ -1433,15 +1438,16 @@ public class PushDataServiceImpl implements PushDataService {
         public final ThreadPoolExecutor xieChengSmsCollidingThreadLogUpdateVt;
 
 
-
-        public ThreadResult(ThreadPoolExecutor xieChengSmsCollidingThreadLogSaveVt,ThreadPoolExecutor xieChengSmsCollidingThreadVt, ThreadPoolExecutor xieChengSmsCollidingThreadLogUpdateVt) {
+        public ThreadResult(ThreadPoolExecutor xieChengSmsCollidingThreadLogSaveVt, ThreadPoolExecutor xieChengSmsCollidingThreadVt,
+                            ThreadPoolExecutor xieChengSmsCollidingThreadLogUpdateVt) {
             this.xieChengSmsCollidingThreadLogSaveVt = xieChengSmsCollidingThreadLogSaveVt;
             this.xieChengSmsCollidingThreadVt = xieChengSmsCollidingThreadVt;
             this.xieChengSmsCollidingThreadLogUpdateVt = xieChengSmsCollidingThreadLogUpdateVt;
         }
     }
 
-    private void changeTpProperties(ThreadPoolExecutor xieChengSmsCollidingThreadLogSaveVt,ThreadPoolExecutor xieChengSmsCollidingThreadVt, ThreadPoolExecutor xieChengSmsCollidingThreadLogUpdateVt) {
+    private void changeTpProperties(ThreadPoolExecutor xieChengSmsCollidingThreadLogSaveVt, ThreadPoolExecutor xieChengSmsCollidingThreadVt,
+                                    ThreadPoolExecutor xieChengSmsCollidingThreadLogUpdateVt) {
         xieChengSmsCollidingThreadLogSaveVt.setMaximumPoolSize(marketingCommonConfig.getXieChengSmsCollidingThreadLogSaveVt());
         xieChengSmsCollidingThreadLogSaveVt.setCorePoolSize(marketingCommonConfig.getXieChengSmsCollidingThreadLogSaveVt());
         xieChengSmsCollidingThreadVt.setMaximumPoolSize(marketingCommonConfig.getXieChengSmsCollidingThreadVt());
@@ -1450,7 +1456,7 @@ public class PushDataServiceImpl implements PushDataService {
         xieChengSmsCollidingThreadLogUpdateVt.setCorePoolSize(marketingCommonConfig.getXieChengSmsCollidingThreadLogUpdateVt());
     }
 
-    private Integer  saveXieChengSmsCollidingDataLogVts(Integer sendDate, List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataVtList) {
+    private Integer saveXieChengSmsCollidingDataLogVts(Integer sendDate, List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataVtList) {
 
         List<XieChengSmsCollidingDataLogVt> xcvtList = xieChengSmsCollidingDataVtList.stream()
                 .map(x -> {
@@ -1466,12 +1472,12 @@ public class PushDataServiceImpl implements PushDataService {
                             return xieChengSmsCollidingDataLogVt;
                         }
                 ).collect(Collectors.toList());
-        return   xieChengSmsCollidingDataLogVtMapper.saveBatchLogVt(xcvtList);
+        return xieChengSmsCollidingDataLogVtMapper.saveBatchLogVt(xcvtList);
 
     }
 
     public void pushXieChengSmsCollidingDataVt(List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataVtPartition,
-                                               ThreadResult result,Integer sendDate) {
+                                               ThreadResult result, Integer sendDate) {
         try {
             List<String> sha256CodeList = xieChengSmsCollidingDataVtPartition.stream()
                     .map(XieChengSmsCollidingDataVt::getSha256CodeList).collect(Collectors.toList());
@@ -1485,8 +1491,8 @@ public class PushDataServiceImpl implements PushDataService {
 
                     JSONArray returnDataList = resultJson.getJSONArray("data");
                     // mq 更新日志
-                    List<XieChengSmsCollidingDataLogVt> xieChengSmsCollidingDataLogVtList= initLogVt(returnDataList,sendDate);
-                    for (int i = 0; i < xieChengSmsCollidingDataLogVtList.size(); i++){
+                    List<XieChengSmsCollidingDataLogVt> xieChengSmsCollidingDataLogVtList = initLogVt(returnDataList, sendDate);
+                    for (int i = 0; i < xieChengSmsCollidingDataLogVtList.size(); i++) {
                         XieChengSmsCollidingDataLogVt xieChengSmsCollidingDataLogVt = xieChengSmsCollidingDataLogVtList.get(i);
                         result.xieChengSmsCollidingThreadLogUpdateVt.submit(() -> {
                             try {
@@ -1495,14 +1501,14 @@ public class PushDataServiceImpl implements PushDataService {
                                 log.error("携程更新日志异常！");
                             }
                         });
-                }
+                    }
                     // mq 消息发送
                     sendMqData(xieChengSmsCollidingDataLogVtList);
 
                 } else {
                     // 异常请求 只更新日志表状态3
                     String msg = resultJson.getString("msg");
-                    xieChengSmsCollidingDataLogVtMapper.updateBatchVt(sha256CodeList, 3, msg,sendDate);
+                    xieChengSmsCollidingDataLogVtMapper.updateBatchVt(sha256CodeList, 3, msg, sendDate);
                 }
             }
         } catch (Exception e) {
@@ -1573,17 +1579,17 @@ public class PushDataServiceImpl implements PushDataService {
         try {
             countDownLatch.countDown();
             AdReqDTO adReqDTO = new AdReqDTO();
-            BeanUtils.copyProperties(xieChengData,adReqDTO);
+            BeanUtils.copyProperties(xieChengData, adReqDTO);
 
             //region 获取配置信息
             String apiCode = adReqDTO.getApiCode();
             HashMap<String, JSONObject> xieChengCallPushCondition = marketingCommonConfig.getXieChengCallPushCondition();
-            if(xieChengCallPushCondition == null){
-                xieChengCallPushCondition=new HashMap<>();
-                xieChengCallPushCondition.put("3710058",getJo("1",Arrays.asList("3710058","3710078"), "3710058"));
-                xieChengCallPushCondition.put("3710078",getJo("1",Arrays.asList("3710058","3710078"), "3710058"));
-                xieChengCallPushCondition.put("3710090",getJo("2",Arrays.asList("3710090","3710091"), "3710090"));
-                xieChengCallPushCondition.put("3710091",getJo("2",Arrays.asList("3710090","3710091"), "3710090"));
+            if (xieChengCallPushCondition == null) {
+                xieChengCallPushCondition = new HashMap<>();
+                xieChengCallPushCondition.put("3710058", getJo("1", Arrays.asList("3710058", "3710078"), "3710058"));
+                xieChengCallPushCondition.put("3710078", getJo("1", Arrays.asList("3710058", "3710078"), "3710058"));
+                xieChengCallPushCondition.put("3710090", getJo("2", Arrays.asList("3710090", "3710091"), "3710090"));
+                xieChengCallPushCondition.put("3710091", getJo("2", Arrays.asList("3710090", "3710091"), "3710090"));
             }
             JSONObject condition = xieChengCallPushCondition.get(apiCode);
             String conditionKey = condition.getString("condition");
@@ -1596,7 +1602,7 @@ public class PushDataServiceImpl implements PushDataService {
             XieChengData resultData = new XieChengData();
             resultData.setId(adReqDTO.getId());
 
-            if(condition==null){
+            if (condition == null) {
                 resultData.setStatus(2);
                 resultData.setDataMessage("该apiCode未配置规则数据");
                 xieChengDataMapper.updateByPrimaryKeySelective(resultData);
@@ -1626,10 +1632,11 @@ public class PushDataServiceImpl implements PushDataService {
             }
 
             //region 特定剔除规则
-            if("1".equals(conditionKey)){
+            if ("1".equals(conditionKey)) {
                 //region 剔除规则1 查询黑名单和有效期内命中convType=106或107或110
-                MarketingTransferSyncUser xcTransferBlack = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyBlack(tcId, sha256Tel, isBlackApiCodes);
-                if(xcTransferBlack!=null){
+                MarketingTransferSyncUser xcTransferBlack = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyBlack(tcId, sha256Tel,
+                        isBlackApiCodes);
+                if (xcTransferBlack != null) {
                     resultData.setDataMessage("命中黑名单");
                     resultData.setStatus(2);
                     xieChengDataMapper.updateByPrimaryKeySelective(resultData);
@@ -1646,9 +1653,10 @@ public class PushDataServiceImpl implements PushDataService {
                     return;
                 }
                 //endregion
-            }else{
+            } else {
                 //region 剔除规则2 查询黑名单和当日撞库结果
-                MarketingTransferSyncUser xcTransferBlack = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyBlack(tcId, sha256Tel,isBlackApiCodes);
+                MarketingTransferSyncUser xcTransferBlack = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyBlack(tcId, sha256Tel,
+                        isBlackApiCodes);
                 if (xcTransferBlack != null) {
                     resultData.setDataMessage("命中黑名单");
                     resultData.setStatus(2);
@@ -1664,7 +1672,7 @@ public class PushDataServiceImpl implements PushDataService {
                         .andStatusEqualTo(2)
                         .andSendDateEqualTo(day);
                 List<XieChengSmsCollidingDataLogVt> xieChengSmsCollidingDataLogVts = xieChengSmsCollidingDataLogVtMapper.selectByExample(vtExample);
-                if (xieChengSmsCollidingDataLogVts.size()<=0) {
+                if (xieChengSmsCollidingDataLogVts.size() <= 0) {
                     resultData.setDataMessage("没有获取到当日撞库结果");
                     resultData.setStatus(2);
                     xieChengDataMapper.updateByPrimaryKeySelective(resultData);
@@ -1672,7 +1680,7 @@ public class PushDataServiceImpl implements PushDataService {
                     return;
                 }
                 XieChengSmsCollidingDataLogVt xieChengSmsCollidingDataLogVt = xieChengSmsCollidingDataLogVts.get(0);
-                if(!xieChengSmsCollidingDataLogVt.getResult()){
+                if (!xieChengSmsCollidingDataLogVt.getResult()) {
                     resultData.setDataMessage("命中当日撞库结果为false");
                     resultData.setStatus(2);
                     xieChengDataMapper.updateByPrimaryKeySelective(resultData);
@@ -1680,7 +1688,7 @@ public class PushDataServiceImpl implements PushDataService {
                     return;
                 }
                 if (StringUtils.isBlank(xieChengSmsCollidingDataLogVt.getOrgChannel())) {
-                    resultData.setDataMessage("命中当日OrgChannel为空,id="+xieChengSmsCollidingDataLogVt.getSmsCollidingDataVtId());
+                    resultData.setDataMessage("命中当日OrgChannel为空,id=" + xieChengSmsCollidingDataLogVt.getSmsCollidingDataVtId());
                     resultData.setStatus(2);
                     xieChengDataMapper.updateByPrimaryKeySelective(resultData);
                     redisChgService.unlock(key, value);
@@ -1694,7 +1702,7 @@ public class PushDataServiceImpl implements PushDataService {
             //endregion
 
             //region 查询到当前电话数据是否推送过 有不推，反之就推。
-            List<XieChengData> xieChengRepeatDatalist = xieChengDataMapper.getByCellToday(sha256Tel,soleCellApiCodes);
+            List<XieChengData> xieChengRepeatDatalist = xieChengDataMapper.getByCellToday(sha256Tel, soleCellApiCodes);
             if (xieChengRepeatDatalist.isEmpty()) {
                 // 组装 clickId 13位时间戳+ 随机5位数字字母 + sha256tel
                 String clickId = System.currentTimeMillis() + getCode(5) + sha256Tel;
@@ -1717,22 +1725,28 @@ public class PushDataServiceImpl implements PushDataService {
             //endregion
             xieChengDataMapper.updateByPrimaryKeySelective(resultData);
             redisChgService.unlock(key, value);
-        }catch (Exception e){
-            log.error(e.getMessage(),e);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
     }
 
     private boolean hasConvType(String apiCode, JSONArray convTypeApiCodes, String tcId, String sha256Tel) {
-        Set<String> custNumSet = new HashSet<>();
-        custNumSet.add(sha256Tel);
+        Set<String> syncCustNumSet = new HashSet<>();
+        // sha256解密，log加密
+        String phone = RpcClientProxy.decode(sha256Tel, "cell", "sha", "");
+        String encode = BrCipherMaker.getInstance().encode(phone);
+        syncCustNumSet.add(encode);
         Map<String, SyncUserValidityPeriodBO> syncUser =
-                transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(custNumSet, apiCode, new Date());
+                transferDataValidityPeriodService.getValidityPeriodCellBatchFirstVersion(syncCustNumSet, apiCode, new Date());
         SyncUserValidityPeriodBO bo = syncUser.get(sha256Tel);
         if (bo != null) {
             Pair<String, String> validityRange =
                     validityPeriodDataService.getMarketingTransferDataWithValidityRange(apiCode);
             String startDate = validityRange.getKey();
             String endDate = validityRange.getValue();
+
+            Set<String> custNumSet = new HashSet<>();
+            custNumSet.add(sha256Tel);
             List<XieChengJudgeConvTypeValue> xieChengJudgeConvType = marketingTransferSyncUserMapper.getXieChengJudgeConvType(tcId,
                     convTypeApiCodes,
                     startDate, endDate, custNumSet);
@@ -1751,19 +1765,18 @@ public class PushDataServiceImpl implements PushDataService {
         return false;
     }
 
-    private JSONObject getJo(String condition,List<String> soleCellApiCodes, String mainApiCode){
+    private JSONObject getJo(String condition, List<String> soleCellApiCodes, String mainApiCode) {
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("condition",condition);
-        jsonObject.put("isBlackApiCodes",soleCellApiCodes);
-        jsonObject.put("convTypeApiCodes",soleCellApiCodes);
-        jsonObject.put("soleCellApiCodes",soleCellApiCodes);
-        jsonObject.put("mainApiCode",mainApiCode);
+        jsonObject.put("condition", condition);
+        jsonObject.put("isBlackApiCodes", soleCellApiCodes);
+        jsonObject.put("convTypeApiCodes", soleCellApiCodes);
+        jsonObject.put("soleCellApiCodes", soleCellApiCodes);
+        jsonObject.put("mainApiCode", mainApiCode);
         return jsonObject;
     }
 
     /**
      * 随机生成由数字、字母组成的N位验证码
-     *
      * @return 返回一个字符串
      */
     public static String getCode(int n) {
@@ -1781,7 +1794,6 @@ public class PushDataServiceImpl implements PushDataService {
 
     /**
      * 获取某天的时间,支持自定义时间格式
-     *
      * @param
      * @param index 为正表示当前时间加天数，为负表示当前时间减天数
      * @return String
@@ -1818,7 +1830,8 @@ public class PushDataServiceImpl implements PushDataService {
                 String lastTimeDay = getTimeDay(marketingCommonConfig.getXieChengSmsCollidingDays());
 
                 // 查询到当前数据距离当前时间 14*24 小时的范围内是否推送过
-                XieChengSmsCollidingDataLog xieChengSmsCollidingDataLogRe = xieChengSmsCollidingDataLogMapper.selectByCodeAndTime(sha256CodeList, lastTimeDay);
+                XieChengSmsCollidingDataLog xieChengSmsCollidingDataLogRe = xieChengSmsCollidingDataLogMapper.selectByCodeAndTime(sha256CodeList,
+                        lastTimeDay);
                 if (xieChengSmsCollidingDataLogRe == null) {
                     // 添加集合数据
                     collect.add(sha256CodeList);

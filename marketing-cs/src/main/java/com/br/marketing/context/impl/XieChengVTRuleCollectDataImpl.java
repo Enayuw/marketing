@@ -2,6 +2,7 @@ package com.br.marketing.context.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
@@ -10,6 +11,7 @@ import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.XieChengJudgeConvTypeValue;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.ValidityPeriodDataService;
@@ -20,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -71,23 +74,29 @@ public class XieChengVTRuleCollectDataImpl extends CommonMethodHandlerService {
         if (!transmitFacts.isEmpty()) {
             Object o = transmitFacts.get(0);
             XieChengRuleNecessaryData ruleNecessaryData = new XieChengRuleNecessaryData();
-            Set<String> set = new HashSet<>();
+            Set<String> transferSet = new HashSet<>();
             Integer type = 0;
             if (o instanceof MarketingTransferSyncUser) {
                 List<MarketingTransferSyncUser> list = (List<MarketingTransferSyncUser>) transmitFacts;
-                set = list.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+                transferSet = list.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
                 type = 1;
             } else if (o instanceof CallRecordBO) {
                 List<CallRecordBO> list = (List<CallRecordBO>) transmitFacts;
-                set = list.stream()
+                transferSet = list.stream()
                         .map(CallRecordBO::getCaseNum).collect(Collectors.toSet());
                 type = 2;
             }
 
             // 封装有110，106，107的custNum集合
-            buildData(ruleNecessaryData, convTypeApiCodes, tcid, startDate, endDate, set, type);
+            buildData(ruleNecessaryData, convTypeApiCodes, tcid, startDate, endDate, transferSet, type);
             // 封装有效期数据集合
-            buildValidData(apiCode, ruleNecessaryData, set);
+            Set<String> syncSet = transferSet.stream().map(custNum -> {
+                // sha256解密，log加密
+                String phone = RpcClientProxy.decode(custNum, "cell", "sha", "");
+                return BrCipherMaker.getInstance().encode(phone);
+            }).filter(StringUtils::hasText).collect(Collectors.toSet());
+
+            buildValidData(apiCode, ruleNecessaryData, syncSet);
             // 设置回上下文
             context.setRuleNecessaryData(ruleNecessaryData);
         }
@@ -95,7 +104,7 @@ public class XieChengVTRuleCollectDataImpl extends CommonMethodHandlerService {
 
     private void buildValidData(String apiCode, XieChengRuleNecessaryData ruleNecessaryData, Set<String> set) {
         Map<String, SyncUserValidityPeriodBO> syncUser =
-                transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(set, apiCode, new Date());
+                transferDataValidityPeriodService.getValidityPeriodCellBatchFirstVersion(set, apiCode, new Date());
         ruleNecessaryData.setValidMap(syncUser);
     }
 
