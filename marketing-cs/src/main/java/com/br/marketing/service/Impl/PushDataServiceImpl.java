@@ -1730,7 +1730,7 @@ public class PushDataServiceImpl implements PushDataService {
         syncCustNumSet.add(encode);
         Map<String, SyncUserValidityPeriodBO> syncUser =
                 transferDataValidityPeriodService.getValidityPeriodCellBatchFirstVersion(syncCustNumSet, apiCode, new Date());
-        SyncUserValidityPeriodBO bo = syncUser.get(sha256Tel);
+        SyncUserValidityPeriodBO bo = syncUser.get(encode);
         if (bo != null) {
             Pair<String, String> validityRange =
                     validityPeriodDataService.getMarketingTransferDataWithValidityRange(apiCode);
