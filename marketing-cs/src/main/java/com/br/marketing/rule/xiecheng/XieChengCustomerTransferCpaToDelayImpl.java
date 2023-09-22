@@ -43,6 +43,7 @@ public class XieChengCustomerTransferCpaToDelayImpl implements AssembleData<MqFa
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
+        log.warn("进入通用队列.......");
         boolean flag = Boolean.FALSE;
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;

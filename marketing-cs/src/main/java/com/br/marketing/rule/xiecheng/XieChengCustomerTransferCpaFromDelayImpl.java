@@ -73,44 +73,48 @@ public class XieChengCustomerTransferCpaFromDelayImpl implements AssembleData<Co
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
-        if (transmitFact instanceof MarketingTransferSyncUser) {
-            MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-            // 有效期判断
-            Set<String> custNumSet = new HashSet<>();
-            custNumSet.add(transfer.getCustNum());
-            Map<String, SyncUserValidityPeriodBO> periodBOMap =
-                    transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(custNumSet, transfer.getApiCode(), new Date());
-            SyncUserValidityPeriodBO bo = periodBOMap.get(transfer.getCustNum());
-            if (bo == null) {
-                return false;
-            }
-            // 110 判断
-            String reserveField1 = transfer.getReserveField1();
-            if (StringUtils.hasText(reserveField1)) {
-                JSONObject json = JSON.parseObject(reserveField1);
-                Integer  convType = json.getInteger("convType");
-                if (convType == 110) {
-                    // 查询有效期使用的apiCode
-                    List<XieChengJudgeConvTypeValue> xieChengJudgeConvType = xieChengJudgeConvTypeService.getJudgeConvType(transfer.getApiCode(),
-                            transfer.getCustNum());
-                    // 该custNum不在有效期内
-                    if (CollectionUtils.isEmpty(xieChengJudgeConvType)) {
-                        log.warn("custNum:{},未找到有效期内的转化数据",transfer.getCustNum());
-                        return Boolean.FALSE;
-                    }
-                    // 有110
-                    XieChengJudgeConvTypeValue value = xieChengJudgeConvType.get(0);
-                    Boolean hasApplySuccess = value.getHasApplySuccess();
-                    // 转化数据convType没有106  true 是有106
-                    if (!hasApplySuccess) {
+        Integer isDelay = context.getMqFact().getIsDelay();
+        if(isDelay != null && isDelay == 1){
+            log.warn("进入延迟队列.......");
+            if (transmitFact instanceof MarketingTransferSyncUser) {
+                MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+                // 有效期判断
+                Set<String> custNumSet = new HashSet<>();
+                custNumSet.add(transfer.getCustNum());
+                Map<String, SyncUserValidityPeriodBO> periodBOMap =
+                        transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(custNumSet, transfer.getApiCode(), new Date());
+                SyncUserValidityPeriodBO bo = periodBOMap.get(transfer.getCustNum());
+                if (bo == null) {
+                    return Boolean.FALSE;
+                }
+                // 110 判断
+                String reserveField1 = transfer.getReserveField1();
+                if (StringUtils.hasText(reserveField1)) {
+                    JSONObject json = JSON.parseObject(reserveField1);
+                    Integer  convType = json.getInteger("convType");
+                    if (convType == 110) {
+                        // 查询有效期使用的apiCode
+                        List<XieChengJudgeConvTypeValue> xieChengJudgeConvType = xieChengJudgeConvTypeService.getJudgeConvType(transfer.getApiCode(),
+                                transfer.getCustNum());
+                        // 该custNum不在有效期内
+                        if (CollectionUtils.isEmpty(xieChengJudgeConvType)) {
+                            log.warn("custNum:{},未找到有效期内的转化数据",transfer.getCustNum());
+                            return Boolean.FALSE;
+                        }
+                        // 有110
+                        XieChengJudgeConvTypeValue value = xieChengJudgeConvType.get(0);
+                        Boolean hasApplySuccess = value.getHasApplySuccess();
+                        // 转化数据convType没有106  true 是有106
+                        if (!hasApplySuccess) {
+                            return Boolean.TRUE;
+                        }
+                        log.warn("custNum:{},找到106 不推送",transfer.getCustNum());
+                    }else {
                         return Boolean.TRUE;
                     }
-                    log.warn("custNum:{},找到106 不推送",transfer.getCustNum());
-                }else {
-                    return Boolean.TRUE;
                 }
+                log.warn("custNum:{},扩展字段不包含110",transfer.getCustNum());
             }
-            log.warn("custNum:{},扩展字段不包含110",transfer.getCustNum());
         }
         return Boolean.FALSE;
     }
