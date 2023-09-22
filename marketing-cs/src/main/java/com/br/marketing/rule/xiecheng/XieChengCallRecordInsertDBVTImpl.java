@@ -1,26 +1,30 @@
 package com.br.marketing.rule.xiecheng;
 
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.XieChengVTRuleCollectDataImpl;
 import com.br.marketing.dto.XieChengDataDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.entity.XieChengJudgeConvTypeValue;
 import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.origin.MqFact;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.TransferDataValidityPeriodService;
+import com.br.marketing.service.XieChengJudgeConvTypeService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 通话明细推送携程(3710090/3710091)
@@ -32,6 +36,12 @@ import java.util.Map;
 public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDataDTO> {
     @Resource
     private XieChengDataMapper xieChengDataMapper;
+    @Resource
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private XieChengJudgeConvTypeService xieChengJudgeConvTypeService;
 
     @Override
     public XieChengDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -50,13 +60,28 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
         if (isDelay != null && isDelay == 1) {
             xieChengDataDTO.setToDelay(false);
         } else {
-            XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData =
-                    (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
-            SyncUserValidityPeriodBO periodBO = necessaryData.getValidMap().get(bo.getCaseNum());
-            Map<String, XieChengJudgeConvTypeValue> map = necessaryData.getMap();
+            // sha256解密，log加密
+            String phone = RpcClientProxy.decode(bo.getCaseNum(), "cell", "sha", "");
+            String encode = BrCipherMaker.getInstance().encode(phone);
+            // 加解密失败，不推送
+            if (StringUtils.isEmpty(encode)) {
+                log.error("携程通话明细数据推送客户接口(3710090/3710091)，sha256解密log加密失败。custNum：{}，sha256解密后：{}，log加密后：{}", bo.getCaseNum(), phone, encode);
+                return null;
+            }
+
+            // 查询有效期使用的apiCode
+            String mainApiCode = xieChengJudgeConvTypeService.getCondition(context.getApiCode()).getString("mainApiCode");
+            Set<String> syncSet = new HashSet<>();
+            syncSet.add(encode);
+            Map<String, SyncUserValidityPeriodBO> syncUser =
+                    transferDataValidityPeriodService.getValidityPeriodCellBatchFirstVersion(syncSet, mainApiCode, new Date());
+            List<XieChengJudgeConvTypeValue> xieChengJudgeConvType = xieChengJudgeConvTypeService.getJudgeConvType(context.getApiCode(),
+                    bo.getCaseNum());
+
+            SyncUserValidityPeriodBO periodBO = syncUser.get(encode);
 
             // 该custNum不在有效期内，或用通话明细custNum没查到转化明细：进携程队列
-            if (periodBO == null || CollectionUtils.isEmpty(map)) {
+            if (periodBO == null || CollectionUtils.isEmpty(xieChengJudgeConvType)) {
                 log.warn("携程通话明细数据推送客户接口，该custNum不在有效期内，或根据custNum和有效期范围没查询到转化数据，该数据直接进入推送携程队列，custNum：{}", bo.getCaseNum());
                 xieChengDataDTO.setToDelay(false);
                 return xieChengDataDTO;
@@ -64,9 +89,10 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
 
             // 有110且没有106的进入延迟队列，否则进携程队列（1：没有110、2：有110且有106）
             // 有110
-            Boolean hasRiskControl = map.get(bo.getCaseNum()).getHasRiskControl();
+            XieChengJudgeConvTypeValue value = xieChengJudgeConvType.get(0);
+            Boolean hasRiskControl = value.getHasRiskControl();
             // 有106
-            Boolean hasApplySuccess = map.get(bo.getCaseNum()).getHasApplySuccess();
+            Boolean hasApplySuccess = value.getHasApplySuccess();
             if (hasRiskControl && !hasApplySuccess) {
                 xieChengDataDTO.setToDelay(true);
             } else {
@@ -85,15 +111,14 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
             CallRecordBO bo = (CallRecordBO) transmitFact;
             // 是延迟队列且没有106：剔除
             if (isDelay != null && isDelay == 1) {
-                XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData necessaryData =
-                        (XieChengVTRuleCollectDataImpl.XieChengRuleNecessaryData) context.getRuleNecessaryData();
-                Map<String, XieChengJudgeConvTypeValue> map = necessaryData.getMap();
+                List<XieChengJudgeConvTypeValue> xieChengJudgeConvType = xieChengJudgeConvTypeService.getJudgeConvType(context.getApiCode(),
+                        bo.getCaseNum());
                 // 通话明细custNum没查到转化明细(再校验一次)
-                if (CollectionUtils.isEmpty(map)) {
+                if (CollectionUtils.isEmpty(xieChengJudgeConvType)) {
                     return true;
                 }
 
-                Boolean hasApplySuccess = map.get(bo.getCaseNum()).getHasApplySuccess();
+                Boolean hasApplySuccess = xieChengJudgeConvType.get(0).getHasApplySuccess();
                 // 转化数据convType没有106
                 if (!hasApplySuccess) {
                     log.warn("携程通话明细数据推送客户接口，有效期内命中convType110且一小时内没有命中106，该数据不推送客户接口。custNum：{}", bo.getCaseNum());
@@ -137,6 +162,6 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
 
     @Override
     public Integer ruleDataCollection() {
-        return RuleDataCollectionEnum.XIECHENG_DATA_COLLECTION_VT.getCode();
+        return null;
     }
 }
