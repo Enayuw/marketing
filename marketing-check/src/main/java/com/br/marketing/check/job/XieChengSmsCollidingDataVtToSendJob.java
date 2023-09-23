@@ -54,7 +54,7 @@ public class XieChengSmsCollidingDataVtToSendJob extends AbstractSimpleElasticJo
         final LocalFileExample localFileExample = new LocalFileExample();
         localFileExample.createCriteria()
                 .andFileTypeEqualTo(XIECHENGSMSCOLLIDINGVT)
-                .andFileNameLike(formatted)
+                .andFileNameLike("%"+formatted+"%")
                 .andStatusEqualTo("2");
         localFileExample.setOrderByClause("id desc");
         List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
