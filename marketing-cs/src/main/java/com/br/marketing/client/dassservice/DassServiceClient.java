@@ -307,17 +307,23 @@ public class DassServiceClient {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage("无应答消息");
                 return result;
             }
-            //判断返回结果result中code,0为成功，非0失败。
-            boolean resultSuccess = Objects.equals(0, JSONObject.parseObject(respStr).getInteger("code"));
-            result.setCode(resultSuccess ? ResultCode.SUCCESS.getValue() : ResultCode.FAIL.getValue()).setDate(JSONObject.parseObject(respStr));
-            //调用成功才统计调用信息
-            if (resultSuccess) {
-                try {
-                    //调用数量监控
-                    BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_SINGLE_USERDATA_METRIC_NAME, dassSingleImportDataDTO.getOrgname(), "DaasRealTimeData-api");
-                } catch (Exception ex) {
-                    log.error("电销单条接口统计异常" + ex.getMessage(), ex);
+            try {
+                JSONObject resJson = JSONObject.parseObject(respStr);
+                //判断返回结果result中code,0为成功，非0失败。
+                boolean resultSuccess = Objects.equals(0, resJson.getInteger("code"));
+                result.setCode(resultSuccess ? ResultCode.SUCCESS.getValue() : ResultCode.FAIL.getValue()).setDate(resJson);
+                //调用成功才统计调用信息
+                if (resultSuccess) {
+                    try {
+                        //调用数量监控
+                        BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_SINGLE_USERDATA_METRIC_NAME, dassSingleImportDataDTO.getOrgname(), "DaasRealTimeData-api");
+                    } catch (Exception ex) {
+                        log.error("电销单条接口统计异常" + ex.getMessage(), ex);
+                    }
                 }
+            } catch (Exception e) {
+                log.error("单条用户数据实时推送响应结果respStr:{},转化json异常", respStr, e);
+                result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
             }
         } else {
             result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
