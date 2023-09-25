@@ -192,6 +192,13 @@ api:
     channelId: 3140738836439875
     channelIdMap: "{bairong:'3140738836439875',bairongA:'3140738898634899'}"
     isProxy: true
+  qifu:
+    baseUri: https://gws-bps.daikuan.360.cn
+    saveReachDeleteRecordUrl: ${api.qifu.baseUri}/api/gws/bps/gateway/agent/operation/agentOperationSaveReachDeleteRecord
+    qifuPublicKey: ""
+    brPrivateKey: ""
+    brPublicKey: ""
+    isProxy: true
 spring:
   rabbitmq:
     addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672
