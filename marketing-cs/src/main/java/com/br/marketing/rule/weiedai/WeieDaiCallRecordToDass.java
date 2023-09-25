@@ -1,5 +1,6 @@
 package com.br.marketing.rule.weiedai;
 
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSoleDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
@@ -57,8 +58,10 @@ public class WeieDaiCallRecordToDass implements AssembleData<RealTimeUserDataSol
     private RealTimeUserDataSoleDTO buildRealTimeUserDataSoleDTO(CallRecordBO dto, SyncUserValidityPeriodBO syncUserData) {
         MarketingSyncUser syncUser = syncUserData.getSyncUser();
         RealTimeUserDataSoleDTO realTimeUserDataSoleDTO = new RealTimeUserDataSoleDTO();
-        realTimeUserDataSoleDTO.setDassSingleImportAdapDTO(buildDassSingleImportAdapDTO(dto, syncUser));
-        realTimeUserDataSoleDTO.setPhoneSaleExtendInfo(buildPhoneSaleExtendInfo(dto, syncUser));
+        String phone = RpcClientProxy.decode(dto.getCaseNum(), "cell", "md5", "");
+        String cusBatch = syncUser.getCusBatch();
+        realTimeUserDataSoleDTO.setDassSingleImportAdapDTO(buildDassSingleImportAdapDTO(phone, syncUser));
+        realTimeUserDataSoleDTO.setPhoneSaleExtendInfo(buildPhoneSaleExtendInfo(dto, phone, cusBatch));
         //去重逻辑 单一cell，T日仅推送一次
         realTimeUserDataSoleDTO.setSoleType(1);
         realTimeUserDataSoleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
@@ -71,17 +74,18 @@ public class WeieDaiCallRecordToDass implements AssembleData<RealTimeUserDataSol
      * 封装电销扩展信息
      *
      * @param dto      拨打明细数据
-     * @param syncUser 上传原始数据
+     * @param phone    电话明文
+     * @param cusBatch 批次号
      * @return {@link PhoneSaleExtendInfo }
      * @author senyang.zheng
-     * @date 2023/09/21
+     * @date 2023/09/25
      */
-    private PhoneSaleExtendInfo buildPhoneSaleExtendInfo(CallRecordBO dto, MarketingSyncUser syncUser) {
+    private PhoneSaleExtendInfo buildPhoneSaleExtendInfo(CallRecordBO dto, String phone, String cusBatch) {
         PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
         phoneSaleExtendInfo.setApiCode(dto.getApiCode());
         phoneSaleExtendInfo.setCustNum(dto.getCaseNum());
-        phoneSaleExtendInfo.setCell(syncUser.getCell());
-        phoneSaleExtendInfo.setTaskId(syncUser.getCusBatch());
+        phoneSaleExtendInfo.setCell(BrCipherMaker.getInstance().encode(phone));
+        phoneSaleExtendInfo.setTaskId(cusBatch);
         phoneSaleExtendInfo.setAppletDate(dto.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
             .toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE));
         phoneSaleExtendInfo.setAppletTime(dto.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
@@ -98,17 +102,17 @@ public class WeieDaiCallRecordToDass implements AssembleData<RealTimeUserDataSol
     /**
      * 封装推送人工单条接口参数
      *
+     * @param phone    电话明文
      * @param syncUser 上传原始数据
      * @return {@link DassSingleImportAdapSoleDTO }
      * @author senyang.zheng
-     * @date 2023/09/21
+     * @date 2023/09/25
      */
-    private DassSingleImportAdapSoleDTO buildDassSingleImportAdapDTO(CallRecordBO dto, MarketingSyncUser syncUser) {
+    private DassSingleImportAdapSoleDTO buildDassSingleImportAdapDTO(String phone, MarketingSyncUser syncUser) {
         DassSingleImportAdapSoleDTO dassSingleImportAdapSoleDTO = new DassSingleImportAdapSoleDTO();
         DassSingleImportDataDTO dassSingleImportDataDTO = new DassSingleImportDataDTO();
         dassSingleImportDataDTO.setName("1");
         dassSingleImportDataDTO.setOrgname("weiedai");
-        String phone = RpcClientProxy.decode(dto.getCaseNum(), "cell", "md5", "");
         dassSingleImportDataDTO.setPhone(phone);
         dassSingleImportDataDTO.setUid(syncUser.getCustNum());
         dassSingleImportDataDTO.setUserType("2");
