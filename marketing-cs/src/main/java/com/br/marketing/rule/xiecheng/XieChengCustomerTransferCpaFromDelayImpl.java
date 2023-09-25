@@ -131,6 +131,6 @@ public class XieChengCustomerTransferCpaFromDelayImpl implements AssembleData<Co
 
     @Override
     public Integer ruleDataCollection() {
-        return RuleDataCollectionEnum.XIECHENG_DATA_COLLECTION_VT.getCode();
+        return null;
     }
 }
