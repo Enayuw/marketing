@@ -1,6 +1,5 @@
 package com.br.marketing.rule.xiecheng;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.DateUtils;
@@ -8,8 +7,6 @@ import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.client.robotaiapi.input.ConvTypeConfigConversionData;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.XieChengVTRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.XieChengJudgeConvTypeValue;
 import com.br.marketing.rpcclient.RpcClientProxy;
@@ -18,7 +15,6 @@ import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.XieChengJudgeConvTypeService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
-import com.graphbuilder.math.func.LgFunction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
