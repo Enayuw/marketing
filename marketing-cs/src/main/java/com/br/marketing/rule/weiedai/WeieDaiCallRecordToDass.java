@@ -80,9 +80,8 @@ public class WeieDaiCallRecordToDass implements AssembleData<RealTimeUserDataSol
         PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
         phoneSaleExtendInfo.setApiCode(dto.getApiCode());
         phoneSaleExtendInfo.setCustNum(dto.getCaseNum());
-        phoneSaleExtendInfo.setCell(dto.getCaseNum());
+        phoneSaleExtendInfo.setCell(syncUser.getCell());
         phoneSaleExtendInfo.setTaskId(syncUser.getCusBatch());
-        phoneSaleExtendInfo.setUserType(dto.getUserType());
         phoneSaleExtendInfo.setAppletDate(dto.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
             .toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE));
         phoneSaleExtendInfo.setAppletTime(dto.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
@@ -91,7 +90,7 @@ public class WeieDaiCallRecordToDass implements AssembleData<RealTimeUserDataSol
         phoneSaleExtendInfo.setCreateTime(new Date());
         phoneSaleExtendInfo.setSourceId(dto.getId());
         phoneSaleExtendInfo.setPushDxTime(new Date());
-        phoneSaleExtendInfo.setDxUserType(dto.getUserType());
+        phoneSaleExtendInfo.setDxUserType("2");
         return phoneSaleExtendInfo;
     }
 
