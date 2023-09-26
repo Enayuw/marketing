@@ -9,12 +9,7 @@ import com.br.speed.client.common.annotations.SpeedFile;
 import lombok.Data;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Configuration
 @SpeedFile(filename = "marketingcommon.properties", topic = "marketing")
@@ -34,7 +29,7 @@ public class MarketingCommonConfig {
     /**
      * 是否是宜信客服转化接口
      */
-    private HashMap<String, Boolean> customerTransferIsYx;
+    private HashMap<String,Boolean> customerTransferIsYx;
 
     /**
      * 海尔apicode
@@ -69,7 +64,7 @@ public class MarketingCommonConfig {
     /**
      * 客户使用规则映射
      */
-    private HashMap<String, String> customerRuleMapping;
+    private HashMap<String,String> customerRuleMapping;
 
     /**
      * 配置走通用流程apiCode
@@ -93,7 +88,7 @@ public class MarketingCommonConfig {
     /**
      * 众安推送黑名单线程数设置{userType:threadNum}
      */
-    private Map<String, String> zhongAnPushBlackThreadNum;
+    private Map<String,String> zhongAnPushBlackThreadNum;
 
     /**
      * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
@@ -242,19 +237,19 @@ public class MarketingCommonConfig {
     /**
      * {"dassBlack":30,"customerBlack":30}
      */
-    private HashMap<String, Integer> shuhePushBlackDay;
+    private HashMap<String,Integer> shuhePushBlackDay;
 
     /**
-     * 哈罗转化数据规则
-     * {"status":"a,b,d","Ddate":"4","ABCdate":"5","taskIddate":"35","dTimes":"7"}
+     *  哈罗转化数据规则
+     *  {"status":"a,b,d","Ddate":"4","ABCdate":"5","taskIddate":"35","dTimes":"7"}
      */
-    private HashMap<String, String> haluoTransferRule;
+    private HashMap<String,String> haluoTransferRule;
 
     /**
      * key:业务sql名称
      * value:0-shardingjdbc;1:tiflash;2:tikv
      */
-    private HashMap<String, Integer> sqlType;
+    private HashMap<String,Integer> sqlType;
 
     /**
      * 跑分资源数量
@@ -397,7 +392,7 @@ public class MarketingCommonConfig {
     private String scoreFileYhTime;
 
     /**
-     * 规则筛选从es获取的最大线程数
+     *规则筛选从es获取的最大线程数
      */
     private Integer scoreByEsThreadNum;
 
@@ -621,12 +616,12 @@ public class MarketingCommonConfig {
     /**
      * 你我贷apiCode
      */
-    private List<String> youMeDApiCodes;
+    private  List<String> youMeDApiCodes;
 
     /**
      * 你我贷转化数据提取相关配置 线程数量，是否继续（1-继续，0-退出）{"threadNum":"10","isContinue":"1"}
      */
-    private Map<String, String> youMeDDataPull;
+    private Map<String,String> youMeDDataPull;
 
     /**
      * 你我贷数据提取时间
@@ -636,7 +631,7 @@ public class MarketingCommonConfig {
     /**
      * 海尔数据提取apiCode
      */
-    private List<String> haierApiCodes;
+    private  List<String> haierApiCodes;
 
 
     /**
@@ -646,7 +641,7 @@ public class MarketingCommonConfig {
     /**
      * 国美apiCode
      */
-    private List<String> gomeApiCodes;
+    private  List<String> gomeApiCodes;
     /**
      * 国美数据提取时间
      */
@@ -690,7 +685,7 @@ public class MarketingCommonConfig {
     /**
      * 对客作业配置 {"test":{"isThread":true,"threadNum":10,"isPause":false}}
      */
-    private HashMap<String, JSONObject> customerJobConfig;
+    private HashMap<String,JSONObject> customerJobConfig;
 
 
     /**
@@ -830,17 +825,17 @@ public class MarketingCommonConfig {
     /**
      * 携程定时任务推决策情况apiCode配置:{"b":"371058"}
      */
-    private Map<String, String> xieChengPushPolicyStatusToApiCode;
+    private Map<String,String> xieChengPushPolicyStatusToApiCode;
 
     /**
      * 迁移配置 key-功能项；value-具体的值；{"jobToEngineRoom":"1(开启)/0（关闭）"}
      */
-    private HashMap<String, String> moveConfig;
+    private HashMap<String,String> moveConfig;
 
     /**
      * job集群指定{“作业名称”:"zwpro/yzpro/zwfz/yzfz/zw/yz/all","default":"zwpro/yzpro/zwfz/yzfz/zw/yz/all"}
      */
-    private HashMap<String, String> jobCluster;
+    private HashMap<String,String> jobCluster;
 
     /**
      * 携程广告明细推送条件判断配置{“3710058”:{"condition":"1",soleCellApiCodes:["3710058","3710078"]},“3710078”:{"condition":1,soleCellApiCodes:["3710058","3710078"]},“3710090”:{"condition":2,soleCellApiCodes:["3710090","3710091"]},“3710091”:{"condition":2,soleCellApiCodes:["3710090","3710091"]}}
@@ -873,12 +868,12 @@ public class MarketingCommonConfig {
     /**
      * 推送dass意向登记判断配置{"labelNm":["A","B"]}
      */
-    private HashMap<String, List<String>> gradeOfcallToDass;
+    private HashMap<String,List<String>>  gradeOfcallToDass;
 
     /**
      * 携程vt配置信息{"adVt":{"appId":"bairong002","source":"BaiRong_CPS_C01","iv":"3b2dac323465b024","aesKey":"f3df6f62f0527bf0","singKey":"95cc01ec07387a44"}}
      */
-    private HashMap<String, JSONObject> xieChengVtConfig;
+    private HashMap<String,JSONObject> xieChengVtConfig;
 
     /**
      * 宜信推决策，情况L策略编号设置
@@ -914,7 +909,7 @@ public class MarketingCommonConfig {
      * 模拟db异常，redis异常，true是开启，false是关闭
      * {"apiCode":true,"redis":true}
      */
-    private HashMap<String, Boolean> mockError;
+    private HashMap<String,Boolean> mockError;
 
     /**
      * pulsar消费的开关，false关闭开关；true 打开开关
@@ -975,7 +970,7 @@ public class MarketingCommonConfig {
      * 中原转化数据、拨打明细推电销开关
      * {"condition_1":true,"condition_2":true,"condition_3":true,"condition_4":true,"condition_5":true,"condition_6":true}
      */
-    private Map<String, Boolean> zhongYuanConditionMap;
+    private Map<String,Boolean> zhongYuanConditionMap;
 
     /**
      * 中原转化数据推Daas 和 客服 数据线程数
@@ -989,10 +984,5 @@ public class MarketingCommonConfig {
      * 携程新AppId 撞库
      */
     private String xieChengNewAppId;
-
-    /**
-     * mock配置
-     */
-    private Map<String, JSONObject> mockConfig;
 }
 
