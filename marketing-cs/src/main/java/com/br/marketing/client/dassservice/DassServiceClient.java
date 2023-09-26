@@ -299,6 +299,13 @@ public class DassServiceClient {
         requestParam.put("sign", sign);
         requestParam.put("data", dassSingleImportAdapDTOList);
         HashMap<String, String> hashMap = httpProxyClient.sendByCode(requestParam, postRealTimeUserDataUrl, isProxy.equals("0") ? false : true, MediaType.APPLICATION_JSON_UTF8_VALUE, dto.getExtendInfo());
+        Map<String, JSONObject> mockDataMap = marketingCommonConfig.getMockConfig();
+        JSONObject mockData = mockDataMap.get(postRealTimeUserDataUrl);
+        if (mockData != null && mockData.getBoolean("mockSwitch")) {
+            // mockSwitch 为 true，返回 mock 数据
+            hashMap.put("httpcode", mockData.getJSONObject("mockData").getString("httpcode"));
+            hashMap.put("content", mockData.getJSONObject("mockData").getString("content"));
+        }
         final String httpCode = hashMap.getOrDefault("httpcode", "5000");
         if (httpCode.equals("200")) {
             final String respStr = hashMap.getOrDefault("content", "");
