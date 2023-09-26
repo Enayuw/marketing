@@ -2,7 +2,7 @@ package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.cloud.counter.BrCounter;
+import com.br.marketing.bo.SaveReachDeleteRecordReqBO;
 import com.br.marketing.bo.ZaMarketDataBO;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
@@ -31,6 +31,10 @@ import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRul
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleSoleDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
+import com.br.marketing.client.qifu.QiFuClients;
+import com.br.marketing.client.qifu.ResponseData;
+import com.br.marketing.client.qifu.SaveReachDeleteRecordReq;
+import com.br.marketing.client.qifu.SaveReachDeleteRecordResp;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
@@ -48,7 +52,6 @@ import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.DiDiAllowMarketingEnum;
 import com.br.marketing.mapper.*;
-import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.DiDiAllowReqDTO;
@@ -147,13 +150,16 @@ public class MethodRetryHandlerService {
     private DiDiClient diDiClient;
 
     @Resource
-    private  RedisChgService redisChgService;
+    private RedisChgService redisChgService;
 
     @Resource
     private DidiCallRecordMapper didiCallRecordMapper;
 
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
+
+    @Resource
+    private QiFuClients qiFuClients;
 
     /**
      *
@@ -167,7 +173,7 @@ public class MethodRetryHandlerService {
      * @return
      */
     public DataJoinLogDTO dataJoinLogFix(Object data, DistributeTypeEnum distributeTypeEnum, String apiCode
-            , String custNum, String cell, Long sourceId, DistributeSourceTypeEnum distributeSourceTypeEnum,String status,String extend){
+            , String custNum, String cell, Long sourceId, DistributeSourceTypeEnum distributeSourceTypeEnum, String status, String extend){
         DataJoinLogDTO dataJoinLogDTO = new DataJoinLogDTO();
         dataJoinLogDTO.setApiCode(apiCode);
         dataJoinLogDTO.setCustNum(custNum);
@@ -463,7 +469,6 @@ public class MethodRetryHandlerService {
     }
 
 
-
     /**
      * 萨摩耶推daas
      * @param dassImportAdapDTO
@@ -628,7 +633,6 @@ public class MethodRetryHandlerService {
     }
 
 
-
     /**
      * 推送决策接口
      *
@@ -672,6 +676,7 @@ public class MethodRetryHandlerService {
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
+
     /**
      * 推送众安接口
      *
@@ -951,14 +956,78 @@ public class MethodRetryHandlerService {
             updateEntity.setPushDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             updateEntity.setIsMarketing(DiDiAllowMarketingEnum.YES.getValue());
             didiDataMapper.updateByPrimaryKeySelective(updateEntity);
-        }else if(data.getData() !=null && !data.getData().getResult()){
+        } else if (data.getData() != null && !data.getData().getResult()) {
             updateEntity.setIsMarketing(DiDiAllowMarketingEnum.NO.getValue());
             didiDataMapper.updateByPrimaryKeySelective(updateEntity);
-        }else{
+        } else {
             updateEntity.setIsMarketing(DiDiAllowMarketingEnum.NOKNOW.getValue());
-            updateEntity.setDataMessage(data== null?"":JSON.toJSONString(data));
+            updateEntity.setDataMessage(data == null ? "" : JSON.toJSONString(data));
             didiDataMapper.updateByPrimaryKeySelective(updateEntity);
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
     }
+
+    /**
+     * 保存触达删除记录接口
+     *
+     * @param reqBO 封装的数据
+     * @param retry 重试切面使用的标记，正常业务调用时赋值null
+     * @return 接口响应业务字段
+     */
+    @RetryMethod(retryNowNum = 1, isOrNoDbRetry = true)
+    public Result<SaveReachDeleteRecordResp> callSaveReachDeleteRecord(SaveReachDeleteRecordReqBO reqBO, Integer retry) {
+        Result<SaveReachDeleteRecordResp> result = new Result<>();
+        SaveReachDeleteRecordReq req = reqBO.getReq();
+        Result<ResponseData<SaveReachDeleteRecordResp>> dataResult = qiFuClients.sendSaveReachDeleteRecordData(req);
+        result.setCode(dataResult.getCode());
+        if (retry == null && reqBO.getLogId() == null) {
+            result.setDate(insertSaveReachDeleteRecordLog(reqBO, dataResult));
+        } else if (ResultCode.SUCCESS.getValue().equals(dataResult.getCode())) {
+            QifuSaveReachDeleteRecordApiPushLog updateLog = new QifuSaveReachDeleteRecordApiPushLog();
+            updateLog.setId(reqBO.getLogId());
+            // 重试后正常 3
+            updateLog.setStatus(3);
+            reqBO.getMapper().updateByPrimaryKeySelective(updateLog);
+        }
+        return result;
+    }
+
+    private SaveReachDeleteRecordResp insertSaveReachDeleteRecordLog(SaveReachDeleteRecordReqBO reqBO
+            , Result<ResponseData<SaveReachDeleteRecordResp>> dataResult) {
+        SaveReachDeleteRecordResp resp = null;
+        SaveReachDeleteRecordReq req = reqBO.getReq();
+        QifuSaveReachDeleteRecordApiPushLog pushLog = new QifuSaveReachDeleteRecordApiPushLog();
+        pushLog.setBatchNo(req.getBatchNo());
+        pushLog.setRequestNo(req.getRequestNo());
+        pushLog.setApiCode(reqBO.getApiCode());
+        pushLog.setSyncAppletDate(reqBO.getAppletDate());
+        pushLog.setPushDate(LocalDate.now().toString());
+        pushLog.setUpdateTime(new Date());
+        pushLog.setCreateTime(pushLog.getUpdateTime());
+        ResponseData<SaveReachDeleteRecordResp> data = dataResult.getData();
+        if (ResultCode.SUCCESS.getValue().equals(dataResult.getCode())) {
+            pushLog.setRespCode(data.getCode());
+            pushLog.setRespFlag(data.getFlag().toString());
+            pushLog.setRespMsg(data.getMsg());
+            SaveReachDeleteRecordResp t = data.getData().getT();
+            pushLog.setQifuIsSucceed(t.getIsSucceed().toString());
+            pushLog.setQifuMessage(t.getMessage());
+            resp = t;
+            // 正常 1
+            pushLog.setStatus(1);
+        } else {
+            if (Objects.nonNull(data)) {
+                pushLog.setRespCode(data.getCode());
+                pushLog.setRespFlag(data.getFlag().toString());
+                pushLog.setRespMsg(data.getMsg());
+            }
+            pushLog.setErrorMsg(dataResult.getMessage());
+            // 异常 2
+            pushLog.setStatus(2);
+        }
+        reqBO.getMapper().insertSelective(pushLog);
+        reqBO.setLogId(pushLog.getId());
+        return resp;
+    }
+
 }
