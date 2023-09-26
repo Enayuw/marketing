@@ -980,5 +980,9 @@ public class MarketingCommonConfig {
      * 中原转化数据推Daas 7天内推送一次
      */
     private Integer zhongYuanDaysToSend;
+    /**
+     * 携程新AppId 撞库
+     */
+    private String xieChengNewAppId;
 }
 
