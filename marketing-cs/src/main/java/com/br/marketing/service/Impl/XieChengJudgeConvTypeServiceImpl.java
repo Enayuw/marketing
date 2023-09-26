@@ -51,6 +51,11 @@ public class XieChengJudgeConvTypeServiceImpl implements XieChengJudgeConvTypeSe
         // 获取有效期范围
         Pair<String, String> validityRange =
                 validityPeriodDataService.getMarketingTransferDataWithValidityRange(mainApiCode);
+        if (validityRange == null) {
+            log.error("携程所有配置在有效期配置表中的上传数据均已失效！");
+            return null;
+        }
+
         String startDate = validityRange.getKey();
         String endDate = validityRange.getValue();
 
