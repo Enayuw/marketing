@@ -94,8 +94,7 @@ public class ResponseData<T extends BizData> implements Serializable {
     public void decryptData(String qiFuPublicKey, String brPrivateKey, TypeReference<T> typeReference) {
         Assert.isTrue(Objects.nonNull(data), "返回数据为空");
         // step1. SHA256withRSA验签
-//        String originSign = data.getSign();
-        String originSign = null;
+        String originSign = data.getSign();
         Assert.isTrue(StringUtils.isNotBlank(originSign), "签名为空");
         JSONObject jsonObject = (JSONObject) JSON.toJSON(data);
         jsonObject.remove("t");
@@ -103,7 +102,7 @@ public class ResponseData<T extends BizData> implements Serializable {
         boolean verifyResult = RSAUtil.verifySignByPublicKey(qiFuPublicKey, originSign, signAgain);
         Assert.isTrue(verifyResult, "验签失败");
         String originData = data.getBizData();
-        Assert.isTrue(StringUtils.isNotBlank(originSign), "业务数据为空");
+        Assert.isTrue(StringUtils.isNotBlank(originData), "业务数据为空");
         // step2. RSA解密（客户端公钥加密，服务端私钥解密）AESKey和IV
         String originKey = data.getEncryptKey();
         String originIv = data.getEncryptIV();

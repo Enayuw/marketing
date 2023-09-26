@@ -96,14 +96,15 @@ public class QiFuClients {
                         responseData.decryptData(qifuPublicKey, brPrivateKey
                                 , new TypeReference<SaveReachDeleteRecordResp>() {
                                 });
-                        break;
+                        resultResp.setCode(ResultCode.SUCCESS.getValue());
+                        return resultResp;
                     // 重试
                     case GWS805:
                         resultResp.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
                         return resultResp;
                     default:
                 }
-                resultResp.setCode(ResultCode.SUCCESS.getValue());
+                resultResp.setCode(ResultCode.FAIL.getValue());
                 return resultResp;
             }
             resultResp.setCode(result.getCode());
@@ -128,7 +129,6 @@ public class QiFuClients {
      */
     public Result<String> sendData(BizData bizData, String url, String isLogApiName) {
         Result<String> result = new Result<>();
-        result.setCode(ResultCode.SUCCESS.getValue());
         RequestParam requestParam = new RequestParam(appId, bizData, qifuPublicKey, brPrivateKey);
         Map<String, List<Boolean>> apiLogMark = Objects.isNull(marketingCommonConfig.getApiLogMark())
                 ? Collections.emptyMap() : marketingCommonConfig.getApiLogMark();
@@ -144,6 +144,8 @@ public class QiFuClients {
             // httpcode不为200，需要重试
             if (String.valueOf(HttpStatus.SC_OK).equals(httpResponseMap.get(CODE_KEY))) {
                 result.setDate(httpResponseMap.get(CONTENT_KEY));
+                result.setCode(ResultCode.SUCCESS.getValue());
+                result.setMessage("");
                 if (isLogs.get(1)) {
                     log.warn("奇富保存触达删除记录接口-请求参数:{};业务数据:{};响应:{}"
                             , requestParam, bizData.toString(), httpResponseMap.get(CONTENT_KEY));
@@ -157,8 +159,9 @@ public class QiFuClients {
                 log.error(errorMsg);
             }
         } catch (Exception e) {
-            log.error("奇富保存触达删除记录接口异常:" + e.getMessage(), e);
-            result.setMessage(e.getMessage());
+            String eMsg = "奇富保存触达删除记录接口异常:" + e.getMessage();
+            log.error(eMsg, e);
+            result.setMessage(eMsg);
         }
         result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         return result;
