@@ -1,6 +1,7 @@
 package com.br.marketing.client.qifu;
 
-import java.nio.charset.StandardCharsets;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.UUID;
 
 /**
@@ -32,17 +33,24 @@ public class SaveReachDeleteRecordReq extends BizData {
      * 必填
      * 加签
      */
-    private String requestNo = UUID.nameUUIDFromBytes("QiFu".getBytes(StandardCharsets.UTF_8)).toString()
-            .replaceAll("-", "") + System.nanoTime();
+    private String requestNo;
 
     public SaveReachDeleteRecordReq() {
+        this.requestNo = UUID.randomUUID().toString().replaceAll("-", "") + System.nanoTime();
     }
 
     @SuppressWarnings("unused")
     public SaveReachDeleteRecordReq(String agentOperator, String batchNo, String requestNo) {
         this.agentOperator = agentOperator;
         this.batchNo = batchNo;
-        this.requestNo = requestNo;
+        this.requestNo = StringUtils.isNotBlank(requestNo) ? requestNo
+                : UUID.randomUUID().toString().replaceAll("-", "") + System.nanoTime();
+    }
+
+    public SaveReachDeleteRecordReq(String agentOperator, String batchNo) {
+        this.agentOperator = agentOperator;
+        this.batchNo = batchNo;
+        this.requestNo = UUID.randomUUID().toString().replaceAll("-", "") + System.nanoTime();
     }
 
     public String getAgentOperator() {
