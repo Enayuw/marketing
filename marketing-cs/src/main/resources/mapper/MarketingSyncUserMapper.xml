@@ -733,6 +733,23 @@
     </select>
 
     <update id="updateStatus">
-        update b_marketing_sync_${apiCode} set  status = 2,fail_type = concat(ifnull(fail_type,''),',营销失败数据') where cust_num = #{custNum} and applet_date = #{appletDate} and status=1
+        update b_marketing_sync_${apiCode}
+        set status    = 2,
+            fail_type = concat(ifnull(fail_type, ''), ',营销失败数据')
+        where cust_num = #{custNum}
+          and applet_date = #{appletDate}
+          and status = 1
     </update>
+
+    <select id="findCusBatchByAppletDatePage" resultType="java.lang.String">
+        select cus_batch
+        from b_marketing_sync_${apiCode}
+        where api_code = '${apiCode}'
+        and applet_date = '${appletDate}'
+        <if test="cusBatch != null and cusBatch != ''">
+            and cus_batch > '${cusBatch}'
+        </if>
+        group by cus_batch
+        order by cus_batch limit #{pageSize}
+    </select>
 </mapper>
