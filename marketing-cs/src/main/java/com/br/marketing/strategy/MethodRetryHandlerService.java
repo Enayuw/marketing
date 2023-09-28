@@ -986,10 +986,19 @@ public class MethodRetryHandlerService {
         if (retry == null && reqBO.getLogId() == null) {
             result.setDate(insertSaveReachDeleteRecordLog(reqBO, dataResult));
         } else if (ResultCode.SUCCESS.getValue().equals(dataResult.getCode())) {
+            ResponseData<SaveReachDeleteRecordResp> data = dataResult.getData();
             QifuSaveReachDeleteRecordApiPushLog updateLog = new QifuSaveReachDeleteRecordApiPushLog();
             updateLog.setId(reqBO.getLogId());
             // 重试后正常 3
             updateLog.setStatus(3);
+            updateLog.setRespFlag(data.getFlag().toString());
+            updateLog.setRespCode(data.getCode());
+            updateLog.setRespMsg(data.getMsg());
+            SaveReachDeleteRecordResp t = data.getData().getT();
+            if (Objects.nonNull(t)) {
+                updateLog.setQifuIsSucceed(t.getIsSucceed().toString());
+                updateLog.setQifuMessage(t.getMessage());
+            }
             qifuSaveReachDeleteRecordApiPushLogMapper.updateByPrimaryKeySelective(updateLog);
         }
         return result;
