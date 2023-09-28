@@ -112,7 +112,7 @@ public class QiFuSaveReachDeleteRecordPushJob extends AbstractSimpleElasticJob {
                 return;
             }
         } else {
-            Long frontId = yiXinTransferService.saveFrontData(apiCode, localDateStr, 1);
+            Long frontId = yiXinTransferService.saveFrontData(apiCode, pushLog.getPushDate(), 1);
             pushLog.setStatus(1);
             saveReachDeleteRecordHandle.action(data);
             yiXinTransferService.updateFrontDataStatus(frontId, 2);
