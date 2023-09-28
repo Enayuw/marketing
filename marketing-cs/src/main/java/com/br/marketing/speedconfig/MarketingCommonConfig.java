@@ -970,7 +970,7 @@ public class MarketingCommonConfig {
      * 中原转化数据、拨打明细推电销开关
      * {"condition_1":true,"condition_2":true,"condition_3":true,"condition_4":true,"condition_5":true,"condition_6":true}
      */
-    private Map<String, Boolean> zhongYuanConditionMap;
+    private Map<String,Boolean> zhongYuanConditionMap;
 
     /**
      * 中原转化数据推Daas 和 客服 数据线程数
@@ -980,6 +980,10 @@ public class MarketingCommonConfig {
      * 中原转化数据推Daas 7天内推送一次
      */
     private Integer zhongYuanDaysToSend;
+    /**
+     * 携程新AppId 撞库
+     */
+    private String xieChengNewAppId;
 
     /**
      * 2023-09-27 19:12

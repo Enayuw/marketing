@@ -38,8 +38,8 @@ public class XieChengCustomerTransferAImpl implements AssembleData<ConversionDat
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
-        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
-        log.warn("携程推客服转化,apicode={}",transfer.getApiCode());
+        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+        log.warn("携程推客服转化,apicode={}", transfer.getApiCode());
         ConvTypeConfigConversionData conversionData = new ConvTypeConfigConversionData();
         // 设置convType
         String reserveField1 = transfer.getReserveField1();
@@ -53,7 +53,7 @@ public class XieChengCustomerTransferAImpl implements AssembleData<ConversionDat
         conversionData.setInversionStatus("0");
         String query = RpcClientProxy.decode(transfer.getCustNum(), "cell", "sha", "");
         conversionData.setPhone(query);
-        if (!StringUtils.isEmpty(transfer.getCreateTime())){
+        if (!StringUtils.isEmpty(transfer.getCreateTime())) {
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         }
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();

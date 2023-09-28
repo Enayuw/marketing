@@ -1,12 +1,12 @@
 package com.br.marketing.service.Impl;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
+import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
@@ -47,17 +47,16 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.service.PushDataService;
+import com.br.marketing.service.TransferDataValidityPeriodService;
+import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
-import com.br.marketing.vo.MarketingPreUserErrorDetailVO;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
-import io.swagger.models.auth.In;
+import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.ListUtils;
-import org.apache.velocity.runtime.directive.Foreach;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -138,6 +137,9 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Resource
     private XieChengSmsCollidingDataLogVtMapper xieChengSmsCollidingDataLogVtMapper;
+
+    @Resource
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
     @Resource
     @Qualifier("xieChengThreadPool")
     ThreadPoolExecutor xieChengThreadPool;
@@ -194,11 +196,15 @@ public class PushDataServiceImpl implements PushDataService {
     @Autowired
     MethodRetryHandlerService methodRetryHandlerService;
 
+    @Resource
+    private ValidityPeriodDataService validityPeriodDataService;
+
     final static DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     private final static int XIECHENGSMSCOLLIDINGPARTATIONNUM = 50;
 
     private final static String XIECHENGSMSCOLLIDINGFORMATTER = "yyyy-MM-dd HH:mm:ss";
+
 
     @Override
     public Result pushDassData(Long id) {
@@ -1574,16 +1580,17 @@ public class PushDataServiceImpl implements PushDataService {
             HashMap<String, JSONObject> xieChengCallPushCondition = marketingCommonConfig.getXieChengCallPushCondition();
             if(xieChengCallPushCondition == null){
                 xieChengCallPushCondition=new HashMap<>();
-                xieChengCallPushCondition.put("3710058",getJo("1",Arrays.asList("3710058","3710078")));
-                xieChengCallPushCondition.put("3710078",getJo("1",Arrays.asList("3710058","3710078")));
-                xieChengCallPushCondition.put("3710090",getJo("2",Arrays.asList("3710058","3710078")));
-                xieChengCallPushCondition.put("3710091",getJo("2",Arrays.asList("3710058","3710078")));
+                xieChengCallPushCondition.put("3710058",getJo("1",Arrays.asList("3710058","3710078"), "3710058"));
+                xieChengCallPushCondition.put("3710078",getJo("1",Arrays.asList("3710058","3710078"), "3710058"));
+                xieChengCallPushCondition.put("3710090",getJo("2",Arrays.asList("3710090","3710091"), "3710090"));
+                xieChengCallPushCondition.put("3710091",getJo("2",Arrays.asList("3710090","3710091"), "3710090"));
             }
             JSONObject condition = xieChengCallPushCondition.get(apiCode);
             String conditionKey = condition.getString("condition");
             JSONArray soleCellApiCodes = condition.getJSONArray("soleCellApiCodes");
             JSONArray isBlackApiCodes = condition.getJSONArray("isBlackApiCodes");
             JSONArray convTypeApiCodes = condition.getJSONArray("convTypeApiCodes");
+            String mainApiCode = condition.getString("mainApiCode");
             //endregion
 
             XieChengData resultData = new XieChengData();
@@ -1620,7 +1627,7 @@ public class PushDataServiceImpl implements PushDataService {
 
             //region 特定剔除规则
             if("1".equals(conditionKey)){
-                //region 剔除规则1 查询黑名单和convType106
+                //region 剔除规则1 查询黑名单和有效期内命中convType=106或107或110
                 MarketingTransferSyncUser xcTransferBlack = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyBlack(tcId, sha256Tel, isBlackApiCodes);
                 if(xcTransferBlack!=null){
                     resultData.setDataMessage("命中黑名单");
@@ -1630,9 +1637,9 @@ public class PushDataServiceImpl implements PushDataService {
                     return;
                 }
 
-                MarketingTransferSyncUser xcTransferConvType = marketingTransferSyncUserMapper.getXcTransferNoAdDataByOnlyConvType(tcId, sha256Tel,convTypeApiCodes);
-                if (xcTransferConvType != null) {
-                    resultData.setDataMessage("命中convType106");
+                boolean hasConvType = hasConvType(mainApiCode, convTypeApiCodes, tcId, sha256Tel);
+                if (hasConvType) {
+                    resultData.setDataMessage("有效期内命中convType106或107或110");
                     resultData.setStatus(2);
                     xieChengDataMapper.updateByPrimaryKeySelective(resultData);
                     redisChgService.unlock(key, value);
@@ -1715,12 +1722,53 @@ public class PushDataServiceImpl implements PushDataService {
         }
     }
 
-    private JSONObject getJo(String condition,List<String> soleCellApiCodes){
+    private boolean hasConvType(String apiCode, JSONArray convTypeApiCodes, String tcId, String sha256Tel) {
+        Set<String> syncCustNumSet = new HashSet<>();
+        // sha256解密，log加密
+        String phone = RpcClientProxy.decode(sha256Tel, "cell", "sha", "");
+        String encode = BrCipherMaker.getInstance().encode(phone);
+        syncCustNumSet.add(encode);
+        Map<String, SyncUserValidityPeriodBO> syncUser =
+                transferDataValidityPeriodService.getValidityPeriodCellBatchFirstVersion(syncCustNumSet, apiCode, new Date());
+        SyncUserValidityPeriodBO bo = syncUser.get(encode);
+        if (bo != null) {
+            Pair<String, String> validityRange =
+                    validityPeriodDataService.getMarketingTransferDataWithValidityRange(apiCode);
+            if (null == validityRange) {
+                log.error("携程所有配置在有效期配置表中的上传数据均已失效！");
+                return false;
+            }
+
+            String startDate = validityRange.getKey();
+            String endDate = validityRange.getValue();
+
+            Set<String> custNumSet = new HashSet<>();
+            custNumSet.add(sha256Tel);
+            List<XieChengJudgeConvTypeValue> xieChengJudgeConvType = marketingTransferSyncUserMapper.getXieChengJudgeConvType(tcId,
+                    convTypeApiCodes,
+                    startDate, endDate, custNumSet);
+
+            if (CollectionUtils.isEmpty(xieChengJudgeConvType)) {
+                return false;
+            }
+            XieChengJudgeConvTypeValue convTypeValue = xieChengJudgeConvType.get(0);
+
+            // 命中convType=106或107或110
+            if (convTypeValue.getHasApplySuccess() || convTypeValue.getHasInputSuccess() || convTypeValue.getHasRiskControl()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private JSONObject getJo(String condition,List<String> soleCellApiCodes, String mainApiCode){
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("condition",condition);
         jsonObject.put("isBlackApiCodes",soleCellApiCodes);
         jsonObject.put("convTypeApiCodes",soleCellApiCodes);
         jsonObject.put("soleCellApiCodes",soleCellApiCodes);
+        jsonObject.put("mainApiCode",mainApiCode);
         return jsonObject;
     }
 

@@ -51,6 +51,8 @@ public enum RuleDataCollectionEnum {
 
     ZHONGYOU_DATA_COLLECTION(24, "中邮推送客服规则所需数据收集"),
 
+    WEIEDAI_DATA_COLLECTION(26, "微e贷规则所需数据收集"),
+
     ;
 
 
