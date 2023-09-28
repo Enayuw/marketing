@@ -170,6 +170,7 @@ public class SaveReachDeleteRecordHandle extends IMonkeyDataHandle<SaveReachDele
     public Result<?> resultAction(List<SaveReachDeleteRecordReqBO> outputDataList) {
         for (SaveReachDeleteRecordReqBO bo : outputDataList) {
             methodRetryHandlerService.callSaveReachDeleteRecord(bo, null);
+            log.warn("奇富[{}]触达记录批次[{}]已物理删除,后续无法恢复！", bo.getAppletDate(), bo.getReq().getBatchNo());
         }
         Result<Object> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
