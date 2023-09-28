@@ -1,7 +1,6 @@
 package com.br.marketing.bo;
 
 import com.br.marketing.client.qifu.SaveReachDeleteRecordReq;
-import com.br.marketing.mapper.QifuSaveReachDeleteRecordApiPushLogMapper;
 
 /**
  * 奇富保存触达删除记录业务封装
@@ -15,14 +14,12 @@ public class SaveReachDeleteRecordReqBO {
     private Long logId;
     private String apiCode;
     private String appletDate;
-    private QifuSaveReachDeleteRecordApiPushLogMapper mapper;
 
-    public SaveReachDeleteRecordReqBO(SaveReachDeleteRecordReq req, Long logId, String apiCode, String appletDate, QifuSaveReachDeleteRecordApiPushLogMapper mapper) {
+    public SaveReachDeleteRecordReqBO(SaveReachDeleteRecordReq req, Long logId, String apiCode, String appletDate) {
         this.req = req;
         this.logId = logId;
         this.apiCode = apiCode;
         this.appletDate = appletDate;
-        this.mapper = mapper;
     }
 
     public SaveReachDeleteRecordReqBO() {
@@ -60,14 +57,6 @@ public class SaveReachDeleteRecordReqBO {
         this.appletDate = appletDate;
     }
 
-    public QifuSaveReachDeleteRecordApiPushLogMapper getMapper() {
-        return mapper;
-    }
-
-    public void setMapper(QifuSaveReachDeleteRecordApiPushLogMapper mapper) {
-        this.mapper = mapper;
-    }
-
     @Override
     public String toString() {
         return "SaveReachDeleteRecordReqBO{" +
@@ -75,7 +64,6 @@ public class SaveReachDeleteRecordReqBO {
                 ", logId=" + logId +
                 ", apiCode='" + apiCode + '\'' +
                 ", appletDate='" + appletDate + '\'' +
-                ", mapper=" + mapper +
                 '}';
     }
 }
