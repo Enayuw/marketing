@@ -161,6 +161,9 @@ public class MethodRetryHandlerService {
     @Resource
     private QiFuClients qiFuClients;
 
+    @Resource
+    private QifuSaveReachDeleteRecordApiPushLogMapper qifuSaveReachDeleteRecordApiPushLogMapper;
+
     /**
      *
      * @param data 数据
@@ -987,7 +990,7 @@ public class MethodRetryHandlerService {
             updateLog.setId(reqBO.getLogId());
             // 重试后正常 3
             updateLog.setStatus(3);
-            reqBO.getMapper().updateByPrimaryKeySelective(updateLog);
+            qifuSaveReachDeleteRecordApiPushLogMapper.updateByPrimaryKeySelective(updateLog);
         }
         return result;
     }
@@ -1025,7 +1028,7 @@ public class MethodRetryHandlerService {
             // 异常 2
             pushLog.setStatus(2);
         }
-        reqBO.getMapper().insertSelective(pushLog);
+        qifuSaveReachDeleteRecordApiPushLogMapper.insertSelective(pushLog);
         reqBO.setLogId(pushLog.getId());
         return resp;
     }

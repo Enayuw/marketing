@@ -6,6 +6,7 @@ import com.br.marketing.client.qifu.SaveReachDeleteRecordReq;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.QifuSaveReachDeleteRecordApiPushLog;
+import com.br.marketing.entity.QifuSaveReachDeleteRecordApiPushLogExample;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.QifuSaveReachDeleteRecordApiPushLogMapper;
 import com.br.marketing.monkeydata.entity.IterationResult;
@@ -14,7 +15,6 @@ import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -86,11 +86,6 @@ public class SaveReachDeleteRecordHandle extends IMonkeyDataHandle<SaveReachDele
             result.setCode(ResultCode.FAIL.getValue());
             return result;
         }
-        if (StringUtils.isBlank(param.getBatchNo())) {
-            String no = qifuSaveReachDeleteRecordApiPushLogMapper.getBatchNoByTimeMax(param.getApiCode()
-                    , param.getPushDate());
-            param.setBatchNo(no);
-        }
         List<String> cusBatchList = marketingSyncUserMapper.findCusBatchByAppletDatePage(param.getApiCode()
                 , param.getBatchNo()
                 , param.getSyncAppletDate()
@@ -103,7 +98,15 @@ public class SaveReachDeleteRecordHandle extends IMonkeyDataHandle<SaveReachDele
         param.setBatchNo(cusBatch);
         IterationResult<SaveReachDeleteRecordReqBO, Page2Condition<QifuSaveReachDeleteRecordApiPushLog>> content
                 = new IterationResult<>();
-        List<SaveReachDeleteRecordReqBO> reqBOList = cusBatchList.stream().map(b -> {
+        List<SaveReachDeleteRecordReqBO> reqBOList = cusBatchList.stream().filter(b -> {
+            QifuSaveReachDeleteRecordApiPushLogExample example = new QifuSaveReachDeleteRecordApiPushLogExample();
+            example.createCriteria()
+                    .andBatchNoEqualTo(b)
+                    .andApiCodeEqualTo(param.getApiCode())
+                    .andPushDateEqualTo(param.getPushDate())
+                    .andSyncAppletDateEqualTo(param.getSyncAppletDate());
+            return qifuSaveReachDeleteRecordApiPushLogMapper.countByExample(example) < 1;
+        }).map(b -> {
             SaveReachDeleteRecordReqBO bo = new SaveReachDeleteRecordReqBO();
             bo.setApiCode(param.getApiCode());
             bo.setAppletDate(param.getSyncAppletDate());
@@ -143,8 +146,7 @@ public class SaveReachDeleteRecordHandle extends IMonkeyDataHandle<SaveReachDele
                     bo.setReq(req);
                     return bo;
                 }).collect(Collectors.toList());
-                Result<List<SaveReachDeleteRecordReqBO>> listResult = this.processData(reqBOList);
-                this.resultAction(listResult.getData());
+                this.resultAction(reqBOList);
                 if (size < condition.getPageSize()) {
                     break;
                 }

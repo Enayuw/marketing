@@ -66,10 +66,6 @@ public class QiFuSaveReachDeleteRecordPushJob extends AbstractSimpleElasticJob {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
-    private String accessToken = "ba55b5b49b56b789c9872da6c932a27fac5e608d75c7298ff0e3695918f6483b";
-    private String secret = "SECfcbdfae54c9c391b1ab19ad3751073498ef188668975b2aa899f557aa83a0abd";
-
-
     /**
      * 2023-09-27 11:02
      * parameter格式：apiCode:yyyy-MM-dd或apiCode
@@ -94,7 +90,6 @@ public class QiFuSaveReachDeleteRecordPushJob extends AbstractSimpleElasticJob {
                 localDateStr = parames[1];
             }
         }
-        int status = 2;
         Page2Condition<QifuSaveReachDeleteRecordApiPushLog> data = new Page2Condition<>();
         data.setPageIndex(0);
         data.setPageSize(2000);
@@ -103,27 +98,29 @@ public class QiFuSaveReachDeleteRecordPushJob extends AbstractSimpleElasticJob {
         pushLog.setApiCode(apiCode);
         pushLog.setSyncAppletDate(localDateStr);
         pushLog.setPushDate(now.toString());
-        List<TransferActionFront> actionFrontList = getActionFront(apiCode, now.toString());
-        Long frontId;
+        List<TransferActionFront> actionFrontList = getActionFront(apiCode, pushLog.getPushDate());
+        int status = 2;
         if (actionFrontList.size() > 0) {
             TransferActionFront actionFront = actionFrontList.get(0);
             if (status == actionFront.getStatus()) {
                 pushLog.setStatus(0);
                 saveReachDeleteRecordHandle.action(data);
-                log.warn("api_code:{},biz_date:{}【奇富保存触达记录删除】该任务今日已经推送", apiCode, localDateStr);
+                log.warn("api_code:{},localDateStr:{}【奇富保存触达记录删除】该任务今日已经推送", apiCode, localDateStr);
             } else {
-                log.warn("api_code:{},biz_date:{}【奇富保存触达记录删除】该任务今日已经已有任务在运行", apiCode, localDateStr);
+                log.warn("api_code:{},localDateStr:{}【奇富保存触达记录删除】该任务今日已经已有任务在运行"
+                        , apiCode, localDateStr);
                 return;
             }
         } else {
-            frontId = yiXinTransferService.saveFrontData(apiCode, localDateStr, 1);
+            Long frontId = yiXinTransferService.saveFrontData(apiCode, localDateStr, 1);
             pushLog.setStatus(1);
             saveReachDeleteRecordHandle.action(data);
             yiXinTransferService.updateFrontDataStatus(frontId, 2);
         }
         // 检查异常数据发送告警
-        if (isRetry(now)) {
-            errorStatistics(apiCode, now);
+        String accessToken = marketingCommonConfig.getQiFuDingDingAccessToken();
+        if (StringUtils.isNotBlank(accessToken) && isRetry(now)) {
+            errorStatistics(apiCode, pushLog.getPushDate(), accessToken, marketingCommonConfig.getQiFuDingDingSecret());
         }
         long end = System.currentTimeMillis();
         log.warn("【奇富保存触达记录删除】调度结束apiCodes:{},localDateStr:{}，耗时:{}", apiCode, localDateStr, end - start);
@@ -159,8 +156,7 @@ public class QiFuSaveReachDeleteRecordPushJob extends AbstractSimpleElasticJob {
      * 2023-09-27 18:08
      * 错误信息告警
      */
-    private void errorStatistics(String apiCode, LocalDate now) {
-        String dateStr = now.toString();
+    private void errorStatistics(String apiCode, String dateStr, String accessToken, String secret) {
         List<QifuSaveReachDeleteRecordApiPushLog> apiErrorStatistics =
                 qifuSaveReachDeleteRecordApiPushLogMapper.getApiErrorStatistics(apiCode, dateStr);
         List<QifuSaveReachDeleteRecordApiPushLog> qiFuBizErrorStatistics =
