@@ -169,7 +169,6 @@ public class SaveReachDeleteRecordHandle extends IMonkeyDataHandle<SaveReachDele
     @Override
     public Result<?> resultAction(List<SaveReachDeleteRecordReqBO> outputDataList) {
         for (SaveReachDeleteRecordReqBO bo : outputDataList) {
-            bo.setMapper(qifuSaveReachDeleteRecordApiPushLogMapper);
             methodRetryHandlerService.callSaveReachDeleteRecord(bo, null);
         }
         Result<Object> result = new Result<>();
