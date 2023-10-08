@@ -32,6 +32,12 @@ import java.util.Map;
 @Slf4j
 public class QiFuTransferDataUtil {
 
+    /**
+     * 组装推送数据
+     * @param transmitFact
+     * @param context
+     * @return
+     */
     public static ConversionData getConversionData(MarketingTransferSyncUser transmitFact, ProcessHandlerContext context) {
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(transmitFact.getId().toString());
@@ -69,6 +75,12 @@ public class QiFuTransferDataUtil {
         return syncUserValidityPeriodsBO;
     }
 
+    /**
+     * 判断transformTime 和 数据是否有效
+     * @param transfer
+     * @param syncUserValidityPeriodsBO
+     * @return
+     */
     public static boolean isNeedAssmble(MarketingTransferSyncUser transfer, SyncUserValidityPeriodsBO syncUserValidityPeriodsBO) {
         String custNum = transfer.getCustNum();
         if ("1".equals(transfer.getTransformTime())) {
@@ -82,6 +94,13 @@ public class QiFuTransferDataUtil {
         return true;
     }
 
+    /**
+     * 判断规则是否生效
+     * @param ruleDate
+     * @param custNum
+     * @param syncUserValidityPeriodsBO
+     * @return
+     */
     public static boolean isRuleAssmble(String ruleDate,  String custNum, SyncUserValidityPeriodsBO syncUserValidityPeriodsBO) {
         if (StringUtils.isEmpty(ruleDate)) {
             log.info("{},【ruleDate】为空！", custNum);
