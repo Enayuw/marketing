@@ -3,6 +3,7 @@ package com.br.marketing.service;
 import com.br.marketing.bo.CellValidityPeriodBO;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -203,5 +204,18 @@ public interface TransferDataValidityPeriodService {
      */
     Map<String, SyncUserValidityPeriodBO> getValidityPeriodCustNumBatchFirstVersion(
             Set<String> custNumSet, String apiCode, Object requestDateObj);
+
+
+    /**
+     * 根据custNum获取多组有效期期范围
+     *
+     * @param custNumSet     custNum集合
+     * @param apiCode        apiCode
+     * @param requestDateObj 日期
+     * @return {@link Map }<{@link String }, {@link SyncUserValidityPeriodsBO }>
+     * @author senyang.zheng
+     * @date 2023/10/07
+     */
+    Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNum(Set<String> custNumSet, String apiCode, Object requestDateObj);
 
 }
