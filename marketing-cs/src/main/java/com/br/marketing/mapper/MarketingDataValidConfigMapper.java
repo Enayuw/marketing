@@ -34,8 +34,8 @@ public interface MarketingDataValidConfigMapper extends MarketingDataValidConfig
     List<MarketingDataValidConfig> findListByApiCodeAndUserTypeSetPagetikv_(@Param("apiCode") String apiCode
             , @Param("dateStr") String dateStr
             , @Param("userTypeSet") Set<String> userTypeSet
-            , @Param("page") int page
-            , @Param("pageSize") int pageSize);
+            , @Param("page") Integer page
+            , @Param("pageSize") Integer pageSize);
 
     @Select("select min(valid_start_date) as validStartDate,max(valid_end_date) as validEndDate from b_marketing_data_valid_config " +
             "where api_code = #{apiCode} and is_del = 1 and now() between valid_start_date and valid_end_date")

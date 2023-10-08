@@ -1203,7 +1203,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             .findListByApiCodeAndUserTypeSetPagetikv_(
                 apiCode, dateStr, userTypeSet, page, pageSize);
         // 未配置任何有效期
-        if (page == 0 && isNotExistDataValidConfig(configList, apiCode)) {
+        if (page != null && page == 0 && isNotExistDataValidConfig(configList, apiCode)) {
             return Collections.emptyList();
         }
         return configList;
