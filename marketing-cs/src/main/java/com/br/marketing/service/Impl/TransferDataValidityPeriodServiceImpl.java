@@ -1120,37 +1120,47 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         return resultMap;
     }
 
+    /**
+     * 构建有效期信息
+     *
+     * @param syncUserList 有效上传数据集合
+     * @param configList 有效期配置集合
+     * @param resultMap 返回结果集
+     * @author senyang.zheng
+     * @date 2023/10/08
+     */
     private void buildValidityPeriodsInfo(List<MarketingSyncUser> syncUserList, List<MarketingDataValidConfig> configList,
                                           Map<String, SyncUserValidityPeriodsBO> resultMap) {
         Map<String, List<MarketingSyncUser>> custNumMap = syncUserList.stream().collect(Collectors.groupingBy(MarketingSyncUser::getCustNum));
-        Map<String, MarketingDataValidConfig> configMap = configList.stream().collect(Collectors.toMap(
-            config -> config.getUserType() + config.getAppletDate(), Function.identity(),
-            BinaryOperator.maxBy(Comparator.comparing(c -> c.getUpdateTime() == null ? c.getCreateTime() : c.getUpdateTime()))));
+        Map<String, MarketingDataValidConfig> configMap =
+            configList.stream().collect(Collectors.toMap(config -> config.getUserType() + config.getAppletDate(), Function.identity(),
+                BinaryOperator.maxBy(Comparator.comparing(c -> c.getUpdateTime() == null ? c.getCreateTime() : c.getUpdateTime()))));
         custNumMap.forEach((key, value) -> resultMap.put(key, buildSyncUserValidityPeriodsBO(value, configMap)));
     }
 
-    private SyncUserValidityPeriodsBO buildSyncUserValidityPeriodsBO(List<MarketingSyncUser> syncUsers, Map<String, MarketingDataValidConfig> configMap) {
+    /**
+     * @param syncUsers 上传数据集合
+     * @param configMap 根据 userType + appletDate 将有效期集合分组的结果集
+     * @return {@link SyncUserValidityPeriodsBO }
+     * @author senyang.zheng
+     * @date 2023/10/08
+     */
+    private SyncUserValidityPeriodsBO buildSyncUserValidityPeriodsBO(List<MarketingSyncUser> syncUsers,
+                                                                     Map<String, MarketingDataValidConfig> configMap) {
         SyncUserValidityPeriodsBO validityPeriodsBO = new SyncUserValidityPeriodsBO();
         syncUsers.forEach(syncUser -> {
             String configKey = syncUser.getUserType() + syncUser.getAppletDate();
             MarketingDataValidConfig config = configMap.get(configKey);
             if (config != null) {
-                PeriodOfValidityBO.Builder builder = buildPeriodOfValidityBOBuilder(syncUser, config);
+                PeriodOfValidityBO.Builder builder = PeriodOfValidityBO.custom(
+                    Date.from(LocalDate.parse(config.getValidStartDate(), DATE_FORMAT_PATTERN).atStartOfDay(ZoneId.systemDefault()).toInstant()),
+                    Date.from(LocalDate.parse(config.getValidEndDate(), DATE_FORMAT_PATTERN).atStartOfDay(ZoneId.systemDefault()).toInstant()));
                 validityPeriodsBO.getSyncUsers().add(syncUser);
                 validityPeriodsBO.getBuilders().add(builder);
             }
         });
+        validityPeriodsBO.getBuilders().sort(Comparator.comparing(b -> b.builder().getEnDate(), Comparator.reverseOrder()));
         return validityPeriodsBO;
-    }
-
-
-    private PeriodOfValidityBO.Builder buildPeriodOfValidityBOBuilder(MarketingSyncUser syncUser, MarketingDataValidConfig config) {
-        LocalDate startDate = LocalDate.parse(config.getValidStartDate(), DATE_FORMAT_PATTERN);
-        LocalDate endDate = LocalDate.parse(config.getValidEndDate(), DATE_FORMAT_PATTERN);
-        return PeriodOfValidityBO.custom(
-            Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant()),
-            Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
-        );
     }
 
     /**
