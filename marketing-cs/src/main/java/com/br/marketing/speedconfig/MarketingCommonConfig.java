@@ -987,6 +987,7 @@ public class MarketingCommonConfig {
 
     /**
      * 奇富360 推送客服过滤apiCode 配置
+     * {"QiFu_TransferData_To_CustomerFilter":"3710053","QiFu_TransferData_To_CustomerFilter_Brother":"3710105"}
      */
     private Map<String,String> qiFuApiCodeToCustomerMap;
 
