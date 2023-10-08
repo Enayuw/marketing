@@ -1,15 +1,9 @@
 package com.br.marketing.rule.qifu;
 
-import com.br.common.util.BrCipherMaker;
-import com.br.common.util.DateUtils;
-import com.br.common.util.StringUtils;
-import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
-import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.QiFuRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.rule.qifu.util.QiFuTransferDataUtil;
@@ -19,10 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
 
 /**
  * 描述：： 360 转化数据推客服过滤

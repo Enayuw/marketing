@@ -33,23 +33,22 @@ import java.util.Map;
 public class QiFuTransferDataUtil {
 
     public static ConversionData getConversionData(MarketingTransferSyncUser transmitFact, ProcessHandlerContext context) {
-        MarketingTransferSyncUser transfer = transmitFact;
         ConversionData conversionData = new ConversionData();
-        conversionData.setDataId(transfer.getId().toString());
-        conversionData.setCid(transfer.getCid());
-        conversionData.setCaseNum(transfer.getCustNum());
-        conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+        conversionData.setDataId(transmitFact.getId().toString());
+        conversionData.setCid(transmitFact.getCid());
+        conversionData.setCaseNum(transmitFact.getCustNum());
+        conversionData.setPartnerProcessDate(DateUtils.format(transmitFact.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         QiFuRuleCollectDataImpl.QiFuRuleNecessaryData ruleNecessaryData =
                 (QiFuRuleCollectDataImpl.QiFuRuleNecessaryData) context.getRuleNecessaryData();
         conversionData.setInversionStatus("0");
         Map<String, SyncUserValidityPeriodsBO> syncUserPeriodMap = ruleNecessaryData.getCustomerMap();
-        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = syncUserPeriodMap.get(transfer.getCustNum());
+        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = syncUserPeriodMap.get(transmitFact.getCustNum());
         if (syncUserValidityPeriodsBO == null) {
             return null;
         }
         conversionData.setPhone(BrCipherMaker.getInstance().decode( syncUserValidityPeriodsBO.getSyncUsers().get(0).getCell()));
         // 去重参数设置
-        conversionData.setInitId(transfer.getId());
+        conversionData.setInitId(transmitFact.getId());
         conversionData.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
         conversionData.setSoleType(-1);
         PeriodOfValidityBO periodOfValidityBO = syncUserValidityPeriodsBO.getBuilders().get(0).addDateString().addOfDayTimeStrString().builder();
@@ -90,11 +89,10 @@ public class QiFuTransferDataUtil {
         }
         LocalDate localRuleDate = LocalDate.parse(ruleDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         List<PeriodOfValidityBO.Builder> builders = syncUserValidityPeriodsBO.getBuilders();
-        for (int i = 0; i < builders.size(); i++) {
-            PeriodOfValidityBO.Builder builder = builders.get(i);
+        for (PeriodOfValidityBO.Builder builder : builders) {
             String startOfDayTimeStr = builder.addDateString().addOfDayTimeStrString().builder().getStartOfDayTimeStr();
             LocalDate localStartOfDayTimeStr = LocalDate.parse(startOfDayTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            if (localRuleDate.now().isAfter(localStartOfDayTimeStr.now())) {
+            if (localRuleDate.isAfter(localStartOfDayTimeStr)) {
                 return true;
             }
         }
