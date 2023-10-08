@@ -984,5 +984,11 @@ public class MarketingCommonConfig {
      * 携程新AppId 撞库
      */
     private String xieChengNewAppId;
+
+    /**
+     * 奇富360 推送客服过滤apiCode 配置
+     */
+    private Map<String,String> qiFuApiCodeToCustomerMap;
+
 }
 

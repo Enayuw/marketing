@@ -1,6 +1,7 @@
 package com.br.marketing.context.impl;
 
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.RuleNecessaryData;
@@ -38,10 +39,9 @@ public class QiFuRuleCollectDataImpl  extends CommonMethodHandlerService{
         if (!transmitFacts.isEmpty() && transmitFacts.get(0) instanceof MarketingTransferSyncUser) {
             List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
             Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-            Map<String, SyncUserValidityPeriodBO> syncUser =
-                    transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(set, context.getApiCode(), new Date());
+            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = transferDataValidityPeriodService.getValidityPeriodsByCustNum(set, context.getApiCode(), new Date());
             QiFuRuleCollectDataImpl.QiFuRuleNecessaryData qiFuRuleNecessaryData = new QiFuRuleCollectDataImpl.QiFuRuleNecessaryData();
-            qiFuRuleNecessaryData.setCustomerMap(syncUser);
+            qiFuRuleNecessaryData.setCustomerMap(validityPeriodsByCustNum);
             context.setRuleNecessaryData(qiFuRuleNecessaryData);
         }
     }
@@ -57,7 +57,7 @@ public class QiFuRuleCollectDataImpl  extends CommonMethodHandlerService{
         /**
          * 360转化所需信息
          */
-        private Map<String, SyncUserValidityPeriodBO> customerMap;
+        private Map<String, SyncUserValidityPeriodsBO> customerMap;
     }
 
 }
