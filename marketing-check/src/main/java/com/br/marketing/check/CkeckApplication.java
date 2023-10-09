@@ -47,7 +47,6 @@ public class CkeckApplication {
                 CkeckApplication.stop();
             }
         });
-        new DruidCollector().register();
     }
 
     /**
