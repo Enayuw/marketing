@@ -8,6 +8,8 @@ import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.threadpool.EnablePrometheusIceThreadPool;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
+import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
+import com.br.marketing.prometheus.druid.DruidCollector;
 import com.br.monitor.grpc.EnvUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
@@ -39,6 +41,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @EnablePrometheusTiming
 @EnableBrCounter(namespace = "marketing_api")
 @EnablePrometheusIceThreadPool
+@EnableDruidPrometheus
 public class MarketingApiApplication {
 
     /**

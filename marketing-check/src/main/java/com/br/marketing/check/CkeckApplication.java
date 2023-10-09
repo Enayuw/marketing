@@ -7,12 +7,12 @@ import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.threadpool.EnablePrometheusIceThreadPool;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
-import com.br.marketing.prometheus.DruidCollector;
+import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
+import com.br.marketing.prometheus.druid.DruidCollector;
 import com.br.monitor.grpc.EnvUtil;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
-import org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
@@ -35,6 +35,7 @@ import org.springframework.context.annotation.ImportResource;
 @EnablePrometheusTiming
 @EnableBrCounter(namespace = "marketing_check")
 @EnablePrometheusIceThreadPool
+@EnableDruidPrometheus
 @Slf4j
 public class CkeckApplication {
     public static ConfigurableApplicationContext ac;

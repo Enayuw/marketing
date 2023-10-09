@@ -1,4 +1,4 @@
-package com.br.marketing.prometheus;
+package com.br.marketing.prometheus.druid;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.br.marketing.config.datasourceconfig.DataSourceAspect;
@@ -30,7 +30,13 @@ public class DruidCollector extends Collector {
     private List<MetricFamilySamples> collectDruidSource() {
         ArrayList<MetricFamilySamples> metricFamilySamples = new ArrayList<>();
         try {
+            if(ContainerContext.applicationContext == null){
+                return metricFamilySamples;
+            }
             Map<String, DataSource> beansOfType = ContainerContext.applicationContext.getBeansOfType(DataSource.class);
+            if(beansOfType == null){
+                return metricFamilySamples;
+            }
             for (Map.Entry<String, DataSource> entry : beansOfType.entrySet()) {
 
                 if (entry.getValue() instanceof DynamicDataSource) {
@@ -58,7 +64,7 @@ public class DruidCollector extends Collector {
                     Map<String, DataSource> innerDataSourceMap = ((ShardingDataSource) entry.getValue()).getDataSourceMap();
                     for (Map.Entry<String, DataSource> innerEntry : innerDataSourceMap.entrySet()) {
                         if (innerEntry.getValue() instanceof DruidDataSource) {
-                            metricFamilySamples.addAll(setMetrics((DruidDataSource) innerEntry.getValue(),"defaultDb"));
+                            metricFamilySamples.addAll(setMetrics((DruidDataSource) innerEntry.getValue(),innerEntry.getKey()));
                         }
                     }
                 }
