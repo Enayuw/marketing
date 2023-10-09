@@ -36,6 +36,14 @@ public class LocalFileServiceImpl implements LocalFileService {
     @Resource
     LocalFileMapper localFileMapper;
 
+    public void sortList(List<String> list,String target){
+        //二叉树查找
+
+
+    }
+
+
+
     @Override
     public PageResultReturn list(int current, int pageSize, String search, String apiCode, String uploadStartTime, String uploadEndTime, String fileType) {
         if (StringUtils.isNotEmpty(uploadStartTime)) {

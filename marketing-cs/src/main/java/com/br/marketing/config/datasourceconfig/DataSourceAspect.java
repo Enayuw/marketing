@@ -18,8 +18,8 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(prefix = "datasource.database",name = "defaultSource",havingValue = "shardingmarketing",matchIfMissing = false)
 public class DataSourceAspect {
     Logger logger = LoggerFactory.getLogger(DataSourceAspect.class);
-    static final String marketingTikiv = "marketingTikiv";
-    static final String marketingTiFlash = "marketingTiFlash";
+    public static final String marketingTikiv = "marketingTikiv";
+    public static final String marketingTiFlash = "marketingTiFlash";
 
     /**
      * 切换tikv数据源

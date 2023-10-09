@@ -7,6 +7,7 @@ import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.threadpool.EnablePrometheusIceThreadPool;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
+import com.br.marketing.prometheus.DruidCollector;
 import com.br.monitor.grpc.EnvUtil;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +46,7 @@ public class CkeckApplication {
                 CkeckApplication.stop();
             }
         });
+        new DruidCollector().register();
     }
 
     /**
