@@ -49,4 +49,15 @@
             left join b_marketing_data_valid_config t1 on t2.id = t1.id
         order by applet_date, update_time, create_time
     </select>
+
+    <select id="getValidPeriodRangeByApiCodeAndUserType" resultType="java.util.Map">
+        SELECT min(valid_start_date) as validStartDate,
+               max(valid_end_date)   as validEndDate
+        FROM b_marketing_data_valid_config
+        WHERE is_del = 1
+          AND valid_type = 1
+          AND (user_type, api_code) IN (SELECT user_type, api_code
+                                        FROM b_marketing_data_valid_config
+                                        WHERE id = #{id});
+    </select>
 </mapper>

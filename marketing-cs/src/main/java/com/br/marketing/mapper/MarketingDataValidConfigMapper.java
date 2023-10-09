@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Mapper
@@ -40,5 +41,16 @@ public interface MarketingDataValidConfigMapper extends MarketingDataValidConfig
     @Select("select min(valid_start_date) as validStartDate,max(valid_end_date) as validEndDate from b_marketing_data_valid_config " +
             "where api_code = #{apiCode} and is_del = 1 and now() between valid_start_date and valid_end_date")
     MarketingDataValidConfig getMarketingTransferDataWithValidityPeriod(@Param("apiCode") String apiCode);
+
+
+    /**
+     * 根据被修改的有效期id获取该user_type及api_code下全部有效期的最小开始时间及最大结束时间
+     *
+     * @param id id
+     * @return {@link Map }<{@link String },{@link String }>
+     * @author senyang.zheng
+     * @date 2023/10/09
+     */
+    Map<String,String> getValidPeriodRangeByApiCodeAndUserType(@Param("id") Long id);
 
 }

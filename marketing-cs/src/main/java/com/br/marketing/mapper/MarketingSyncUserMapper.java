@@ -251,7 +251,7 @@ public interface MarketingSyncUserMapper {
      *
      * @param apiCode    apiCode
      * @param configList 有效配置
-     * @param custNumSet cust num集
+     * @param custNumSet custNum集合
      * @return {@link List }<{@link MarketingSyncUser }>
      * @author senyang.zheng
      * @date 2023/10/07

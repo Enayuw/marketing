@@ -1159,7 +1159,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
                 validityPeriodsBO.getBuilders().add(builder);
             }
         });
-        validityPeriodsBO.getBuilders().sort(Comparator.comparing(b -> b.builder().getEnDate(), Comparator.reverseOrder()));
         return validityPeriodsBO;
     }
 
