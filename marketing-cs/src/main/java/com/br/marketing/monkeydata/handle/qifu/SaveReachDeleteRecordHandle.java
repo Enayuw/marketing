@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -138,7 +139,9 @@ public class SaveReachDeleteRecordHandle extends IMonkeyDataHandle<SaveReachDele
                 int size = batchNoList.size();
                 String batchNo = batchNoList.get(size - 1).getBatchNo();
                 param.setBatchNo(batchNo);
+                List<Long> list = new ArrayList<>();
                 List<SaveReachDeleteRecordReqBO> reqBOList = batchNoList.stream().map(b -> {
+                    list.add(b.getId());
                     SaveReachDeleteRecordReqBO bo = new SaveReachDeleteRecordReqBO();
                     bo.setApiCode(b.getApiCode());
                     bo.setAppletDate(b.getSyncAppletDate());
@@ -147,6 +150,7 @@ public class SaveReachDeleteRecordHandle extends IMonkeyDataHandle<SaveReachDele
                     return bo;
                 }).collect(Collectors.toList());
                 this.resultAction(reqBOList);
+                qifuSaveReachDeleteRecordApiPushLogMapper.updateStatusByIds(-1, list);
                 if (size < condition.getPageSize()) {
                     break;
                 }

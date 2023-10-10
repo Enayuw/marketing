@@ -49,7 +49,7 @@ public class QifuSaveReachDeleteRecordApiPushLog {
     private String syncAppletDate;
 
     /**
-     * 状态：补偿 0; 正常 1; 异常 2; 重试后正常 3
+     * 状态：已补偿 -1; 补偿 0; 正常 1; 异常 2; 重试后正常 3
      */
     private Integer status;
 

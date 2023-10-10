@@ -44,4 +44,10 @@ public interface QifuSaveReachDeleteRecordApiPushLogMapper extends QifuSaveReach
      */
     List<QifuSaveReachDeleteRecordApiPushLog> getBizErrorStatistics(@Param("apiCode") String apiCode
             , @Param("pushDate") String pushDate);
+
+    /**
+     * 2023-10-10 11:14
+     * 批量更新状态
+     */
+    int updateStatusByIds(@Param("status") int status, @Param("ids") List<Long> ids);
 }

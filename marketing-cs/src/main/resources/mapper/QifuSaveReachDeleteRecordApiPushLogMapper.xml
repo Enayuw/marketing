@@ -3,13 +3,14 @@
 <mapper namespace="com.br.marketing.mapper.QifuSaveReachDeleteRecordApiPushLogMapper">
     <select id="findBatchNoByStatusPage"
             resultType="com.br.marketing.entity.QifuSaveReachDeleteRecordApiPushLog">
-        select batch_no,api_code,sync_applet_date
+        select id, batch_no,api_code,sync_applet_date
         from b_qifu_save_reach_delete_record_api_push_log
         where api_code = '${apiCode}'
         <if test="batchNo != null and batchNo != ''">
             and batch_no > '${batchNo}'
         </if>
         and status=${status}
+        order by update_time, create_time, batch_no
         limit #{pageSize}
     </select>
 
@@ -52,4 +53,12 @@
           and status = 2
         group by error_msg;
     </select>
+
+    <update id="updateStatusByIds">
+        update b_qifu_save_reach_delete_record_api_push_log set status=${status}
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            ${id}
+        </foreach>
+    </update>
 </mapper>
