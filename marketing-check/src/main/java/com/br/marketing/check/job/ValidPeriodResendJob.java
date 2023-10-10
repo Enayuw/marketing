@@ -57,12 +57,12 @@ public class ValidPeriodResendJob extends AbstractSimpleElasticJob {
      * @date 2023/10/10
      */
     private <T> void process(List<ValidityPeriodResendRecord> validityPeriodResendRecords) {
-        if (CollectionUtil.isNotEmpty(validityPeriodResendRecords)) {
+        if (CollectionUtil.isEmpty(validityPeriodResendRecords)) {
             log.warn("没有待执行的重推任务");
         }
         for (ValidityPeriodResendRecord validityPeriodResendRecord : validityPeriodResendRecords) {
             ValidityPeriodResendEnum resendType = ValidityPeriodResendEnum.getEnumByCode(validityPeriodResendRecord.getResendType());
-            List<T> data = selector.fetchData(validityPeriodResendRecord.getId(), resendType);
+            List<T> data = selector.fetchData(validityPeriodResendRecord.getValidityPeriodId(), resendType);
             selector.resend(data, resendType);
             //修改记录状态为执行完成
             validityPeriodResendRecord.setStatus(1);
