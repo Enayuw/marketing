@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.validityperiod;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.ValidityPeriodResendType;
@@ -52,11 +53,12 @@ public class QiFuResend implements ValidityPeriodResendStrategy<MarketingTransfe
     public List<MarketingTransferInfo> fetchData(Long id) {
         //获取有效期范围
         Map<String, String> validPeriodRange = marketingDataValidConfigMapper.getValidPeriodRangeByApiCodeAndUserType(id);
-        Date validStartDate = DateUtil.beginOfDay(DateUtil.parseDate(validPeriodRange.get("validPeriodRange")));
+        Date validStartDate = DateUtil.beginOfDay(DateUtil.parseDate(validPeriodRange.get("validStartDate")));
         Date validEndDate = DateUtil.endOfDay(DateUtil.parseDate(validPeriodRange.get("validEndDate")));
+        String apiCode = validPeriodRange.get("apiCode");
         //根据时间范围获取全部转化基础数据
         MarketingTransferInfoExample transferInfoExample = new MarketingTransferInfoExample();
-        transferInfoExample.createCriteria().andCreateTimeGreaterThanOrEqualTo(validStartDate).andCreateTimeLessThanOrEqualTo(validEndDate);
+        transferInfoExample.createCriteria().andApiCodeEqualTo(apiCode).andCreateTimeGreaterThanOrEqualTo(validStartDate).andCreateTimeLessThanOrEqualTo(validEndDate);
         return marketingTransferInfoMapper.selectByExample(transferInfoExample);
     }
 
@@ -80,7 +82,9 @@ public class QiFuResend implements ValidityPeriodResendStrategy<MarketingTransfe
                 return result.getData();
             }));
         List<String> errorList = partitionedMqFacts.get(true);
-        log.error("360有效期变更重推作业异常数据：{}", JSONObject.toJSONString(errorList));
+        if (CollectionUtil.isNotEmpty(errorList)) {
+            log.error("360有效期变更重推作业异常数据：{}", JSONObject.toJSONString(errorList));
+        }
     }
 
     /**
