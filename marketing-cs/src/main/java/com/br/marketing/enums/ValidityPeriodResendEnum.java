@@ -11,6 +11,10 @@ import lombok.Getter;
 @Getter
 public enum ValidityPeriodResendEnum {
     /**
+     * 默认不推
+     */
+    DEFAULT(0),
+    /**
      * 360有效期变更重推
      */
     QI_FU(1),
@@ -38,6 +42,6 @@ public enum ValidityPeriodResendEnum {
                 return enumValue;
             }
         }
-        throw new IllegalArgumentException("No enum value found for code: " + code);
+        return null;
     }
 }
