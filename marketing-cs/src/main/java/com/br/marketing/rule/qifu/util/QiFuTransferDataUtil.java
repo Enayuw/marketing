@@ -1,5 +1,7 @@
 package com.br.marketing.rule.qifu.util;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.common.util.StringUtils;
@@ -83,9 +85,14 @@ public class QiFuTransferDataUtil {
      */
     public static boolean isNeedAssmble(MarketingTransferSyncUser transfer, SyncUserValidityPeriodsBO syncUserValidityPeriodsBO) {
         String custNum = transfer.getCustNum();
-        if ("1".equals(transfer.getTransformTime())) {
-            log.info("{},【TransformTime】为1", custNum);
-            return false;
+        String reserveField1 = transfer.getReserveField1();
+        if (org.springframework.util.StringUtils.hasText(reserveField1)) {
+            JSONObject json = JSON.parseObject(reserveField1);
+            Integer transformType = json.getInteger("transformType");
+            if (transformType != 1) {
+                log.info("{},【transformType】为1", custNum);
+                return false;
+            }
         }
         if (syncUserValidityPeriodsBO == null) {
             log.info("{},数据不在有效期范围内！", custNum);
