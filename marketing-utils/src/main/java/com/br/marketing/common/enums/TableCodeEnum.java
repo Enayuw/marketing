@@ -16,7 +16,9 @@ public enum TableCodeEnum {
 
     MARKETING_CUSTOMER("01", "b_marketing_customer","MarketingCustomer"),
     SCORE_SEARCH_CONDITION("02", "b_score_search_condition","ScoreSearchCondition"),
-    SCORE_SEARCH_CONDITION_MAPPING("03", "b_score_search_condition_mapping","ScoreSearchConditionMapping");
+    SCORE_SEARCH_CONDITION_MAPPING("03", "b_score_search_condition_mapping","ScoreSearchConditionMapping"),
+    MARKETING_TASK("04", "b_marketing_task","MarketingTask"),
+    DATA_VALIDITY_PERIOD_CHANGE("05", "b_marketing_data_valid_config","MarketingDataValidConfig");
 
     /**
      * 表对应的码值

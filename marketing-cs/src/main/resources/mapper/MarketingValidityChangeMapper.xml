@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.MarketingValidityChangeMapper">
+
+    <select id="selectValidityList" resultType="com.br.marketing.entity.MarketingDataValidConfig">
+        select *
+        from b_marketing_data_valid_config
+        where
+        <if test="isDel !=null">
+            is_del = #{isDel}
+        </if>
+        <if test="validStartDate !=null and validStartDate!=''">
+            <![CDATA[  and valid_start_date >=#{validStartDate} ]]>
+        </if>
+        <if test="validEndDate !=null and validEndDate!=''">
+            <![CDATA[  and valid_end_date <#{validEndDate} ]]>
+        </if>
+        <if test="updateTime !=null and updateTime!=''">
+            <![CDATA[  and update_time >=#{updateTime} ]]>
+        </if>
+        <if test="createTime !=null and createTime!=''">
+            <![CDATA[  and create_time <#{createTime} ]]>
+        </if>
+        <if test="appletDate !=null and appletDate!=''">
+            <![CDATA[  and applet_date <#{appletDate} ]]>
+        </if>
+        <if test="validDays !=null and validDays!=''">
+            and valid_days = #{validDays}
+        </if>
+        <if test="validType !=null and validType!=''">
+            and valid_type = #{validType}
+        </if>
+        <if test="userType !=null and userType!=''">
+            and user_type = #{userType}
+        </if>
+        <if test="apiCode !=null and apiCode!=''">
+            and api_code = #{apiCode}
+        </if>
+        <if test="id !=null">
+            and id = #{id}
+        </if>
+        order by create_time desc,id desc
+    </select>
+
+    <select id="selectById" resultType="com.br.marketing.entity.MarketingDataValidConfig" parameterType="java.lang.Long">
+        select * from b_marketing_data_valid_config where id =#{id}
+    </select>
+
+    <update id="updateById" parameterType="com.br.marketing.entity.MarketingDataValidConfig">
+        update b_marketing_data_valid_config
+        <set >
+            <if test="config.apiCode != null" >
+                api_code = #{config.apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="config.appletDate != null" >
+                applet_date = #{config.appletDate,jdbcType=VARCHAR},
+            </if>
+            <if test="config.userType != null" >
+                user_type = #{config.userType,jdbcType=VARCHAR},
+            </if>
+            <if test="config.validStartDate != null" >
+                valid_start_date = #{config.validStartDate,jdbcType=VARCHAR},
+            </if>
+            <if test="config.validEndDate != null" >
+                valid_end_date = #{config.validEndDate,jdbcType=VARCHAR},
+            </if>
+            <if test="config.validDays != null" >
+                valid_days = #{config.validDays,jdbcType=VARCHAR},
+            </if>
+            <if test="config.validType != null" >
+                valid_type = #{config.validType,jdbcType=INTEGER},
+            </if>
+            <if test="config.createTime != null" >
+                create_time = #{config.createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="config.updateTime != null" >
+                update_time = #{config.updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="config.isDel != null" >
+                is_del = #{config.isDel,jdbcType=INTEGER}
+            </if>
+        </set>
+        where id = #{config.id,jdbcType=BIGINT}
+    </update>
+
+    <insert id="insertMarketingDataValidConfig" parameterType="com.br.marketing.entity.MarketingDataValidConfig">
+        INSERT INTO b_marketing_data_valid_config
+        (api_code, applet_date, user_type, valid_start_date, valid_end_date, valid_days, valid_type, create_time,
+         update_time, is_del)
+        VALUES (#{config.apiCode},
+                #{config.appletDate},
+                #{config.userType},
+                #{config.validStartDate},
+                #{config.validEndDate},
+                #{config.validDays},
+                #{config.validType},
+                #{config.createTime},
+                #{config.updateTime},
+                #{config.isDel})
+    </insert>
+
+</mapper>
