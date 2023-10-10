@@ -125,7 +125,7 @@ public class QiFuTransferDataUtil {
             for (PeriodOfValidityBO.Builder builder : builders) {
                 String startOfDayTimeStr = builder.addDateString().addOfDayTimeStrString().builder().getStartOfDayTimeStr();
                 LocalDate localStartOfDayTimeStr = LocalDateTime.parse(startOfDayTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toLocalDate();
-                if (localRuleDate.isAfter(localStartOfDayTimeStr)) {
+                if (localRuleDate.isEqual(localStartOfDayTimeStr) || localRuleDate.isAfter(localStartOfDayTimeStr)) {
                     return true;
                 }
             }
