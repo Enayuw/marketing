@@ -991,5 +991,15 @@ public class MarketingCommonConfig {
      */
     private Map<String,String> qiFuApiCodeToCustomerMap;
 
+    /**
+     * 奇富360 apiCode
+     */
+    private Set<String> qiFuApiCodes;
+
+    /**
+     * 奇富断点自动化数据推决策线程数
+     */
+    private Integer qiFuBreakPointDataToJueCeThreadNum;
+
 }
 
