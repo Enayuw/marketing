@@ -50,11 +50,11 @@ public class QiFuTransferDataToCustomerFilter implements AssembleData<Conversion
             if (syncUserValidityPeriodsBO != null) {
                 String applyDt = transfer.getApplyDt();
                 String loginTime = transfer.getLoginTime();
-                if (QiFuTransferDataUtil.isNeedAssmble(transfer, syncUserValidityPeriodsBO)) {
-                    return QiFuTransferDataUtil.isNeedAssmble(transfer, syncUserValidityPeriodsBO)
-                            &&
-                            (QiFuTransferDataUtil.isRuleAssmble(loginTime, custNum, syncUserValidityPeriodsBO) || QiFuTransferDataUtil.isRuleAssmble(applyDt, custNum, syncUserValidityPeriodsBO));
-                }
+                return QiFuTransferDataUtil.isNeedAssmble(transfer, syncUserValidityPeriodsBO)
+                        &&
+                        (QiFuTransferDataUtil.isRuleAssmble(loginTime, custNum, syncUserValidityPeriodsBO)
+                                ||
+                                QiFuTransferDataUtil.isRuleAssmble(applyDt, custNum, syncUserValidityPeriodsBO));
             }
 
         }

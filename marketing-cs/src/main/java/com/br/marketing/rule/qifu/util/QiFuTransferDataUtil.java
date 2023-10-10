@@ -1,5 +1,6 @@
 package com.br.marketing.rule.qifu.util;
 
+import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
@@ -15,6 +16,7 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -84,19 +86,23 @@ public class QiFuTransferDataUtil {
      * @return
      */
     public static boolean isNeedAssmble(MarketingTransferSyncUser transfer, SyncUserValidityPeriodsBO syncUserValidityPeriodsBO) {
-        String custNum = transfer.getCustNum();
-        String reserveField1 = transfer.getReserveField1();
-        if (org.springframework.util.StringUtils.hasText(reserveField1)) {
-            JSONObject json = JSON.parseObject(reserveField1);
-            Integer transformType = json.getInteger("transformType");
-            if (transformType != 1) {
-                log.info("{},【transformType】为1", custNum);
+        try {
+            String custNum = transfer.getCustNum();
+            String reserveField1 = transfer.getReserveField1();
+            if (org.springframework.util.StringUtils.hasText(reserveField1)) {
+                JSONObject json = JSON.parseObject(reserveField1);
+                Integer transformType = json.getInteger("transformType");
+                if (transformType == 1) {
+                    log.info("{},【transformType】为1", custNum);
+                    return false;
+                }
+            }
+            if (syncUserValidityPeriodsBO == null) {
+                log.info("{},数据不在有效期范围内！", custNum);
                 return false;
             }
-        }
-        if (syncUserValidityPeriodsBO == null) {
-            log.info("{},数据不在有效期范围内！", custNum);
-            return false;
+        }catch (Exception e){
+            log.error("业务逻辑异常",e);
         }
         return true;
     }
@@ -109,19 +115,24 @@ public class QiFuTransferDataUtil {
      * @return
      */
     public static boolean isRuleAssmble(String ruleDate,  String custNum, SyncUserValidityPeriodsBO syncUserValidityPeriodsBO) {
-        if (StringUtils.isEmpty(ruleDate)) {
-            log.info("{},【ruleDate】为空！", custNum);
-            return false;
-        }
-        LocalDate localRuleDate = LocalDate.parse(ruleDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        List<PeriodOfValidityBO.Builder> builders = syncUserValidityPeriodsBO.getBuilders();
-        for (PeriodOfValidityBO.Builder builder : builders) {
-            String startOfDayTimeStr = builder.addDateString().addOfDayTimeStrString().builder().getStartOfDayTimeStr();
-            LocalDate localStartOfDayTimeStr = LocalDate.parse(startOfDayTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            if (localRuleDate.isAfter(localStartOfDayTimeStr)) {
-                return true;
+        try {
+            if (StringUtils.isEmpty(ruleDate) || ruleDate==null) {
+                log.info("{},【ruleDate】为空！", custNum);
+                return false;
             }
+            LocalDate localRuleDate = LocalDateTime.parse(ruleDate, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]")).toLocalDate();
+            List<PeriodOfValidityBO.Builder> builders = syncUserValidityPeriodsBO.getBuilders();
+            for (PeriodOfValidityBO.Builder builder : builders) {
+                String startOfDayTimeStr = builder.addDateString().addOfDayTimeStrString().builder().getStartOfDayTimeStr();
+                LocalDate localStartOfDayTimeStr = LocalDateTime.parse(startOfDayTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toLocalDate();
+                if (localRuleDate.isAfter(localStartOfDayTimeStr)) {
+                    return true;
+                }
+            }
+        }catch (Exception e){
+            log.error("RuleDate 判断异常：{}",e);
         }
+
         return false;
     }
 
