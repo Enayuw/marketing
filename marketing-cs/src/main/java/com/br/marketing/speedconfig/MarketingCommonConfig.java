@@ -992,9 +992,10 @@ public class MarketingCommonConfig {
     private Map<String,String> qiFuApiCodeToCustomerMap;
 
     /**
-     * 奇富360 apiCode
+     * 奇富360推送决策 apiCode
+     * qiFuToJueCeApiCodes={"3710053":"3710105","7410787":"7410787"}
      */
-    private Set<String> qiFuApiCodes;
+    private HashMap<String, String> qiFuToJueCeApiCodes;
 
     /**
      * 奇富断点自动化数据推决策线程数

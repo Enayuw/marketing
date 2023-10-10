@@ -1,6 +1,5 @@
 package com.br.marketing.rule.qifu.util;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
