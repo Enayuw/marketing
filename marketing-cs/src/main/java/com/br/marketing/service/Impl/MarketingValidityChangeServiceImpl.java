@@ -34,12 +34,10 @@ public class MarketingValidityChangeServiceImpl implements MarketingDataValidity
     @Resource
     MarketingValidityChangeMapper marketingValidityChangeMapper;
 
-
     @Override
-    public PageResultReturn list(int current, int size, int isDel, String createTime, String appletDate,
-                                 String apiCode, String userType, String validStartDate, String validEndDate ,
-                                 String validDays , int validType , String updateTime) {
-
+    public PageResultReturn list(int current, int size, String apiCode, int isDel, String userType,
+                                 String validStartDate, String validEndDate, String validDays, int validType,
+                                 String appletDate, String createTime, String updateTime) {
         if (StringUtils.isNotEmpty(validStartDate)) {
             validStartDate = DateUtils.format(addDay(validStartDate, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
         }

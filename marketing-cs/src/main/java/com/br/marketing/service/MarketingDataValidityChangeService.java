@@ -18,19 +18,19 @@ public interface MarketingDataValidityChangeService {
      * 获取有效期记录列表
      * @param current
      * @param size
-     * @param isDel
-     * @param createTime
-     * @param appletDate
      * @param apiCode
+     * @param isDel
      * @param userType
      * @param validStartDate
      * @param validEndDate
      * @param validDays
      * @param validType
+     * @param appletDate
+     * @param createTime
      * @param updateTime
      * @return
      */
-    PageResultReturn list(int current, int size, int isDel, String createTime, String appletDate, String apiCode, String userType, String validStartDate, String validEndDate , String validDays , int validType , String updateTime);
+    PageResultReturn list(int current, int size, String apiCode, int isDel, String userType, String validStartDate, String validEndDate , String validDays , int validType, String appletDate, String createTime, String updateTime);
 
     /**
      * 新增有效期
