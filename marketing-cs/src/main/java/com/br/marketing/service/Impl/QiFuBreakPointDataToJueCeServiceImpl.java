@@ -211,37 +211,6 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
             return applyDtEmply > 0;
         }).map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
         list.removeIf(t -> filterRuleSecond.contains(t.getCustNum()));
-
-//        for (MarketingTransferSyncUser transferSyncUser : list) {
-//            String custNum = transferSyncUser.getCustNum();
-//            SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
-//            // 可以不用判断
-//            if (syncUserValidityPeriodsBO == null) {
-//                log.warn("{},数据不在有效期范围内！", custNum);
-//                list.removeIf(t -> t.getCustNum().equals(custNum));
-//                continue;
-//            }
-//
-//            // loginTime有值>=有效期生效开始日期
-//            boolean ruleAssmble = QiFuTransferDataUtil.isRuleAssmble(transferSyncUser.getLoginTime(), custNum,
-//                    syncUserValidityPeriodsBO);
-//
-//            if (!ruleAssmble) {
-//                // 剔除
-//                // todo 可能要解决并发问题
-//                list.removeIf(t -> t.getCustNum().equals(custNum));
-//                continue;
-//            }
-//
-//            // 遍历每个有效期范围，如范围内的转化数据transformType非1且applyDt有值，则剔除
-//            List<PeriodRange> periodRangeList = getPeriodRanges(syncUserValidityPeriodsBO);
-//            int applyDtEmply = marketingTransferSyncUserMapper.getCountByQiFuApplyDtEmply(tcId, apiCode, periodRangeList, custNum);
-//            if (applyDtEmply > 0) {
-//                // 剔除
-//                // todo 可能要解决并发问题
-//                list.removeIf(t -> t.getCustNum().equals(custNum));
-//            }
-//        }
     }
 
     private List<PeriodRange> getPeriodRanges(SyncUserValidityPeriodsBO syncUserValidityPeriodsBO) {
@@ -267,10 +236,6 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
         // 查询在有效期内的数据
         Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
                 transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSet, apiCode, new Date());
-//        Set<String> periodCustNumSet = validityPeriodsByCustNum.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toSet());
-//        // todo 可能要解决并发问题
-//        // 剔除不在有效期内的数据
-//        list.removeIf(t -> !periodCustNumSet.contains(t.getCustNum()));
         return validityPeriodsByCustNum;
     }
 
