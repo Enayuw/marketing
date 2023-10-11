@@ -832,4 +832,18 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+    <job:simple id="QiFuBreakPointDataToJueCeJob"
+                class="com.br.marketing.check.job.qifu.QiFuBreakPointDataToJueCeJob"
+                cron="0 0 8 * * ?"
+                description="奇富断点自动化数据推决策，每天8点执行一次"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>
