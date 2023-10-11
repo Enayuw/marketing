@@ -926,7 +926,7 @@
         <foreach collection="periodRangeList" item="item" open="(" close=")" separator="or">
             request_data between #{item.beginDateStr} and #{item.endDateStr}
         </foreach>
-        and (apply_dt is not null or apply_dt != '')
+        and (apply_dt is not null and apply_dt != '')
         and cust_num = #{custNum}
     </select>
 </mapper>
