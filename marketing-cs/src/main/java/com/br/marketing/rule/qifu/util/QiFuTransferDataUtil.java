@@ -79,7 +79,7 @@ public class QiFuTransferDataUtil {
     }
 
     /**
-     * 判断transformTime 和 数据是否有效
+     * 判断transformType 和 数据是否有效
      * @param transfer
      * @param syncUserValidityPeriodsBO
      * @return

@@ -35,6 +35,8 @@ public class QiFuTransferDataToCustomerFilter implements AssembleData<Conversion
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+        String apiCode = marketingCommonConfig.getQiFuApiCodeToCustomerMap().get("QiFu_TransferData_To_CustomerFilter");
+        context.setApiCode(apiCode);
         return QiFuTransferDataUtil.getConversionData((MarketingTransferSyncUser) transmitFact, context);
     }
 
@@ -42,8 +44,6 @@ public class QiFuTransferDataToCustomerFilter implements AssembleData<Conversion
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         if (transmitFact instanceof MarketingTransferSyncUser) {
-            String apiCode = marketingCommonConfig.getQiFuApiCodeToCustomerMap().get("QiFu_TransferData_To_CustomerFilter");
-            context.setApiCode(apiCode);
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             String custNum = transfer.getCustNum();
             SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = QiFuTransferDataUtil.getSyncUserValidityPeriodsBO(context, custNum);
