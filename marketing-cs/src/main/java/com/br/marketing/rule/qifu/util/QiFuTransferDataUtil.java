@@ -90,8 +90,8 @@ public class QiFuTransferDataUtil {
             String reserveField1 = transfer.getReserveField1();
             if (org.springframework.util.StringUtils.hasText(reserveField1)) {
                 JSONObject json = JSON.parseObject(reserveField1);
-                Integer transformType = json.getInteger("transformType");
-                if (transformType == 1) {
+                String transformType = json.getString("transformType");
+                if ("1".equals(transformType)) {
                     log.info("{},【transformType】为1", custNum);
                     return false;
                 }
