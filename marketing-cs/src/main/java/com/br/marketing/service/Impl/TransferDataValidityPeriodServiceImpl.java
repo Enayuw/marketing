@@ -1114,7 +1114,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         final String requestDateStr = switchDateStr(requestDateObj);
         //获取有效期配置不分页
         List<MarketingDataValidConfig> configList = getDataValidConfig(apiCode, requestDateStr, null, null, null);
-        if (CollectionUtil.isNotEmpty(configList)) {
+        if (CollectionUtil.isEmpty(configList)) {
             return resultMap;
         }
         //包含请求日期的T,T （范围）模式的配置记录不为空则查询所有符合的上传数据
