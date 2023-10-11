@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.br.common.log.AlertLog;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.CellValidityPeriodBO;
@@ -1113,6 +1114,9 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         final String requestDateStr = switchDateStr(requestDateObj);
         //获取有效期配置不分页
         List<MarketingDataValidConfig> configList = getDataValidConfig(apiCode, requestDateStr, null, null, null);
+        if (CollectionUtil.isNotEmpty(configList)) {
+            return resultMap;
+        }
         //包含请求日期的T,T （范围）模式的配置记录不为空则查询所有符合的上传数据
         List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserByCustNumAndAppletDateList(apiCode, configList, custNumSet);
         //组装有效期数据
@@ -1124,8 +1128,8 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      * 构建有效期信息
      *
      * @param syncUserList 有效上传数据集合
-     * @param configList 有效期配置集合
-     * @param resultMap 返回结果集
+     * @param configList   有效期配置集合
+     * @param resultMap    返回结果集
      * @author senyang.zheng
      * @date 2023/10/08
      */

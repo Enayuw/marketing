@@ -283,7 +283,7 @@
                 </foreach>
             </when>
             <otherwise>
-                1!=1
+                and 1!=1
             </otherwise>
         </choose>
         and status=1
@@ -311,7 +311,7 @@
                 </foreach>
             </when>
             <otherwise>
-                1!=1
+                and 1!=1
             </otherwise>
         </choose>
         and status=1
@@ -660,7 +660,7 @@
                 </foreach>
             </when>
             <otherwise>
-                1!=1
+                and 1!=1
             </otherwise>
         </choose>
         and status=1 and is_repeat in (1,2)
@@ -690,7 +690,7 @@
                 </foreach>
             </when>
             <otherwise>
-                1!=1
+                and 1!=1
             </otherwise>
         </choose>
         and status=1 and is_repeat in (1,2)
@@ -720,7 +720,7 @@
                 </foreach>
             </when>
             <otherwise>
-                1!=1
+                and 1!=1
             </otherwise>
         </choose>
         and status=1
@@ -754,7 +754,7 @@
                 </foreach>
             </when>
             <otherwise>
-                1!=1
+                and 1!=1
             </otherwise>
         </choose>
         and status=1
