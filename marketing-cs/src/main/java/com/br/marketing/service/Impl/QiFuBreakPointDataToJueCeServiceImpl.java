@@ -194,13 +194,13 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
         list.removeIf(t -> filterPeriodSet.contains(t.getCustNum()));
 
         // 规则1过滤：loginTime有值>=有效期生效开始日期
-        Set<String> filterRuleFirst = list.stream().filter(t -> {
+        Set<Long> filterRuleFirst = list.stream().filter(t -> {
             String custNum = t.getCustNum();
             SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
             return !QiFuTransferDataUtil.isRuleAssmble(t.getLoginTime(), custNum,
                     syncUserValidityPeriodsBO);
-        }).map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-        list.removeIf(t -> filterRuleFirst.contains(t.getCustNum()));
+        }).map(MarketingTransferSyncUser::getId).collect(Collectors.toSet());
+        list.removeIf(t -> filterRuleFirst.contains(t.getId()));
 
         // 规则2过滤：applyDt均为空（包含null、有key无value、未传该记录）
         Set<String> filterRuleSecond = list.stream().filter(t -> {
