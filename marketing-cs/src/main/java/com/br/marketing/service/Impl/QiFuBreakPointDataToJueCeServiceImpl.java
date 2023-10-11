@@ -121,22 +121,22 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
         try {
             // 根据有效期过滤转化数据并返回有效期内的上传数据
             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = getStringSyncUserValidityPeriodsBOMap(list, apiCode);
-            // 遍历有效的转化数据，剔除掉不符合推送规则的转化数据，满足规则1且满足规则2，则推送。
-            // 规则1：loginTime有值>=有效期生效开始日期。规则2：applyDt均为空（包含null、有key无value、未传该记录）
+
+            // 遍历有效的转化数据，剔除掉不符合推送规则的转化数据，在有效期内且满足规则1且满足规则2，则推送。
             filterData(list, apiCode, tcId, validityPeriodsByCustNum);
 
             ArrayList<DataJoinLogDTO> logList = new ArrayList<>();
             ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
             // 推送的apicode
             String toJueCeApiCode = marketingCommonConfig.getQiFuToJueCeApiCodes().get(apiCode);
-
             // 情况类型
             String actionType = "1";
+
             // 组装推送参数
             buildPushParam(list, validityPeriodsByCustNum, logList, pushs, toJueCeApiCode, actionType);
-
             // 组装重试参数
             PolicyRetryByRuleSoleDTO retryByRuleDTO = getPolicyRetryByRuleSoleDTO(actionType, toJueCeApiCode, logList, pushs);
+
             // 推送决策方法
             methodRetryHandlerService.callPolicySoleData(retryByRuleDTO, 0);
         } catch (Exception e) {
@@ -145,17 +145,27 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
     }
 
     private void buildPushParam(List<MarketingTransferSyncUser> list, Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum,
-                           ArrayList<DataJoinLogDTO> logList, ArrayList<PushMarketingUserDetailDTO> pushs, String toJueCeApiCode, String actionType) {
+                                ArrayList<DataJoinLogDTO> logList, ArrayList<PushMarketingUserDetailDTO> pushs, String toJueCeApiCode,
+                                String actionType) {
         for (MarketingTransferSyncUser marketingTransferSyncUser : list) {
             String custNum = marketingTransferSyncUser.getCustNum();
             String requestTime = marketingTransferSyncUser.getRequestData();
 
             SyncUserValidityPeriodsBO bo = validityPeriodsByCustNum.get(custNum);
-            // todo 是否需要判空
-            MarketingSyncUser syncUser = bo.getSyncUsers().get(0);
+
+            List<MarketingSyncUser> syncUsers = bo.getSyncUsers();
+            if (syncUsers == null) {
+                log.error("奇富：根据有效期方法没有获取到上传数据。custNum：{}" + custNum);
+                continue;
+            }
+            MarketingSyncUser syncUser = syncUsers.get(0);
+            if (syncUser == null) {
+                log.error("奇富：根据有效期方法没有获取到上传数据。custNum：{}" + custNum);
+                continue;
+            }
+
             String cell = syncUser.getCell();
             String taskId = syncUser.getCusBatch();
-
 
             // 封装推送参数
             PushMarketingUserDetailDTO marketingUserDetailDTO = getPushMarketingUserDetailDTO(custNum, requestTime, cell, taskId);
@@ -170,36 +180,63 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
 
     private void filterData(List<MarketingTransferSyncUser> list, String apiCode, String tcId,
                             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum) {
-        for (MarketingTransferSyncUser transferSyncUser : list) {
-            String custNum = transferSyncUser.getCustNum();
+        // 有效期过滤
+        Set<MarketingTransferSyncUser> filterPeriodSet = list.stream().filter(t -> {
+            String custNum = t.getCustNum();
             SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
-            // 可以不用判断
-            if (syncUserValidityPeriodsBO == null) {
-                log.warn("{},数据不在有效期范围内！", custNum);
-                list.removeIf(t -> t.getCustNum().equals(custNum));
-                continue;
-            }
+            return syncUserValidityPeriodsBO == null;
+        }).collect(Collectors.toSet());
+        list.removeIf(t -> filterPeriodSet.contains(t.getCustNum()));
 
-            // loginTime有值>=有效期生效开始日期
-            boolean ruleAssmble = QiFuTransferDataUtil.isRuleAssmble(transferSyncUser.getLoginTime(), custNum,
+        // 规则1过滤：loginTime有值>=有效期生效开始日期
+        Set<MarketingTransferSyncUser> filterRuleFirst = list.stream().filter(t -> {
+            String custNum = t.getCustNum();
+            SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
+            return !QiFuTransferDataUtil.isRuleAssmble(t.getLoginTime(), custNum,
                     syncUserValidityPeriodsBO);
+        }).collect(Collectors.toSet());
+        list.removeIf(t -> filterRuleFirst.contains(t.getCustNum()));
 
-            if (!ruleAssmble) {
-                // 剔除
-                // todo 可能要解决并发问题
-                list.removeIf(t -> t.getCustNum().equals(custNum));
-                continue;
-            }
-
-            // 遍历每个有效期范围，如范围内的转化数据transformType非1且applyDt有值，则剔除
+        // 规则2过滤：applyDt均为空（包含null、有key无value、未传该记录）
+        Set<MarketingTransferSyncUser> filterRuleSecond = list.stream().filter(t -> {
+            String custNum = t.getCustNum();
+            SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
             List<PeriodRange> periodRangeList = getPeriodRanges(syncUserValidityPeriodsBO);
             int applyDtEmply = marketingTransferSyncUserMapper.getCountByQiFuApplyDtEmply(tcId, apiCode, periodRangeList, custNum);
-            if (applyDtEmply > 0) {
-                // 剔除
-                // todo 可能要解决并发问题
-                list.removeIf(t -> t.getCustNum().equals(custNum));
-            }
-        }
+            return applyDtEmply > 0;
+        }).collect(Collectors.toSet());
+        list.removeIf(t -> filterRuleSecond.contains(t.getCustNum()));
+
+//        for (MarketingTransferSyncUser transferSyncUser : list) {
+//            String custNum = transferSyncUser.getCustNum();
+//            SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
+//            // 可以不用判断
+//            if (syncUserValidityPeriodsBO == null) {
+//                log.warn("{},数据不在有效期范围内！", custNum);
+//                list.removeIf(t -> t.getCustNum().equals(custNum));
+//                continue;
+//            }
+//
+//            // loginTime有值>=有效期生效开始日期
+//            boolean ruleAssmble = QiFuTransferDataUtil.isRuleAssmble(transferSyncUser.getLoginTime(), custNum,
+//                    syncUserValidityPeriodsBO);
+//
+//            if (!ruleAssmble) {
+//                // 剔除
+//                // todo 可能要解决并发问题
+//                list.removeIf(t -> t.getCustNum().equals(custNum));
+//                continue;
+//            }
+//
+//            // 遍历每个有效期范围，如范围内的转化数据transformType非1且applyDt有值，则剔除
+//            List<PeriodRange> periodRangeList = getPeriodRanges(syncUserValidityPeriodsBO);
+//            int applyDtEmply = marketingTransferSyncUserMapper.getCountByQiFuApplyDtEmply(tcId, apiCode, periodRangeList, custNum);
+//            if (applyDtEmply > 0) {
+//                // 剔除
+//                // todo 可能要解决并发问题
+//                list.removeIf(t -> t.getCustNum().equals(custNum));
+//            }
+//        }
     }
 
     private List<PeriodRange> getPeriodRanges(SyncUserValidityPeriodsBO syncUserValidityPeriodsBO) {
@@ -225,10 +262,10 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
         // 查询在有效期内的数据
         Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
                 transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSet, apiCode, new Date());
-        Set<String> periodCustNumSet = validityPeriodsByCustNum.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toSet());
-        // todo 可能要解决并发问题
-        // 剔除不在有效期内的数据
-        list.removeIf(t -> !periodCustNumSet.contains(t.getCustNum()));
+//        Set<String> periodCustNumSet = validityPeriodsByCustNum.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toSet());
+//        // todo 可能要解决并发问题
+//        // 剔除不在有效期内的数据
+//        list.removeIf(t -> !periodCustNumSet.contains(t.getCustNum()));
         return validityPeriodsByCustNum;
     }
 
