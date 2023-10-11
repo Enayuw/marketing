@@ -186,30 +186,30 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
     private void filterData(List<MarketingTransferSyncUser> list, String apiCode, String tcId,
                             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum) {
         // 有效期过滤
-        Set<MarketingTransferSyncUser> filterPeriodSet = list.stream().filter(t -> {
+        Set<String> filterPeriodSet = list.stream().filter(t -> {
             String custNum = t.getCustNum();
             SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
             return syncUserValidityPeriodsBO == null;
-        }).collect(Collectors.toSet());
+        }).map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
         list.removeIf(t -> filterPeriodSet.contains(t.getCustNum()));
 
         // 规则1过滤：loginTime有值>=有效期生效开始日期
-        Set<MarketingTransferSyncUser> filterRuleFirst = list.stream().filter(t -> {
+        Set<String> filterRuleFirst = list.stream().filter(t -> {
             String custNum = t.getCustNum();
             SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
             return !QiFuTransferDataUtil.isRuleAssmble(t.getLoginTime(), custNum,
                     syncUserValidityPeriodsBO);
-        }).collect(Collectors.toSet());
+        }).map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
         list.removeIf(t -> filterRuleFirst.contains(t.getCustNum()));
 
         // 规则2过滤：applyDt均为空（包含null、有key无value、未传该记录）
-        Set<MarketingTransferSyncUser> filterRuleSecond = list.stream().filter(t -> {
+        Set<String> filterRuleSecond = list.stream().filter(t -> {
             String custNum = t.getCustNum();
             SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
             List<PeriodRange> periodRangeList = getPeriodRanges(syncUserValidityPeriodsBO);
             int applyDtEmply = marketingTransferSyncUserMapper.getCountByQiFuApplyDtEmply(tcId, apiCode, periodRangeList, custNum);
             return applyDtEmply > 0;
-        }).collect(Collectors.toSet());
+        }).map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
         list.removeIf(t -> filterRuleSecond.contains(t.getCustNum()));
 
 //        for (MarketingTransferSyncUser transferSyncUser : list) {
