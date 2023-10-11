@@ -66,7 +66,7 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
                 Pair<String, String> validityRange =
                         validityPeriodDataService.getMarketingTransferDataWithValidityRange(apiCode);
                 if (null == validityRange) {
-                    log.error("奇富：所有配置在有效期配置表中的上传数据均已失效！");
+                    log.error("奇富apiCode:" + apiCode + ":所有配置在有效期配置表中的上传数据均已失效！");
                     continue;
                 }
 
