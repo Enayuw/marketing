@@ -83,7 +83,7 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
                     // 每个线程2000条
                     // 初步框定transformType非1的转化数据
                     List<MarketingTransferSyncUser> marketingTransferSyncUserList =
-                            marketingTransferSyncUserMapper.getQiFuBreakPointTransferByRequestDate(tcId, apiCode, startDate, endDate, indexId);
+                            marketingTransferSyncUserMapper.getQiFuBreakPointTransferByRequestDatetikv_(tcId, apiCode, startDate, endDate, indexId);
                     if (marketingTransferSyncUserList.isEmpty()) {
                         break;
                     }
@@ -122,26 +122,31 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
             // 根据有效期过滤转化数据并返回有效期内的上传数据
             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = getStringSyncUserValidityPeriodsBOMap(list, apiCode);
 
-            // 遍历有效的转化数据，剔除掉不符合推送规则的转化数据，在有效期内且满足规则1且满足规则2，则推送。
+            // 剔除掉不符合推送规则的转化数据，在有效期内且满足规则1且满足规则2，则推送。
             filterData(list, apiCode, tcId, validityPeriodsByCustNum);
 
-            ArrayList<DataJoinLogDTO> logList = new ArrayList<>();
-            ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
-            // 推送的apicode
-            String toJueCeApiCode = marketingCommonConfig.getQiFuToJueCeApiCodes().get(apiCode);
-            // 情况类型
-            String actionType = "1";
-
-            // 组装推送参数
-            buildPushParam(list, validityPeriodsByCustNum, logList, pushs, toJueCeApiCode, actionType);
-            // 组装重试参数
-            PolicyRetryByRuleSoleDTO retryByRuleDTO = getPolicyRetryByRuleSoleDTO(actionType, toJueCeApiCode, logList, pushs);
-
-            // 推送决策方法
-            methodRetryHandlerService.callPolicySoleData(retryByRuleDTO, 0);
+            // 组装参数并推送
+            pushData(list, apiCode, validityPeriodsByCustNum);
         } catch (Exception e) {
             log.error("奇富断点自动化数据推决策JOB:" + e.getMessage(), e);
         }
+    }
+
+    private void pushData(List<MarketingTransferSyncUser> list, String apiCode, Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum) {
+        ArrayList<DataJoinLogDTO> logList = new ArrayList<>();
+        ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
+        // 推送的apicode
+        String toJueCeApiCode = marketingCommonConfig.getQiFuToJueCeApiCodes().get(apiCode);
+        // 情况类型
+        String actionType = "1";
+
+        // 组装推送参数
+        buildPushParam(list, validityPeriodsByCustNum, logList, pushs, toJueCeApiCode, actionType);
+        // 组装重试参数
+        PolicyRetryByRuleSoleDTO retryByRuleDTO = getPolicyRetryByRuleSoleDTO(actionType, toJueCeApiCode, logList, pushs);
+
+        // 推送决策方法
+        methodRetryHandlerService.callPolicySoleData(retryByRuleDTO, 0);
     }
 
     private void buildPushParam(List<MarketingTransferSyncUser> list, Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum,

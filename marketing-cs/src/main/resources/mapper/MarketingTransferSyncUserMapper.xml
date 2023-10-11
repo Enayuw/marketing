@@ -902,8 +902,8 @@
         group by cust_num;
     </select>
 
-    <select id="getQiFuBreakPointTransferByRequestDate" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-        select distinct cust_num, login_time, apply_dt
+    <select id="getQiFuBreakPointTransferByRequestDatetikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select distinct cust_num, login_time, apply_dt, request_data
         from b_marketing_transfer_sync_${tCid}
                 where api_code = #{apiCode}
                   and (json_extract(reserve_field1, "$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)

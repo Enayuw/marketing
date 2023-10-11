@@ -476,8 +476,8 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                               @Param("requestEndDate") String requestEndDate,
                                                               @Param("custNums") Set<String> custNums);
 
-    List<MarketingTransferSyncUser> getQiFuBreakPointTransferByRequestDate(@Param("tCid") String tCid,
-                                                                           @Param("apiCodes") String apiCode,
+    List<MarketingTransferSyncUser> getQiFuBreakPointTransferByRequestDatetikv_(@Param("tCid") String tCid,
+                                                                           @Param("apiCode") String apiCode,
                                                                            @Param("requestStartDate") String requestStartDate,
                                                                            @Param("requestEndDate") String requestEndDate,
                                                                            @Param("indexId") Long indexId);
