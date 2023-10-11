@@ -993,7 +993,7 @@ public class MarketingCommonConfig {
 
     /**
      * 奇富360推送决策 apiCode
-     * qiFuToJueCeApiCodes={"3710053":"3710105","7410787":"7410787"}
+     * qiFuToJueCeApiCodes={"3710053":"3710105","7491631":"7491630"}
      */
     private HashMap<String, String> qiFuToJueCeApiCodes;
 

@@ -135,7 +135,7 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
             // 组装推送参数
             buildPushParam(list, validityPeriodsByCustNum, logList, pushs, toJueCeApiCode, actionType);
 
-            //组装重试参数
+            // 组装重试参数
             PolicyRetryByRuleSoleDTO retryByRuleDTO = getPolicyRetryByRuleSoleDTO(actionType, toJueCeApiCode, logList, pushs);
             // 推送决策方法
             methodRetryHandlerService.callPolicySoleData(retryByRuleDTO, 0);
@@ -191,7 +191,7 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
                 continue;
             }
 
-            // 遍历每个有效期范围内的转化数据，如transformType非1且applyDt有值，则剔除
+            // 遍历每个有效期范围，如范围内的转化数据transformType非1且applyDt有值，则剔除
             List<PeriodRange> periodRangeList = getPeriodRanges(syncUserValidityPeriodsBO);
             int applyDtEmply = marketingTransferSyncUserMapper.getCountByQiFuApplyDtEmply(tcId, apiCode, periodRangeList, custNum);
             if (applyDtEmply > 0) {
