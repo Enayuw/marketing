@@ -6,10 +6,9 @@
         <result column="api_code" property="apiCode" jdbcType="VARCHAR"/>
         <result column="validity_period_id" property="validityPeriodId" jdbcType="BIGINT"/>
         <result column="resend_type" property="resendType" jdbcType="INTEGER"/>
-        <result column="resend_data" property="resendData" jdbcType="INTEGER"/>
-        <result column="status" property="status" jdbcType="VARCHAR"/>
-        <result column="retry_times" property="retryTimes" jdbcType="INTEGER"/>
-        <result column="is_delete" property="isDelete" jdbcType="VARCHAR"/>
+        <result column="resend_data" property="resendData" jdbcType="VARCHAR"/>
+        <result column="resend_status" property="resendStatus" jdbcType="INTEGER"/>
+        <result column="is_delete" property="isDelete" jdbcType="INTEGER"/>
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
         <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
     </resultMap>
@@ -79,8 +78,7 @@
         validity_period_id,
         resend_type,
         resend_data,
-        `status`,
-        retry_times,
+        resend_status,
         is_delete,
         create_time,
         update_time
@@ -122,11 +120,11 @@
             SELECT LAST_INSERT_ID()
         </selectKey>
         insert into b_validity_period_resend_record (api_code, validity_period_id, resend_type,
-                                                     resend_data, `status`, retry_times,
-                                                     is_delete, create_time, update_time)
+                                                     resend_data, resend_status, is_delete,
+                                                     create_time, update_time)
         values (#{apiCode,jdbcType=VARCHAR}, #{validityPeriodId,jdbcType=BIGINT}, #{resendType,jdbcType=INTEGER},
-                #{resendData,jdbcType=INTEGER}, #{status,jdbcType=VARCHAR}, #{retryTimes,jdbcType=INTEGER},
-                #{isDelete,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+                #{resendData,jdbcType=VARCHAR}, #{resendStatus,jdbcType=INTEGER}, #{isDelete,jdbcType=INTEGER},
+                #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
     </insert>
     <insert id="insertSelective" parameterType="com.br.marketing.entity.ValidityPeriodResendRecord">
         <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
@@ -146,11 +144,8 @@
             <if test="resendData != null">
                 resend_data,
             </if>
-            <if test="status != null">
-                `status`,
-            </if>
-            <if test="retryTimes != null">
-                retry_times,
+            <if test="resendStatus != null">
+                resend_status,
             </if>
             <if test="isDelete != null">
                 is_delete,
@@ -173,16 +168,13 @@
                 #{resendType,jdbcType=INTEGER},
             </if>
             <if test="resendData != null">
-                #{resendData,jdbcType=INTEGER},
+                #{resendData,jdbcType=VARCHAR},
             </if>
-            <if test="status != null">
-                #{status,jdbcType=VARCHAR},
-            </if>
-            <if test="retryTimes != null">
-                #{retryTimes,jdbcType=INTEGER},
+            <if test="resendStatus != null">
+                #{resendStatus,jdbcType=INTEGER},
             </if>
             <if test="isDelete != null">
-                #{isDelete,jdbcType=VARCHAR},
+                #{isDelete,jdbcType=INTEGER},
             </if>
             <if test="createTime != null">
                 #{createTime,jdbcType=TIMESTAMP},
@@ -215,16 +207,13 @@
                 resend_type = #{record.resendType,jdbcType=INTEGER},
             </if>
             <if test="record.resendData != null">
-                resend_data = #{record.resendData,jdbcType=INTEGER},
+                resend_data = #{record.resendData,jdbcType=VARCHAR},
             </if>
-            <if test="record.status != null">
-                `status` = #{record.status,jdbcType=VARCHAR},
-            </if>
-            <if test="record.retryTimes != null">
-                retry_times = #{record.retryTimes,jdbcType=INTEGER},
+            <if test="record.resendStatus != null">
+                resend_status = #{record.resendStatus,jdbcType=INTEGER},
             </if>
             <if test="record.isDelete != null">
-                is_delete = #{record.isDelete,jdbcType=VARCHAR},
+                is_delete = #{record.isDelete,jdbcType=INTEGER},
             </if>
             <if test="record.createTime != null">
                 create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -243,10 +232,9 @@
             api_code           = #{record.apiCode,jdbcType=VARCHAR},
             validity_period_id = #{record.validityPeriodId,jdbcType=BIGINT},
             resend_type        = #{record.resendType,jdbcType=INTEGER},
-            resend_data        = #{record.resendData,jdbcType=INTEGER},
-            `status`           = #{record.status,jdbcType=VARCHAR},
-            retry_times        = #{record.retryTimes,jdbcType=INTEGER},
-            is_delete          = #{record.isDelete,jdbcType=VARCHAR},
+            resend_data        = #{record.resendData,jdbcType=VARCHAR},
+            resend_status      = #{record.resendStatus,jdbcType=INTEGER},
+            is_delete          = #{record.isDelete,jdbcType=INTEGER},
             create_time        = #{record.createTime,jdbcType=TIMESTAMP},
             update_time        = #{record.updateTime,jdbcType=TIMESTAMP}
         <if test="_parameter != null">
@@ -266,16 +254,13 @@
                 resend_type = #{resendType,jdbcType=INTEGER},
             </if>
             <if test="resendData != null">
-                resend_data = #{resendData,jdbcType=INTEGER},
+                resend_data = #{resendData,jdbcType=VARCHAR},
             </if>
-            <if test="status != null">
-                `status` = #{status,jdbcType=VARCHAR},
-            </if>
-            <if test="retryTimes != null">
-                retry_times = #{retryTimes,jdbcType=INTEGER},
+            <if test="resendStatus != null">
+                resend_status = #{resendStatus,jdbcType=INTEGER},
             </if>
             <if test="isDelete != null">
-                is_delete = #{isDelete,jdbcType=VARCHAR},
+                is_delete = #{isDelete,jdbcType=INTEGER},
             </if>
             <if test="createTime != null">
                 create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -291,10 +276,9 @@
         set api_code           = #{apiCode,jdbcType=VARCHAR},
             validity_period_id = #{validityPeriodId,jdbcType=BIGINT},
             resend_type        = #{resendType,jdbcType=INTEGER},
-            resend_data        = #{resendData,jdbcType=INTEGER},
-            `status`           = #{status,jdbcType=VARCHAR},
-            retry_times        = #{retryTimes,jdbcType=INTEGER},
-            is_delete          = #{isDelete,jdbcType=VARCHAR},
+            resend_data        = #{resendData,jdbcType=VARCHAR},
+            resend_status      = #{resendStatus,jdbcType=INTEGER},
+            is_delete          = #{isDelete,jdbcType=INTEGER},
             create_time        = #{createTime,jdbcType=TIMESTAMP},
             update_time        = #{updateTime,jdbcType=TIMESTAMP}
         where id = #{id,jdbcType=BIGINT}

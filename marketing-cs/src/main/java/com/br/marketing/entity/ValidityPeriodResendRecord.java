@@ -38,14 +38,9 @@ public class ValidityPeriodResendRecord {
     private String resendData;
 
     /**
-     * 状态 0:待执行;1:执行完成;99:执行异常
+     * 状态 0:待执行;1:执行完成;
      */
-    private Integer status;
-
-    /**
-     * 重试次数
-     */
-    private Integer retryTimes;
+    private Integer resendStatus;
 
     /**
      * 是否删除 0:否;1:是;

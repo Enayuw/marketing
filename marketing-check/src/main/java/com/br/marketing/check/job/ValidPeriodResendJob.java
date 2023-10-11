@@ -44,7 +44,7 @@ public class ValidPeriodResendJob extends AbstractSimpleElasticJob {
      */
     private List<ValidityPeriodResendRecord> getWaitingRecord() {
         ValidityPeriodResendRecordExample example = new ValidityPeriodResendRecordExample();
-        example.createCriteria().andStatusEqualTo(0).andIsDeleteEqualTo(0);
+        example.createCriteria().andResendStatusEqualTo(0).andIsDeleteEqualTo(0);
         return validityPeriodResendRecordMapperBase.selectByExample(example);
     }
 
@@ -58,14 +58,16 @@ public class ValidPeriodResendJob extends AbstractSimpleElasticJob {
      */
     private <T> void process(List<ValidityPeriodResendRecord> validityPeriodResendRecords) {
         if (CollectionUtil.isEmpty(validityPeriodResendRecords)) {
-            log.warn("没有待执行的重推任务");
+            log.info("没有待执行的重推任务");
         }
         for (ValidityPeriodResendRecord validityPeriodResendRecord : validityPeriodResendRecords) {
             ValidityPeriodResendEnum resendType = ValidityPeriodResendEnum.getEnumByCode(validityPeriodResendRecord.getResendType());
-            List<T> data = selector.fetchData(validityPeriodResendRecord.getValidityPeriodId(), resendType);
+            //获取推送数据
+            List<T> data = selector.fetchData(validityPeriodResendRecord, resendType);
+            //执行推送逻辑
             selector.resend(data, resendType);
             //修改记录状态为执行完成
-            validityPeriodResendRecord.setStatus(1);
+            validityPeriodResendRecord.setResendStatus(1);
             validityPeriodResendRecordMapperBase.updateByPrimaryKey(validityPeriodResendRecord);
         }
     }

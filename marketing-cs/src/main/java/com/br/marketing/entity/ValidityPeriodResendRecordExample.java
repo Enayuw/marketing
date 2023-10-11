@@ -305,52 +305,52 @@ public class ValidityPeriodResendRecordExample {
             return (Criteria) this;
         }
 
-        public Criteria andResendTypeEqualTo(String value) {
+        public Criteria andResendTypeEqualTo(Integer value) {
             addCriterion("resend_type =", value, "resendType");
             return (Criteria) this;
         }
 
-        public Criteria andResendTypeNotEqualTo(String value) {
+        public Criteria andResendTypeNotEqualTo(Integer value) {
             addCriterion("resend_type <>", value, "resendType");
             return (Criteria) this;
         }
 
-        public Criteria andResendTypeGreaterThan(String value) {
+        public Criteria andResendTypeGreaterThan(Integer value) {
             addCriterion("resend_type >", value, "resendType");
             return (Criteria) this;
         }
 
-        public Criteria andResendTypeGreaterThanOrEqualTo(String value) {
+        public Criteria andResendTypeGreaterThanOrEqualTo(Integer value) {
             addCriterion("resend_type >=", value, "resendType");
             return (Criteria) this;
         }
 
-        public Criteria andResendTypeLessThan(String value) {
+        public Criteria andResendTypeLessThan(Integer value) {
             addCriterion("resend_type <", value, "resendType");
             return (Criteria) this;
         }
 
-        public Criteria andResendTypeLessThanOrEqualTo(String value) {
+        public Criteria andResendTypeLessThanOrEqualTo(Integer value) {
             addCriterion("resend_type <=", value, "resendType");
             return (Criteria) this;
         }
 
-        public Criteria andResendTypeIn(List<String> values) {
+        public Criteria andResendTypeIn(List<Integer> values) {
             addCriterion("resend_type in", values, "resendType");
             return (Criteria) this;
         }
 
-        public Criteria andResendTypeNotIn(List<String> values) {
+        public Criteria andResendTypeNotIn(List<Integer> values) {
             addCriterion("resend_type not in", values, "resendType");
             return (Criteria) this;
         }
 
-        public Criteria andResendTypeBetween(String value1, String value2) {
+        public Criteria andResendTypeBetween(Integer value1, Integer value2) {
             addCriterion("resend_type between", value1, value2, "resendType");
             return (Criteria) this;
         }
 
-        public Criteria andResendTypeNotBetween(String value1, String value2) {
+        public Criteria andResendTypeNotBetween(Integer value1, Integer value2) {
             addCriterion("resend_type not between", value1, value2, "resendType");
             return (Criteria) this;
         }
@@ -425,123 +425,63 @@ public class ValidityPeriodResendRecordExample {
             return (Criteria) this;
         }
 
-        public Criteria andStatusIsNull() {
-            addCriterion("`status` is null");
+        public Criteria andResendStatusIsNull() {
+            addCriterion("resend_status is null");
             return (Criteria) this;
         }
 
-        public Criteria andStatusIsNotNull() {
-            addCriterion("`status` is not null");
+        public Criteria andResendStatusIsNotNull() {
+            addCriterion("resend_status is not null");
             return (Criteria) this;
         }
 
-        public Criteria andStatusEqualTo(Integer value) {
-            addCriterion("`status` =", value, "status");
+        public Criteria andResendStatusEqualTo(Integer value) {
+            addCriterion("resend_status =", value, "resendStatus");
             return (Criteria) this;
         }
 
-        public Criteria andStatusNotEqualTo(Integer value) {
-            addCriterion("`status` <>", value, "status");
+        public Criteria andResendStatusNotEqualTo(Integer value) {
+            addCriterion("resend_status <>", value, "resendStatus");
             return (Criteria) this;
         }
 
-        public Criteria andStatusGreaterThan(Integer value) {
-            addCriterion("`status` >", value, "status");
+        public Criteria andResendStatusGreaterThan(Integer value) {
+            addCriterion("resend_status >", value, "resendStatus");
             return (Criteria) this;
         }
 
-        public Criteria andStatusGreaterThanOrEqualTo(Integer value) {
-            addCriterion("`status` >=", value, "status");
+        public Criteria andResendStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("resend_status >=", value, "resendStatus");
             return (Criteria) this;
         }
 
-        public Criteria andStatusLessThan(Integer value) {
-            addCriterion("`status` <", value, "status");
+        public Criteria andResendStatusLessThan(Integer value) {
+            addCriterion("resend_status <", value, "resendStatus");
             return (Criteria) this;
         }
 
-        public Criteria andStatusLessThanOrEqualTo(Integer value) {
-            addCriterion("`status` <=", value, "status");
+        public Criteria andResendStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("resend_status <=", value, "resendStatus");
             return (Criteria) this;
         }
 
-        public Criteria andStatusIn(List<Integer> values) {
-            addCriterion("`status` in", values, "status");
+        public Criteria andResendStatusIn(List<Integer> values) {
+            addCriterion("resend_status in", values, "resendStatus");
             return (Criteria) this;
         }
 
-        public Criteria andStatusNotIn(List<Integer> values) {
-            addCriterion("`status` not in", values, "status");
+        public Criteria andResendStatusNotIn(List<Integer> values) {
+            addCriterion("resend_status not in", values, "resendStatus");
             return (Criteria) this;
         }
 
-        public Criteria andStatusBetween(Integer value1, Integer value2) {
-            addCriterion("`status` between", value1, value2, "status");
+        public Criteria andResendStatusBetween(Integer value1, Integer value2) {
+            addCriterion("resend_status between", value1, value2, "resendStatus");
             return (Criteria) this;
         }
 
-        public Criteria andStatusNotBetween(Integer value1, Integer value2) {
-            addCriterion("`status` not between", value1, value2, "status");
-            return (Criteria) this;
-        }
-
-        public Criteria andRetryTimesIsNull() {
-            addCriterion("retry_times is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andRetryTimesIsNotNull() {
-            addCriterion("retry_times is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andRetryTimesEqualTo(Integer value) {
-            addCriterion("retry_times =", value, "retryTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andRetryTimesNotEqualTo(Integer value) {
-            addCriterion("retry_times <>", value, "retryTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andRetryTimesGreaterThan(Integer value) {
-            addCriterion("retry_times >", value, "retryTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andRetryTimesGreaterThanOrEqualTo(Integer value) {
-            addCriterion("retry_times >=", value, "retryTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andRetryTimesLessThan(Integer value) {
-            addCriterion("retry_times <", value, "retryTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andRetryTimesLessThanOrEqualTo(Integer value) {
-            addCriterion("retry_times <=", value, "retryTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andRetryTimesIn(List<Integer> values) {
-            addCriterion("retry_times in", values, "retryTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andRetryTimesNotIn(List<Integer> values) {
-            addCriterion("retry_times not in", values, "retryTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andRetryTimesBetween(Integer value1, Integer value2) {
-            addCriterion("retry_times between", value1, value2, "retryTimes");
-            return (Criteria) this;
-        }
-
-        public Criteria andRetryTimesNotBetween(Integer value1, Integer value2) {
-            addCriterion("retry_times not between", value1, value2, "retryTimes");
+        public Criteria andResendStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("resend_status not between", value1, value2, "resendStatus");
             return (Criteria) this;
         }
 

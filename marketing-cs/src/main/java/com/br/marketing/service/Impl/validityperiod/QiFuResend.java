@@ -1,13 +1,11 @@
 package com.br.marketing.service.Impl.validityperiod;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.ValidityPeriodResendType;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.entity.MarketingTransfer;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferInfoExample;
+import com.br.marketing.entity.ValidityPeriodResendRecord;
 import com.br.marketing.enums.ValidityPeriodResendEnum;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
@@ -21,7 +19,6 @@ import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 360有效期变更重推实现
@@ -41,18 +38,19 @@ public class QiFuResend implements ValidityPeriodResendStrategy<MarketingTransfe
     @Resource
     private InterfaceHandlerService interfaceHandlerService;
 
+
     /**
      * 获取重推数据
      *
-     * @param id 变更有效期id
-     * @return {@link List }<{@link MarketingTransfer }>
+     * @param validityPeriodResendRecord 有效期重新发送记录
+     * @return {@link List }<{@link MarketingTransferInfo }>
      * @author senyang.zheng
-     * @date 2023/10/08
+     * @date 2023/10/11
      */
     @Override
-    public List<MarketingTransferInfo> fetchData(Long id) {
+    public List<MarketingTransferInfo> fetchData(ValidityPeriodResendRecord validityPeriodResendRecord) {
         //获取有效期范围
-        Map<String, String> validPeriodRange = marketingDataValidConfigMapper.getValidPeriodRangeByApiCodeAndUserType(id);
+        Map<String, String> validPeriodRange = marketingDataValidConfigMapper.getValidPeriodRangeByApiCodeAndUserType(validityPeriodResendRecord.getValidityPeriodId());
         Date validStartDate = DateUtil.beginOfDay(DateUtil.parseDate(validPeriodRange.get("validStartDate")));
         Date validEndDate = DateUtil.endOfDay(DateUtil.parseDate(validPeriodRange.get("validEndDate")));
         String apiCode = validPeriodRange.get("apiCode");
@@ -61,7 +59,6 @@ public class QiFuResend implements ValidityPeriodResendStrategy<MarketingTransfe
         transferInfoExample.createCriteria().andApiCodeEqualTo(apiCode).andCreateTimeGreaterThanOrEqualTo(validStartDate).andCreateTimeLessThanOrEqualTo(validEndDate);
         return marketingTransferInfoMapper.selectByExample(transferInfoExample);
     }
-
 
     /**
      * 处理重推逻辑
@@ -72,19 +69,10 @@ public class QiFuResend implements ValidityPeriodResendStrategy<MarketingTransfe
      */
     @Override
     public void resend(List<MarketingTransferInfo> data) {
-        List<String> mqFacts = data.stream()
+        data.stream()
             .map(QiFuResend::buildMqFact)
             .map(JSONObject::toJSONString)
-            .collect(Collectors.toList());
-        Map<Boolean, List<String>> partitionedMqFacts = mqFacts.stream()
-            .collect(Collectors.partitioningBy(mqFact -> {
-                Result<Boolean> result = interfaceHandlerService.handleDataDirection(mqFact);
-                return result.getData();
-            }));
-        List<String> errorList = partitionedMqFacts.get(true);
-        if (CollectionUtil.isNotEmpty(errorList)) {
-            log.error("360有效期变更重推作业异常数据：{}", JSONObject.toJSONString(errorList));
-        }
+            .forEach(maFact -> interfaceHandlerService.handleDataDirection(maFact));
     }
 
     /**
