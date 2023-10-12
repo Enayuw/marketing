@@ -30,7 +30,7 @@ public interface MarketingDataValidityChangeService {
      * @param updateTime
      * @return
      */
-    PageResultReturn list(int current, int size, String apiCode, int isDel, String userType, String validStartDate, String validEndDate , String validDays , int validType, String appletDate, String createTime, String updateTime);
+    PageResultReturn list(int current, int size, String apiCode, Integer isDel, String userType, String validStartDate, String validEndDate , String validDays , Integer validType, String appletDate, String createTime, String updateTime);
 
     /**
      * 新增有效期

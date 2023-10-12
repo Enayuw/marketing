@@ -13,9 +13,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -67,7 +65,7 @@ public class MarketingDataValidityChangeController {
             , @RequestParam(required = false) String validStartDate
             , @RequestParam(required = false) String validEndDate
             , @RequestParam(required = false) String validDays
-            , @RequestParam(defaultValue = "1") Integer validType
+            , @RequestParam(required = false) Integer validType
             , @RequestParam(required = false) String appletDate
             , @RequestParam(required = false) String createTime
             , @RequestParam(required = false) String updateTime
@@ -130,10 +128,6 @@ public class MarketingDataValidityChangeController {
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
     }
-
-
-
-
 
 
 }

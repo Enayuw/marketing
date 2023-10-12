@@ -35,8 +35,8 @@ public class MarketingValidityChangeServiceImpl implements MarketingDataValidity
     MarketingValidityChangeMapper marketingValidityChangeMapper;
 
     @Override
-    public PageResultReturn list(int current, int size, String apiCode, int isDel, String userType,
-                                 String validStartDate, String validEndDate, String validDays, int validType,
+    public PageResultReturn list(int current, int size, String apiCode, Integer isDel, String userType,
+                                 String validStartDate, String validEndDate, String validDays, Integer validType,
                                  String appletDate, String createTime, String updateTime) {
         if (StringUtils.isNotEmpty(validStartDate)) {
             validStartDate = DateUtils.format(addDay(validStartDate, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
@@ -44,7 +44,6 @@ public class MarketingValidityChangeServiceImpl implements MarketingDataValidity
         if (StringUtils.isNotEmpty(validEndDate)) {
             validEndDate = DateUtils.format(addDay(validEndDate, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
         }
-
         PageHelper.startPage(current, size);
         List<MarketingDataValidConfig> marketingDataValidConfigs = marketingValidityChangeMapper.selectValidityList(isDel, createTime,
                 appletDate, apiCode, userType, validStartDate, validEndDate ,validDays ,validType ,updateTime, null);
@@ -55,6 +54,7 @@ public class MarketingValidityChangeServiceImpl implements MarketingDataValidity
     public boolean save(MarketingDataValidConfig marketingDataValidConfig) {
         try {
             marketingDataValidConfig.setCreateTime(new Date());
+            marketingDataValidConfig.setUpdateTime(new Date());
             marketingValidityChangeMapper.insertMarketingDataValidConfig(marketingDataValidConfig);
             return true;
         } catch (Exception e) {
