@@ -58,7 +58,7 @@ public class QiFuTransferDataUtil {
         conversionData.setPhone(BrCipherMaker.getInstance().decode( syncUserValidityPeriodsBO.getSyncUsers().get(0).getCell()));
         // 去重参数设置
         conversionData.setInitId(transmitFact.getId());
-        conversionData.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
+        conversionData.setSoleField(SoleFieldEnum.CUST_NUM_SOLE.getValue());
         conversionData.setSoleType(-1);
         PeriodOfValidityBO periodOfValidityBO = syncUserValidityPeriodsBO.getBuilders().get(0).addDateString().addOfDayTimeStrString().builder();
         conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
