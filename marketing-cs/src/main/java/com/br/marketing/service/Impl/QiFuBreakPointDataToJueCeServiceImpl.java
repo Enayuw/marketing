@@ -145,6 +145,7 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
         // 组装重试参数
         PolicyRetryByRuleSoleDTO retryByRuleDTO = getPolicyRetryByRuleSoleDTO(actionType, toJueCeApiCode, logList, pushs);
 
+        log.warn("奇富推送决策,去重前数据量级:{}", pushs.size());
         // 推送决策方法
         methodRetryHandlerService.callPolicySoleData(retryByRuleDTO, 0);
     }
@@ -192,6 +193,7 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
             return syncUserValidityPeriodsBO == null;
         }).map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
         list.removeIf(t -> filterPeriodSet.contains(t.getCustNum()));
+        log.warn("奇富推送决策,有效期过滤掉的数据量级:{}", filterPeriodSet.size());
 
         // 规则1过滤：loginTime有值>=有效期生效开始日期
         Set<Long> filterRuleFirst = list.stream().filter(t -> {
@@ -201,6 +203,7 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
                     syncUserValidityPeriodsBO);
         }).map(MarketingTransferSyncUser::getId).collect(Collectors.toSet());
         list.removeIf(t -> filterRuleFirst.contains(t.getId()));
+        log.warn("奇富推送决策,规则1过滤掉的数据量级:{}", filterRuleFirst.size());
 
         // 规则2过滤：applyDt均为空（包含null、有key无value、未传该记录）
         Set<String> filterRuleSecond = list.stream().filter(t -> {
@@ -211,6 +214,7 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
             return applyDtEmply > 0;
         }).map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
         list.removeIf(t -> filterRuleSecond.contains(t.getCustNum()));
+        log.warn("奇富推送决策,规则2过滤掉的数据量级:{}", filterRuleSecond.size());
     }
 
     private List<PeriodRange> getPeriodRanges(SyncUserValidityPeriodsBO syncUserValidityPeriodsBO) {
