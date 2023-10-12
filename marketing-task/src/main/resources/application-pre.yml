@@ -132,7 +132,7 @@ spring:
     interceptors.enabled: true
   sql.source: prod
 cluster:
-  flag: k8s-prod-d
+  flag: k8s-prod-a
 
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
