@@ -95,6 +95,7 @@ public class MarketingDataValidityChangeController {
 
 
     @ApiOperation(value = "删除有效期记录", notes = "删除有效期记录")
+    @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "id", required = true, dataType = "Long")})
     @GetMapping("/delValidity")
     public ApiResult delValidity(@RequestParam Long id) {
         return new ApiResult().fromResult(marketingDataValidityChangeService.delTask(id), 1);
@@ -102,9 +103,9 @@ public class MarketingDataValidityChangeController {
 
     @ApiOperation(value = "修改有效期记录", notes = "修改有效期记录")
     @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "id", required = true, dataType = "Long")
-            , @ApiImplicitParam(name = "validStartDate", value = "生效开始日期", paramType = "query", dataType = "String")
-            , @ApiImplicitParam(name = "validEndDate", value = "生效结束日期", paramType = "query", dataType = "String")
-            , @ApiImplicitParam(name = "resendType", value = "是否需要重推", paramType = "query", dataType = "Integer", defaultValue = "0")
+            , @ApiImplicitParam(name = "validStartDate", value = "生效开始日期", required = true, paramType = "query", dataType = "String")
+            , @ApiImplicitParam(name = "validEndDate", value = "生效结束日期", required = true, paramType = "query", dataType = "String")
+            , @ApiImplicitParam(name = "resendType", value = "是否需要重推", paramType = "query", dataType = "Integer")
     })
     @GetMapping("/updateValidity")
     public ApiResult<Boolean> updateValidity(@RequestParam Long id
@@ -116,6 +117,9 @@ public class MarketingDataValidityChangeController {
             if (resendType != 0) {
                 //开始重推
                 log.warn("重推编号："+ resendType);
+
+
+
             }
             boolean flag = marketingDataValidityChangeService.updateById(id, validStartDate, validEndDate);
             if (flag) {
