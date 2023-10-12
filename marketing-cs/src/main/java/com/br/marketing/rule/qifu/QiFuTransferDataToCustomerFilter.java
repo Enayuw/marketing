@@ -35,8 +35,6 @@ public class QiFuTransferDataToCustomerFilter implements AssembleData<Conversion
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
-        String apiCode = marketingCommonConfig.getQiFuApiCodeToCustomerMap().get("QiFu_TransferData_To_CustomerFilter");
-        context.setApiCode(apiCode);
         return QiFuTransferDataUtil.getConversionData((MarketingTransferSyncUser) transmitFact, context);
     }
 

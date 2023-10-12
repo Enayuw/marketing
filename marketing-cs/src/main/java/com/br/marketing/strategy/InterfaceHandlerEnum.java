@@ -28,6 +28,7 @@ public enum InterfaceHandlerEnum {
     ARTIFICIAL_TRANSFER_SOLE(24, "人工转化-有去重能力"),
     ARTIFICIAL_REAL_TIME_USERDATA_AND_CUSTOMER_TRANSFER_SOLE(25, "(人工实时推送用户名单-有去重能力)+客服转化去重"),
     XIE_CHENG_CALL_RECORD_INSERT_DB_VT(26, "携程通话明细保存到携程推营销数据表(3710090/3710091)"),
+    CUSTOMER_TRANSFER_SOLE_QIFU(27, "客服转化去重（奇富360专用）"),
     ;
 
 

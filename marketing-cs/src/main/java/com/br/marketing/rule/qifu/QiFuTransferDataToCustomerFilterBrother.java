@@ -34,8 +34,6 @@ public class QiFuTransferDataToCustomerFilterBrother implements AssembleData<Con
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
-        String apiCode = marketingCommonConfig.getQiFuApiCodeToCustomerMap().get("QiFu_TransferData_To_CustomerFilter_Brother");
-        context.setApiCode(apiCode);
         return QiFuTransferDataUtil.getConversionData((MarketingTransferSyncUser) transmitFact, context);
     }
 
@@ -67,7 +65,7 @@ public class QiFuTransferDataToCustomerFilterBrother implements AssembleData<Con
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE_QIFU.getCode();
     }
 
     @Override
