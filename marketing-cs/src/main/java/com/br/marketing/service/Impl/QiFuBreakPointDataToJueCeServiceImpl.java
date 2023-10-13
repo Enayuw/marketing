@@ -119,14 +119,21 @@ public class QiFuBreakPointDataToJueCeServiceImpl implements QiFuBreakPointDataT
 
     private void filterAndPushData(List<MarketingTransferSyncUser> list, String apiCode, String tcId) {
         try {
+            long start = System.currentTimeMillis();
             // 根据有效期过滤转化数据并返回有效期内的上传数据
             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = getStringSyncUserValidityPeriodsBOMap(list, apiCode);
+            long cost1 = System.currentTimeMillis();
+            log.warn("奇富推送决策，调用有效期方法耗时：{}ms", cost1 - start);
 
             // 剔除掉不符合推送规则的转化数据，在有效期内且满足规则1且满足规则2，则推送。
             filterData(list, apiCode, tcId, validityPeriodsByCustNum);
+            long cost2 = System.currentTimeMillis();
+            log.warn("奇富推送决策，剔除方法耗时：{}ms", cost2 - cost1);
 
             // 组装参数并推送
             pushData(list, apiCode, validityPeriodsByCustNum);
+            long cost3 = System.currentTimeMillis();
+            log.warn("奇富推送决策，推送方法耗时：{}ms", cost3 - cost2);
         } catch (Exception e) {
             log.error("奇富断点自动化数据推决策JOB:" + e.getMessage(), e);
         }
