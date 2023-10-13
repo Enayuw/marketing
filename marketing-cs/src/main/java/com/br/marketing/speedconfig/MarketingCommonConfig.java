@@ -1002,5 +1002,10 @@ public class MarketingCommonConfig {
      */
     private Integer qiFuBreakPointDataToJueCeThreadNum;
 
+    /**
+     * 奇富360重推任务线程数
+     */
+    private Integer qiFuResendJobThreadNum;
+
 }
 
