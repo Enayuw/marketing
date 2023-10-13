@@ -749,6 +749,7 @@
         <if test="cusBatch != null and cusBatch != ''">
             and cus_batch > '${cusBatch}'
         </if>
+        and staus=1 and is_repeat in(1,2)
         group by cus_batch
         order by cus_batch limit #{pageSize}
     </select>
