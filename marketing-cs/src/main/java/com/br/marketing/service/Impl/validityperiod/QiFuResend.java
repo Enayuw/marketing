@@ -75,6 +75,8 @@ public class QiFuResend implements ValidityPeriodResendStrategy<MarketingTransfe
      */
     @Override
     public void resend(List<MarketingTransferInfo> data) {
+        long start = System.currentTimeMillis();
+        log.info("360有效期变更重推任务开始");
         // 创建线程池
         ThreadPoolExecutor qiFuResendExecutor =
             BrExecutors.getThreadPool(marketingCommonConfig.getQiFuResendJobThreadNum(), marketingCommonConfig.getQiFuResendJobThreadNum());
@@ -92,7 +94,8 @@ public class QiFuResend implements ValidityPeriodResendStrategy<MarketingTransfe
             qiFuResendExecutor.shutdownNow();
             log.error("线程池关闭异常,直接关闭线程池", e);
         }
-
+        long end = System.currentTimeMillis();
+        log.info("360有效期变更重推任务结束，耗时:{}", end - start);
     }
 
     /**
