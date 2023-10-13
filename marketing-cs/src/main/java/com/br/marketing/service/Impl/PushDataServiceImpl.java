@@ -1818,7 +1818,7 @@ public class PushDataServiceImpl implements PushDataService {
                 XieChengSmsCollidingData xieChengSmsCollidingData = xieChengSmsCollidingDataPartition.get(i);
 
                 // 小写加密数据
-                String sha256CodeList = xieChengSmsCollidingData.getSha256CodeList().toLowerCase();
+                String sha256CodeList = xieChengSmsCollidingData.getSha256CodeList();
 
                 // 获取redis 锁
                 String key = RedisKeyConstant.pushXieChengSmsCollidingLock.concat(":")
@@ -1889,12 +1889,7 @@ public class PushDataServiceImpl implements PushDataService {
                     }
                     xieChengSmsCollidingDataLogMapper.updateBatch(xieChengSmsCollidingDataLogList);
                     // 更新 next_push_time
-                    List<String> dataList = new ArrayList<>();
-                    dataList.addAll(collect);
-                    for (int m = 0; m < collect.size(); m++) {
-                        dataList.add(collect.get(m).toUpperCase());
-                    }
-                    xieChengSmsCollidingDataMapper.updateBatch(dataList);
+                    xieChengSmsCollidingDataMapper.updateBatch(collect);
                 } else {
                     // 异常请求 只更新日志表状态3  不更新 next_push_time
                     String msg = resultJson.getString("msg");
