@@ -23,12 +23,12 @@ import java.util.List;
 public class SyncUserValidityPeriodsBO {
 
     /**
-     * 全部上传原始数据
+     * 独立上传原始数据的集合，与builders中有效期范围不存在一一对应关系
      */
     private List<MarketingSyncUser> syncUsers = Lists.newArrayList();
 
     /**
-     * 全部有效期范围
+     * 独立有效期范围集合，与syncUsers中上传数据不存在一一对应关系
      */
     private List<PeriodOfValidityBO.Builder> builders = Lists.newArrayList();
 }

@@ -12,6 +12,7 @@ import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
+import com.br.marketing.service.Impl.ValidityPeriodDataServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerService;
 import lombok.extern.slf4j.Slf4j;
@@ -57,8 +58,13 @@ public class QiFuResend implements ValidityPeriodResendStrategy<MarketingTransfe
     public List<MarketingTransferInfo> fetchData(ValidityPeriodResendRecord validityPeriodResendRecord) {
         //获取有效期范围
         Map<String, String> validPeriodRange = marketingDataValidConfigMapper.getValidPeriodRangeByApiCodeAndUserType(validityPeriodResendRecord.getValidityPeriodId());
-        Date validStartDate = DateUtil.beginOfDay(DateUtil.parseDate(validPeriodRange.get("validStartDate")));
-        Date validEndDate = DateUtil.endOfDay(DateUtil.parseDate(validPeriodRange.get("validEndDate")));
+        //开始结束时间范围外扩一天
+        String dateStartStr = ValidityPeriodDataServiceImpl.getDateStr(validPeriodRange.get("validStartDate"), -1);
+        String dateEndStr = ValidityPeriodDataServiceImpl.getDateStr(validPeriodRange.get("validEndDate"), 1);
+
+        Date validStartDate = DateUtil.beginOfDay(DateUtil.parseDate(dateStartStr));
+        Date validEndDate = DateUtil.endOfDay(DateUtil.parseDate(dateEndStr));
+
         String apiCode = validPeriodRange.get("apiCode");
         //根据时间范围获取全部转化基础数据
         MarketingTransferInfoExample transferInfoExample = new MarketingTransferInfoExample();
