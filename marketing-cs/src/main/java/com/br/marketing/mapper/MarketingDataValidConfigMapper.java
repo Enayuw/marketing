@@ -39,7 +39,7 @@ public interface MarketingDataValidConfigMapper extends MarketingDataValidConfig
             , @Param("pageSize") Integer pageSize);
 
     @Select("select min(valid_start_date) as validStartDate,max(valid_end_date) as validEndDate from b_marketing_data_valid_config " +
-            "where api_code = #{apiCode} and is_del = 1 and now() between valid_start_date and valid_end_date")
+            "where api_code = #{apiCode} and is_del = 1 and DATE_FORMAT(NOW(),'%Y-%m-%d') between valid_start_date and valid_end_date")
     MarketingDataValidConfig getMarketingTransferDataWithValidityPeriod(@Param("apiCode") String apiCode);
 
 
