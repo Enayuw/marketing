@@ -1868,6 +1868,8 @@ public class PushDataServiceImpl implements PushDataService {
                 JSONObject resultJson = JSONObject.parseObject(postResult.getMessage());
                 // 请求正常
                 if (postResult.getCode().equals(ResultCode.SUCCESS.getValue())) {
+                    // 更新 next_push_time
+                    xieChengSmsCollidingDataMapper.updateBatch(collect);
                     JSONArray returnDataList = resultJson.getJSONArray("data");
                     List<XieChengSmsCollidingDataLog> xieChengSmsCollidingDataLogList = new ArrayList<>();
                     for (int i = 0; i < returnDataList.size(); i++) {
@@ -1896,8 +1898,7 @@ public class PushDataServiceImpl implements PushDataService {
 //                        xieChengSmsCollidingDataLogList.add(xieChengSmsCollidingDataLog);
                     }
 //                    xieChengSmsCollidingDataLogMapper.updateBatch(xieChengSmsCollidingDataLogList);
-                    // 更新 next_push_time
-                    xieChengSmsCollidingDataMapper.updateBatch(collect);
+
                 } else {
                     // 异常请求 只更新日志表状态3  不更新 next_push_time
                     String msg = resultJson.getString("msg");
