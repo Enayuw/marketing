@@ -71,6 +71,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
@@ -1885,9 +1886,16 @@ public class PushDataServiceImpl implements PushDataService {
                         xieChengSmsCollidingDataLog.setOrgChannel(orgChannel);
                         xieChengSmsCollidingDataLog.setStatus(2);
                         xieChengSmsCollidingDataLog.setLocalId(localId);
-                        xieChengSmsCollidingDataLogList.add(xieChengSmsCollidingDataLog);
+                        XieChengSmsCollidingDataLogExample xe = new XieChengSmsCollidingDataLogExample();
+                        Date date = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                        xe.createCriteria()
+                                .andStatusEqualTo(1)
+                                .andSha256CodeListEqualTo(sha256Code)
+                                .andCreateTimeGreaterThanOrEqualTo(date);
+                        xieChengSmsCollidingDataLogMapper.updateByExampleSelective(xieChengSmsCollidingDataLog,xe);
+//                        xieChengSmsCollidingDataLogList.add(xieChengSmsCollidingDataLog);
                     }
-                    xieChengSmsCollidingDataLogMapper.updateBatch(xieChengSmsCollidingDataLogList);
+//                    xieChengSmsCollidingDataLogMapper.updateBatch(xieChengSmsCollidingDataLogList);
                     // 更新 next_push_time
                     xieChengSmsCollidingDataMapper.updateBatch(collect);
                 } else {
