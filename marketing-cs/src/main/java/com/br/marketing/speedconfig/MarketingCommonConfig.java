@@ -984,5 +984,28 @@ public class MarketingCommonConfig {
      * 携程新AppId 撞库
      */
     private String xieChengNewAppId;
+
+    /**
+     * 奇富360 推送客服过滤apiCode 配置
+     * {"QiFu_TransferData_To_CustomerFilter":"3710053","QiFu_TransferData_To_CustomerFilter_Brother":"3710105"}
+     */
+    private Map<String,String> qiFuApiCodeToCustomerMap;
+
+    /**
+     * 奇富360推送决策 apiCode
+     * qiFuToJueCeApiCodes={"3710053":"3710105","7491631":"7491630"}
+     */
+    private HashMap<String, String> qiFuToJueCeApiCodes;
+
+    /**
+     * 奇富断点自动化数据推决策线程数
+     */
+    private Integer qiFuBreakPointDataToJueCeThreadNum;
+
+    /**
+     * 奇富360重推任务线程数
+     */
+    private Integer qiFuResendJobThreadNum;
+
 }
 

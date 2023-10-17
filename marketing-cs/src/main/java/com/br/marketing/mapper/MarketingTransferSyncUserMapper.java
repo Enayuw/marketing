@@ -2,10 +2,7 @@ package com.br.marketing.mapper;
 
 
 import com.alibaba.fastjson.JSONArray;
-import com.br.marketing.entity.MarketingNewTransferData;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserExample;
-import com.br.marketing.entity.XieChengJudgeConvTypeValue;
+import com.br.marketing.entity.*;
 import com.br.marketing.vo.TransferOfCnIdVO;
 import com.br.marketing.vo.TransferOfRdRFVO;
 import org.apache.ibatis.annotations.Param;
@@ -479,5 +476,13 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                               @Param("requestEndDate") String requestEndDate,
                                                               @Param("custNums") Set<String> custNums);
 
+    List<MarketingTransferSyncUser> getQiFuBreakPointTransferByRequestDatetikv_(@Param("tCid") String tCid,
+                                                                           @Param("apiCode") String apiCode,
+                                                                           @Param("requestStartDate") String requestStartDate,
+                                                                           @Param("requestEndDate") String requestEndDate,
+                                                                           @Param("indexId") Long indexId);
+
+    int getCountByQiFuApplyDtEmply(@Param("tCid") String tCid, @Param("apiCode") String apiCode,
+                                   @Param("periodRangeList") List<PeriodRange> periodRangeList, @Param("custNum") String custNum);
 
 }

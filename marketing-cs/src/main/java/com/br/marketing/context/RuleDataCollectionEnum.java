@@ -53,6 +53,9 @@ public enum RuleDataCollectionEnum {
 
     WEIEDAI_DATA_COLLECTION(26, "微e贷规则所需数据收集"),
 
+
+    QIFU360_DATA_COLLECTION(27, "360金融规则所需数据收集"),
+
     ;
 
 
