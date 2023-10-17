@@ -9,6 +9,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.Impl.ConsumerService;
+import com.br.marketing.service.Impl.guomei.PushGuMeDataServiceImpl;
 import com.br.marketing.service.PushRuleService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
@@ -21,8 +22,8 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -43,6 +44,9 @@ public class ConsumerApp {
     private IPeriodOfValidityService periodOfValidityService;
     @Autowired
     IPushShuheDataService pushShuheDataService;
+
+    @Resource
+    private PushGuMeDataServiceImpl pushGuMeDataService;
 
 
     /**
@@ -130,13 +134,17 @@ public class ConsumerApp {
         consumerService.consumerPulsar(PulsarSubscription.upLoadSubscription,pushRuleService::consumerSyncInfo,2, PulsarTopic.upLoadTopic);
 
         // 数禾上传数据pulsar消费端
-        consumerService.consumerPulsar(PulsarSubscription.upLoadShSubscription,pushShuheDataService::consumerShUpload,2, PulsarTopic.upLoadShTopic);
+        consumerService.consumerPulsar(PulsarSubscription.upLoadShSubscription, pushShuheDataService::consumerShUpload, 2, PulsarTopic.upLoadShTopic);
 
         //标准转化数据pulsar消费端
-        consumerService.consumerPulsar(PulsarSubscription.transferSubscription,pushRuleService::consumerTransferInfo,2, PulsarTopic.transferTopic);
+        consumerService.consumerPulsar(PulsarSubscription.transferSubscription, pushRuleService::consumerTransferInfo, 2, PulsarTopic.transferTopic);
 
         //数禾转化数据pulsar消费端
-        consumerService.consumerPulsar(PulsarSubscription.transferShSubscription,pushShuheDataService::consumerShTransfer,2, PulsarTopic.transferShTopic);
+        consumerService.consumerPulsar(PulsarSubscription.transferShSubscription, pushShuheDataService::consumerShTransfer, 2, PulsarTopic.transferShTopic);
+
+        // 国美转化数据pulsar消费端
+        consumerService.consumerPulsar(PulsarSubscription.transferGuoMeiSubscription
+                , pushGuMeDataService::consumerTransfer, 2, PulsarTopic.transferGuoMeiTopic);
 
 
     }
