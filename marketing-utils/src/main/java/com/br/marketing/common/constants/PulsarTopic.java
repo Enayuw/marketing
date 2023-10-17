@@ -28,4 +28,9 @@ public class PulsarTopic {
      * 数禾转化接口主题
      */
     public final static String transferShTopic = pulsarPreFix.concat(topicPreFix).concat("transfer-sh");
+
+    /**
+     * 国美转化接口主题
+     */
+    public final static String transferGuoMeiTopic = pulsarPreFix.concat(topicPreFix).concat("transfer-gume");
 }
