@@ -901,4 +901,32 @@
         </foreach>
         group by cust_num;
     </select>
+
+    <select id="getQiFuBreakPointTransferByRequestDatetikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select id, cust_num, login_time, apply_dt, request_data
+        from b_marketing_transfer_sync_${tCid}
+                where api_code = #{apiCode}
+                  and (json_extract(reserve_field1, "$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
+        <![CDATA[
+                  and request_data >= #{requestStartDate}
+                  and request_data <= #{requestEndDate}
+        ]]>
+        <if test="indexId != null and indexId != ''">
+            and id > #{indexId}
+        </if>
+        order by id asc limit 2000
+    </select>
+
+    <select id="getCountByQiFuApplyDtEmply" resultType="java.lang.Integer">
+        select count(1)
+        from b_marketing_transfer_sync_${tCid}
+                where api_code = #{apiCode}
+                  and (json_extract(reserve_field1, "$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
+                  and
+        <foreach collection="periodRangeList" item="item" open="(" close=")" separator="or">
+            request_data between #{item.beginDateStr} and #{item.endDateStr}
+        </foreach>
+        and (apply_dt is not null and apply_dt != '')
+        and cust_num = #{custNum}
+    </select>
 </mapper>

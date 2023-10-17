@@ -283,7 +283,7 @@
                 </foreach>
             </when>
             <otherwise>
-                1!=1
+                and 1!=1
             </otherwise>
         </choose>
         and status=1
@@ -311,7 +311,7 @@
                 </foreach>
             </when>
             <otherwise>
-                1!=1
+                and 1!=1
             </otherwise>
         </choose>
         and status=1
@@ -660,7 +660,7 @@
                 </foreach>
             </when>
             <otherwise>
-                1!=1
+                and 1!=1
             </otherwise>
         </choose>
         and status=1 and is_repeat in (1,2)
@@ -690,7 +690,7 @@
                 </foreach>
             </when>
             <otherwise>
-                1!=1
+                and 1!=1
             </otherwise>
         </choose>
         and status=1 and is_repeat in (1,2)
@@ -720,7 +720,7 @@
                 </foreach>
             </when>
             <otherwise>
-                1!=1
+                and 1!=1
             </otherwise>
         </choose>
         and status=1
@@ -733,12 +733,7 @@
     </select>
 
     <update id="updateStatus">
-        update b_marketing_sync_${apiCode}
-        set status    = 2,
-            fail_type = concat(ifnull(fail_type, ''), ',营销失败数据')
-        where cust_num = #{custNum}
-          and applet_date = #{appletDate}
-          and status = 1
+        update b_marketing_sync_${apiCode} set  status = 2,fail_type = concat(ifnull(fail_type,''),',营销失败数据') where cust_num = #{custNum} and applet_date = #{appletDate} and status=1
     </update>
 
     <select id="findCusBatchByAppletDatePage" resultType="java.lang.String">
@@ -752,5 +747,27 @@
         and status=1 and is_repeat in(1,2)
         group by cus_batch
         order by cus_batch limit #{pageSize}
+    </select>
+
+    <select id="getSyncUserByCustNumAndAppletDateList" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where cust_num in
+        <foreach collection="custNumSet" item="custNum" open="(" separator="," close=")">
+            '${custNum}'
+        </foreach>
+        <choose>
+            <when test="configList != null and configList.size() > 0">
+                and (applet_date, user_type) in
+                <foreach collection="configList" item="item" open="(" close=")" separator=",">
+                    (#{item.appletDate}, #{item.userType})
+                </foreach>
+            </when>
+            <otherwise>
+                and 1!=1
+            </otherwise>
+        </choose>
+        and status=1
+        and is_repeat in (1,2)
     </select>
 </mapper>
