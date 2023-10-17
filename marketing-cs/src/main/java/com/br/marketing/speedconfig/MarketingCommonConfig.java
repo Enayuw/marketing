@@ -1002,5 +1002,12 @@ public class MarketingCommonConfig {
      * 奇富钉钉告警机器人密钥
      */
     private String qiFuDingDingSecret = "SEC0d7cfb05455c035eea424a4824e63c75dd287a86d796cc96826ba7fb3f51e07e";
+
+    /**
+     * 2023-09-27 19:12
+     * 奇富接口公钥
+     */
+    private String qiFuApiPublicKey;
+
 }
 
