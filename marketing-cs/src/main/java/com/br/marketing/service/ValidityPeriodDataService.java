@@ -21,5 +21,9 @@ public interface ValidityPeriodDataService {
      * 返回 ture则剔除 false 则不剔除
      */
     Boolean judgmentMarketingTransferDataInvalidWithValidityPeriod(String apiCode,String custNum);
+
+    /**
+     * 查询有效期范围区间，用于匹配转化数据request_data，初步框定有效期范围内的数据（左右分别扩大一天，返回值需要判空！）
+     */
     Pair<String, String> getMarketingTransferDataWithValidityRange(String apiCode);
 }

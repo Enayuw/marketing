@@ -984,5 +984,59 @@ public class MarketingCommonConfig {
      * 携程新AppId 撞库
      */
     private String xieChengNewAppId;
+
+    /**
+     * 2023-09-27 19:12
+     * 奇富保存触达记录删除,删除的天
+     */
+    private int qiFuSaveReachDeleteRecordDay = 43;
+
+    /**
+     * 2023-09-27 19:12
+     * 奇富钉钉告警机器人token
+     */
+    private String qiFuDingDingAccessToken = "b1d0849bd627e067d1c3be1ad8a82fa265dcb9afec94197859b0e08bda0dbaf2";
+
+    /**
+     * 2023-09-27 19:12
+     * 奇富钉钉告警机器人密钥
+     */
+    private String qiFuDingDingSecret = "SEC0d7cfb05455c035eea424a4824e63c75dd287a86d796cc96826ba7fb3f51e07e";
+
+    /**
+     * 2023-09-27 19:12
+     * 奇富接口公钥
+     */
+    private String qiFuApiPublicKey;
+
+    /**
+     * 2023-09-27 19:12
+     * 奇富接口AppId
+     */
+    private String qiFuApiAppId;
+
+
+    /**
+     * 奇富360 推送客服过滤apiCode 配置
+     * {"QiFu_TransferData_To_CustomerFilter":"3710053","QiFu_TransferData_To_CustomerFilter_Brother":"3710105"}
+     */
+    private Map<String, String> qiFuApiCodeToCustomerMap;
+
+    /**
+     * 奇富360推送决策 apiCode
+     * qiFuToJueCeApiCodes={"3710053":"3710105","7491631":"7491630"}
+     */
+    private HashMap<String, String> qiFuToJueCeApiCodes;
+
+    /**
+     * 奇富断点自动化数据推决策线程数
+     */
+    private Integer qiFuBreakPointDataToJueCeThreadNum;
+
+    /**
+     * 奇富360重推任务线程数
+     */
+    private Integer qiFuResendJobThreadNum;
+
 }
 

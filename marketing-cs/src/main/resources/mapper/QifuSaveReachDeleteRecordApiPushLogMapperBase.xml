@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.QifuSaveReachDeleteRecordApiPushLogMapper">
+    <resultMap id="BaseResultMap" type="com.br.marketing.entity.QifuSaveReachDeleteRecordApiPushLog">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="api_code" property="apiCode" jdbcType="VARCHAR"/>
+        <result column="batch_no" property="batchNo" jdbcType="VARCHAR"/>
+        <result column="resp_flag" property="respFlag" jdbcType="VARCHAR"/>
+        <result column="resp_code" property="respCode" jdbcType="VARCHAR"/>
+        <result column="resp_msg" property="respMsg" jdbcType="VARCHAR"/>
+        <result column="qifu_is_succeed" property="qifuIsSucceed" jdbcType="VARCHAR"/>
+        <result column="qifu_message" property="qifuMessage" jdbcType="VARCHAR"/>
+        <result column="sync_applet_date" property="syncAppletDate" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="push_date" property="pushDate" jdbcType="VARCHAR"/>
+        <result column="error_msg" property="errorMsg" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="request_no" property="requestNo" jdbcType="VARCHAR"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id
+        , api_code, batch_no, resp_flag, resp_code, resp_msg, qifu_is_succeed, qifu_message,
+    sync_applet_date, `status`, push_date, error_msg, create_time, update_time, request_no
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap"
+            parameterType="com.br.marketing.entity.QifuSaveReachDeleteRecordApiPushLogExample">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from b_qifu_save_reach_delete_record_api_push_log
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from b_qifu_save_reach_delete_record_api_push_log
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete
+        from b_qifu_save_reach_delete_record_api_push_log
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByExample" parameterType="com.br.marketing.entity.QifuSaveReachDeleteRecordApiPushLogExample">
+        delete from b_qifu_save_reach_delete_record_api_push_log
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="com.br.marketing.entity.QifuSaveReachDeleteRecordApiPushLog">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_qifu_save_reach_delete_record_api_push_log (api_code, batch_no, resp_flag,
+        resp_code, resp_msg, qifu_is_succeed,
+        qifu_message, sync_applet_date, `status`,
+        push_date, error_msg, create_time,
+        update_time, request_no)
+        values (#{apiCode,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, #{respFlag,jdbcType=VARCHAR},
+        #{respCode,jdbcType=VARCHAR}, #{respMsg,jdbcType=VARCHAR}, #{qifuIsSucceed,jdbcType=VARCHAR},
+        #{qifuMessage,jdbcType=VARCHAR}, #{syncAppletDate,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER},
+        #{pushDate,jdbcType=VARCHAR}, #{errorMsg,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
+        #{updateTime,jdbcType=TIMESTAMP}, #{requestNo,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertSelective" parameterType="com.br.marketing.entity.QifuSaveReachDeleteRecordApiPushLog">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_qifu_save_reach_delete_record_api_push_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="apiCode != null">
+                api_code,
+            </if>
+            <if test="batchNo != null">
+                batch_no,
+            </if>
+            <if test="respFlag != null">
+                resp_flag,
+            </if>
+            <if test="respCode != null">
+                resp_code,
+            </if>
+            <if test="respMsg != null">
+                resp_msg,
+            </if>
+            <if test="qifuIsSucceed != null">
+                qifu_is_succeed,
+            </if>
+            <if test="qifuMessage != null">
+                qifu_message,
+            </if>
+            <if test="syncAppletDate != null">
+                sync_applet_date,
+            </if>
+            <if test="status != null">
+                `status`,
+            </if>
+            <if test="pushDate != null">
+                push_date,
+            </if>
+            <if test="errorMsg != null">
+                error_msg,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="requestNo != null">
+                request_no,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="apiCode != null">
+                #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="batchNo != null">
+                #{batchNo,jdbcType=VARCHAR},
+            </if>
+            <if test="respFlag != null">
+                #{respFlag,jdbcType=VARCHAR},
+            </if>
+            <if test="respCode != null">
+                #{respCode,jdbcType=VARCHAR},
+            </if>
+            <if test="respMsg != null">
+                #{respMsg,jdbcType=VARCHAR},
+            </if>
+            <if test="qifuIsSucceed != null">
+                #{qifuIsSucceed,jdbcType=VARCHAR},
+            </if>
+            <if test="qifuMessage != null">
+                #{qifuMessage,jdbcType=VARCHAR},
+            </if>
+            <if test="syncAppletDate != null">
+                #{syncAppletDate,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=INTEGER},
+            </if>
+            <if test="pushDate != null">
+                #{pushDate,jdbcType=VARCHAR},
+            </if>
+            <if test="errorMsg != null">
+                #{errorMsg,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="requestNo != null">
+                #{requestNo,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="com.br.marketing.entity.QifuSaveReachDeleteRecordApiPushLogExample"
+            resultType="java.lang.Integer">
+        select count(*) from b_qifu_save_reach_delete_record_api_push_log
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update b_qifu_save_reach_delete_record_api_push_log
+        <set>
+            <if test="record.id != null">
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.apiCode != null">
+                api_code = #{record.apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="record.batchNo != null">
+                batch_no = #{record.batchNo,jdbcType=VARCHAR},
+            </if>
+            <if test="record.respFlag != null">
+                resp_flag = #{record.respFlag,jdbcType=VARCHAR},
+            </if>
+            <if test="record.respCode != null">
+                resp_code = #{record.respCode,jdbcType=VARCHAR},
+            </if>
+            <if test="record.respMsg != null">
+                resp_msg = #{record.respMsg,jdbcType=VARCHAR},
+            </if>
+            <if test="record.qifuIsSucceed != null">
+                qifu_is_succeed = #{record.qifuIsSucceed,jdbcType=VARCHAR},
+            </if>
+            <if test="record.qifuMessage != null">
+                qifu_message = #{record.qifuMessage,jdbcType=VARCHAR},
+            </if>
+            <if test="record.syncAppletDate != null">
+                sync_applet_date = #{record.syncAppletDate,jdbcType=VARCHAR},
+            </if>
+            <if test="record.status != null">
+                `status` = #{record.status,jdbcType=INTEGER},
+            </if>
+            <if test="record.pushDate != null">
+                push_date = #{record.pushDate,jdbcType=VARCHAR},
+            </if>
+            <if test="record.errorMsg != null">
+                error_msg = #{record.errorMsg,jdbcType=VARCHAR},
+            </if>
+            <if test="record.createTime != null">
+                create_time = #{record.createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.updateTime != null">
+                update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.requestNo != null">
+                request_no = #{record.requestNo,jdbcType=VARCHAR},
+            </if>
+        </set>
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update b_qifu_save_reach_delete_record_api_push_log
+        set id = #{record.id,jdbcType=BIGINT},
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+        batch_no = #{record.batchNo,jdbcType=VARCHAR},
+        resp_flag = #{record.respFlag,jdbcType=VARCHAR},
+        resp_code = #{record.respCode,jdbcType=VARCHAR},
+        resp_msg = #{record.respMsg,jdbcType=VARCHAR},
+        qifu_is_succeed = #{record.qifuIsSucceed,jdbcType=VARCHAR},
+        qifu_message = #{record.qifuMessage,jdbcType=VARCHAR},
+        sync_applet_date = #{record.syncAppletDate,jdbcType=VARCHAR},
+        `status` = #{record.status,jdbcType=INTEGER},
+        push_date = #{record.pushDate,jdbcType=VARCHAR},
+        error_msg = #{record.errorMsg,jdbcType=VARCHAR},
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+        request_no = #{record.requestNo,jdbcType=VARCHAR}
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective"
+            parameterType="com.br.marketing.entity.QifuSaveReachDeleteRecordApiPushLog">
+        update b_qifu_save_reach_delete_record_api_push_log
+        <set>
+            <if test="apiCode != null">
+                api_code = #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="batchNo != null">
+                batch_no = #{batchNo,jdbcType=VARCHAR},
+            </if>
+            <if test="respFlag != null">
+                resp_flag = #{respFlag,jdbcType=VARCHAR},
+            </if>
+            <if test="respCode != null">
+                resp_code = #{respCode,jdbcType=VARCHAR},
+            </if>
+            <if test="respMsg != null">
+                resp_msg = #{respMsg,jdbcType=VARCHAR},
+            </if>
+            <if test="qifuIsSucceed != null">
+                qifu_is_succeed = #{qifuIsSucceed,jdbcType=VARCHAR},
+            </if>
+            <if test="qifuMessage != null">
+                qifu_message = #{qifuMessage,jdbcType=VARCHAR},
+            </if>
+            <if test="syncAppletDate != null">
+                sync_applet_date = #{syncAppletDate,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                `status` = #{status,jdbcType=INTEGER},
+            </if>
+            <if test="pushDate != null">
+                push_date = #{pushDate,jdbcType=VARCHAR},
+            </if>
+            <if test="errorMsg != null">
+                error_msg = #{errorMsg,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="requestNo != null">
+                request_no = #{requestNo,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.QifuSaveReachDeleteRecordApiPushLog">
+        update b_qifu_save_reach_delete_record_api_push_log
+        set api_code         = #{apiCode,jdbcType=VARCHAR},
+            batch_no         = #{batchNo,jdbcType=VARCHAR},
+            resp_flag        = #{respFlag,jdbcType=VARCHAR},
+            resp_code        = #{respCode,jdbcType=VARCHAR},
+            resp_msg         = #{respMsg,jdbcType=VARCHAR},
+            qifu_is_succeed  = #{qifuIsSucceed,jdbcType=VARCHAR},
+            qifu_message     = #{qifuMessage,jdbcType=VARCHAR},
+            sync_applet_date = #{syncAppletDate,jdbcType=VARCHAR},
+            `status`         = #{status,jdbcType=INTEGER},
+            push_date        = #{pushDate,jdbcType=VARCHAR},
+            error_msg        = #{errorMsg,jdbcType=VARCHAR},
+            create_time      = #{createTime,jdbcType=TIMESTAMP},
+            update_time      = #{updateTime,jdbcType=TIMESTAMP},
+            request_no       = #{requestNo,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>
