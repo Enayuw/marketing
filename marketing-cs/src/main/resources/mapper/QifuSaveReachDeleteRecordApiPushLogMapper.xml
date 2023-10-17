@@ -51,7 +51,6 @@
         where api_code = '${apiCode}'
           and push_date = '${pushDate}'
           and status = 2
-          and error_msg !=''
         group by error_msg;
     </select>
 
