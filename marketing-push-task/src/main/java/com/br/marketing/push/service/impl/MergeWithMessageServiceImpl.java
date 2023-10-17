@@ -472,10 +472,24 @@ public class MergeWithMessageServiceImpl {
                     String version = jo.getString("version");
                     marketingCondition.setCode(code);
                     marketingCondition.setVersion(version);
-                    marketingCondition.setDValue(StringUtils.isNotBlank(s) ? Double.valueOf(s) : 0);
+                    if (StringUtils.isNotBlank(s)) {
+                        if(Pattern.compile(RegexConstants.Numeric).matcher(s).matches()){
+                            marketingCondition.setDValue(Double.valueOf(s));
+                        }
+                        Long date = DateHelper.strToMill(s);
+                        if(date !=null){
+                            marketingCondition.setLValue(date);
+                        }
+                    }
                 } else {
-                    if (StringUtils.isNotBlank(s) && Pattern.compile(RegexConstants.Numeric).matcher(s).matches()) {
-                        marketingCondition.setDValue(Double.valueOf(s));
+                    if (StringUtils.isNotBlank(s)) {
+                        if(Pattern.compile(RegexConstants.Numeric).matcher(s).matches()){
+                            marketingCondition.setDValue(Double.valueOf(s));
+                        }
+                        Long date = DateHelper.strToMill(s);
+                        if(date !=null){
+                            marketingCondition.setLValue(date);
+                        }
                     }
                 }
                 conditions.add(marketingCondition);
@@ -494,7 +508,17 @@ public class MergeWithMessageServiceImpl {
                 }
                 MarketingCondition marketingCondition = new MarketingCondition();
                 marketingCondition.setFieldKey(baseField);
-                marketingCondition.setStrValue(row.get(baseField.toLowerCase()));
+                String s = row.get(baseField.toLowerCase());
+                marketingCondition.setStrValue(s);
+                if (StringUtils.isNotBlank(s)) {
+                    if(Pattern.compile(RegexConstants.Numeric).matcher(s).matches()){
+                        marketingCondition.setDValue(Double.valueOf(s));
+                    }
+                    Long date = DateHelper.strToMill(s);
+                    if(date !=null){
+                        marketingCondition.setLValue(date);
+                    }
+                }
                 conditions.add(marketingCondition);
             }
             //endregion
