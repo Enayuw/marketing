@@ -37,9 +37,9 @@ public class GuMeTransferJsonDTO implements Serializable {
      * 2023-10-16 17:43
      * 业务数据，必填
      */
-    private List<bizData> data;
+    private List<BizData> data;
 
-    public GuMeTransferJsonDTO(String sign, String requestId, String channelCode, List<bizData> data) {
+    public GuMeTransferJsonDTO(String sign, String requestId, String channelCode, List<BizData> data) {
         this.sign = sign;
         this.requestId = requestId;
         this.channelCode = channelCode;
@@ -74,11 +74,11 @@ public class GuMeTransferJsonDTO implements Serializable {
         this.channelCode = channelCode;
     }
 
-    public List<bizData> getData() {
+    public List<BizData> getData() {
         return data;
     }
 
-    public void setData(List<bizData> data) {
+    public void setData(List<BizData> data) {
         this.data = data;
     }
 
@@ -96,7 +96,7 @@ public class GuMeTransferJsonDTO implements Serializable {
      * 2023-10-16 17:57
      * 业务数据
      */
-    public static class bizData {
+    public static class BizData {
         /**
          * 2023-10-16 17:55
          * 分组
@@ -188,10 +188,10 @@ public class GuMeTransferJsonDTO implements Serializable {
          */
         private String lendersDate;
 
-        public bizData() {
+        public BizData() {
         }
 
-        public bizData(String group, String userId, String registrationDate, String isLogin, String loginTime
+        public BizData(String group, String userId, String registrationDate, String isLogin, String loginTime
                 , String isApplyCredit, String applyCreditTime, String isCreditPass, String creditPassTime
                 , String creditAmount, String isApplyWithdrawals, String withdrawalsTime, String isRiskPass
                 , String riskPassAmount, String lendersDate) {
