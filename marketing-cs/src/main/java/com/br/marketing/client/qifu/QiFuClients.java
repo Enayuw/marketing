@@ -8,6 +8,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -129,6 +130,12 @@ public class QiFuClients {
      */
     public Result<String> sendData(BizData bizData, String url, String isLogApiName) {
         Result<String> result = new Result<>();
+        if (StringUtils.isBlank(qifuPublicKey)) {
+            String qiFuApiPublicKey = marketingCommonConfig.getQiFuApiPublicKey();
+            if (qiFuApiPublicKey != null) {
+                qifuPublicKey = qiFuApiPublicKey;
+            }
+        }
         RequestParam requestParam = new RequestParam(appId, bizData, qifuPublicKey, brPrivateKey);
         Map<String, List<Boolean>> apiLogMark = Objects.isNull(marketingCommonConfig.getApiLogMark())
                 ? Collections.emptyMap() : marketingCommonConfig.getApiLogMark();
