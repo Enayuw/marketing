@@ -99,6 +99,11 @@ public class ResponseGuMeDTO extends ResponseCustomDTO {
          * 失败
          */
         FAILED(5000, "服务异常，稍后重试"),
+        /**
+         * 2023-10-17 13:32
+         * 参数不合法
+         */
+        FAILED_PARAM(5001, "参数不合法"),
         ;
 
         private int code;
