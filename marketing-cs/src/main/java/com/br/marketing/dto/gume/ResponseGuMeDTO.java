@@ -57,6 +57,18 @@ public class ResponseGuMeDTO extends ResponseCustomDTO {
         return this;
     }
 
+    public ResponseGuMeDTO failed(ResponseGuMeDTO.ResultEnum resultEnum) {
+        this.code = resultEnum.getCode();
+        this.desc = resultEnum.getDesc();
+        return this;
+    }
+
+    public ResponseGuMeDTO failed(ResponseGuMeDTO.ResultEnum resultEnum, String msg) {
+        this.code = resultEnum.getCode();
+        this.desc = resultEnum.getDesc().concat(msg);
+        return this;
+    }
+
     public int getCode() {
         return code;
     }
@@ -98,12 +110,18 @@ public class ResponseGuMeDTO extends ResponseCustomDTO {
          * 2023-10-16 17:22
          * 失败
          */
-        FAILED(5000, "服务异常，稍后重试"),
+        FAILED(5000, "服务异常"),
+        /**
+         * 2023-10-17 13:32
+         * 参数不能为空
+         */
+        FAILED_PARAM_NULL(5001, "参数不能为空"),
+
         /**
          * 2023-10-17 13:32
          * 参数不合法
          */
-        FAILED_PARAM(5001, "参数不合法"),
+        FAILED_PARAM_LEGAL(5002, "参数不合法，"),
         ;
 
         private int code;
