@@ -246,6 +246,19 @@ public interface MarketingSyncUserMapper {
      */
     Integer updateStatus(@Param("apiCode") String apiCode, @Param("custNum") String custNum, @Param("appletDate") String appletDate);
 
+
+    /**
+     * 查找指定上传日期批次号集合
+     *
+     * @param apiCode    apiCode
+     * @param appletDate 入库日期
+     * @return CusBatch 集合
+     */
+    List<String> findCusBatchByAppletDatePage(@Param("apiCode") String apiCode
+            , @Param("cusBatch") String cusBatch
+            , @Param("appletDate") String appletDate
+            , @Param("pageSize") int pageSize);
+
     /**
      * 根据案件编号+有效期配置获取上传数据
      *

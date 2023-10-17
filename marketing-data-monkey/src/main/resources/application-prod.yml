@@ -144,6 +144,13 @@ api:
     channelId: 3140738836439875
     channelIdMap: "{bairong:'3140738836439875',bairongA:'3140738898634899'}"
     isProxy: true
+  qifu:
+    baseUri: https://gws-bps.daikuan.360.cn
+    saveReachDeleteRecordUrl: ${api.qifu.baseUri}/api/gws/bps/gateway/agent/operation/agentOperationSaveReachDeleteRecord
+    qifuPublicKey: ""
+    brPrivateKey: ""
+    brPublicKey: ""
+    isProxy: true
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置
