@@ -1009,12 +1009,18 @@ public class MarketingCommonConfig {
      */
     private String qiFuApiPublicKey;
 
+    /**
+     * 2023-09-27 19:12
+     * 奇富接口AppId
+     */
+    private String qiFuApiAppId;
+
 
     /**
      * 奇富360 推送客服过滤apiCode 配置
      * {"QiFu_TransferData_To_CustomerFilter":"3710053","QiFu_TransferData_To_CustomerFilter_Brother":"3710105"}
      */
-    private Map<String,String> qiFuApiCodeToCustomerMap;
+    private Map<String, String> qiFuApiCodeToCustomerMap;
 
     /**
      * 奇富360推送决策 apiCode

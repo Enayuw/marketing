@@ -130,13 +130,13 @@ public class QiFuClients {
      */
     public Result<String> sendData(BizData bizData, String url, String isLogApiName) {
         Result<String> result = new Result<>();
-        if (StringUtils.isBlank(qifuPublicKey)) {
-            String qiFuApiPublicKey = marketingCommonConfig.getQiFuApiPublicKey();
-            if (qiFuApiPublicKey != null) {
-                qifuPublicKey = qiFuApiPublicKey;
-            }
+        String qiFuApiPublicKey = marketingCommonConfig.getQiFuApiPublicKey();
+        if (StringUtils.isNotBlank(qiFuApiPublicKey)) {
+            qifuPublicKey = qiFuApiPublicKey;
         }
-        RequestParam requestParam = new RequestParam(appId, bizData, qifuPublicKey, brPrivateKey);
+        String qiFuApiAppId = marketingCommonConfig.getQiFuApiAppId();
+        RequestParam requestParam = new RequestParam(StringUtils.isBlank(qiFuApiAppId)
+                ? appId : qiFuApiAppId, bizData, qifuPublicKey, brPrivateKey);
         Map<String, List<Boolean>> apiLogMark = Objects.isNull(marketingCommonConfig.getApiLogMark())
                 ? Collections.emptyMap() : marketingCommonConfig.getApiLogMark();
         List<Boolean> isLogs = apiLogMark.getOrDefault(isLogApiName, IS_LOG_DEFAULT_LIST);
