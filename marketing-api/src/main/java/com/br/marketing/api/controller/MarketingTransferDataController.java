@@ -13,6 +13,7 @@ import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.entity.MonitorTypeEnum;
+import com.br.marketing.service.IPushGuMeDataService;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.PushRuleService;
 import io.swagger.annotations.Api;
@@ -43,6 +44,9 @@ public class MarketingTransferDataController {
 
     @Resource
     private IPushShuheDataService iPushShuheDataService;
+
+    @Resource
+    private IPushGuMeDataService iPushGuMeDataService;
 
 
     /**
@@ -104,6 +108,26 @@ public class MarketingTransferDataController {
         RuntimeDataContext.getData().setApiCode(apiCode);
         RuntimeDataContext.getData().setJsonData(jsonData);
         return iPushShuheDataService.saveShuheTransferDataTwoVersion(apiCode, jsonData);
+    }
+
+
+    /**
+     * 国美订制转化数据上传接口
+     *
+     * @param apiCode  apiCode
+     * @param jsonData 业务数据json结构
+     * @return ApiNoDataResult 业务响应
+     */
+    @ApiOperation(value = "国美订制转化数据上传接口")
+    @PostMapping("receiveGuMeTransferDataSync")
+    @LogAnnotation
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    public ResponseCustomDTO receiveGuMeTransferDataSync(@RequestParam("apiCode") String apiCode
+            , @RequestParam("jsonData") String jsonData) {
+        RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
+        RuntimeDataContext.getData().setApiCode(apiCode);
+        RuntimeDataContext.getData().setJsonData(jsonData);
+        return iPushGuMeDataService.saveTransferData(apiCode, jsonData);
     }
 
 
