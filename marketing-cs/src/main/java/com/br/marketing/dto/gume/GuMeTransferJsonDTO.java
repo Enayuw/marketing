@@ -22,7 +22,7 @@ public class GuMeTransferJsonDTO implements Serializable {
 
     /**
      * 2023-10-16 17:43
-     * 时间戳 + 五位以 上随机数_批次，必填
+     * 时间戳 + 五位以上随机数_批次，必填
      */
     private String requestId;
 
@@ -106,13 +106,13 @@ public class GuMeTransferJsonDTO implements Serializable {
         /**
          * 2023-10-16 17:55
          * userId
-         * 非必填
+         * 必填
          */
         private String userId;
         /**
          * 2023-10-16 17:55
          * 注册日期
-         * 必填
+         * 非必填
          */
         private String registrationDate;
         /**
