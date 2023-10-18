@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
@@ -381,6 +382,55 @@ public class DateHelper {
             } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}$", date)) {
                 String s = date.replaceAll("/", "-");
                 res = LocalDate.parse(s, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH"));
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+        return res;
+    }
+
+//    public static void main(String[] args) {
+//        Long aLong = strToMill("2023-09-14");
+//        Long bLong = strToMill("2023-09-14 09");
+//        Long cLong = strToMill("2023-09-14 09:52");
+//        Long dLong = strToMill("2023-09-14 09:52:20");
+//        Long eLong = strToMill("2023/09/14");
+//        Long fLong = strToMill("2023/09/14 09:52");
+//        Long gLong = strToMill("2023/09/14 09:52:20");
+//        System.out.println("1-----"+aLong);
+//        System.out.println("2-----"+bLong);
+//        System.out.println("3-----"+cLong);
+//        System.out.println("4-----"+dLong);
+//        System.out.println("5-----"+eLong);
+//        System.out.println("6-----"+fLong);
+//        System.out.println("7-----"+gLong);
+//    }
+
+    public static Long strToMill(String date) {
+        if (StringUtils.isBlank(date)) {
+            return null;
+        }
+        Long res = null;
+        try {
+            if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}$", date)) {
+                String s = date.replaceAll("/", "-");
+                res = LocalDateTime.parse(s, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toInstant(ZoneOffset.of("+8")).toEpochMilli();
+            } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2}$|^\\d{4}/\\d{2}/\\d{2}$", date)) {
+                String s = date.replaceAll("/", "-");
+                s += " 00:00:00";
+                res = LocalDateTime.parse(s, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toInstant(ZoneOffset.of("+8")).toEpochMilli();
+            } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3}$", date)) {
+                String s = date.replaceAll("/", "-");
+                res = LocalDateTime.parse(s, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")).toInstant(ZoneOffset.of("+8")).toEpochMilli();
+            } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$", date)) {
+                String s = date.replaceAll("/", "-");
+                res = LocalDateTime.parse(s, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:[SSS]")).toInstant(ZoneOffset.of("+8")).toEpochMilli();
+            } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}$", date)) {
+                String s = date.replaceAll("/", "-");
+                res = LocalDateTime.parse(s, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")).toInstant(ZoneOffset.of("+8")).toEpochMilli();
+            } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}$", date)) {
+                String s = date.replaceAll("/", "-");
+                res = LocalDateTime.parse(s, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH")).toInstant(ZoneOffset.of("+8")).toEpochMilli();
             }
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);

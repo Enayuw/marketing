@@ -87,6 +87,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
     ZnkfPushService znkfPushService;
 
     @Autowired
+    DynamicParameterServiceImpl dynamicParameterService;
+
+    @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
     @Autowired
@@ -159,11 +162,12 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
         String tcId = tableCreateService.getTcId(apiCode);
+        Integer pageSize = dynamicParameterService.getPageSize("yxToDx");
         Integer threadvalue = 0;
         while (mark) {
             threadvalue++;
             final Integer _threadValue = threadvalue;
-            Result<List<MarketingTransferSyncUser>> delayData = getDelayData(apiCode, date, page);
+            Result<List<MarketingTransferSyncUser>> delayData = getDelayData(apiCode, date, page, pageSize);
             if (!ResultCode.SUCCESS.getValue().equals(delayData.getCode())) {
                 mark = Boolean.FALSE;
                 continue;
@@ -419,8 +423,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         //去重后的Set
         HashSet custNumResult = new HashSet();
         List<Long> ids = new ArrayList<>();
+        Integer pageSize = dynamicParameterService.getPageSize("yxToCustomer");
         while (mark) {
-            Result<List<MarketingTransferSyncUser>> delayData = getDelayData(apiCode, date, page);
+            Result<List<MarketingTransferSyncUser>> delayData = getDelayData(apiCode, date, page, pageSize);
             if (!ResultCode.SUCCESS.getValue().equals(delayData.getCode())) {
                 mark = Boolean.FALSE;
                 continue;
@@ -468,10 +473,10 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
      * @param pageIndex
      * @return
      */
-    private Result<List<MarketingTransferSyncUser>> getDelayData(String apiCode, String date, Integer pageIndex) {
+    private Result<List<MarketingTransferSyncUser>> getDelayData(String apiCode, String date, Integer pageIndex, Integer pageSize) {
         String tcId = tableCreateService.getTcId(apiCode);
-        Integer limitStart = pageIndex * 2000;
-        List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferOrderInsertTime(tcId, date, limitStart);
+        Integer limitStart = pageIndex * pageSize;
+        List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferOrderInsertTime(tcId, date, limitStart,pageSize);
         if (transferOrderInsertTime.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }

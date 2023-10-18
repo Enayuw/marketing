@@ -17,11 +17,13 @@ import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
+import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
 import com.br.marketing.service.Impl.RuleRedisServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
@@ -57,6 +59,9 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
     private RuleRedisServiceImpl ruleRedisService;
     @Resource
     private TableCreateServiceImpl tableCreateService;
+
+    @Autowired
+    DynamicParameterServiceImpl dynamicParameterService;
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
     @Resource
@@ -168,9 +173,10 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
+        Integer pageSize = dynamicParameterService.getPageSize("yhGet");
         for (; ; ) {
             List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper
-                    .findTransferByApiCodeAndCreateTimePage(syncUser, null, null, null, page * 2000, 2000);
+                    .findTransferByApiCodeAndCreateTimePage(syncUser, null, null, null, page * pageSize, pageSize);
             if (CollectionUtils.isEmpty(transferOrderInsertTime)) {
                 break;
             }

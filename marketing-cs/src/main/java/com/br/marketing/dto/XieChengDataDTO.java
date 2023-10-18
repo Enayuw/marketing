@@ -12,6 +12,9 @@ import com.br.marketing.rule.SourceData;
 public class XieChengDataDTO extends SourceData {
     private XieChengData xieChengData;
 
+    // 是否要进延迟队列
+    private Boolean toDelay;
+
     public XieChengDataDTO(XieChengData xieChengData) {
         this.xieChengData = xieChengData;
     }
@@ -25,5 +28,13 @@ public class XieChengDataDTO extends SourceData {
 
     public void setXieChengData(XieChengData xieChengData) {
         this.xieChengData = xieChengData;
+    }
+
+    public Boolean getToDelay() {
+        return toDelay;
+    }
+
+    public void setToDelay(Boolean toDelay) {
+        this.toDelay = toDelay;
     }
 }

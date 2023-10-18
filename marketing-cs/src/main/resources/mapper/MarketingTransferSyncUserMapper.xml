@@ -60,7 +60,8 @@
         select * from
         b_marketing_transfer_sync_${cid}
         where request_data=#{data}
-        order by cust_num desc,insert_time desc,id desc limit #{limitStart},2000;
+        order by cust_num desc,insert_time desc,id desc
+        limit #{limitStart},#{pageSize};
     </select>
 
     <select id="getTransferDataByRequestDataAndApiCode" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
@@ -882,5 +883,51 @@
         </where>
     </select>
 
+    <select id="getXieChengJudgeConvType" resultType="com.br.marketing.entity.XieChengJudgeConvTypeValue">
+        select cust_num,
+               if(sum(if(reserve_field1 -> '$.convType' = '110', 1, 0)) > 0, true, false) as hasRiskControl,
+               if(sum(if(reserve_field1 -> '$.convType' = '106', 1, 0)) > 0, true, false) as hasApplySuccess,
+               if(sum(if(reserve_field1 -> '$.convType' = '107', 1, 0)) > 0, true, false) as hasInputSuccess
+        from b_marketing_transfer_sync_${tCid}
+                where api_code in
+        <foreach collection="apiCodes" item="apiCode" separator="," open="(" close=")">
+            #{apiCode}
+        </foreach>
+        <![CDATA[
+        and request_data >= #{requestStartDate}
+        and request_data <= #{requestEndDate}]]>
+        and cust_num in
+        <foreach collection="custNums" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        group by cust_num;
+    </select>
 
+    <select id="getQiFuBreakPointTransferByRequestDatetikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select id, cust_num, login_time, apply_dt, request_data
+        from b_marketing_transfer_sync_${tCid}
+                where api_code = #{apiCode}
+                  and (json_extract(reserve_field1, "$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
+        <![CDATA[
+                  and request_data >= #{requestStartDate}
+                  and request_data <= #{requestEndDate}
+        ]]>
+        <if test="indexId != null and indexId != ''">
+            and id > #{indexId}
+        </if>
+        order by id asc limit 2000
+    </select>
+
+    <select id="getCountByQiFuApplyDtEmply" resultType="java.lang.Integer">
+        select count(1)
+        from b_marketing_transfer_sync_${tCid}
+                where api_code = #{apiCode}
+                  and (json_extract(reserve_field1, "$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
+                  and
+        <foreach collection="periodRangeList" item="item" open="(" close=")" separator="or">
+            request_data between #{item.beginDateStr} and #{item.endDateStr}
+        </foreach>
+        and (apply_dt is not null and apply_dt != '')
+        and cust_num = #{custNum}
+    </select>
 </mapper>

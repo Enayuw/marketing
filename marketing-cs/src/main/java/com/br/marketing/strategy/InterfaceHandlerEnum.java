@@ -16,7 +16,7 @@ public enum InterfaceHandlerEnum {
     MULTIPLE_DASSBATCH_CUSTOMERBLACK(12, "推送电销和客服黑名单组合接口"),
     INIT_TO_POLICY(13, "原始数据推送决策接口"),
     ZHONGAN_LOCK_DATA_INSERT(14, "众安明细锁定数据落库"),
-    XIE_CHENG_CALL_RECORD_INSERT_DB(15, "携程通话明细保存到携程推营销数据表"),
+    XIE_CHENG_CALL_RECORD_INSERT_DB(15, "携程通话明细保存到携程推营销数据表(3710058/3710078)"),
     ARTIFICIAL_IBU_BATCH_DATA(16, "人工IBU批量接口"),
     CUSTOMER_TRANSFER_SOLE(17, "客服转化去重"),
     INIT_TO_POLICY_SOLE(18, "推送决策去重接口"),
@@ -27,6 +27,8 @@ public enum InterfaceHandlerEnum {
     ARTIFICIAL_REAL_TIME_USERDATA_SOLE(23, "人工实时推送用户名单-有去重能力"),
     ARTIFICIAL_TRANSFER_SOLE(24, "人工转化-有去重能力"),
     ARTIFICIAL_REAL_TIME_USERDATA_AND_CUSTOMER_TRANSFER_SOLE(25, "(人工实时推送用户名单-有去重能力)+客服转化去重"),
+    XIE_CHENG_CALL_RECORD_INSERT_DB_VT(26, "携程通话明细保存到携程推营销数据表(3710090/3710091)"),
+    CUSTOMER_TRANSFER_SOLE_QIFU(27, "客服转化去重（奇富360专用）"),
     ;
 
 

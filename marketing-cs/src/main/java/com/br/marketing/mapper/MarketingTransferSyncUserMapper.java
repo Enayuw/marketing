@@ -2,9 +2,7 @@ package com.br.marketing.mapper;
 
 
 import com.alibaba.fastjson.JSONArray;
-import com.br.marketing.entity.MarketingNewTransferData;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.vo.TransferOfCnIdVO;
 import com.br.marketing.vo.TransferOfRdRFVO;
 import org.apache.ibatis.annotations.Param;
@@ -39,7 +37,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      */
     MarketingTransferSyncUser getNewestByCusnumInHour(@Param("cid") String cid, @Param("caseNum") String caseNum, @Param("timeAddHour") String timeAddHour);
 
-    List<MarketingTransferSyncUser> getTransferOrderInsertTime(@Param("cid") String cid, @Param("data") String data, @Param("limitStart") Integer limitStart);
+    List<MarketingTransferSyncUser> getTransferOrderInsertTime(@Param("cid") String cid, @Param("data") String data, @Param("limitStart") Integer limitStart,@Param("pageSize") Integer pageSize);
 
     List<MarketingTransferSyncUser> getTransferDataByRequestDataAndApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("data") String data, @Param("limitStart") Integer limitStart);
 
@@ -463,5 +461,28 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                @Param("querySql") String querySql,
                                                                @Param("custNums") Set<String> custNums);
 
+    /**
+     * 转化数据对应的custNum，convType是否有110，convType是否有106
+     * @param tCid
+     * @param apiCodes
+     * @param requestStartDate
+     * @param requestEndDate
+     * @param custNums
+     * @return
+     */
+    List<XieChengJudgeConvTypeValue> getXieChengJudgeConvType(@Param("tCid") String tCid,
+                                                              @Param("apiCodes") JSONArray apiCodes,
+                                                              @Param("requestStartDate") String requestStartDate,
+                                                              @Param("requestEndDate") String requestEndDate,
+                                                              @Param("custNums") Set<String> custNums);
+
+    List<MarketingTransferSyncUser> getQiFuBreakPointTransferByRequestDatetikv_(@Param("tCid") String tCid,
+                                                                           @Param("apiCode") String apiCode,
+                                                                           @Param("requestStartDate") String requestStartDate,
+                                                                           @Param("requestEndDate") String requestEndDate,
+                                                                           @Param("indexId") Long indexId);
+
+    int getCountByQiFuApplyDtEmply(@Param("tCid") String tCid, @Param("apiCode") String apiCode,
+                                   @Param("periodRangeList") List<PeriodRange> periodRangeList, @Param("custNum") String custNum);
 
 }
