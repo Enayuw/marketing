@@ -1,7 +1,8 @@
-package com.br.marketing.service.Impl.guomei;
+package com.br.marketing.service.custom.guomei.impl;
 
 import com.br.marketing.entity.GuoMeiTransferData;
 import com.br.marketing.mapper.GuoMeiTransferDataMapper;
+import com.br.marketing.service.custom.guomei.IGuoMeiDataService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

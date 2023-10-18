@@ -1,4 +1,4 @@
-package com.br.marketing.service.Impl.guomei;
+package com.br.marketing.service.custom.guomei.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -13,6 +13,9 @@ import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.dto.gume.GuMeTransferJsonDTO;
 import com.br.marketing.dto.gume.ResponseGuMeDTO;
 import com.br.marketing.entity.GuoMeiTransferData;
+import com.br.marketing.service.custom.guomei.IGuoMeiDataService;
+import com.br.marketing.service.custom.guomei.IPushGuMeDataService;
+import com.br.marketing.service.custom.handle.CustomCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.api.PulsarClientException;
@@ -36,6 +39,21 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
 
     @Resource
     private IGuoMeiDataService guoMeiDataService;
+
+    @Override
+    public CustomCodeEnum custom() {
+        return CustomCodeEnum.T_GUO_MEI;
+    }
+
+    @Override
+    public ResponseCustomDTO receiveCustomDataHandler(String apiCode, String jsonData) {
+        return saveTransferData(apiCode, jsonData);
+    }
+
+    @Override
+    public Result<Boolean> consumerPayData(String msg) {
+        return consumerTransfer(msg);
+    }
 
     @Override
     public ResponseCustomDTO saveTransferData(String apiCode, String jsonData) {
