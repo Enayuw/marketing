@@ -115,7 +115,7 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
             if (dataBool = CollectionUtils.isEmpty(jsonDTO.getData())) {
                 responseGuMeDTO.failed(",data不可为空");
             }
-            return !sign2Bool && dataBool;
+            return !sign2Bool && !dataBool;
         }
         return false;
     }
