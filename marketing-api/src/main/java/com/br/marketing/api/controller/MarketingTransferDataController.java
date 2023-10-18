@@ -14,8 +14,8 @@ import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.entity.MonitorTypeEnum;
 import com.br.marketing.service.IPushShuheDataService;
-import com.br.marketing.service.Impl.guomei.IPushGuMeDataService;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.service.custom.CustomTransferDataService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -46,7 +46,7 @@ public class MarketingTransferDataController {
     private IPushShuheDataService iPushShuheDataService;
 
     @Resource
-    private IPushGuMeDataService iPushGuMeDataService;
+    private CustomTransferDataService customTransferDataService;
 
 
     /**
@@ -127,7 +127,7 @@ public class MarketingTransferDataController {
         RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
         RuntimeDataContext.getData().setApiCode(apiCode);
         RuntimeDataContext.getData().setJsonData(jsonData);
-        return iPushGuMeDataService.saveTransferData(apiCode, jsonData);
+        return customTransferDataService.receiveTransferDataHandler(apiCode, jsonData);
     }
 
 
