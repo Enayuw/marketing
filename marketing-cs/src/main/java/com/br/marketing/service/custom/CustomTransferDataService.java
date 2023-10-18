@@ -1,5 +1,6 @@
 package com.br.marketing.service.custom;
 
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.ResponseCustomDTO;
 
 /**
@@ -20,4 +21,14 @@ public interface CustomTransferDataService {
      * @author Guo Zeqiang
      */
     ResponseCustomDTO receiveTransferDataHandler(String apiCode, String jsonData);
+
+    /**
+     * 2023-10-17 17:56
+     * 异常消息重新入库
+     * 补偿数据
+     *
+     * @param msg mq中的消息
+     * @return 结果
+     */
+    Result<Boolean> consumerTransferPayData(String msg);
 }

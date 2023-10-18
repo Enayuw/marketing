@@ -1,7 +1,13 @@
 package com.br.marketing.service.custom.handler;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.br.arch.geo.pulsar.ProductPulsarClientManager;
+import com.br.arch.geo.pulsar.ProductPulsarProducer;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.dto.ResponseCustomDTO;
+import org.apache.pulsar.client.api.PulsarClientException;
 
 /**
  * 客户数据处理
@@ -39,4 +45,21 @@ public interface CustomDataHandler {
      * @return 结果
      */
     Result<Boolean> consumerPayData(String msg);
+
+    /**
+     * 2023-10-18 20:16
+     * 发送消息到消息队列
+     *
+     * @param apiCode apiCode
+     * @param message 消息
+     */
+    default void sendQueue(String apiCode, Object message) throws PulsarClientException {
+        ProductPulsarProducer producer = ProductPulsarClientManager.newProducer(PulsarTopic.transferCustomTopic);
+        String jsonString = JSON.toJSONString(message);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("apiCode", apiCode);
+        jsonObject.put("jsonData", jsonString);
+        byte[] messageByte = JSON.toJSONString(jsonObject).getBytes();
+        producer.send(messageByte);
+    }
 }

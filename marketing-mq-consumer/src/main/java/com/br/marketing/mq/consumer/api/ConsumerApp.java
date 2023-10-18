@@ -10,7 +10,7 @@ import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.PushRuleService;
-import com.br.marketing.service.custom.guomei.impl.PushGuMeDataServiceImpl;
+import com.br.marketing.service.custom.CustomTransferDataService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +46,7 @@ public class ConsumerApp {
     IPushShuheDataService pushShuheDataService;
 
     @Resource
-    private PushGuMeDataServiceImpl pushGuMeDataService;
+    private CustomTransferDataService customTransferDataService;
 
 
     /**
@@ -142,9 +142,9 @@ public class ConsumerApp {
         //数禾转化数据pulsar消费端
         consumerService.consumerPulsar(PulsarSubscription.transferShSubscription, pushShuheDataService::consumerShTransfer, 2, PulsarTopic.transferShTopic);
 
-        // 国美转化数据pulsar消费端
-        consumerService.consumerPulsar(PulsarSubscription.transferGuoMeiSubscription
-                , pushGuMeDataService::consumerTransfer, 2, PulsarTopic.transferGuoMeiTopic);
+        // 定制客户转化数据pulsar消费端
+        consumerService.consumerPulsar(PulsarSubscription.transferCustomSubscription
+                , customTransferDataService::consumerTransferPayData, 2, PulsarTopic.transferCustomTopic);
 
 
     }

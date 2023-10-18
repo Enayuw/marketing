@@ -1,5 +1,7 @@
 package com.br.marketing.service.custom.impl;
 
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.service.custom.CustomTransferDataService;
 import com.br.marketing.service.custom.handler.CustomDataHandleSingleton;
@@ -26,5 +28,13 @@ public class CustomTransferDataServiceImpl implements CustomTransferDataService 
     public ResponseCustomDTO receiveTransferDataHandler(String apiCode, String jsonData) {
         CustomDataHandler customDataHandleImpl = customDataHandleFactory.getCustomDataHandleImpl(apiCode);
         return customDataHandleImpl.receiveCustomDataHandler(apiCode, jsonData);
+    }
+
+    @Override
+    public Result<Boolean> consumerTransferPayData(String msg) {
+        JSONObject jsonObject = JSONObject.parseObject(msg);
+        CustomDataHandler customDataHandleImpl = customDataHandleFactory.getCustomDataHandleImpl(
+                jsonObject.getString("apiCode"));
+        return customDataHandleImpl.consumerPayData(msg);
     }
 }

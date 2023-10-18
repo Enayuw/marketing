@@ -1,14 +1,10 @@
 package com.br.marketing.service.custom.guomei.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.br.arch.geo.pulsar.ProductPulsarClientManager;
-import com.br.arch.geo.pulsar.ProductPulsarProducer;
 import com.br.common.encryption.Md5Utils;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.dto.gume.GuMeTransferJsonDTO;
 import com.br.marketing.dto.gume.ResponseGuMeDTO;
@@ -85,11 +81,7 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             try {
-                ProductPulsarProducer producer = ProductPulsarClientManager.newProducer(PulsarTopic.transferGuoMeiTopic);
-                String jsonString = JSON.toJSONString(guoMeiTransferData);
-                byte[] message = jsonString.getBytes();
-                producer.send(message);
-                log.warn(String.format("写入Pulsar 主题:%s 数据:%s", PulsarTopic.transferGuoMeiTopic, jsonString));
+                sendQueue(apiCode, guoMeiTransferData);
             } catch (PulsarClientException clientException) {
                 responseGuMeDTO.failed();
             }

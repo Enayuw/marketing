@@ -13,7 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 客户业务接口工厂
+ * 客户业务接口
  *
  * @author Guo Zeqiang
  * @dateTime 2023-10-16 9:49
@@ -29,7 +29,7 @@ public class CustomDataHandleSingleton implements ApplicationContextAware {
     }
 
     /**
-     * 客户处理接口集合
+     * 根据apiCode获取客户处理
      */
     public CustomDataHandler getCustomDataHandleImpl(String apiCode) {
         if (customDataHandlerMap == null) {
@@ -45,6 +45,17 @@ public class CustomDataHandleSingleton implements ApplicationContextAware {
             }
         }
         return customDataHandlerMap.get(CustomCodeEnum.valueof(apiCode));
+    }
+
+    /**
+     * 2023-10-18 20:06
+     * 根据枚举获取客户处理
+     */
+    public CustomDataHandler getCustomDataHandleImpl(CustomCodeEnum customCodeEnum) {
+        if (customDataHandlerMap == null) {
+            getCustomDataHandleImpl(customCodeEnum.getApiCodes()[0]);
+        }
+        return customDataHandlerMap.get(customCodeEnum);
     }
 
 }
