@@ -2,6 +2,13 @@ package com.br.marketing.service.custom.handle;
 
 /**
  * 客户编码枚举
+ * 枚举命说明:
+ * 1.开头T或U,T代表转化数据,U代表上传数据
+ * 2.中间自定义客户名称拼音全拼或简拼
+ * 3.末尾可以使用apiCode,也可以不用;用时可减少apiCodes的内容
+ * eg:
+ * 转化:T_XXX或T_XXX_apiCode
+ * 上传:U_XXX或U_XXX_apiCode
  *
  * @author Guo Zeqiang
  * @dateTime 2023-10-18 16:43
@@ -12,7 +19,7 @@ public enum CustomCodeEnum {
      * 2023-10-18 17:00
      * 国美
      */
-    T_GUO_MEI("国美转化", "3710076", "7492805"),
+    T_GUME("国美转化", "3710076", "7492805"),
     ;
 
     /**

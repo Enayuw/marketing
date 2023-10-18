@@ -42,7 +42,7 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
 
     @Override
     public CustomCodeEnum custom() {
-        return CustomCodeEnum.T_GUO_MEI;
+        return CustomCodeEnum.T_GUME;
     }
 
     @Override
