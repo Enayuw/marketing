@@ -111,17 +111,6 @@ public class ResponseGuMeDTO extends ResponseCustomDTO {
          * 失败
          */
         FAILED(5000, "服务异常"),
-        /**
-         * 2023-10-17 13:32
-         * 参数不能为空
-         */
-        FAILED_PARAM_NULL(5001, "参数不能为空"),
-
-        /**
-         * 2023-10-17 13:32
-         * 参数不合法
-         */
-        FAILED_PARAM_LEGAL(5002, "参数不合法，"),
         ;
 
         private int code;

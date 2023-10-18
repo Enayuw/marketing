@@ -46,18 +46,16 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
         guoMeiTransferData.setCreateTime(new Date());
         guoMeiTransferData.setUpdateTime(guoMeiTransferData.getCreateTime());
         guoMeiTransferData.setJsonData(jsonData);
+        guoMeiTransferData.setApiCode(apiCode);
         try {
             jsonDTO = JSONObject.parseObject(jsonData, new TypeReference<GuMeTransferJsonDTO>() {
             }.getType());
-            if (transferApiParamRightfulCheck(jsonDTO, responseGuMeDTO)) {
+            if (transferApiParamRightfulCheck(jsonDTO, responseGuMeDTO, guoMeiTransferData)) {
                 responseGuMeDTO.success();
-                guoMeiTransferData.setApiCode(apiCode);
-                guoMeiTransferData.setChannelcode(jsonDTO.getChannelCode());
-                guoMeiTransferData.setRequestid(jsonDTO.getRequestId());
-                guoMeiTransferData.setSign(jsonDTO.getSign());
                 guoMeiTransferData.setStatus(1);
             } else {
-                return responseGuMeDTO;
+                guoMeiTransferData.setStatus(0);
+                guoMeiTransferData.setErrorMsg(responseGuMeDTO.getDesc());
             }
         } catch (Exception e) {
             responseGuMeDTO.failed("json解析失败");
@@ -85,29 +83,41 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
      * 2023-10-16 18:08
      * 转化接口参数合法检查
      */
-    private boolean transferApiParamRightfulCheck(GuMeTransferJsonDTO jsonDTO, ResponseGuMeDTO responseGuMeDTO) {
-        if (StringUtils.isBlank(jsonDTO.getSign())) {
-            responseGuMeDTO.failed(ResponseGuMeDTO.ResultEnum.FAILED_PARAM_NULL, "sign不可为空");
-            return false;
+    private boolean transferApiParamRightfulCheck(GuMeTransferJsonDTO jsonDTO
+            , ResponseGuMeDTO responseGuMeDTO, GuoMeiTransferData guoMeiTransferData) {
+        boolean channelCodeBool;
+        if (channelCodeBool = StringUtils.isNotBlank(jsonDTO.getChannelCode())) {
+            guoMeiTransferData.setChannelcode(jsonDTO.getChannelCode());
+        } else {
+            responseGuMeDTO.failed(",channelCode不可为空");
         }
-        if (StringUtils.isBlank(jsonDTO.getChannelCode())) {
-            responseGuMeDTO.failed(ResponseGuMeDTO.ResultEnum.FAILED_PARAM_NULL, "channelCode不可为空");
-            return false;
+        boolean requestIdBool;
+        if (requestIdBool = StringUtils.isNotBlank(jsonDTO.getRequestId())) {
+            guoMeiTransferData.setRequestid(jsonDTO.getRequestId());
+        } else {
+            responseGuMeDTO.failed(",requestId不可为空");
         }
-        if (StringUtils.isBlank(jsonDTO.getRequestId())) {
-            responseGuMeDTO.failed(ResponseGuMeDTO.ResultEnum.FAILED_PARAM_NULL, "requestId不可为空");
-            return false;
+        boolean signBool;
+        if (signBool = StringUtils.isNotBlank(jsonDTO.getSign())) {
+            guoMeiTransferData.setSign(jsonDTO.getSign());
+        } else {
+            responseGuMeDTO.failed(",sign不可为空");
         }
-        String sign = Md5Utils.cell32(jsonDTO.getRequestId() + jsonDTO.getChannelCode()).toUpperCase(Locale.ROOT);
-        if (!jsonDTO.getSign().equals(sign)) {
-            responseGuMeDTO.failed(ResponseGuMeDTO.ResultEnum.FAILED_PARAM_NULL, "sign签名不正确");
-            return false;
+        if (channelCodeBool && requestIdBool && signBool) {
+            // 验签
+            boolean sign2Bool;
+            String sign = Md5Utils.cell32(jsonDTO.getRequestId() + jsonDTO.getChannelCode()).toUpperCase(Locale.ROOT);
+            if (sign2Bool = !jsonDTO.getSign().equals(sign)) {
+                responseGuMeDTO.failed(",sign签名不正确");
+            }
+            // 验业务数据
+            boolean dataBool;
+            if (dataBool = CollectionUtils.isEmpty(jsonDTO.getData())) {
+                responseGuMeDTO.failed(",data不可为空");
+            }
+            return !sign2Bool && dataBool;
         }
-        if (CollectionUtils.isEmpty(jsonDTO.getData())) {
-            responseGuMeDTO.failed(ResponseGuMeDTO.ResultEnum.FAILED_PARAM_NULL, "data不可为空");
-            return false;
-        }
-        return true;
+        return false;
     }
 
 
