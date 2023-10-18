@@ -55,11 +55,11 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
                 guoMeiTransferData.setStatus(1);
             } else {
                 guoMeiTransferData.setStatus(0);
-                guoMeiTransferData.setErrorMsg(responseGuMeDTO.getDesc());
+                guoMeiTransferData.setErrorMsg(responseGuMeDTO.getMessage());
             }
         } catch (Exception e) {
             responseGuMeDTO.failed("json解析失败");
-            guoMeiTransferData.setErrorMsg(responseGuMeDTO.getDesc().concat(":") + e.getMessage());
+            guoMeiTransferData.setErrorMsg(responseGuMeDTO.getMessage().concat(":") + e.getMessage());
             log.error(e.getMessage(), e);
         }
         try {

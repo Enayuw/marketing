@@ -19,53 +19,53 @@ public class ResponseGuMeDTO extends ResponseCustomDTO {
     /**
      * 2023-10-16 17:14 描述
      */
-    private String desc;
+    private String message;
 
     public ResponseGuMeDTO() {
     }
 
-    public ResponseGuMeDTO(int code, String desc) {
+    public ResponseGuMeDTO(int code, String message) {
         this.code = code;
-        this.desc = desc;
+        this.message = message;
     }
 
     public ResponseGuMeDTO(ResponseGuMeDTO.ResultEnum resultEnum) {
         this.code = resultEnum.getCode();
-        this.desc = resultEnum.getDesc();
+        this.message = resultEnum.getDesc();
     }
 
     public ResponseGuMeDTO(ResponseGuMeDTO.ResultEnum resultEnum, String msg) {
         this.code = resultEnum.getCode();
-        this.desc = resultEnum.getDesc().concat(msg);
+        this.message = resultEnum.getDesc().concat(msg);
     }
 
     public ResponseGuMeDTO success() {
         this.code = ResponseGuMeDTO.ResultEnum.SUCCESS.getCode();
-        this.desc = ResponseGuMeDTO.ResultEnum.SUCCESS.getDesc();
+        this.message = ResponseGuMeDTO.ResultEnum.SUCCESS.getDesc();
         return this;
     }
 
-    public ResponseGuMeDTO failed(String desc) {
+    public ResponseGuMeDTO failed(String message) {
         this.code = ResponseGuMeDTO.ResultEnum.FAILED.getCode();
-        this.desc = ResponseGuMeDTO.ResultEnum.FAILED.getDesc().concat(desc);
+        this.message = ResponseGuMeDTO.ResultEnum.FAILED.getDesc().concat(message);
         return this;
     }
 
     public ResponseGuMeDTO failed() {
         this.code = ResponseGuMeDTO.ResultEnum.FAILED.getCode();
-        this.desc = ResponseGuMeDTO.ResultEnum.FAILED.getDesc();
+        this.message = ResponseGuMeDTO.ResultEnum.FAILED.getDesc();
         return this;
     }
 
     public ResponseGuMeDTO failed(ResponseGuMeDTO.ResultEnum resultEnum) {
         this.code = resultEnum.getCode();
-        this.desc = resultEnum.getDesc();
+        this.message = resultEnum.getDesc();
         return this;
     }
 
     public ResponseGuMeDTO failed(ResponseGuMeDTO.ResultEnum resultEnum, String msg) {
         this.code = resultEnum.getCode();
-        this.desc = resultEnum.getDesc().concat(msg);
+        this.message = resultEnum.getDesc().concat(msg);
         return this;
     }
 
@@ -77,19 +77,19 @@ public class ResponseGuMeDTO extends ResponseCustomDTO {
         this.code = code;
     }
 
-    public String getDesc() {
-        return desc;
+    public String getMessage() {
+        return message;
     }
 
-    public void setDesc(String desc) {
-        this.desc = desc;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     @Override
     public String toString() {
         return "ResponseGuMeDTO{" +
                 "code=" + code +
-                ", desc='" + desc + '\'' +
+                ", message='" + message + '\'' +
                 '}';
     }
 
