@@ -1,4 +1,4 @@
-package com.br.marketing.service.custom.handle;
+package com.br.marketing.service.custom.handler;
 
 /**
  * 客户编码枚举

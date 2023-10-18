@@ -2,8 +2,8 @@ package com.br.marketing.service.custom.impl;
 
 import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.service.custom.CustomTransferDataService;
-import com.br.marketing.service.custom.handle.CustomDataHandleSingleton;
-import com.br.marketing.service.custom.handle.CustomDataHandler;
+import com.br.marketing.service.custom.handler.CustomDataHandleSingleton;
+import com.br.marketing.service.custom.handler.CustomDataHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

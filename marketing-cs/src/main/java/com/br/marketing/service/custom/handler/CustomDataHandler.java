@@ -1,4 +1,4 @@
-package com.br.marketing.service.custom.handle;
+package com.br.marketing.service.custom.handler;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.ResponseCustomDTO;

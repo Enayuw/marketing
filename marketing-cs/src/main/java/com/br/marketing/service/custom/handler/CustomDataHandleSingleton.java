@@ -1,4 +1,4 @@
-package com.br.marketing.service.custom.handle;
+package com.br.marketing.service.custom.handler;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;

@@ -15,7 +15,7 @@ import com.br.marketing.dto.gume.ResponseGuMeDTO;
 import com.br.marketing.entity.GuoMeiTransferData;
 import com.br.marketing.service.custom.guomei.IGuoMeiDataService;
 import com.br.marketing.service.custom.guomei.IPushGuMeDataService;
-import com.br.marketing.service.custom.handle.CustomCodeEnum;
+import com.br.marketing.service.custom.handler.CustomCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.api.PulsarClientException;
