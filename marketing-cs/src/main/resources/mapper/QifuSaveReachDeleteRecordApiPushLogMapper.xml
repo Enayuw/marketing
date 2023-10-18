@@ -51,6 +51,8 @@
         where api_code = '${apiCode}'
           and push_date = '${pushDate}'
           and status = 2
+          and resp_flag = ''
+          and qifu_is_succeed = ''
         group by error_msg;
     </select>
 
