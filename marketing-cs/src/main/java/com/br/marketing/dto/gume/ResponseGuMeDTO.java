@@ -110,7 +110,7 @@ public class ResponseGuMeDTO extends ResponseCustomDTO {
          * 2023-10-16 17:22
          * 失败
          */
-        FAILED(5000, "服务异常"),
+        FAILED(5000, "失败"),
         ;
 
         private int code;
