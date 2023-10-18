@@ -1,6 +1,11 @@
 package com.br.marketing.client;
 
-import com.br.redisengin.MultiRedisClusterUtil;
+import com.brgroup.redis.BrRedisClients;
+import com.brgroup.redis.client.BrRedisClient;
+import io.lettuce.core.ScanArgs;
+import io.lettuce.core.ScanCursor;
+import io.lettuce.core.ScriptOutputType;
+import io.lettuce.core.ValueScanCursor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -26,40 +31,42 @@ public class RedisChgService {
 
     public void set(String key, String value) {
         try {
-            JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-            jedis.set(key, value);
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            marketingRedisClient.set(key, value);
         }catch (Exception e){
             log.warn("set error",e);
             try{
-                JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-                jedis.set(key, value);
+                BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+                marketingRedisClient.set(key, value);
             }catch (Exception e1){
                 log.error("set error",e1);
             }
         }
     }
     public void setex(String key, String value,int  seconds) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        jedis.setex(key,seconds,value);
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        marketingRedisClient.setex(key,seconds,value);
     }
 
-    public Long setnx(String key,String value,int seconds){
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        Long setnx = jedis.setnx(key, value);
-        jedis.expire(key,seconds);
+    public Boolean setnx(String key,String value,int seconds){
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        Boolean setnx = marketingRedisClient.setnx(key, value);
+        if(setnx){
+            marketingRedisClient.expire(key,seconds);
+        }
         return setnx;
     }
 
     public String get(String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        String str = jedis.get(key);
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        String str = marketingRedisClient.get(key);
         return str;
     }
 
     //删除key
     public long del(String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        long size = jedis.del(key);
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        long size = marketingRedisClient.del(key);
         return size;
     }
     /**
@@ -69,20 +76,20 @@ public class RedisChgService {
      * @return
      */
     public Long incr(String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        Long count = jedis.incr(key);
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        Long count = marketingRedisClient.incr(key);
         return count;
     }
 
     public Long incrBy(String key, long number) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         try{
-            Long count = jedis.incrBy(key, number);
+            Long count = marketingRedisClient.incrby(key, number);
             return count;
         }catch (Exception e){
             log.warn("incrBy error",e);
             try{
-                Long count = jedis.incrBy(key, number);
+                Long count = marketingRedisClient.incrby(key, number);
                 return count;
             }catch (Exception e1){
                 log.error("incrBy error",e1);
@@ -92,57 +99,55 @@ public class RedisChgService {
 
     }
 
-    public Long expire(String key, int seconds) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        Long result = jedis.expire(key, seconds);
-        return result;
+    public Boolean expire(String key, int seconds) {
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.expire(key, seconds);
     }
 
-    public Set<String> hkeys(String hkey) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        return jedis.hkeys(hkey);
+    public List<String> hkeys(String hkey) {
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.hkeys(hkey);
     }
     public String hget(String hkey, String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        String result = jedis.hget(hkey, key);
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        String result = marketingRedisClient.hget(hkey, key);
         return result;
     }
 
-    public Long hset(String hkey, String key, String value) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        Long result = jedis.hset(hkey, key, value);
-        return result;
+    public Boolean hset(String hkey, String key, String value) {
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.hset(hkey, key, value);
     }
 
     public Long hdel(String hkey, String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        Long result = jedis.hdel(hkey, key);
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        Long result = marketingRedisClient.hdel(hkey, key);
         return result;
     }
 
     public boolean exists(String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        boolean flag = jedis.exists(key);
-        return flag;
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        Long flag = marketingRedisClient.exists(key);
+        return flag !=null;
     }
 
     public Long sadd(String key, List<String> value){
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         String[] values = new String[]{};
         String[] vals = value.toArray(values);
-        Long result = jedis.sadd(key, vals);
+        Long result = marketingRedisClient.sadd(key, vals);
         return result;
     }
 
     public Long saddMember(String key,String... member){
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        Long result = jedis.sadd(key, member);
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        Long result = marketingRedisClient.sadd(key, member);
         return result;
     }
 
     public Boolean sismember(String key, String member) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        Boolean result = jedis.sismember(key, member);
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        Boolean result = marketingRedisClient.sismember(key, member);
         return result;
     }
 
@@ -151,8 +156,9 @@ public class RedisChgService {
      * 返回集合中的所有成员
      */
     public Set<String> smembers(String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        return jedis.smembers(key);
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        Set<String> smembers = marketingRedisClient.smembers(key);
+        return smembers;
     }
 
     /**
@@ -160,8 +166,8 @@ public class RedisChgService {
      * 移除集合中的指定 key 的一个或多个随机元素，移除后会返回移除的元素
      */
     public Set<String> spop(String key, int count) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        return jedis.spop(key, count);
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.spop(key, count);
     }
 
     /**
@@ -169,8 +175,8 @@ public class RedisChgService {
      * 获取set元素中的个数
      */
     public Long scard(String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        return jedis.scard(key);
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.scard(key);
     }
 
     public void lock(String lockKey, String value) {
@@ -193,36 +199,35 @@ public class RedisChgService {
     }
 
     public boolean lock(String lockKey, String requestId, long milliseconds) {
-        JedisCluster jedisCluster = MultiRedisClusterUtil.createJedisCluster("2");
+        BrRedisClient<List, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         String script = "return redis.call('set',KEYS[1],ARGV[1],'NX','PX',ARGV[2])";
-        Object result = jedisCluster.eval(script, Collections.singletonList(lockKey), Arrays.asList(requestId, "" + milliseconds));
+        String result = marketingRedisClient.eval(script, ScriptOutputType.STATUS, Collections.singletonList(lockKey), Arrays.asList(requestId, "" + milliseconds));
         return LOCK_SUCCESS.equals(result);
     }
 
     public boolean unlock(String lockKey, String requestId) {
-        JedisCluster jedisCluster = MultiRedisClusterUtil.createJedisCluster("2");
+        BrRedisClient<List, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
-        Object result = jedisCluster.eval(script, Collections.singletonList(lockKey), Collections.singletonList(requestId));
+        String result = marketingRedisClient.eval(script, ScriptOutputType.STATUS, Collections.singletonList(lockKey), Collections.singletonList(requestId));
         return RELEASE_SUCCESS.equals(result);
     }
 
     public void delBigSet(String bigSetKey, int deleteCount) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         ScanParams scanParams = new ScanParams().count(deleteCount);
-        String cursor = ScanParams.SCAN_POINTER_START;
+        ScanCursor cursor = ScanCursor.of("0");
         do {
-            ScanResult<String> scanResult = jedis.sscan(bigSetKey, cursor, scanParams);
-            List<String> memberList = scanResult.getResult();
+            ValueScanCursor<String> sscan = marketingRedisClient.sscan(bigSetKey, cursor, ScanArgs.Builder.limit(deleteCount));
+            List<String> memberList = sscan.getValues();
             if (CollectionUtils.isNotEmpty(memberList)) {
                 String[] members = memberList.stream().map(Object::toString).toArray(String[]::new);
-                jedis.srem(bigSetKey, members);
+                marketingRedisClient.srem(bigSetKey, members);
                 sleep(bigSetKey, members);
             }
-            cursor = scanResult.getStringCursor();
-        } while (!"0".equals(cursor));
+        } while (!"0".equals(cursor.getCursor()));
 
         //删除bigkey
-        jedis.del(bigSetKey);
+        marketingRedisClient.del(bigSetKey);
     }
 
     private void sleep(String key, String[] members) {

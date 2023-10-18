@@ -3240,9 +3240,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                 .concat(apiCode).concat(":")
                 .concat(taskId).concat(":")
                 .concat(custNum);
-        Long setnx = redisChgService.setnx(key, status, 3);
+        Boolean setnx = redisChgService.setnx(key, status, 3);
         //已经被其他数据抢占锁了
-        if (setnx.equals(0L)) {
+        if (!setnx) {
 
             //如果当前数据不是d就不推
             if (!status.equals("d")) {

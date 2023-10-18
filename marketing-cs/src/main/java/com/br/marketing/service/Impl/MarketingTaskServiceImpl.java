@@ -691,11 +691,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     private boolean offLineCallBackLock(Long id, String value) {
         String key = RedisKeyConstant.offLineLock.concat(":").concat(id.toString());
-        Long setnx = redisChgService.setnx(key, value, 3);
-        if (setnx.equals(0L)) {
-            return false;
-        }
-        return true;
+        return redisChgService.setnx(key, value, 3);
     }
 
     private void removeOffLineLock(Long id, String value) {

@@ -1948,9 +1948,9 @@ public class PushDataServiceImpl implements PushDataService {
         String key = RedisKeyConstant.shuhePushDx.concat(":")
                 .concat(apiCode).concat(":")
                 .concat(custNum);
-        Long setnx = redisChgService.setnx(key, status, 3);
+        Boolean setnx = redisChgService.setnx(key, status, 3);
         //已经被其他数据抢占锁了
-        if (setnx.equals(0L)) {
+        if (!setnx) {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue());

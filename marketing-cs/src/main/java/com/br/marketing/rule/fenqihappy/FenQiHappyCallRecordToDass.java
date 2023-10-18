@@ -171,8 +171,7 @@ public class FenQiHappyCallRecordToDass implements AssembleData<RealTimeUserData
         String key = RedisKeyConstant.fenqiHappyPushDx.concat(":")
                 .concat(apiCode).concat(":")
                 .concat(cell);
-        Long setnx = redisChgService.setnx(key, val, 5);
-        return Long.valueOf(1L).equals(setnx);
+        return redisChgService.setnx(key, val, 5);
     }
 
     void removeLock(String apiCode, String cell, String val) {

@@ -200,7 +200,7 @@ public class TaskScoreServiceImpl {
             //region 重试
             try {
                 String hkey = Constants.HXRESULTERROR_RETRY_KEY + ":" + task.getFileId();
-                Set<String> hkeys = redisChgService.hkeys(hkey);
+                List<String> hkeys = redisChgService.hkeys(hkey);
                 if (!hkeys.isEmpty() && hkeys.size() > 0) {
                     warrningExecutor = BrExecutors.getThreadPool(20, 20);
                     int i = 1;

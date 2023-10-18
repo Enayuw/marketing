@@ -283,11 +283,7 @@ public class TaskServiceImpl implements ITaskService {
 
     private boolean getTaskLock(MarketingTask task, String lockValue) {
         String key = RedisKeyConstant.taskGetLock.concat(":").concat(task.getId().toString());
-        Long setnx = redisChgService.setnx(key, lockValue, 10);
-        if (setnx.equals(0L)) {
-            return false;
-        }
-        return true;
+        return redisChgService.setnx(key, lockValue, 10);
     }
 
     private void removeTaskLock(MarketingTask task, String lockValue) {
