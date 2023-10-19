@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
-import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -28,8 +28,8 @@ import java.util.Map;
 
 
 /**
- * 小象转化数据自动过滤推客服
- *
+ * 国美转化数据自动过滤推客服（迭代至V3）
+ * https://c.100credit.cn/pages/viewpage.action?pageId=130959325（2023-10-19）
  * @author GuangChao.Zhang
  * @version 1.0
  * @Date 2023/3/23 17:52
@@ -58,10 +58,10 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
         GomeRuleCollectDataImpl.GomeRuleNecessaryData data =
                 (GomeRuleCollectDataImpl.GomeRuleNecessaryData) context.getRuleNecessaryData();
         conversionData.setInversionStatus("0");
-        Map<String, SyncUserValidityPeriodBO> syncUserValidityPeriodMap = data.getSyncUserValidityPeriodMap();
-        SyncUserValidityPeriodBO bo = syncUserValidityPeriodMap.get(transfer.getCustNum());
-        conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
-        PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
+        Map<String, SyncUserValidityPeriodsBO> syncUserValidityPeriodMap = data.getSyncUserValidityPeriodMap();
+        SyncUserValidityPeriodsBO bo = syncUserValidityPeriodMap.get(transfer.getCustNum());
+        conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUsers().get(0).getCell()));
+        PeriodOfValidityBO periodOfValidityBO = bo.getBuilders().get(0).addDateString().addOfDayTimeStrString().builder();
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
         // 有效期设置
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
@@ -79,7 +79,15 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
             GomeRuleCollectDataImpl.GomeRuleNecessaryData ruleNecessaryData =
                     (GomeRuleCollectDataImpl.GomeRuleNecessaryData) context.getRuleNecessaryData();
             if (ruleNecessaryData.getSyncUserValidityPeriodMap().get(transfer.getCustNum()) != null) {
-                return actionD(transfer);
+                return true;
+            }
+            if ("1".equals(transfer.getIfApply())) {
+                return true;
+            }
+            String reserveField1 = transfer.getReserveField1();
+            if (StringUtils.isNotEmpty(reserveField1)) {
+                String applyLoan = JSON.parseObject(transfer.getReserveField1()).getString("applyLoan");
+                return ("1").equals(applyLoan);
             }
         }
         return false;
@@ -87,7 +95,6 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
 
     /**
      * 情况a
-     *
      * @param transfer 转化数据
      * @return bool
      */
@@ -103,9 +110,11 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
     private boolean actionC(MarketingTransferSyncUser transfer) {
         return StringUtils.isNotEmpty(transfer.getUnlentAmount()) && Double.parseDouble(transfer.getUnlentAmount()) >= 0;
     }
+
     private boolean actionD(MarketingTransferSyncUser transfer) {
         return ("1").equals(transfer.getIfApply());
     }
+
     @Override
     public String label() {
         return "Gome_TransferData_Customer_Auto_Filtration";
