@@ -81,16 +81,27 @@ public class VariableDicController {
 
     @ApiOperation(value = "新增/变更客户配置变量值字典",notes = "新增/变更客户配置变量值字典")
     @PostMapping("/saveOrUpdateVariableDic")
-    public ApiResult<Boolean> saveOrUpdateVariableDic(@RequestBody @Validated VariableDicListVO vo){
+    public ApiResult<Boolean> saveOrUpdateVariableDic(@RequestBody @Validated VariableDicListVO vo
+            ,@RequestParam(defaultValue = "30") Integer days){
         try {
             //获取用户上下文
             MarketingUserDetail user = ThreadContextInfo.getUser();
-            return variableDicService.saveOrUpdateVariableDic(vo,user);
+            return variableDicService.saveOrUpdateVariableDic(vo,user,days);
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);
             return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);
         }
     }
+
+
+    @ApiOperation(value = "时间控件",notes = "时间控件")
+    @PostMapping("/getValidPeriod")
+    public ApiResult<String> getValidPeriod(@RequestBody String startDate
+            ,@RequestParam String endDate){
+        String validPeriod = variableDicService.getValidPeriod(startDate,endDate);
+        return new ApiResult<String>().setData(validPeriod).success();
+    }
+
 
     @ApiOperation(value = "场景列表", notes = "支持apicode多选")
     @PostMapping({"/findListByCidsAndApiCodes"})

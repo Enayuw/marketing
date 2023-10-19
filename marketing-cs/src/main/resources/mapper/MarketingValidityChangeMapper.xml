@@ -42,41 +42,44 @@
         order by create_time desc,id desc
     </select>
 
-    <select id="selectById" resultType="com.br.marketing.entity.MarketingDataValidConfig" parameterType="java.lang.Long">
-        select * from b_marketing_data_valid_config where id =#{id}
+    <select id="selectById" resultType="com.br.marketing.entity.MarketingDataValidConfig"
+            parameterType="java.lang.Long">
+        select *
+        from b_marketing_data_valid_config
+        where id = #{id}
     </select>
 
     <update id="updateById" parameterType="com.br.marketing.entity.MarketingDataValidConfig">
         update b_marketing_data_valid_config
-        <set >
-            <if test="config.apiCode != null" >
+        <set>
+            <if test="config.apiCode != null">
                 api_code = #{config.apiCode,jdbcType=VARCHAR},
             </if>
-            <if test="config.appletDate != null" >
+            <if test="config.appletDate != null">
                 applet_date = #{config.appletDate,jdbcType=VARCHAR},
             </if>
-            <if test="config.userType != null" >
+            <if test="config.userType != null">
                 user_type = #{config.userType,jdbcType=VARCHAR},
             </if>
-            <if test="config.validStartDate != null" >
+            <if test="config.validStartDate != null">
                 valid_start_date = #{config.validStartDate,jdbcType=VARCHAR},
             </if>
-            <if test="config.validEndDate != null" >
+            <if test="config.validEndDate != null">
                 valid_end_date = #{config.validEndDate,jdbcType=VARCHAR},
             </if>
-            <if test="config.validDays != null" >
+            <if test="config.validDays != null">
                 valid_days = #{config.validDays,jdbcType=VARCHAR},
             </if>
-            <if test="config.validType != null" >
+            <if test="config.validType != null">
                 valid_type = #{config.validType,jdbcType=INTEGER},
             </if>
-            <if test="config.createTime != null" >
+            <if test="config.createTime != null">
                 create_time = #{config.createTime,jdbcType=TIMESTAMP},
             </if>
-            <if test="config.updateTime != null" >
+            <if test="config.updateTime != null">
                 update_time = #{config.updateTime,jdbcType=TIMESTAMP},
             </if>
-            <if test="config.isDel != null" >
+            <if test="config.isDel != null">
                 is_del = #{config.isDel,jdbcType=INTEGER}
             </if>
         </set>
@@ -98,5 +101,63 @@
                 #{config.updateTime},
                 #{config.isDel})
     </insert>
+
+    <select id="selectNum" resultType="java.lang.Integer">
+        select count(1)
+        from b_marketing_data_valid_config_default
+        where api_code = #{apiCode}
+          and user_type = #{userType}
+    </select>
+
+    <select id="selectValidDaysDefault" resultType="java.lang.Integer">
+        select valid_days_default
+        from b_marketing_data_valid_config_default
+        where api_code = #{apiCode}
+          and user_type = #{userType}
+    </select>
+
+
+    <select id="selectId" resultType="java.lang.Long">
+        select id
+        from b_marketing_data_valid_config_default
+        where api_code = #{apiCode}
+          and user_type = #{userType}
+    </select>
+
+    <insert id="insertValidConfigDefault" parameterType="com.br.marketing.entity.MarketingDataValidConfigDefault">
+        INSERT INTO b_marketing_data_valid_config_default (api_code, upload_date, user_type, valid_days_default,
+                                                           create_time, is_del)
+        VALUES (#{validConfigDefault.apiCode}, #{validConfigDefault.uploadDate}, #{validConfigDefault.userType},
+                #{validConfigDefault.validDaysDefault}, #{validConfigDefault.createTime}, #{validConfigDefault.isDel})
+    </insert>
+
+    <update id="updateMarketingDataValidConfigDefault" parameterType="com.br.marketing.entity.MarketingDataValidConfigDefault">
+        UPDATE b_marketing_data_valid_config_default
+        <set>
+            <if test="validConfigDefault.apiCode != null">
+                api_code = #{validConfigDefault.apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="validConfigDefault.uploadDate != null">
+                upload_date = #{validConfigDefault.uploadDate,jdbcType=date},
+            </if>
+            <if test="validConfigDefault.userType != null">
+                user_type = #{validConfigDefault.userType,jdbcType=VARCHAR},
+            </if>
+            <if test="validConfigDefault.validDaysDefault != null">
+                valid_days_default = #{validConfigDefault.validDaysDefault,jdbcType=INTEGER},
+            </if>
+            <if test="validConfigDefault.createTime != null" >
+                create_time = #{validConfigDefault.createTime,jdbcType=datetime},
+            </if>
+            <if test="validConfigDefault.updateTime != null" >
+                update_time = #{validConfigDefault.updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="validConfigDefault.isDel != null">
+                is_del = #{validConfigDefault.isDel,jdbcType=INTEGER},
+            </if>
+        </set>
+        WHERE id = #{validConfigDefault.id}
+    </update>
+
 
 </mapper>

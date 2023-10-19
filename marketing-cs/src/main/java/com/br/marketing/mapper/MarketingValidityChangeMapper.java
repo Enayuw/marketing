@@ -1,6 +1,8 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.entity.MarketingDataValidConfig;
+import com.br.marketing.entity.MarketingDataValidConfigDefault;
+import com.br.marketing.entity.VariableDic;
 import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import org.apache.ibatis.annotations.Param;
 
@@ -46,12 +48,22 @@ public interface MarketingValidityChangeMapper {
      * @param config
      * @return
      */
-    int updateById(@Param("config")MarketingDataValidConfig config);
+    Integer updateById(@Param("config")MarketingDataValidConfig config);
 
     /**
      * 新增有效期记录
      * @param config
      * @return
      */
-    int insertMarketingDataValidConfig(@Param("config")MarketingDataValidConfig config);
+    Integer insertMarketingDataValidConfig(@Param("config")MarketingDataValidConfig config);
+
+    Integer insertValidConfigDefault(@Param("validConfigDefault") MarketingDataValidConfigDefault validConfigDefault);
+
+    Integer selectNum(@Param("apiCode") String apiCode, @Param("userType") String userType);
+
+    Integer selectValidDaysDefault(@Param("apiCode") String apiCode, @Param("userType") String userType);
+
+    Long selectId(@Param("apiCode") String apiCode, @Param("userType") String userType);
+
+    Integer updateMarketingDataValidConfigDefault(@Param("validConfigDefault") MarketingDataValidConfigDefault validConfigDefault);
 }

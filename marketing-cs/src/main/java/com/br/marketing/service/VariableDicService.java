@@ -44,7 +44,7 @@ public interface VariableDicService {
      * @param user
      * @return
      */
-    ApiResult<Boolean> saveOrUpdateVariableDic(VariableDicListVO vo, MarketingUserDetail user);
+    ApiResult<Boolean> saveOrUpdateVariableDic(VariableDicListVO vo, MarketingUserDetail user, Integer days);
 
     /**
      * 场景列表，支持apicode多选
@@ -52,6 +52,14 @@ public interface VariableDicService {
      * @return
      */
     List<Map> findListByCidsAndApiCodes(List<CustomerSelectVO> vos);
+
+    /**
+     * 时间控件
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    String getValidPeriod(String startDate, String endDate);
 
     /**
      * 删除客户配置变量值
