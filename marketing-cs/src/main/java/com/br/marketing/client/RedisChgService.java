@@ -43,11 +43,26 @@ public class RedisChgService {
             }
         }
     }
-    public void setex(String key, String value,int  seconds) {
+
+    /**
+     * 写入值，并且加上过期时间
+     * @param key
+     * @param value
+     * @param seconds 秒
+     */
+    public void setex(String key, String value,int seconds) {
         BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         marketingRedisClient.setex(key,seconds,value);
     }
 
+    /**
+     * key不存在才会写入
+     * 失效时间和写入操作非原子性
+     * @param key redisKey
+     * @param value redis值
+     * @param seconds 失效时间 单位秒
+     * @return
+     */
     public Boolean setnx(String key,String value,int seconds){
         BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         Boolean setnx = marketingRedisClient.setnx(key, value);
@@ -70,7 +85,7 @@ public class RedisChgService {
         return size;
     }
     /**
-     * INCR命令用于由一个递增key的整数值。如果该key不存在，它被设置为0执行操作之前
+     * INCR命令用于由一个递增key的整数值。如果该key不存在，返回1
      *
      * @param key
      * @return
@@ -81,6 +96,12 @@ public class RedisChgService {
         return count;
     }
 
+    /**
+     * 增加传入的数量
+     * @param key
+     * @param number
+     * @return
+     */
     public Long incrBy(String key, long number) {
         BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         try{
@@ -99,38 +120,81 @@ public class RedisChgService {
 
     }
 
+    /**
+     * 给key添加过期时间
+     * @param key
+     * @param seconds 单位 秒
+     * @return
+     */
     public Boolean expire(String key, int seconds) {
         BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         return marketingRedisClient.expire(key, seconds);
     }
 
+    /**
+     * 获取该hash的所有key
+     * @param hkey
+     * @return
+     */
     public List<String> hkeys(String hkey) {
         BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         return marketingRedisClient.hkeys(hkey);
     }
+
+    /**
+     * 获取该hash中key的值
+     * @param hkey
+     * @param key
+     * @return
+     */
     public String hget(String hkey, String key) {
         BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         String result = marketingRedisClient.hget(hkey, key);
         return result;
     }
 
+    /**
+     * 给hash赋值一个key和value
+     * @param hkey
+     * @param key
+     * @param value
+     * @return
+     */
     public Boolean hset(String hkey, String key, String value) {
         BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         return marketingRedisClient.hset(hkey, key, value);
     }
 
+    /**
+     * 删除hash中的key
+     * @param hkey
+     * @param key
+     * @return
+     */
     public Long hdel(String hkey, String key) {
         BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         Long result = marketingRedisClient.hdel(hkey, key);
         return result;
     }
 
-    public boolean exists(String key) {
+    /**
+     * 判断数据key是否存在
+     * @param key
+     * @return
+     */
+    public Boolean exists(String key) {
         BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         Long flag = marketingRedisClient.exists(key);
-        return flag !=null;
+        return !new Long(0L).equals(flag);
     }
 
+    /**
+     * set添加一个list
+     *
+     * @param key
+     * @param value
+     * @return 返回的添加成功的数量
+     */
     public Long sadd(String key, List<String> value){
         BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         String[] values = new String[]{};
@@ -139,21 +203,35 @@ public class RedisChgService {
         return result;
     }
 
+    /**
+     * set添加一个数组
+     * @param key
+     * @param member
+     * @return 返回添加成功的数量
+     */
     public Long saddMember(String key,String... member){
         BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         Long result = marketingRedisClient.sadd(key, member);
         return result;
     }
 
+    /**
+     * 判断set中是否存在该对象
+     * @param key
+     * @param member
+     * @return
+     */
     public Boolean sismember(String key, String member) {
         BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         Boolean result = marketingRedisClient.sismember(key, member);
         return result;
     }
 
+
     /**
-     * 2022/11/17 15:53
-     * 返回集合中的所有成员
+     * 返回set中所有的成员
+     * @param key
+     * @return
      */
     public Set<String> smembers(String key) {
         BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
@@ -198,17 +276,21 @@ public class RedisChgService {
         throw new NullPointerException("获取锁失败");
     }
 
-    public boolean lock(String lockKey, String requestId, long milliseconds) {
-        BrRedisClient<List, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+    public boolean lock(String lockKey, String requestId, Long milliseconds) {
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         String script = "return redis.call('set',KEYS[1],ARGV[1],'NX','PX',ARGV[2])";
-        String result = marketingRedisClient.eval(script, ScriptOutputType.STATUS, Collections.singletonList(lockKey), Arrays.asList(requestId, "" + milliseconds));
+        String[] keys = new String[1];
+        keys[0] = lockKey;
+        String result = marketingRedisClient.eval(script, ScriptOutputType.STATUS, keys, requestId, milliseconds.toString());
         return LOCK_SUCCESS.equals(result);
     }
 
     public boolean unlock(String lockKey, String requestId) {
-        BrRedisClient<List, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
-        String result = marketingRedisClient.eval(script, ScriptOutputType.STATUS, Collections.singletonList(lockKey), Collections.singletonList(requestId));
+        String[] keys = new String[1];
+        keys[0] = lockKey;
+        Long result = marketingRedisClient.eval(script, ScriptOutputType.INTEGER, keys, requestId);
         return RELEASE_SUCCESS.equals(result);
     }
 

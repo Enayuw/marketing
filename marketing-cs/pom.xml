@@ -109,11 +109,11 @@
             <artifactId>jedis</artifactId>
             <version>2.9.0</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.br.common</groupId>-->
-<!--            <artifactId>redisengine</artifactId>-->
-<!--            <version>1.0.0</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.br.common</groupId>
+            <artifactId>redisengine</artifactId>
+            <version>1.0.0</version>
+        </dependency>
         <dependency>
             <groupId>com.brgroup</groupId>
             <artifactId>br-redis-client</artifactId>
@@ -122,7 +122,6 @@
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-core</artifactId>
-            <version>3.4.24</version>
         </dependency>
         <dependency>
             <groupId>com.br.ice.service</groupId>
