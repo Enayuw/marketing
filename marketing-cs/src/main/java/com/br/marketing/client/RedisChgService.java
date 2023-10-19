@@ -215,7 +215,8 @@ public class RedisChgService {
     public void delBigSet(String bigSetKey, int deleteCount) {
         BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         ScanParams scanParams = new ScanParams().count(deleteCount);
-        ScanCursor cursor = ScanCursor.of("0");
+        String cursorIndex = "0";
+        ScanCursor cursor = ScanCursor.of(cursorIndex);
         do {
             ValueScanCursor<String> sscan = marketingRedisClient.sscan(bigSetKey, cursor, ScanArgs.Builder.limit(deleteCount));
             List<String> memberList = sscan.getValues();
@@ -224,7 +225,8 @@ public class RedisChgService {
                 marketingRedisClient.srem(bigSetKey, members);
                 sleep(bigSetKey, members);
             }
-        } while (!"0".equals(cursor.getCursor()));
+            cursorIndex = sscan.getCursor();
+        } while (!"0".equals(cursorIndex));
 
         //删除bigkey
         marketingRedisClient.del(bigSetKey);
