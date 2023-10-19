@@ -52,14 +52,14 @@ public interface CustomDataHandler {
      * 容灾
      * 发送消息到消息队列
      *
-     * @param apiCode apiCode
      * @param message 消息
+     * @throws PulsarClientException pulsar异常
      */
-    default void sendQueue(String apiCode, Object message) throws PulsarClientException {
+    default void sendQueue(Object message) throws PulsarClientException {
         ProductPulsarProducer producer = ProductPulsarClientManager.newProducer(PulsarTopic.transferCustomTopic);
         String jsonString = JSON.toJSONString(message);
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("apiCode", apiCode);
+        jsonObject.put("enum", custom());
         jsonObject.put("jsonData", jsonString);
         byte[] messageByte = JSON.toJSONString(jsonObject).getBytes();
         producer.send(messageByte);

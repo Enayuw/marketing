@@ -82,7 +82,7 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             try {
-                sendQueue(apiCode, guoMeiTransferData);
+                sendQueue(guoMeiTransferData);
             } catch (PulsarClientException clientException) {
                 responseGuMeDTO.failed();
             }

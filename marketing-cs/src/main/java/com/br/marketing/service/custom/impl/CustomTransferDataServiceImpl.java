@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.service.custom.CustomTransferDataService;
+import com.br.marketing.service.custom.handler.CustomCodeEnum;
 import com.br.marketing.service.custom.handler.CustomDataHandleSingleton;
 import com.br.marketing.service.custom.handler.CustomDataHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -33,8 +34,8 @@ public class CustomTransferDataServiceImpl implements CustomTransferDataService 
     @Override
     public Result<Boolean> consumerTransferPayData(String msg) {
         JSONObject jsonObject = JSONObject.parseObject(msg);
-        CustomDataHandler customDataHandleImpl = customDataHandleFactory.getCustomDataHandleImpl(
-                jsonObject.getString("apiCode"));
+        CustomCodeEnum anEnum = jsonObject.getObject("enum", CustomCodeEnum.class);
+        CustomDataHandler customDataHandleImpl = customDataHandleFactory.getCustomDataHandleImpl(anEnum);
         return customDataHandleImpl.consumerPayData(jsonObject.getString("jsonData"));
     }
 }
