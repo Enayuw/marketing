@@ -139,34 +139,34 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-<!--    <job:simple id="ApiToDbJob"-->
-<!--                class="com.br.marketing.check.job.ApiToDbJob"-->
-<!--                cron="0 0/10 * * * ? "-->
-<!--                description="接口导入数据迁移跑批用户"-->
-<!--                registry-center-ref="regCenter"-->
-<!--                sharding-total-count="1"-->
-<!--                sharding-item-parameters="0=A"-->
-<!--                monitor-execution="true"-->
-<!--                failover="false"-->
-<!--                misfire="false"-->
-<!--                disabled="true"-->
-<!--                overwrite="true"-->
-<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
-<!--    />-->
-<!--    <job:simple id="ApiToDbByTimeJob"-->
-<!--                class="com.br.marketing.check.job.ApiToDbByTimeJob"-->
-<!--                cron="0 0 18 29 9 ? 2050-2050"-->
-<!--                description="接口导入数据迁移跑批用户(手动)"-->
-<!--                registry-center-ref="regCenter"-->
-<!--                sharding-total-count="1"-->
-<!--                sharding-item-parameters="0=A"-->
-<!--                monitor-execution="true"-->
-<!--                failover="false"-->
-<!--                misfire="false"-->
-<!--                disabled="true"-->
-<!--                overwrite="true"-->
-<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
-<!--    />-->
+    <!--    <job:simple id="ApiToDbJob"-->
+    <!--                class="com.br.marketing.check.job.ApiToDbJob"-->
+    <!--                cron="0 0/10 * * * ? "-->
+    <!--                description="接口导入数据迁移跑批用户"-->
+    <!--                registry-center-ref="regCenter"-->
+    <!--                sharding-total-count="1"-->
+    <!--                sharding-item-parameters="0=A"-->
+    <!--                monitor-execution="true"-->
+    <!--                failover="false"-->
+    <!--                misfire="false"-->
+    <!--                disabled="true"-->
+    <!--                overwrite="true"-->
+    <!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
+    <!--    />-->
+    <!--    <job:simple id="ApiToDbByTimeJob"-->
+    <!--                class="com.br.marketing.check.job.ApiToDbByTimeJob"-->
+    <!--                cron="0 0 18 29 9 ? 2050-2050"-->
+    <!--                description="接口导入数据迁移跑批用户(手动)"-->
+    <!--                registry-center-ref="regCenter"-->
+    <!--                sharding-total-count="1"-->
+    <!--                sharding-item-parameters="0=A"-->
+    <!--                monitor-execution="true"-->
+    <!--                failover="false"-->
+    <!--                misfire="false"-->
+    <!--                disabled="true"-->
+    <!--                overwrite="true"-->
+    <!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
+    <!--    />-->
     <job:simple id="SftpToDbByCommonJob"
                 class="com.br.marketing.check.job.SftpToDbByCommonJob"
                 cron="0 4/20 * * * ? "
