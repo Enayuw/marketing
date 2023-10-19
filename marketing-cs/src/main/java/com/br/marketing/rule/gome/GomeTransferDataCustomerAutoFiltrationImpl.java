@@ -6,6 +6,7 @@ import com.br.common.util.DateUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -38,11 +39,8 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<ConversionData> {
-
-
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(
             DateHelper.LINE_DATE_COLON_TIME_FORMAT);
-
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -58,16 +56,27 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
         GomeRuleCollectDataImpl.GomeRuleNecessaryData data =
                 (GomeRuleCollectDataImpl.GomeRuleNecessaryData) context.getRuleNecessaryData();
         conversionData.setInversionStatus("0");
+
         Map<String, SyncUserValidityPeriodsBO> syncUserValidityPeriodMap = data.getSyncUserValidityPeriodMap();
         SyncUserValidityPeriodsBO bo = syncUserValidityPeriodMap.get(transfer.getCustNum());
+        if (bo == null) {
+            return null;
+        }
         conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUsers().get(0).getCell()));
-        PeriodOfValidityBO periodOfValidityBO = bo.getBuilders().get(0).addDateString().addOfDayTimeStrString().builder();
-        conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
-        // 有效期设置
+
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
+
+        // 去重参数设置
         conversionData.setInitId(transfer.getId());
+        PeriodOfValidityBO periodOfValidityBO = bo.getBuilders().get(0).addDateString().addOfDayTimeStrString().builder();
+        conversionData.setSoleField(SoleFieldEnum.CUST_NUM_SOLE.getValue());
+        conversionData.setSoleType(-1);
+        conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
+        conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
+        // 生效截止时间
+        conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
 
         return conversionData;
     }
@@ -78,41 +87,22 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             GomeRuleCollectDataImpl.GomeRuleNecessaryData ruleNecessaryData =
                     (GomeRuleCollectDataImpl.GomeRuleNecessaryData) context.getRuleNecessaryData();
-            if (ruleNecessaryData.getSyncUserValidityPeriodMap().get(transfer.getCustNum()) != null) {
-                return true;
+            if (ruleNecessaryData.getSyncUserValidityPeriodMap().get(transfer.getCustNum()) == null) {
+                return false;
             }
+
             if ("1".equals(transfer.getIfApply())) {
                 return true;
             }
+
             String reserveField1 = transfer.getReserveField1();
             if (StringUtils.isNotEmpty(reserveField1)) {
-                String applyLoan = JSON.parseObject(transfer.getReserveField1()).getString("applyLoan");
+                String applyLoan = JSON.parseObject(reserveField1).getString("applyLoan");
                 return ("1").equals(applyLoan);
             }
         }
+
         return false;
-    }
-
-    /**
-     * 情况a
-     * @param transfer 转化数据
-     * @return bool
-     */
-    private boolean actionA(MarketingTransferSyncUser transfer) {
-        return ("1").equals(transfer.getIfApply()) && ("0").equals(transfer.getApplyResult());
-    }
-
-    private boolean actionB(MarketingTransferSyncUser transfer) {
-        String applyLoan = JSON.parseObject(transfer.getReserveField1()).getString("applyLoan");
-        return ("1".equals(applyLoan) && "0".equals(transfer.getIfLent()));
-    }
-
-    private boolean actionC(MarketingTransferSyncUser transfer) {
-        return StringUtils.isNotEmpty(transfer.getUnlentAmount()) && Double.parseDouble(transfer.getUnlentAmount()) >= 0;
-    }
-
-    private boolean actionD(MarketingTransferSyncUser transfer) {
-        return ("1").equals(transfer.getIfApply());
     }
 
     @Override
@@ -122,7 +112,7 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE.getCode();
     }
 
     @Override
