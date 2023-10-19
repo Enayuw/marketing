@@ -38,6 +38,7 @@ public interface CustomDataHandler {
 
     /**
      * 2023-10-17 17:56
+     * 容灾
      * 异常消息重新入库
      * 补偿数据
      *
@@ -48,6 +49,7 @@ public interface CustomDataHandler {
 
     /**
      * 2023-10-18 20:16
+     * 容灾
      * 发送消息到消息队列
      *
      * @param apiCode apiCode
