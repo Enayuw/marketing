@@ -15,6 +15,7 @@ import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.entity.MonitorTypeEnum;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.service.custom.CustomTransferDataService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -43,6 +44,9 @@ public class MarketingTransferDataController {
 
     @Resource
     private IPushShuheDataService iPushShuheDataService;
+
+    @Resource
+    private CustomTransferDataService customTransferDataService;
 
 
     /**
@@ -104,6 +108,26 @@ public class MarketingTransferDataController {
         RuntimeDataContext.getData().setApiCode(apiCode);
         RuntimeDataContext.getData().setJsonData(jsonData);
         return iPushShuheDataService.saveShuheTransferDataTwoVersion(apiCode, jsonData);
+    }
+
+
+    /**
+     * 订制转化数据上传接口
+     *
+     * @param apiCode  apiCode
+     * @param jsonData 业务数据json结构
+     * @return ApiNoDataResult 业务响应
+     */
+    @ApiOperation(value = "订制转化数据上传接口")
+    @PostMapping("receiveTransferData")
+    @LogAnnotation
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    public ResponseCustomDTO receiveTransferData(@RequestParam("apiCode") String apiCode
+            , @RequestParam("jsonData") String jsonData) {
+        RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
+        RuntimeDataContext.getData().setApiCode(apiCode);
+        RuntimeDataContext.getData().setJsonData(jsonData);
+        return customTransferDataService.receiveTransferDataHandler(apiCode, jsonData);
     }
 
 

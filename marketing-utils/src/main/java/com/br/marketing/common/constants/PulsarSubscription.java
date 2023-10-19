@@ -27,4 +27,10 @@ public class PulsarSubscription {
      * 主题 {@link com.br.marketing.common.constants.PulsarTopic#transferShTopic}
      */
     public final static String transferShSubscription = subscriptionPreFix.concat("transfer_sh");
+
+    /**
+     * 定制客户转化接口订阅者
+     * 主题 {@link com.br.marketing.common.constants.PulsarTopic#transferCustomTopic}
+     */
+    public final static String transferCustomSubscription = subscriptionPreFix.concat("transfer_custom");
 }
