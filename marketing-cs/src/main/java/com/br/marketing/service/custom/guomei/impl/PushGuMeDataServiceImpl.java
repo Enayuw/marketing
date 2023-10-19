@@ -78,6 +78,7 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
         }
         try {
             guoMeiDataService.saveTransferDataHandler(guoMeiTransferData);
+            // TODO: 2023-10-17 推送转化数据接入标准逻辑
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             try {
@@ -137,8 +138,8 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
         GuoMeiTransferData guoMeiTransferData = JSONObject.parseObject(msg, new TypeReference<GuoMeiTransferData>() {
         }.getType());
         try {
-            Long b = guoMeiDataService.saveTransferDataHandler(guoMeiTransferData);
-            result.setCode(b != null && b > 0 ? ResultCode.SUCCESS.getValue() : ResultCode.FAIL.getValue());
+            int b = guoMeiDataService.saveTransferDataHandler(guoMeiTransferData);
+            result.setCode(b > 0 ? ResultCode.SUCCESS.getValue() : ResultCode.FAIL.getValue());
         } catch (Exception e) {
             log.error(e.getMessage());
             result.setCode(ResultCode.FAIL.getValue());

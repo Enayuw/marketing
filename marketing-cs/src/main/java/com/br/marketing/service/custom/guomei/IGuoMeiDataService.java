@@ -18,7 +18,7 @@ public interface IGuoMeiDataService {
      * @return ResponseGuMeDTO
      * @author Guo Zeqiang
      */
-    Long saveTransferDataHandler(GuoMeiTransferData guoMeiTransferData);
+    int saveTransferDataHandler(GuoMeiTransferData guoMeiTransferData);
 
 
 }

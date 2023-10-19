@@ -21,12 +21,8 @@ public class GuoMeiDataServiceImpl implements IGuoMeiDataService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Long saveTransferDataHandler(GuoMeiTransferData guoMeiTransferData) {
+    public int saveTransferDataHandler(GuoMeiTransferData guoMeiTransferData) {
         int i = guoMeiTransferDataMapper.insertSelective(guoMeiTransferData);
-        if (i > 0) {
-            // TODO: 2023-10-17 推送转化数据接入标准逻辑
-            return 0L;
-        }
-        return null;
+        return i;
     }
 }
