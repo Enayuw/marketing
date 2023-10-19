@@ -4,11 +4,14 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.mapper.LoanFileMapper;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.EmailService;
+import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
 import com.br.marketing.service.Impl.JobManager;
 import com.br.marketing.service.Impl.RsTransferServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
@@ -77,6 +80,32 @@ public class AlarmAndNoticeTest {
 
     @Resource
     ZhongYuanService zhongYuanService;
+
+    @Autowired
+    DynamicParameterServiceImpl dynamicParameterService;
+
+    @Resource
+    MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+    @Test
+    public void testParamerter(){
+        Integer yxToDX = dynamicParameterService.getPageSize("yxToDx");
+        Integer yxToCustomer = dynamicParameterService.getPageSize("yxToCustomer");
+        Integer yhGet = dynamicParameterService.getPageSize("yhGet");
+        Integer aaa = dynamicParameterService.getPageSize("aaa");
+        System.out.println(yxToDX);
+        System.out.println(yxToCustomer);
+        System.out.println(yhGet);
+        System.out.println(aaa);
+    }
+
+    @Test
+    public void testYxSqlAndYhSql(){
+        String tcId = tableCreateService.getTcId("7410437");
+        Integer limitStart = 1 * dynamicParameterService.getPageSize("yxToDx");
+        List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferOrderInsertTime(tcId, "2023-10-18", limitStart,dynamicParameterService.getPageSize("yxToDx"));
+        System.out.println(transferOrderInsertTime.toString());
+    }
+
     @Test
     public void pushOutBoundDataTest(){
         Long id = Long.valueOf(11);
