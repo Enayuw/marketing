@@ -60,7 +60,8 @@
         select * from
         b_marketing_transfer_sync_${cid}
         where request_data=#{data}
-        order by cust_num desc,insert_time desc,id desc limit #{limitStart},2000;
+        order by cust_num desc,insert_time desc,id desc
+        limit #{limitStart},#{pageSize};
     </select>
 
     <select id="getTransferDataByRequestDataAndApiCode" resultType="com.br.marketing.entity.MarketingTransferSyncUser">

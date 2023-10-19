@@ -1038,5 +1038,11 @@ public class MarketingCommonConfig {
      */
     private Integer qiFuResendJobThreadNum;
 
+    /**
+     * 页数动态调整配置
+     * dynamicPageSize={"yxToDx":20000,"yxToCustomer":20000,"yhGet":20000}
+     */
+    private HashMap<String,Integer> dynamicPageSize;
+
 }
 
