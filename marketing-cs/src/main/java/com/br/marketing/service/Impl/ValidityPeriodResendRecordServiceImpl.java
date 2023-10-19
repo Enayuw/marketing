@@ -1,4 +1,5 @@
 package com.br.marketing.service.Impl;
+import java.util.Date;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSONObject;
@@ -59,6 +60,10 @@ public class ValidityPeriodResendRecordServiceImpl implements ValidityPeriodRese
         resendRecord.setValidityPeriodId(validityPeriodId);
         resendRecord.setResendType(mapping.getResendType());
         resendRecord.setResendData(buildResendData(mapping, resendType));
+        resendRecord.setResendStatus(0);
+        resendRecord.setIsDelete(0);
+        resendRecord.setCreateTime(new Date());
+        resendRecord.setUpdateTime(new Date());
         validityPeriodResendRecordMapper.insert(resendRecord);
     }
 
