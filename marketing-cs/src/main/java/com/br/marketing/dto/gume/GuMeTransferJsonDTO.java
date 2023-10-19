@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import java.io.Serializable;
 
 /**
- * 数禾数据
+ * 国美数据
  *
  * @author Guo Zeqiang
  * @dateTime 2023-10-16 17:14
