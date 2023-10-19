@@ -35,6 +35,6 @@ public class CustomTransferDataServiceImpl implements CustomTransferDataService 
         JSONObject jsonObject = JSONObject.parseObject(msg);
         CustomDataHandler customDataHandleImpl = customDataHandleFactory.getCustomDataHandleImpl(
                 jsonObject.getString("apiCode"));
-        return customDataHandleImpl.consumerPayData(msg);
+        return customDataHandleImpl.consumerPayData(jsonObject.getString("jsonData"));
     }
 }
