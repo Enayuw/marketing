@@ -1044,5 +1044,10 @@ public class MarketingCommonConfig {
      */
     private HashMap<String,Integer> dynamicPageSize;
 
+    /**
+     * 国美转化数据自动过滤重推任务线程数
+     */
+    private Integer goMeTransferDataResendJobThreadNum;
+
 }
 
