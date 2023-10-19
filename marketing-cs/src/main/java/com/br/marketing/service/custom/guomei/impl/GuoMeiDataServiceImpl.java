@@ -22,7 +22,6 @@ public class GuoMeiDataServiceImpl implements IGuoMeiDataService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public int saveTransferDataHandler(GuoMeiTransferData guoMeiTransferData) {
-        int i = guoMeiTransferDataMapper.insertSelective(guoMeiTransferData);
-        return i;
+        return guoMeiTransferDataMapper.insertSelective(guoMeiTransferData);
     }
 }
