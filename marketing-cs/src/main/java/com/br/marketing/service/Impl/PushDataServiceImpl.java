@@ -1889,11 +1889,9 @@ public class PushDataServiceImpl implements PushDataService {
                         xieChengSmsCollidingDataLog.setStatus(2);
                         xieChengSmsCollidingDataLog.setLocalId(localId);
                         XieChengSmsCollidingDataLogExample xe = new XieChengSmsCollidingDataLogExample();
-                        Date date = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
                         xe.createCriteria()
                                 .andStatusEqualTo(1)
-                                .andSha256CodeListEqualTo(sha256Code)
-                                .andCreateTimeGreaterThanOrEqualTo(date);
+                                .andSha256CodeListEqualTo(sha256Code);
                         xieChengSmsCollidingDataLogMapper.updateByExampleSelective(xieChengSmsCollidingDataLog,xe);
 //                        xieChengSmsCollidingDataLogList.add(xieChengSmsCollidingDataLog);
                     }
