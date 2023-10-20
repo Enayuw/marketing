@@ -1,12 +1,10 @@
 package com.br.marketing.service.Impl.validityperiod;
 
-import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.ValidityPeriodResendType;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.entity.MarketingTransferInfo;
-import com.br.marketing.entity.MarketingTransferInfoExample;
 import com.br.marketing.entity.ValidityPeriodResendRecord;
 import com.br.marketing.enums.ValidityPeriodResendEnum;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
@@ -20,7 +18,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -58,14 +59,9 @@ public class GomeTransferDataCustomerResend implements ValidityPeriodResendStrat
         String dateStartStr = ValidityPeriodDataServiceImpl.getDateStr(validPeriodRange.get("validStartDate"), -1);
         String dateEndStr = ValidityPeriodDataServiceImpl.getDateStr(validPeriodRange.get("validEndDate"), 1);
 
-        Date validStartDate = DateUtil.beginOfDay(DateUtil.parseDate(dateStartStr));
-        Date validEndDate = DateUtil.endOfDay(DateUtil.parseDate(dateEndStr));
-
         String apiCode = validPeriodRange.get("apiCode");
         //根据时间范围获取全部转化基础数据
-        MarketingTransferInfoExample transferInfoExample = new MarketingTransferInfoExample();
-        transferInfoExample.createCriteria().andApiCodeEqualTo(apiCode).andCreateTimeGreaterThanOrEqualTo(validStartDate).andCreateTimeLessThanOrEqualTo(validEndDate);
-        return marketingTransferInfoMapper.selectByExample(transferInfoExample);
+        return marketingTransferInfoMapper.getMarketingTransferInfoIdByValidPeriodRange(apiCode, dateStartStr, dateEndStr);
     }
 
     @Override
