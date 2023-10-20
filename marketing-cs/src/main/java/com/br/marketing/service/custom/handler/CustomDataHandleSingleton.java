@@ -29,9 +29,9 @@ public class CustomDataHandleSingleton implements ApplicationContextAware {
     }
 
     /**
-     * 根据apiCode获取客户处理
+     * 初始化缓存处理业务
      */
-    public CustomDataHandler getCustomDataHandleImpl(String apiCode) {
+    private void cacheCustomDataHandleImpl() {
         if (customDataHandlerMap == null) {
             synchronized (CustomDataHandleSingleton.class) {
                 if (customDataHandlerMap == null) {
@@ -44,7 +44,22 @@ public class CustomDataHandleSingleton implements ApplicationContextAware {
                 }
             }
         }
+    }
+
+    /**
+     * 根据apiCode获取客户处理
+     */
+    public CustomDataHandler getCustomDataHandleImpl(String apiCode) {
+        cacheCustomDataHandleImpl();
         return customDataHandlerMap.get(CustomCodeEnum.valueof(apiCode));
+    }
+
+    /**
+     * 根据apiCode获取客户处理,未找到时,可设置默认客户
+     */
+    public CustomDataHandler getCustomDataHandleImpl(String apiCode, CustomCodeEnum defaultCustom) {
+        cacheCustomDataHandleImpl();
+        return customDataHandlerMap.get(CustomCodeEnum.valueof(apiCode, defaultCustom));
     }
 
     /**
@@ -52,9 +67,7 @@ public class CustomDataHandleSingleton implements ApplicationContextAware {
      * 根据枚举获取客户处理
      */
     public CustomDataHandler getCustomDataHandleImpl(CustomCodeEnum customCodeEnum) {
-        if (customDataHandlerMap == null) {
-            getCustomDataHandleImpl(customCodeEnum.getApiCodes()[0]);
-        }
+        cacheCustomDataHandleImpl();
         return customDataHandlerMap.get(customCodeEnum);
     }
 

@@ -27,7 +27,8 @@ public class CustomTransferDataServiceImpl implements CustomTransferDataService 
 
     @Override
     public ResponseCustomDTO receiveTransferDataHandler(String apiCode, String jsonData) {
-        CustomDataHandler customDataHandleImpl = customDataHandleFactory.getCustomDataHandleImpl(apiCode);
+        CustomDataHandler customDataHandleImpl = customDataHandleFactory.getCustomDataHandleImpl(apiCode
+                , CustomCodeEnum.T_ALIEN_DEFAULT);
         return customDataHandleImpl.receiveCustomDataHandler(apiCode, jsonData);
     }
 

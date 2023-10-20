@@ -16,6 +16,18 @@ package com.br.marketing.service.custom.handler;
 public enum CustomCodeEnum {
 
     /**
+     * 2023-10-20 14:22
+     * 陌生的客户 转化接口
+     */
+    T_ALIEN_DEFAULT("外星人-转化"),
+
+    /**
+     * 2023-10-20 14:22
+     * 陌生的客户 上传接口
+     */
+    U_ALIEN_DEFAULT("外星人-上传"),
+
+    /**
      * 2023-10-18 17:00
      * 国美
      */
@@ -48,6 +60,17 @@ public enum CustomCodeEnum {
             }
         }
         throw new IllegalArgumentException("未知的客户编号:" + apiCode);
+    }
+
+    public static CustomCodeEnum valueof(String apiCode, CustomCodeEnum defaultCustom) {
+        for (CustomCodeEnum e : values()) {
+            for (String code : e.apiCodes) {
+                if (code.equals(apiCode)) {
+                    return e;
+                }
+            }
+        }
+        return defaultCustom;
     }
 
     public String getName() {
