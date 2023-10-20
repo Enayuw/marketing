@@ -64,6 +64,7 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
         try {
             jsonDTO = JSONObject.parseObject(jsonData, new TypeReference<GuMeTransferJsonDTO>() {
             }.getType());
+            guoMeiTransferData.setDataNumber(jsonDTO.getData().size());
             if (transferApiParamRightfulCheck(jsonDTO, responseGuMeDTO, guoMeiTransferData)) {
                 responseGuMeDTO.success();
                 guoMeiTransferData.setStatus(1);
@@ -99,13 +100,13 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
             , ResponseGuMeDTO responseGuMeDTO, GuoMeiTransferData guoMeiTransferData) {
         boolean channelCodeBool;
         if (channelCodeBool = StringUtils.isNotBlank(jsonDTO.getChannelCode())) {
-            guoMeiTransferData.setChannelcode(jsonDTO.getChannelCode());
+            guoMeiTransferData.setChannelCode(jsonDTO.getChannelCode());
         } else {
             responseGuMeDTO.failed(",channelCode不可为空");
         }
         boolean requestIdBool;
         if (requestIdBool = StringUtils.isNotBlank(jsonDTO.getRequestId())) {
-            guoMeiTransferData.setRequestid(jsonDTO.getRequestId());
+            guoMeiTransferData.setRequestId(jsonDTO.getRequestId());
         } else {
             responseGuMeDTO.failed(",requestId不可为空");
         }
