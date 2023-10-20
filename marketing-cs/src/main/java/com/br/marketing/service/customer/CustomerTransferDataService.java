@@ -1,4 +1,4 @@
-package com.br.marketing.service.custom;
+package com.br.marketing.service.customer;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.ResponseCustomDTO;
@@ -9,7 +9,7 @@ import com.br.marketing.dto.ResponseCustomDTO;
  * @author Guo Zeqiang
  * @dateTime 2023-10-18 16:04
  */
-public interface CustomTransferDataService {
+public interface CustomerTransferDataService {
 
 
     /**

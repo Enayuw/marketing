@@ -1,4 +1,4 @@
-package com.br.marketing.service.custom.guomei.impl;
+package com.br.marketing.service.customer.guomei.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
@@ -9,9 +9,9 @@ import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.dto.gume.GuMeTransferJsonDTO;
 import com.br.marketing.dto.gume.ResponseGuMeDTO;
 import com.br.marketing.entity.GuoMeiTransferData;
-import com.br.marketing.service.custom.guomei.IGuoMeiDataService;
-import com.br.marketing.service.custom.guomei.IPushGuMeDataService;
-import com.br.marketing.service.custom.handler.CustomCodeEnum;
+import com.br.marketing.service.customer.guomei.IGuoMeiDataService;
+import com.br.marketing.service.customer.guomei.IPushGuMeDataService;
+import com.br.marketing.service.customer.handler.CustomerHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.api.PulsarClientException;
@@ -37,8 +37,8 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
     private IGuoMeiDataService guoMeiDataService;
 
     @Override
-    public CustomCodeEnum custom() {
-        return CustomCodeEnum.T_GUME;
+    public CustomerHandlerEnum custom() {
+        return CustomerHandlerEnum.T_GUME;
     }
 
     @Override

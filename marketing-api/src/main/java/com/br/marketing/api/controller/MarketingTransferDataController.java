@@ -15,7 +15,7 @@ import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.entity.MonitorTypeEnum;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.PushRuleService;
-import com.br.marketing.service.custom.CustomTransferDataService;
+import com.br.marketing.service.customer.CustomerTransferDataService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -46,7 +46,7 @@ public class MarketingTransferDataController {
     private IPushShuheDataService iPushShuheDataService;
 
     @Resource
-    private CustomTransferDataService customTransferDataService;
+    private CustomerTransferDataService customerTransferDataService;
 
 
     /**
@@ -127,7 +127,7 @@ public class MarketingTransferDataController {
         RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
         RuntimeDataContext.getData().setApiCode(apiCode);
         RuntimeDataContext.getData().setJsonData(jsonData);
-        return customTransferDataService.receiveTransferDataHandler(apiCode, jsonData);
+        return customerTransferDataService.receiveTransferDataHandler(apiCode, jsonData);
     }
 
 

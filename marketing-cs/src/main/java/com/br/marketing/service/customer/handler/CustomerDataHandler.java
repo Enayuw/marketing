@@ -1,4 +1,4 @@
-package com.br.marketing.service.custom.handler;
+package com.br.marketing.service.customer.handler;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -15,7 +15,7 @@ import org.apache.pulsar.client.api.PulsarClientException;
  * @author Guo Zeqiang
  * @dateTime 2023-10-18 16:41
  */
-public interface CustomDataHandler {
+public interface CustomerDataHandler {
 
     /**
      * 2023-10-18 16:45
@@ -23,7 +23,7 @@ public interface CustomDataHandler {
      *
      * @return 客户枚举
      */
-    CustomCodeEnum custom();
+    CustomerHandlerEnum custom();
 
 
     /**

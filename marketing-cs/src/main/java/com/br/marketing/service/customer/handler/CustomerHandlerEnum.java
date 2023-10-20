@@ -1,4 +1,4 @@
-package com.br.marketing.service.custom.handler;
+package com.br.marketing.service.customer.handler;
 
 /**
  * 客户编码枚举
@@ -13,7 +13,7 @@ package com.br.marketing.service.custom.handler;
  * @author Guo Zeqiang
  * @dateTime 2023-10-18 16:43
  */
-public enum CustomCodeEnum {
+public enum CustomerHandlerEnum {
 
     /**
      * 2023-10-20 14:22
@@ -46,13 +46,13 @@ public enum CustomCodeEnum {
      */
     private String[] apiCodes;
 
-    CustomCodeEnum(String name, String... apiCodes) {
+    CustomerHandlerEnum(String name, String... apiCodes) {
         this.name = name;
         this.apiCodes = apiCodes;
     }
 
-    public static CustomCodeEnum valueof(String apiCode) {
-        for (CustomCodeEnum e : values()) {
+    public static CustomerHandlerEnum valueof(String apiCode) {
+        for (CustomerHandlerEnum e : values()) {
             for (String code : e.apiCodes) {
                 if (code.equals(apiCode)) {
                     return e;
@@ -62,8 +62,8 @@ public enum CustomCodeEnum {
         throw new IllegalArgumentException("未知的客户编号:" + apiCode);
     }
 
-    public static CustomCodeEnum valueof(String apiCode, CustomCodeEnum defaultCustom) {
-        for (CustomCodeEnum e : values()) {
+    public static CustomerHandlerEnum valueof(String apiCode, CustomerHandlerEnum defaultCustom) {
+        for (CustomerHandlerEnum e : values()) {
             for (String code : e.apiCodes) {
                 if (code.equals(apiCode)) {
                     return e;

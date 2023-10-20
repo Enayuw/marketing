@@ -1,8 +1,8 @@
-package com.br.marketing.service.custom.guomei;
+package com.br.marketing.service.customer.guomei;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.ResponseCustomDTO;
-import com.br.marketing.service.custom.handler.CustomDataHandler;
+import com.br.marketing.service.customer.handler.CustomerDataHandler;
 
 /**
  * 国美推送转化数据定制接口
@@ -10,7 +10,7 @@ import com.br.marketing.service.custom.handler.CustomDataHandler;
  * @author Guo Zeqiang
  * @dateTime 2023/10/16 16:24
  */
-public interface IPushGuMeDataService extends CustomDataHandler {
+public interface IPushGuMeDataService extends CustomerDataHandler {
 
 
     /**
