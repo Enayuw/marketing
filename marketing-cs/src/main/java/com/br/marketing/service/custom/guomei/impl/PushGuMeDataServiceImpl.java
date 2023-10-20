@@ -118,7 +118,8 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
         if (channelCodeBool && requestIdBool && signBool) {
             // 验签
             boolean sign2Bool;
-            String sign = Md5Utils.cell32(jsonDTO.getRequestId() + jsonDTO.getChannelCode()).toUpperCase(Locale.ROOT);
+            String sign = Md5Utils.cell32(Md5Utils.cell32(jsonDTO.getRequestId() + jsonDTO.getChannelCode()
+            ).toUpperCase(Locale.ROOT)).toUpperCase(Locale.ROOT);
             if (sign2Bool = !jsonDTO.getSign().equals(sign)) {
                 responseGuMeDTO.failed(",sign签名不正确");
             }
