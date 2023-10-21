@@ -11,6 +11,7 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.mapper.MarketingSyncReportMapper;
+import com.br.marketing.mapper.MarketingValidityChangeMapper;
 import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.MarketingSyncReportService;
@@ -55,6 +56,12 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
 
     @Autowired
     ICompatibleService iCompatibleService;
+
+    @Resource
+    MarketingValidityChangeMapper changeMapper;
+
+    @Resource
+    ValidityPeriodResendRecordService recordService;
 
     @Override
     public void syncReportProcess(String uploadDate, String jobName) {
@@ -296,6 +303,14 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
 
         PageHelper.startPage(current, size);
         List<MarketingSyncReportVO> list = syncReportMapper.selectList(params);
+        for (MarketingSyncReportVO marketingSyncReportVO : list) {
+            String apiCode = marketingSyncReportVO.getApiCode();
+            String userType = marketingSyncReportVO.getUserType();
+            String appletDate = marketingSyncReportVO.getAppletDate();
+            MarketingDataValidConfig validDate = changeMapper.getValidDate(apiCode, userType, appletDate);
+            marketingSyncReportVO.setValidStartDate(validDate.getValidStartDate());
+            marketingSyncReportVO.setValidEndDate(validDate.getValidEndDate());
+        }
 
         return PageResultReturn.setPageResult(list, current,size);
     }
@@ -374,4 +389,37 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         }
 
     }
+
+    @Override
+    public boolean updateById(Long id, String validStartDate, String validEndDate) {
+        try {
+            if (com.br.marketing.common.utils.StringUtils.isEmpty(validStartDate)){
+                log.warn("缺少有效期开始时间");
+                return false;
+            }
+            if (com.br.marketing.common.utils.StringUtils.isEmpty(validEndDate)){
+                log.warn("缺少有效期结束时间");
+                return false;
+            }
+            MarketingSyncReportVO reportVO= syncReportMapper.selectById(id);
+            String apiCode = reportVO.getApiCode();
+            String userType = reportVO.getUserType();
+            String appletDate = reportVO.getAppletDate();
+            MarketingDataValidConfig newData = syncReportMapper.selectValidData(apiCode, userType, appletDate);
+            validStartDate = DateUtils.format(addDay(validStartDate, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
+            validEndDate = DateUtils.format(addDay(validEndDate, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
+            newData.setValidStartDate(validStartDate);
+            newData.setValidEndDate(validEndDate);
+            Integer i = syncReportMapper.updateById(newData);
+            if (i == 1){
+                recordService.saveRecord(apiCode,userType,newData.getId());
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error(e.getMessage(), e);
+            return false;
+        }
+    }
+
 }

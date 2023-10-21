@@ -95,4 +95,28 @@ public class SyncReportController {
         }
     }
 
+    @ApiOperation(value = "修改有效期记录", notes = "修改有效期记录")
+    @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "id", required = true, dataType = "Long")
+            , @ApiImplicitParam(name = "validStartDate", value = "生效开始日期", required = true, paramType = "query", dataType = "String")
+            , @ApiImplicitParam(name = "validEndDate", value = "生效结束日期", required = true, paramType = "query", dataType = "String")
+    })
+    @GetMapping("/updateValidity")
+    public ApiResult<Boolean> updateValidity(@RequestParam Long id
+            , @RequestParam String validStartDate
+            , @RequestParam String validEndDate
+            , @RequestParam(defaultValue = "0") Integer resendType) {
+        //查询
+        try {
+            boolean flag = syncReportService.updateById(id, validStartDate, validEndDate);
+            if (flag) {
+                return new ApiResult<Boolean>().success(true, "操作成功！");
+            } else {
+                return new ApiResult<Boolean>().success(false, "操作失败！");
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+        }
+    }
+
 }

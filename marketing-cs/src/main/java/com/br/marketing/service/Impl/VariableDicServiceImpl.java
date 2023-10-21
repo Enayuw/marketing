@@ -74,7 +74,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                 if ("userType".equals(variableDicListVO.getFieldName())){
                     userType = variableDicListVO.getFieldValue();
                 }
-                Integer validDaysDefault = validityChangeMapper.selectValidDaysDefault(apiCode, userType);
+                Integer validDaysDefault = validityChangeMapper.selectValidDaysDefault(apiCode, userType) + 1;
                 variableDicListVO.setValidDaysDefault("T+" + validDaysDefault);
             }
             return PageResultReturn.setPageResult(list, page, pageSize);
@@ -85,9 +85,12 @@ public class VariableDicServiceImpl implements VariableDicService {
     }
 
     @Override
-    public ApiResult<Boolean> saveOrUpdateVariableDic(VariableDicListVO vo, MarketingUserDetail user, Integer days) {
+    public ApiResult<Boolean> saveOrUpdateVariableDic(VariableDicListVO vo, MarketingUserDetail user) {
         String apiCode, userType = null;
         apiCode = vo.getApiCode();
+        if (vo.getValidDaysDefault() == null){
+            vo.setValidDaysDefault("0");
+        }
         VariableDic variableDic = new VariableDic();
         variableDic.setFieldName(vo.getFieldName());
         variableDic.setFieldValue(vo.getFieldValue());
@@ -99,7 +102,7 @@ public class VariableDicServiceImpl implements VariableDicService {
             userType = vo.getFieldValue();
             validConfigDefault.setUserType(userType);
         }
-        validConfigDefault.setValidDaysDefault(days);
+        validConfigDefault.setValidDaysDefault(Integer.valueOf(vo.getValidDaysDefault()));
         validConfigDefault.setIsDel(vo.getIsDel());
         if(StringUtils.isEmpty(vo.getId())){
             //新增
@@ -110,7 +113,12 @@ public class VariableDicServiceImpl implements VariableDicService {
             Integer i = validityChangeMapper.selectNum(apiCode, userType);
             if (i >= 1){
                 log.warn("该apiCode + userType维度下已存在有效期配置");
-                return new ApiResult<Boolean>().fail(ServiceResultEnum.SUCCESS_4);
+                Long id = validityChangeMapper.selectId(apiCode,userType);
+                validConfigDefault.setId(id);
+                validConfigDefault.setApiCode(apiCode);
+                validConfigDefault.setUpdateTime(new Date());
+                validityChangeMapper.updateMarketingDataValidConfigDefault(validConfigDefault);
+                return new ApiResult<Boolean>().success(true);
             }
             validConfigDefault.setApiCode(apiCode);
             validConfigDefault.setCreateTime(new Date());
@@ -118,16 +126,12 @@ public class VariableDicServiceImpl implements VariableDicService {
         }else {
             //编辑
             variableDic.setId(vo.getId());
-            Integer i = variableDicMapper.updateByPrimaryKeySelective(variableDic);
+            variableDicMapper.updateByPrimaryKeySelective(variableDic);
             Long id = validityChangeMapper.selectId(apiCode,userType);
             validConfigDefault.setId(id);
             validConfigDefault.setApiCode(apiCode);
             validConfigDefault.setUpdateTime(new Date());
-            Integer j = validityChangeMapper.updateMarketingDataValidConfigDefault(validConfigDefault);
-            if (i == 1 && j == 1){
-
-            }
-
+            validityChangeMapper.updateMarketingDataValidConfigDefault(validConfigDefault);
         }
 
         return new ApiResult<Boolean>().success(true);
@@ -150,22 +154,6 @@ public class VariableDicServiceImpl implements VariableDicService {
         }
 
         return list;
-    }
-
-    @Override
-    public String getValidPeriod(String startDate, String endDate) {
-        LocalDate start = formatStringToDate(startDate);
-        LocalDate end = formatStringToDate(endDate);
-        long daysBetween = ChronoUnit.DAYS.between(start, end) + 1;
-        String validPeriod = "T+" + daysBetween;
-        return  validPeriod;
-    }
-
-
-    public static LocalDate formatStringToDate(String dateString) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate date = LocalDate.parse(dateString, formatter);
-        return date;
     }
 
 
