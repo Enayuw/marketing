@@ -31,12 +31,12 @@ public class RedisChgService {
 
     public void set(String key, String value) {
         try {
-            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
             marketingRedisClient.set(key, value);
         }catch (Exception e){
             log.warn("set error",e);
             try{
-                BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+                BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
                 marketingRedisClient.set(key, value);
             }catch (Exception e1){
                 log.error("set error",e1);
@@ -51,7 +51,7 @@ public class RedisChgService {
      * @param seconds 秒
      */
     public void setex(String key, String value,int seconds) {
-        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         marketingRedisClient.setex(key,seconds,value);
     }
 
@@ -64,7 +64,7 @@ public class RedisChgService {
      * @return
      */
     public Boolean setnx(String key,String value,int seconds){
-        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         Boolean setnx = marketingRedisClient.setnx(key, value);
         if(setnx){
             marketingRedisClient.expire(key,seconds);
@@ -161,7 +161,7 @@ public class RedisChgService {
      * @return
      */
     public Boolean hset(String hkey, String key, String value) {
-        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         return marketingRedisClient.hset(hkey, key, value);
     }
 
@@ -196,7 +196,7 @@ public class RedisChgService {
      * @return 返回的添加成功的数量
      */
     public Long sadd(String key, List<String> value){
-        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         String[] values = new String[]{};
         String[] vals = value.toArray(values);
         Long result = marketingRedisClient.sadd(key, vals);
@@ -210,7 +210,7 @@ public class RedisChgService {
      * @return 返回添加成功的数量
      */
     public Long saddMember(String key,String... member){
-        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         Long result = marketingRedisClient.sadd(key, member);
         return result;
     }
@@ -222,7 +222,7 @@ public class RedisChgService {
      * @return
      */
     public Boolean sismember(String key, String member) {
-        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         Boolean result = marketingRedisClient.sismember(key, member);
         return result;
     }
