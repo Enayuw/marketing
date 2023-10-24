@@ -103,9 +103,7 @@ public class SyncReportController {
     @GetMapping("/updateValidity")
     public ApiResult<Boolean> updateValidity(@RequestParam Long id
             , @RequestParam String validStartDate
-            , @RequestParam String validEndDate
-            , @RequestParam(defaultValue = "0") Integer resendType) {
-        //查询
+            , @RequestParam String validEndDate) {
         try {
             boolean flag = syncReportService.updateById(id, validStartDate, validEndDate);
             if (flag) {

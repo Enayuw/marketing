@@ -1,11 +1,8 @@
 package com.br.marketing.service.Impl;
 
-import com.br.common.util.DateUtils;
 import com.br.marketing.common.commondto.ApiResult;
-import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingDataValidConfigDefault;
-import com.br.marketing.entity.ValidityPeriodResendRecord;
 import com.br.marketing.entity.VariableDic;
 import com.br.marketing.entity.VariableDicExample;
 import com.br.marketing.entity.auth.MarketingUserDetail;
@@ -23,11 +20,6 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -74,7 +66,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                 if ("userType".equals(variableDicListVO.getFieldName())){
                     userType = variableDicListVO.getFieldValue();
                 }
-                Integer validDaysDefault = validityChangeMapper.selectValidDaysDefault(apiCode, userType) + 1;
+                Integer validDaysDefault = validityChangeMapper.selectValidDaysDefault(apiCode, userType);
                 variableDicListVO.setValidDaysDefault("T+" + validDaysDefault);
             }
             return PageResultReturn.setPageResult(list, page, pageSize);
@@ -112,7 +104,7 @@ public class VariableDicServiceImpl implements VariableDicService {
             variableDicMapper.insert(variableDic);
             Integer i = validityChangeMapper.selectNum(apiCode, userType);
             if (i >= 1){
-                log.warn("该apiCode + userType维度下已存在有效期配置");
+                log.warn("该apiCode={} + userType={}维度下已存在有效期配置", apiCode, userType);
                 Long id = validityChangeMapper.selectId(apiCode,userType);
                 validConfigDefault.setId(id);
                 validConfigDefault.setApiCode(apiCode);

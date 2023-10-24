@@ -1,5 +1,8 @@
 package com.br.marketing.service.Impl;
 
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -60,8 +63,8 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     @Resource
     MarketingValidityChangeMapper changeMapper;
 
-    @Resource
-    ValidityPeriodResendRecordService recordService;
+//    @Resource
+//    ValidityPeriodResendRecordService recordService;
 
     @Override
     public void syncReportProcess(String uploadDate, String jobName) {
@@ -393,26 +396,23 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     @Override
     public boolean updateById(Long id, String validStartDate, String validEndDate) {
         try {
-            if (com.br.marketing.common.utils.StringUtils.isEmpty(validStartDate)){
-                log.warn("缺少有效期开始时间");
-                return false;
-            }
-            if (com.br.marketing.common.utils.StringUtils.isEmpty(validEndDate)){
-                log.warn("缺少有效期结束时间");
-                return false;
-            }
             MarketingSyncReportVO reportVO= syncReportMapper.selectById(id);
             String apiCode = reportVO.getApiCode();
             String userType = reportVO.getUserType();
             String appletDate = reportVO.getAppletDate();
             MarketingDataValidConfig newData = syncReportMapper.selectValidData(apiCode, userType, appletDate);
-            validStartDate = DateUtils.format(addDay(validStartDate, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
-            validEndDate = DateUtils.format(addDay(validEndDate, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
+            validStartDate = DateUtils.format(addDay(validStartDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
+            validEndDate = DateUtils.format(addDay(validEndDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
+            if (validStartDate.equals(newData.getValidStartDate()) && validEndDate.equals(newData.getValidEndDate())){
+                log.warn("有效期日期未修改,apiCode={},userType={},appletDate={}", apiCode, userType, appletDate);
+                return true;
+            }
             newData.setValidStartDate(validStartDate);
             newData.setValidEndDate(validEndDate);
             Integer i = syncReportMapper.updateById(newData);
             if (i == 1){
-                recordService.saveRecord(apiCode,userType,newData.getId());
+                log.warn("开始重推");
+//                recordService.saveRecord(apiCode,userType,newData.getId());
             }
             return true;
         } catch (Exception e) {

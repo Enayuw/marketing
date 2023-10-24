@@ -479,7 +479,7 @@
     and applet_date =#{appletDate}
   </select>
 
-  <update id="updateById" parameterType="com.br.marketing.entity.MarketingSyncReportVO">
+  <update id="updateById" parameterType="com.br.marketing.entity.MarketingDataValidConfig">
     update b_marketing_data_valid_config
     <set>
       <if test="config.apiCode != null">
