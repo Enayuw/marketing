@@ -71,7 +71,7 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
         // 去重参数设置
         conversionData.setInitId(transfer.getId());
         PeriodOfValidityBO periodOfValidityBO = bo.getBuilders().get(0).addDateString().addOfDayTimeStrString().builder();
-        conversionData.setSoleField(SoleFieldEnum.CUST_NUM_SOLE.getValue());
+        conversionData.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
         conversionData.setSoleType(-1);
         conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
         conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
