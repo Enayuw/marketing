@@ -43,6 +43,6 @@ public interface MarketingTransferInfoMapper extends MarketingTransferInfoMapper
     @Select("SELECT request_id FROM b_marketing_transfer_info WHERE  api_code=#{apiCode} and create_time >= #{createTime} and last=#{last} limit 1")
     String  countByApiCodAndLastOne(@Param("apiCode") String apiCode, @Param("createTime") String createTime, @Param("last") String last);
 
-    @Select("select id from b_marketing_transfer_info where api_code = #{apiCode} and valid_start_date >= #{validStartDate} and valid_end_date <= #{validEndDate}")
+    @Select("select id from b_marketing_transfer_info where api_code = #{apiCode} and create_time >= #{validStartDate} and create_time <= #{validEndDate}")
     List<MarketingTransferInfo> getMarketingTransferInfoIdByValidPeriodRange(@Param("apiCode") String apiCode, @Param("validStartDate") String validStartDate, @Param("validEndDate") String validEndDate);
 }

@@ -45,6 +45,7 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+        log.warn("国美推客服转化,apicode={}", transfer.getApiCode());
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(transfer.getCid());
@@ -71,6 +72,7 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
         // 去重参数设置
         conversionData.setInitId(transfer.getId());
         PeriodOfValidityBO periodOfValidityBO = bo.getBuilders().get(0).addDateString().addOfDayTimeStrString().builder();
+        // 手机号维度去重
         conversionData.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
         conversionData.setSoleType(-1);
         conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
