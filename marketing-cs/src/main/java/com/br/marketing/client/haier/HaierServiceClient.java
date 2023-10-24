@@ -82,7 +82,7 @@ public class HaierServiceClient {
 //        log.warn("##地址：{}；apicode：{}；apikey：{}", url, apiCode, apiKey);
         PushDTO pushDTO = new PushDTO(apiCode, formData, apiKey);
 //        log.warn("&&发送内容：[{}]", pushDTO);
-        final HashMap<String, String> stringStringHashMap = httpProxyClient.sendByCode(pushDTO, url, true, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
+        final HashMap<String, String> stringStringHashMap = httpProxyClient.sendByCodeZw(pushDTO, url, true, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
         final String httpCode = stringStringHashMap.getOrDefault("httpcode", "5000");
         if (httpCode.equals("200")) {
             final String respStr = stringStringHashMap.getOrDefault("content", "");
@@ -111,7 +111,7 @@ public class HaierServiceClient {
         }
         PushDTO pushDTO = new PushDTO(apiCode, formData, apiKey);
 //        log.warn("&&发送内容：[{}]", pushDTO);
-        final HashMap<String, String> stringStringHashMap = httpProxyClient.sendByCode(pushDTO, url, true, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
+        final HashMap<String, String> stringStringHashMap = httpProxyClient.sendByCodeZw(pushDTO, url, true, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
         final String httpCode = stringStringHashMap.getOrDefault("httpcode", "5000");
         if (httpCode.equals("200")) {
             final String respStr = stringStringHashMap.getOrDefault("content", "");
@@ -164,7 +164,7 @@ public class HaierServiceClient {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(e.getMessage());
         }
 //        log.warn("&&发送内容：[{}]", pushDTO);
-        final HashMap<String, String> stringStringHashMap = httpProxyClient.sendByCode(pushDTO, url, true, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
+        final HashMap<String, String> stringStringHashMap = httpProxyClient.sendByCodeZw(pushDTO, url, true, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
         final String httpCode = stringStringHashMap.getOrDefault("httpcode", "5000");
         if (httpCode.equals("200")) {
             final String respStr = stringStringHashMap.getOrDefault("content", "");
@@ -228,7 +228,7 @@ public class HaierServiceClient {
         log.warn("##查询接口地址：{}；apicode：{}；apikey：{}", urlInfo, apiCode, apiKey);
         ResultQueryDTO resultQueryDTO = new ResultQueryDTO(apiCode, requestId, apiKey);
         log.warn("&&查询接口发送内容：[{}]", resultQueryDTO);
-        final HashMap<String, String> returnMap = httpProxyClient.sendByCode(resultQueryDTO, urlInfo, true, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
+        final HashMap<String, String> returnMap = httpProxyClient.sendByCodeZw(resultQueryDTO, urlInfo, true, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
         final String httpCode = returnMap.getOrDefault("httpcode", "5000");
         if (httpCode.equals("200")) {
             final String respStr = returnMap.getOrDefault("content", "");

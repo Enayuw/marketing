@@ -15,6 +15,6 @@ package com.br.marketing.service;
  */
 public interface MarketingSmyPushService {
 
-    void pushSmyUploadDataToDaas();
-    void pushSmyTransferDataToDaas();
+    void pushSmyUploadDataToDaas(String apiCode);
+    void pushSmyTransferDataToDaas(String apiCode);
 }

@@ -106,7 +106,7 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
     public Result customizedAction(MarketingSyncCondition inputData) {
         Result res = new Result();
         String date = LocalDate.now().minusDays(1).toString();
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(100, 100, 100);
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(50, 50, 50);
         List<MarketingDataValidConfig> configList = findConfigByBetweenDate(inputData.getApiCode(), date);
         List<String> appletDateList = configList.stream().map(marketingDataValidConfig -> marketingDataValidConfig.getAppletDate()).collect(Collectors.toList());
         inputData.setExecuteDateList(appletDateList);
@@ -185,6 +185,7 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
             String decodeCell = BrCipherMaker.getInstance().decode(t.getCell());
             DiDiReqVO diDiReqVO = new DiDiReqVO();
             diDiReqVO.setCustMobileMd5(Md5OfZanUtils.getMD5(decodeCell));
+            diDiReqVO.setMediaName(marketingCommonConfig.getDidiModelingMediaNameMap().get("oldMediaName"));
             Result<DiDiJMassResponseTO> result = diDiClient.pushJMASS(diDiReqVO);
             //需要重试加入重试表
             if (result.getCode().equals(ResultCode.INTERNAL_SERVER_ERROR.getValue())) {

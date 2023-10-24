@@ -140,6 +140,7 @@ public class DiDiAllowHandle  extends IMonkeyDataHandle<DidiData, DiDiProcessDat
             didiDataExample.createCriteria()
                     .andApiCodeEqualTo(didiData.getApiCode())
                     .andCellIn(cells)
+                    .andStatusEqualTo(1)
                     .andPushDateIn(uploadDates);
             List<DidiData> didiData1 = didiDataMapper.selectByExample(didiDataExample);
             marketingDiDi = didiData1.stream().collect(Collectors.toMap(DidiData::getCell

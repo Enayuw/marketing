@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-public class BuildTaskJob  extends AbstractSimpleElasticJob {
+public class BuildTaskJob extends AbstractSimpleElasticJob {
 
     @Autowired
     ITaskService iTaskService;
@@ -29,9 +29,9 @@ public class BuildTaskJob  extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
         List<Long> ids = null;
-        if(StringUtils.isNotBlank(jobParameter)){
+        if (StringUtils.isNotBlank(jobParameter)) {
             ids = Arrays.stream(jobParameter.split(",")).map(t -> Long.valueOf(t)).collect(Collectors.toList());
         }
-        iTaskService.buildScoreTask(ids);
+        iTaskService.buildScoreTask(ids, jobExecutionMultipleShardingContext.getJobName());
     }
 }

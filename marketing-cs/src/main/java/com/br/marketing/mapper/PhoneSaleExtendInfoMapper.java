@@ -140,5 +140,18 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
      */
     Set<String> getCustNumSettikv_(@Param("example") PhoneSaleExtendInfoExample example);
 
-    Set<String> getToDassLogInfoList(@Param("apiCode") String apiCode, @Param("cells")Set<String> cells);
+    Set<String> getToDassLogInfoList(@Param("apiCode") String apiCode, @Param("cells") Set<String> cells);
+
+    /**
+     * 2023-06-26 17:34
+     * 根据条件获取案件编号集合
+     */
+    List<String> selectCustNumByExampletikv_(@Param("example") PhoneSaleExtendInfoExample example);
+
+    /**
+     * 2023-08-25 17:34
+     * 近推送的记录
+     */
+    List<PhoneSaleExtendInfo> findInfoByMaxPushDxTimeAndCellList(@Param("example") PhoneSaleExtendInfoExample example);
+
 }

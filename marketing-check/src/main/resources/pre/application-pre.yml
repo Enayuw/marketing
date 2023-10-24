@@ -101,10 +101,11 @@ otherConfig:
         appName: loan-warning
         appSecretKey: f15a1421ac95a284683688af14688b72
   proxy:
-    proxy_host_zw: 192.168.22.169
+    proxy_host: squid-proxy2.brapp.com
     proxy_port: 3128
     proxy_username: bairong
     proxy_password: Proxy_br
+    proxy_host_zw: 192.168.22.169
   mom:
     appSecretKey: d42726322ba9bda57b74043be21aa2c4
     appName: marketing_query_producer
@@ -162,7 +163,8 @@ api:
     baseUrl: https://admarketing-manhattan.xiaojukeji.com
     smsUrl: ${api.didi.baseUrl}/crow/collision/bairong
     reachUrl: ${api.didi.baseUrl}/crow/user/success/bairong
-    jmassSUrl: ${api.didi.baseUrl}/model/sample/bairong
+    jmassSUrl: ${api.didi.baseUrl}/model/sample/mediaName
+    failedUrl: ${api.didi.baseUrl}/crow/faileduser/mediaName
     token: DK&SgWl!fZ%WVSXe
     scas: "0001"
     channelId: 3140738836439875
@@ -180,6 +182,10 @@ api:
   xiecheng:
     openUrl: https://cgcallback-fat.ctripqa.com/nemoweb/ad/common/outAdMonitor.do
     appId: bairong001
+    appIdVt: test002
+    keyVt: 6b219b9e71fdb2d2
+    ivVt: 5e7b6c07d3edbc01
+    signKeyVt: b8845b4cb1f16471
     key: f3df6f62f0527bf0
     iv: 3b2dac323465b024
     singKey: 95cc01ec07387a44
@@ -197,19 +203,56 @@ api:
     smsColliding:
       openUrl: https://cgcallback-fat.ctripqa.com/nemoweb/ad/common/unionCheckUser.do
       appId: bairong001
+      appIdVt: test002
+      keyVt: 6b219b9e71fdb2d2
+      ivVt: 5e7b6c07d3edbc01
+      signKeyVt: b8845b4cb1f16471
       key: f3df6f62f0527bf0
       iv: 3b2dac323465b024
       singKey: 95cc01ec07387a44
       channel: commonUnionCheckUser
       isProxy: true
+  zhongyou:
+    baseUrl: https://alissl.youcash.com/facadeuat/outmarketing-fileserver/file/out
+    query: ${api.zhongyou.baseUrl}/query
+    download: ${api.zhongyou.baseUrl}/download
+    keyAlgorithm: RSA
+    signAlgorithms: SHA1WithRSA
+    aesKey: 3nbkz1h7kg7mueaq
+    aesIv: hfhogkpfypizg2gi
+    channelCode: BRYXkHIAvr0m2U0T
+    rsaPublicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhnl5uzpi0XZ2LIlc0C7kLe9JQ3v9els+K7WcsgRRrtszGCae6ko48NHf8xJvr8tWZqJf3P1YDzQe86pff9x7u6Xx4XqCbYIaH/DDsoXaZG+gvRtlRLDq5rXwncGFvx7lXAE/dOfyvK2OW7/bWbA9iZ5Za4mWKr3qwSHwOEptd93KPsvi5Xk0I8hcfik9BnTPds/P9nGNesHKk9E+Rt2GnPxa8h9aF8jFweie4MlaXzb3CkrM7vEaQZA+mwPTKvvYdCd20rIJmKwUMdG/k/KA80x3l6XwC5QCpa82AoBFVvUJyCXkxG9VRJ9q2nawLMiq6sES5Lq6sYIvu2O+b/z0DQIDAQAB
+    rsaPrivateKey: MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAr1BcLtKFLRQ92jl9mS4DyMyMOgYf0EZfmhE0R5WGs92XstydpUr8xVN5pwYkU3RNeKzNjXMR3K4aBksoren2mwIDAQABAkBc3ogGsbSkva1KVdwn8g1FKL472pStwynPtr9oEFisHJ024o7CJSHq6tqThFmNNg2vH9R1anILVC5JgfeRsWSBAiEA2t8fKnx5D41rywHyoSCBxhbokBS8qmO5O9PzSgEVPEECIQDNDavQZ5wTE151HkRXjlt12G5b+b/PVe3FC+p6MYCr2wIhAJ3/3/G9tW7iumPsXgiu/L/RHcWVErU2FCv6T3Cm43uBAiB37kYOh3r+oTZ+86vvNeEChQrPGrz4DH8b38NNosRqPwIgW8lPWHq4OlsW1G/KojSjigkRUtu2BEk+GJxW/aIYOrY=
+    isProxy: true
 spring:
   rabbitmq:
-    addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
-    username: strategy_distribute
-    password: strategy_distribute
-    publisher-confirms: true
-    publisher-returns: true
-    virtual-host: marketing-flow
+    zw:
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
+      username: strategy_distribute
+      password: strategy_distribute
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow
+    yz:
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
+      username: strategy_distribute
+      password: strategy_distribute
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow
+    listener:
+      retry:
+        enabled: true
+        max-attempts: 5
+        initial-interval: 3000
+      acknowledge-mode: manual
+      default-requeue-rejected: false
+      auto-startup: true
+  web:
+    interceptors.enabled: true
+  sql.source: prod
+cluster:
+  flag: ${CONF_CLUSTER}
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置

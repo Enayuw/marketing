@@ -1,5 +1,7 @@
 package com.br.marketing.task.service.Impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -8,19 +10,18 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.MarketingTask;
-import com.br.marketing.entity.MerchantParam;
-import com.br.marketing.entity.TaskStatus;
-import com.br.marketing.entity.TaskStatusExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.service.ITaskService;
+import com.br.marketing.vo.ConfigByApiCodeVO;
 import com.br.marketing.vo.CustomerScoreRuleVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -30,6 +31,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -84,8 +86,20 @@ public class TaskServiceImpl implements ITaskService {
     @Autowired
     MarketingTaskService marketingTaskService;
 
+    @Autowired
+    MarketingCustomerMapper marketingCustomerMapper;
+
+    @Value("${spring.profiles.active}")
+    String env;
+
+    @Value("${cluster.flag}")
+    private String clusterConfig;
+
+    @Autowired
+    ICompatibleService iCompatibleService;
+
     @Override
-    public void buildScoreTask(List<Long> scoreRuleIds) {
+    public void buildScoreTask(List<Long> scoreRuleIds,String jobNm) {
         Result<List<CustomerScoreRuleVO>> scoreConfigNow = iRuleConfigService.getScoreConfigNow(scoreRuleIds);
 //        AssertResult.assertResult(scoreConfigNow);
         if(!ResultCode.SUCCESS.getValue().equals(scoreConfigNow.getCode())){
@@ -93,6 +107,17 @@ public class TaskServiceImpl implements ITaskService {
         }
         List<CustomerScoreRuleVO> data = scoreConfigNow.getData();
         for (CustomerScoreRuleVO datum : data) {
+            MarketingCustomerExample customerExample = new MarketingCustomerExample();
+            customerExample.createCriteria().andApiCodeEqualTo(datum.getApiCode()).andStatusEqualTo(new Byte("1"));
+            List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
+            if(marketingCustomers.size()<0){
+                continue;
+            }
+            MarketingCustomer customer = marketingCustomers.get(0);
+            Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo(),jobNm);
+            if(!action){
+                continue;
+            }
 //            if (datum.getParentId() <= 0) {
                 marketingTaskService.buildScoreTaskOfAuto(datum);
 //            } else {
@@ -114,7 +139,7 @@ public class TaskServiceImpl implements ITaskService {
      *  2.2、移除锁状态
      */
     @Override
-    public Result<MarketingTask> getScoreTask(String nowDay, Long taskId,Integer isTimeLimit) {
+    public Result<MarketingTask> getScoreTask(String nowDay, Long taskId,Integer isTimeLimit,String jobNm) {
         Integer resource = 0;
 
         try {
@@ -142,7 +167,7 @@ public class TaskServiceImpl implements ITaskService {
                 continue;
             }
 
-            Result<TaskStatus> taskStatusResult = canScore(scoreTask, nowDay);
+            Result<TaskStatus> taskStatusResult = canScore(scoreTask, nowDay,jobNm);
             if (!ResultCode.SUCCESS.getValue().equals(taskStatusResult.getCode())) {
                 removeTaskLock(scoreTask, s);
                 continue;
@@ -188,8 +213,19 @@ public class TaskServiceImpl implements ITaskService {
      * @param task
      * @return
      */
-    private Result<TaskStatus> canScore(MarketingTask task, String nowDay) {
+    private Result<TaskStatus> canScore(MarketingTask task, String nowDay,String jobNm) {
 
+        MarketingCustomerExample customerExample = new MarketingCustomerExample();
+        customerExample.createCriteria().andApiCodeEqualTo(task.getApiCode()).andStatusEqualTo(new Byte("1"));
+        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
+        if(marketingCustomers.size()<=0){
+            return new Result<>().setCode(ResultCode.FAIL.getValue());
+        }
+        MarketingCustomer customer = marketingCustomers.get(0);
+        Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo(),jobNm);
+        if(!action){
+            return new Result<>().setCode(ResultCode.FAIL.getValue());
+        }
         //一次行跑分、规则验证、离线跑批 都判断状态表种的 oncestatus状态来判定任务是否已经跑过
         if (1 == task.getMonitorType()||2==task.getMonitorType()) {
             //region 一次性跑分

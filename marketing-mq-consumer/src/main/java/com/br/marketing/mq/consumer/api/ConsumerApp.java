@@ -2,9 +2,15 @@ package com.br.marketing.mq.consumer.api;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.common.constants.PulsarSubscription;
+import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.service.IPeriodOfValidityService;
+import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.service.custom.CustomTransferDataService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +22,8 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -32,6 +40,13 @@ public class ConsumerApp {
     @Autowired
     PushRuleService pushRuleService;
 
+    @Resource
+    private IPeriodOfValidityService periodOfValidityService;
+    @Autowired
+    IPushShuheDataService pushShuheDataService;
+
+    @Resource
+    private CustomTransferDataService customTransferDataService;
 
 
     /**
@@ -76,5 +91,61 @@ public class ConsumerApp {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         consumerService.consumerRun(channel, message, pushRuleService::consumerTransferData, o, null);
+    }
+
+    /**
+     * 设置默认有效期范围消费者
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_CONFIG_DEFAULT_VALID_DATE, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_CONFIG_DEFAULT_VALID_DATE)}, containerFactory = "fiveDataContainerFactory")
+    public void consumerConfigDefaultValidDate(Channel channel, Message message) {
+        MarketingSyncUser o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8)
+                , new TypeReference<MarketingSyncUser>() {
+                }.getType());
+        consumerService.consumerRun(channel, message, periodOfValidityService::configValidDateDefault, o, null);
+    }
+
+    /**
+     * 消费 中邮清洗数据
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_ZHONGYOU_DATA_CLEAN, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_ZHONGYOU_DATA_CLEAN)}, containerFactory = "fiveDataContainerFactory")
+    public void consumerZhongYouData(Channel channel, Message message) {
+
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        consumerService.consumerRun(channel, message, pushRuleService::HandleZhongYouData, o, null);
+    }
+
+
+
+
+    @PostConstruct
+    void init(){
+        // 标准上传数据pulsar消费端
+        consumerService.consumerPulsar(PulsarSubscription.upLoadSubscription,pushRuleService::consumerSyncInfo,2, PulsarTopic.upLoadTopic);
+
+        // 数禾上传数据pulsar消费端
+        consumerService.consumerPulsar(PulsarSubscription.upLoadShSubscription, pushShuheDataService::consumerShUpload, 2, PulsarTopic.upLoadShTopic);
+
+        //标准转化数据pulsar消费端
+        consumerService.consumerPulsar(PulsarSubscription.transferSubscription, pushRuleService::consumerTransferInfo, 2, PulsarTopic.transferTopic);
+
+        //数禾转化数据pulsar消费端
+        consumerService.consumerPulsar(PulsarSubscription.transferShSubscription, pushShuheDataService::consumerShTransfer, 2, PulsarTopic.transferShTopic);
+
+        // 定制客户转化数据pulsar消费端
+        consumerService.consumerPulsar(PulsarSubscription.transferCustomSubscription
+                , customTransferDataService::consumerTransferPayData, 2, PulsarTopic.transferCustomTopic);
+
+
     }
 }

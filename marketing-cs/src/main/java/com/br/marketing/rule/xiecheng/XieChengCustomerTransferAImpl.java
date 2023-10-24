@@ -3,17 +3,22 @@ package com.br.marketing.rule.xiecheng;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.DateUtils;
+import com.br.marketing.client.robotaiapi.input.ConvTypeConfigConversionData;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import javax.annotation.Resource;
+import java.util.Set;
 
 /**
  *
@@ -28,17 +33,27 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class XieChengCustomerTransferAImpl implements AssembleData<ConversionData> {
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
-        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
-        log.warn("携程推客服转化,apicode={}",transfer.getApiCode());
-        ConversionData conversionData = new ConversionData();
+        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+        log.warn("携程推客服转化,apicode={}", transfer.getApiCode());
+        ConvTypeConfigConversionData conversionData = new ConvTypeConfigConversionData();
+        // 设置convType
+        String reserveField1 = transfer.getReserveField1();
+        if (StringUtils.hasText(reserveField1)) {
+            JSONObject json = JSON.parseObject(reserveField1);
+            String convType = json.getInteger("convType").toString();
+            conversionData.setConvType(convType);
+        }
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(transfer.getCid());
         conversionData.setInversionStatus("0");
         String query = RpcClientProxy.decode(transfer.getCustNum(), "cell", "sha", "");
         conversionData.setPhone(query);
-        if (!StringUtils.isEmpty(transfer.getCreateTime())){
+        if (!StringUtils.isEmpty(transfer.getCreateTime())) {
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         }
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
@@ -50,14 +65,17 @@ public class XieChengCustomerTransferAImpl implements AssembleData<ConversionDat
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         boolean flag = Boolean.FALSE;
-        if(transmitFact instanceof MarketingTransferSyncUser) {
-            //转化数据上传接口命中convType=107的数据
+        if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             String reserveField1 = transfer.getReserveField1();
             if (StringUtils.hasText(reserveField1)) {
                 JSONObject json = JSON.parseObject(reserveField1);
                 Integer convType = json.getInteger("convType");
-                flag = !StringUtils.isEmpty(convType) && 107 == convType;
+//                flag = !StringUtils.isEmpty(convType) && 107 == convType;
+
+                // 从配置中心获取convType
+                Set<String> convTypeSet = marketingCommonConfig.getPushConvTypeConfig().get(transfer.getApiCode()).keySet();
+                flag = !StringUtils.isEmpty(convType) && convTypeSet.contains(convType.toString());
             }
         }
         return flag;
@@ -70,7 +88,7 @@ public class XieChengCustomerTransferAImpl implements AssembleData<ConversionDat
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_BY_CONVTYPE.getCode();
     }
 
     @Override

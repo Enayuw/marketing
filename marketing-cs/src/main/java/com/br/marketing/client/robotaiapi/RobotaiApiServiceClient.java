@@ -2,6 +2,7 @@ package com.br.marketing.client.robotaiapi;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.cloud.counter.BrCounter;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.net.ApiCallerUtil;
 import com.br.marketing.client.robotaiapi.input.*;
@@ -14,6 +15,7 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import com.br.marketing.mapper.InterfaceLogMapper;
+import com.br.marketing.monitor.PrometheusMonitorUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -66,10 +68,16 @@ public class RobotaiApiServiceClient {
             }
             TransferRobotOutboundVO<UnsuccessfulData> result = JSON.parseObject(transfer.getResult()
                     ,new TypeReference<TransferRobotOutboundVO>(){}.getType());
+            try {
+                //调用数量监控
+                BrCounter.count(PrometheusMonitorUtils.COUNT_ROBOTAI_TRANSFER_METRIC_NAME, dto.getApiCode(), "transferData-api",
+                        dto.getJsonData().getConversionData().size());
+            } catch (Exception ex) {
+                log.error("推送客服转化接口统计异常" + ex.getMessage(), ex);
+            }
             return result;
         }catch (Exception ex){
             log.warn(ex.getMessage(), ex);
-            alarmApiClient.sendAlarm(ex.getMessage(), "", AlarmSendCodeEnum.ERROR_UNKNOWN.getCode());
             TransferRobotOutboundVO<UnsuccessfulData> result = new TransferRobotOutboundVO();
             result.setCode("9999");
             result.setMessage(ex.getMessage());
@@ -77,7 +85,7 @@ public class RobotaiApiServiceClient {
         }
     }
 
-    public TransferRobotOutboundVO<UnsuccessfulData> pushRobotai(TransferRobotOutboundDTO dto){
+    public TransferRobotOutboundVO<TransferRobotDataVO> pushRobotai(TransferRobotOutboundDTO dto){
         dto.getJsonData().setPlatApiCode(customerServiceApiCode);
         try{
             ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate,interfaceLogMapper,logDbpool)
@@ -87,13 +95,19 @@ public class RobotaiApiServiceClient {
             if(!Integer.valueOf(200).equals(transfer.getHttpCode())){
                 throw new RuntimeException("客服中心：".concat(String.valueOf(transfer.getHttpCode())));
             }
-            TransferRobotOutboundVO<UnsuccessfulData> result = JSON.parseObject(transfer.getResult()
-                    ,new TypeReference<TransferRobotOutboundVO>(){}.getType());
+            try {
+                //调用数量监控
+                BrCounter.count(PrometheusMonitorUtils.COUNT_ROBOTAI_TRANSFER_METRIC_NAME, dto.getApiCode(), "transferData-api",
+                        dto.getJsonData().getConversionData().size());
+            } catch (Exception ex) {
+                log.error("推送客服转化接口统计异常" + ex.getMessage(), ex);
+            }
+            TransferRobotOutboundVO<TransferRobotDataVO> result = JSON.parseObject(transfer.getResult()
+                    ,new TypeReference<TransferRobotOutboundVO<TransferRobotDataVO>>(){}.getType());
             return result;
         }catch (Exception ex){
             log.warn(ex.getMessage(), ex);
-            alarmApiClient.sendAlarm(ex.getMessage(), "", AlarmSendCodeEnum.ERROR_UNKNOWN.getCode());
-            TransferRobotOutboundVO<UnsuccessfulData> result = new TransferRobotOutboundVO();
+            TransferRobotOutboundVO<TransferRobotDataVO> result = new TransferRobotOutboundVO();
             result.setCode("9999");
             result.setMessage(ex.getMessage());
             return result;
@@ -130,6 +144,13 @@ public class RobotaiApiServiceClient {
                     log.error(String.format("调用转化接口插入接口日志报错:%s", ex.getMessage()), ex);
                 }
             });
+            try {
+                //调用数量监控
+                BrCounter.count(PrometheusMonitorUtils.COUNT_ROBOTAI_BLACK_METRIC_NAME, dto.getApiCode(), "blackData-api",
+                        parentDTO.getBlackDetailDTOList().size());
+            } catch (Exception ex) {
+                log.error("推送客服黑名单接口统计异常" + ex.getMessage(), ex);
+            }
             return result;
         }catch (Exception ex){
             log.error(ex.getMessage(), ex);

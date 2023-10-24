@@ -524,7 +524,7 @@
         order by create_time asc limit 1
     </select>
     <select id="queryBatchsCount" parameterType="com.br.marketing.dto.CustomerBatchNumDTO"
-            resultType="java.lang.Integer">
+            resultType="java.lang.Long">
         select sum(actualNum),api_code from(select shf.api_code,
         shf.show_title as cusBatchNumber,
         mt.batch_number as batchNumber,

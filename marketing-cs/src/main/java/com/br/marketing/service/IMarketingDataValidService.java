@@ -11,18 +11,20 @@ public interface IMarketingDataValidService {
 
     /**
      * 获取指定规则的有效期配置
+     *
      * @param apiCode
      * @param validType 配置类型1-区间范围；2-T+N;3-场景和T+N
      * @return 有配置则code返回1，没有则是0
      */
-    Result<List<MarketingDataValidConfig>> getDataValidConfigByType(String apiCode,Integer validType);
+    Result<List<MarketingDataValidConfig>> getDataValidConfigByType(String apiCode, Integer validType);
 
 
     /**
      * 根据场景和T+N的有效期配置 判断数据是否有效
+     *
      * @param userTypeTN 配置 “场景”：“有效天数”
-     * @param syncUser 待运营数据
+     * @param syncUser   待运营数据
      * @return
      */
-    Boolean isValidByThreeType(Map<String,Integer> userTypeTN, MarketingSyncUser syncUser);
+    Boolean isValidByThreeType(Map<String, Integer> userTypeTN, MarketingSyncUser syncUser);
 }

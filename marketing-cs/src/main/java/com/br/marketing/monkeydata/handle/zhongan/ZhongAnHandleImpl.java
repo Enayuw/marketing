@@ -6,6 +6,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.monkeydata.entity.IterationResult;
+import com.br.marketing.monkeydata.entity.commonobj.MonkeyContext;
 import com.br.marketing.monkeydata.entity.commonobj.PageCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -21,8 +22,8 @@ public class ZhongAnHandleImpl extends IMonkeyDataHandle<MarketingSyncUser, Mark
 
     @Override
     public Boolean isThread() {
-        return marketingCommonConfig.getCustomerJobConfig().get("7410437").getBoolean("isThread") != null
-                ? marketingCommonConfig.getCustomerJobConfig().get("7410437").getBoolean("isThread")
+        return marketingCommonConfig.getCustomerJobConfig().get("didiAllow").getBoolean("isThread") != null
+                ? marketingCommonConfig.getCustomerJobConfig().get("didiAllow").getBoolean("isThread")
                 :super.isThread();
     }
 
@@ -31,15 +32,15 @@ public class ZhongAnHandleImpl extends IMonkeyDataHandle<MarketingSyncUser, Mark
 
     @Override
     public Boolean isPause() {
-        return marketingCommonConfig.getCustomerJobConfig().get("7410437").getBoolean("isPause") != null
-                ? marketingCommonConfig.getCustomerJobConfig().get("7410437").getBoolean("isPause")
+        return marketingCommonConfig.getCustomerJobConfig().get("didiAllow").getBoolean("isPause") != null
+                ? marketingCommonConfig.getCustomerJobConfig().get("didiAllow").getBoolean("isPause")
                 :super.isPause();
     }
 
     @Override
     public Integer getThread() {
-        return marketingCommonConfig.getCustomerJobConfig().get("7410437").getInteger("threadNum") != null
-                ? marketingCommonConfig.getCustomerJobConfig().get("7410437").getInteger("threadNum")
+        return marketingCommonConfig.getCustomerJobConfig().get("didiAllow").getInteger("threadNum") != null
+                ? marketingCommonConfig.getCustomerJobConfig().get("didiAllow").getInteger("threadNum")
                 :super.getThread();
     }
 
@@ -59,11 +60,15 @@ public class ZhongAnHandleImpl extends IMonkeyDataHandle<MarketingSyncUser, Mark
         IterationResult<MarketingSyncUser, PageCondition> content = new IterationResult<>();
         content.setInputDataList(marketingSyncUsers);
         content.setInDatacondition(condition);
+
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(content);
     }
 
     @Override
     public Result<List<MarketingTransferSyncUser>> processData(List<MarketingSyncUser> inList) {
+        System.out.println(Thread.currentThread().getId()+""+MonkeyContext.getProcessContext().toString());
+        Object processContext = MonkeyContext.getProcessContext();
+        System.out.println(processContext.toString());
         List<MarketingTransferSyncUser> out = new ArrayList<>();
         inList.forEach(t->{
             MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();

@@ -2,6 +2,7 @@ package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.bo.SaveReachDeleteRecordReqBO;
 import com.br.marketing.bo.ZaMarketDataBO;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
@@ -11,12 +12,18 @@ import com.br.marketing.client.dassservice.input.DassImportAdapHaluoDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.IbuReqDTO;
 import com.br.marketing.client.dassservice.input.black.BlackListDTO;
+import com.br.marketing.client.dassservice.input.transfer.DassAssembleTransferDataSoleDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
+import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapSoleDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
+import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSoleDTO;
+import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
 import com.br.marketing.client.dassservice.output.DassExportAdapterDTO;
 import com.br.marketing.client.didi.DiDiClient;
+import com.br.marketing.client.didi.input.DiDiReachBO;
+import com.br.marketing.client.didi.input.DiDiReachRequestTO;
 import com.br.marketing.client.didi.input.DiDiReqVO;
 import com.br.marketing.client.didi.output.DiDiResponseTO;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
@@ -24,11 +31,15 @@ import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRul
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleSoleDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
+import com.br.marketing.client.qifu.QiFuClients;
+import com.br.marketing.client.qifu.ResponseData;
+import com.br.marketing.client.qifu.SaveReachDeleteRecordReq;
+import com.br.marketing.client.qifu.SaveReachDeleteRecordResp;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
+import com.br.marketing.client.robotaiapi.output.TransferRobotDataVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
-import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.client.zhongan.ZhongAnClient;
 import com.br.marketing.common.annoation.DistributeLog;
 import com.br.marketing.common.annoation.RetryMethod;
@@ -41,7 +52,6 @@ import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.DiDiAllowMarketingEnum;
 import com.br.marketing.mapper.*;
-import com.br.marketing.monkeydata.service.PushRosterLockingDataToZhongAn;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.DiDiAllowReqDTO;
@@ -54,7 +64,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -120,9 +129,6 @@ public class MethodRetryHandlerService {
     private ZhonganRosterLockingDataMapper zhonganRosterLockingDataMapper;
 
     @Resource
-    private PushRosterLockingDataToZhongAn rosterLockingDataToZhongAn;
-
-    @Resource
     ZhonganMarketingBanMapper zhonganMarketingBanMapper;
 
     @Resource
@@ -144,13 +150,19 @@ public class MethodRetryHandlerService {
     private DiDiClient diDiClient;
 
     @Resource
-    private  RedisChgService redisChgService;
+    private RedisChgService redisChgService;
 
     @Resource
     private DidiCallRecordMapper didiCallRecordMapper;
 
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
+
+    @Resource
+    private QiFuClients qiFuClients;
+
+    @Resource
+    private QifuSaveReachDeleteRecordApiPushLogMapper qifuSaveReachDeleteRecordApiPushLogMapper;
 
     /**
      *
@@ -164,7 +176,7 @@ public class MethodRetryHandlerService {
      * @return
      */
     public DataJoinLogDTO dataJoinLogFix(Object data, DistributeTypeEnum distributeTypeEnum, String apiCode
-            , String custNum, String cell, Long sourceId, DistributeSourceTypeEnum distributeSourceTypeEnum,String status,String extend){
+            , String custNum, String cell, Long sourceId, DistributeSourceTypeEnum distributeSourceTypeEnum, String status, String extend){
         DataJoinLogDTO dataJoinLogDTO = new DataJoinLogDTO();
         dataJoinLogDTO.setApiCode(apiCode);
         dataJoinLogDTO.setCustNum(custNum);
@@ -228,6 +240,67 @@ public class MethodRetryHandlerService {
         }
         log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
+
+    /**
+     * 2023-08-24 13:28
+     * 灵明石猴
+     * 人工实时推送用户名单(单条)处理，带去重的方法
+     * 与callDassRealTimeUserData方法逻辑一毛一样
+     */
+    @DistributeLog
+    @RetryMethod(isOrNoDbRetry = true)
+    public Result<JSONObject> callDassRealTimeUserDataSole(DassSingleImportAdapSoleDTO dassImportAdapDTO, Integer retry
+            , PhoneSaleExtendInfo phoneSaleExtendInfo) {
+        List<DassSingleImportDataDTO> data = dassImportAdapDTO.getData();
+        if (CollectionUtils.isEmpty(data)) {
+            Result<JSONObject> result = new Result<>();
+            result.setCode(ResultCode.SUCCESS.getValue());
+            result.setMessage("去重后，数据为空");
+            return result;
+        }
+        //插入b_phone_sale_extend_info
+        if (phoneSaleExtendInfo != null) {
+            try {
+                phoneSaleExtendInfo.setCreateTime(new Date());
+                phoneSaleExtendInfoMapper.insertSelective(phoneSaleExtendInfo);
+                dassImportAdapDTO.setExtendInfo(phoneSaleExtendInfo.getId().toString());
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+        DassSingleImportAdapDTO dassSingleImportAdapDTO = new DassSingleImportAdapDTO();
+        dassSingleImportAdapDTO.setDassSingleImportDataDTO(dassImportAdapDTO.getDassSingleImportDataDTO());
+        dassSingleImportAdapDTO.setExtendInfo(dassImportAdapDTO.getExtendInfo());
+        dassSingleImportAdapDTO.setTransferInfoId(dassImportAdapDTO.getTransferInfoId());
+        Result<JSONObject> result = dassServiceClient.postRealTimeUserData(dassSingleImportAdapDTO);
+        PhoneSaleExtendInfo info = new PhoneSaleExtendInfo();
+        info.setId(Long.valueOf(dassImportAdapDTO.getExtendInfo()));
+        info.setUpdateTime(new Date());
+        info.setPushDxTime(new Date());
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            saveBizLog(dassImportAdapDTO.getExtendInfo(), dassImportAdapDTO.getInterfaceHandlerEnum() == null
+                            ? InterfaceHandlerEnum.ARTIFICIAL_REAL_TIME_USERDATA_SOLE.getCode()
+                            : dassImportAdapDTO.getInterfaceHandlerEnum().getCode(),
+                    dassImportAdapDTO.getTransferInfoId());
+            info.setPStatus(2);
+            phoneSaleExtendInfoMapper.updateByPrimaryKeySelective(info);
+            return result;
+        }
+        info.setPStatus(3);
+        phoneSaleExtendInfoMapper.updateByPrimaryKeySelective(info);
+        log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
+        result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        return result;
+    }
+
+    /**
+     * 2023-09-02 14:22
+     * 六耳猕猴
+     */
+    @DistributeLog
+    public Result<JSONObject> callDassRealTimeUserDataSole(DassSingleImportAdapSoleDTO dassImportAdapDTO, Integer retry) {
+        return callDassRealTimeUserDataSole(dassImportAdapDTO, retry, null);
     }
 
     /**
@@ -307,9 +380,9 @@ public class MethodRetryHandlerService {
      * @return
      */
     @RetryMethod(isOrNoDbRetry = true)
-    public Result<TransferRobotOutboundVO<UnsuccessfulData>> callCustomerTransfer(TransferRobotOutboundDTO robotOutboundDTO, Integer retry) {
-        TransferRobotOutboundVO<UnsuccessfulData> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
-        if (!"9999".equals(transferRobotOutboundVO.getCode())) {
+    public Result<TransferRobotOutboundVO<TransferRobotDataVO>> callCustomerTransfer(TransferRobotOutboundDTO robotOutboundDTO, Integer retry) {
+        TransferRobotOutboundVO<TransferRobotDataVO> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
+        if (!"9999".equals(transferRobotOutboundVO.getCode()) && getAllSuccessful(transferRobotOutboundVO)) {
             List<ConversionData> conversionData = robotOutboundDTO.getJsonData().getConversionData();
             Set<String> set = conversionData.stream().map(ConversionData::getDataId).collect(Collectors.toSet());
             saveBizLog(String.join(",", set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), robotOutboundDTO.getTransferInfoId());
@@ -328,7 +401,7 @@ public class MethodRetryHandlerService {
      */
     @RetryMethod(isOrNoDbRetry = true)
     @DistributeLog
-    public Result<TransferRobotOutboundVO<UnsuccessfulData>> callCustomerTransfer(TransferRobotOutboundSoleDTO robotOutboundDTO, Integer retry) {
+    public Result<TransferRobotOutboundVO<TransferRobotDataVO>> callCustomerTransfer(TransferRobotOutboundSoleDTO robotOutboundDTO, Integer retry) {
         if(robotOutboundDTO.getData().size()<=0){
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         }
@@ -336,8 +409,8 @@ public class MethodRetryHandlerService {
         transferRobotOutboundDTO.setTransferInfoId(robotOutboundDTO.getTransferInfoId());
         transferRobotOutboundDTO.setApiCode(robotOutboundDTO.getApiCode());
         transferRobotOutboundDTO.setJsonData(new TransferJsonDataDTO(robotOutboundDTO.getData(),robotOutboundDTO.getLast()));
-        TransferRobotOutboundVO<UnsuccessfulData> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(transferRobotOutboundDTO);
-        if (!"9999".equals(transferRobotOutboundVO.getCode())) {
+        TransferRobotOutboundVO<TransferRobotDataVO> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(transferRobotOutboundDTO);
+        if (!"9999".equals(transferRobotOutboundVO.getCode()) && getAllSuccessful(transferRobotOutboundVO)) {
             Set<Long> set = robotOutboundDTO.getDetailLogList().stream().map(DataDistributeDetailLog::getSourceId).collect(toSet());
             saveBizLog(Joiner.on(",").join(set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), robotOutboundDTO.getTransferInfoId());
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(transferRobotOutboundVO);
@@ -347,6 +420,29 @@ public class MethodRetryHandlerService {
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
     }
 
+    public Result<TransferRobotOutboundVO<TransferRobotDataVO>> xieChengSmsCallCustomerTransfer(TransferRobotOutboundDTO robotOutboundDTO, Integer retry) {
+        TransferRobotOutboundVO<TransferRobotDataVO> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
+        if (!"9999".equals(transferRobotOutboundVO.getCode()) && getAllSuccessful(transferRobotOutboundVO)) {
+            List<ConversionData> conversionData = robotOutboundDTO.getJsonData().getConversionData();
+            Set<String> set = conversionData.stream().map(ConversionData::getDataId).collect(Collectors.toSet());
+            DataCompare dataCompare = new DataCompare(String.join(",", set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), null);
+            dataCompare.setRemark("xieChengSmsPushToTransfer");
+            dataCompareMapper.insertSelective(dataCompare);
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(transferRobotOutboundVO);
+        }
+        log.error("携程新场景短信撞库，调用客服接口失败 -- {}", JSON.toJSONString(transferRobotOutboundVO));
+        //调用客户转化接口失败，记录数据入库，定时任务重试
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
+    }
+
+    private static Boolean getAllSuccessful(TransferRobotOutboundVO<TransferRobotDataVO> transferRobotOutboundVO) {
+        // 当unsuccessfulData数组中有值时，需要重试
+        Boolean allSuccessful = Boolean.FALSE;
+        if (null != transferRobotOutboundVO.getData() && CollectionUtils.isEmpty(transferRobotOutboundVO.getData().getUnsuccessfulData())) {
+            allSuccessful = Boolean.TRUE;
+        }
+        return allSuccessful;
+    }
 
     void saveBizLog(String data, Integer handlerEnum, Long infoId) {
         DataCompare dataCompare = new DataCompare(data, handlerEnum, infoId);
@@ -374,7 +470,6 @@ public class MethodRetryHandlerService {
         log.error("调用批量人工实时转电销失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
-
 
 
     /**
@@ -449,9 +544,43 @@ public class MethodRetryHandlerService {
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
+    /**
+     * 调用电销转化接口 带去重功能
+     * 调用成功，将该批数据记录到数据库中以便数据对比
+     */
+    @RetryMethod(isOrNoDbRetry = true)
+    @DistributeLog
+    public Result<?> callDassTransferDataSole(DassTransferDataAdapSoleDTO dassTransferDataAdapDTO, Integer retry) {
+        if (CollectionUtils.isEmpty(dassTransferDataAdapDTO.getData())) {
+            Result<?> result = new Result<>();
+            result.setCode(ResultCode.SUCCESS.getValue());
+            result.setMessage("去重后，数据为空");
+            return result;
+        }
+        List<DassTransferDataDTO> list = dassTransferDataAdapDTO.getData().stream().map(
+                DassAssembleTransferDataSoleDTO::getDassTransferDataDTO).collect(Collectors.toList());
+        DassTransferDataAdapDTO dto = new DassTransferDataAdapDTO();
+        dto.setDassTransferDataDTOList(list);
+        dto.setTransferInfoId(dassTransferDataAdapDTO.getTransferInfoId());
+        dto.setPhoneSaleExtendInfoList(dassTransferDataAdapDTO.getPhoneSaleExtendInfoList());
+        Result<?> result = dassServiceClient.postTransferData(dto);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            Set<String> set = list.stream().map(DassTransferDataDTO::getId).map(String::valueOf).collect(Collectors.toSet());
+            saveBizLog(String.join(",", set), dassTransferDataAdapDTO.getInterfaceHandlerEnum() == null
+                            ? InterfaceHandlerEnum.ARTIFICIAL_TRANSFER_SOLE.getCode()
+                            : dassTransferDataAdapDTO.getInterfaceHandlerEnum().getCode(),
+                    dassTransferDataAdapDTO.getTransferInfoId());
+            return result;
+        }
+        log.error("调用电销去重转化接口失败 -- {}", JSON.toJSONString(result));
+        result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        return result;
+    }
+
 
     /**
      * 萨摩耶转化数据剔除
+     *
      * @param dassTransferDataAdapDTO
      * @param retry
      * @return
@@ -507,7 +636,6 @@ public class MethodRetryHandlerService {
     }
 
 
-
     /**
      * 推送决策接口
      *
@@ -525,6 +653,27 @@ public class MethodRetryHandlerService {
             if (infoId != null) {
                 saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(), infoId);
             }
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
+
+    /**
+     * 宜信情况L调用推送决策接口
+     * @param dto
+     * @param retry
+     * @return
+     */
+    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = true)
+    public Result callPolicyDataYiXinToJueCe(PolicyRetryByRuleDTO dto, Integer retry) {
+        List<Long> ids = dto.getIds();
+        PushMarketingUserDTO pushMarketingUserDTO = dto.getPushMarketingUserDTO();
+        Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            DataCompare dataCompare = new DataCompare(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(), null);
+            dataCompare.setRemark("yixinToJueCeL");
+            dataCompareMapper.insertSelective(dataCompare);
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
@@ -554,10 +703,6 @@ public class MethodRetryHandlerService {
                 updatePushStatus(bo, 2, null);
         }
         result.setCode(zhongAnResult.getCode());
-        if (retry != null) {
-            rosterLockingDataToZhongAn.localFilePushStatis(bo.getApiCode()
-                    , LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
-        }
         return result;
     }
 
@@ -642,9 +787,18 @@ public class MethodRetryHandlerService {
     }
 
     private void updatePushStatus(ZaMarketDataBO bo, Integer updatePushStatus, Integer updateStatus) {
-        zhonganRosterLockingDataMapper.updatePushStatusOrStatus(bo.getApiCode(), updatePushStatus, updateStatus
-                , null, bo.getTag(), bo.getList(), LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-                , new Date());
+        if (CollectionUtils.isEmpty(bo.getIds())) {
+            return;
+        }
+        ZhonganRosterLockingData data = new ZhonganRosterLockingData();
+        if (updateStatus != null) {
+            data.setStatus(updateStatus);
+        }
+        data.setPushStatus(updatePushStatus);
+        data.setUpdateTime(new Date());
+        ZhonganRosterLockingDataExample example = new ZhonganRosterLockingDataExample();
+        example.createCriteria().andIdIn(bo.getIds());
+        zhonganRosterLockingDataMapper.updateByExampleSelective(data, example);
     }
 
     /**
@@ -697,8 +851,8 @@ public class MethodRetryHandlerService {
         try {
             String custNum = didiCallRecord.getCustNum();
             String apiCode = didiCallRecord.getApiCode();
+            String meidaName = "bairongA";
             Integer createDate = didiCallRecord.getCreateDate();
-            Date createTime = didiCallRecord.getCreateTime();
             // 获取redis 锁
             String key = RedisKeyConstant.pushDidiCollRecordLock.concat(":")
                     .concat(apiCode)
@@ -712,25 +866,33 @@ public class MethodRetryHandlerService {
             DidiCallRecordExample didiCallRecordExample = new DidiCallRecordExample();
             didiCallRecordExample.createCriteria()
                     .andCustNumEqualTo(custNum)
-                    .andStatusEqualTo(1)
+                    .andStatusEqualTo(3)
                     .andCreateDateEqualTo(createDate);
             if (didiCallRecordMapper.countByExample(didiCallRecordExample)==0) {
                 MarketingTransferSyncUser marketingTransferSyncUser = new MarketingTransferSyncUser();
                 marketingTransferSyncUser.setApiCode(apiCode);
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                marketingTransferSyncUser.setRequestData( sdf.format(new Date()));
+                marketingTransferSyncUser.setRequestData(LocalDate.now().toString());
                 marketingTransferSyncUser.setCustNum(custNum);
                 // 判断是否有效
                 MarketingSyncUser newValidityPeriodData = transferDataValidityPeriodService.getMarketingSyncUserDidi(marketingTransferSyncUser,null);
-                if(newValidityPeriodData!=null){
+                if(newValidityPeriodData!=null) {
                     updateDidiCallRecord.setCell(newValidityPeriodData.getCell());
-
                     // 调接口推送
                     DiDiReqVO diDiReqVO = new DiDiReqVO();
+                    diDiReqVO.setMediaName(meidaName);
                     diDiReqVO.setCustMobileMd5(custNum);
-                    Result<DiDiResponseTO> resResultResult = diDiClient.pushReachSuccess(diDiReqVO);
+                    boolean isNotError;
+                    Result<DiDiResponseTO> resResultResult;
+                    DiDiReachBO diDiReachBO = new DiDiReachBO();
+                    DiDiReachRequestTO diDiReachRequestTO = new DiDiReachRequestTO();
+                    diDiReachRequestTO.setScas(didiCallRecord.getScas());
+                    diDiReachBO.setDiDiReachRequestTO(diDiReachRequestTO);
+                    diDiReachBO.setDiDiReqVO(diDiReqVO);
+                    resResultResult = diDiClient.pushReachSuccess(diDiReachBO);
+                    isNotError = resResultResult.getData() != null
+                            && "10000".equals(resResultResult.getData().getErrorCode());
                     // 500 异常需要进入阶梯重试
-                    if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(resResultResult.getCode())){
+                    if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(resResultResult.getCode())) {
                         updateDidiCallRecord.setStatus(2);
                         updateDidiCallRecord.setSysMessage("重试数据");
                         updateDidiCallRecord.setUpdateTime(new Date());
@@ -740,17 +902,17 @@ public class MethodRetryHandlerService {
                         return new Result<Boolean>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
                     }
                     // 成功则更新数据状态
-                    if(resResultResult.getCode().equals(ResultCode.SUCCESS.getValue())){
+                    if (resResultResult.getCode().equals(ResultCode.SUCCESS.getValue()) && isNotError) {
                         res = Boolean.TRUE;
                         DiDiResponseTO diDiResponseTO = resResultResult.getData();
                         DiDiResponseTO.ResResult data = diDiResponseTO.getData();
                         Boolean result = null;
-                        if(data !=null){
+                        if (data != null) {
                             result = data.getResult();
                         }
                         String errorMessage = diDiResponseTO.getErrorMessage();
                         String errorCode = diDiResponseTO.getErrorCode();
-                        updateDidiCallRecord.setStatus(1);
+                        updateDidiCallRecord.setStatus(3);
                         updateDidiCallRecord.setResult(result);
                         updateDidiCallRecord.setErrorCode(errorCode);
                         updateDidiCallRecord.setErrorMessage(errorMessage);
@@ -797,14 +959,87 @@ public class MethodRetryHandlerService {
             updateEntity.setPushDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             updateEntity.setIsMarketing(DiDiAllowMarketingEnum.YES.getValue());
             didiDataMapper.updateByPrimaryKeySelective(updateEntity);
-        }else if(data.getData() !=null && !data.getData().getResult()){
+        } else if (data.getData() != null && !data.getData().getResult()) {
             updateEntity.setIsMarketing(DiDiAllowMarketingEnum.NO.getValue());
             didiDataMapper.updateByPrimaryKeySelective(updateEntity);
-        }else{
+        } else {
             updateEntity.setIsMarketing(DiDiAllowMarketingEnum.NOKNOW.getValue());
-            updateEntity.setDataMessage(data== null?"":JSON.toJSONString(data));
+            updateEntity.setDataMessage(data == null ? "" : JSON.toJSONString(data));
             didiDataMapper.updateByPrimaryKeySelective(updateEntity);
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
     }
+
+    /**
+     * 保存触达删除记录接口
+     *
+     * @param reqBO 封装的数据
+     * @param retry 重试切面使用的标记，正常业务调用时赋值null
+     * @return 接口响应业务字段
+     */
+    @RetryMethod(retryNowNum = 1, isOrNoDbRetry = true)
+    public Result<SaveReachDeleteRecordResp> callSaveReachDeleteRecord(SaveReachDeleteRecordReqBO reqBO, Integer retry) {
+        Result<SaveReachDeleteRecordResp> result = new Result<>();
+        SaveReachDeleteRecordReq req = reqBO.getReq();
+        Result<ResponseData<SaveReachDeleteRecordResp>> dataResult = qiFuClients.sendSaveReachDeleteRecordData(req);
+        result.setCode(dataResult.getCode());
+        if (retry == null && reqBO.getLogId() == null) {
+            result.setDate(insertSaveReachDeleteRecordLog(reqBO, dataResult));
+        } else if (ResultCode.SUCCESS.getValue().equals(dataResult.getCode())) {
+            ResponseData<SaveReachDeleteRecordResp> data = dataResult.getData();
+            QifuSaveReachDeleteRecordApiPushLog updateLog = new QifuSaveReachDeleteRecordApiPushLog();
+            updateLog.setId(reqBO.getLogId());
+            // 重试后正常 3
+            updateLog.setStatus(3);
+            updateLog.setRespFlag(data.getFlag().toString());
+            updateLog.setRespCode(data.getCode());
+            updateLog.setRespMsg(data.getMsg());
+            SaveReachDeleteRecordResp t = data.getData().getT();
+            if (Objects.nonNull(t)) {
+                updateLog.setQifuIsSucceed(t.getIsSucceed().toString());
+                updateLog.setQifuMessage(t.getMessage());
+            }
+            qifuSaveReachDeleteRecordApiPushLogMapper.updateByPrimaryKeySelective(updateLog);
+        }
+        return result;
+    }
+
+    private SaveReachDeleteRecordResp insertSaveReachDeleteRecordLog(SaveReachDeleteRecordReqBO reqBO
+            , Result<ResponseData<SaveReachDeleteRecordResp>> dataResult) {
+        SaveReachDeleteRecordResp resp = null;
+        SaveReachDeleteRecordReq req = reqBO.getReq();
+        QifuSaveReachDeleteRecordApiPushLog pushLog = new QifuSaveReachDeleteRecordApiPushLog();
+        pushLog.setBatchNo(req.getBatchNo());
+        pushLog.setRequestNo(req.getRequestNo());
+        pushLog.setApiCode(reqBO.getApiCode());
+        pushLog.setSyncAppletDate(reqBO.getAppletDate());
+        pushLog.setPushDate(LocalDate.now().toString());
+        pushLog.setUpdateTime(new Date());
+        pushLog.setCreateTime(pushLog.getUpdateTime());
+        ResponseData<SaveReachDeleteRecordResp> data = dataResult.getData();
+        if (ResultCode.SUCCESS.getValue().equals(dataResult.getCode())) {
+            pushLog.setRespCode(data.getCode());
+            pushLog.setRespFlag(data.getFlag().toString());
+            pushLog.setRespMsg(data.getMsg());
+            SaveReachDeleteRecordResp t = data.getData().getT();
+            pushLog.setQifuIsSucceed(t.getIsSucceed().toString());
+            pushLog.setQifuMessage(t.getMessage());
+            resp = t;
+            // 正常 1
+            pushLog.setStatus(1);
+        } else {
+            if (Objects.nonNull(data)) {
+                pushLog.setRespCode(data.getCode());
+                pushLog.setRespFlag(data.getFlag().toString());
+                pushLog.setRespMsg(data.getMsg());
+            }
+            pushLog.setErrorMsg(dataResult.getMessage());
+            // 异常 2
+            pushLog.setStatus(2);
+        }
+        qifuSaveReachDeleteRecordApiPushLogMapper.insertSelective(pushLog);
+        reqBO.setLogId(pushLog.getId());
+        return resp;
+    }
+
 }

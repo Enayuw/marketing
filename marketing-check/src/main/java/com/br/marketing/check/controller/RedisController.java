@@ -10,9 +10,22 @@ import com.br.marketing.client.haier.output.PushDTO;
 import com.br.marketing.client.haier.output.Response2Entity;
 import com.br.marketing.client.haier.output.ResponseInfoEntity;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.context.spring.ContainerContext;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.dangdang.ddframe.job.internal.job.AbstractElasticJob;
+import com.dangdang.ddframe.job.internal.schedule.JobFacade;
+import com.dangdang.ddframe.job.internal.storage.JobNodePath;
+import com.dangdang.ddframe.reg.base.CoordinatorRegistryCenter;
+import com.dangdang.ddframe.reg.zookeeper.ZookeeperConfiguration;
+import com.dangdang.ddframe.reg.zookeeper.ZookeeperRegistryCenter;
+import com.google.common.base.Charsets;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,6 +56,31 @@ public class RedisController {
         log.info("key ----{}----", key);
         return redisChgService.get(key);
     }
+
+    @Value("${SERVER_LISTS}")
+    private String zklist;
+
+    @Value("${NAMESPACE}")
+    private String namespace;
+
+    @GetMapping("get2")
+    public String get2(String key) {
+        ZookeeperConfiguration zkConfig = new ZookeeperConfiguration(zklist, namespace);
+        CoordinatorRegistryCenter result = new ZookeeperRegistryCenter(zkConfig);
+        result.init();
+        TreeCache treeCache = (TreeCache) result.getRawCache("/");
+        if (treeCache == null) {
+            result.addCacheData("/");
+        }
+
+        result.persist("/TaskTransferSyncReportJob/leader/sharding/necessary","");
+//        result.persist(new JobNodePath("taskTransferSyncReportJob").getExecutionNodePath(),"");
+//        new CoordinatorRegistryCenter().getChildrenKeys()
+//        ContainerContext.applicationContext.getBeansOfType(AbstractElasticJob.class).get("taskTransferSyncReportJob").getJobFacade()
+        return "test";
+    }
+
+
 
     @GetMapping("set")
     public String set(String key, String value) {

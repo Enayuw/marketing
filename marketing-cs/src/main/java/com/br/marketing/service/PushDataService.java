@@ -64,6 +64,14 @@ public interface PushDataService {
      */
     void pushXieChengSmsCollidingToDbData(String data);
 
+    /**
+     * 推送携程短信撞库数据Version2
+     */
+    void pushXieChengSmsCollidingToDbDataVt(Long localId);
+
     String getHaierRequestId(String type);
 
+    Boolean isPushDassWithCallGrade(String ruleLabel,String intentionGrade);
+
+    String getStatusByGrade(String ruleLabel,String intentionGrade);
 }

@@ -34,6 +34,15 @@ public class ConsumerService {
     @Autowired
     private RabbitMqProducter producter;
 
+    /**
+     * rabbitMQ消费端
+     * @param channel 渠道
+     * @param message 消费消息
+     * @param method 消费业务
+     * @param t 消费信息
+     * @param retryRouteKey 重试路由key
+     * @param <T> 消费消息类型
+     */
     public <T> void consumerRun(Channel channel, Message message, Function<T, Result<Boolean>> method, T t, String retryRouteKey) {
         try {
             Result<Boolean> apply = method.apply(t);
@@ -69,7 +78,25 @@ public class ConsumerService {
         }
     }
 
+    /**
+     * pulsar消费端
+     * @param subscription 订阅者
+     * @param method 消费业务方法
+     * @param consumerNum 消费者数量
+     * @param topic 主题，死信，重试
+     */
+    public void consumerPulsar(String subscription,Function<String, Result<Boolean>> method,Integer consumerNum,String... topic) {
+        if(consumerNum == null || consumerNum<=0){
+            consumerNum = 1;
+        }
+        for (int i=0;i<consumerNum;i++){
+            new PulsarConsumerThread(method,subscription,topic).start();
+        }
+    }
+
     public Result<Boolean> test(String s) {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
+
+
 }

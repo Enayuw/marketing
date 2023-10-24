@@ -1,10 +1,12 @@
 package com.br.marketing.check.service.Impl;
 
+import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.RetryDetailLog;
 import com.br.marketing.entity.RetryMainLog;
 import com.br.marketing.entity.RetryMainLogExample;
@@ -15,20 +17,25 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Resource;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
 public class RetryServiceImpl {
 
     final static Integer aopRetry = 1;
-    @Autowired
+    @Resource
     RetryMainLogMapper retryMainLogMapper;
 
-    @Autowired
+    @Resource
     RetryDetailLogMapper retryDetailLogMapper;
 
     public void retry(){
@@ -63,6 +70,34 @@ public class RetryServiceImpl {
                 retryMainLogMapper.updateByPrimaryKeySelective(updateMainLog);
             }
         }
+    }
+
+    public void retry(String retryService,String retryMethod,Integer threadNum,Integer pageSize){
+
+        Long minIdByNeedRetryData = retryMainLogMapper.getMinIdByNeedRetryWithMethodData(retryService,retryMethod);
+        if(minIdByNeedRetryData==null){
+            return;
+        }
+        boolean exec = Boolean.TRUE;
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
+        while(exec){
+            List<RetryMainLog> retryMainLogs = retryMainLogMapper.getNeedRetryWithMethodData(minIdByNeedRetryData,retryService,retryMethod,pageSize);
+            if(retryMainLogs.size()<=0){
+                exec = Boolean.FALSE;
+                continue;
+            }
+            minIdByNeedRetryData = retryMainLogs.get(retryMainLogs.size()-1).getIncrId()+1;
+            threadPool.submit(new RetryThread(retryMainLogs));
+        }
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(5L, TimeUnit.SECONDS)) {
+
+            }
+        }catch (Exception ex){
+            log.error(ex.getMessage(), ex);
+        }
+
     }
 
     public Result retryInnerService(RetryMainLog retryMainLog){
@@ -119,5 +154,38 @@ public class RetryServiceImpl {
         }
         retryDetailLogMapper.insertSelective(detailLog);
         return objectResult;
+    }
+
+    class RetryThread implements Runnable {
+
+        private List<RetryMainLog> retryMainLogs;
+        public RetryThread(List<RetryMainLog> retryMainLogs){
+            this.retryMainLogs = retryMainLogs;
+        }
+
+        @Override
+        public void run() {
+            for (RetryMainLog retryMainLog : this.retryMainLogs) {
+                try {
+                    RetryMainLog updateMainLog = new RetryMainLog();
+                    updateMainLog.setId(retryMainLog.getId());
+                    Result result = new Result();
+                    if (Integer.valueOf(1).equals(retryMainLog.getRetryType())) {
+                        result = retryInnerService(retryMainLog);
+                    }
+                    updateMainLog.setRetryNum(retryMainLog.getRetryNum() + 1);
+                    if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                        updateMainLog.setRetryStatus(2);
+                    } else {
+                        if (updateMainLog.getRetryNum() >= retryMainLog.getRetryMaxNum()) {
+                            updateMainLog.setRetryStatus(3);
+                        }
+                    }
+                    retryMainLogMapper.updateByPrimaryKeySelective(updateMainLog);
+                }catch (Exception ex){
+                    log.error(ex.getMessage(),ex);
+                }
+            }
+        }
     }
 }

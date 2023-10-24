@@ -46,392 +46,435 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Service
 @Slf4j
 public class HttpProxyClient {
-	private static final String CHARSET_UTF8 = "UTF-8";
-	@Value("${otherConfig.proxy.proxy_host_zw:00}")
-	private  String  proxyHost;
-	@Value("${otherConfig.proxy.proxy_port:00}")
-	private  int proxyPort;
-	@Value("${otherConfig.proxy.proxy_username:00}")
-	private  String userName;
-	@Value("${otherConfig.proxy.proxy_password:00}")
-	private  String password;
-	private static final PoolingHttpClientConnectionManager HTTP_CLIENT_POOL = new PoolingHttpClientConnectionManager();
+    private static final String CHARSET_UTF8 = "UTF-8";
+    @Value("${otherConfig.proxy.proxy_host:00}")
+    private String proxyHost;
+    @Value("${otherConfig.proxy.proxy_host_zw:00}")
+    private String proxyHostZW;
+    @Value("${otherConfig.proxy.proxy_port:00}")
+    private int proxyPort;
+    @Value("${otherConfig.proxy.proxy_username:00}")
+    private String userName;
+    @Value("${otherConfig.proxy.proxy_password:00}")
+    private String password;
+    private static final PoolingHttpClientConnectionManager HTTP_CLIENT_POOL = new PoolingHttpClientConnectionManager();
 
-	static {
-		HTTP_CLIENT_POOL.setMaxTotal(5000);
-		HTTP_CLIENT_POOL.setDefaultMaxPerRoute(500);
-	}
+    static {
+        HTTP_CLIENT_POOL.setMaxTotal(5000);
+        HTTP_CLIENT_POOL.setDefaultMaxPerRoute(500);
+    }
 
-	@Autowired
-	MarketingCommonConfig marketingCommonConfig;
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
 
-	public Map<String ,Object> request(String url, String data,Boolean isProxy){
-		Map<String,Object> resultMap = new HashMap<>();
-		try {
-			log.warn("http发送数据入参--请求地址:{},参数：{}",url,data);
-			String result = send(data,url,isProxy);
-			log.warn("http发送数据返回结果{}",result);
-			resultMap.put("data",result);
-			if(StringUtils.isNotBlank(result)){
-				JSONObject resultJson =JSONObject.parseObject(result);
-				if ("00".equalsIgnoreCase(resultJson.getString("code"))){
-					resultMap.put("result",Boolean.TRUE);
-					return resultMap;
-				}else {
-					resultMap.put("result",Boolean.FALSE);
-					resultMap.put("desc","状态码错误"+resultJson.getString("code"));
-					return resultMap;
-				}
-			}else {
-				resultMap.put("result",Boolean.FALSE);
-				resultMap.put("desc","http请求返回结果为空");
-				return resultMap;
-			}
-		} catch (Exception e) {
-			log.error("http发送数据异常",e);
-			resultMap.put("result",Boolean.FALSE);
-			resultMap.put("desc","http请求异常，可能地址不正确或服务不可用");
-			return resultMap;
-		}
-	}
-	/**
-	 * http发送
-	 * @param param 参数
-	 * @param url 发送地址
-	 * @return String 返回信息
-	 */
-	public  String send(String param, String url,Boolean isPorxy) {
-		HttpClient httpClient =getHttpClient(isPorxy);
-		try {
-			HttpPost post = new HttpPost(url);
-			HttpEntity requestEntity = new StringEntity(param, CHARSET_UTF8);
-			post.setEntity(requestEntity);
-			post.setHeader("content-type","application/json");
-			RequestConfig requestConfig= getRequestConfig(isPorxy);
-			post.setConfig(requestConfig);
-			HttpResponse response = httpClient.execute(post);
-			String result = EntityUtils.toString(response.getEntity());
-			post.releaseConnection();
-			return result;
-		} catch (IOException e) {
-			log.error("url={} param={}", url, param, e);
-			return null;
-		}
-	}
+    public Map<String, Object> request(String url, String data, Boolean isProxy) {
+        Map<String, Object> resultMap = new HashMap<>();
+        try {
+            log.warn("http发送数据入参--请求地址:{},参数：{}", url, data);
+            String result = send(data, url, isProxy);
+            log.warn("http发送数据返回结果{}", result);
+            resultMap.put("data", result);
+            if (StringUtils.isNotBlank(result)) {
+                JSONObject resultJson = JSONObject.parseObject(result);
+                if ("00".equalsIgnoreCase(resultJson.getString("code"))) {
+                    resultMap.put("result", Boolean.TRUE);
+                    return resultMap;
+                } else {
+                    resultMap.put("result", Boolean.FALSE);
+                    resultMap.put("desc", "状态码错误" + resultJson.getString("code"));
+                    return resultMap;
+                }
+            } else {
+                resultMap.put("result", Boolean.FALSE);
+                resultMap.put("desc", "http请求返回结果为空");
+                return resultMap;
+            }
+        } catch (Exception e) {
+            log.error("http发送数据异常", e);
+            resultMap.put("result", Boolean.FALSE);
+            resultMap.put("desc", "http请求异常，可能地址不正确或服务不可用");
+            return resultMap;
+        }
+    }
 
-	/**
-	 * http发送
-	 * @param param 参数
-	 * @param url 发送地址
-	 * @return String 返回信息
-	 */
-	public  HashMap<String,String> sendByCode(String param, String url,Boolean isPorxy) {
-		HttpClient httpClient =getHttpClient(isPorxy);
-		HashMap<String,String> res = new HashMap<>();
-		try {
-			HttpPost post = new HttpPost(url);
-			HttpEntity requestEntity = new StringEntity(param, CHARSET_UTF8);
-			post.setEntity(requestEntity);
-			post.setHeader("content-type","application/json");
-			RequestConfig requestConfig= getRequestConfig(isPorxy,10000);
-			post.setConfig(requestConfig);
-			HttpResponse response = null;
-			if(isPorxy){
-				AuthCache authCache = new BasicAuthCache();
-				AuthScheme authScheme = new BasicScheme(ChallengeState.PROXY);
-				authCache.put(new HttpHost(proxyHost, proxyPort),authScheme);
-				HttpContext httpContext = new BasicHttpContext();
-				httpContext.setAttribute(ClientContext.AUTH_CACHE,authCache);
-				response = httpClient.execute(post,httpContext);
-			}else{
-				response = httpClient.execute(post);
-			}
+    /**
+     * http发送
+     *
+     * @param param 参数
+     * @param url   发送地址
+     * @return String 返回信息
+     */
+    public String send(String param, String url, Boolean isPorxy) {
+        HttpClient httpClient = getHttpClient(isPorxy, null);
+        try {
+            HttpPost post = new HttpPost(url);
+            HttpEntity requestEntity = new StringEntity(param, CHARSET_UTF8);
+            post.setEntity(requestEntity);
+            post.setHeader("content-type", "application/json");
+            RequestConfig requestConfig = getRequestConfig(isPorxy);
+            post.setConfig(requestConfig);
+            HttpResponse response = httpClient.execute(post);
+            String result = EntityUtils.toString(response.getEntity());
+            post.releaseConnection();
+            return result;
+        } catch (IOException e) {
+            log.error("url={} param={}", url, param, e);
+            return null;
+        }
+    }
 
-			int statusCode = response.getStatusLine().getStatusCode();
-			res.put("httpcode",String.valueOf(statusCode));
-			String result = EntityUtils.toString(response.getEntity());
-			res.put("content",result);
-			post.releaseConnection();
-		} catch (Exception e) {
-			log.error("url={} param={}", url, param, e);
-			res.put("content",e.getMessage());
-		}
-		return res;
-	}
+    /**
+     * http发送
+     *
+     * @param param 参数
+     * @param url   发送地址
+     * @return String 返回信息
+     */
+    public HashMap<String, String> sendByCode(String param, String url, Boolean isPorxy) {
+        HttpClient httpClient = getHttpClient(isPorxy, null);
+        HashMap<String, String> res = new HashMap<>();
+        try {
+            HttpPost post = new HttpPost(url);
+            HttpEntity requestEntity = new StringEntity(param, CHARSET_UTF8);
+            post.setEntity(requestEntity);
+            post.setHeader("content-type", "application/json");
+            RequestConfig requestConfig = getRequestConfig(isPorxy, 10000, null);
+            post.setConfig(requestConfig);
+            HttpResponse response = null;
+            if (isPorxy) {
+                AuthCache authCache = new BasicAuthCache();
+                AuthScheme authScheme = new BasicScheme(ChallengeState.PROXY);
+                authCache.put(new HttpHost(proxyHost, proxyPort), authScheme);
+                HttpContext httpContext = new BasicHttpContext();
+                httpContext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+                response = httpClient.execute(post, httpContext);
+            } else {
+                response = httpClient.execute(post);
+            }
 
-	@Autowired
-	InterfaceLogMapper interfaceLogMapper;
+            int statusCode = response.getStatusLine().getStatusCode();
+            res.put("httpcode", String.valueOf(statusCode));
+            String result = EntityUtils.toString(response.getEntity());
+            res.put("content", result);
+            post.releaseConnection();
+        } catch (Exception e) {
+            log.error("url={} param={}", url, param, e);
+            res.put("content", e.getMessage());
+        }
+        return res;
+    }
 
-	@Qualifier("interfaceLogDbpool")
-	@Autowired
-	ThreadPoolExecutor interfaceLogDbpool;
+    @Autowired
+    InterfaceLogMapper interfaceLogMapper;
 
-	public  HashMap<String,String> sendByCodeWithLog(Object param, String url, Boolean isPorxy, String mediaType,String extendInfo,Boolean isDbLog,Boolean isFileLog) {
-		return sendByCodePool(param,url,isPorxy,mediaType,extendInfo,isDbLog,isFileLog);
-	}
+    @Qualifier("interfaceLogDbpool")
+    @Autowired
+    ThreadPoolExecutor interfaceLogDbpool;
 
-	public  HashMap<String,String> sendByCode(Object param, String url, Boolean isPorxy, String mediaType,String extendInfo) {
-		return sendByCode(param,url,isPorxy,mediaType,extendInfo,true,false);
-	}
+    public HashMap<String, String> sendByCodeWithLog(Object param, String url, Boolean isPorxy, String mediaType, String extendInfo, Boolean isDbLog, Boolean isFileLog) {
+        return sendByCodePool(param, url, isPorxy, mediaType, extendInfo, isDbLog, isFileLog);
+    }
 
-	private  HashMap<String,String> sendByCode(Object param, String url, Boolean isPorxy, String mediaType,String extendInfo,Boolean isDbLog,Boolean isFileLog) {
-		InterfaceLog interfaceLog = new InterfaceLog();
-		interfaceLog.setExtendInfo(extendInfo);
-		interfaceLog.setRequestId(UUID.randomUUID().toString());
-		interfaceLog.setUrl(url);
-		interfaceLog.setCreateTime(new Date());
-		HttpClient httpClient =getHttpClient(isPorxy);
-		HashMap<String,String> res = new HashMap<>();
-		Long start = System.currentTimeMillis();
-		try {
-			HttpPost post = new HttpPost(url);
-			HttpEntity requestEntity = null;
-			if(mediaType.equals(MediaType.APPLICATION_JSON_UTF8_VALUE)){
-				String s = JSON.toJSONString(param);
-				interfaceLog.setRequestParam(s);
-				requestEntity = new StringEntity(s, CHARSET_UTF8);
-			}else if(mediaType.equals(MediaType.APPLICATION_FORM_URLENCODED_VALUE)){
-				StringBuilder paramStr = new StringBuilder();
-				BeanMap beanMap = BeanMap.create(param);
-				for (Object o : beanMap.keySet()) {
-					paramStr.append(String.format("%s=%s&",o.toString(), URLEncoder.encode(beanMap.get(o).toString(),"utf-8")));
-				}
-				interfaceLog.setRequestParam(paramStr.toString());
-				requestEntity = new StringEntity(paramStr.toString(), CHARSET_UTF8);
-			}else{
-				throw new RuntimeException("不支持的请求类型");
-			}
-			post.setEntity(requestEntity);
-			post.setHeader("content-type",mediaType);
-			interfaceLog.setHeader(post.getAllHeaders().toString());
-			RequestConfig requestConfig= getRequestConfig(isPorxy,10000);
-			post.setConfig(requestConfig);
-			HttpResponse response = null;
-			start = System.currentTimeMillis();
-			if(isPorxy){
-				AuthCache authCache = new BasicAuthCache();
-				AuthScheme authScheme = new BasicScheme(ChallengeState.PROXY);
-				authCache.put(new HttpHost(proxyHost, proxyPort),authScheme);
-				HttpContext httpContext = new BasicHttpContext();
-				httpContext.setAttribute(ClientContext.AUTH_CACHE,authCache);
-				response = httpClient.execute(post,httpContext);
-			}else{
-				response = httpClient.execute(post);
-			}
-			Long end = System.currentTimeMillis();
-			interfaceLog.setExpire(String.valueOf(end-start));
-			int statusCode = response.getStatusLine().getStatusCode();
-			res.put("httpcode",String.valueOf(statusCode));
-			String result = EntityUtils.toString(response.getEntity(),CHARSET_UTF8);
-			res.put("content",result);
-			interfaceLog.setResult(result);
-			interfaceLog.setHttpCode(statusCode);
-			post.releaseConnection();
-		} catch (Exception e) {
-			log.error("url={} param={}", url, param, e);
-			Long end = System.currentTimeMillis();
-			interfaceLog.setExpire(String.valueOf(end-start));
-			interfaceLog.setResult(e.getMessage());
-			res.put("content",e.getMessage());
-		}
-		if(isDbLog) {
-			interfaceLogDbpool.submit(() -> {
-				try {
-					interfaceLogMapper.insertSelective(interfaceLog);
-				} catch (Exception ex) {
-					log.error(String.format("插入接口日志报错:%s", ex.getMessage()), ex);
-				}
-			});
-		}
-		if(isFileLog){
-			log.warn(JSON.toJSONString(interfaceLog));
-		}
-		return res;
-	}
+    public HashMap<String, String> sendByCodeZw(Object param, String url, Boolean isPorxy, String mediaType, String extendInfo) {
+        return sendByCode(param, url, isPorxy, mediaType, extendInfo, true, false, 1);
+    }
 
-	private  HashMap<String,String> sendByCodePool(Object param, String url, Boolean isPorxy, String mediaType,String extendInfo,Boolean isDbLog,Boolean isFileLog) {
-		InterfaceLog interfaceLog = new InterfaceLog();
-		interfaceLog.setExtendInfo(extendInfo);
-		interfaceLog.setRequestId(UUID.randomUUID().toString());
-		interfaceLog.setUrl(url);
-		interfaceLog.setCreateTime(new Date());
-		HttpClient httpClient =getHttpClientInner(isPorxy);
-		HashMap<String,String> res = new HashMap<>();
-		Long start = System.currentTimeMillis();
-		try {
-			HttpPost post = new HttpPost(url);
-			HttpEntity requestEntity = null;
-			if(mediaType.equals(MediaType.APPLICATION_JSON_UTF8_VALUE)){
-				String s = JSON.toJSONString(param);
-				interfaceLog.setRequestParam(s);
-				requestEntity = new StringEntity(s, CHARSET_UTF8);
-			}else if(mediaType.equals(MediaType.APPLICATION_FORM_URLENCODED_VALUE)){
-				StringBuilder paramStr = new StringBuilder();
-				BeanMap beanMap = BeanMap.create(param);
-				for (Object o : beanMap.keySet()) {
-					paramStr.append(String.format("%s=%s&",o.toString(), URLEncoder.encode(beanMap.get(o).toString(),"utf-8")));
-				}
-				interfaceLog.setRequestParam(paramStr.toString());
-				requestEntity = new StringEntity(paramStr.toString(), CHARSET_UTF8);
-			}else{
-				throw new RuntimeException("不支持的请求类型");
-			}
-			post.setEntity(requestEntity);
-			post.setHeader("content-type",mediaType);
-			interfaceLog.setHeader(post.getAllHeaders().toString());
-			RequestConfig requestConfig= getRequestConfig(isPorxy,10000);
-			post.setConfig(requestConfig);
-			HttpResponse response = null;
-			start = System.currentTimeMillis();
-			if(isPorxy){
-				AuthCache authCache = new BasicAuthCache();
-				AuthScheme authScheme = new BasicScheme(ChallengeState.PROXY);
-				authCache.put(new HttpHost(proxyHost, proxyPort),authScheme);
-				HttpContext httpContext = new BasicHttpContext();
-				httpContext.setAttribute(ClientContext.AUTH_CACHE,authCache);
-				response = httpClient.execute(post,httpContext);
-			}else{
-				response = httpClient.execute(post);
-			}
-			Long end = System.currentTimeMillis();
-			interfaceLog.setExpire(String.valueOf(end-start));
-			int statusCode = response.getStatusLine().getStatusCode();
-			res.put("httpcode",String.valueOf(statusCode));
-			String result = EntityUtils.toString(response.getEntity(),CHARSET_UTF8);
-			res.put("content",result);
-			interfaceLog.setResult(result);
-			interfaceLog.setHttpCode(statusCode);
-			post.releaseConnection();
-		} catch (Exception e) {
-			log.error("url={} param={}", url, param, e);
-			Long end = System.currentTimeMillis();
-			interfaceLog.setExpire(String.valueOf(end-start));
-			interfaceLog.setResult(e.getMessage());
-			res.put("content",e.getMessage());
-		}
-		if(isDbLog) {
-			interfaceLogDbpool.submit(() -> {
-				try {
-					interfaceLogMapper.insertSelective(interfaceLog);
-				} catch (Exception ex) {
-					log.error(String.format("插入接口日志报错:%s", ex.getMessage()), ex);
-				}
-			});
-		}
-		if(isFileLog){
-			log.warn(JSON.toJSONString(interfaceLog));
-		}
-		return res;
-	}
+    public HashMap<String, String> sendByCode(Object param, String url, Boolean isPorxy, String mediaType, String extendInfo) {
+        return sendByCode(param, url, isPorxy, mediaType, extendInfo, true, false, null);
+    }
 
-	/**
-	 * 获取httpClient
-	 * @param isProxy 是否代理
-	 * @return HttpClient httpClient
-	 */
-	public  HttpClient getHttpClient(Boolean isProxy) {
-		if(isProxy) {
-			return getHttpClientZw();
-		}else {
-			CloseableHttpClient httpClient = HttpClientBuilder.create().setConnectionManager(HTTP_CLIENT_POOL).build();
-			return httpClient;
-		}
-	}
+    /**
+     * 调用接口的核心方法
+     *
+     * @param param      参数
+     * @param url        请求地址
+     * @param isPorxy    是否通过代理访问
+     * @param mediaType  数据格式
+     * @param extendInfo 扩展信息
+     * @param isDbLog    日志是否存储在db中
+     * @param isFileLog  日志是否存储在log中
+     * @param proxyType  代理的机房 1-兆维代理；2-亦庄代理；
+     * @return
+     */
+    private HashMap<String, String> sendByCode(Object param, String url, Boolean isPorxy, String mediaType, String extendInfo, Boolean isDbLog, Boolean isFileLog, Integer proxyType) {
+        InterfaceLog interfaceLog = new InterfaceLog();
+        interfaceLog.setExtendInfo(extendInfo);
+        interfaceLog.setRequestId(UUID.randomUUID().toString());
+        interfaceLog.setUrl(url);
+        interfaceLog.setCreateTime(new Date());
+        HttpClient httpClient = getHttpClient(isPorxy, proxyType);
+        HashMap<String, String> res = new HashMap<>();
+        Long start = System.currentTimeMillis();
+        try {
+            HttpPost post = new HttpPost(url);
+            HttpEntity requestEntity = null;
+            if (mediaType.equals(MediaType.APPLICATION_JSON_UTF8_VALUE)) {
+                String s = JSON.toJSONString(param);
+                interfaceLog.setRequestParam(s);
+                requestEntity = new StringEntity(s, CHARSET_UTF8);
+            } else if (mediaType.equals(MediaType.APPLICATION_FORM_URLENCODED_VALUE)) {
+                StringBuilder paramStr = new StringBuilder();
+                BeanMap beanMap = BeanMap.create(param);
+                for (Object o : beanMap.keySet()) {
+                    paramStr.append(String.format("%s=%s&", o.toString(), URLEncoder.encode(beanMap.get(o).toString(), "utf-8")));
+                }
+                interfaceLog.setRequestParam(paramStr.toString());
+                requestEntity = new StringEntity(paramStr.toString(), CHARSET_UTF8);
+            } else {
+                throw new RuntimeException("不支持的请求类型");
+            }
+            post.setEntity(requestEntity);
+            post.setHeader("content-type", mediaType);
+            interfaceLog.setHeader(post.getAllHeaders().toString());
+            RequestConfig requestConfig = getRequestConfig(isPorxy, 10000, proxyType);
+            post.setConfig(requestConfig);
+            HttpResponse response = null;
+            start = System.currentTimeMillis();
+            if (isPorxy) {
+                AuthCache authCache = new BasicAuthCache();
+                AuthScheme authScheme = new BasicScheme(ChallengeState.PROXY);
+                authCache.put(new HttpHost(Integer.valueOf(1).equals(proxyType) ? proxyHostZW : proxyHost, proxyPort), authScheme);
+                HttpContext httpContext = new BasicHttpContext();
+                httpContext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+                response = httpClient.execute(post, httpContext);
+            } else {
+                response = httpClient.execute(post);
+            }
+            Long end = System.currentTimeMillis();
+            interfaceLog.setExpire(String.valueOf(end - start));
+            int statusCode = response.getStatusLine().getStatusCode();
+            res.put("httpcode", String.valueOf(statusCode));
+            String result = EntityUtils.toString(response.getEntity(), CHARSET_UTF8);
+            res.put("content", result);
+            interfaceLog.setResult(result);
+            interfaceLog.setHttpCode(statusCode);
+            post.releaseConnection();
+        } catch (Exception e) {
+            log.error("url={} param={}", url, param, e);
+            Long end = System.currentTimeMillis();
+            interfaceLog.setExpire(String.valueOf(end - start));
+            interfaceLog.setResult(e.getMessage());
+            res.put("content", e.getMessage());
+        }
+        if (isDbLog) {
+            interfaceLogDbpool.submit(() -> {
+                try {
+                    interfaceLogMapper.insertSelective(interfaceLog);
+                } catch (Exception ex) {
+                    log.error(String.format("插入接口日志报错:%s", ex.getMessage()), ex);
+                }
+            });
+        }
+        if (isFileLog) {
+            log.warn(JSON.toJSONString(interfaceLog));
+        }
+        return res;
+    }
 
-	public  HttpClient getHttpClientInner(Boolean isProxy) {
-		if(isProxy){
-			// 设置代理HttpHost
-			HttpHost proxy = new HttpHost(proxyHost, proxyPort );
-			// 设置认证
-			CredentialsProvider provider = new BasicCredentialsProvider();
-			provider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials(userName, password));
-			CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(HTTP_CLIENT_POOL).setDefaultCredentialsProvider(provider).build();
-			return httpClient;
-		}else {
-			CloseableHttpClient httpClient = HttpClientBuilder.create().setConnectionManager(HTTP_CLIENT_POOL).build();
-			return httpClient;
-		}
-	}
+    private HashMap<String, String> sendByCodePool(Object param, String url, Boolean isPorxy, String mediaType, String extendInfo, Boolean isDbLog, Boolean isFileLog) {
+        InterfaceLog interfaceLog = new InterfaceLog();
+        interfaceLog.setExtendInfo(extendInfo);
+        interfaceLog.setRequestId(UUID.randomUUID().toString());
+        interfaceLog.setUrl(url);
+        interfaceLog.setCreateTime(new Date());
+        HttpClient httpClient = getHttpClientInner(isPorxy);
+        HashMap<String, String> res = new HashMap<>();
+        Long start = System.currentTimeMillis();
+        try {
+            HttpPost post = new HttpPost(url);
+            HttpEntity requestEntity = null;
+            if (mediaType.equals(MediaType.APPLICATION_JSON_UTF8_VALUE)) {
+                String s = JSON.toJSONString(param);
+                interfaceLog.setRequestParam(s);
+                requestEntity = new StringEntity(s, CHARSET_UTF8);
+            } else if (mediaType.equals(MediaType.APPLICATION_FORM_URLENCODED_VALUE)) {
+                StringBuilder paramStr = new StringBuilder();
+                BeanMap beanMap = BeanMap.create(param);
+                for (Object o : beanMap.keySet()) {
+                    paramStr.append(String.format("%s=%s&", o.toString(), URLEncoder.encode(beanMap.get(o).toString(), "utf-8")));
+                }
+                interfaceLog.setRequestParam(paramStr.toString());
+                requestEntity = new StringEntity(paramStr.toString(), CHARSET_UTF8);
+            } else {
+                throw new RuntimeException("不支持的请求类型");
+            }
+            post.setEntity(requestEntity);
+            post.setHeader("content-type", mediaType);
+            interfaceLog.setHeader(post.getAllHeaders().toString());
+            RequestConfig requestConfig = getRequestConfig(isPorxy, 10000, null);
+            post.setConfig(requestConfig);
+            HttpResponse response = null;
+            start = System.currentTimeMillis();
+            if (isPorxy) {
+                AuthCache authCache = new BasicAuthCache();
+                AuthScheme authScheme = new BasicScheme(ChallengeState.PROXY);
+                authCache.put(new HttpHost(proxyHost, proxyPort), authScheme);
+                HttpContext httpContext = new BasicHttpContext();
+                httpContext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+                response = httpClient.execute(post, httpContext);
+            } else {
+                response = httpClient.execute(post);
+            }
+            Long end = System.currentTimeMillis();
+            interfaceLog.setExpire(String.valueOf(end - start));
+            int statusCode = response.getStatusLine().getStatusCode();
+            res.put("httpcode", String.valueOf(statusCode));
+            String result = EntityUtils.toString(response.getEntity(), CHARSET_UTF8);
+            res.put("content", result);
+            interfaceLog.setResult(result);
+            interfaceLog.setHttpCode(statusCode);
+            post.releaseConnection();
+        } catch (Exception e) {
+            log.error("url={} param={}", url, param, e);
+            Long end = System.currentTimeMillis();
+            interfaceLog.setExpire(String.valueOf(end - start));
+            interfaceLog.setResult(e.getMessage());
+            res.put("content", e.getMessage());
+        }
+        if (isDbLog) {
+            interfaceLogDbpool.submit(() -> {
+                try {
+                    interfaceLogMapper.insertSelective(interfaceLog);
+                } catch (Exception ex) {
+                    log.error(String.format("插入接口日志报错:%s", ex.getMessage()), ex);
+                }
+            });
+        }
+        if (isFileLog) {
+            log.warn(JSON.toJSONString(interfaceLog));
+        }
+        return res;
+    }
 
-	/**
-	 * @description:获取兆维HttpClient代理对象
-	 * @author: lei.zhang2@100credit.com
-	 * @time: 2018年6月1日 下午2:19:08
-	 */
-	public  HttpClient getHttpClientZw()   {
-		// 设置代理HttpHost
-		HttpHost proxy = new HttpHost(proxyHost, proxyPort );
-		// 设置认证
-		CredentialsProvider provider = new BasicCredentialsProvider();
+    /**
+     * 获取httpClient
+     *
+     * @param isProxy 是否代理
+     * @return HttpClient httpClient
+     */
+    public HttpClient getHttpClient(Boolean isProxy, Integer proxyType) {
+        if (isProxy) {
+            if (new Integer(1).equals(proxyType)) {
+                return getHttpClientZw();
+            } else {
+                return getHttpClientSimple();
+            }
+        } else {
+            CloseableHttpClient httpClient = HttpClientBuilder.create().setConnectionManager(HTTP_CLIENT_POOL).build();
+            return httpClient;
+        }
+    }
 
-		provider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials(userName, password));
+    public HttpClient getHttpClientInner(Boolean isProxy) {
+        if (isProxy) {
+            // 设置代理HttpHost
+            HttpHost proxy = new HttpHost(proxyHost, proxyPort);
+            // 设置认证
+            CredentialsProvider provider = new BasicCredentialsProvider();
+            provider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials(userName, password));
+            CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(HTTP_CLIENT_POOL).setDefaultCredentialsProvider(provider).build();
+            return httpClient;
+        } else {
+            CloseableHttpClient httpClient = HttpClientBuilder.create().setConnectionManager(HTTP_CLIENT_POOL).build();
+            return httpClient;
+        }
+    }
 
-		CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(provider).build();
+    /**
+     * @description:获取兆维HttpClient代理对象
+     * @author: lei.zhang2@100credit.com
+     * @time: 2018年6月1日 下午2:19:08
+     */
+    public HttpClient getHttpClientZw() {
+        // 设置代理HttpHost
+        HttpHost proxy = new HttpHost(proxyHostZW, proxyPort);
+        // 设置认证
+        CredentialsProvider provider = new BasicCredentialsProvider();
 
-		return httpClient;
-	}
+        provider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials(userName, password));
 
-	/**
-	 * 配置信息
-	 * @param isProxy 是否代理
-	 * @return RequestConfig requestConfig
-	 */
-	public   RequestConfig getRequestConfig(Boolean isProxy) {
-		if(isProxy) {
-			return RequestConfig.custom()
-					.setSocketTimeout(6000)
-					.setConnectTimeout(1000)
-					.setProxy(new HttpHost(proxyHost, proxyPort ))
-					.setConnectionRequestTimeout(1000)
-					.build();
-		}else {
-			return	RequestConfig.custom()
-					.setSocketTimeout(6000)
-					.setConnectTimeout(1000)
-					.setConnectionRequestTimeout(1000)
-					.build();
-		}
-	}
+        CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(provider).build();
 
-	/**
-	 * 配置信息
-	 * @param isProxy 是否代理
-	 * @return RequestConfig requestConfig
-	 */
-	public   RequestConfig getRequestConfig(Boolean isProxy,Integer sockTimeout) {
-		if(isProxy) {
-			return RequestConfig.custom()
-					.setSocketTimeout(sockTimeout)
-					.setConnectTimeout(5000)
-					.setProxy(new HttpHost(proxyHost, proxyPort ))
-					.setConnectionRequestTimeout(5000)
-					.build();
-		}else {
-			return	RequestConfig.custom()
-					.setSocketTimeout(sockTimeout)
-					.setConnectTimeout(1000)
-					.setConnectionRequestTimeout(1000)
-					.build();
-		}
-	}
+        return httpClient;
+    }
+
+    public HttpClient getHttpClientSimple() {
+        // 设置代理HttpHost
+        HttpHost proxy = new HttpHost(proxyHost, proxyPort);
+        // 设置认证
+        CredentialsProvider provider = new BasicCredentialsProvider();
+
+        provider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials(userName, password));
+
+        CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(provider).build();
+
+        return httpClient;
+    }
+
+    /**
+     * 配置信息
+     *
+     * @param isProxy 是否代理
+     * @return RequestConfig requestConfig
+     */
+    public RequestConfig getRequestConfig(Boolean isProxy) {
+        if (isProxy) {
+            return RequestConfig.custom()
+                    .setSocketTimeout(6000)
+                    .setConnectTimeout(1000)
+                    .setProxy(new HttpHost(proxyHost, proxyPort))
+                    .setConnectionRequestTimeout(1000)
+                    .build();
+        } else {
+            return RequestConfig.custom()
+                    .setSocketTimeout(6000)
+                    .setConnectTimeout(1000)
+                    .setConnectionRequestTimeout(1000)
+                    .build();
+        }
+    }
+
+    /**
+     * 配置信息
+     *
+     * @param isProxy 是否代理
+     * @return RequestConfig requestConfig
+     */
+    public RequestConfig getRequestConfig(Boolean isProxy, Integer sockTimeout, Integer proxyType) {
+        if (isProxy) {
+            return RequestConfig.custom()
+                    .setSocketTimeout(sockTimeout)
+                    .setConnectTimeout(5000)
+                    .setProxy(new HttpHost(new Integer(1).equals(proxyType) ? proxyHostZW : proxyHost, proxyPort))
+                    .setConnectionRequestTimeout(5000)
+                    .build();
+        } else {
+            return RequestConfig.custom()
+                    .setSocketTimeout(sockTimeout)
+                    .setConnectTimeout(1000)
+                    .setConnectionRequestTimeout(1000)
+                    .build();
+        }
+    }
 
 
-	/**
-	 * 日志存储配置
-	 * @param callMethod 调用方法名
-	 * @return List : list(0)为是否db存储，list(1)为是否elk存储
-	 * 默认elk存储
-	 */
-	public List<Boolean> isLogStore(String callMethod) {
-		HashMap<String, List<Boolean>> apiLogMark = marketingCommonConfig.getApiLogMark();
-		ArrayList<Boolean> mark = new ArrayList<>();
-		if (apiLogMark == null || !apiLogMark.containsKey(callMethod)) {
-			mark.add(false);
-			mark.add(true);
-		} else {
-			mark.add(apiLogMark.get(callMethod).get(0));
-			mark.add(apiLogMark.get(callMethod).get(1));
-		}
-		return mark;
-	}
+    /**
+     * 日志存储配置
+     *
+     * @param callMethod 调用方法名
+     * @return List : list(0)为是否db存储，list(1)为是否elk存储
+     * 默认elk存储
+     */
+    public List<Boolean> isLogStore(String callMethod) {
+        HashMap<String, List<Boolean>> apiLogMark = marketingCommonConfig.getApiLogMark();
+        ArrayList<Boolean> mark = new ArrayList<>();
+        if (apiLogMark == null || !apiLogMark.containsKey(callMethod)) {
+            mark.add(false);
+            mark.add(true);
+        } else {
+            mark.add(apiLogMark.get(callMethod).get(0));
+            mark.add(apiLogMark.get(callMethod).get(1));
+        }
+        return mark;
+    }
 }

@@ -1,12 +1,9 @@
 package com.br.marketing.mapper;
 
-import com.br.marketing.entity.XieChengData;
 import com.br.marketing.entity.XieChengSmsCollidingData;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 public interface XieChengSmsCollidingDataMapper extends XieChengSmsCollidingDataMapperBase{
 

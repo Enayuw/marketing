@@ -1,16 +1,18 @@
 package com.br.marketing.service;
 
+import com.br.marketing.bo.CellValidityPeriodBO;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
 
-import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author GuangChao.Zhang
@@ -24,6 +26,12 @@ public interface TransferDataValidityPeriodService {
      * 判断转化数据是否在有效期内,在的话返回最新一条上传数据，不在返回可空
      */
     MarketingSyncUser getNewValidityPeriodData(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate);
+
+    /**
+     * (T,N)
+     * 判断转化数据是否在有效期内,在的话返回最新一条上传数据，不在返回可空
+     */
+    MarketingSyncUser getNewValidityPeriodDataFirstVersion(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate);
 
     /**
      * (T+N),(T,N)
@@ -41,6 +49,8 @@ public interface TransferDataValidityPeriodService {
      * 判断转化数据是否在有效期内，在的话返回true，不在返回false
      */
     boolean isValidityPeriod(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate);
+
+    boolean isValidityPeriodFirstVersion(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate);
 
     /**
      * 有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
@@ -70,13 +80,14 @@ public interface TransferDataValidityPeriodService {
 
     /**
      * 获取范围内的有效期的原始数据
+     *
      * @param transferSyncUserList
      * @param apiCode
      * @param limitDate
      * @return
      */
     Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(
-            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode,String limitDate);
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, String limitDate);
 
     /**
      * 有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
@@ -91,8 +102,7 @@ public interface TransferDataValidityPeriodService {
      * @dateTime 2023-03-22 16:07
      */
     Map<String, SyncUserValidityPeriodBO> getSyncUserValidityPeriodMap(
-            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj)
-            throws ParseException, IllegalArgumentException;
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj);
 
     /**
      * 场景中有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
@@ -107,8 +117,7 @@ public interface TransferDataValidityPeriodService {
      * @dateTime 2023-03-22 16:07
      */
     Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(
-            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj,String UploadLimitDate)
-            throws ParseException, IllegalArgumentException;
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj, String UploadLimitDate);
 
     /**
      * 根据apiCode和日期
@@ -119,5 +128,94 @@ public interface TransferDataValidityPeriodService {
      */
     Result<Date> getValidityBeginOfTn(String apiCode, Date endDate);
 
+
+    /**
+     * 有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
+     * 存在上传数据，有效
+     * 不存在上传数据，无效
+     *
+     * @param transferSyncUserList 转化数据集合
+     * @param apiCode              客户编号
+     * @param requestDateObj       接收日期，为null时使用转化数据请求日期，
+     *                             支持数据格式 String(yyyy-MM-dd)、Date、LocalDate、LocalDateTime、Long、Calendar,
+     *                             非以上格式时默认当前日期
+     * @return Map key：custNum+userType value：SyncUserValidityPeriodBO
+     * {@linkplain SyncUserValidityPeriodBO MarketingSyncUser PeriodOfValidityBO.Builder}
+     * @author Guo Zeqiang
+     * @dateTime 2023-07-11 10:07
+     */
+    Map<String, SyncUserValidityPeriodBO> getValidityPeriodUserTypeBatchFirstVersion(
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj);
+
+    /**
+     * 根据cell获取有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
+     * 存在上传数据，有效
+     * 不存在上传数据，无效
+     *
+     * @param cellValidityPeriodBOList 手机号数据集合
+     * @param apiCode                  客户编号
+     * @param requestDateObj           接收日期，为null时使用转化数据请求日期，
+     *                                 支持数据格式 String(yyyy-MM-dd)、Date、LocalDate、LocalDateTime、Long、Calendar,
+     *                                 非以上格式时默认当前日期
+     * @return Map {@code cellValidityPeriodBOList}不存在场景时 key：cell value：SyncUserValidityPeriodBO
+     * {@code cellValidityPeriodBOList}存在场景时 key：cell+userType value：SyncUserValidityPeriodBO
+     * <p>
+     * {@linkplain SyncUserValidityPeriodBO MarketingSyncUser PeriodOfValidityBO.Builder}
+     * @author Guo Zeqiang
+     * @dateTime 2023-07-13 10:07
+     */
+    Map<String, SyncUserValidityPeriodBO> getValidityPeriodCellBatchFirstVersion(
+            List<CellValidityPeriodBO> cellValidityPeriodBOList, String apiCode, Object requestDateObj);
+
+    /**
+     * 根据cell获取有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
+     * 存在上传数据，有效
+     * 不存在上传数据，无效
+     *
+     * @param cellSet        手机号数据集合
+     * @param apiCode        客户编号
+     * @param requestDateObj 接收日期，为null时使用转化数据请求日期，
+     *                       支持数据格式 String(yyyy-MM-dd)、Date、LocalDate、LocalDateTime、Long、Calendar,
+     *                       非以上格式时默认当前日期
+     * @return Map  key：cell value：SyncUserValidityPeriodBO
+     * <p>
+     * {@linkplain SyncUserValidityPeriodBO MarketingSyncUser PeriodOfValidityBO.Builder}
+     * @author Guo Zeqiang
+     * @dateTime 2023-07-13 10:07
+     */
+    Map<String, SyncUserValidityPeriodBO> getValidityPeriodCellBatchFirstVersion(
+            Set<String> cellSet, String apiCode, Object requestDateObj);
+
+    /**
+     * 根据custNum获取有效期内的原始数据（上传数据）{@link MarketingSyncUser}及有效期范围{@link PeriodOfValidityBO.Builder}
+     * 存在上传数据，有效
+     * 不存在上传数据，无效
+     *
+     * @param custNumSet     案件编号数据集合
+     * @param apiCode        客户编号
+     * @param requestDateObj 接收日期，为null时使用转化数据请求日期，
+     *                       支持数据格式 String(yyyy-MM-dd)、Date、LocalDate、LocalDateTime、Long、Calendar,
+     *                       非以上格式时默认当前日期
+     * @return Map  key：custNum value：SyncUserValidityPeriodBO
+     * <p>
+     * {@linkplain SyncUserValidityPeriodBO MarketingSyncUser PeriodOfValidityBO.Builder}
+     * @author Guo Zeqiang
+     * @dateTime 2023-07-13 10:07
+     */
+    Map<String, SyncUserValidityPeriodBO> getValidityPeriodCustNumBatchFirstVersion(
+            Set<String> custNumSet, String apiCode, Object requestDateObj);
+
+
+    /**
+     * 根据custNum获取多组有效期期范围 Tips：仅支持新版有效期规则，有效期配置valid_start_date和valid_end_date字段都非空
+     *
+     * @param custNumSet     custNum集合
+     * @param apiCode        apiCode
+     * @param requestDateObj 日期
+     * @return {@link Map }<{@link String }, {@link SyncUserValidityPeriodsBO }>
+     * @author senyang.zheng
+     * @date 2023/10/07
+     */
+    Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNum(Set<String> custNumSet, String apiCode, Object requestDateObj);
 
 }

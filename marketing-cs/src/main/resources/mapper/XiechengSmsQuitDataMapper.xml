@@ -14,4 +14,12 @@
         </if>
         order by id asc limit 2000;
     </select>
+
+    <select id="getCountSmsQuitDataByMobile" resultType="java.lang.Integer">
+        select
+        count(*)
+        from b_xiecheng_sms_quit_data
+        where cipher_mobile = #{mobile}
+        and status =1;
+    </select>
 </mapper>

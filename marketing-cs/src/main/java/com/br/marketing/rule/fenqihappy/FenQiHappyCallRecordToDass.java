@@ -140,7 +140,10 @@ public class FenQiHappyCallRecordToDass implements AssembleData<RealTimeUserData
         if (transmitFact instanceof CallRecordBO) {
             CallRecordBO bo = (CallRecordBO) transmitFact;
 
-            if (bo == null || bo.getDetail() == null || StringUtils.isBlank(bo.getDetail().getIntentionGrade()) || !bo.getDetail().getIntentionGrade().toUpperCase().contains("A")) {
+            if (bo == null
+                    || bo.getDetail() == null
+                    || StringUtils.isBlank(bo.getDetail().getIntentionGrade())
+                    || (!bo.getDetail().getIntentionGrade().toUpperCase().contains("A")&&!bo.getDetail().getIntentionGrade().toUpperCase().contains("B"))) {
                 return false;
             }
             return true;

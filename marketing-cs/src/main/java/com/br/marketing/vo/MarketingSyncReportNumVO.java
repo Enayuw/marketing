@@ -8,10 +8,10 @@ import lombok.Data;
 public class MarketingSyncReportNumVO {
 
 
-    private Integer normalNumTotal;
+    private Long normalNumTotal;
 
 
-    private Integer duplicateRemovalNumTotal;
+    private Long duplicateRemovalNumTotal;
 
 
     private String apiCode;

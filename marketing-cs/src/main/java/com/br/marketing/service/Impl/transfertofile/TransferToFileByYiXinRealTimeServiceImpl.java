@@ -349,7 +349,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             fw.append("\r\n");
             writeYiXinRealTimePass(fw, apiCode, transferFileTask);
         } catch (Exception ex) {
-            log.error(ex.getMessage());
+            log.error(ex.getMessage(),ex);
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
@@ -488,7 +488,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             fw.append("\r\n");
             writeYiXinNoRealTimePass(fw, apiCode, transferFileTask,myParam);
         } catch (Exception ex) {
-            log.error(ex.getMessage());
+            log.error(ex.getMessage(),ex);
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
@@ -642,7 +642,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             fw.append("\r\n");
             writeYiXinNoRealTimeResult(fw, apiCode, date, transferFileTask);
         } catch (Exception ex) {
-            log.error(ex.getMessage());
+            log.error(ex.getMessage(),ex);
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
@@ -671,7 +671,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             fw.append("\r\n");
             writeYiXinNoRealTimeDae(fw, apiCode, date, transferFileTask);
         } catch (Exception ex) {
-            log.error(ex.getMessage());
+            log.error(ex.getMessage(),ex);
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
@@ -700,7 +700,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             fw.append("\r\n");
             writeYiXinNoRealTimeHist(fw, apiCode, date, transferFileTask);
         } catch (Exception ex) {
-            log.error(ex.getMessage());
+            log.error(ex.getMessage(),ex);
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
@@ -1097,7 +1097,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
             fw.append("\r\n");
             writeYiXinRealTimeData(fw, apiCode, date, transferFileTask);
         } catch (Exception ex) {
-            log.error(ex.getMessage());
+            log.error(ex.getMessage(),ex);
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
@@ -1197,7 +1197,7 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
      */
     private Result<List<MarketingTransferSyncUser>> getOrderTransferData(String tcId, String date, Integer pageIndex) {
         Integer limitStart = pageIndex * 2000;
-        List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferOrderInsertTime(tcId, date, limitStart);
+        List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferOrderInsertTime(tcId, date, limitStart,2000);
         if (transferOrderInsertTime.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }

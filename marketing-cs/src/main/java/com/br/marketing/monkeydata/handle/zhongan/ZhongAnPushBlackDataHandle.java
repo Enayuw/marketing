@@ -38,6 +38,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author zhen.li1
@@ -109,10 +110,11 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
     public Result customizedAction(MarketingSyncCondition inputData) {
         Result res = new Result();
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(200, 200, 200);
+        String date = LocalDate.now().toString();
         List<String> userTypes = marketingCommonConfig.getZhongAnZkUserType();
         //根据userType循环处理
         userTypes.forEach(usertype -> {
-            String appletDateStart, appletDateEnd;
+          /*  String appletDateStart, appletDateEnd;
             // apicode+userType有效期配置
             List<MarketingDataValidConfig> configList = findConfigByUserType(inputData.getApiCode(), usertype);
             if (CollectionUtils.isEmpty(configList) || (configList.size() > 1)) {
@@ -127,15 +129,20 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
             } else {
                 appletDateStart = dataValidConfig.getValidStartDate();
                 appletDateEnd = dataValidConfig.getValidEndDate();
+            }*/
+            List<MarketingDataValidConfig> configList = findConfigByBetweenDate(inputData.getApiCode(), date,usertype);
+            if (CollectionUtils.isEmpty(configList)) {
+                log.error("众安撞库未配置有效期，请检查");
+                return;
             }
-            List<String> appletDateList = marketingSyncUserMapper.getAppletDateByUserType(inputData.getApiCode(), appletDateStart, appletDateEnd, usertype);
+            List<String> appletDateList = configList.stream().map(marketingDataValidConfig -> marketingDataValidConfig.getAppletDate()).collect(Collectors.toList());
             inputData.setExecuteDateList(appletDateList);
             inputData.setUserType(usertype);
             for (; ; ) {
-                if (StringUtils.isNotEmpty(marketingCommonConfig.getZhongAnPushBlackThreadNum())) {
-                    pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum()));
-                    pool.setMaximumPoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum()));
-                    log.warn("众安推送黑名单线程调整，corePoolSize={},maxPoolSize={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
+                if (StringUtils.isNotEmpty(marketingCommonConfig.getZhongAnPushBlackThreadNum().get(usertype))) {
+                    pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum().get(usertype)));
+                    pool.setMaximumPoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum().get(usertype)));
+                    log.warn("众安推送黑名单线程调整，userType={},corePoolSize={},maxPoolSize={}", usertype, pool.getCorePoolSize(), pool.getMaximumPoolSize());
                 }
                 Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> inputRes = getInputData(inputData);
                 if (ResultCode.FAIL.getValue().equals(inputRes.getCode())) {
@@ -254,5 +261,17 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
         }
         customerBlackListHandler.xieChengCall(blackDetailDTOList, apiCode);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+
+    /**
+     * apicode有效期配置
+     */
+    private List<MarketingDataValidConfig> findConfigByBetweenDate(String apiCode, String date,String userType) {
+        MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType).andValidStartDateLessThanOrEqualTo(date)
+                .andValidEndDateGreaterThanOrEqualTo(date).andIsDelEqualTo(1);
+        example.setOrderByClause("create_time desc, update_time desc");
+        return marketingDataValidConfigMapper.selectByExample(example);
     }
 }

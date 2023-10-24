@@ -35,7 +35,7 @@ public interface PushRuleService {
      * @param dto
      * @return
      */
-    Integer getBatchInfosCounts(@Valid CustomerBatchNumDTO dto);
+    Long getBatchInfosCounts(@Valid CustomerBatchNumDTO dto);
 
     /**
      * 获取任务推送记录
@@ -93,6 +93,8 @@ public interface PushRuleService {
      */
     Result<Boolean> insertMarketingPreUserSync(Long infoId);
 
+    Result<Boolean> consumerSyncInfo(String msg);
+
     /**
      * 插入转化数据
      *
@@ -102,6 +104,7 @@ public interface PushRuleService {
      */
     Result insertTransferData(String apiCode, String jsonData);
 
+    Result<Boolean> consumerTransferInfo(String msg);
 
     Result consumerTransferData(Long id);
 
@@ -168,4 +171,17 @@ public interface PushRuleService {
     Result<Boolean> consumerBlack(Long id);
 
     Result<Boolean> consumerHaLuo(Long id);
+
+    /**
+     * 中邮清洗数据接口
+     * @return Result
+     */
+    Result<Boolean> HandleZhongYouData(Long id);
+
+    /**
+     * 模拟数据库或者redis异常
+     * @param mockType 1-数据库异常；2-redis异常
+     * @param apiCode
+     */
+    void mockDbOrRedisError(Integer mockType,String apiCode);
 }

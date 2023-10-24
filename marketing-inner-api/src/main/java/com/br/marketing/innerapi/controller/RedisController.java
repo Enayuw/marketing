@@ -6,12 +6,12 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.UserCenterHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,8 +40,16 @@ public class RedisController {
     }
 
     @GetMapping("get")
-    public String get(@RequestParam("key") String key) {
-        return redisChgService.get(key);
+    public String get(@RequestParam("key") String key,@RequestParam(value = "type",required = false) String type) {
+        if(!redisChgService.exists(key)){
+            return "key不存在";
+        }
+        if("Set".equals(type)){
+            return JSON.toJSONString(redisChgService.smembers(key));
+        }else{
+            return redisChgService.get(key);
+        }
+
     }
 
     @GetMapping("del")
@@ -90,4 +98,5 @@ public class RedisController {
         return marketingCommonConfig.toString();
     }
 
+    
 }

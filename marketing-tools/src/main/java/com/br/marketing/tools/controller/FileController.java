@@ -3,6 +3,7 @@ package com.br.marketing.tools.controller;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.tools.rpcclient.RpcClientProxy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -152,31 +153,16 @@ public class FileController {
                     mergeExecutor.submit(()->{
                         try {
                             if(new Integer(1).equals(threaNum)){
-                                String[] split = content.split("\t");
+//                                String[] split = content.split(",");
                                 StringBuilder sb = new StringBuilder();
-                                sb.append(split[0].trim());
-                                sb.append(",");
-                                sb.append(split[1].trim());
-                                sb.append(",");
-                                sb.append(split[2].trim());
-//                                sb.append(",");
-//                                sb.append(split[3].trim());
-//                                sb.append(",");
-//                                sb.append(split[4].trim());
+                                sb.append(content.trim());
                                 sb.append("\r\n");
                                 writer.append(sb.toString());
                             }else{
-                                String[] split = content.split("\t");
+                                String cell = RpcClientProxy.decode(content.trim(), "cell", "sha", "");
+//                                String[] split = content.split(",");
                                 StringBuilder sb = new StringBuilder();
-                                sb.append(split[0].trim());
-                                sb.append(",");
-                                sb.append(Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(split[1].trim())));
-                                sb.append(",");
-                                sb.append(concent(split[2]));
-//                                sb.append(",");
-//                                sb.append(concent(split[3]));
-//                                sb.append(",");
-//                                sb.append(concent(split[4]));
+                                sb.append(BrCipherMaker.getInstance().encode(cell));
                                 sb.append("\r\n");
                                 writer.append(sb.toString());
                             }

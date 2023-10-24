@@ -138,10 +138,11 @@ otherConfig:
     appName: loan-warning
     appSecretKey: a938d0e974746651a11ddcdbcea31404
   proxy:
-    proxy_host_zw: 192.168.22.169
+    proxy_host: squid-proxy2.brapp.com
     proxy_port: 3128
     proxy_username: bairong
     proxy_password: Proxy_br
+    proxy_host_zw: 192.168.22.169
   mom:
     appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
     appName: marketing_query_producer
@@ -182,7 +183,7 @@ api:
     baseUrl: http://script-govern.100credit.cn
     executeTask: ${api.bi.baseUrl}/api/distribute/offlineBatch/executeTask
 #elastic-job配置
-SERVER_LISTS: 192.168.21.41:2181,192.168.21.42:2181,192.168.21.43:2181
+SERVER_LISTS: pd-zk-yz-01.brapp.com:2181,pd-zk-yz-02.brapp.com:2181,pd-zk-yz-03.brapp.com:2181
 NAMESPACE: marketing-job
 BASE_SLEEP_TIME_MILLISECONDS: 1000
 MAX_SLEEP_TIME_MILLISECONDS: 3000
