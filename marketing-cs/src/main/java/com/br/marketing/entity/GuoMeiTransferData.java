@@ -1,8 +1,10 @@
 package com.br.marketing.entity;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class GuoMeiTransferData {
+public class GuoMeiTransferData implements Serializable {
+    private static final long serialVersionUID = -5677082629530893177L;
     /**
      *
      */
@@ -21,12 +23,12 @@ public class GuoMeiTransferData {
     /**
      * 时间戳+五位以上随机数_批次
      */
-    private String requestId;
+    private String requestid;
 
     /**
      * 渠道编码
      */
-    private String channelCode;
+    private String channelcode;
 
     /**
      * 数据状态 0-无效数据、1-同步成功 2-同步转化信息异常、3-同步转化详情异常、4-发送mq失败
@@ -58,11 +60,6 @@ public class GuoMeiTransferData {
      */
     private Date updateTime;
 
-    /**
-     * 数据量
-     */
-    private Integer dataNumber;
-
     public Long getId() {
         return id;
     }
@@ -87,20 +84,20 @@ public class GuoMeiTransferData {
         this.sign = sign == null ? null : sign.trim();
     }
 
-    public String getRequestId() {
-        return requestId;
+    public String getRequestid() {
+        return requestid;
     }
 
-    public void setRequestId(String requestId) {
-        this.requestId = requestId == null ? null : requestId.trim();
+    public void setRequestid(String requestid) {
+        this.requestid = requestid == null ? null : requestid.trim();
     }
 
-    public String getChannelCode() {
-        return channelCode;
+    public String getChannelcode() {
+        return channelcode;
     }
 
-    public void setChannelCode(String channelCode) {
-        this.channelCode = channelCode == null ? null : channelCode.trim();
+    public void setChannelcode(String channelcode) {
+        this.channelcode = channelcode == null ? null : channelcode.trim();
     }
 
     public Integer getStatus() {
@@ -149,13 +146,5 @@ public class GuoMeiTransferData {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public Integer getDataNumber() {
-        return dataNumber;
-    }
-
-    public void setDataNumber(Integer dataNumber) {
-        this.dataNumber = dataNumber;
     }
 }

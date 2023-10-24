@@ -305,143 +305,143 @@ public class GuoMeiTransferDataExample {
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdIsNull() {
-            addCriterion("request_id is null");
+        public Criteria andRequestidIsNull() {
+            addCriterion("requestId is null");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdIsNotNull() {
-            addCriterion("request_id is not null");
+        public Criteria andRequestidIsNotNull() {
+            addCriterion("requestId is not null");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdEqualTo(String value) {
-            addCriterion("request_id =", value, "requestId");
+        public Criteria andRequestidEqualTo(String value) {
+            addCriterion("requestId =", value, "requestid");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdNotEqualTo(String value) {
-            addCriterion("request_id <>", value, "requestId");
+        public Criteria andRequestidNotEqualTo(String value) {
+            addCriterion("requestId <>", value, "requestid");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdGreaterThan(String value) {
-            addCriterion("request_id >", value, "requestId");
+        public Criteria andRequestidGreaterThan(String value) {
+            addCriterion("requestId >", value, "requestid");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdGreaterThanOrEqualTo(String value) {
-            addCriterion("request_id >=", value, "requestId");
+        public Criteria andRequestidGreaterThanOrEqualTo(String value) {
+            addCriterion("requestId >=", value, "requestid");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdLessThan(String value) {
-            addCriterion("request_id <", value, "requestId");
+        public Criteria andRequestidLessThan(String value) {
+            addCriterion("requestId <", value, "requestid");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdLessThanOrEqualTo(String value) {
-            addCriterion("request_id <=", value, "requestId");
+        public Criteria andRequestidLessThanOrEqualTo(String value) {
+            addCriterion("requestId <=", value, "requestid");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdLike(String value) {
-            addCriterion("request_id like", value, "requestId");
+        public Criteria andRequestidLike(String value) {
+            addCriterion("requestId like", value, "requestid");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdNotLike(String value) {
-            addCriterion("request_id not like", value, "requestId");
+        public Criteria andRequestidNotLike(String value) {
+            addCriterion("requestId not like", value, "requestid");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdIn(List<String> values) {
-            addCriterion("request_id in", values, "requestId");
+        public Criteria andRequestidIn(List<String> values) {
+            addCriterion("requestId in", values, "requestid");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdNotIn(List<String> values) {
-            addCriterion("request_id not in", values, "requestId");
+        public Criteria andRequestidNotIn(List<String> values) {
+            addCriterion("requestId not in", values, "requestid");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdBetween(String value1, String value2) {
-            addCriterion("request_id between", value1, value2, "requestId");
+        public Criteria andRequestidBetween(String value1, String value2) {
+            addCriterion("requestId between", value1, value2, "requestid");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdNotBetween(String value1, String value2) {
-            addCriterion("request_id not between", value1, value2, "requestId");
+        public Criteria andRequestidNotBetween(String value1, String value2) {
+            addCriterion("requestId not between", value1, value2, "requestid");
             return (Criteria) this;
         }
 
-        public Criteria andChannelCodeIsNull() {
-            addCriterion("channel_code is null");
+        public Criteria andChannelcodeIsNull() {
+            addCriterion("channelCode is null");
             return (Criteria) this;
         }
 
-        public Criteria andChannelCodeIsNotNull() {
-            addCriterion("channel_code is not null");
+        public Criteria andChannelcodeIsNotNull() {
+            addCriterion("channelCode is not null");
             return (Criteria) this;
         }
 
-        public Criteria andChannelCodeEqualTo(String value) {
-            addCriterion("channel_code =", value, "channelCode");
+        public Criteria andChannelcodeEqualTo(String value) {
+            addCriterion("channelCode =", value, "channelcode");
             return (Criteria) this;
         }
 
-        public Criteria andChannelCodeNotEqualTo(String value) {
-            addCriterion("channel_code <>", value, "channelCode");
+        public Criteria andChannelcodeNotEqualTo(String value) {
+            addCriterion("channelCode <>", value, "channelcode");
             return (Criteria) this;
         }
 
-        public Criteria andChannelCodeGreaterThan(String value) {
-            addCriterion("channel_code >", value, "channelCode");
+        public Criteria andChannelcodeGreaterThan(String value) {
+            addCriterion("channelCode >", value, "channelcode");
             return (Criteria) this;
         }
 
-        public Criteria andChannelCodeGreaterThanOrEqualTo(String value) {
-            addCriterion("channel_code >=", value, "channelCode");
+        public Criteria andChannelcodeGreaterThanOrEqualTo(String value) {
+            addCriterion("channelCode >=", value, "channelcode");
             return (Criteria) this;
         }
 
-        public Criteria andChannelCodeLessThan(String value) {
-            addCriterion("channel_code <", value, "channelCode");
+        public Criteria andChannelcodeLessThan(String value) {
+            addCriterion("channelCode <", value, "channelcode");
             return (Criteria) this;
         }
 
-        public Criteria andChannelCodeLessThanOrEqualTo(String value) {
-            addCriterion("channel_code <=", value, "channelCode");
+        public Criteria andChannelcodeLessThanOrEqualTo(String value) {
+            addCriterion("channelCode <=", value, "channelcode");
             return (Criteria) this;
         }
 
-        public Criteria andChannelCodeLike(String value) {
-            addCriterion("channel_code like", value, "channelCode");
+        public Criteria andChannelcodeLike(String value) {
+            addCriterion("channelCode like", value, "channelcode");
             return (Criteria) this;
         }
 
-        public Criteria andChannelCodeNotLike(String value) {
-            addCriterion("channel_code not like", value, "channelCode");
+        public Criteria andChannelcodeNotLike(String value) {
+            addCriterion("channelCode not like", value, "channelcode");
             return (Criteria) this;
         }
 
-        public Criteria andChannelCodeIn(List<String> values) {
-            addCriterion("channel_code in", values, "channelCode");
+        public Criteria andChannelcodeIn(List<String> values) {
+            addCriterion("channelCode in", values, "channelcode");
             return (Criteria) this;
         }
 
-        public Criteria andChannelCodeNotIn(List<String> values) {
-            addCriterion("channel_code not in", values, "channelCode");
+        public Criteria andChannelcodeNotIn(List<String> values) {
+            addCriterion("channelCode not in", values, "channelcode");
             return (Criteria) this;
         }
 
-        public Criteria andChannelCodeBetween(String value1, String value2) {
-            addCriterion("channel_code between", value1, value2, "channelCode");
+        public Criteria andChannelcodeBetween(String value1, String value2) {
+            addCriterion("channelCode between", value1, value2, "channelcode");
             return (Criteria) this;
         }
 
-        public Criteria andChannelCodeNotBetween(String value1, String value2) {
-            addCriterion("channel_code not between", value1, value2, "channelCode");
+        public Criteria andChannelcodeNotBetween(String value1, String value2) {
+            addCriterion("channelCode not between", value1, value2, "channelcode");
             return (Criteria) this;
         }
 
@@ -832,66 +832,6 @@ public class GuoMeiTransferDataExample {
 
         public Criteria andUpdateTimeNotBetween(Date value1, Date value2) {
             addCriterion("update_time not between", value1, value2, "updateTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataNumberIsNull() {
-            addCriterion("data_number is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataNumberIsNotNull() {
-            addCriterion("data_number is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataNumberEqualTo(Integer value) {
-            addCriterion("data_number =", value, "dataNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataNumberNotEqualTo(Integer value) {
-            addCriterion("data_number <>", value, "dataNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataNumberGreaterThan(Integer value) {
-            addCriterion("data_number >", value, "dataNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataNumberGreaterThanOrEqualTo(Integer value) {
-            addCriterion("data_number >=", value, "dataNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataNumberLessThan(Integer value) {
-            addCriterion("data_number <", value, "dataNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataNumberLessThanOrEqualTo(Integer value) {
-            addCriterion("data_number <=", value, "dataNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataNumberIn(List<Integer> values) {
-            addCriterion("data_number in", values, "dataNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataNumberNotIn(List<Integer> values) {
-            addCriterion("data_number not in", values, "dataNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataNumberBetween(Integer value1, Integer value2) {
-            addCriterion("data_number between", value1, value2, "dataNumber");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataNumberNotBetween(Integer value1, Integer value2) {
-            addCriterion("data_number not between", value1, value2, "dataNumber");
             return (Criteria) this;
         }
     }
