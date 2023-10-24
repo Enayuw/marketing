@@ -67,6 +67,10 @@ public class SpeedConfig implements ISpeedAppendPipeline {
 
     }
 
+    @Override
+    public void onError(String s, String s1, byte[] bytes, Long aLong, ApplicationContext applicationContext, Exception e) throws Exception {
+        log.error(String.format("speed报错：%s",e.getMessage()),e);
+    }
 
     <T> void setValue(T config, String path) {
         try (FileReader read = new FileReader(path);
