@@ -68,7 +68,10 @@ public class VariableDicServiceImpl implements VariableDicService {
                     userType = variableDicListVO.getFieldValue();
                 }
                 Integer validDaysDefault = validityChangeMapper.selectValidDaysDefault(apiCode, userType);
-                variableDicListVO.setValidDaysDefault("T+" + validDaysDefault);
+                if (ObjectUtil.isNotEmpty(validDaysDefault)){
+                    variableDicListVO.setValidDaysDefault("T+" + validDaysDefault);
+                }
+                log.warn("不存在有效期天数配置,apiCode={},userType={}", apiCode, userType);
             }
             return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
@@ -105,7 +108,7 @@ public class VariableDicServiceImpl implements VariableDicService {
             variableDicMapper.insert(variableDic);
             Integer i = validityChangeMapper.selectNum(apiCode, userType);
             if (i >= 1){
-                log.warn("该apiCode={} + userType={}维度下已存在有效期配置", apiCode, userType);
+                log.warn("该apiCode={} , userType={}维度下已存在有效期配置", apiCode, userType);
                 Long id = validityChangeMapper.selectId(apiCode,userType);
                 validConfigDefault.setId(id);
                 validConfigDefault.setApiCode(apiCode);
@@ -127,7 +130,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                 validConfigDefault.setUpdateTime(new Date());
                 validityChangeMapper.updateMarketingDataValidConfigDefault(validConfigDefault);
             }
-            log.warn("该apiCode={} + userType={}维度不存在代运营默认有效期配置", apiCode, userType);
+            log.warn("该apiCode={} , userType={}维度不存在代运营默认有效期配置", apiCode, userType);
         }
 
         return new ApiResult<Boolean>().success(true);

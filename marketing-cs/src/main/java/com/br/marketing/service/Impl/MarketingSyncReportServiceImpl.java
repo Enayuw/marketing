@@ -317,6 +317,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 marketingSyncReportVO.setValidStartDate(validDate.getValidStartDate());
                 marketingSyncReportVO.setValidEndDate(validDate.getValidEndDate());
             }
+            log.warn("该apiCode={} , userType={} , appletDate={}维度不存在有效期起止时间", apiCode, userType, appletDate);
         }
 
         return PageResultReturn.setPageResult(list, current,size);
@@ -415,7 +416,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             newData.setValidEndDate(validEndDate);
             Integer i = syncReportMapper.updateById(newData);
             if (i == 1){
-                log.warn("开始重推");
+                log.warn("开始重推, apiCode={}, userType={}, id={}", apiCode, userType, newData.getId());
                 recordService.saveRecord(apiCode,userType,newData.getId());
             }
             return true;
