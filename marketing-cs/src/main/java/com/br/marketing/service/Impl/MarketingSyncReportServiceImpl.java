@@ -3,6 +3,8 @@ package com.br.marketing.service.Impl;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.ObjectUtil;
+import com.br.marketing.service.ValidityPeriodResendRecordService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -63,8 +65,8 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     @Resource
     MarketingValidityChangeMapper changeMapper;
 
-//    @Resource
-//    ValidityPeriodResendRecordService recordService;
+    @Resource
+    ValidityPeriodResendRecordService recordService;
 
     @Override
     public void syncReportProcess(String uploadDate, String jobName) {
@@ -311,8 +313,10 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             String userType = marketingSyncReportVO.getUserType();
             String appletDate = marketingSyncReportVO.getAppletDate();
             MarketingDataValidConfig validDate = changeMapper.getValidDate(apiCode, userType, appletDate);
-            marketingSyncReportVO.setValidStartDate(validDate.getValidStartDate());
-            marketingSyncReportVO.setValidEndDate(validDate.getValidEndDate());
+            if (ObjectUtil.isNotEmpty(validDate)){
+                marketingSyncReportVO.setValidStartDate(validDate.getValidStartDate());
+                marketingSyncReportVO.setValidEndDate(validDate.getValidEndDate());
+            }
         }
 
         return PageResultReturn.setPageResult(list, current,size);
@@ -412,7 +416,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             Integer i = syncReportMapper.updateById(newData);
             if (i == 1){
                 log.warn("开始重推");
-//                recordService.saveRecord(apiCode,userType,newData.getId());
+                recordService.saveRecord(apiCode,userType,newData.getId());
             }
             return true;
         } catch (Exception e) {
