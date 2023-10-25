@@ -67,8 +67,9 @@ public class VariableDicServiceImpl implements VariableDicService {
                 if ("userType".equals(variableDicListVO.getFieldName())){
                     userType = variableDicListVO.getFieldValue();
                 }
-                Integer validDaysDefault = validityChangeMapper.selectValidDaysDefault(apiCode, userType) + 1;
+                Integer validDaysDefault = validityChangeMapper.selectValidDaysDefault(apiCode, userType);
                 if (ObjectUtil.isNotEmpty(validDaysDefault)){
+                    validDaysDefault = validDaysDefault + 1;
                     variableDicListVO.setValidDaysDefault("T+" + validDaysDefault);
                 } else {
                     log.warn("不存在有效期天数配置,apiCode={},userType={}", apiCode, userType);
