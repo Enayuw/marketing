@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingDataValidConfigDefault;
@@ -120,10 +121,13 @@ public class VariableDicServiceImpl implements VariableDicService {
             variableDic.setId(vo.getId());
             variableDicMapper.updateByPrimaryKeySelective(variableDic);
             Long id = validityChangeMapper.selectId(apiCode,userType);
-            validConfigDefault.setId(id);
-            validConfigDefault.setApiCode(apiCode);
-            validConfigDefault.setUpdateTime(new Date());
-            validityChangeMapper.updateMarketingDataValidConfigDefault(validConfigDefault);
+            if (ObjectUtil.isNotEmpty(id)){
+                validConfigDefault.setId(id);
+                validConfigDefault.setApiCode(apiCode);
+                validConfigDefault.setUpdateTime(new Date());
+                validityChangeMapper.updateMarketingDataValidConfigDefault(validConfigDefault);
+            }
+            log.warn("该apiCode={} + userType={}维度不存在代运营默认有效期配置", apiCode, userType);
         }
 
         return new ApiResult<Boolean>().success(true);
