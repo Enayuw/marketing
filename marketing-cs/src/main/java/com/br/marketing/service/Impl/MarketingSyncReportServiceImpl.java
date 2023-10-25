@@ -316,8 +316,10 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             if (ObjectUtil.isNotEmpty(validDate)){
                 marketingSyncReportVO.setValidStartDate(validDate.getValidStartDate());
                 marketingSyncReportVO.setValidEndDate(validDate.getValidEndDate());
+            } else {
+                log.warn("该apiCode={} , userType={} , appletDate={}维度不存在有效期起止时间", apiCode, userType, appletDate);
             }
-            log.warn("该apiCode={} , userType={} , appletDate={}维度不存在有效期起止时间", apiCode, userType, appletDate);
+
         }
 
         return PageResultReturn.setPageResult(list, current,size);
