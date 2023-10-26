@@ -286,7 +286,7 @@
 
     <job:simple id="PPDTransferToDxJob"
                 class="com.br.marketing.check.job.PPDTransferToDxJob"
-                cron="0 0/10 * * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="拍拍贷转化数据推电销"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -475,7 +475,7 @@
     />
     <job:simple id="fileToMarketingDataJob"
                 class="com.br.marketing.check.job.FileToMarketingDataJob"
-                cron="0 9/10 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="营销文件上传入库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -548,7 +548,7 @@
 
     <job:simple id="fenqilePeriodPushDecisionJob"
                 class="com.br.marketing.check.job.fenqile.FenqilePeriodPushDecisionJob"
-                cron="0 30/29 9-23 * * ? *"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="分期乐自动化周期转决策"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -678,7 +678,7 @@
     />
     <job:simple id="ZhongBangTransferToDassFilterNoFirstJob"
                 class="com.br.marketing.check.job.zhongbang.ZhongBangTransferToDassFilterNoFirstJob"
-                cron="0 0 10,20 * * ? *"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="众邦转化数据推人工转化过滤接口(非首次)"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -693,7 +693,7 @@
 
     <job:simple id="ZhongBangTransferToDassRealTimeUserOneJob"
                 class="com.br.marketing.check.job.zhongbang.ZhongBangTransferToDassRealTimeUserOneJob"
-                cron="0 0 9 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="众邦转化数据定时推送人工实时推送用户名单(单条);param格式：apiCode或{apiCode:yyyy-MM-dd或yyyy-MM-ddTHH:mm:ss,yyyy-MM-ddTHH:mm:ss}"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -736,7 +736,7 @@
     />
     <job:simple id="ZhongYuanTransferDataToDaasJob"
                 class="com.br.marketing.check.job.zhongyuan.ZhongYuanTransferDataToDaasJob"
-                cron="0 10/15 8-11 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="中原转化数据推Daas"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -751,7 +751,7 @@
 
     <job:simple id="ZhongYuanTransferDataToDaasFilterJob"
                 class="com.br.marketing.check.job.zhongyuan.ZhongYuanTransferDataToDaasFilterJob"
-                cron="0 0 10,20 * * ? *"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="中原转化数据推Daas转化"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
