@@ -135,8 +135,9 @@ public interface CustomerDataHandler {
         }
         if (fieldStr.length() > 0) {
             String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_NEW_FIELD_CHECK.getCode()
-                    , customer() + "(" + apiCode + ")在请求(" + requestId + ")中有新增字段：".concat(fieldStr.toString())
-                            .concat("\n请及时与客户沟通确认^_^"), customer() + "(" + apiCode + ")定制化"
+                    , customer().getName() + "(" + apiCode + ")在请求(" +
+                            requestId + ")中有新增字段：".concat(fieldStr.toString())
+                            .concat("\n请及时与客户沟通确认^_^"), customer().getName() + "(" + apiCode + ")定制化"
                             + AlarmSendCodeEnum.EXCEPTION_NEW_FIELD_CHECK.getMessage());
             Long rSum = redisChgService.scard(redisKey);
             if (rSum == null || rSum < localCacheFieldSet.size()) {
