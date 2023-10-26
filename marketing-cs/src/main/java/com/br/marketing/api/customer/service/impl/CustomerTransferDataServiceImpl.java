@@ -140,7 +140,7 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
                 int i = customerTransferDataReceiveMapper.insertSelective(receive);
                 if (i != 1) {
                     throw new RuntimeException("定制化客户" + customDataHandleImpl.customer().getName()
-                            + "保存失败,入库数据量:" + i);
+                            + "(" + apiCode + ")保存失败,入库数据量:" + i);
                 }
                 // 7. 检查新增字段
                 checkField(customDataHandleImpl, jsonData, apiCode, requestId);
