@@ -176,6 +176,7 @@ public interface CustomerDataHandler {
         return 0;
     }
 
+    @Deprecated
     default void sendQueue(Object message) throws PulsarClientException {
         ProductPulsarProducer producer = ProductPulsarClientManager.newProducer(PulsarTopic.transferCustomTopic);
         String jsonString = JSON.toJSONString(message);
