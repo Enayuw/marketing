@@ -1,4 +1,4 @@
-package com.br.marketing.service.customer.handler;
+package com.br.marketing.api.customer.handler;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -31,16 +31,16 @@ public class CustomerDataHandleSingleton implements ApplicationContextAware {
     /**
      * 初始化缓存处理业务
      */
-    private void cacheCustomDataHandleImpl() {
+    private void cacheCustomerDataHandleImpl() {
         if (customDataHandlerMap == null) {
             synchronized (CustomerDataHandleSingleton.class) {
                 if (customDataHandlerMap == null) {
                     Map<String, CustomerDataHandler> customDataHandleNameMap = applicationContext.getBeansOfType(
                             CustomerDataHandler.class);
                     customDataHandlerMap = customDataHandleNameMap.values().stream().sorted(
-                            Comparator.comparing(CustomerDataHandler::custom)).collect(Collectors.toConcurrentMap(
-                            CustomerDataHandler::custom, Function.identity(), BinaryOperator.maxBy(
-                                    Comparator.comparing(CustomerDataHandler::custom)), ConcurrentSkipListMap::new));
+                            Comparator.comparing(CustomerDataHandler::customer)).collect(Collectors.toConcurrentMap(
+                            CustomerDataHandler::customer, Function.identity(), BinaryOperator.maxBy(
+                                    Comparator.comparing(CustomerDataHandler::customer)), ConcurrentSkipListMap::new));
                 }
             }
         }
@@ -49,16 +49,16 @@ public class CustomerDataHandleSingleton implements ApplicationContextAware {
     /**
      * 根据apiCode获取客户处理
      */
-    public CustomerDataHandler getCustomDataHandleImpl(String apiCode) {
-        cacheCustomDataHandleImpl();
+    public CustomerDataHandler getCustomerDataHandleImpl(String apiCode) {
+        cacheCustomerDataHandleImpl();
         return customDataHandlerMap.get(CustomerHandlerEnum.valueof(apiCode));
     }
 
     /**
      * 根据apiCode获取客户处理,未找到时,可设置默认客户
      */
-    public CustomerDataHandler getCustomDataHandleImpl(String apiCode, CustomerHandlerEnum defaultCustom) {
-        cacheCustomDataHandleImpl();
+    public CustomerDataHandler getCustomerDataHandleImpl(String apiCode, CustomerHandlerEnum defaultCustom) {
+        cacheCustomerDataHandleImpl();
         return customDataHandlerMap.get(CustomerHandlerEnum.valueof(apiCode, defaultCustom));
     }
 
@@ -66,8 +66,8 @@ public class CustomerDataHandleSingleton implements ApplicationContextAware {
      * 2023-10-18 20:06
      * 根据枚举获取客户处理
      */
-    public CustomerDataHandler getCustomDataHandleImpl(CustomerHandlerEnum customerHandlerEnum) {
-        cacheCustomDataHandleImpl();
+    public CustomerDataHandler getCustomerDataHandleImpl(CustomerHandlerEnum customerHandlerEnum) {
+        cacheCustomerDataHandleImpl();
         return customDataHandlerMap.get(customerHandlerEnum);
     }
 

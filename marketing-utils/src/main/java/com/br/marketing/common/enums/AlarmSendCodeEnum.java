@@ -35,6 +35,8 @@ public enum AlarmSendCodeEnum {
     EXCEPTION_VALIDITY_PERIOD("62005", "未配置有效期规则"),
     //pulsar消费requestId冲突
     REQUESTID_CONFLICT("62006", "requestIdConflict"),
+    // 接口字段新增检查,阶梯推送，一般
+    EXCEPTION_NEW_FIELD_CHECK("62006", "接口字段新增检查"),
     ;
 
     /**

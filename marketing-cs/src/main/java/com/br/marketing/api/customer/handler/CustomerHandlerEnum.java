@@ -1,4 +1,4 @@
-package com.br.marketing.service.customer.handler;
+package com.br.marketing.api.customer.handler;
 
 /**
  * 客户编码枚举
@@ -19,13 +19,13 @@ public enum CustomerHandlerEnum {
      * 2023-10-20 14:22
      * 陌生的客户 转化接口
      */
-    T_ALIEN_DEFAULT("外星人-转化"),
+    T_ALIEN_DEFAULT("外星人转化"),
 
     /**
      * 2023-10-20 14:22
      * 陌生的客户 上传接口
      */
-    U_ALIEN_DEFAULT("外星人-上传"),
+    U_ALIEN_DEFAULT("外星人上传"),
 
     /**
      * 2023-10-18 17:00
