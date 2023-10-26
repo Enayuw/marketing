@@ -37,6 +37,8 @@ public interface ZhongYuanService {
      */
     void zhongYuanTransferDataToCustomerFilter(List<MarketingTransferSyncUser> marketingTransferSyncUserList);
 
+    void zhongYuanTransferDataToCustomerFilterByDaasTwo(List<MarketingTransferSyncUser> marketingTransferSyncUserList);
+
     /**
      * 中原sftp文件数据推外呼（客服）
      */
