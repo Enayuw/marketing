@@ -30,7 +30,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -128,19 +127,16 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
                     log.error(e.getMessage() + jsonData, e);
                 }
             }
-            Assert.notNull(respCustomer, "响应数据不能空");
-            Assert.notNull(respCustomer.getStatusEnum(), "数据状态不能空");
             receive.setStatus(respCustomer.getStatusEnum().getValue());
             receive.setResponseCode(respCustomer.getResponseCode().toString());
-            Assert.notNull(respCustomer.getResponseCustomDTO(), "响应信息不能空");
             receive.setResponseData(JSON.toJSONString(respCustomer.getResponseCustomDTO()));
             receive.setRequestId(requestId == null ? (requestId = getRequestId(apiCode)) : requestId);
             // 6. 保存前置数据
             try {
                 int i = customerTransferDataReceiveMapper.insertSelective(receive);
                 if (i != 1) {
-                    throw new RuntimeException("定制化客户" + customDataHandleImpl.customer().getName()
-                            + "(" + apiCode + ")保存失败,入库数据量:" + i);
+                    throw new RuntimeException("定制化客户".concat(customDataHandleImpl.customer().getName())
+                            .concat("(").concat(apiCode).concat(")保存失败,入库数据量:") + i);
                 }
                 // 7. 检查新增字段
                 checkField(customDataHandleImpl, jsonData, apiCode, requestId);
@@ -149,10 +145,8 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
                 log.error(e.getMessage() + jsonData, e);
                 // 6.1 数据库容灾
                 respCustomer = sendMq(customDataHandleImpl, receive, respCustomer);
-                Assert.notNull(respCustomer, "响应数据不能空");
             }
             // 8. 返回响应
-            Assert.notNull(respCustomer.getResponseCustomDTO(), "响应信息不能空");
             return respCustomer.getResponseCustomDTO();
         } catch (Exception e) {
             log.error(e.getMessage() + jsonData, e);
@@ -161,12 +155,12 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
     }
 
     private String getRequestId(String apiCode, String requestId) {
-        return (StringUtils.isBlank(requestId) ? getRequestId(apiCode) : apiCode + "_" + requestId);
+        return (StringUtils.isBlank(requestId) ? getRequestId(apiCode) : apiCode.concat("_").concat(requestId));
     }
 
     private String getRequestId(String apiCode) {
-        return apiCode + "_" + Md5Utils.cell32(RandomStringUtils.randomAlphabetic(32)
-                + "&" + System.nanoTime());
+        return apiCode.concat("_br_").concat(Md5Utils.cell32(RandomStringUtils.randomAlphabetic(32)
+                .concat("&") + System.nanoTime()));
     }
 
     private CustomerResponseDTO sendMq(CustomerDataHandler customDataHandleImpl

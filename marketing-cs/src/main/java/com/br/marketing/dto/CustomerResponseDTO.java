@@ -1,5 +1,7 @@
 package com.br.marketing.dto;
 
+import org.springframework.util.Assert;
+
 /**
  * 定制化客户响应模板
  *
@@ -27,8 +29,11 @@ public class CustomerResponseDTO {
     private Object responseCode;
 
     public CustomerResponseDTO(ResponseCustomDTO responseCustomDTO, StatusEnum statusEnum, Object responseCode) {
+        Assert.notNull(responseCustomDTO, "客户定制化响应不能空");
         this.responseCustomDTO = responseCustomDTO;
+        Assert.notNull(statusEnum, "数据状态不能空");
         this.statusEnum = statusEnum;
+        Assert.notNull(responseCode, "客户定制化响应码不能为空");
         this.responseCode = responseCode;
     }
 
@@ -36,7 +41,8 @@ public class CustomerResponseDTO {
         return responseCustomDTO;
     }
 
-    public void setResponseCustomDTO(ResponseCustomDTO responseCustomDTO) {
+    public final void setResponseCustomDTO(ResponseCustomDTO responseCustomDTO) {
+        Assert.notNull(responseCustomDTO, "客户定制化响应不能空");
         this.responseCustomDTO = responseCustomDTO;
     }
 
@@ -44,7 +50,8 @@ public class CustomerResponseDTO {
         return statusEnum;
     }
 
-    public void setStatusEnum(StatusEnum statusEnum) {
+    public final void setStatusEnum(StatusEnum statusEnum) {
+        Assert.notNull(statusEnum, "数据状态不能空");
         this.statusEnum = statusEnum;
     }
 
@@ -52,7 +59,8 @@ public class CustomerResponseDTO {
         return responseCode;
     }
 
-    public void setResponseCode(Object responseCode) {
+    public final void setResponseCode(Object responseCode) {
+        Assert.notNull(responseCode, "客户定制化响应码不能为空");
         this.responseCode = responseCode;
     }
 
