@@ -5,6 +5,8 @@ import com.br.marketing.api.customer.handler.CustomerDataHandler;
 import com.br.marketing.api.customer.handler.CustomerHandlerEnum;
 import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.dto.CustomerResponseDTO;
+import com.br.marketing.dto.TransferDataDTO;
+import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.dto.alien.AlienResponseDTO;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +28,15 @@ public class AlienTransferDataServiceImpl implements CustomerDataHandler {
 
     @Override
     public TransferDataAdaptee parseObject(String jsonData) {
-        return null;
+        return new TransferDataAdaptee() {
+            private static final long serialVersionUID = -3462531314929100259L;
+
+            @Override
+            protected TransferDataDTO<TransferDataItemDTO> adapteeRequest(String apiCode
+                    , TransferDataDTO<TransferDataItemDTO> transferDataDTO) {
+                return null;
+            }
+        };
     }
 
     @Override
