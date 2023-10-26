@@ -1503,7 +1503,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         if(!dbException){
-//            producter.send("Marketing.Transfer.Receive", transferInfoId);
+            producter.send("Marketing.Transfer.Receive", transferInfoId);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
