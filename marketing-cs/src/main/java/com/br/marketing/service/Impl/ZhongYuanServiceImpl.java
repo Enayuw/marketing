@@ -123,6 +123,13 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         return marketingTransferSyncUserMapper.getZhongYuanTransferByRequestDate(tcId, apiCode, requestStartDate, requestEndDate, indexId);
 
     }
+    @Override
+    public List<MarketingTransferSyncUser> getMarketingTransferSyncUserListWithValidityPeriodNoRegisterTime(String tcId, String apiCode, Long indexId,
+                                                                                              String requestStartDate, String requestEndDate) {
+
+        return marketingTransferSyncUserMapper.getZhongYuanTransferByRequestDateNoRegisterTime(tcId, apiCode, requestStartDate, requestEndDate, indexId);
+
+    }
 
     @Override
     public void zhongYuanTransferDataToDaas(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
@@ -308,7 +315,9 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
                                     case "1":
                                         // 判断开关是否推送
                                         Boolean condition1 = zhongYuanConditionMap.get("condition_1");
-                                        if (condition1) {
+                                        // registerTime非空
+                                        boolean hasRegisterTime = StringUtils.isNotEmpty(transferSyncUser.getRegisterTime());
+                                        if (condition1 && hasRegisterTime) {
                                             sbo.setCondition("1");
                                             filterSyncUserValidityPeriodBOCondition.put(custNum, sbo);
                                         }
