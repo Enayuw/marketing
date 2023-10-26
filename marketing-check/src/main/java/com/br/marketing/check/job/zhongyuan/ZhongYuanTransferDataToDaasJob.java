@@ -152,5 +152,8 @@ public class ZhongYuanTransferDataToDaasJob extends AbstractSimpleElasticJob {
 
         // 推客服转化
         zhongYuanService.zhongYuanTransferDataToCustomerFilter(marketingTransferSyncUserList);
+
+
+        zhongYuanService.zhongYuanTransferDataToCustomerFilterByDaasTwo(marketingTransferSyncUserList);
     }
 }
