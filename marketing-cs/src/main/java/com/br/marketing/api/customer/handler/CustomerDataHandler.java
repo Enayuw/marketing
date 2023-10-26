@@ -107,6 +107,9 @@ public interface CustomerDataHandler {
      * @param adaptee  适配
      */
     default void setSourceParam(String apiCode, String jsonData, TransferDataAdaptee adaptee) {
+        if (adaptee == null) {
+            return;
+        }
         adaptee.setJsonData(jsonData);
         adaptee.setApiCode(apiCode);
     }

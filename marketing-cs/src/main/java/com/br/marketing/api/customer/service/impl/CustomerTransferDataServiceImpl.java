@@ -86,7 +86,6 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
                 customDataHandleImpl.isValidJson(jsonData);
                 // 1. 解析json
                 adaptee = customDataHandleImpl.parseObject(jsonData);
-                customDataHandleImpl.setSourceParam(apiCode, jsonData, adaptee);
             } catch (Exception e) {
                 receive.setSyncStatus(0);
                 respCustomer = customDataHandleImpl.jsonErrorResponse(e);
@@ -94,6 +93,7 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
             }
             String requestId = null;
             if (respCustomer == null) {
+                customDataHandleImpl.setSourceParam(apiCode, jsonData, adaptee);
                 try {
                     // 2. 有数据验证,包括字段空值及验签
                     respCustomer = customDataHandleImpl.verifyFields(adaptee);
