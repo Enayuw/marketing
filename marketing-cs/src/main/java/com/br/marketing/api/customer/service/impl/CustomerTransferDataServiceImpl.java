@@ -86,6 +86,7 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
                 customDataHandleImpl.isValidJson(jsonData);
                 // 1. 解析json
                 adaptee = customDataHandleImpl.parseObject(jsonData);
+                customDataHandleImpl.setSourceParam(apiCode, jsonData, adaptee);
             } catch (Exception e) {
                 receive.setSyncStatus(0);
                 respCustomer = customDataHandleImpl.jsonErrorResponse(e);
@@ -97,11 +98,10 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
                     // 2. 有数据验证,包括字段空值及验签
                     respCustomer = customDataHandleImpl.verifyFields(adaptee);
                     // 3. 计算业务数据量
-                    int number = customDataHandleImpl.countBizDataNumber(adaptee, jsonData);
+                    int number = customDataHandleImpl.countBizDataNumber(adaptee);
                     receive.setBizDataNumber(number);
                     // 4. 适配
-                    TransferDataDTO<TransferDataItemDTO> transferDataDTO = customerDataAdapter.transferDataRequest(
-                            apiCode, adaptee);
+                    TransferDataDTO<TransferDataItemDTO> transferDataDTO = customerDataAdapter.transferDataRequest(adaptee);
                     if (transferDataDTO != null && CustomerResponseDTO.StatusEnum.VALID.equals(respCustomer.getStatusEnum())) {
                         requestId = getRequestId(apiCode, transferDataDTO.getRequestId());
                         transferDataDTO.setRequestId(requestId);

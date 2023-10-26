@@ -95,7 +95,7 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
     }
 
     @Override
-    public int countBizDataNumber(TransferDataAdaptee adaptee, String jsonStr) {
+    public int countBizDataNumber(TransferDataAdaptee adaptee) {
         GuMeTransferJsonDTO jsonDTO = (GuMeTransferJsonDTO) adaptee;
         return jsonDTO.getData() != null ? jsonDTO.getData().size() : 0;
     }
@@ -105,8 +105,9 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
         JSONObject jsonObject = JSONObject.parseObject(jsonStr);
         Set<String> set = jsonObject.keySet();
         HashSet<String> fieldSet = new HashSet<>(set);
-        if (jsonObject.containsKey("data")) {
-            JSONArray data = jsonObject.getJSONArray("data");
+        String arrayKey = "data";
+        if (jsonObject.containsKey(arrayKey)) {
+            JSONArray data = jsonObject.getJSONArray(arrayKey);
             int size = data.size();
             for (int i = 0; i < size; i++) {
                 fieldSet.addAll(data.getJSONObject(i).keySet());
@@ -181,6 +182,7 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
      * 2023-10-16 18:08
      * 转化接口参数合法检查
      */
+    @Deprecated
     private boolean transferApiParamRightfulCheck(GuMeTransferJsonDTO jsonDTO
             , ResponseGuMeDTO responseGuMeDTO, GuoMeiTransferData guoMeiTransferData) {
         boolean channelCodeBool;

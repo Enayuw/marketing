@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CustomerDataAdapter implements CustomerDataTarget {
     @Override
-    public TransferDataDTO<TransferDataItemDTO> transferDataRequest(String apiCode, TransferDataAdaptee adaptee) {
-        return adaptee == null ? null : adaptee.adapteeRequest(apiCode, new TransferDataDTO<>());
+    public TransferDataDTO<TransferDataItemDTO> transferDataRequest(TransferDataAdaptee adaptee) {
+        return adaptee == null ? null : adaptee.adapteeRequest(adaptee.getApiCode(), new TransferDataDTO<>());
     }
 }

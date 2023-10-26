@@ -38,8 +38,8 @@ public class AlienTransferDataServiceImpl implements CustomerDataHandler {
     }
 
     @Override
-    public int countBizDataNumber(TransferDataAdaptee adaptee, String jsonStr) {
-        return countBizDataNumber(jsonStr);
+    public int countBizDataNumber(TransferDataAdaptee adaptee) {
+        return countBizDataNumber(adaptee.getJsonData());
     }
 
     @Override

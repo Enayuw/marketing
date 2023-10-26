@@ -57,20 +57,19 @@ public interface CustomerDataHandler {
      * 2023-10-23 17:37
      * 获取业务数据量
      *
-     * @param jsonStr 客户json字符串
      * @param adaptee 客户定制数据
      * @return 传输的业务数据量
      */
-    int countBizDataNumber(TransferDataAdaptee adaptee, String jsonStr);
+    int countBizDataNumber(TransferDataAdaptee adaptee);
 
     /**
      * 2023-10-24 19:24
      * 获取全部的业务字段,用于检查是否有新增的字段
      *
-     * @param jsonStr 客户json字符串
+     * @param jsonData 客户json字符串
      * @return 业务中要提示的新增字段
      */
-    Set<String> getBizAllFields(String jsonStr);
+    Set<String> getBizAllFields(String jsonData);
 
     /**
      * 2023-10-24 19:17
@@ -99,8 +98,27 @@ public interface CustomerDataHandler {
      */
     CustomerResponseDTO fallbackResponse(Exception e);
 
-    default void isValidJson(String jsonStr) {
-        if (JSON.isValid(jsonStr)) {
+    /**
+     * 2023-10-26 11:44
+     * 封装原始信息
+     *
+     * @param apiCode  apiCode
+     * @param jsonData 客户json字符串
+     * @param adaptee  适配
+     */
+    default void setSourceParam(String apiCode, String jsonData, TransferDataAdaptee adaptee) {
+        adaptee.setJsonData(jsonData);
+        adaptee.setApiCode(apiCode);
+    }
+
+    /**
+     * 2023-10-26 11:44
+     * json结构判断
+     *
+     * @param jsonData 客户json字符串
+     */
+    default void isValidJson(String jsonData) {
+        if (JSON.isValid(jsonData)) {
             return;
         }
         throw new JSONException("非json结构");
@@ -152,13 +170,13 @@ public interface CustomerDataHandler {
      * 2023-10-23 17:37
      * 获取业务数据量
      *
-     * @param jsonStr 客户json字符串
+     * @param jsonData 客户json字符串
      * @return 传输的业务数据量
      */
-    default int countBizDataNumber(String jsonStr) {
-        if (JSON.isValid(jsonStr)) {
-            if (JSON.isValidObject(jsonStr)) {
-                JSONObject jsonObject = JSONObject.parseObject(jsonStr);
+    default int countBizDataNumber(String jsonData) {
+        if (JSON.isValid(jsonData)) {
+            if (JSON.isValidObject(jsonData)) {
+                JSONObject jsonObject = JSONObject.parseObject(jsonData);
                 Collection<Object> values = jsonObject.values();
                 for (Object value : values) {
                     int number = countBizDataNumber(JSON.toJSONString(value));
@@ -167,8 +185,8 @@ public interface CustomerDataHandler {
                     }
                 }
             } else {
-                if (JSON.isValidArray(jsonStr)) {
-                    JSONArray jsonArray = JSONArray.parseArray(jsonStr);
+                if (JSON.isValidArray(jsonData)) {
+                    JSONArray jsonArray = JSONArray.parseArray(jsonData);
                     return jsonArray.size();
                 }
             }

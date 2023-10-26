@@ -15,5 +15,5 @@ public interface CustomerDataTarget {
      * 2023-10-23 16:46
      * 适配转化标准接口
      */
-    TransferDataDTO<TransferDataItemDTO> transferDataRequest(String apiCode, TransferDataAdaptee adaptee);
+    TransferDataDTO<TransferDataItemDTO> transferDataRequest(TransferDataAdaptee adaptee);
 }
