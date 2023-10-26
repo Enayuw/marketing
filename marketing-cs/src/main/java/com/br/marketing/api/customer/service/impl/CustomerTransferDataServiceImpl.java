@@ -93,8 +93,8 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
             }
             String requestId = null;
             if (respCustomer == null) {
-                customDataHandleImpl.setSourceParam(apiCode, jsonData, adaptee);
                 try {
+                    customDataHandleImpl.setSourceParam(apiCode, jsonData, adaptee);
                     // 2. 有数据验证,包括字段空值及验签
                     respCustomer = customDataHandleImpl.verifyFields(adaptee);
                     // 3. 计算业务数据量
