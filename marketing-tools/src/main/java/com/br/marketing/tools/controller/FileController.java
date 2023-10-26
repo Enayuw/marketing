@@ -159,10 +159,10 @@ public class FileController {
                                 sb.append("\r\n");
                                 writer.append(sb.toString());
                             }else{
-                                String cell = RpcClientProxy.decode(content.trim(), "cell", "sha", "");
+//                                String cell = RpcClientProxy.decode(content.trim(), "cell", "sha", "");
 //                                String[] split = content.split(",");
                                 StringBuilder sb = new StringBuilder();
-                                sb.append(BrCipherMaker.getInstance().encode(cell));
+                                sb.append(BrCipherMaker.getInstance().encode(content.trim()));
                                 sb.append("\r\n");
                                 writer.append(sb.toString());
                             }
