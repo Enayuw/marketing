@@ -20,10 +20,13 @@ import java.util.List;
 public interface ZhongYuanService {
 
     /**
-     * 时间范围内的中原转化数据获取
+     * 时间范围内的中原转化数据获取(registerTime非空)
      */
     List<MarketingTransferSyncUser> getMarketingTransferSyncUserListWithValidityPeriod(String tcId,String apiCode,Long indexId, String requestStartDate,String requestEndDate);
-
+    /**
+     * 时间范围内的中原转化数据获取
+     */
+    List<MarketingTransferSyncUser> getMarketingTransferSyncUserListWithValidityPeriodNoRegisterTime(String tcId,String apiCode,Long indexId, String requestStartDate,String requestEndDate);
     /**
      * 中原转化数据推Daas
      */
