@@ -163,8 +163,7 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
             , CustomerResponseDTO responseDTO) {
         try {
             ProductPulsarProducer producer = ProductPulsarClientManager.newProducer(PulsarTopic.transferCustomTopic);
-            String jsonString = JSON.toJSONString(receive);
-            byte[] messageByte = JSON.toJSONString(jsonString).getBytes();
+            byte[] messageByte = JSON.toJSONString(receive).getBytes();
             producer.send(messageByte);
         } catch (PulsarClientException clientException) {
             log.error(clientException.getMessage(), clientException);
