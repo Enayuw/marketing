@@ -34,40 +34,30 @@ public class GuMeResponseDTO extends ResponseCustomDTO {
     public GuMeResponseDTO success() {
         this.code = GuMeResponseDTO.ResultEnum.SUCCESS.getCode();
         this.message = GuMeResponseDTO.ResultEnum.SUCCESS.getDesc();
-//        super.setResponseCode(this.code);
-//        super.setStatusEnum(StatusEnum.VALID);
         return this;
     }
 
     public GuMeResponseDTO failed(String message) {
         this.code = GuMeResponseDTO.ResultEnum.FAILED.getCode();
         this.message = GuMeResponseDTO.ResultEnum.FAILED.getDesc().concat(message);
-//        super.setResponseCode(this.code);
-//        super.setStatusEnum(StatusEnum.INVALID);
         return this;
     }
 
     public GuMeResponseDTO failed() {
         this.code = GuMeResponseDTO.ResultEnum.FAILED.getCode();
         this.message = GuMeResponseDTO.ResultEnum.FAILED.getDesc();
-//        super.setResponseCode(this.code);
-//        super.setStatusEnum(StatusEnum.INVALID);
         return this;
     }
 
     public GuMeResponseDTO failed(GuMeResponseDTO.ResultEnum resultEnum) {
         this.code = resultEnum.getCode();
         this.message = resultEnum.getDesc();
-//        super.setResponseCode(this.code);
-//        super.setStatusEnum(StatusEnum.INVALID);
         return this;
     }
 
     public GuMeResponseDTO failed(GuMeResponseDTO.ResultEnum resultEnum, String msg) {
         this.code = resultEnum.getCode();
         this.message = resultEnum.getDesc().concat(msg);
-//        super.setResponseCode(this.code);
-//        super.setStatusEnum(StatusEnum.INVALID);
         return this;
     }
 

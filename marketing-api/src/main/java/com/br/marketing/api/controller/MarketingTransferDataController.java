@@ -116,7 +116,7 @@ public class MarketingTransferDataController {
      *
      * @param apiCode  apiCode
      * @param jsonData 业务数据json结构
-     * @return ApiNoDataResult 业务响应
+     * @return ResponseCustomDTO 业务响应
      */
     @ApiOperation(value = "订制转化数据上传接口")
     @PostMapping("receiveTransferData")
