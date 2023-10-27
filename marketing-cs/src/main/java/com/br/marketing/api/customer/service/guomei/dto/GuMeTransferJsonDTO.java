@@ -6,8 +6,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.api.customer.adapter.TransferDataAdaptee;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
+import org.apache.commons.lang3.RandomStringUtils;
 
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -120,8 +120,7 @@ public class GuMeTransferJsonDTO extends TransferDataAdaptee {
     @Override
     protected TransferDataDTO<TransferDataItemDTO> adapteeRequest(String apiCode
             , TransferDataDTO<TransferDataItemDTO> transferDataDTO) {
-        SecureRandom random = new SecureRandom();
-        transferDataDTO.setRequestId(this.getRequestId().concat("_") + random.nextInt(5));
+        transferDataDTO.setRequestId(this.getRequestId().concat("_") + RandomStringUtils.randomNumeric(5));
         List<TransferDataItemDTO> objects = new ArrayList<>();
         JSONArray data = this.getData();
         int size = data.size();
