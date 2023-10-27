@@ -2176,10 +2176,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                     }
                 }
             }
+
             // 不同apicode上传数据，根据applet_time取最新一条
-            list.stream().sorted(Comparator.comparing(MarketingSyncUser::getAppletTime).reversed());
-            MarketingSyncUser vo = list.get(0);
-            return result.setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
+            Optional<MarketingSyncUser> optional = list.stream().sorted(Comparator.comparing(MarketingSyncUser::getAppletTime).reversed()).findFirst();
+            if (optional.isPresent()) {
+                MarketingSyncUser vo = optional.get();
+                return result.setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
+            }
         }
         return result.setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
