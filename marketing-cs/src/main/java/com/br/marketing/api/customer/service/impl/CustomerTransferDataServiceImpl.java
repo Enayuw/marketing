@@ -16,6 +16,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.PulsarTopic;
+import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.dto.ResponseCustomDTO;
@@ -28,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.api.PulsarClientException;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -111,9 +111,9 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
                             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                                 receive.setSyncStatus(1);
                             }
-                        } catch (DuplicateKeyException duplicateKeyException) {
+                        } catch (CommonException commonException) {
                             receive.setSyncStatus(0);
-                            log.warn(duplicateKeyException.getMessage() + jsonData, duplicateKeyException);
+                            log.warn(commonException.getMessage() + jsonData, commonException);
                         } catch (Exception e) {
                             receive.setSyncStatus(0);
                             log.error(e.getMessage() + jsonData, e);
