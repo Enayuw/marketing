@@ -358,7 +358,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
             if (!ObjectUtil.isEmpty(periodBOMap)) {
                 marketingTransferSyncUserList.forEach(transferSyncUser -> {
                     try{
-                        if(new Integer(1).equals(transferSyncUser.getIfLogin())) {
+                        if("1".equals(transferSyncUser.getIfLogin())) {
                             String custNum = transferSyncUser.getCustNum();
                             SyncUserValidityPeriodBO bo = periodBOMap.get(custNum + userType);
                             if (ObjectUtil.isEmpty(bo)) {
