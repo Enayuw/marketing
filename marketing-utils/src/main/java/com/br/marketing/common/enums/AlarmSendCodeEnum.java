@@ -37,6 +37,8 @@ public enum AlarmSendCodeEnum {
     REQUESTID_CONFLICT("62006", "requestIdConflict"),
     // 接口字段新增检查,阶梯推送，一般
     EXCEPTION_NEW_FIELD_CHECK("62006", "接口字段新增检查"),
+    // 一般通知,阶梯推送，一般
+    EXCEPTION_USUAL_NOTICE("62007", "通知"),
     ;
 
     /**

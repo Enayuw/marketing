@@ -86,7 +86,6 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
                 // 1. 解析json
                 adaptee = customDataHandleImpl.parseObject(jsonData);
             } catch (Exception e) {
-                receive.setSyncStatus(0);
                 respCustomer = customDataHandleImpl.jsonErrorResponse(e);
                 log.error(e.getMessage() + jsonData, e);
             }
@@ -96,34 +95,31 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
                     customDataHandleImpl.setSourceParam(apiCode, jsonData, adaptee);
                     // 2. 有数据验证,包括字段空值及验签
                     respCustomer = customDataHandleImpl.verifyFields(adaptee);
-                    // 3. 计算业务数据量
-                    int number = customDataHandleImpl.countBizDataNumber(adaptee);
-                    receive.setBizDataNumber(number);
-                    // 4. 适配
-                    TransferDataDTO<TransferDataItemDTO> transferDataDTO = customerDataAdapter.transferDataRequest(adaptee);
-                    if (transferDataDTO != null && CustomerResponseDTO.StatusEnum.VALID.equals(respCustomer.getStatusEnum())) {
-                        requestId = getRequestId(apiCode, transferDataDTO.getRequestId());
-                        transferDataDTO.setRequestId(requestId);
-                        // 5. 发送标准接口
-                        try {
-                            Result<?> result = pushRuleService.insertTransferData(apiCode, JSON.toJSONString(transferDataDTO)
-                                    , transferDataDTO);
-                            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                                receive.setSyncStatus(1);
+                    if (CustomerResponseDTO.StatusEnum.VALID.equals(respCustomer.getStatusEnum())) {
+                        // 3. 计算业务数据量
+                        int number = customDataHandleImpl.countBizDataNumber(adaptee);
+                        receive.setBizDataNumber(number);
+                        // 4. 适配
+                        TransferDataDTO<TransferDataItemDTO> transferDataDTO = customerDataAdapter.transferDataRequest(adaptee);
+                        if (transferDataDTO != null) {
+                            requestId = getRequestId(apiCode, transferDataDTO.getRequestId());
+                            transferDataDTO.setRequestId(requestId);
+                            // 5. 发送标准接口
+                            try {
+                                Result<?> result = pushRuleService.insertTransferData(apiCode, JSON.toJSONString(transferDataDTO)
+                                        , transferDataDTO);
+                                if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                                    receive.setSyncStatus(1);
+                                }
+                            } catch (CommonException commonException) {
+                                log.warn(commonException.getMessage() + jsonData, commonException);
+                            } catch (Exception e) {
+                                log.error(e.getMessage() + jsonData, e);
                             }
-                        } catch (CommonException commonException) {
-                            receive.setSyncStatus(0);
-                            log.warn(commonException.getMessage() + jsonData, commonException);
-                        } catch (Exception e) {
-                            receive.setSyncStatus(0);
-                            log.error(e.getMessage() + jsonData, e);
                         }
-                    } else {
-                        receive.setSyncStatus(0);
                     }
                 } catch (Exception e) {
                     respCustomer = customDataHandleImpl.bizErrorResponse(e);
-                    receive.setSyncStatus(0);
                     log.error(e.getMessage() + jsonData, e);
                 }
             }
@@ -141,7 +137,6 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
                 // 7. 检查新增字段
                 checkField(customDataHandleImpl, jsonData, apiCode, requestId);
             } catch (Exception e) {
-                receive.setSyncStatus(0);
                 log.error(e.getMessage() + jsonData, e);
                 // 6.1 数据库容灾
                 respCustomer = sendMq(customDataHandleImpl, receive, respCustomer);
