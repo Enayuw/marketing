@@ -79,7 +79,7 @@ public class PushInfoServiceImpl implements PushInfoService {
                         resultMap.put(policyResultByTaskIdsDTO.getVerification(), errorMap);
                     });
                 } else {
-                    log.error("决策查询接口异常result={}", JSON.toJSONString(result));
+                    log.warn("决策查询接口异常result={}", JSON.toJSONString(result));
                 }
             }
             list.forEach(t -> {
