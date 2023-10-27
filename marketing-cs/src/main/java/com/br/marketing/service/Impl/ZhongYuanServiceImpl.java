@@ -435,6 +435,10 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
             List<MarketingTransferSyncUser> marketingTransferSyncUserList = eliminateAndValidityTwo(marketingTransferSyncUsers);
 
+            if(marketingTransferSyncUserList == null ||marketingTransferSyncUserList.size()<=0){
+                return;
+            }
+
             Set<String> collectCustNumSet = marketingTransferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(toSet());
             String apiCode = marketingTransferSyncUserList.get(0).getApiCode();
             Map<String, SyncUserValidityPeriodBO> periodBOMap =
