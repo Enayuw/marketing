@@ -55,7 +55,7 @@ public class PushInfoServiceImpl implements PushInfoService {
         PageHelper.startPage(dto.getCurrent(), dto.getSize());
         List<PushInfoListVO> list = customerInfoPushMainMapper.getPushInfoList(dto);
         List<Long> ids = list.stream().map(t -> t.getId()).collect(Collectors.toList());
-        List<String> failStatusIds =list.stream().filter(t->t.getmStatus().equals("5")).map(t->String.valueOf(t.getId())).collect(Collectors.toList());
+        List<String> failStatusIds =list.stream().filter(t->t.getmStatus().equals(5)).map(t->String.valueOf(t.getId())).collect(Collectors.toList());
         if(ids.size()>0) {
             CustomerInfoPushBatchExample example = new CustomerInfoPushBatchExample();
             example.createCriteria().andMIdIn(ids).andIsDelEqualTo(1);
