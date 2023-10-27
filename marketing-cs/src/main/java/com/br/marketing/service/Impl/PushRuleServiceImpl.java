@@ -2169,9 +2169,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             for (MarketingCustomer customer : cList) {
                 String ac = customer.getApiCode();
                 if (StringUtils.isNotBlank(ac)) {
-                    MarketingSyncUser vo = marketingUserMapper.selectSyncUserByCustNum(ac, custNum);
-                    if (vo != null) {
-                        return result.setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
+                    try {
+                        MarketingSyncUser vo = marketingUserMapper.selectSyncUserByCustNum(ac, custNum);
+                        if (vo != null) {
+                            return result.setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
+                        }
+                    }catch (Exception ex){
+                        log.warn(String.format("apiCode表不存在：%s",ac),ex);
                     }
                 }
             }
