@@ -16,7 +16,6 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.PulsarTopic;
-import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.dto.ResponseCustomDTO;
@@ -111,8 +110,6 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
                                 if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                                     receive.setSyncStatus(1);
                                 }
-                            } catch (CommonException commonException) {
-                                log.warn(commonException.getMessage() + jsonData, commonException);
                             } catch (Exception e) {
                                 log.error(e.getMessage() + jsonData, e);
                             }
