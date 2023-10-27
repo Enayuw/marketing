@@ -74,23 +74,21 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
         }
         if (channelCodeBool && requestIdBool && signBool) {
             // 验签
-            boolean sign2Bool;
             String sign = Md5Utils.cell32(Md5Utils.cell32(jsonDTO.getRequestId() + jsonDTO.getChannelCode()
             ).toUpperCase(Locale.ROOT)).toUpperCase(Locale.ROOT);
-            if (sign2Bool = !jsonDTO.getSign().equals(sign)) {
+            if (jsonDTO.getSign().equals(sign)) {
+                // 验业务数据
+                if (CollectionUtils.isEmpty(jsonDTO.getData())) {
+                    responseGuMeDTO.failed(",data不可为空");
+                } else {
+                    return new CustomerResponseDTO(responseGuMeDTO.success()
+                            , CustomerResponseDTO.StatusEnum.VALID, responseGuMeDTO.getCode());
+                }
+            } else {
                 responseGuMeDTO.failed(",sign签名不正确");
             }
-            // 验业务数据
-            boolean dataBool;
-            if (dataBool = CollectionUtils.isEmpty(jsonDTO.getData())) {
-                responseGuMeDTO.failed(",data不可为空");
-            }
-            if (!sign2Bool && !dataBool) {
-                return new CustomerResponseDTO(responseGuMeDTO.success()
-                        , CustomerResponseDTO.StatusEnum.VALID, responseGuMeDTO.getCode());
-            }
         }
-        return new CustomerResponseDTO(responseGuMeDTO
+        return new CustomerResponseDTO(responseGuMeDTO.failed()
                 , CustomerResponseDTO.StatusEnum.INVALID, responseGuMeDTO.getCode());
     }
 
@@ -165,7 +163,6 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
         }
         try {
             guoMeiDataService.saveTransferDataHandler(guoMeiTransferData);
-            // TODO: 2023-10-17 推送转化数据接入标准逻辑
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             try {
