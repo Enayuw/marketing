@@ -1,4 +1,4 @@
-package com.br.marketing.dto.gume;
+package com.br.marketing.api.customer.service.guomei.dto;
 
 import com.br.marketing.dto.ResponseCustomDTO;
 

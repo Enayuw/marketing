@@ -1,4 +1,4 @@
-package com.br.marketing.dto.alien;
+package com.br.marketing.api.customer.service.alien.dto;
 
 import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.dto.ResponseCustomDTO;

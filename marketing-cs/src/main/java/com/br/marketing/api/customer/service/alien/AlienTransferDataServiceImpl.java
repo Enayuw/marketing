@@ -1,13 +1,13 @@
-package com.br.marketing.api.customer.alien;
+package com.br.marketing.api.customer.service.alien;
 
 import com.br.marketing.api.customer.adapter.TransferDataAdaptee;
 import com.br.marketing.api.customer.handler.CustomerDataHandler;
 import com.br.marketing.api.customer.handler.CustomerHandlerEnum;
+import com.br.marketing.api.customer.service.alien.dto.AlienResponseDTO;
 import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
-import com.br.marketing.dto.alien.AlienResponseDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
