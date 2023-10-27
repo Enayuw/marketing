@@ -88,7 +88,7 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
                 responseGuMeDTO.failed(",sign签名不正确");
             }
         }
-        return new CustomerResponseDTO(responseGuMeDTO.failed()
+        return new CustomerResponseDTO(responseGuMeDTO
                 , CustomerResponseDTO.StatusEnum.INVALID, responseGuMeDTO.getCode());
     }
 
