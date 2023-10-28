@@ -50,8 +50,7 @@ public class CustomerDataHandleSingleton implements ApplicationContextAware {
      * 根据apiCode获取客户处理
      */
     public CustomerDataHandler getCustomerDataHandleImpl(String apiCode) {
-        cacheCustomerDataHandleImpl();
-        return customDataHandlerMap.get(CustomerHandlerEnum.valueof(apiCode));
+        return getCustomerDataHandleImpl(CustomerHandlerEnum.valueof(apiCode));
     }
 
     /**
