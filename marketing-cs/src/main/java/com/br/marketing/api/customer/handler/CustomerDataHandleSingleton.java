@@ -1,11 +1,15 @@
 package com.br.marketing.api.customer.handler;
 
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.BinaryOperator;
@@ -19,9 +23,13 @@ import java.util.stream.Collectors;
  * @dateTime 2023-10-16 9:49
  */
 @Component
+@Slf4j
 public class CustomerDataHandleSingleton implements ApplicationContextAware {
-    public ApplicationContext applicationContext;
+    private ApplicationContext applicationContext;
     private volatile static ConcurrentSkipListMap<CustomerHandlerEnum, CustomerDataHandler> customDataHandlerMap;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -43,6 +51,23 @@ public class CustomerDataHandleSingleton implements ApplicationContextAware {
                                     Comparator.comparing(CustomerDataHandler::customer)), ConcurrentSkipListMap::new));
                 }
             }
+        }
+        try {
+            Map<String, List<String>> customerHandlerEnumConfigMap = marketingCommonConfig.getCustomerHandlerEnumConfigMap();
+            if (customerHandlerEnumConfigMap == null) {
+                return;
+            }
+            customDataHandlerMap.keySet().forEach(k -> {
+                String key = k.toString();
+                if (customerHandlerEnumConfigMap.containsKey(key)) {
+                    List<String> apiCodes = customerHandlerEnumConfigMap.get(key);
+                    if (apiCodes != null) {
+                        k.setApiCodes(apiCodes.toArray(new String[0]));
+                    }
+                }
+            });
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
     }
 
