@@ -126,6 +126,7 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
             receive.setRequestId(requestId == null ? (requestId = getRequestId(apiCode)) : requestId);
             // 6. 保存前置数据
             try {
+                pushRuleService.mockDbOrRedisError(1, apiCode);
                 int i = customerTransferDataReceiveMapper.insertSelective(receive);
                 if (i != 1) {
                     throw new RuntimeException("定制化客户".concat(customDataHandleImpl.customer().getName())
