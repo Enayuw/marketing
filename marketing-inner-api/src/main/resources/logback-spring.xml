@@ -76,7 +76,7 @@
     <logger name="com.br.bsf.ext.app.util" level="ERROR"/>
 
     <springProfile name="pre">
-        <root level="ERROR">
+        <root level="INFO">
             <appender-ref ref="STDOUT"/>
             <appender-ref ref="ASYNC"/>
             <appender-ref ref="ALARM_ERROR_ASYNC"/>

@@ -3,6 +3,7 @@ package com.br.marketing.speedconfig;
 import com.alibaba.fastjson.JSON;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.origin.DataLoadingHandlerService;
@@ -66,8 +67,9 @@ public class SpeedConfig implements ISpeedAppendPipeline {
                 }
                 if(!new Integer(0).equals(redisTest)){
                     RedisTestServiceImpl redisTestServiceImpl = context.getBean("redisTestServiceImpl", RedisTestServiceImpl.class);
+                    RedisChgService redisChgService = context.getBean("redisChgService",RedisChgService.class);
                     if(redisTestServiceImpl !=null){
-                        redisTestServiceImpl.redisTest(redisTest);
+                        redisTestServiceImpl.redisTest(redisTest,redisChgService);
                     }
                 }
 

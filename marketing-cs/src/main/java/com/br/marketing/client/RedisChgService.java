@@ -307,6 +307,7 @@ public class RedisChgService {
                 sleep();
             }
             cursorIndex = sscan.getCursor();
+            cursor.setCursor(cursorIndex);
         } while (!"0".equals(cursorIndex));
         //删除bigkey
         marketingRedisClient.del(bigSetKey);
