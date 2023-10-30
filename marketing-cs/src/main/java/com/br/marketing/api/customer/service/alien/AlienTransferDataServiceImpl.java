@@ -10,9 +10,14 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
+import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.mapper.MarketingCustomerMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import javax.annotation.Resource;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -24,6 +29,9 @@ import java.util.Set;
 @Service
 @Slf4j
 public class AlienTransferDataServiceImpl implements CustomerDataHandler {
+
+    @Resource
+    private MarketingCustomerMapper marketingCustomerService;
 
     @Override
     public CustomerHandlerEnum customer() {
@@ -47,10 +55,26 @@ public class AlienTransferDataServiceImpl implements CustomerDataHandler {
     public CustomerResponseDTO verifyFields(TransferDataAdaptee adaptee) {
         AlienResponseDTO alienResponseDTO = new AlienResponseDTO();
         alienResponseDTO.success();
+        List<MarketingCustomer> nameList = null;
+        try {
+            nameList = marketingCustomerService.getNameByApiCodeList(adaptee.getApiCode());
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        String name;
+        String shortName;
+        if (CollectionUtils.isEmpty(nameList)) {
+            name = customer().getName();
+            shortName = name;
+        } else {
+            MarketingCustomer customer = nameList.get(0);
+            name = customer.getName();
+            shortName = customer.getShortName();
+        }
         String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode()
-                , "定制化转化接口接收到未知客户编号“" + adaptee.getApiCode()
-                        .concat("”的数据\n请及时与该客户沟通确认^_^")
-                , customer().getName() + "(" + adaptee.getApiCode() + ")定制化转化接口通知");
+                , "定制化转化接口接收到“" + shortName + "”编号“" + adaptee.getApiCode()
+                        .concat("”的数据\n请及时与该“").concat(name).concat("”沟通确认^_^")
+                , "通用定制化转化接口未知请求通知");
         log.warn(msg);
         return new CustomerResponseDTO(alienResponseDTO
                 , CustomerResponseDTO.StatusEnum.VALID, alienResponseDTO.getCode());
