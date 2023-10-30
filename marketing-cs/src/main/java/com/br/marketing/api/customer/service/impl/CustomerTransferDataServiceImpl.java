@@ -197,6 +197,7 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
             CustomerTransferDataReceive receive = JSONObject.parseObject(
                     msg, new TypeReference<CustomerTransferDataReceive>() {
                     }.getType());
+            pushRuleService.mockDbOrRedisError(1, receive.getApiCode());
             int i = customerTransferDataReceiveMapper.insertSelective(receive);
             result.setCode(i > 0 ? ResultCode.SUCCESS.getValue() : ResultCode.FAIL.getValue());
         } catch (Exception e) {
