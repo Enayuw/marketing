@@ -2175,7 +2175,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                         MarketingSyncUser vo = marketingUserMapper.selectSyncUserByCustNum(ac, custNum);
                         if (vo != null) {
                             list.add(vo);
-//                            return result.setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
                         }
                     }catch (BadSqlGrammarException sqlGrammarException){
                         log.warn(String.format("apiCode表不存在：%s",ac),sqlGrammarException);
