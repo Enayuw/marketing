@@ -74,6 +74,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.*;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.*;
@@ -2170,9 +2171,14 @@ public class PushRuleServiceImpl implements PushRuleService {
             for (MarketingCustomer customer : cList) {
                 String ac = customer.getApiCode();
                 if (StringUtils.isNotBlank(ac)) {
-                    MarketingSyncUser vo = marketingUserMapper.selectSyncUserByCustNum(ac, custNum);
-                    if (vo != null) {
-                        list.add(vo);
+                    try {
+                        MarketingSyncUser vo = marketingUserMapper.selectSyncUserByCustNum(ac, custNum);
+                        if (vo != null) {
+                            list.add(vo);
+//                            return result.setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
+                        }
+                    }catch (BadSqlGrammarException sqlGrammarException){
+                        log.warn(String.format("apiCode表不存在：%s",ac),sqlGrammarException);
                     }
                 }
             }
