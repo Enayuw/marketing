@@ -18,6 +18,10 @@ public enum ValidityPeriodResendEnum {
      * 360有效期变更重推
      */
     QI_FU(1),
+    /**
+     * 国美转化数据自动过滤推客服
+     */
+    GOME_TRANSFERDATA_CUSTOMER_AUTO_FILTRATION(2),
     ;
 
     private final Integer code;
@@ -42,6 +46,7 @@ public enum ValidityPeriodResendEnum {
                 return enumValue;
             }
         }
-        return null;
+        //根据Code未找到对应枚举返回默认值
+        return ValidityPeriodResendEnum.DEFAULT;
     }
 }

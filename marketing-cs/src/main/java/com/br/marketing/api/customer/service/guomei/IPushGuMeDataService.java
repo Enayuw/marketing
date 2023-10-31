@@ -1,8 +1,8 @@
-package com.br.marketing.service.custom.guomei;
+package com.br.marketing.api.customer.service.guomei;
 
+import com.br.marketing.api.customer.handler.CustomerDataHandler;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.ResponseCustomDTO;
-import com.br.marketing.service.custom.handler.CustomDataHandler;
 
 /**
  * 国美推送转化数据定制接口
@@ -10,7 +10,7 @@ import com.br.marketing.service.custom.handler.CustomDataHandler;
  * @author Guo Zeqiang
  * @dateTime 2023/10/16 16:24
  */
-public interface IPushGuMeDataService extends CustomDataHandler {
+public interface IPushGuMeDataService extends CustomerDataHandler {
 
 
     /**
@@ -21,6 +21,7 @@ public interface IPushGuMeDataService extends CustomDataHandler {
      * @return ResponseGuMeDTO
      * @author Guo Zeqiang
      */
+    @Deprecated
     ResponseCustomDTO saveTransferData(String apiCode, String jsonData);
 
 
@@ -31,5 +32,6 @@ public interface IPushGuMeDataService extends CustomDataHandler {
      * @param msg mq中的消息
      * @return 结果
      */
+    @Deprecated
     Result<Boolean> consumerTransfer(String msg);
 }

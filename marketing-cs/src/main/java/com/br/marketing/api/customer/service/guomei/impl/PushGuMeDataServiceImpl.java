@@ -1,17 +1,21 @@
-package com.br.marketing.service.custom.guomei.impl;
+package com.br.marketing.api.customer.service.guomei.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.encryption.Md5Utils;
+import com.br.marketing.api.customer.adapter.TransferDataAdaptee;
+import com.br.marketing.api.customer.handler.CustomerHandlerEnum;
+import com.br.marketing.api.customer.service.guomei.IGuoMeiDataService;
+import com.br.marketing.api.customer.service.guomei.IPushGuMeDataService;
+import com.br.marketing.api.customer.service.guomei.dto.GuMeResponseDTO;
+import com.br.marketing.api.customer.service.guomei.dto.GuMeTransferJsonDTO;
+import com.br.marketing.api.customer.service.guomei.dto.ResponseGuMeDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.dto.ResponseCustomDTO;
-import com.br.marketing.dto.gume.GuMeTransferJsonDTO;
-import com.br.marketing.dto.gume.ResponseGuMeDTO;
 import com.br.marketing.entity.GuoMeiTransferData;
-import com.br.marketing.service.custom.guomei.IGuoMeiDataService;
-import com.br.marketing.service.custom.guomei.IPushGuMeDataService;
-import com.br.marketing.service.custom.handler.CustomCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.api.PulsarClientException;
@@ -21,7 +25,9 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * 国美业务
@@ -37,19 +43,98 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
     private IGuoMeiDataService guoMeiDataService;
 
     @Override
-    public CustomCodeEnum custom() {
-        return CustomCodeEnum.T_GUME;
+    public CustomerHandlerEnum customer() {
+        return CustomerHandlerEnum.T_GUME;
     }
 
     @Override
-    public ResponseCustomDTO receiveCustomDataHandler(String apiCode, String jsonData) {
-        return saveTransferData(apiCode, jsonData);
+    public TransferDataAdaptee parseObject(String jsonData) {
+        return JSONObject.parseObject(jsonData, new TypeReference<GuMeTransferJsonDTO>() {
+        }.getType());
     }
 
     @Override
-    public Result<Boolean> consumerPayData(String msg) {
-        return consumerTransfer(msg);
+    public CustomerResponseDTO verifyFields(TransferDataAdaptee adaptee) {
+        GuMeTransferJsonDTO jsonDTO = (GuMeTransferJsonDTO) adaptee;
+        GuMeResponseDTO responseGuMeDTO = new GuMeResponseDTO();
+        boolean channelCodeBool;
+        if (channelCodeBool = StringUtils.isNotBlank(jsonDTO.getChannelCode())) {
+        } else {
+            responseGuMeDTO.failed(",channelCode不可为空");
+        }
+        boolean requestIdBool;
+        if (requestIdBool = StringUtils.isNotBlank(jsonDTO.getRequestId())) {
+        } else {
+            responseGuMeDTO.failed(",requestId不可为空");
+        }
+        boolean signBool;
+        if (signBool = StringUtils.isNotBlank(jsonDTO.getSign())) {
+        } else {
+            responseGuMeDTO.failed(",sign不可为空");
+        }
+        if (channelCodeBool && requestIdBool && signBool) {
+            // 验签
+            String sign = Md5Utils.cell32(Md5Utils.cell32(jsonDTO.getRequestId() + jsonDTO.getChannelCode()
+            ).toUpperCase(Locale.ROOT)).toUpperCase(Locale.ROOT);
+            if (jsonDTO.getSign().equals(sign)) {
+                // 验业务数据
+                if (CollectionUtils.isEmpty(jsonDTO.getData())) {
+                    responseGuMeDTO.failed(",data不可为空");
+                } else {
+                    return new CustomerResponseDTO(responseGuMeDTO.success()
+                            , CustomerResponseDTO.StatusEnum.VALID, responseGuMeDTO.getCode());
+                }
+            } else {
+                responseGuMeDTO.failed(",sign签名不正确");
+            }
+        }
+        return new CustomerResponseDTO(responseGuMeDTO
+                , CustomerResponseDTO.StatusEnum.INVALID, responseGuMeDTO.getCode());
     }
+
+    @Override
+    public int countBizDataNumber(TransferDataAdaptee adaptee) {
+        GuMeTransferJsonDTO jsonDTO = (GuMeTransferJsonDTO) adaptee;
+        return jsonDTO.getData() != null ? jsonDTO.getData().size() : 0;
+    }
+
+    @Override
+    public Set<String> getBizAllFields(String jsonStr) {
+        JSONObject jsonObject = JSONObject.parseObject(jsonStr);
+        Set<String> set = jsonObject.keySet();
+        HashSet<String> fieldSet = new HashSet<>(set);
+        String arrayKey = "data";
+        if (jsonObject.containsKey(arrayKey)) {
+            JSONArray data = jsonObject.getJSONArray(arrayKey);
+            int size = data.size();
+            for (int i = 0; i < size; i++) {
+                fieldSet.addAll(data.getJSONObject(i).keySet());
+            }
+        }
+        return fieldSet;
+    }
+
+    @Override
+    public CustomerResponseDTO jsonErrorResponse(Exception e) {
+        GuMeResponseDTO responseGuMeDTO = new GuMeResponseDTO();
+        responseGuMeDTO.failed(",json解析失败");
+        return new CustomerResponseDTO(responseGuMeDTO
+                , CustomerResponseDTO.StatusEnum.INVALID, responseGuMeDTO.getCode());
+    }
+
+    @Override
+    public CustomerResponseDTO bizErrorResponse(Exception e) {
+        return fallbackResponse(e);
+    }
+
+    @Override
+    public CustomerResponseDTO fallbackResponse(Exception e) {
+        GuMeResponseDTO responseGuMeDTO = new GuMeResponseDTO();
+        responseGuMeDTO.failed();
+        return new CustomerResponseDTO(responseGuMeDTO
+                , CustomerResponseDTO.StatusEnum.INVALID, responseGuMeDTO.getCode());
+    }
+
 
     @Override
     public ResponseCustomDTO saveTransferData(String apiCode, String jsonData) {
@@ -78,13 +163,13 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
         }
         try {
             guoMeiDataService.saveTransferDataHandler(guoMeiTransferData);
-            // TODO: 2023-10-17 推送转化数据接入标准逻辑
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             try {
                 sendQueue(guoMeiTransferData);
             } catch (PulsarClientException clientException) {
                 responseGuMeDTO.failed();
+                log.error(clientException.getMessage(), clientException);
             }
         }
         return responseGuMeDTO;
@@ -94,6 +179,7 @@ public class PushGuMeDataServiceImpl implements IPushGuMeDataService {
      * 2023-10-16 18:08
      * 转化接口参数合法检查
      */
+    @Deprecated
     private boolean transferApiParamRightfulCheck(GuMeTransferJsonDTO jsonDTO
             , ResponseGuMeDTO responseGuMeDTO, GuoMeiTransferData guoMeiTransferData) {
         boolean channelCodeBool;
