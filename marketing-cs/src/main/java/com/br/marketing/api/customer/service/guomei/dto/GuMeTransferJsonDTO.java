@@ -137,26 +137,31 @@ public class GuMeTransferJsonDTO extends TransferDataAdaptee {
             jsonObject.remove("group");
             dto.setRegisterTime(jsonObject.getString("registrationDate"));
             jsonObject.remove("registrationDate");
+            //1是0否
             String isLogin = jsonObject.getString("isLogin");
-            dto.setIfLogin(stringEscape(isLogin)); //1是0否
+            dto.setIfLogin(stringEscape(isLogin));
             jsonObject.remove("isLogin");
             dto.setLoginTime(jsonObject.getString("loginTime"));
             jsonObject.remove("loginTime");
+            //1是0否
             String isApplyCredit = jsonObject.getString("isApplyCredit");
-            dto.setIfApply(stringEscape(isApplyCredit)); //1是0否
+            dto.setIfApply(stringEscape(isApplyCredit));
             jsonObject.remove("isApplyCredit");
             dto.setApplyDt(jsonObject.getString("applyCreditTime"));
             jsonObject.remove("applyCreditTime");
             String isCreditPass = jsonObject.getString("isCreditPass");
-            dto.setApplyResult(stringEscape(isCreditPass)); //1是0否
+            //1是0否
+            dto.setApplyResult(stringEscape(isCreditPass));
             jsonObject.remove("isCreditPass");
             dto.setAuditTime(jsonObject.getString("creditPassTime"));
             jsonObject.remove("creditPassTime");
+            //77777.77
             String creditAmount = jsonObject.getString("creditAmount");
-            dto.setAuditAmount(creditAmount); //77777.77
+            dto.setAuditAmount(creditAmount);
             jsonObject.remove("creditAmount");
+            //1是0否
             String isRiskPass = jsonObject.getString("isRiskPass");
-            dto.setIfLent(stringEscape(isRiskPass)); //1是0否
+            dto.setIfLent(stringEscape(isRiskPass));
             jsonObject.remove("isRiskPass");
             dto.setLentTime(jsonObject.getString("lendersDate"));
             jsonObject.remove("lendersDate");
