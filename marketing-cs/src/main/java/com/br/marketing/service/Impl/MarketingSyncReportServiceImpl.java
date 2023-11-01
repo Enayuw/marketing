@@ -1,9 +1,8 @@
 package com.br.marketing.service.Impl;
 
-import cn.hutool.core.date.DatePattern;
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.DateUtil;
+
 import cn.hutool.core.util.ObjectUtil;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.ValidityPeriodResendRecordService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -14,10 +13,6 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.CustomerMapper;
-import com.br.marketing.mapper.MarketingSyncReportMapper;
-import com.br.marketing.mapper.MarketingValidityChangeMapper;
-import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.MarketingSyncReportService;
 import com.br.marketing.vo.MarketingSyncReportNumVO;
@@ -58,6 +53,12 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     private VariableDicMapper variableDicMapper;
     @Resource
     private MarketingSyncReportMapper syncReportMapper;
+
+    @Autowired
+    EntityOptServiceImpl entityOptService;
+
+    @Autowired
+    MarketingDataValidConfigMapper marketingDataValidConfigMapper;
 
     @Autowired
     ICompatibleService iCompatibleService;
@@ -407,16 +408,19 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             String apiCode = reportVO.getApiCode();
             String userType = reportVO.getUserType();
             String appletDate = reportVO.getAppletDate();
-            MarketingDataValidConfig newData = syncReportMapper.selectValidData(apiCode, userType, appletDate);
+            MarketingDataValidConfig data = syncReportMapper.selectValidData(apiCode, userType, appletDate);
+            MarketingDataValidConfig newData = new MarketingDataValidConfig();
             validStartDate = DateUtils.format(addDay(validStartDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
             validEndDate = DateUtils.format(addDay(validEndDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
-            if (validStartDate.equals(newData.getValidStartDate()) && validEndDate.equals(newData.getValidEndDate())){
+            if (validStartDate.equals(data.getValidStartDate()) && validEndDate.equals(data.getValidEndDate())){
                 log.warn("有效期日期未修改,apiCode={},userType={},appletDate={}", apiCode, userType, appletDate);
                 return true;
             }
+            newData.setId(data.getId());
             newData.setValidStartDate(validStartDate);
             newData.setValidEndDate(validEndDate);
-            Integer i = syncReportMapper.updateById(newData);
+            int i = marketingDataValidConfigMapper.updateByPrimaryKeySelective(newData);
+            entityOptService.writeOptLog(data.getId(), newData, data);
             if (i == 1){
                 log.warn("开始重推, apiCode={}, userType={}, id={}", apiCode, userType, newData.getId());
                 recordService.saveRecord(apiCode,userType,newData.getId());

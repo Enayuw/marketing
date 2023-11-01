@@ -17,7 +17,7 @@ public interface MarketingValidityChangeMapper {
 
     Integer selectValidDaysDefault(@Param("apiCode") String apiCode, @Param("userType") String userType);
 
-    Long selectId(@Param("apiCode") String apiCode, @Param("userType") String userType);
+    MarketingDataValidConfigDefault selectId(@Param("apiCode") String apiCode, @Param("userType") String userType);
 
     Integer updateMarketingDataValidConfigDefault(@Param("validConfigDefault") MarketingDataValidConfigDefault validConfigDefault);
 

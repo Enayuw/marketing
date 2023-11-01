@@ -17,7 +17,7 @@
     </select>
 
 
-    <select id="selectId" resultType="java.lang.Long">
+    <select id="selectId" resultType="com.br.marketing.entity.MarketingDataValidConfigDefault">
         select id
         from b_marketing_data_valid_config_default
         where api_code = #{apiCode}

@@ -16,6 +16,7 @@ import com.br.marketing.vo.VariableDicListVO;
 import com.br.marketing.vo.VariableDicSelectVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -33,6 +34,9 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class VariableDicServiceImpl implements VariableDicService {
+
+    @Autowired
+    EntityOptServiceImpl entityOptService;
 
     @Resource
     private VariableDicMapper variableDicMapper;
@@ -108,29 +112,34 @@ public class VariableDicServiceImpl implements VariableDicService {
             variableDic.setApiCode(apiCode);
             variableDic.setCreateTime(new Date());
             variableDicMapper.insert(variableDic);
+            entityOptService.writeOptLog(vo.getId(), variableDic, null);
             Integer i = validityChangeMapper.selectNum(apiCode, userType);
+            MarketingDataValidConfigDefault date = validityChangeMapper.selectId(apiCode,userType);
             if (i >= 1){
                 log.warn("该apiCode={} , userType={}维度下已存在有效期配置", apiCode, userType);
-                Long id = validityChangeMapper.selectId(apiCode,userType);
-                validConfigDefault.setId(id);
+                validConfigDefault.setId(date.getId());
                 validConfigDefault.setApiCode(apiCode);
                 validConfigDefault.setUpdateTime(new Date());
                 validityChangeMapper.updateMarketingDataValidConfigDefault(validConfigDefault);
+                entityOptService.writeOptLog(date.getId(), validConfigDefault, date);
                 return new ApiResult<Boolean>().success(true);
             }
             validConfigDefault.setApiCode(apiCode);
             validConfigDefault.setCreateTime(new Date());
             validityChangeMapper.insertValidConfigDefault(validConfigDefault);
+            entityOptService.writeOptLog(date.getId(), validConfigDefault, null);
         }else {
             //编辑
             variableDic.setId(vo.getId());
             variableDicMapper.updateByPrimaryKeySelective(variableDic);
-            Long id = validityChangeMapper.selectId(apiCode,userType);
-            if (ObjectUtil.isNotEmpty(id)){
-                validConfigDefault.setId(id);
+            entityOptService.writeOptLog(vo.getId(), variableDic, vo);
+            MarketingDataValidConfigDefault dataValidConfigDefault = validityChangeMapper.selectId(apiCode,userType);
+            if (ObjectUtil.isNotEmpty(dataValidConfigDefault.getId())){
+                validConfigDefault.setId(dataValidConfigDefault.getId());
                 validConfigDefault.setApiCode(apiCode);
                 validConfigDefault.setUpdateTime(new Date());
                 validityChangeMapper.updateMarketingDataValidConfigDefault(validConfigDefault);
+                entityOptService.writeOptLog(dataValidConfigDefault.getId(), validConfigDefault, dataValidConfigDefault);
             } else {
                 log.warn("该apiCode={} , userType={}维度不存在代运营默认有效期配置", apiCode, userType);
             }
