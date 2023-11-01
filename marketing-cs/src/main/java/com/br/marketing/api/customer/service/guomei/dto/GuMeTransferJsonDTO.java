@@ -172,7 +172,13 @@ public class GuMeTransferJsonDTO extends TransferDataAdaptee {
             // isApplyWithdrawals 1是0否
             String isApplyWithdrawals = jsonObject.getString("isApplyWithdrawals");
             if (isApplyWithdrawals != null) {
-                jsonObject.put("isApplyWithdrawals", stringEscape(isApplyWithdrawals));
+                jsonObject.put("applyLoan", stringEscape(isApplyWithdrawals));
+                jsonObject.remove("isApplyWithdrawals");
+            }
+            String withdrawalsTime = jsonObject.getString("withdrawalsTime");
+            if (withdrawalsTime != null) {
+                jsonObject.put("applyLoanTime", withdrawalsTime);
+                jsonObject.remove("withdrawalsTime");
             }
             dto.setReserveField1(JSON.toJSONString(jsonObject));
             objects.add(dto);
