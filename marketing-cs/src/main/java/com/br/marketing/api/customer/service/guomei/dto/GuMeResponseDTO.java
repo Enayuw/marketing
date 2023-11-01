@@ -1,4 +1,4 @@
-package com.br.marketing.dto.gume;
+package com.br.marketing.api.customer.service.guomei.dto;
 
 import com.br.marketing.dto.ResponseCustomDTO;
 
@@ -8,7 +8,7 @@ import com.br.marketing.dto.ResponseCustomDTO;
  * @author Guo Zeqiang
  * @dateTime 2023-10-16 17:14
  */
-public class ResponseGuMeDTO extends ResponseCustomDTO {
+public class GuMeResponseDTO extends ResponseCustomDTO {
 
     private static final long serialVersionUID = -7690813151831346825L;
     /**
@@ -21,49 +21,41 @@ public class ResponseGuMeDTO extends ResponseCustomDTO {
      */
     private String message;
 
-    public ResponseGuMeDTO() {
-    }
-
-    public ResponseGuMeDTO(int code, String message) {
+    public GuMeResponseDTO(int code, String message) {
         this.code = code;
         this.message = message;
     }
 
-    public ResponseGuMeDTO(ResponseGuMeDTO.ResultEnum resultEnum) {
-        this.code = resultEnum.getCode();
-        this.message = resultEnum.getDesc();
+    public GuMeResponseDTO() {
+
     }
 
-    public ResponseGuMeDTO(ResponseGuMeDTO.ResultEnum resultEnum, String msg) {
-        this.code = resultEnum.getCode();
-        this.message = resultEnum.getDesc().concat(msg);
-    }
 
-    public ResponseGuMeDTO success() {
-        this.code = ResponseGuMeDTO.ResultEnum.SUCCESS.getCode();
-        this.message = ResponseGuMeDTO.ResultEnum.SUCCESS.getDesc();
+    public GuMeResponseDTO success() {
+        this.code = GuMeResponseDTO.ResultEnum.SUCCESS.getCode();
+        this.message = GuMeResponseDTO.ResultEnum.SUCCESS.getDesc();
         return this;
     }
 
-    public ResponseGuMeDTO failed(String message) {
-        this.code = ResponseGuMeDTO.ResultEnum.FAILED.getCode();
-        this.message = ResponseGuMeDTO.ResultEnum.FAILED.getDesc().concat(message);
+    public GuMeResponseDTO failed(String message) {
+        this.code = GuMeResponseDTO.ResultEnum.FAILED.getCode();
+        this.message = GuMeResponseDTO.ResultEnum.FAILED.getDesc().concat(message);
         return this;
     }
 
-    public ResponseGuMeDTO failed() {
-        this.code = ResponseGuMeDTO.ResultEnum.FAILED.getCode();
-        this.message = ResponseGuMeDTO.ResultEnum.FAILED.getDesc();
+    public GuMeResponseDTO failed() {
+        this.code = GuMeResponseDTO.ResultEnum.FAILED.getCode();
+        this.message = GuMeResponseDTO.ResultEnum.FAILED.getDesc();
         return this;
     }
 
-    public ResponseGuMeDTO failed(ResponseGuMeDTO.ResultEnum resultEnum) {
+    public GuMeResponseDTO failed(GuMeResponseDTO.ResultEnum resultEnum) {
         this.code = resultEnum.getCode();
         this.message = resultEnum.getDesc();
         return this;
     }
 
-    public ResponseGuMeDTO failed(ResponseGuMeDTO.ResultEnum resultEnum, String msg) {
+    public GuMeResponseDTO failed(GuMeResponseDTO.ResultEnum resultEnum, String msg) {
         this.code = resultEnum.getCode();
         this.message = resultEnum.getDesc().concat(msg);
         return this;
