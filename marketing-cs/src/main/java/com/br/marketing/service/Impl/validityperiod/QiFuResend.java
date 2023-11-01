@@ -47,6 +47,19 @@ public class QiFuResend implements ValidityPeriodResendStrategy<MarketingTransfe
 
 
     /**
+     * 构建重推数据扩展字段
+     *
+     * @param params params
+     * @return {@link String }
+     * @author senyang.zheng
+     * @date 2023/10/18
+     */
+    @Override
+    public String buildResendData(Map<String, Object> params) {
+        return null;
+    }
+
+    /**
      * 获取重推数据
      *
      * @param validityPeriodResendRecord 有效期重新发送记录

@@ -440,6 +440,11 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                  @Param("requestStartDate") String requestStartDate,
                                                                  @Param("requestEndDate") String requestEndDate,
                                                                  @Param("indexId") Long indexId);
+    List<MarketingTransferSyncUser> getZhongYuanTransferByRequestDateNoRegisterTime(@Param("tCid") String tCid,
+                                                                 @Param("apiCode") String apiCode,
+                                                                 @Param("requestStartDate") String requestStartDate,
+                                                                 @Param("requestEndDate") String requestEndDate,
+                                                                 @Param("indexId") Long indexId);
 
     Integer getCountIsBlackByCustNum(@Param("cid") String cId, @Param("custNum") String custNum);
     Integer getCountIfApplyByCustNum(@Param("cid") String cId, @Param("custNum") String custNum,

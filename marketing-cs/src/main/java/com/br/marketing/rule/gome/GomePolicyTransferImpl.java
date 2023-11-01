@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.StringUtils;
-import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.common.utils.DateHelper;
@@ -66,9 +66,10 @@ public class GomePolicyTransferImpl implements AssembleData<PushMarketingUserDet
         pushMarketingUserDetailByRuleDTO.setCaseNumber(transfer.getCustNum());
         GomeRuleCollectDataImpl.GomeRuleNecessaryData data =
                 (GomeRuleCollectDataImpl.GomeRuleNecessaryData) context.getRuleNecessaryData();
-        SyncUserValidityPeriodBO bo = data.getSyncUserValidityPeriodMap().get(transfer.getCustNum());
-        pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell())));
-        pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
+        SyncUserValidityPeriodsBO bo = data.getSyncUserValidityPeriodMap().get(transfer.getCustNum());
+        String cell = bo.getSyncUsers().get(0).getCell();
+        pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(cell)));
+        pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(cell));
         pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_" + context.getApiCode() + "_" + status);
         pushMarketingUserDetailByRuleDTO.setVariables(new JSONObject());
         pushMarketingUserDetailByRuleDTO.setStrategyCode("");

@@ -190,7 +190,7 @@ public class QiFuSaveReachDeleteRecordPushJob extends AbstractSimpleElasticJob {
             sb.append("## 响应业务错误信息:\n");
             sb.append("|返回码|返回码描述|入库日期|推送日期|量级|\n");
             sb.append("|:----:|:----:|:----:|:----:|:----:|\n");
-            for (QifuSaveReachDeleteRecordApiPushLog apiErrorStatistic : apiErrorStatistics) {
+            for (QifuSaveReachDeleteRecordApiPushLog apiErrorStatistic : qiFuBizErrorStatistics) {
                 sb.append("|");
                 sb.append(apiErrorStatistic.getQifuIsSucceed()).append("|");
                 sb.append(apiErrorStatistic.getQifuMessage()).append("|");
@@ -204,7 +204,7 @@ public class QiFuSaveReachDeleteRecordPushJob extends AbstractSimpleElasticJob {
             sb.append("## 推送逻辑错误信息:\n");
             sb.append("|错误描述|入库日期|推送日期|量级|\n");
             sb.append("|:----:|:----:|:----:|:----:|\n");
-            for (QifuSaveReachDeleteRecordApiPushLog apiErrorStatistic : apiErrorStatistics) {
+            for (QifuSaveReachDeleteRecordApiPushLog apiErrorStatistic : bizErrorStatistics) {
                 sb.append("|");
                 sb.append(apiErrorStatistic.getErrorMsg()).append("|");
                 sb.append(apiErrorStatistic.getSyncAppletDate()).append("|");

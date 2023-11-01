@@ -39,7 +39,7 @@
         from b_qifu_save_reach_delete_record_api_push_log
         where api_code = '${apiCode}'
           and push_date = '${pushDate}'
-          and status = 2
+          and status in (1, 3)
           and qifu_is_succeed = 'N'
         group by qifu_message;
     </select>
@@ -51,7 +51,8 @@
         where api_code = '${apiCode}'
           and push_date = '${pushDate}'
           and status = 2
-          and error_msg !=''
+          and resp_flag = ''
+          and qifu_is_succeed = ''
         group by error_msg;
     </select>
 
