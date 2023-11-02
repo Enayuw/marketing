@@ -278,7 +278,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 String jsonString = jsonObject.toJSONString();
                 byte[] message = jsonString.getBytes();
                 producer.send(message);
-                log.warn(String.format("写入Pulsar 主题:%s 数据:%s",PulsarTopic.transferShTopic,jsonString));
+                log.warn(String.format("写入Pulsar 主题:%s requestId:%s",PulsarTopic.transferShTopic,requestId));
             } catch (PulsarClientException e) {
                 responseShuheDTO.failed();
             }

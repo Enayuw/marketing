@@ -75,7 +75,7 @@ public class ShuHeToArtificialTransferImpl implements AssembleData<ShuheBlackPho
                 String cell = BrCipherMaker.getInstance().encode(shuHeContext.getCaseShuheUser().getCell());
                 boolean isRepeatPhone = iShuheBlackPhoneRecordService.isRepeatPhone(cell, todayDate.toString());
                 if(isRepeatPhone){
-                    log.warn("cell={}今日已推过。",shuHeContext.getCaseShuheUser().getCell());
+                    log.warn("cell={}今日已推过。",cell);
                 }else{
                     if(!StringUtils.isEmpty(clcUsrMaxDxRrtEnd)){
                         LocalDate rrtEndDate;
