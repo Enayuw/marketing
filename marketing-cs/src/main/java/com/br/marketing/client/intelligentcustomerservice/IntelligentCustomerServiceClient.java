@@ -2,10 +2,12 @@ package com.br.marketing.client.intelligentcustomerservice;
 
 import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.counter.BrCounter;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
+import com.br.marketing.client.intelligentcustomerservice.output.PolicyResultByTaskIdsDTO;
 import com.br.marketing.client.net.ApiCallerUtil;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -27,6 +29,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.Properties;
 
@@ -149,4 +152,40 @@ public class IntelligentCustomerServiceClient {
         }
         return result;
     }
+
+    public Result<List<PolicyResultByTaskIdsDTO>> getTaskIdsResult(String apiCode, List<String> taskIds) {
+        PushMarketingUserDTO dto = new PushMarketingUserDTO();
+        JSONObject jsonData = new JSONObject();
+        jsonData.put("method", "uploadVerification");
+        JSONObject taskIdJsons = new JSONObject();
+        taskIdJsons.put("taskIds", taskIds);
+        jsonData.put("data", taskIdJsons);
+        dto.setJsonData(jsonData);
+        dto.setApiCode(apiCode);
+        dto.setPlatApiCode(customerServiceApiCode);
+        Result<List<PolicyResultByTaskIdsDTO>> result = new Result();
+        try {
+            ThirdApiResultTransfer transfer = new ApiCaller(restTemplate).setUrl(pushUrl)
+                    .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .setEncode(Boolean.TRUE)
+                    .setRequestParam(dto).postTransferStr();
+            JSONObject jsonObject = JSON.parseObject(transfer.getResult());
+            if (transfer.getHttpCode() != 200) {
+                result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(transfer.getResult());
+                return result;
+            }
+            if ("00".equals(jsonObject.getString("code"))) {
+                result.setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.parseArray(jsonObject.getJSONArray("data").toJSONString(),
+                        PolicyResultByTaskIdsDTO.class));
+            } else {
+                result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
+            }
+
+        } catch (Exception ex) {
+            result.setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
+        }
+        return result;
+    }
+
+
 }
