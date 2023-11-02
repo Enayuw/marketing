@@ -65,4 +65,13 @@ public interface MarketingSyncReportService {
      */
     void deleteReportByAppletDate(String json);
 
+    /**
+     * 修改有效期记录
+     * @param id
+     * @param validStartDate
+     * @param validEndDate
+     * @return
+     */
+    boolean updateById(Long id, String validStartDate, String validEndDate);
+
 }

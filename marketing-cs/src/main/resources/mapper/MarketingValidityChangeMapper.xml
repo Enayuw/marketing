@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.MarketingValidityChangeMapper">
+
+    <select id="selectNum" resultType="java.lang.Integer">
+        select count(1)
+        from b_marketing_data_valid_config_default
+        where api_code = #{apiCode}
+          and user_type = #{userType}
+    </select>
+
+    <select id="selectValidDaysDefault" resultType="java.lang.Integer">
+        select valid_days_default
+        from b_marketing_data_valid_config_default
+        where api_code = #{apiCode}
+          and user_type = #{userType}
+    </select>
+
+
+    <select id="selectId" resultType="com.br.marketing.entity.MarketingDataValidConfigDefault">
+        select id
+        from b_marketing_data_valid_config_default
+        where api_code = #{apiCode}
+          and user_type = #{userType}
+    </select>
+
+    <insert id="insertValidConfigDefault" parameterType="com.br.marketing.entity.MarketingDataValidConfigDefault">
+        INSERT INTO b_marketing_data_valid_config_default (api_code, upload_date, user_type, valid_days_default,
+                                                           create_time, is_del)
+        VALUES (#{validConfigDefault.apiCode}, #{validConfigDefault.uploadDate}, #{validConfigDefault.userType},
+                #{validConfigDefault.validDaysDefault}, #{validConfigDefault.createTime}, #{validConfigDefault.isDel})
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingDataValidConfigDefault">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO b_marketing_data_valid_config_default
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="apiCode != null">
+                api_code,
+            </if>
+            <if test="uploadDate != null">
+                upload_date,
+            </if>
+            <if test="userType != null">
+                user_type,
+            </if>
+            <if test="validDaysDefault != null">
+                valid_days_default,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="isDel != null">
+                is_del,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="apiCode != null">
+                #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="uploadDate != null">
+                #{uploadDate,jdbcType=DATE},
+            </if>
+            <if test="userType != null">
+                #{userType,jdbcType=VARCHAR},
+            </if>
+            <if test="validDaysDefault != null">
+                #{validDaysDefault,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="isDel != null">
+                #{isDel,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateMarketingDataValidConfigDefault" parameterType="com.br.marketing.entity.MarketingDataValidConfigDefault">
+        UPDATE b_marketing_data_valid_config_default
+        <set>
+            <if test="validConfigDefault.apiCode != null">
+                api_code = #{validConfigDefault.apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="validConfigDefault.uploadDate != null">
+                upload_date = #{validConfigDefault.uploadDate,jdbcType=date},
+            </if>
+            <if test="validConfigDefault.userType != null">
+                user_type = #{validConfigDefault.userType,jdbcType=VARCHAR},
+            </if>
+            <if test="validConfigDefault.validDaysDefault != null">
+                valid_days_default = #{validConfigDefault.validDaysDefault,jdbcType=INTEGER},
+            </if>
+            <if test="validConfigDefault.createTime != null" >
+                create_time = #{validConfigDefault.createTime,jdbcType=datetime},
+            </if>
+            <if test="validConfigDefault.updateTime != null" >
+                update_time = #{validConfigDefault.updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="validConfigDefault.isDel != null">
+                is_del = #{validConfigDefault.isDel,jdbcType=INTEGER},
+            </if>
+        </set>
+        WHERE id = #{validConfigDefault.id}
+    </update>
+
+    <select id="getValidDate" resultType="com.br.marketing.entity.MarketingDataValidConfig">
+        select *
+        from b_marketing_data_valid_config
+        where api_code = #{apiCode}
+          and user_type = #{userType}
+        <if test="appletDate != null">
+            and applet_date = #{appletDate}
+        </if>
+    </select>
+
+</mapper>
