@@ -2168,18 +2168,26 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         List<MarketingCustomer> cList = marketingCustomerMapper.selectByExample(customerExample);
         if (cList != null && !cList.isEmpty()) {
+            List<MarketingSyncUser> list = new ArrayList<>();
             for (MarketingCustomer customer : cList) {
                 String ac = customer.getApiCode();
                 if (StringUtils.isNotBlank(ac)) {
                     try {
                         MarketingSyncUser vo = marketingUserMapper.selectSyncUserByCustNum(ac, custNum);
                         if (vo != null) {
-                            return result.setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
+                            list.add(vo);
                         }
                     }catch (BadSqlGrammarException sqlGrammarException){
                         log.warn(String.format("apiCode表不存在：%s",ac),sqlGrammarException);
                     }
                 }
+            }
+
+            // 不同apicode上传数据，根据applet_time取最新一条
+            Optional<MarketingSyncUser> optional = list.stream().sorted(Comparator.comparing(MarketingSyncUser::getAppletTime).reversed()).findFirst();
+            if (optional.isPresent()) {
+                MarketingSyncUser vo = optional.get();
+                return result.setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
             }
         }
         return result.setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
