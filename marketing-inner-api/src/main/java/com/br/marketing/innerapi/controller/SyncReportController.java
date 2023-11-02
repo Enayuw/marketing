@@ -109,7 +109,7 @@ public class SyncReportController {
             if (flag) {
                 return new ApiResult<Boolean>().success(true, "操作成功！");
             } else {
-                return new ApiResult<Boolean>().success(false, "操作失败！");
+                return new ApiResult<Boolean>().fail(false, "操作失败！");
             }
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
