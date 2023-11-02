@@ -409,6 +409,10 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             String userType = reportVO.getUserType();
             String appletDate = reportVO.getAppletDate();
             MarketingDataValidConfig data = syncReportMapper.selectValidData(apiCode, userType, appletDate);
+            if (ObjectUtil.isEmpty(data)){
+                log.warn("apiCode={},userType={},appletDate={}没有相应的有效期数据");
+                return false;
+            }
             MarketingDataValidConfig newData = new MarketingDataValidConfig();
             validStartDate = DateUtils.format(addDay(validStartDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
             validEndDate = DateUtils.format(addDay(validEndDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
