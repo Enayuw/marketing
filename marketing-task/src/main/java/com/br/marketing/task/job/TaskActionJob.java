@@ -112,11 +112,7 @@ public class TaskActionJob extends AbstractSimpleElasticJob {
 
     boolean addActionLock(String fileId,String val){
         String key = RedisKeyConstant.taskScoreAction.concat(":").concat(fileId);
-        Long res = redisChgService.setnx(key, val, 5);
-        if(Long.valueOf(0L).equals(res)){
-            return false;
-        }
-        return true;
+        return redisChgService.setnx(key, val, 5);
     }
 
     void removeActionLock(String fileId,String val){

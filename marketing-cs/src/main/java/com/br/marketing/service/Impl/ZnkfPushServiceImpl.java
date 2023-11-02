@@ -208,8 +208,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         }
         Integer seconds = DateHelper.getRemainSecondsOneDay(new Date());
         //redisChgService.setex(key, "1", seconds);
-        Long setnx = redisChgService.setnx(key, "1", seconds);
-        return Long.valueOf(1L).equals(setnx);
+        return redisChgService.setnx(key, "1", seconds);
     }
 
     @Override

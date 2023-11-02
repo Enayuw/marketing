@@ -3,9 +3,11 @@ package com.br.marketing.speedconfig;
 import com.alibaba.fastjson.JSON;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.origin.DataLoadingHandlerService;
+import com.br.marketing.service.Impl.RedisTestServiceImpl;
 import com.br.speed.client.SpeedMgrBean;
 import com.br.speed.client.common.append.ISpeedAppendPipeline;
 import lombok.extern.slf4j.Slf4j;
@@ -56,12 +58,21 @@ public class SpeedConfig implements ISpeedAppendPipeline {
         log.warn("配置中心item -- {} --{} 变动通知",key,value);
         AgentItem item = JSON.parseObject(value, AgentItem.class);
         String message = item.getMessage();
+        Integer redisTest = item.getRedisTest();
         switch (key) {
             case "marketing_broadcast_notice_item": {
                 // {"message":"customer_rule_mapping","update_time":"2022-04-01 14:53:01"}
                 if ("customer_rule_mapping".equals(message)) {
                     DataLoadingHandlerService.invalidateAll();
                 }
+                if(!new Integer(0).equals(redisTest)){
+                    RedisTestServiceImpl redisTestServiceImpl = context.getBean("redisTestServiceImpl", RedisTestServiceImpl.class);
+                    RedisChgService redisChgService = context.getBean("redisChgService",RedisChgService.class);
+                    if(redisTestServiceImpl !=null){
+                        redisTestServiceImpl.redisTest(redisTest,redisChgService);
+                    }
+                }
+
                 break;
             }
             default: {

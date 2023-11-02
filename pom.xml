@@ -26,6 +26,8 @@
         <elasticsearch.version>7.7.1</elasticsearch.version>
         <log4j.onver.slf4j.version>1.7.25</log4j.onver.slf4j.version>
         <pulsar.version>1.0.0</pulsar.version>
+        <lettuce.version>6.2.0.RELEASE</lettuce.version>
+        <reactor.version>3.4.24</reactor.version>
     </properties>
     <dependencies>
         <dependency>
@@ -180,6 +182,11 @@
     </distributionManagement>
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>io.projectreactor</groupId>
+                <artifactId>reactor-core</artifactId>
+                <version>${reactor.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>

@@ -49,7 +49,6 @@ public class RedisController {
         }else{
             return redisChgService.get(key);
         }
-
     }
 
     @GetMapping("del")

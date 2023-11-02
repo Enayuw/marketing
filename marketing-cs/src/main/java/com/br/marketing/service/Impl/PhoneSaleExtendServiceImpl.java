@@ -409,9 +409,9 @@ public class PhoneSaleExtendServiceImpl {
                 .concat(info.getApiCode()).concat(":")
                 .concat(info.getTaskId()).concat(":")
                 .concat(info.getCustNum());
-        Long setnx = redisChgService.setnx(key, info.getStatus(), 3);
+        Boolean setnx = redisChgService.setnx(key, info.getStatus(), 3);
         //已经被其他数据抢占锁了
-        if (setnx.equals(0L)) {
+        if (!setnx) {
 
             //如果当前数据不是d就不推
             if (!info.getStatus().equals("d")) {

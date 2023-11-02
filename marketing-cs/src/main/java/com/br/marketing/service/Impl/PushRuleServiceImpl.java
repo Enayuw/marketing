@@ -573,8 +573,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         Integer realTotalNum = 0;
         CustomerInfoPushMain main = new CustomerInfoPushMain();
         main.setmStatus(2);
-        ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum,50);
-        ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(getJcNum, getJcNum,50);
+        ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum, 50);
+        ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(getJcNum, getJcNum, 50);
         List<Future<List<Future<Result<Integer>>>>> res = new ArrayList<>();
         long startTime = System.currentTimeMillis();
         HashMap<Integer, Integer> partDataNum = new HashMap<>();
@@ -698,10 +698,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             String searchAfterStr = "";
             int totalPage = total / pageSize + (totalYuShu > 0 ? 1 : 0);
             log.warn("任务id：{}，当前片：{}，总数：{}，页数：{}"
-                    ,customerInfoPushMain.getId()
-                    ,StringUtils.isBlank(part)?"":part
-                    ,total
-                    ,totalPage);
+                    , customerInfoPushMain.getId()
+                    , StringUtils.isBlank(part) ? "" : part
+                    , total
+                    , totalPage);
             List<Future<Result<Integer>>> resList = new ArrayList<>();
             for (int i = 1; i <= totalPage; i++) {
                 try {
@@ -715,10 +715,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                     List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
                     Integer realNum = marketingHistories.size();
                     log.warn("任务id：{}，当前片：{}，获取的数量：{}，当前页码：{}"
-                            ,customerInfoPushMain.getId()
-                            ,StringUtils.isBlank(part)?"":part
-                            ,realNum
-                            ,i);
+                            , customerInfoPushMain.getId()
+                            , StringUtils.isBlank(part) ? "" : part
+                            , realNum
+                            , i);
                     List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
                     for (int k = 0; k < marketingHistories.size(); k++) {
                         MarketingHistory marketingHistory = marketingHistories.get(k);
@@ -760,7 +760,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
                     pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
                     pushMarketingUserTaskInfoDTO.setBatchNumber(customerInfoPushMain.getId().toString());
-                    pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + (StringUtils.isBlank(part)?"0":part) + "_" + sn);
+                    pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + (StringUtils.isBlank(part) ? "0" : part) + "_" + sn);
                     pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
                     pushMarketingUserTaskInfoDTO.setTaskId(customerInfoPushMain.getId().toString());
                     //传输参数信息
@@ -774,12 +774,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                             , pushMarketingUserTaskInfoDTO.getAccessNumber()
                             , customerInfoPushMain.getId()
                             , userDetailDTOS.size())));
-                }catch (Exception ex){
+                } catch (Exception ex) {
                     String error = String.format("任务id：%s，当前片：%s，当前页码：%d，异常："
-                            ,customerInfoPushMain.getId().toString()
-                            ,StringUtils.isBlank(part)?"":part
-                            ,i);
-                    log.error(error+ex.getMessage(),ex);
+                            , customerInfoPushMain.getId().toString()
+                            , StringUtils.isBlank(part) ? "" : part
+                            , i);
+                    log.error(error + ex.getMessage(), ex);
                 }
             }
             return resList;
@@ -811,8 +811,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO, mainId,
                         accessNumber, size);
             }
-            if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
-                log.error("推送决策重试失败 accessNumber:{}",accessNumber);
+            if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                log.error("推送决策重试失败 accessNumber:{}", accessNumber);
             }
             result.setDate(size);
             return result;
@@ -958,13 +958,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfo.setCreateTime(new Date());
             syncInfo.setJsonData(jsonData);
             syncInfo.setActualNum(size);
-            mockDbOrRedisError(1,apiCode);
+            mockDbOrRedisError(1, apiCode);
             marketingUserMapper.insertMarketingPreUserByText(syncInfo);
             syncInfoId = syncInfo.getId().toString();
             if (log.isInfoEnabled()) {
                 log.info("文本插入耗时:{}", (System.currentTimeMillis() - l));
             }
-            requestIdWriteRedis(uploadKey,dto.getJsonData().getRequestId());
+            requestIdWriteRedis(uploadKey, dto.getJsonData().getRequestId());
 
         } catch (DuplicateKeyException keyException) {
             if (log.isInfoEnabled()) {
@@ -972,26 +972,26 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
         } catch (Exception ex) {
-            log.error(String.format("返回DB异常耗时：%d",System.currentTimeMillis()-l));
+            log.error(String.format("返回DB异常耗时：%d", System.currentTimeMillis() - l));
             dbException = Boolean.TRUE;
         }
         //endregion
 
         //region db异常数据写入pulsar
-        if(dbException){
+        if (dbException) {
             ProductPulsarProducer producer = null;
             try {
                 producer = ProductPulsarClientManager.newProducer(PulsarTopic.upLoadTopic);
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("apiCode",apiCode);
-                jsonObject.put("jsonData",jsonData);
-                jsonObject.put("time",LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                jsonObject.put("apiCode", apiCode);
+                jsonObject.put("jsonData", jsonData);
+                jsonObject.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 String jsonString = jsonObject.toJSONString();
                 byte[] message = jsonString.getBytes();
                 producer.send(message);
-                log.warn(String.format("写入Pulsar 主题:%s 数据:%s",PulsarTopic.upLoadTopic,jsonString));
+                log.warn(String.format("写入Pulsar 主题:%s 数据:%s", PulsarTopic.upLoadTopic, jsonString));
                 Long res = requestIdWriteRedis(uploadKey, dto.getJsonData().getRequestId());
-                if(res!=null&&res<1){
+                if (res != null && res < 1) {
                     throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
                 }
             } catch (PulsarClientException e) {
@@ -1001,37 +1001,37 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
 
         //region 写入上传明细MQ
-        if(!dbException){
-            sendUploadMq(apiCode,syncInfoId);
+        if (!dbException) {
+            sendUploadMq(apiCode, syncInfoId);
         }
         //endregion
 
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 
-    private void sendUploadMq(String apiCode,String syncInfoId){
-        try{
-                long l3 = System.currentTimeMillis();
-                if (marketingCommonConfig.getShuheApiCode().contains(apiCode)) {
-                    producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, syncInfoId);
-                } else {
-                    producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId);
-                }
-                if (log.isInfoEnabled()) {
-                    log.info("MQ推送耗时:{}", (System.currentTimeMillis() - l3));
-                }
-        }catch (Exception ex){
-            log.error(String.format("推送MQ失败syncInfoId【%s】",syncInfoId));
+    private void sendUploadMq(String apiCode, String syncInfoId) {
+        try {
+            long l3 = System.currentTimeMillis();
+            if (marketingCommonConfig.getShuheApiCode().contains(apiCode)) {
+                producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, syncInfoId);
+            } else {
+                producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId);
+            }
+            if (log.isInfoEnabled()) {
+                log.info("MQ推送耗时:{}", (System.currentTimeMillis() - l3));
+            }
+        } catch (Exception ex) {
+            log.error(String.format("推送MQ失败syncInfoId【%s】", syncInfoId));
         }
     }
 
-    private Long requestIdWriteRedis(String key,String requestId){
+    private Long requestIdWriteRedis(String key, String requestId) {
         try {
-            mockDbOrRedisError(2,null);
+            mockDbOrRedisError(2, null);
             Long res = redisChgService.saddMember(key, requestId);
             return res;
-        }catch (Exception ex){
-            log.error(String.format("requestId写入redis失败。key【%s】,requestId【%s】",key,requestId));
+        } catch (Exception ex) {
+            log.error(String.format("requestId写入redis失败。key【%s】,requestId【%s】", key, requestId));
         }
         return null;
     }
@@ -1346,7 +1346,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
-        MarketingPreUserDTO jsonData = JSON.parseObject(jdStr,MarketingPreUserDTO.class);
+        MarketingPreUserDTO jsonData = JSON.parseObject(jdStr, MarketingPreUserDTO.class);
         byte last = 0;
         String lastStr = jsonData.getLast();
         if (StringUtils.isNotBlank(lastStr)) {
@@ -1384,23 +1384,23 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfo.setJsonData(jdStr);
             syncInfo.setActualNum(size);
             //todo 模拟异常
-            mockDbOrRedisError(1,apiCode);
+            mockDbOrRedisError(1, apiCode);
             marketingUserMapper.insertMarketingPreUserByText(syncInfo);
             syncInfoId = syncInfo.getId().toString();
         } catch (DuplicateKeyException keyException) {
-            alarmClient.sendAlarm(String.format("pulsar上传数据消费requestId冲突 requestId：%s",jsonData.getRequestId())
+            alarmClient.sendAlarm(String.format("pulsar上传数据消费requestId冲突 requestId：%s", jsonData.getRequestId())
                     , "pulsar上传数据消费异常", AlarmSendCodeEnum.REQUESTID_CONFLICT.getCode());
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         } catch (Exception ex) {
-            log.error(ex.getMessage(),ex);
+            log.error(ex.getMessage(), ex);
             dbException = Boolean.TRUE;
         }
         //endregion
 
         //region 写入上传明细MQ
-        if(!dbException){
-            sendUploadMq(apiCode,syncInfoId);
-        }else{
+        if (!dbException) {
+            sendUploadMq(apiCode, syncInfoId);
+        } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
         //endregion
@@ -1458,7 +1458,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         try {
             //todo 测试pulsar 上线删除
-            if("transfer_20230803_wjm_test_pulsar".equals(transferDataDTO.getRequestId())){
+            if ("transfer_20230803_wjm_test_pulsar".equals(transferDataDTO.getRequestId())) {
                 throw new RuntimeException("模拟DB错误");
             }
             MarketingTransferInfo transferInfo = new MarketingTransferInfo();
@@ -1471,10 +1471,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             transferInfo.setLast(transferDataDTO.getLast());
             transferInfo.setTotal(transferDataDTO.getTotal());
             //todo 模拟异常上线后要删除
-            mockDbOrRedisError(1,apiCode);
+            mockDbOrRedisError(1, apiCode);
             marketingTransferInfoMapper.insertSelective(transferInfo);
             transferInfoId = transferInfo.getId().toString();
-            requestIdWriteRedis(transferKey,transferDataDTO.getRequestId());
+            requestIdWriteRedis(transferKey, transferDataDTO.getRequestId());
 
         } catch (DuplicateKeyException keyException) {
             throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
@@ -1482,20 +1482,20 @@ public class PushRuleServiceImpl implements PushRuleService {
             dbException = Boolean.TRUE;
         }
 
-        if(dbException){
+        if (dbException) {
             ProductPulsarProducer producer = null;
             try {
                 producer = ProductPulsarClientManager.newProducer(PulsarTopic.transferTopic);
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("apiCode",apiCode);
-                jsonObject.put("jsonData",jsonData);
-                jsonObject.put("time",LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                jsonObject.put("apiCode", apiCode);
+                jsonObject.put("jsonData", jsonData);
+                jsonObject.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 String jsonString = jsonObject.toJSONString();
                 byte[] message = jsonString.getBytes();
                 producer.send(message);
-                log.warn(String.format("写入Pulsar 主题:%s 数据:%s",PulsarTopic.transferTopic,jsonString));
+                log.warn(String.format("写入Pulsar 主题:%s 数据:%s", PulsarTopic.transferTopic, jsonString));
                 Long res = requestIdWriteRedis(transferKey, transferDataDTO.getRequestId());
-                if(res!=null&&res<1){
+                if (res != null && res < 1) {
                     throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
                 }
             } catch (PulsarClientException e) {
@@ -1503,7 +1503,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
 
-        if(!dbException){
+        if (!dbException) {
             producter.send("Marketing.Transfer.Receive", transferInfoId);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
@@ -1543,22 +1543,22 @@ public class PushRuleServiceImpl implements PushRuleService {
             transferInfo.setLast(transferDataDTO.getLast());
             transferInfo.setTotal(transferDataDTO.getTotal());
             //todo 模拟异常
-            mockDbOrRedisError(1,apiCode);
+            mockDbOrRedisError(1, apiCode);
             marketingTransferInfoMapper.insertSelective(transferInfo);
             transferInfoId = transferInfo.getId().toString();
 
         } catch (DuplicateKeyException keyException) {
-            alarmClient.sendAlarm(String.format("pulsar转化数据消费requestId冲突 requestId：%s",transferDataDTO.getRequestId())
+            alarmClient.sendAlarm(String.format("pulsar转化数据消费requestId冲突 requestId：%s", transferDataDTO.getRequestId())
                     , "pulsar转化数据消费异常", AlarmSendCodeEnum.REQUESTID_CONFLICT.getCode());
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         } catch (Exception ex) {
-            log.error(ex.getMessage(),ex);
+            log.error(ex.getMessage(), ex);
             dbException = Boolean.TRUE;
         }
 
-        if(!dbException){
+        if (!dbException) {
             producter.send("Marketing.Transfer.Receive", transferInfoId);
-        }else{
+        } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
 
@@ -1575,9 +1575,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
         TransferFieldProcessFactory transferFieldProcessFactory = transferFiledProcess.getTransferFieldProcessFactory(transferInfo.getApiCode());
         TransferDataDTO<TransferDataItemDTO> dto = null;
-        if(transferFieldProcessFactory !=null && transferFieldProcessFactory.isFormat()){
-            dto =transferFieldProcessFactory.formatTransferObj(transferInfo.getJsonData());
-        }else{
+        if (transferFieldProcessFactory != null && transferFieldProcessFactory.isFormat()) {
+            dto = transferFieldProcessFactory.formatTransferObj(transferInfo.getJsonData());
+        } else {
             dto = JSON.parseObject(transferInfo.getJsonData(), new TypeReference<TransferDataDTO<TransferDataItemDTO>>() {
             }.getType());
         }
@@ -1636,8 +1636,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 transferSyncUser.setLentTime(dateTimeComplet(transferDataItemDTO.getLentTime()));
                 transferSyncUser.setSettleTime(dateTimeComplet(transferDataItemDTO.getSettleTime()));
                 transferSyncUser.setTransformTime(dateTimeComplet(transferDataItemDTO.getTransformTime()));
-                if(transferFieldProcessFactory!=null){
-                    transferFieldProcessFactory.fieldProcess(transferSyncUser,transferDataItemDTO);
+                if (transferFieldProcessFactory != null) {
+                    transferFieldProcessFactory.fieldProcess(transferSyncUser, transferDataItemDTO);
                 }
                 try {
                     marketingTransferSyncUserMapper.insertSelective(transferSyncUser);
@@ -1760,23 +1760,23 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<MarketingTransferInfo> marketingTransferInfos = new ArrayList<>();
         try {
             //todo 模拟异常上线后要删除
-            mockDbOrRedisError(1,apiCode);
+            mockDbOrRedisError(1, apiCode);
             marketingTransferInfos = marketingTransferInfoMapper.selectByExample(transferInfoExample);
             if (marketingTransferInfos.size() <= 0) {
                 selectBad = Boolean.TRUE;
             }
-        }catch (Exception ex){
+        } catch (Exception ex) {
             dbBad = Boolean.TRUE;
         }
         String transferKey = RedisKeyConstant.transferKey.concat(":").concat(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-        if(dbBad||selectBad){
+        if (dbBad || selectBad) {
             Boolean sismember = Boolean.FALSE;
             try {
                 //todo 模拟异常上线后要删除
-                mockDbOrRedisError(2,null);
+                mockDbOrRedisError(2, null);
                 sismember = redisChgService.sismember(transferKey, requestId);
-            }catch (Exception ex){
-                log.error(ex.getMessage(),ex);
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
                 redisBad = Boolean.TRUE;
             }
             if (!redisBad && sismember) {
@@ -1785,14 +1785,14 @@ public class PushRuleServiceImpl implements PushRuleService {
                 vo.setRequestId(requestId);
                 vo.setStatus(1);
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
-            } else if(!redisBad) {
+            } else if (!redisBad) {
                 throw new CommonException(MarketingErrorInfo.DATA_NOT_EXIST_ERROR);
             }
         }
-        if(dbBad&&redisBad){
-            throw  new CommonException(MarketingErrorInfo.UNKNOWN_ERROR);
+        if (dbBad && redisBad) {
+            throw new CommonException(MarketingErrorInfo.UNKNOWN_ERROR);
         }
-        if(selectBad){
+        if (selectBad) {
             throw new CommonException(MarketingErrorInfo.DATA_NOT_EXIST_ERROR);
         }
         MarketingTransferInfo transferInfo = marketingTransferInfos.get(0);
@@ -2075,41 +2075,41 @@ public class PushRuleServiceImpl implements PushRuleService {
         Boolean selectBad = Boolean.FALSE;
         try {
             //todo 模拟异常上线后要删除
-            mockDbOrRedisError(1,dto.getApiCode());
+            mockDbOrRedisError(1, dto.getApiCode());
             marketingSyncInfos = marketingSyncInfoMapper.selectByExample(syncInfoExample);
             if (marketingSyncInfos.size() <= 0) {
                 selectBad = Boolean.TRUE;
             }
-        }catch(Exception ex){
+        } catch (Exception ex) {
             dbBad = Boolean.TRUE;
         }
         //数据库未查得 查询redis
-        if(dbBad || selectBad){
+        if (dbBad || selectBad) {
             Boolean sismember = Boolean.FALSE;
             try {
                 //todo 模拟异常上线后要删除
-                mockDbOrRedisError(2,null);
+                mockDbOrRedisError(2, null);
                 sismember = redisChgService.sismember(uploadKey, dto.getRequestId());
-            }catch (Exception ex){
+            } catch (Exception ex) {
                 log.error(ex.getMessage());
                 redisBad = Boolean.TRUE;
             }
-            if (!redisBad&&sismember) {
+            if (!redisBad && sismember) {
                 vo.setApiCode(dto.getApiCode());
                 vo.setTaskId(dto.getTaskId());
                 vo.setRequestId(dto.getRequestId());
                 vo.setStatus(1);
                 marketingPreUserSyncDetailVOResult.setMessage("运行中");
                 return marketingPreUserSyncDetailVOResult.setCode(ResultCode.SUCCESS.getValue()).setDate(vo);
-            } else if(!redisBad){
+            } else if (!redisBad) {
                 throw new CommonException(MarketingErrorInfo.DATA_NOT_EXIST_ERROR);
             }
         }
         //数据库异常并且redis异常
-        if(dbBad&&redisBad){
+        if (dbBad && redisBad) {
             throw new CommonException(MarketingErrorInfo.UNKNOWN_ERROR);
         }
-        if(selectBad){
+        if (selectBad) {
             throw new CommonException(MarketingErrorInfo.DATA_NOT_EXIST_ERROR);
         }
         MarketingSyncInfo syncInfo = marketingSyncInfos.get(0);
@@ -3254,9 +3254,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                 .concat(apiCode).concat(":")
                 .concat(taskId).concat(":")
                 .concat(custNum);
-        Long setnx = redisChgService.setnx(key, status, 3);
+        Boolean setnx = redisChgService.setnx(key, status, 3);
         //已经被其他数据抢占锁了
-        if (setnx.equals(0L)) {
+        if (!setnx) {
 
             //如果当前数据不是d就不推
             if (!status.equals("d")) {
@@ -3434,16 +3434,16 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
-        log.warn("中邮清洗数据耗时：{} ms",System.currentTimeMillis() - st1);
+        log.warn("中邮清洗数据耗时：{} ms", System.currentTimeMillis() - st1);
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(false).setMessage("成功");
     }
 
-    private Result cleanData(List<ZhongyouFileData> zhongyouFileDataList,String fileName) {
+    private Result cleanData(List<ZhongyouFileData> zhongyouFileDataList, String fileName) {
         String apiCode = zhongyouFileDataList.get(0).getApiCode();
         MarketingPreUserDTO uploadDataDTO = new MarketingPreUserDTO();
         TransferDataDTO transferDataDTO = new TransferDataDTO();
         //构造上传,转化参数
-        buildParam(apiCode, zhongyouFileDataList, uploadDataDTO, transferDataDTO,fileName);
+        buildParam(apiCode, zhongyouFileDataList, uploadDataDTO, transferDataDTO, fileName);
         //插入上传info表
         MarketingSyncInfo syncInfo = new MarketingSyncInfo();
         try {
@@ -3490,7 +3490,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<MarketingPreUserDetailDTO> dataItems = new ArrayList<>();
         List<TransferDataItemDTO> transferDataItemDTOS = new ArrayList<>();
         zhongyouFileDataList.forEach(zhongyouFileData -> {
-            List<String> list = new ArrayList<>(Arrays.asList(zhongyouFileData.getFileData().split("\\|\\|",-1)));
+            List<String> list = new ArrayList<>(Arrays.asList(zhongyouFileData.getFileData().split("\\|\\|", -1)));
             MarketingPreUserDetailDTO detailDTO = new MarketingPreUserDetailDTO();
             TransferDataItemDTO transferDataItemDTO = new TransferDataItemDTO();
             JSONObject uploadJsonObject = new JSONObject();
@@ -3595,28 +3595,35 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     /**
      * 模拟数据库或者redis异常
+     *
      * @param mockType 1-数据库异常；2-redis异常
      * @param apiCode
      */
     @Override
     public void mockDbOrRedisError(Integer mockType, String apiCode) {
         HashMap<String, Boolean> mockError = marketingCommonConfig.getMockError();
-        if(mockError == null){
+        if (mockError == null) {
             return;
         }
-        if(new Integer(1).equals(mockType)){
-            if(mockError.get("db")!=null && mockError.get("db")){
+        if (new Integer(1).equals(mockType)) {
+            if (mockError.get(apiCode) != null && mockError.get(apiCode)) {
+                throw new KnowException(apiCode+":DB异常");
+            } else if (mockError.get(apiCode) != null && !mockError.get(apiCode)) {
+                return;
+            }
+            if (mockError.get("db") != null && mockError.get("db")) {
                 throw new KnowException("DB全局异常");
             }
-            if(mockError.get(apiCode)!=null && mockError.get(apiCode)){
-                throw new KnowException("DB异常");
-            }
         }
-        if(new Integer(2).equals(mockType)){
-            if(mockError.get("redis")!=null && mockError.get("redis")){
+        if (new Integer(2).equals(mockType)) {
+            if (mockError.get(apiCode) != null && mockError.get(apiCode)) {
+                throw new KnowException(apiCode+":redis异常");
+            } else if (mockError.get(apiCode) != null && !mockError.get(apiCode)) {
+                return;
+            }
+            if (mockError.get("redis") != null && mockError.get("redis")) {
                 throw new KnowException("redis异常");
             }
         }
-        return;
     }
 }

@@ -42,6 +42,8 @@ public class AgentItem {
     @JSONField(name = "update_time")
     private Date updateTime;
 
+    private Integer redisTest;
+
     @SpeedItem(topic = "marketing",key = "marketing_broadcast_notice_item")
     public String getMessage(){
         return message;
