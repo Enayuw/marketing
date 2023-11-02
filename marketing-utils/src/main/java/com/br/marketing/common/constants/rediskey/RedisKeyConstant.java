@@ -119,4 +119,10 @@ public class RedisKeyConstant {
      * 转化数据requestId的key
      */
     public static final String transferKey = prefix.concat("transfer");
+
+    /**
+     * 2022/9/1 17:02
+     * 定制化客户传输，字段缓存key
+     */
+    public static final String CUSTOMER_TRANSFER_FIELD_KEY = prefix.concat("customer:transfer:field");
 }

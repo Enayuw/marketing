@@ -1042,7 +1042,19 @@ public class MarketingCommonConfig {
      * 页数动态调整配置
      * dynamicPageSize={"yxToDx":20000,"yxToCustomer":20000,"yhGet":20000}
      */
-    private HashMap<String,Integer> dynamicPageSize;
+    private HashMap<String, Integer> dynamicPageSize;
+
+    /**
+     * 国美转化数据自动过滤重推任务线程数
+     */
+    private Integer goMeTransferDataResendJobThreadNum;
+
+    /**
+     * 2023-10-28 10:35
+     * 客户定制化接口自定义配置apiCode
+     * eg:{"T_GUME":["3710076", "7492805"]}
+     */
+    private Map<String, List<String>> customerHandlerEnumConfigMap;
 
 }
 
