@@ -9,12 +9,7 @@ import io.lettuce.core.ValueScanCursor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.ScanParams;
-import redis.clients.jedis.ScanResult;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
