@@ -410,7 +410,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             String appletDate = reportVO.getAppletDate();
             MarketingDataValidConfig data = syncReportMapper.selectValidData(apiCode, userType, appletDate);
             if (ObjectUtil.isEmpty(data)){
-                log.warn("apiCode={},userType={},appletDate={}没有相应的有效期数据");
+                log.warn("apiCode={},userType={},appletDate={}没有相应的有效期数据",apiCode, userType, appletDate);
                 return false;
             }
             MarketingDataValidConfig newData = new MarketingDataValidConfig();
