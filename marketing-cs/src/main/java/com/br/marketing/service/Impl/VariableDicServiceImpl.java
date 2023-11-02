@@ -111,8 +111,8 @@ public class VariableDicServiceImpl implements VariableDicService {
             variableDic.setCid(vo.getCid());
             variableDic.setApiCode(apiCode);
             variableDic.setCreateTime(new Date());
-            variableDicMapper.insert(variableDic);
-            entityOptService.writeOptLog(vo.getId(), variableDic, null);
+            variableDicMapper.insertSelective(variableDic);
+            entityOptService.writeOptLog(variableDic.getId(), variableDic, null);
             Integer i = validityChangeMapper.selectNum(apiCode, userType);
             MarketingDataValidConfigDefault date = validityChangeMapper.selectId(apiCode,userType);
             if (i >= 1){
@@ -126,8 +126,8 @@ public class VariableDicServiceImpl implements VariableDicService {
             }
             validConfigDefault.setApiCode(apiCode);
             validConfigDefault.setCreateTime(new Date());
-            validityChangeMapper.insertValidConfigDefault(validConfigDefault);
-            entityOptService.writeOptLog(date.getId(), validConfigDefault, null);
+            validityChangeMapper.insertSelective(validConfigDefault);
+            entityOptService.writeOptLog(validConfigDefault.getId(), validConfigDefault, null);
         }else {
             //编辑
             variableDic.setId(vo.getId());

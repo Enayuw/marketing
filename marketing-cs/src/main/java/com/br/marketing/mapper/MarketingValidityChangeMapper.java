@@ -13,6 +13,8 @@ public interface MarketingValidityChangeMapper {
 
     Integer insertValidConfigDefault(@Param("validConfigDefault") MarketingDataValidConfigDefault validConfigDefault);
 
+    Integer insertSelective(MarketingDataValidConfigDefault validConfigDefault);
+
     Integer selectNum(@Param("apiCode") String apiCode, @Param("userType") String userType);
 
     Integer selectValidDaysDefault(@Param("apiCode") String apiCode, @Param("userType") String userType);

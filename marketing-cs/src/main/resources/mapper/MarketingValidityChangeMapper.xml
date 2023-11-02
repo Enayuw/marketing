@@ -31,6 +31,59 @@
                 #{validConfigDefault.validDaysDefault}, #{validConfigDefault.createTime}, #{validConfigDefault.isDel})
     </insert>
 
+    <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingDataValidConfigDefault">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO b_marketing_data_valid_config_default
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="apiCode != null">
+                api_code,
+            </if>
+            <if test="uploadDate != null">
+                upload_date,
+            </if>
+            <if test="userType != null">
+                user_type,
+            </if>
+            <if test="validDaysDefault != null">
+                valid_days_default,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="isDel != null">
+                is_del,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="apiCode != null">
+                #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="uploadDate != null">
+                #{uploadDate,jdbcType=DATE},
+            </if>
+            <if test="userType != null">
+                #{userType,jdbcType=VARCHAR},
+            </if>
+            <if test="validDaysDefault != null">
+                #{validDaysDefault,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="isDel != null">
+                #{isDel,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+
     <update id="updateMarketingDataValidConfigDefault" parameterType="com.br.marketing.entity.MarketingDataValidConfigDefault">
         UPDATE b_marketing_data_valid_config_default
         <set>
