@@ -129,10 +129,11 @@ public class VariableDicServiceImpl implements VariableDicService {
             validityChangeMapper.insertSelective(validConfigDefault);
             entityOptService.writeOptLog(validConfigDefault.getId(), validConfigDefault, null);
         }else {
+            VariableDic data = variableDicMapper.selectByPrimaryKey(vo.getId());
             //编辑
             variableDic.setId(vo.getId());
             variableDicMapper.updateByPrimaryKeySelective(variableDic);
-            entityOptService.writeOptLog(vo.getId(), variableDic, vo);
+            entityOptService.writeOptLog(vo.getId(), variableDic, data);
             MarketingDataValidConfigDefault dataValidConfigDefault = validityChangeMapper.selectId(apiCode,userType);
             if (ObjectUtil.isNotEmpty(dataValidConfigDefault.getId())){
                 validConfigDefault.setId(dataValidConfigDefault.getId());
