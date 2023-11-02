@@ -1,4 +1,4 @@
-package com.br.marketing.service.custom.guomei;
+package com.br.marketing.api.customer.service.guomei;
 
 import com.br.marketing.entity.GuoMeiTransferData;
 

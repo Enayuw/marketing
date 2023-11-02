@@ -2,6 +2,7 @@ package com.br.marketing.mq.consumer.api;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.api.customer.service.CustomerTransferDataService;
 import com.br.marketing.common.constants.PulsarSubscription;
 import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.utils.MQConstants;
@@ -10,7 +11,6 @@ import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.PushRuleService;
-import com.br.marketing.service.custom.CustomTransferDataService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +46,7 @@ public class ConsumerApp {
     IPushShuheDataService pushShuheDataService;
 
     @Resource
-    private CustomTransferDataService customTransferDataService;
+    private CustomerTransferDataService customerTransferDataService;
 
 
     /**
@@ -144,7 +144,7 @@ public class ConsumerApp {
 
         // 定制客户转化数据pulsar消费端
         consumerService.consumerPulsar(PulsarSubscription.transferCustomSubscription
-                , customTransferDataService::consumerTransferPayData, 2, PulsarTopic.transferCustomTopic);
+                , customerTransferDataService::consumerTransferPayData, 2, PulsarTopic.transferCustomTopic);
 
 
     }

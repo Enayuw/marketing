@@ -1,19 +1,13 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.*;
-
-import com.br.cloud.counter.BrCounter;
 import com.br.arch.geo.pulsar.ProductPulsarClientManager;
 import com.br.arch.geo.pulsar.ProductPulsarProducer;
+import com.br.cloud.counter.BrCounter;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.monitor.PrometheusMonitorUtils;
-import com.br.marketing.common.constants.PulsarTopic;
-import com.br.marketing.common.exception.KnowException;
-import com.br.marketing.common.utils.*;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
@@ -27,12 +21,14 @@ import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.MarketingErrorInfo;
+import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.constants.common.LastEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.exception.CommonException;
+import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
@@ -50,6 +46,7 @@ import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.mapper.*;
+import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
@@ -57,7 +54,6 @@ import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessImpl;
-import com.br.marketing.service.Impl.transferfieldprocess.dto.tongcheng.TransferDataItemByTongChengDTO;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.*;
 import com.github.pagehelper.PageHelper;
@@ -74,6 +70,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.*;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.*;
@@ -1427,8 +1424,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result insertTransferData(String apiCode, String jsonData) {
-        //region check
-        long l1 = System.currentTimeMillis();
         TransferDataDTO transferDataDTO = null;
         try {
             transferDataDTO = JSON.parseObject(jsonData, new TypeReference<TransferDataDTO>() {
@@ -1436,6 +1431,13 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (JSONException ex) {
             throw new CommonException(MarketingErrorInfo.JSON_DATA_ERROR);
         }
+        return insertTransferData(apiCode, jsonData, transferDataDTO);
+    }
+
+    @Override
+    public Result insertTransferData(String apiCode, String jsonData, TransferDataDTO transferDataDTO) {
+        //region check
+        long l1 = System.currentTimeMillis();
         if (transferDataDTO == null) {
             throw new CommonException(MarketingErrorInfo.JSON_DATA_ERROR);
         }
@@ -2169,9 +2171,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             for (MarketingCustomer customer : cList) {
                 String ac = customer.getApiCode();
                 if (StringUtils.isNotBlank(ac)) {
-                    MarketingSyncUser vo = marketingUserMapper.selectSyncUserByCustNum(ac, custNum);
-                    if (vo != null) {
-                        return result.setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
+                    try {
+                        MarketingSyncUser vo = marketingUserMapper.selectSyncUserByCustNum(ac, custNum);
+                        if (vo != null) {
+                            return result.setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
+                        }
+                    }catch (BadSqlGrammarException sqlGrammarException){
+                        log.warn(String.format("apiCode表不存在：%s",ac),sqlGrammarException);
                     }
                 }
             }

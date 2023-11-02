@@ -1,4 +1,4 @@
-package com.br.marketing.service.custom.handler;
+package com.br.marketing.api.customer.handler;
 
 /**
  * 客户编码枚举
@@ -13,7 +13,19 @@ package com.br.marketing.service.custom.handler;
  * @author Guo Zeqiang
  * @dateTime 2023-10-18 16:43
  */
-public enum CustomCodeEnum {
+public enum CustomerHandlerEnum {
+
+    /**
+     * 2023-10-20 14:22
+     * 陌生的客户 转化接口
+     */
+    T_ALIEN_DEFAULT("外星人转化"),
+
+    /**
+     * 2023-10-20 14:22
+     * 陌生的客户 上传接口
+     */
+    U_ALIEN_DEFAULT("外星人上传"),
 
     /**
      * 2023-10-18 17:00
@@ -34,13 +46,13 @@ public enum CustomCodeEnum {
      */
     private String[] apiCodes;
 
-    CustomCodeEnum(String name, String... apiCodes) {
+    CustomerHandlerEnum(String name, String... apiCodes) {
         this.name = name;
         this.apiCodes = apiCodes;
     }
 
-    public static CustomCodeEnum valueof(String apiCode) {
-        for (CustomCodeEnum e : values()) {
+    public static CustomerHandlerEnum valueof(String apiCode) {
+        for (CustomerHandlerEnum e : values()) {
             for (String code : e.apiCodes) {
                 if (code.equals(apiCode)) {
                     return e;
@@ -48,6 +60,17 @@ public enum CustomCodeEnum {
             }
         }
         throw new IllegalArgumentException("未知的客户编号:" + apiCode);
+    }
+
+    public static CustomerHandlerEnum valueof(String apiCode, CustomerHandlerEnum defaultCustom) {
+        for (CustomerHandlerEnum e : values()) {
+            for (String code : e.apiCodes) {
+                if (code.equals(apiCode)) {
+                    return e;
+                }
+            }
+        }
+        return defaultCustom;
     }
 
     public String getName() {

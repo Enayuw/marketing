@@ -158,4 +158,11 @@
              ) as a
         where a.num = 1
     </select>
+
+    <select id="getNameByApiCodeList" resultType="com.br.marketing.entity.MarketingCustomer">
+        select name, short_name
+        from b_marketing_customer
+        where api_code = '${apiCode}'
+          and status = 1
+    </select>
 </mapper>

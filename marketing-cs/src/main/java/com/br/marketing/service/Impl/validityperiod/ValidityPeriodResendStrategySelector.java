@@ -30,6 +30,16 @@ public class ValidityPeriodResendStrategySelector {
             Collectors.toMap(s -> s.getClass().getAnnotation(ValidityPeriodResendType.class).resendType(), Function.identity()));
     }
 
+    public <T> String buildResendData(Map<String, Object> params, ValidityPeriodResendEnum resendType) {
+        // 根据数据类型选择对应的策略
+        @SuppressWarnings("unchecked")
+        ValidityPeriodResendStrategy<T> strategy = (ValidityPeriodResendStrategy<T>) this.strategyMap.get(resendType);
+        if (strategy == null) {
+            throw new IllegalArgumentException("未匹配到对应重推规则: " + resendType);
+        }
+        return strategy.buildResendData(params);
+    }
+
     public <T> List<T> fetchData(ValidityPeriodResendRecord validityPeriodResendRecord, ValidityPeriodResendEnum resendType) {
         // 根据数据类型选择对应的策略
         @SuppressWarnings("unchecked")
