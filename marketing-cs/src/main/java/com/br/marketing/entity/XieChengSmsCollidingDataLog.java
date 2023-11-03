@@ -93,6 +93,12 @@ public class XieChengSmsCollidingDataLog {
      */
     private String extend;
 
+    /**
+     * 数据锁定时间
+     * @return
+     */
+    private String releaseTime;
+
     public Long getId() {
         return id;
     }
@@ -235,5 +241,13 @@ public class XieChengSmsCollidingDataLog {
 
     public void setExtend(String extend) {
         this.extend = extend == null ? null : extend.trim();
+    }
+
+    public String getReleaseTime() {
+        return releaseTime;
+    }
+
+    public void setReleaseTime(String releaseTime) {
+        this.releaseTime = releaseTime;
     }
 }
