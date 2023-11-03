@@ -329,6 +329,9 @@
       <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=LONGVARCHAR},
       </if>
+      <if test="record.releaseTime != null" >
+        release_time = #{record.releaseTime,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
