@@ -7,6 +7,7 @@ import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.threadpool.EnablePrometheusIceThreadPool;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
+import com.br.marketing.service.Impl.ConsumerService;
 import com.br.monitor.grpc.EnvUtil;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +53,8 @@ public class CkeckApplication {
      */
     public static void stop() {
         try {
+            ConsumerService.consumerDownStatus = Boolean.TRUE;
+
             if ("GRPC".equals(EnvUtil.getProperties("GRPC_MODE"))) {
                 BrGrpcUtils.shutDown();
             }
