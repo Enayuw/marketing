@@ -56,6 +56,7 @@ public class CkeckApplication {
             ConsumerService.consumerDownStatus = Boolean.TRUE;
 
             if ("GRPC".equals(EnvUtil.getProperties("GRPC_MODE"))) {
+                Thread.sleep(4500L);
                 BrGrpcUtils.shutDown();
             }
         } catch (Exception e) {
