@@ -331,7 +331,7 @@
 
     <job:simple id="TaskTransferSyncReportJob"
                 class="com.br.marketing.check.job.report.TaskTransferSyncReportJob"
-                cron="0 1 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="转化数据统计调度任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -405,7 +405,7 @@
 
     <job:simple id="taskUploadSyncReportJob"
                 class="com.br.marketing.check.job.TaskUploadSyncReportJob"
-                cron="0 1 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="上传数据统计报表任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -608,7 +608,7 @@
     />
     <job:simple id="YiXinTransferToJueCeJob"
                 class="com.br.marketing.check.job.yixin.YiXinTransferToJueCeJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/10 8-23 * * ? *"
                 description="宜信推决策定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
