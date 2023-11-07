@@ -47,9 +47,11 @@ public class MarketingMqConsumerApplication {
     public static void stop() {
         try {
             ConsumerService.consumerDownStatus = Boolean.TRUE;
+            log.warn("消费者下线");
             if ("GRPC".equals(EnvUtil.getProperties("GRPC_MODE"))) {
                 Thread.sleep(4500L);
                 BrGrpcUtils.shutDown();
+                log.warn("GRPC服务关闭正常");
             }
         } catch (Exception e) {
             log.error("GRPC服务关闭异常", e);
