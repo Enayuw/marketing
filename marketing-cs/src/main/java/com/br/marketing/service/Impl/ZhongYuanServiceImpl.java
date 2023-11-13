@@ -430,15 +430,8 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
 
 
     @Override
-    public void zhongYuanTransferDataToCustomerFilterRuleFirst(List<MarketingTransferSyncUser> marketingTransferSyncUsers){
+    public void zhongYuanTransferDataToCustomerFilterRuleFirst(List<MarketingTransferSyncUser> marketingTransferSyncUserList){
         try {
-
-            List<MarketingTransferSyncUser> marketingTransferSyncUserList = eliminateAndValidityTwo(marketingTransferSyncUsers);
-
-            if(marketingTransferSyncUserList == null ||marketingTransferSyncUserList.size()<=0){
-                return;
-            }
-
             Set<String> collectCustNumSet = marketingTransferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(toSet());
             String apiCode = marketingTransferSyncUserList.get(0).getApiCode();
             Map<String, SyncUserValidityPeriodBO> periodBOMap =
@@ -446,13 +439,15 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
             if (!ObjectUtil.isEmpty(periodBOMap)) {
                 List<ConversionData> conversionDataList = new ArrayList<>();
                 marketingTransferSyncUserList.forEach(transferSyncUser -> {
-                    String custNum = transferSyncUser.getCustNum();
-                    SyncUserValidityPeriodBO bo = periodBOMap.get(custNum);
-                    if (ObjectUtil.isEmpty(bo)) {
-                        log.warn("{}:中原转化数据推客服转化不满足案件编号“有效期内”条件", custNum);
-                    } else {
-                        ConversionData conversionData = packageConversionDataWithTransferData(transferSyncUser, bo);
-                        conversionDataList.add(conversionData);
+                    if(StringUtils.isNotBlank(transferSyncUser.getRegisterTime())) {
+                        String custNum = transferSyncUser.getCustNum();
+                        SyncUserValidityPeriodBO bo = periodBOMap.get(custNum);
+                        if (ObjectUtil.isEmpty(bo)) {
+                            log.warn("{}:中原转化数据推客服转化不满足案件编号“有效期内”条件", custNum);
+                        } else {
+                            ConversionData conversionData = packageConversionDataWithTransferData(transferSyncUser, bo);
+                            conversionDataList.add(conversionData);
+                        }
                     }
                 });
                 ProcessHandlerContext context = new ProcessHandlerContext();
