@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.ValidityPeriodResendType;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferInfoExample;
 import com.br.marketing.entity.ValidityPeriodResendRecord;
@@ -12,65 +13,67 @@ import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.Impl.ValidityPeriodDataServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.strategy.InterfaceHandlerService;
+import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import shaded.com.google.common.base.Splitter;
 
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 360有效期变更重推实现
+ * 重推执行通用转化数据规则处理流程
  *
  * @author senyang.zheng
- * @date 2023/10/08
+ * @date 2023/11/13
  */
 @Slf4j
 @Service
-@ValidityPeriodResendType(resendType = ValidityPeriodResendEnum.QI_FU)
-public class QiFuResend implements ValidityPeriodResendStrategy<MarketingTransferInfo> {
+@ValidityPeriodResendType(resendType = ValidityPeriodResendEnum.UNIVERSAL_TRANSFER_PROCESS_RESEND)
+public class UniversalTransferProcessResend implements ValidityPeriodResendStrategy<MarketingTransferInfo>{
 
     @Resource
     private MarketingDataValidConfigMapper marketingDataValidConfigMapper;
     @Resource
     private MarketingTransferInfoMapper marketingTransferInfoMapper;
     @Resource
-    private InterfaceHandlerService interfaceHandlerService;
+    private RabbitMqProducter rabbitMqProducter;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-
 
     /**
      * 构建重推数据扩展字段
      *
      * @param params params
-     * @return {@link String }
+     * @return {@link JSONObject }
      * @author senyang.zheng
-     * @date 2023/10/18
+     * @date 2023/11/13
      */
     @Override
-    public String buildResendData(Map<String, Object> params) {
-        return null;
+    public JSONObject buildResendData(Map<String, Object> params) {
+        return new JSONObject();
     }
 
     /**
      * 获取重推数据
      *
-     * @param validityPeriodResendRecord 有效期重新发送记录
+     * @param record 有效期重新发送记录
      * @return {@link List }<{@link MarketingTransferInfo }>
      * @author senyang.zheng
-     * @date 2023/10/11
+     * @date 2023/11/13
      */
     @Override
-    public List<MarketingTransferInfo> fetchData(ValidityPeriodResendRecord validityPeriodResendRecord) {
+    public List<MarketingTransferInfo> fetchData(ValidityPeriodResendRecord record) {
         //获取有效期范围
-        Map<String, String> validPeriodRange = marketingDataValidConfigMapper.getValidPeriodRangeByApiCodeAndUserType(validityPeriodResendRecord.getValidityPeriodId());
+        Map<String, String> validPeriodRange = marketingDataValidConfigMapper.getValidPeriodRangeByApiCodeAndUserType(record.getValidityPeriodId());
         //开始结束时间范围外扩一天
         String dateStartStr = ValidityPeriodDataServiceImpl.getDateStr(validPeriodRange.get("validStartDate"), -1);
         String dateEndStr = ValidityPeriodDataServiceImpl.getDateStr(validPeriodRange.get("validEndDate"), 1);
@@ -88,47 +91,54 @@ public class QiFuResend implements ValidityPeriodResendStrategy<MarketingTransfe
     /**
      * 处理重推逻辑
      *
-     * @param data 重推数据
+     * @param data   重推数据
+     * @param record 重推记录
      * @author senyang.zheng
-     * @date 2023/10/08
+     * @date 2023/11/13
      */
     @Override
-    public void resend(List<MarketingTransferInfo> data) {
+    public void resend(List<MarketingTransferInfo> data, ValidityPeriodResendRecord record) {
         long start = System.currentTimeMillis();
-        log.info("360有效期变更重推任务开始");
+        log.warn("UniversalTransferProcessResend start");
         // 创建线程池
-        ThreadPoolExecutor qiFuResendExecutor =
+        ThreadPoolExecutor pool =
             BrExecutors.getThreadPool(marketingCommonConfig.getQiFuResendJobThreadNum(), marketingCommonConfig.getQiFuResendJobThreadNum());
         data.stream()
-            .map(QiFuResend::buildMqFact)
+            .map(transferInfo -> buildMqFact(transferInfo, record))
             .map(JSONObject::toJSONString)
-            .forEach(maFact -> qiFuResendExecutor.submit(() -> interfaceHandlerService.handleDataDirection(maFact)));
+            .forEach(mqFact -> pool.submit(() -> rabbitMqProducter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, mqFact)));
         //关闭线程池
-        qiFuResendExecutor.shutdown();
+        pool.shutdown();
         try {
-            while (!qiFuResendExecutor.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.info("等待线程池结束");
+            while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.warn("UniversalTransferProcessResend 等待线程池结束");
             }
         } catch (Exception e) {
-            qiFuResendExecutor.shutdownNow();
-            log.error("线程池关闭异常,直接关闭线程池", e);
+            pool.shutdownNow();
+            log.error("UniversalTransferProcessResend 线程池关闭异常,直接关闭线程池", e);
         }
         long end = System.currentTimeMillis();
-        log.info("360有效期变更重推任务结束，耗时:{}", end - start);
+        log.warn("UniversalTransferProcessResend end，耗时:{}", end - start);
     }
 
     /**
      * 构建消息体
      *
-     * @param info 信息
+     * @param info   信息
+     * @param record 重推记录
      * @return {@link MqFact }
      * @author senyang.zheng
-     * @date 2023/10/09
+     * @date 2023/11/13
      */
-    private static MqFact buildMqFact(MarketingTransferInfo info) {
+    protected static MqFact buildMqFact(MarketingTransferInfo info, ValidityPeriodResendRecord record) {
         MqFact mqFact = new MqFact();
         mqFact.setSourceId(info.getId());
         mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
+        JSONObject resendData = JSONObject.parseObject(record.getResendData());
+        if (resendData != null) {
+            Set<String> includeRules = Sets.newHashSet(Splitter.on(",").splitToList(resendData.getString("includeRules")));
+            mqFact.setIncludeRules(includeRules);
+        }
         return mqFact;
     }
 }

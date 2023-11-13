@@ -3,7 +3,6 @@ package com.br.marketing.check.job;
 import cn.hutool.core.collection.CollectionUtil;
 import com.br.marketing.entity.ValidityPeriodResendRecord;
 import com.br.marketing.entity.ValidityPeriodResendRecordExample;
-import com.br.marketing.enums.ValidityPeriodResendEnum;
 import com.br.marketing.mapper.ValidityPeriodResendRecordMapperBase;
 import com.br.marketing.service.Impl.validityperiod.ValidityPeriodResendStrategySelector;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -45,6 +44,7 @@ public class ValidPeriodResendJob extends AbstractSimpleElasticJob {
     private List<ValidityPeriodResendRecord> getWaitingRecord() {
         ValidityPeriodResendRecordExample example = new ValidityPeriodResendRecordExample();
         example.createCriteria().andResendStatusEqualTo(0).andIsDeleteEqualTo(0);
+        example.setOrderByClause("create_time DESC");
         return validityPeriodResendRecordMapperBase.selectByExample(example);
     }
 
@@ -60,15 +60,19 @@ public class ValidPeriodResendJob extends AbstractSimpleElasticJob {
         if (CollectionUtil.isEmpty(validityPeriodResendRecords)) {
             log.info("没有待执行的重推任务");
         }
-        for (ValidityPeriodResendRecord validityPeriodResendRecord : validityPeriodResendRecords) {
-            ValidityPeriodResendEnum resendType = ValidityPeriodResendEnum.getEnumByCode(validityPeriodResendRecord.getResendType());
-            //获取推送数据
-            List<T> data = selector.fetchData(validityPeriodResendRecord, resendType);
-            //执行推送逻辑
-            selector.resend(data, resendType);
-            //修改记录状态为执行完成
-            validityPeriodResendRecord.setResendStatus(1);
-            validityPeriodResendRecordMapperBase.updateByPrimaryKey(validityPeriodResendRecord);
+        for (ValidityPeriodResendRecord record : validityPeriodResendRecords) {
+            try {
+                //获取推送数据
+                List<T> data = selector.fetchData(record);
+                //执行推送逻辑
+                selector.resend(data, record);
+                //修改记录状态为执行完成
+                record.setResendStatus(1);
+                validityPeriodResendRecordMapperBase.updateByPrimaryKey(record);
+            } catch (Exception e) {
+                //捕获异常不影响其他任务
+                log.error("重推任务执行失败,record:{}", record, e);
+            }
         }
     }
 }

@@ -15,13 +15,9 @@ public enum ValidityPeriodResendEnum {
      */
     DEFAULT(0),
     /**
-     * 360有效期变更重推
+     * 重推执行通用转化数据规则处理流程
      */
-    QI_FU(1),
-    /**
-     * 国美转化数据自动过滤推客服
-     */
-    GOME_TRANSFERDATA_CUSTOMER_AUTO_FILTRATION(2),
+    UNIVERSAL_TRANSFER_PROCESS_RESEND(1),
     ;
 
     private final Integer code;
