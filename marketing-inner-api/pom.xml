@@ -140,7 +140,6 @@
                 <configuration>
                     <mainClass>com.br.marketing.innerapi.MarketingInnerApiApplication</mainClass>
                     <fork>true</fork>
-                    <includeSystemScope>true</includeSystemScope>
                 </configuration>
                 <version>1.5.3.RELEASE</version>
                 <executions>
