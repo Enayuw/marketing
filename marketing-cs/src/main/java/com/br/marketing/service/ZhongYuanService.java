@@ -36,6 +36,7 @@ public interface ZhongYuanService {
      * 中原转化数据推客服转化过滤
      */
     void zhongYuanTransferDataToCustomerFilter(List<MarketingTransferSyncUser> marketingTransferSyncUserList);
+    void zhongYuanTransferDataToCustomerFilterRuleFirst(List<MarketingTransferSyncUser> marketingTransferSyncUserList);
 
     void zhongYuanTransferDataToCustomerFilterByDaasTwo(List<MarketingTransferSyncUser> marketingTransferSyncUserList);
 
