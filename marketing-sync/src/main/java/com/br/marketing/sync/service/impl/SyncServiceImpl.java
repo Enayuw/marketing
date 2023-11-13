@@ -71,15 +71,18 @@ public class SyncServiceImpl implements SyncService {
         dateSet.add(DateHelper.getDateAddYyMmDd(0));
         for(SyncConfig loanSyncConfig:loanSyncConfigs){
             log.info("LoanSyncConfig:{}",loanSyncConfig);
+            String srcPath = loanSyncConfig.getSrcPath();
+            String targetPath = loanSyncConfig.getTargetPath();
             for (String date : dateSet) {
-                loanSyncConfig.setSrcPath(loanSyncConfig.getSrcPath().replace("yyyyMMdd", date));
-                loanSyncConfig.setTargetPath(loanSyncConfig.getTargetPath().replace("yyyyMMdd", date));
+                loanSyncConfig.setSrcPath(srcPath.replace("yyyyMMdd", date));
+                loanSyncConfig.setTargetPath(targetPath.replace("yyyyMMdd", date));
                 Map<String, List<String>> stringListMap = listFile(loanSyncConfig);
                 syncFile(loanSyncConfig,stringListMap,date);
             }
 
         }
     }
+
     /**
      * 同步文件
      * 根据文件类型同步文件

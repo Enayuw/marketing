@@ -824,6 +824,16 @@
         </if>
         order by id asc limit 1000
     </select>
+    <select id="getZhongYuanTransferByRequestDateNoRegisterTime" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tCid}
+        where
+        <![CDATA[ api_code = #{apiCode} and request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
+        <if test="indexId != null and indexId!=''">
+            and id > #{indexId}
+        </if>
+        order by id asc limit 1000
+    </select>
     <select id="getCountIsBlackByCustNum" resultType="java.lang.Integer">
         select count(1)
         from b_marketing_transfer_sync_${cid}

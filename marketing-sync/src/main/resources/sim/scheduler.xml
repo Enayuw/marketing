@@ -27,7 +27,7 @@
 
     <job:simple id="GetFromSftpJob"
                 class="com.br.marketing.sync.job.GetFromSftpJob"
-                cron="0 0/10 * * * ? "
+                cron="0 1/10 * * * ? "
                 description="从客户sftp同步文件到内部sftp"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

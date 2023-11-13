@@ -175,10 +175,9 @@ public class ShuHeArtificialCallToDelayImpl implements AssembleData<MqFact> {
         final Date createTime = transfer.getCreateTime();
         String key = String.format(KEY, apiCode, userType, custNum);
         try {
-            long ret = redisChgService.setnx(key, "{\"millis\":\""
+            return redisChgService.setnx(key, "{\"millis\":\""
                             + System.currentTimeMillis() + "\",\"id\":\"" + transfer.getId() + "\"}"
                     , (int) getKeyExpiration());
-            return ret == 1;
 //            if (ret == 1) {
 //                String tCid = StringUtils.isEmpty(transfer.gettCid()) ? handlerService.getTcIdFromRedis(apiCode)
 //                        : transfer.gettCid();

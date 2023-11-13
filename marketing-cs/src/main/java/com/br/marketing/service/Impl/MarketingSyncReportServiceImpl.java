@@ -1,5 +1,9 @@
 package com.br.marketing.service.Impl;
 
+
+import cn.hutool.core.util.ObjectUtil;
+import com.br.marketing.mapper.*;
+import com.br.marketing.service.ValidityPeriodResendRecordService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -9,9 +13,6 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.CustomerMapper;
-import com.br.marketing.mapper.MarketingSyncReportMapper;
-import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.MarketingSyncReportService;
 import com.br.marketing.vo.MarketingSyncReportNumVO;
@@ -54,7 +55,19 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     private MarketingSyncReportMapper syncReportMapper;
 
     @Autowired
+    EntityOptServiceImpl entityOptService;
+
+    @Autowired
+    MarketingDataValidConfigMapper marketingDataValidConfigMapper;
+
+    @Autowired
     ICompatibleService iCompatibleService;
+
+    @Resource
+    MarketingValidityChangeMapper changeMapper;
+
+    @Resource
+    ValidityPeriodResendRecordService recordService;
 
     @Override
     public void syncReportProcess(String uploadDate, String jobName) {
@@ -296,6 +309,19 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
 
         PageHelper.startPage(current, size);
         List<MarketingSyncReportVO> list = syncReportMapper.selectList(params);
+        for (MarketingSyncReportVO marketingSyncReportVO : list) {
+            String apiCode = marketingSyncReportVO.getApiCode();
+            String userType = marketingSyncReportVO.getUserType();
+            String appletDate = marketingSyncReportVO.getAppletDate();
+            MarketingDataValidConfig validDate = changeMapper.getValidDate(apiCode, userType, appletDate);
+            if (ObjectUtil.isNotEmpty(validDate)){
+                marketingSyncReportVO.setValidStartDate(validDate.getValidStartDate());
+                marketingSyncReportVO.setValidEndDate(validDate.getValidEndDate());
+            } else {
+                log.warn("该apiCode={} , userType={} , appletDate={}维度不存在有效期起止时间", apiCode, userType, appletDate);
+            }
+
+        }
 
         return PageResultReturn.setPageResult(list, current,size);
     }
@@ -374,4 +400,41 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         }
 
     }
+
+    @Override
+    public boolean updateById(Long id, String validStartDate, String validEndDate) {
+        try {
+            MarketingSyncReportVO reportVO= syncReportMapper.selectById(id);
+            String apiCode = reportVO.getApiCode();
+            String userType = reportVO.getUserType();
+            String appletDate = reportVO.getAppletDate();
+            MarketingDataValidConfig data = syncReportMapper.selectValidData(apiCode, userType, appletDate);
+            if (ObjectUtil.isEmpty(data)){
+                log.warn("apiCode={},userType={},appletDate={}没有相应的有效期数据",apiCode, userType, appletDate);
+                return false;
+            }
+            MarketingDataValidConfig newData = new MarketingDataValidConfig();
+            validStartDate = DateUtils.format(addDay(validStartDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
+            validEndDate = DateUtils.format(addDay(validEndDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
+            if (validStartDate.equals(data.getValidStartDate()) && validEndDate.equals(data.getValidEndDate())){
+                log.warn("有效期日期未修改,apiCode={},userType={},appletDate={}", apiCode, userType, appletDate);
+                return true;
+            }
+            newData.setId(data.getId());
+            newData.setValidStartDate(validStartDate);
+            newData.setValidEndDate(validEndDate);
+            int i = marketingDataValidConfigMapper.updateByPrimaryKeySelective(newData);
+            entityOptService.writeOptLog(data.getId(), newData, data);
+            if (i == 1){
+                log.warn("开始重推, apiCode={}, userType={}, id={}", apiCode, userType, newData.getId());
+                recordService.saveRecord(apiCode,userType,newData.getId());
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error(e.getMessage(), e);
+            return false;
+        }
+    }
+
 }

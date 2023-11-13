@@ -2,6 +2,7 @@ package com.br.marketing.client;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.BrCipherMaker;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
@@ -325,7 +326,11 @@ public class HttpProxyClient {
             interfaceLog.setHttpCode(statusCode);
             post.releaseConnection();
         } catch (Exception e) {
-            log.error("url={} param={}", url, param, e);
+            if (url.contains("ibu-daas")) {
+                log.error("url={} Log加密param={}", url, BrCipherMaker.getInstance().encode(param.toString()), e);
+            } else {
+                log.error("url={} param={}", url, param, e);
+            }
             Long end = System.currentTimeMillis();
             interfaceLog.setExpire(String.valueOf(end - start));
             interfaceLog.setResult(e.getMessage());
@@ -341,7 +346,11 @@ public class HttpProxyClient {
             });
         }
         if (isFileLog) {
-            log.warn(JSON.toJSONString(interfaceLog));
+            if (url.contains("ibu-daas")) {
+                log.warn("InterfaceLog表加密输出{}",BrCipherMaker.getInstance().encode(JSON.toJSONString(interfaceLog)));
+            } else {
+                log.warn(JSON.toJSONString(interfaceLog));
+            }
         }
         return res;
     }

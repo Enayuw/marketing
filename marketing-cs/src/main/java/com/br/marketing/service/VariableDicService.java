@@ -53,6 +53,7 @@ public interface VariableDicService {
      */
     List<Map> findListByCidsAndApiCodes(List<CustomerSelectVO> vos);
 
+
     /**
      * 删除客户配置变量值
      * @param id

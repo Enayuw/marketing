@@ -15,6 +15,16 @@ public interface ValidityPeriodResendStrategy<T> {
 
 
     /**
+     * 构建重推数据扩展字段
+     *
+     * @param params params
+     * @return {@link String }
+     * @author senyang.zheng
+     * @date 2023/10/18
+     */
+    String buildResendData(Map<String, Object> params);
+
+    /**
      * 获取重推数据
      *
      * @param validityPeriodResendRecord 有效期重新发送记录

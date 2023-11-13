@@ -67,6 +67,18 @@ public class MarketingSyncReportVO {
     private String appletEndTime;
 
     /**
+     * 数据生效日期
+     */
+    @ApiModelProperty(value = "数据生效日期")
+    private String validStartDate;
+
+    /**
+     * 数据失效日期
+     */
+    @ApiModelProperty(value = "数据失效日期")
+    private String validEndDate;
+
+    /**
      * 备注
      */
     @ApiModelProperty(value = "备注")

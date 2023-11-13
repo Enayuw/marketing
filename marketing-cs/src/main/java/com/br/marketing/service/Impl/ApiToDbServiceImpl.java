@@ -1059,7 +1059,7 @@ public class ApiToDbServiceImpl implements IApiToDbService {
 //            String yyyyMMddHHmmss = DateUtils.format(new Date(), "yyyyMMddHHmmss");
             int i = (int) ((Math.random() * 9 + 1) * 1000);
             String batchNumber = String.format("%s_%s_%d", apiCode, time, i);
-            if (redisChgService.setnx(keyCourrent, batchNumber, 2).equals(1L)) {
+            if (redisChgService.setnx(keyCourrent, batchNumber, 2)) {
                 TaskBatchnumberPre batchnumberPre = new TaskBatchnumberPre();
                 batchnumberPre.setApiCode(apiCode);
                 batchnumberPre.setCusBatch(cusBatch);
