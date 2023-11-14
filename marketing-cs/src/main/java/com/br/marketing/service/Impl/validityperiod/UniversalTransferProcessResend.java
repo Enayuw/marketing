@@ -30,7 +30,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 重推执行通用转化数据规则处理流程
+ * 转化数据执行通用规则重推流程
  *
  * @author senyang.zheng
  * @date 2023/11/13
@@ -102,7 +102,7 @@ public class UniversalTransferProcessResend implements ValidityPeriodResendStrat
         log.warn("UniversalTransferProcessResend start");
         // 创建线程池
         ThreadPoolExecutor pool =
-            BrExecutors.getThreadPool(marketingCommonConfig.getQiFuResendJobThreadNum(), marketingCommonConfig.getQiFuResendJobThreadNum());
+            BrExecutors.getThreadPool(marketingCommonConfig.getUniversalTransferProcessResendThreadNum(), marketingCommonConfig.getUniversalTransferProcessResendThreadNum());
         data.stream()
             .map(transferInfo -> buildMqFact(transferInfo, record))
             .map(JSONObject::toJSONString)
