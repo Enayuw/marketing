@@ -82,6 +82,11 @@ public class ZBankClientConfig {
     @Value("${api.zbank.baseUrl.api.priKey:1DF4C616DE52063F5BB9525121160DF2F0607122A5FE69EB382D57020B27EA6A}")
     private String priKey;
 
+    /**
+     * 业务接口
+     */
+    @Value("${api.zbank.baseUrl.api.serviceId:CMBrLabelRatingRe}")
+    private String serviceId;
 
     // 文件sdk参数
 
@@ -118,6 +123,8 @@ public class ZBankClientConfig {
                 config.setProxyUsername(userName);
                 config.setProxyPassword(password);
             }
+            // 开启记录接口日志
+            sdk.getConfig().getInterfaceLogServiceIdList().add(serviceId);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

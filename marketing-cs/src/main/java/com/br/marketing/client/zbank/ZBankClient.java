@@ -1,8 +1,12 @@
 package com.br.marketing.client.zbank;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONException;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.InterfaceLog;
+import com.br.marketing.mapper.InterfaceLogMapper;
 import com.br.marketing.service.SyncConfigService;
 import com.zbank.file.bean.FileInfo;
 import com.zbank.file.bean.StreamDownLoadInfo;
@@ -11,7 +15,6 @@ import com.zbank.file.exception.EmptyFileException;
 import com.zbank.file.exception.SDKException;
 import com.zbank.file.sdk.FileSDK;
 import com.zbank.open.SDK;
-import com.zbank.open.common.Config;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -24,6 +27,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 武汉众邦银行API接口服务调用
@@ -61,8 +65,14 @@ public class ZBankClient {
     @Resource
     private SyncConfigService syncConfigService;
 
+    @Resource
+    private InterfaceLogMapper interfaceLogMapper;
+
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(
             DateHelper.LINE_DATE_COLON_TIME_FORMAT);
+
+    private final static ThreadPoolExecutor THREAD_POOL = BrExecutors.getThreadPool(1, 5, 5);
+
 
     /**
      * 2023-11-08 19:42
@@ -85,21 +95,19 @@ public class ZBankClient {
      * api调用
      */
     public String apiCall(Object obj, String serviceId, String requestId) throws Exception {
-        try {
-            String jsonString = JSON.toJSONString(obj);
-            InterfaceLog interfaceLog = new InterfaceLog();
-            interfaceLog.setExtendInfo(jsonString);
-            interfaceLog.setRequestId(requestId);
-            Config config = sdk.getConfig();
-            interfaceLog.setUrl(config.getUrl().concat("/api/SMEncry/").concat(serviceId));
-            interfaceLog.setCreateTime(new Date());
-            String invoke = sdk.invoke(jsonString, serviceId);
-            interfaceLog.setResult(invoke);
-            return invoke;
-        } catch (SDKException e) {
-            log.error(e.getMessage(), e);
-        }
-        return "";
+        String jsonString = apiCall(obj, serviceId);
+        JSONObject localInterfaceLogContext = sdk.getLocalInterfaceLogContext();
+        THREAD_POOL.execute(() -> {
+            try {
+                InterfaceLog interfaceLog = localInterfaceLogContext.toJavaObject(InterfaceLog.class);
+                interfaceLog.setRequestId(requestId);
+                interfaceLog.setCreateTime(new Date());
+                interfaceLogMapper.insertSelective(interfaceLog);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        });
+        return jsonString;
     }
 
     /**
@@ -109,10 +117,13 @@ public class ZBankClient {
     public String apiCall(Object obj, String serviceId) throws Exception {
         try {
             return sdk.invoke(JSON.toJSONString(obj), serviceId);
-        } catch (SDKException e) {
-            log.error(e.getMessage(), e);
+        } catch (Exception e) {
+            if (e instanceof SDKException || e instanceof JSONException) {
+                log.error(e.getMessage(), e);
+                return "";
+            }
+            throw e;
         }
-        return "";
     }
 
 

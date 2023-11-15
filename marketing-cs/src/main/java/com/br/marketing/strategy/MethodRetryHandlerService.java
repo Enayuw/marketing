@@ -61,6 +61,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.DiDiAllowReqDTO;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -1066,11 +1067,13 @@ public class MethodRetryHandlerService {
             , Integer retry) {
         Result<ZBankResponse<ZBankLabelRatingReResultDTO>> result = new Result<>();
         JSONObject object = new JSONObject();
-        String requestId = UUID.randomUUID().toString().replaceAll("-", "") + System.nanoTime();
-        jsonData.put("TxnSrlNo", requestId);
+        String requestId = "" + System.nanoTime() + RandomStringUtils.randomNumeric(5);
         if (retry == null) {
+            jsonData.put("TxnSrlNo", requestId);
             jsonData.put("TxnDt", LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE));
             jsonData.put("TxnTs", LocalTime.now().format(DateTimeFormatter.ofPattern("HHmmss[SSS]")));
+        } else {
+            jsonData.put("TxnSrlNo", "r" + requestId);
         }
         object.put("request", jsonData);
         String jsonStr;
