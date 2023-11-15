@@ -39,7 +39,6 @@ public class ZhongBangSyncDataProxy extends UploadDataProxy {
 
             MarketingPreUserDetailDTO syncUser = new MarketingPreUserDetailDTO();
             JSONObject reserveField1 = new JSONObject();
-            syncUser.setReserveField1(reserveField1.toJSONString());
 
             // dataItems
             syncUser.setCell(dataList.get(header.indexOf("cell")));
@@ -63,25 +62,25 @@ public class ZhongBangSyncDataProxy extends UploadDataProxy {
             }
 
             String ifRegister = dataList.get(header.indexOf("ifRegister"));
-            handleYesOrNo(reserveField1, "ifRegister", ifRegister);
+            reserveField1.put("ifRegister", ifRegister);
 
             String registerTime = dataList.get(header.indexOf("registerTime"));
             reserveField1.put("registerTime", registerTime);
 
             String ifLogin = dataList.get(header.indexOf("ifLogin"));
-            handleYesOrNo(reserveField1, "ifLogin", ifLogin);
+            reserveField1.put("ifLogin", ifLogin);
 
             String loginTime = dataList.get(header.indexOf("loginTime"));
             reserveField1.put("loginTime", loginTime);
 
             String ifApply = dataList.get(header.indexOf("ifApply"));
-            handleYesOrNo(reserveField1, "ifApply", ifApply);
+            reserveField1.put("ifApply", ifApply);
 
             String applyResult = dataList.get(header.indexOf("applyResult"));
-            handleYesOrNo(reserveField1, "applyResult", applyResult);
+            reserveField1.put("applyResult", applyResult);
 
             String ifLent = dataList.get(header.indexOf("ifLent"));
-            handleYesOrNo(reserveField1, "ifLent", ifLent);
+            reserveField1.put("ifLent", ifLent);
 
             String age = dataList.get(header.indexOf("age"));
             reserveField1.put("age", age);
@@ -96,8 +95,9 @@ public class ZhongBangSyncDataProxy extends UploadDataProxy {
             reserveField1.put("productEndTime", productEndTime);
 
             String ifApplyAmount = dataList.get(header.indexOf("ifApplyAmount"));
-            handleYesOrNo(reserveField1, "ifApplyAmount", ifApplyAmount);
+            reserveField1.put("ifApplyAmount", ifApplyAmount);
 
+            syncUser.setReserveField1(reserveField1.toJSONString());
             syncUsers.add(syncUser);
         }
 
