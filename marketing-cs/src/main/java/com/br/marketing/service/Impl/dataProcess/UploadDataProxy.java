@@ -17,8 +17,9 @@ public abstract class UploadDataProxy extends DataProcessAbstractProxy{
 
     @Override
     Object assembleData(List<PullCustomerFileData> customerFileDataList) {
-//        return subAssembleData(customerFileDataList);
-        return "{\"code\":1,\"message\":\"成功\",\"data\":null}";
+        int a = 0;
+        return subAssembleData(customerFileDataList);
+//        return "{\"code\":1,\"message\":\"成功\",\"data\":null}";
     }
 
     @Override
@@ -56,5 +57,5 @@ public abstract class UploadDataProxy extends DataProcessAbstractProxy{
 //        }
 //    }
 
-//    abstract Object subAssembleData(List<PullCustomerFileData> customerFileDataList);
+    abstract Object subAssembleData(List<PullCustomerFileData> customerFileDataList);
 }

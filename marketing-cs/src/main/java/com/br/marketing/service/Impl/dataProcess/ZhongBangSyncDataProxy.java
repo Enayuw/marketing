@@ -1,7 +1,10 @@
 package com.br.marketing.service.Impl.dataProcess;
 
+import com.br.marketing.entity.PullCustomerFileData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * @Description ZhongBangUploadDataProxy
@@ -11,9 +14,10 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class ZhongBangSyncDataProxy extends UploadDataProxy {
-//    @Override
-//    Object subAssembleData(List<PullCustomerFileData> customerFileDataList) {
-//        // todo filename区分usertype
+    @Override
+    Object subAssembleData(List<PullCustomerFileData> customerFileDataList) {
+        System.out.println("bbbb");
+        // todo filename区分usertype
 //        List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
 //
 //
@@ -31,6 +35,6 @@ public class ZhongBangSyncDataProxy extends UploadDataProxy {
 //        UploadDataDTO uploadDataDTO = new UploadDataDTO();
 //        uploadDataDTO.setApiCode(apiCode);
 //        uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
-//        return null;
-//    }
+        return null;
+    }
 }
