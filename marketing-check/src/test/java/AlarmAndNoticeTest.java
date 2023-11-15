@@ -15,10 +15,7 @@ import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
 import com.br.marketing.service.Impl.JobManager;
 import com.br.marketing.service.Impl.RsTransferServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
-import com.br.marketing.service.Impl.transfertofile.NewTransferToFileByXieChengServiceImpl;
-import com.br.marketing.service.Impl.transfertofile.TransferToFileByDiDiServiceImpl;
-import com.br.marketing.service.Impl.transfertofile.TransferToFileBySamoyeServiveImpl;
-import com.br.marketing.service.Impl.transfertofile.TransferToFileByZhongYouServiceImpl;
+import com.br.marketing.service.Impl.transfertofile.*;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.ZhongYuanService;
@@ -221,7 +218,12 @@ public class AlarmAndNoticeTest {
     @Resource
     private TransferToFileByZhongYouServiceImpl transferToFileByZhongYouService;
 
+    @Resource
+    private TransferToFileByZhongBangServiceImpl transferToFileByZhongBangService;
+
     final static String ZHONGYOU_TRANSFER_FILE = "transform_";
+
+    final static String ZHONGBANG_TRANSFER_FILE = "caifu_transform_";
 
     @Test
     public void newTransferFileTest() {
@@ -276,6 +278,38 @@ public class AlarmAndNoticeTest {
             fw.append(FILE_HEADER);
             fw.append("\r\n");
             transferToFileByZhongYouService.writeXieChengTransferToFile(fw, apiCode, transferFileTask);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+
+    }
+
+    @Test
+    public void ZhongBangTransferFileTest() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7433800");
+        transferFileTask.setStartDate("2023-11-06 ");
+        String recordDate = transferFileTask.getStartDate();
+        String dateyyyymmddStr =  LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        StringBuilder fileName = new StringBuilder();
+        fileName.append(ZHONGBANG_TRANSFER_FILE).append(dateyyyymmddStr).append(".txt");
+        transferFileTask.setFileName(fileName.toString());
+        log.warn("众邦财富转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String apiCode = transferFileTask.getApiCode();
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(
+                new OutputStreamWriter(
+                        new FileOutputStream(file), "UTF-8"));) {
+            fw.append("custNum,ifLogin,ifApply,applyTime,applyproductName,applyAmount,ifLent1,lentTime,lentAmount,pushTime,userType,fileName");
+            fw.append("\r\n");
+            transferToFileByZhongBangService.writeTransferToFile(fw,apiCode,transferFileTask,recordDate);
         } catch (Exception ex) {
             log.error(ex.getMessage());
         }

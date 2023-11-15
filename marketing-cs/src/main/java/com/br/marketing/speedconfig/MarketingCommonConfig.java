@@ -1056,5 +1056,15 @@ public class MarketingCommonConfig {
      */
     private Map<String, List<String>> customerHandlerEnumConfigMap;
 
+    /**
+     * 众邦财富转化数据提取apiCode集合
+     */
+    private List<String> ZhongBangTransferApiCodes;
+
+    /**
+     * 众邦财富转化数据提取执行时间
+     */
+    private String ZhongBangTransferExecuteTime;
+
 }
 
