@@ -13,7 +13,7 @@ import java.util.List;
  */
 @Component
 @Slf4j
-public class UploadDataProxy extends DataProcessAbstractProxy{
+public abstract class UploadDataProxy extends DataProcessAbstractProxy{
 
     @Override
     Object assembleData(List<PullCustomerFileData> customerFileDataList) {
