@@ -35,7 +35,7 @@ public class HttpTestController {
      */
     @ApiOperation(value = "代理", notes = "代理")
     @GetMapping(path = {"zbankProxy"})
-    public JSONObject testZbank() {
+    public JSONObject testZbank() throws Exception {
         Map<String, Object> map1 = new HashMap<>();
         Map<String, Object> map4 = new HashMap<>();
         // 交易流水号
