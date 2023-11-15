@@ -1,7 +1,7 @@
 package com.br.marketing.context.spring;
 
 import com.br.marketing.service.Impl.dataProcess.DataProcessAbstractProxy;
-import com.br.marketing.service.Impl.dataProcess.UploadDataProxy;
+import com.br.marketing.service.Impl.dataProcess.ZhongBangSyncDataProxy;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
@@ -26,8 +26,8 @@ public class DataProcessingContext implements ApplicationContextAware {
     private static final Map<String, Class<? extends DataProcessAbstractProxy>> DATA_PROXY = new HashMap<>();
 
     static{
-//        DATA_PROXY.put("ZhongBangSyncDataProxy", ZhongBangSyncDataProxy.class);
-        DATA_PROXY.put("UploadDataProxy", UploadDataProxy.class);
+//        DATA_PROXY.put("UploadDataProxy", UploadDataProxy.class);
+        DATA_PROXY.put("ZhongBangSyncDataProxy", ZhongBangSyncDataProxy.class);
     }
 
     @Override
