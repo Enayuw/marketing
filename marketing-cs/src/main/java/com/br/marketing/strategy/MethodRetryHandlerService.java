@@ -2,6 +2,7 @@ package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.bo.SaveReachDeleteRecordReqBO;
 import com.br.marketing.bo.ZaMarketDataBO;
 import com.br.marketing.client.RedisChgService;
@@ -40,6 +41,8 @@ import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotDataVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
+import com.br.marketing.client.zbank.ZBankClient;
+import com.br.marketing.client.zbank.ZBankResponse;
 import com.br.marketing.client.zhongan.ZhongAnClient;
 import com.br.marketing.common.annoation.DistributeLog;
 import com.br.marketing.common.annoation.RetryMethod;
@@ -49,6 +52,7 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.dto.DataJoinLogDTO;
+import com.br.marketing.dto.zbank.ZBankLabelRatingReResultDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.DiDiAllowMarketingEnum;
 import com.br.marketing.mapper.*;
@@ -65,6 +69,7 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -164,19 +169,21 @@ public class MethodRetryHandlerService {
     @Resource
     private QifuSaveReachDeleteRecordApiPushLogMapper qifuSaveReachDeleteRecordApiPushLogMapper;
 
+    @Resource
+    private ZBankClient zBankClient;
+
     /**
-     *
-     * @param data 数据
-     * @param distributeTypeEnum DistributeTypeEnum 数据流向枚举
+     * @param data                     数据
+     * @param distributeTypeEnum       DistributeTypeEnum 数据流向枚举
      * @param apiCode
-     * @param custNum 案件号
-     * @param cell 手机号
-     * @param sourceId 源数据id
+     * @param custNum                  案件号
+     * @param cell                     手机号
+     * @param sourceId                 源数据id
      * @param distributeSourceTypeEnum 数据源类型
      * @return
      */
     public DataJoinLogDTO dataJoinLogFix(Object data, DistributeTypeEnum distributeTypeEnum, String apiCode
-            , String custNum, String cell, Long sourceId, DistributeSourceTypeEnum distributeSourceTypeEnum, String status, String extend){
+            , String custNum, String cell, Long sourceId, DistributeSourceTypeEnum distributeSourceTypeEnum, String status, String extend) {
         DataJoinLogDTO dataJoinLogDTO = new DataJoinLogDTO();
         dataJoinLogDTO.setApiCode(apiCode);
         dataJoinLogDTO.setCustNum(custNum);
@@ -316,7 +323,7 @@ public class MethodRetryHandlerService {
         Result<JSONObject> result = dassServiceClient.postRealTimeUserData(realTimeUserDataDTO.getDassSingleImportAdapDTO());
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             Integer code = result.getData().getInteger("code");
-            if(new Integer(0).equals(code)) {
+            if (new Integer(0).equals(code)) {
                 saveBizLog(realTimeUserDataDTO.getDassSingleImportAdapDTO().getExtendInfo(), InterfaceHandlerEnum.ARTIFICIAL_REAL_TIME_LOG.getCode(),
                         realTimeUserDataDTO.getDassSingleImportAdapDTO().getTransferInfoId());
                 PhoneSaleExtendInfo phoneSaleExtendInfo = realTimeUserDataDTO.getPhoneSaleExtendInfo();
@@ -326,7 +333,7 @@ public class MethodRetryHandlerService {
                 update.setPStatus(2);
                 phoneSaleExtendInfoMapper.updateByPrimaryKeySelective(update);
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
-            }else{
+            } else {
                 PhoneSaleExtendInfo phoneSaleExtendInfo = realTimeUserDataDTO.getPhoneSaleExtendInfo();
                 PhoneSaleExtendInfo update = new PhoneSaleExtendInfo();
                 update.setPushDxTime(new Date());
@@ -350,15 +357,15 @@ public class MethodRetryHandlerService {
     public Result<String> callCustomerBlack(ReqBlackPhoneParentDTO parentDTO, Integer retry) {
         ReqBlackPhoneVO reqBlackPhoneVO = robotaiApiServiceClient.pushBlack(parentDTO);
         if ("00".equals(reqBlackPhoneVO.getCode()) && CollectionUtils.isEmpty(reqBlackPhoneVO.getData())) {
-            if("1".equals(parentDTO.getExtendInfo())){
-                List<Long> ids = parentDTO.getBlackDetailDTOList().stream().map(t->Long.valueOf(t.getDataId())).collect(Collectors.toList());
+            if ("1".equals(parentDTO.getExtendInfo())) {
+                List<Long> ids = parentDTO.getBlackDetailDTOList().stream().map(t -> Long.valueOf(t.getDataId())).collect(Collectors.toList());
                 ZhonganMarketingBanExample example = new ZhonganMarketingBanExample();
                 example.createCriteria().andIdIn(ids);
                 ZhonganMarketingBan update = new ZhonganMarketingBan();
                 update.setPushTime(new Date());
                 update.setPushStatus(2);
-                zhonganMarketingBanMapper.updateByExampleSelective(update,example);
-            }else{
+                zhonganMarketingBanMapper.updateByExampleSelective(update, example);
+            } else {
                 Set<String> set = parentDTO.getBlackDetailDTOList().stream().map(BlackDetailDTO::getDataId).collect(Collectors.toSet());
                 saveBizLog(String.join(",", set), InterfaceHandlerEnum.CUSTOMER_BLACK_LIST.getCode(), parentDTO.getTransferInfoId());
             }
@@ -395,6 +402,7 @@ public class MethodRetryHandlerService {
 
     /**
      * 客户转化去重方法
+     *
      * @param robotOutboundDTO
      * @param retry
      * @return
@@ -402,13 +410,13 @@ public class MethodRetryHandlerService {
     @RetryMethod(isOrNoDbRetry = true)
     @DistributeLog
     public Result<TransferRobotOutboundVO<TransferRobotDataVO>> callCustomerTransfer(TransferRobotOutboundSoleDTO robotOutboundDTO, Integer retry) {
-        if(robotOutboundDTO.getData().size()<=0){
+        if (robotOutboundDTO.getData().size() <= 0) {
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         }
         TransferRobotOutboundDTO transferRobotOutboundDTO = new TransferRobotOutboundDTO();
         transferRobotOutboundDTO.setTransferInfoId(robotOutboundDTO.getTransferInfoId());
         transferRobotOutboundDTO.setApiCode(robotOutboundDTO.getApiCode());
-        transferRobotOutboundDTO.setJsonData(new TransferJsonDataDTO(robotOutboundDTO.getData(),robotOutboundDTO.getLast()));
+        transferRobotOutboundDTO.setJsonData(new TransferJsonDataDTO(robotOutboundDTO.getData(), robotOutboundDTO.getLast()));
         TransferRobotOutboundVO<TransferRobotDataVO> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(transferRobotOutboundDTO);
         if (!"9999".equals(transferRobotOutboundVO.getCode()) && getAllSuccessful(transferRobotOutboundVO)) {
             Set<Long> set = robotOutboundDTO.getDetailLogList().stream().map(DataDistributeDetailLog::getSourceId).collect(toSet());
@@ -474,6 +482,7 @@ public class MethodRetryHandlerService {
 
     /**
      * 萨摩耶推daas
+     *
      * @param dassImportAdapDTO
      * @param retry
      * @return
@@ -597,37 +606,37 @@ public class MethodRetryHandlerService {
     }
 
     @RetryMethod(isOrNoDbRetry = true)
-    public Result dassTransferWithFile(DassTransferDataAdapDTO dassTransferDataAdapDTO, Integer retry){
+    public Result dassTransferWithFile(DassTransferDataAdapDTO dassTransferDataAdapDTO, Integer retry) {
         Result result = dassServiceClient.postTransferData(dassTransferDataAdapDTO);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             List<Long> ids = dassTransferDataAdapDTO.getDassTransferDataDTOList().stream().map(t -> t.getId()).collect(Collectors.toList());
             PhoneSaleTransfer updateEntity = new PhoneSaleTransfer();
             JSONObject jsonObject = JSON.parseObject(result.getData().toString());
             boolean code = "0".equals(jsonObject.getString("code"));
-            if(new Integer(1).equals(retry)){
+            if (new Integer(1).equals(retry)) {
                 Long id = ids.get(0);
                 PhoneSaleTransfer phoneSaleTransfer = phoneSaleTransferMapper.selectByPrimaryKey(id);
                 LocalFile localFile = localFileMapper.selectByPrimaryKey(Long.valueOf(phoneSaleTransfer.getLocalId()));
                 LocalFile updateFile = new LocalFile();
                 updateFile.setId(localFile.getId());
-                if(code){
-                    updateFile.setPushNumber(localFile.getPushNumber()+ids.size());
-                }else{
-                    updateFile.setErrorActualNumber(localFile.getErrorActualNumber()+ids.size());
+                if (code) {
+                    updateFile.setPushNumber(localFile.getPushNumber() + ids.size());
+                } else {
+                    updateFile.setErrorActualNumber(localFile.getErrorActualNumber() + ids.size());
                 }
                 localFileMapper.updateByPrimaryKeySelective(updateFile);
             }
-            if(code){
+            if (code) {
                 updateEntity.setmStatus(3);
-            }else{
+            } else {
                 updateEntity.setmStatus(4);
             }
             PhoneSaleTransferExample transferExample = new PhoneSaleTransferExample();
             transferExample.createCriteria().andIdIn(ids);
-            phoneSaleTransferMapper.updateByExampleSelective(updateEntity,transferExample);
-            if(code){
+            phoneSaleTransferMapper.updateByExampleSelective(updateEntity, transferExample);
+            if (code) {
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
-            }else{
+            } else {
                 return new Result().setCode(ResultCode.FAIL.getValue());
             }
 
@@ -661,6 +670,7 @@ public class MethodRetryHandlerService {
 
     /**
      * 宜信情况L调用推送决策接口
+     *
      * @param dto
      * @param retry
      * @return
@@ -710,6 +720,7 @@ public class MethodRetryHandlerService {
     /**
      * 调用电销Ibu批量接口
      * 调用成功，将该批数据记录到数据库中以便数据对比
+     *
      * @param datumList
      * @return
      */
@@ -738,7 +749,7 @@ public class MethodRetryHandlerService {
     }
 
     @RetryMethod(isOrNoDbRetry = true)
-    public Result dassIbuWithFile(ArrayList<IbuReqDTO.Datum> datumList, Integer retry){
+    public Result dassIbuWithFile(ArrayList<IbuReqDTO.Datum> datumList, Integer retry) {
         try {
             //重试方法 这里反序列化过来是JsonObject
             if (!(datumList.get(0) instanceof IbuReqDTO.Datum)) {
@@ -779,8 +790,8 @@ public class MethodRetryHandlerService {
                 log.error("调用人工IBU批量接口失败 -- {}", JSON.toJSONString(result));
                 return new Result().setCode(ResultCode.FAIL.getValue());
             }
-        }catch (Exception ex){
-            log.error(ex.getMessage(),ex);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
         }
 
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
@@ -829,7 +840,7 @@ public class MethodRetryHandlerService {
         pushMarketingUserDTO.setJsonData(taskInfoDTO);
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            if(ids!=null && ids.size()>0){
+            if (ids != null && ids.size() > 0) {
                 saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY_SOLE.getCode(), soleDTO.getInfoId());
             }
             return new Result().setCode(ResultCode.SUCCESS.getValue());
@@ -840,12 +851,13 @@ public class MethodRetryHandlerService {
 
     /**
      * 滴滴通话明细推送
+     *
      * @param didiCallRecord
      * @param retry
      * @return
      */
     @RetryMethod(isOrNoDbRetry = true)
-    public  Result<Boolean> didiPushData(DidiCallRecord didiCallRecord, Integer retry){
+    public Result<Boolean> didiPushData(DidiCallRecord didiCallRecord, Integer retry) {
 
         Boolean res = Boolean.FALSE;
         try {
@@ -868,14 +880,14 @@ public class MethodRetryHandlerService {
                     .andCustNumEqualTo(custNum)
                     .andStatusEqualTo(3)
                     .andCreateDateEqualTo(createDate);
-            if (didiCallRecordMapper.countByExample(didiCallRecordExample)==0) {
+            if (didiCallRecordMapper.countByExample(didiCallRecordExample) == 0) {
                 MarketingTransferSyncUser marketingTransferSyncUser = new MarketingTransferSyncUser();
                 marketingTransferSyncUser.setApiCode(apiCode);
                 marketingTransferSyncUser.setRequestData(LocalDate.now().toString());
                 marketingTransferSyncUser.setCustNum(custNum);
                 // 判断是否有效
-                MarketingSyncUser newValidityPeriodData = transferDataValidityPeriodService.getMarketingSyncUserDidi(marketingTransferSyncUser,null);
-                if(newValidityPeriodData!=null) {
+                MarketingSyncUser newValidityPeriodData = transferDataValidityPeriodService.getMarketingSyncUserDidi(marketingTransferSyncUser, null);
+                if (newValidityPeriodData != null) {
                     updateDidiCallRecord.setCell(newValidityPeriodData.getCell());
                     // 调接口推送
                     DiDiReqVO diDiReqVO = new DiDiReqVO();
@@ -916,16 +928,16 @@ public class MethodRetryHandlerService {
                         updateDidiCallRecord.setResult(result);
                         updateDidiCallRecord.setErrorCode(errorCode);
                         updateDidiCallRecord.setErrorMessage(errorMessage);
-                    }else {
+                    } else {
                         updateDidiCallRecord.setStatus(2);
                         updateDidiCallRecord.setSysMessage("非500异常");
                     }
 
-                }else {
+                } else {
                     updateDidiCallRecord.setStatus(2);
                     updateDidiCallRecord.setSysMessage("数据失效");
                 }
-            }else {
+            } else {
                 updateDidiCallRecord.setStatus(2);
                 updateDidiCallRecord.setSysMessage("数据重复");
             }
@@ -940,21 +952,21 @@ public class MethodRetryHandlerService {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
     }
 
-    public Result<Boolean> didiAllow(DiDiAllowReqDTO dto,Integer retry){
+    public Result<Boolean> didiAllow(DiDiAllowReqDTO dto, Integer retry) {
         DiDiReqVO diDiReqVO = new DiDiReqVO();
         diDiReqVO.setCustMobileMd5(dto.getMobile());
         Result<DiDiResponseTO> diDiResponseTOResult = diDiClient.pushSmsTrafficAccess(diDiReqVO);
         DidiData updateEntity = new DidiData();
         updateEntity.setId(dto.getId());
         updateEntity.setPushStatus(2);
-        if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(diDiResponseTOResult.getCode())){
+        if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(diDiResponseTOResult.getCode())) {
             updateEntity.setPushStatus(3);
             didiDataMapper.updateByPrimaryKeySelective(updateEntity);
             return new Result<Boolean>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
         DiDiResponseTO data = diDiResponseTOResult.getData();
         Boolean res = Boolean.FALSE;
-        if(data.getData() !=null && data.getData().getResult()){
+        if (data.getData() != null && data.getData().getResult()) {
             res = Boolean.TRUE;
             updateEntity.setPushDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             updateEntity.setIsMarketing(DiDiAllowMarketingEnum.YES.getValue());
@@ -1040,6 +1052,62 @@ public class MethodRetryHandlerService {
         qifuSaveReachDeleteRecordApiPushLogMapper.insertSelective(pushLog);
         reqBO.setLogId(pushLog.getId());
         return resp;
+    }
+
+    /**
+     * 武汉众邦银行推送标签评级
+     *
+     * @param jsonData 封装的数据
+     * @param retry    重试切面使用的标记，正常业务调用时赋值null
+     * @return 接口响应业务字段
+     */
+    @RetryMethod(retryNowNum = 1, isOrNoDbRetry = true)
+    public Result<ZBankResponse<ZBankLabelRatingReResultDTO>> pushZbankLabelRatingRe(JSONObject jsonData
+            , Integer retry) {
+        Result<ZBankResponse<ZBankLabelRatingReResultDTO>> result = new Result<>();
+        JSONObject object = new JSONObject();
+        String requestId = UUID.randomUUID().toString().replaceAll("-", "") + System.nanoTime();
+        jsonData.put("TxnSrlNo", requestId);
+        if (retry == null) {
+            jsonData.put("TxnDt", LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE));
+            jsonData.put("TxnTs", LocalTime.now().format(DateTimeFormatter.ofPattern("HHmmss[SSS]")));
+        }
+        object.put("request", jsonData);
+        String jsonStr;
+        try {
+            jsonStr = zBankClient.labelRatingRe(object, requestId);
+        } catch (Exception e) {
+            result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            log.error(e.getMessage(), e);
+            return result;
+        }
+        ZBankResponse<ZBankLabelRatingReResultDTO> dto;
+        try {
+            dto = JSONObject.parseObject(jsonStr
+                    , new TypeReference<ZBankResponse<ZBankLabelRatingReResultDTO>>() {
+                    });
+        } catch (Exception e) {
+            log.error(e.getMessage() + "响应：" + jsonStr, e);
+            result.setCode(ResultCode.FAIL.getValue());
+            return result;
+        }
+        if ("000000".equals(dto.getCode())) {
+            ZBankLabelRatingReResultDTO result1 = dto.getResult();
+            if ("00".equals(result1.getErrCd())) {
+                result.setCode(ResultCode.SUCCESS.getValue());
+            } else if ("500".equals(result1.getErrCd())) {
+                log.error("武汉众邦银行推送标签评级接口实体不能为空或者回传数据更新失败,进入重试,响应：{},请求：{}"
+                        , jsonStr, jsonData.toJSONString());
+                result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            } else {
+                result.setCode(ResultCode.FAIL.getValue());
+            }
+        } else {
+            log.error("武汉众邦银行推送标签评级接口异常,进入重试,响应：{},请求：{}", jsonStr, jsonData.toJSONString());
+            result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+        result.setDate(dto);
+        return result;
     }
 
 }
