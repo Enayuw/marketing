@@ -1056,5 +1056,10 @@ public class MarketingCommonConfig {
      */
     private Map<String, List<String>> customerHandlerEnumConfigMap;
 
+    /**
+     * 推送决策系统的选择
+     */
+    private Integer pushJcSelect;
+
 }
 

@@ -289,8 +289,45 @@ public class RedisChgService {
         return RELEASE_SUCCESS.equals(result);
     }
 
+    public void lockTmp(String lockKey, String value) {
+        long begin = System.currentTimeMillis();
+
+        while (System.currentTimeMillis() - begin < LOCK_WAIT_THRESHOLD) {
+            boolean acquire = this.lock(lockKey, value, 3000L);
+            if (acquire) {
+                return;
+            }
+
+            try {
+                Thread.sleep(500L);
+            } catch (InterruptedException var7) {
+                var7.printStackTrace();
+            }
+        }
+
+        throw new NullPointerException("获取锁失败");
+    }
+
+    public boolean lockTmp(String lockKey, String requestId, Long milliseconds) {
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis_yz");
+        String script = "return redis.call('set',KEYS[1],ARGV[1],'NX','PX',ARGV[2])";
+        String[] keys = new String[1];
+        keys[0] = lockKey;
+        String result = marketingRedisClient.eval(script, ScriptOutputType.STATUS, keys, requestId, milliseconds.toString());
+        return LOCK_SUCCESS.equals(result);
+    }
+
+    public boolean unlockTmp(String lockKey, String requestId) {
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis_yz");
+        String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+        String[] keys = new String[1];
+        keys[0] = lockKey;
+        Long result = marketingRedisClient.eval(script, ScriptOutputType.INTEGER, keys, requestId);
+        return RELEASE_SUCCESS.equals(result);
+    }
+
     public void delBigSet(String bigSetKey, int deleteCount) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis_yz");
         String cursorIndex = "0";
         ScanCursor cursor = ScanCursor.of(cursorIndex);
         do {

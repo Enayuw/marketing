@@ -488,8 +488,13 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             pushDataInit(actionType, apiCodeJc, m, logList, pushs);
             // 封装重试参数
             PolicyRetryByRuleSoleDTO retryByRuleDTO = getPolicyRetryByRuleSoleDTO(actionType, apiCodeJc, logList, pushs);
-            // 推送决策方法
-            methodRetryHandlerService.callPolicySoleData(retryByRuleDTO, 0);
+            Integer pushJcSelect = marketingCommonConfig.getPushJcSelect();
+            if(pushJcSelect != null && pushJcSelect == 1) {
+                methodRetryHandlerService.callPolicySoleDataByYx(retryByRuleDTO, 0);
+            }else{
+                // 推送决策方法
+                methodRetryHandlerService.callPolicySoleData(retryByRuleDTO, 0);
+            }
         });
 
     }
