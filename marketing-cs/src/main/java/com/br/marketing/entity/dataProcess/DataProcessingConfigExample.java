@@ -375,6 +375,76 @@ public class DataProcessingConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andDataSplitIsNull() {
+            addCriterion("data_split is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSplitIsNotNull() {
+            addCriterion("data_split is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSplitEqualTo(String value) {
+            addCriterion("data_split =", value, "dataSplit");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSplitNotEqualTo(String value) {
+            addCriterion("data_split <>", value, "dataSplit");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSplitGreaterThan(String value) {
+            addCriterion("data_split >", value, "dataSplit");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSplitGreaterThanOrEqualTo(String value) {
+            addCriterion("data_split >=", value, "dataSplit");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSplitLessThan(String value) {
+            addCriterion("data_split <", value, "dataSplit");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSplitLessThanOrEqualTo(String value) {
+            addCriterion("data_split <=", value, "dataSplit");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSplitLike(String value) {
+            addCriterion("data_split like", value, "dataSplit");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSplitNotLike(String value) {
+            addCriterion("data_split not like", value, "dataSplit");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSplitIn(List<String> values) {
+            addCriterion("data_split in", values, "dataSplit");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSplitNotIn(List<String> values) {
+            addCriterion("data_split not in", values, "dataSplit");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSplitBetween(String value1, String value2) {
+            addCriterion("data_split between", value1, value2, "dataSplit");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSplitNotBetween(String value1, String value2) {
+            addCriterion("data_split not between", value1, value2, "dataSplit");
+            return (Criteria) this;
+        }
+
         public Criteria andProxyNameIsNull() {
             addCriterion("proxy_name is null");
             return (Criteria) this;

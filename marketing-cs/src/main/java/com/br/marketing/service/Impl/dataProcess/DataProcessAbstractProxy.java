@@ -56,6 +56,7 @@ public abstract class DataProcessAbstractProxy {
         localFile.setPushStatus("1");
         localFileMapper.updateByPrimaryKeySelective(localFile);
 
+        String fileName = localFile.getFileName();
         Long id = null;
         PullCustomerFileDataExample pullCustomerFileDataExample = new PullCustomerFileDataExample();
         buildExample(localFileId, id, pullCustomerFileDataExample);
@@ -71,7 +72,7 @@ public abstract class DataProcessAbstractProxy {
             pullCustomerFileDataExample.clear();
             buildExample(localFileId, id, pullCustomerFileDataExample);
 
-            pool.submit(() -> result(apiCode, url, customerFileDataList));
+            pool.submit(() -> result(apiCode, customerFileDataList,config,fileName));
         }
 
         pool.shutdown();
@@ -97,11 +98,11 @@ public abstract class DataProcessAbstractProxy {
         pullCustomerFileDataExample.setOrderByClause("id asc");
     }
 
-    abstract Object assembleData(List<PullCustomerFileData> customerFileDataList);
+    abstract Object assembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config, String fileName);
 
-    private void result(String apiCode, String url, List<PullCustomerFileData> customerFileDataList) {
-        Object assembleData = assembleData(customerFileDataList);
-        Object result = call(apiCode, assembleData, url);
+    private void result(String apiCode, List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config, String fileName) {
+        Object assembleData = assembleData(customerFileDataList,config,fileName);
+        Object result = call(apiCode, assembleData, config.getUrl());
         assembleResult(result);
     }
 

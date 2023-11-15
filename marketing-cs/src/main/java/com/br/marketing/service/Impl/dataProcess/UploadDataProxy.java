@@ -1,6 +1,8 @@
 package com.br.marketing.service.Impl.dataProcess;
 
+import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.entity.PullCustomerFileData;
+import com.br.marketing.entity.dataProcess.DataProcessingConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -16,21 +18,19 @@ import java.util.List;
 public abstract class UploadDataProxy extends DataProcessAbstractProxy{
 
     @Override
-    Object assembleData(List<PullCustomerFileData> customerFileDataList) {
-        int a = 0;
-        return subAssembleData(customerFileDataList);
+    Object assembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config, String fileName) {
+        return subAssembleData(customerFileDataList,config,fileName);
 //        return "{\"code\":1,\"message\":\"成功\",\"data\":null}";
     }
 
     @Override
     Object call(String apiCode, Object data, String url) {
-//        UploadDataDTO uploadDataDTO = new UploadDataDTO();
-//        uploadDataDTO.setApiCode(apiCode);
-//        // todo
-//        uploadDataDTO.setJsonData(data.toString());
+        UploadDataDTO uploadDataDTO = null;
+        if (data instanceof UploadDataDTO) {
+            uploadDataDTO = (UploadDataDTO) data;
+        }
 //        return callMarketingUpload(uploadDataDTO, null, url);
-
-        return data;
+        return null;
     }
 
 //    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = true)
@@ -57,5 +57,5 @@ public abstract class UploadDataProxy extends DataProcessAbstractProxy{
 //        }
 //    }
 
-    abstract Object subAssembleData(List<PullCustomerFileData> customerFileDataList);
+    abstract Object subAssembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config, String fileName);
 }

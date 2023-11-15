@@ -6,6 +6,7 @@
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="file_type" property="fileType" jdbcType="VARCHAR" />
     <result column="file_header" property="fileHeader" jdbcType="VARCHAR" />
+    <result column="data_split" property="dataSplit" jdbcType="VARCHAR" />
     <result column="proxy_name" property="proxyName" jdbcType="VARCHAR" />
     <result column="url" property="url" jdbcType="VARCHAR" />
     <result column="priority_level" property="priorityLevel" jdbcType="TINYINT" />
@@ -75,8 +76,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, file_type, file_header, proxy_name, url, priority_level, is_deleted, 
-    create_time, update_time
+    id, api_code, file_type, file_header, data_split, proxy_name, url, priority_level, 
+    is_deleted, create_time, update_time
   </sql>
   <sql id="Blob_Column_List" >
     extend_field
@@ -134,13 +135,13 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_marketing_data_processing_config (api_code, file_type, file_header, 
-      proxy_name, url, priority_level, 
-      is_deleted, create_time, update_time, 
-      extend_field)
+      data_split, proxy_name, url, 
+      priority_level, is_deleted, create_time, 
+      update_time, extend_field)
     values (#{apiCode,jdbcType=VARCHAR}, #{fileType,jdbcType=VARCHAR}, #{fileHeader,jdbcType=VARCHAR}, 
-      #{proxyName,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, #{priorityLevel,jdbcType=TINYINT}, 
-      #{isDeleted,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{extendField,jdbcType=LONGVARCHAR})
+      #{dataSplit,jdbcType=VARCHAR}, #{proxyName,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, 
+      #{priorityLevel,jdbcType=TINYINT}, #{isDeleted,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{extendField,jdbcType=LONGVARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.dataProcess.DataProcessingConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -156,6 +157,9 @@
       </if>
       <if test="fileHeader != null" >
         file_header,
+      </if>
+      <if test="dataSplit != null" >
+        data_split,
       </if>
       <if test="proxyName != null" >
         proxy_name,
@@ -188,6 +192,9 @@
       </if>
       <if test="fileHeader != null" >
         #{fileHeader,jdbcType=VARCHAR},
+      </if>
+      <if test="dataSplit != null" >
+        #{dataSplit,jdbcType=VARCHAR},
       </if>
       <if test="proxyName != null" >
         #{proxyName,jdbcType=VARCHAR},
@@ -233,6 +240,9 @@
       <if test="record.fileHeader != null" >
         file_header = #{record.fileHeader,jdbcType=VARCHAR},
       </if>
+      <if test="record.dataSplit != null" >
+        data_split = #{record.dataSplit,jdbcType=VARCHAR},
+      </if>
       <if test="record.proxyName != null" >
         proxy_name = #{record.proxyName,jdbcType=VARCHAR},
       </if>
@@ -265,6 +275,7 @@
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       file_type = #{record.fileType,jdbcType=VARCHAR},
       file_header = #{record.fileHeader,jdbcType=VARCHAR},
+      data_split = #{record.dataSplit,jdbcType=VARCHAR},
       proxy_name = #{record.proxyName,jdbcType=VARCHAR},
       url = #{record.url,jdbcType=VARCHAR},
       priority_level = #{record.priorityLevel,jdbcType=TINYINT},
@@ -282,6 +293,7 @@
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       file_type = #{record.fileType,jdbcType=VARCHAR},
       file_header = #{record.fileHeader,jdbcType=VARCHAR},
+      data_split = #{record.dataSplit,jdbcType=VARCHAR},
       proxy_name = #{record.proxyName,jdbcType=VARCHAR},
       url = #{record.url,jdbcType=VARCHAR},
       priority_level = #{record.priorityLevel,jdbcType=TINYINT},
@@ -303,6 +315,9 @@
       </if>
       <if test="fileHeader != null" >
         file_header = #{fileHeader,jdbcType=VARCHAR},
+      </if>
+      <if test="dataSplit != null" >
+        data_split = #{dataSplit,jdbcType=VARCHAR},
       </if>
       <if test="proxyName != null" >
         proxy_name = #{proxyName,jdbcType=VARCHAR},
@@ -333,6 +348,7 @@
     set api_code = #{apiCode,jdbcType=VARCHAR},
       file_type = #{fileType,jdbcType=VARCHAR},
       file_header = #{fileHeader,jdbcType=VARCHAR},
+      data_split = #{dataSplit,jdbcType=VARCHAR},
       proxy_name = #{proxyName,jdbcType=VARCHAR},
       url = #{url,jdbcType=VARCHAR},
       priority_level = #{priorityLevel,jdbcType=TINYINT},
@@ -347,6 +363,7 @@
     set api_code = #{apiCode,jdbcType=VARCHAR},
       file_type = #{fileType,jdbcType=VARCHAR},
       file_header = #{fileHeader,jdbcType=VARCHAR},
+      data_split = #{dataSplit,jdbcType=VARCHAR},
       proxy_name = #{proxyName,jdbcType=VARCHAR},
       url = #{url,jdbcType=VARCHAR},
       priority_level = #{priorityLevel,jdbcType=TINYINT},

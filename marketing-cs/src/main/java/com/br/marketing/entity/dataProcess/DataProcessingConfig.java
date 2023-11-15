@@ -24,6 +24,11 @@ public class DataProcessingConfig {
     private String fileHeader;
 
     /**
+     * 数据分割符
+     */
+    private String dataSplit;
+
+    /**
      * 代理类名称
      */
     private String proxyName;
@@ -93,6 +98,14 @@ public class DataProcessingConfig {
 
     public void setFileHeader(String fileHeader) {
         this.fileHeader = fileHeader == null ? null : fileHeader.trim();
+    }
+
+    public String getDataSplit() {
+        return dataSplit;
+    }
+
+    public void setDataSplit(String dataSplit) {
+        this.dataSplit = dataSplit == null ? null : dataSplit.trim();
     }
 
     public String getProxyName() {
