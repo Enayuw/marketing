@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
-public interface PullCustomerFileDataMapperBase extends PullCustomerFileDataMapper {
+public interface PullCustomerFileDataMapperBase {
     int countByExample(PullCustomerFileDataExample example);
 
     int deleteByExample(PullCustomerFileDataExample example);
