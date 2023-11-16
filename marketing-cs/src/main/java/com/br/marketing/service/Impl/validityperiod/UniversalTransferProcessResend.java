@@ -1,10 +1,12 @@
 package com.br.marketing.service.Impl.validityperiod;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.ValidityPeriodResendType;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferInfoExample;
 import com.br.marketing.entity.ValidityPeriodResendRecord;
@@ -135,10 +137,17 @@ public class UniversalTransferProcessResend implements ValidityPeriodResendStrat
         mqFact.setSourceId(info.getId());
         mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
         JSONObject resendData = JSONObject.parseObject(record.getResendData());
-        if (resendData != null) {
+        if (resendData != null && StringUtils.isNotEmpty((resendData.getString("includeRules")))) {
             Set<String> includeRules = Sets.newHashSet(Splitter.on(",").splitToList(resendData.getString("includeRules")));
+            if (CollectionUtil.isEmpty(includeRules)) {
+                log.error("该apiCode:{}已配置重推映射，但未配置下发规则，请确认！",record.getApiCode());
+            }
             mqFact.setIncludeRules(includeRules);
         }
         return mqFact;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(CollectionUtil.isEmpty(Sets.newHashSet(Splitter.on(",").splitToList(""))));
     }
 }
