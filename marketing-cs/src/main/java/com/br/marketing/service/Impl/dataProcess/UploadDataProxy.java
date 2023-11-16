@@ -1,6 +1,8 @@
 package com.br.marketing.service.Impl.dataProcess;
 
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
+import com.br.marketing.client.marketingapi.input.UploadDataUrlDTO;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.PullCustomerFileData;
 import com.br.marketing.entity.dataProcess.DataProcessingConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -15,28 +17,35 @@ import java.util.List;
  */
 @Component
 @Slf4j
-public abstract class UploadDataProxy extends DataProcessAbstractProxy{
+public class UploadDataProxy extends DataProcessAbstractProxy{
 
     @Override
     Object assembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config, String fileName) {
-        return subAssembleData(customerFileDataList,config,fileName);
+        return customerFileDataList;
+//        return subAssembleData(customerFileDataList,config,fileName);
 //        return "{\"code\":1,\"message\":\"成功\",\"data\":null}";
     }
 
     @Override
     Object call(String apiCode, Object data, String url) {
-        UploadDataDTO uploadDataDTO = null;
+        UploadDataUrlDTO uploadDataUrlDTO = new UploadDataUrlDTO();
+        uploadDataUrlDTO.setUrl(url);
+        UploadDataDTO uploadDataDTO = new UploadDataDTO();
         if (data instanceof UploadDataDTO) {
             uploadDataDTO = (UploadDataDTO) data;
         }
-//        return callMarketingUpload(uploadDataDTO, null, url);
-        return null;
+        uploadDataUrlDTO.setUrl(url);
+        uploadDataUrlDTO.setUploadDataDTO(uploadDataDTO);
+        Result result = marketingApiService.callUploadDataByUrlRetry(uploadDataUrlDTO,null);
+//        Result<Boolean> booleanResult = callMarketingUpload(uploadDataDTO, null, url);
+        return result;
+//        return null;
     }
 
 //    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = true)
-//    public Result<Boolean> callMarketingUpload(UploadDataDTO dto, Integer retry, String url) {
+//    private Result<Boolean> callMarketingUpload(UploadDataDTO dto, Integer retry, String url) {
 //        try {
-//            ThirdApiResultTransfer res = new ApiCallerUtil(restTemplate, interfaceLogMapper, interfaceLogDbpool)
+//            ThirdApiResultTransfer res = new ApiCallerUtil(getRestTemplate(), getInterfaceLogMapper(), getInterfaceLogDbpool())
 //                    .setUrl(url)
 //                    .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
 //                    .setRequestParam(dto)
@@ -57,5 +66,5 @@ public abstract class UploadDataProxy extends DataProcessAbstractProxy{
 //        }
 //    }
 
-    abstract Object subAssembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config, String fileName);
+//    abstract Object subAssembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config, String fileName);
 }

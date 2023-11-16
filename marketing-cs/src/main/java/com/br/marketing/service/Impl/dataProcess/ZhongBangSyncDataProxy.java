@@ -26,7 +26,7 @@ import java.util.UUID;
 @Slf4j
 public class ZhongBangSyncDataProxy extends UploadDataProxy {
     @Override
-    Object subAssembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config, String fileName) {
+    Object assembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config, String fileName) {
         String fileHeader = config.getFileHeader();
         List<String> header = new ArrayList<>(Arrays.asList(fileHeader.split(",")));
 //        String[] header = fileHeader.split(",");

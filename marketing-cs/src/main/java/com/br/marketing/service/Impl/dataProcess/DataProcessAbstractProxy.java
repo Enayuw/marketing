@@ -1,17 +1,15 @@
 package com.br.marketing.service.Impl.dataProcess;
 
+import com.br.marketing.client.marketingapi.MarketingApiService;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.PullCustomerFileData;
 import com.br.marketing.entity.PullCustomerFileDataExample;
 import com.br.marketing.entity.dataProcess.DataProcessingConfig;
-import com.br.marketing.mapper.InterfaceLogMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.PullCustomerFileDataMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -25,21 +23,27 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public abstract class DataProcessAbstractProxy {
+
+    @Autowired
+    MarketingApiService marketingApiService;
     @Resource
-    PullCustomerFileDataMapper customerFileDataMapper;
+    private PullCustomerFileDataMapper customerFileDataMapper;
 
     @Resource
-    LocalFileMapper localFileMapper;
-    @Autowired
-    RestTemplate restTemplate;
+    private LocalFileMapper localFileMapper;
+//    @Autowired
+//    private RestTemplate restTemplate;
 
-    @Qualifier("interfaceLogDbpool")
-    @Autowired
-    ThreadPoolExecutor interfaceLogDbpool;
+//    @Qualifier("interfaceLogDbpool")
+//    @Autowired
+//    private ThreadPoolExecutor interfaceLogDbpool;
 
-    @Autowired
-    InterfaceLogMapper interfaceLogMapper;
+//    @Autowired
+//    private InterfaceLogMapper interfaceLogMapper;
 
+//    public InterfaceLogMapper getInterfaceLogMapper() {
+//        return interfaceLogMapper;
+//    }
 
     // 开启线程池，遍历b_pull_customer_file_data，查询要处理的数据，单个线程2000条，b_local_file表push_status记为1（任务开始）（子类可重写）
     // 组装参数：将客户字段映射到标准接口字段（子类必须实现）
