@@ -95,12 +95,12 @@ public class ZhongYuanTransferDataToCustomerNotFirstTimeJob extends AbstractSimp
      */
     private void threadDoProcess(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
 
-        // 推客服转化 规则1 非首次 （registerTime非空）
+        // 推客服转化 非首次 （registerTime非空）
         zhongYuanService.zhongYuanTransferDataToCustomerFilter(marketingTransferSyncUserList);
 
         // 转化数据推客服 规则1 因非首次包含规则1 推送条件 为了防止多次判断，增加效率，规则1 代码注释掉，如果规则1 有修改
         // 可在此代码基础上进行修改 （registerTime非空）
-        zhongYuanService.zhongYuanTransferDataToCustomerFilterRuleFirst(marketingTransferSyncUserList);
+//        zhongYuanService.zhongYuanTransferDataToCustomerFilterRuleFirst(marketingTransferSyncUserList);
 
         // 转化数据推客服 规则2
         zhongYuanService.zhongYuanTransferDataToCustomerFilterByDaasTwo(marketingTransferSyncUserList);
