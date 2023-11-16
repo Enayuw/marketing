@@ -118,7 +118,7 @@ public class DistributeLogAspect {
 
                     try {
                         UUID uuid = UUID.randomUUID();
-                        redisChgService.lockTmp(key, uuid.toString());
+                        redisChgService.lock(key, uuid.toString());
                         //region 去重判断
                         // 数组内去重
                         if (!dataMd5Set.add(logData.getDataMd5())) {
@@ -126,7 +126,7 @@ public class DistributeLogAspect {
                             if(o != null){
                                 iterator.remove();
                                 data.remove(o);
-                                redisChgService.unlockTmp(key, uuid.toString());
+                                redisChgService.unlock(key, uuid.toString());
                                 continue;
                             }
                         }
@@ -292,7 +292,7 @@ public class DistributeLogAspect {
 
                     try {
                         UUID uuid = UUID.randomUUID();
-                        redisChgService.lock(key, uuid.toString());
+                        redisChgService.lockTmp(key, uuid.toString());
                         //region 去重判断
                         // 数组内去重
                         if (!dataMd5Set.add(logData.getDataMd5())) {
@@ -300,7 +300,7 @@ public class DistributeLogAspect {
                             if(o != null){
                                 iterator.remove();
                                 data.remove(o);
-                                redisChgService.unlock(key, uuid.toString());
+                                redisChgService.unlockTmp(key, uuid.toString());
                                 continue;
                             }
                         }
@@ -341,7 +341,7 @@ public class DistributeLogAspect {
                             if(o != null){
                                 iterator.remove();
                                 data.remove(o);
-                                redisChgService.unlock(key, uuid.toString());
+                                redisChgService.unlockTmp(key, uuid.toString());
                                 continue;
                             }
                         } else {
@@ -351,7 +351,7 @@ public class DistributeLogAspect {
                             dataDistributeDetailLogMapper.insertSelective(newLog);
                             logData.setId(newLog.getId());
                         }
-                        redisChgService.unlock(key, uuid.toString());
+                        redisChgService.unlockTmp(key, uuid.toString());
                         //endregion
                     } catch (Exception ex) {
                         continue;
