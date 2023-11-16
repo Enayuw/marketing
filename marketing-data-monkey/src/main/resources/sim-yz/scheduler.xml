@@ -145,7 +145,7 @@
 
     <job:simple id="dataMonkey-QiFuSaveReachDeleteRecordPushJob"
                 class="com.br.marketing.monkey.job.qifu.QiFuSaveReachDeleteRecordPushJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 1/30 0,7,8,9 * * ?"
                 description="奇富保存触达记录删除;parameter格式:apiCode:yyyy-MM-dd或apiCode"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

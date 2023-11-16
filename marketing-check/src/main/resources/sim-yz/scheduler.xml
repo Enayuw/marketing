@@ -215,7 +215,7 @@
     />
     <job:simple id="TransferFileTaskJob"
                 class="com.br.marketing.check.job.TransferFileTaskJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 1/10 * * * ?"
                 description="转化数据作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="9"
@@ -548,7 +548,7 @@
     />
     <job:simple id="OrangeTransferDataPeriodToDassJob"
                 class="com.br.marketing.check.job.juzi.OrangeTransferDataPeriodToDassJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/30 9-23 * * ?"
                 description="桔子周期推送电销Daas"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -579,7 +579,7 @@
 
     <job:simple id="XieChengPushPolicyJob"
                 class="com.br.marketing.check.job.XieChengPushPolicyJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0 8 * * ?"
                 description="携程转化数据推送决策"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -651,7 +651,7 @@
     />
     <job:simple id="ZhongYouDataPullJob"
                 class="com.br.marketing.check.job.zhongyou.ZhongYouDataPullJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 05 8 * * ?"
                 description="中邮数据拉取"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -781,7 +781,7 @@
 
     <job:simple id="ValidPeriodResendJob"
                 class="com.br.marketing.check.job.ValidPeriodResendJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 */30 * ? * *"
                 description="有效期任务变更重推任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -795,7 +795,7 @@
     />
     <job:simple id="QiFuBreakPointDataToJueCeJob"
                 class="com.br.marketing.check.job.qifu.QiFuBreakPointDataToJueCeJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0 8 * * ?"
                 description="奇富断点自动化数据推决策，每天8点执行一次"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
