@@ -86,6 +86,7 @@
                 </executions>
                 <configuration>
                     <mainClass>com.br.marketing.push.PushApplication</mainClass>
+                    <includeSystemScope>true</includeSystemScope>
                 </configuration>
             </plugin>
         </plugins>
