@@ -5,12 +5,14 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
+import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.PullCustomerFileData;
 import com.br.marketing.entity.dataProcess.DataProcessingConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +28,7 @@ import java.util.UUID;
 @Slf4j
 public class ZhongBangSyncDataProxy extends UploadDataProxy {
     @Override
-    Object assembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config, String fileName) {
+    Object subAssembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config) {
         String fileHeader = config.getFileHeader();
         List<String> header = new ArrayList<>(Arrays.asList(fileHeader.split(",")));
 //        String[] header = fileHeader.split(",");
@@ -59,6 +61,7 @@ public class ZhongBangSyncDataProxy extends UploadDataProxy {
                 reserveField1.put("gender", 1);
             } else {
                 reserveField1.put("gender", "");
+                log.error("众邦转化数据清洗,字段:gender,枚举非男女,id:{}",data.getId());
             }
 
             String ifRegister = dataList.get(header.indexOf("ifRegister"));
@@ -128,7 +131,24 @@ public class ZhongBangSyncDataProxy extends UploadDataProxy {
         } else {
             reserveField1.put(fieldName, "");
             // todo 是否需要报警
-            log.error("众邦转化数据清洗,字段:{},枚举非是否");
+            log.error("众邦转化数据清洗,字段:{},枚举非是否",fieldName);
         }
+    }
+
+
+    @Override
+    public Boolean canStart(LocalFile localFile){
+        boolean isTransferFile = localFile.getFileName().startsWith("transform_");
+        if (isTransferFile) {
+            // T-1日到T日，防止跨天传输判断有误
+            String CreateTimeDate = LocalDateTime.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String recordDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            int goingSize = marketingSyncInfoMapper.getUnresolvedCount("7433800", CreateTimeDate, recordDate);
+            if (goingSize > 0) {
+                log.warn("众邦数据清洗，上传数据文件还没有落库完成，转化数据文件需要等待，待完成量级：{}",goingSize);
+                return false;
+            }
+        }
+        return true;
     }
 }

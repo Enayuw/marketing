@@ -1,6 +1,5 @@
 package com.br.marketing.check.job;
 
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.context.spring.DataProcessingContext;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
@@ -11,13 +10,12 @@ import com.br.marketing.service.Impl.dataProcess.DataProcessAbstractProxy;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.*;
 
 /**
  *  				    _ooOoo_
@@ -63,6 +61,15 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob{
     // b_local_file表push_status记为2（任务结束）
     // 线程池关闭（先关外层，再关内层.外层不关）
     // TODO 失败回滚
+
+    private static final LinkedHashMap<Integer, String> PROCESSlINK = new LinkedHashMap<>();
+
+    static {
+        PROCESSlINK.put(1,"original_caifu_");
+        PROCESSlINK.put(2,"original_daikuan_");
+        PROCESSlINK.put(3,"transform_");
+    }
+
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         // 自定义参数 todo
@@ -82,17 +89,38 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob{
             if (CollectionUtils.isEmpty(localFiles)) {
                 continue;
             }
-            config.setLocalFileId(localFiles.get(0).getId());
 
-            tasks.add(config);
+            for (LocalFile localFile : localFiles) {
+                DataProcessingConfig task = new DataProcessingConfig();
+                BeanUtils.copyProperties(config, task);
+                task.setLocalFile(localFile);
+                tasks.add(task);
+            }
         }
 
-
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5);
+        tasks.sort(Comparator.comparing(DataProcessingCommonJob::getPrefixOrder));
         for (DataProcessingConfig task : tasks) {
-            pool.execute(() -> process(task));
+            process(task);
         }
 //        pool.shutdown();
+    }
+
+    /**
+     * 根据前缀返回对应的排序顺序。对于其他前缀，放在列表末尾
+     * @param task
+     * @return
+     */
+    private static int getPrefixOrder(DataProcessingConfig task){
+        String fileName = task.getLocalFile().getFileName();
+        if (fileName.startsWith("original_caifu_")) {
+            return 1;
+        }else if (fileName.startsWith("original_daikuan_")) {
+            return 2;
+        }else if (fileName.startsWith("transform_")) {
+            return 3;
+        }else {
+            return Integer.MAX_VALUE;
+        }
     }
 
     private void process(DataProcessingConfig task) {

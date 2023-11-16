@@ -1,5 +1,7 @@
 package com.br.marketing.entity.dataProcess;
 
+import com.br.marketing.entity.LocalFile;
+
 import java.util.Date;
 
 public class DataProcessingConfig {
@@ -63,10 +65,11 @@ public class DataProcessingConfig {
      */
     private String extendField;
 
+
     /**
-     * local_file_id
+     * localfile
      */
-    private Long localFileId;
+    private LocalFile localFile;
 
     public Long getId() {
         return id;
@@ -164,11 +167,11 @@ public class DataProcessingConfig {
         this.extendField = extendField == null ? null : extendField.trim();
     }
 
-    public Long getLocalFileId() {
-        return localFileId;
+    public LocalFile getLocalFile() {
+        return localFile;
     }
 
-    public void setLocalFileId(Long localFileId) {
-        this.localFileId = localFileId;
+    public void setLocalFile(LocalFile localFile) {
+        this.localFile = localFile;
     }
 }

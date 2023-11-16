@@ -7,6 +7,7 @@ import com.br.marketing.entity.PullCustomerFileData;
 import com.br.marketing.entity.PullCustomerFileDataExample;
 import com.br.marketing.entity.dataProcess.DataProcessingConfig;
 import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.PullCustomerFileDataMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public abstract class DataProcessAbstractProxy {
 
     @Resource
     private LocalFileMapper localFileMapper;
+
+    @Resource
+    MarketingSyncInfoMapper marketingSyncInfoMapper;
 //    @Autowired
 //    private RestTemplate restTemplate;
 
@@ -51,8 +55,12 @@ public abstract class DataProcessAbstractProxy {
     // 可以拓展结果处理（子类可重写）
     // b_local_file表push_status记为2（任务结束）
     public final void doProcess(DataProcessingConfig config) {
+        if (!canStart(config.getLocalFile())) {
+            return;
+        }
+
         String apiCode = config.getApiCode();
-        Long localFileId = config.getLocalFileId();
+        Long localFileId = config.getLocalFile().getId();
         String url = config.getUrl();
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(2, 2);
         // b_local_file表push_status记为1（任务开始）
@@ -76,7 +84,7 @@ public abstract class DataProcessAbstractProxy {
             pullCustomerFileDataExample.clear();
             buildExample(localFileId, id, pullCustomerFileDataExample);
 
-            pool.submit(() -> result(apiCode, customerFileDataList,config,fileName));
+            pool.submit(() -> result(customerFileDataList,config));
         }
 
         pool.shutdown();
@@ -102,24 +110,21 @@ public abstract class DataProcessAbstractProxy {
         pullCustomerFileDataExample.setOrderByClause("id asc");
     }
 
-    abstract Object assembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config, String fileName);
+    abstract Object assembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config);
 
-    private void result(String apiCode, List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config, String fileName) {
-        Object assembleData = assembleData(customerFileDataList,config,fileName);
-        Object result = call(apiCode, assembleData, config.getUrl());
+    private void result(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config) {
+        Object assembleData = assembleData(customerFileDataList,config);
+        Object result = call(assembleData, config);
         assembleResult(result);
     }
 
-    /**
-     * 调用接口或方法
-     * @param apiCode
-     * @param data
-     * @param url
-     * @return
-     */
-    abstract Object call(String apiCode, Object data, String url);
+    abstract Object call(Object data, DataProcessingConfig config);
 
     public Object assembleResult(Object data) {
         return data;
+    }
+
+    public Boolean canStart(LocalFile localFile){
+        return true;
     }
 }

@@ -17,28 +17,26 @@ import java.util.List;
  */
 @Component
 @Slf4j
-public class UploadDataProxy extends DataProcessAbstractProxy{
+public abstract class UploadDataProxy extends DataProcessAbstractProxy{
 
     @Override
-    Object assembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config, String fileName) {
-        return customerFileDataList;
-//        return subAssembleData(customerFileDataList,config,fileName);
-//        return "{\"code\":1,\"message\":\"成功\",\"data\":null}";
+    Object assembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config) {
+//        return customerFileDataList;
+        return subAssembleData(customerFileDataList,config);
     }
 
     @Override
-    Object call(String apiCode, Object data, String url) {
-        UploadDataUrlDTO uploadDataUrlDTO = new UploadDataUrlDTO();
-        uploadDataUrlDTO.setUrl(url);
-        UploadDataDTO uploadDataDTO = new UploadDataDTO();
+    Object call(Object data, DataProcessingConfig config) {
         if (data instanceof UploadDataDTO) {
+            UploadDataUrlDTO uploadDataUrlDTO = new UploadDataUrlDTO();
+            UploadDataDTO uploadDataDTO;
             uploadDataDTO = (UploadDataDTO) data;
+            uploadDataUrlDTO.setUrl(config.getUrl());
+            uploadDataUrlDTO.setUploadDataDTO(uploadDataDTO);
+            Result result = marketingApiService.callUploadDataByUrlRetry(uploadDataUrlDTO,null);
         }
-        uploadDataUrlDTO.setUrl(url);
-        uploadDataUrlDTO.setUploadDataDTO(uploadDataDTO);
-        Result result = marketingApiService.callUploadDataByUrlRetry(uploadDataUrlDTO,null);
 //        Result<Boolean> booleanResult = callMarketingUpload(uploadDataDTO, null, url);
-        return result;
+        return null;
 //        return null;
     }
 
@@ -66,5 +64,5 @@ public class UploadDataProxy extends DataProcessAbstractProxy{
 //        }
 //    }
 
-//    abstract Object subAssembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config, String fileName);
+    abstract Object subAssembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config);
 }
