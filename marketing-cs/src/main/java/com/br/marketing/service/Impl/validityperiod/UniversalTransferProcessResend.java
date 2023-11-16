@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @ValidityPeriodResendType(resendType = ValidityPeriodResendEnum.UNIVERSAL_TRANSFER_PROCESS_RESEND)
-public class UniversalTransferProcessResend implements ValidityPeriodResendStrategy<MarketingTransferInfo>{
+public class UniversalTransferProcessResend implements ValidityPeriodResendStrategy<MarketingTransferInfo> {
 
     @Resource
     private MarketingDataValidConfigMapper marketingDataValidConfigMapper;
@@ -139,9 +139,6 @@ public class UniversalTransferProcessResend implements ValidityPeriodResendStrat
         JSONObject resendData = JSONObject.parseObject(record.getResendData());
         if (resendData != null && StringUtils.isNotEmpty((resendData.getString("includeRules")))) {
             Set<String> includeRules = Sets.newHashSet(Splitter.on(",").splitToList(resendData.getString("includeRules")));
-            if (CollectionUtil.isEmpty(includeRules)) {
-                log.error("该apiCode:{}已配置重推映射，但未配置下发规则，请确认！",record.getApiCode());
-            }
             mqFact.setIncludeRules(includeRules);
         }
         return mqFact;
