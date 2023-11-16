@@ -97,7 +97,7 @@ spring:
       publisher-returns: true
       virtual-host: marketing_juman_01
     secondary:
-      addresses: 192.168.21.96:5672,192.168.21.97:5672
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
       username: rabbitmq
       password: rabbitmq
       virtual-host: common
