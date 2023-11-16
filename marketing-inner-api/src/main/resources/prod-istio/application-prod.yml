@@ -95,7 +95,7 @@ spring:
       publisher-returns: true
       virtual-host: marketing-flow
     secondary:
-      addresses: 192.168.21.96:5672,192.168.21.97:5672
+      addresses: rabbitmq2.brapp.com:5671
       username: rabbitmq
       password: rabbitmq
       virtual-host: common
