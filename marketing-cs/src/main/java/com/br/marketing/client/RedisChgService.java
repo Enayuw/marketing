@@ -293,7 +293,7 @@ public class RedisChgService {
         long begin = System.currentTimeMillis();
 
         while (System.currentTimeMillis() - begin < LOCK_WAIT_THRESHOLD) {
-            boolean acquire = this.lock(lockKey, value, 3000L);
+            boolean acquire = this.lockTmp(lockKey, value, 3000L);
             if (acquire) {
                 return;
             }
