@@ -9,7 +9,6 @@ import com.br.marketing.entity.dataProcess.DataProcessingConfig;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.PullCustomerFileDataMapper;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -37,8 +36,8 @@ public abstract class DataProcessAbstractProxy {
     @Resource
     MarketingSyncInfoMapper marketingSyncInfoMapper;
 
-    @Resource
-    MarketingCommonConfig marketingCommonConfig;
+//    @Resource
+//    MarketingCommonConfig marketingCommonConfig;
 
 //    @Autowired
 //    private RestTemplate restTemplate;

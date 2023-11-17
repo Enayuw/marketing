@@ -5,7 +5,7 @@
         select *
         from b_marketing_data_processing_config
                 where is_deleted = 0
-                  and mod(id, #{shardingTotalCount}) in
+                  and mod(crc32(file_type -> '$.fileType'), #{shardingTotalCount}) in
         <foreach collection='shardingItems' item='sharding' open='(' close=')' separator=','>
             #{sharding}
         </foreach>

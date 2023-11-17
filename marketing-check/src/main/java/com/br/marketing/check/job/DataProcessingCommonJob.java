@@ -1,5 +1,8 @@
 package com.br.marketing.check.job;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.spring.DataProcessingContext;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
@@ -11,13 +14,12 @@ import com.br.marketing.service.Impl.dataProcess.DataProcessAbstractProxy;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *  				    _ooOoo_
@@ -47,31 +49,12 @@ import java.util.stream.Collectors;
  */
 @Component
 @Slf4j
-public class DataProcessingCommonJob extends AbstractSimpleElasticJob{
-
+public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
     @Resource
     LocalFileMapper localFileMapper;
 
     @Resource
     DataProcessingConfigMapper dataProcessingConfigMapper;
-
-    // 开启线程池
-    // 判断apiCode和fileType是否配置了通用流程
-    // 开启线程池，遍历b_pull_customer_file_data，查询要处理的数据，单个线程2000条，b_local_file表push_status记为1（任务开始）（子类可重写）
-    // 组装参数：将客户字段映射到标准接口字段（子类必须实现）
-    // 调用上传接口（子类必须实现）
-    // 可以拓展结果处理（子类可重写）
-    // b_local_file表push_status记为2（任务结束）
-    // 线程池关闭（先关外层，再关内层.外层不关）
-    // TODO 失败回滚
-
-//    private static final LinkedHashMap<Integer, String> PROCESSlINK = new LinkedHashMap<>();
-//
-//    static {
-//        PROCESSlINK.put(1,"original_caifu_");
-//        PROCESSlINK.put(2,"original_daikuan_");
-//        PROCESSlINK.put(3,"transform_");
-//    }
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
@@ -84,40 +67,34 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob{
 
         List<DataProcessingConfig> tasks = new ArrayList<>();
         for (DataProcessingConfig config : configs) {
-            // 根据apiCode和fileType查询b_local_file
+            // 根据条件查询b_local_file
+            // 如果file_type中配置了fileName，则根据fileName和apiCode查询；否则，根据fileType和apiCode查询
+            String fileTypeJson = config.getFileType();
+            JSONObject jsonObject = JSON.parseObject(fileTypeJson);
+            String type;
+            String fileName = jsonObject.getString("fileName");
+            if (StringUtils.isNotEmpty(fileName)) {
+                type = fileName;
+            } else {
+                type = jsonObject.getString("fileType");
+            }
+
+            // 查询b_local_file 状态为2（已完成）且文件推送状态为0（待推送）不判断complete
             LocalFileExample localFileExample = new LocalFileExample();
-            // todo 不判断complete
-            localFileExample.createCriteria().andStatusEqualTo("2").andPushStatusEqualTo("0").andApiCodeEqualTo(config.getApiCode()).andFileTypeEqualTo(config.getFileType());
+            localFileExample.createCriteria().andStatusEqualTo("2").andPushStatusEqualTo("0").andApiCodeEqualTo(config.getApiCode()).andFileTypeEqualTo(type);
             List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
 
             if (CollectionUtils.isEmpty(localFiles)) {
                 continue;
             }
 
-            for (LocalFile localFile : localFiles) {
-                DataProcessingConfig task = new DataProcessingConfig();
-                BeanUtils.copyProperties(config, task);
-                task.setLocalFile(localFile);
-                tasks.add(task);
-            }
+            config.setLocalFile(localFiles.get(0));
+            tasks.add(config);
         }
 
-        // 根据文件名称特殊处理
-        List<DataProcessingConfig> resultTasks = tasks.stream().map(t -> {
-            String fileName = t.getLocalFile().getFileName();
-            for (DataProcessByFileNameEnum anEnum : DataProcessByFileNameEnum.values()) {
-                if (fileName.startsWith(anEnum.getFileNamePrefix())) {
-                    t.setUrl(anEnum.getUrl());
-                }
-            }
-            return t;
-        }).collect(Collectors.toList());
-        resultTasks.sort(Comparator.comparing(DataProcessingCommonJob::getPrefixOrder));
-
-        for (DataProcessingConfig task : resultTasks) {
+        for (DataProcessingConfig task : tasks) {
             process(task);
         }
-//        pool.shutdown();
     }
 
     /**
@@ -125,7 +102,7 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob{
      * @param task
      * @return
      */
-    private static int getPrefixOrder(DataProcessingConfig task){
+    private static int getPrefixOrder(DataProcessingConfig task) {
         String fileName = task.getLocalFile().getFileName();
         for (DataProcessByFileNameEnum anEnum : DataProcessByFileNameEnum.values()) {
             if (fileName.startsWith(anEnum.getFileNamePrefix())) {

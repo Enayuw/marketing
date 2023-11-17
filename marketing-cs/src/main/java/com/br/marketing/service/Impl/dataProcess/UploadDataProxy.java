@@ -17,7 +17,6 @@ import java.util.List;
 @Component
 @Slf4j
 public abstract class UploadDataProxy extends DataProcessAbstractProxy {
-
     @Override
     Object assembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config) {
         return subAssembleData(customerFileDataList, config);
