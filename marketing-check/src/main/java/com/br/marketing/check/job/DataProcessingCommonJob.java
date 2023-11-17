@@ -4,6 +4,7 @@ import com.br.marketing.context.spring.DataProcessingContext;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
 import com.br.marketing.entity.dataProcess.DataProcessingConfig;
+import com.br.marketing.enums.DataProcessByFileNameEnum;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.dataProcess.DataProcessingConfigMapper;
 import com.br.marketing.service.Impl.dataProcess.DataProcessAbstractProxy;
@@ -16,6 +17,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  *  				    _ooOoo_
@@ -46,6 +48,7 @@ import java.util.*;
 @Component
 @Slf4j
 public class DataProcessingCommonJob extends AbstractSimpleElasticJob{
+
     @Resource
     LocalFileMapper localFileMapper;
 
@@ -62,13 +65,13 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob{
     // 线程池关闭（先关外层，再关内层.外层不关）
     // TODO 失败回滚
 
-    private static final LinkedHashMap<Integer, String> PROCESSlINK = new LinkedHashMap<>();
-
-    static {
-        PROCESSlINK.put(1,"original_caifu_");
-        PROCESSlINK.put(2,"original_daikuan_");
-        PROCESSlINK.put(3,"transform_");
-    }
+//    private static final LinkedHashMap<Integer, String> PROCESSlINK = new LinkedHashMap<>();
+//
+//    static {
+//        PROCESSlINK.put(1,"original_caifu_");
+//        PROCESSlINK.put(2,"original_daikuan_");
+//        PROCESSlINK.put(3,"transform_");
+//    }
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
@@ -99,8 +102,19 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob{
             }
         }
 
-        tasks.sort(Comparator.comparing(DataProcessingCommonJob::getPrefixOrder));
-        for (DataProcessingConfig task : tasks) {
+        // 根据文件名称特殊处理
+        List<DataProcessingConfig> resultTasks = tasks.stream().map(t -> {
+            String fileName = t.getLocalFile().getFileName();
+            for (DataProcessByFileNameEnum anEnum : DataProcessByFileNameEnum.values()) {
+                if (fileName.startsWith(anEnum.getFileNamePrefix())) {
+                    t.setUrl(anEnum.getUrl());
+                }
+            }
+            return t;
+        }).collect(Collectors.toList());
+        resultTasks.sort(Comparator.comparing(DataProcessingCommonJob::getPrefixOrder));
+
+        for (DataProcessingConfig task : resultTasks) {
             process(task);
         }
 //        pool.shutdown();
@@ -113,16 +127,15 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob{
      */
     private static int getPrefixOrder(DataProcessingConfig task){
         String fileName = task.getLocalFile().getFileName();
-        if (fileName.startsWith("original_caifu_")) {
-            task.setUrl("ff");
-            return 1;
-        }else if (fileName.startsWith("original_daikuan_")) {
-            return 2;
-        }else if (fileName.startsWith("transform_")) {
-            return 3;
-        }else {
-            return Integer.MAX_VALUE;
+        for (DataProcessByFileNameEnum anEnum : DataProcessByFileNameEnum.values()) {
+            if (fileName.startsWith(anEnum.getFileNamePrefix())) {
+                // todo
+//                task.setUrl(anEnum.getUrl());
+                return anEnum.getOrder();
+            }
         }
+
+        return Integer.MAX_VALUE;
     }
 
     private void process(DataProcessingConfig task) {
