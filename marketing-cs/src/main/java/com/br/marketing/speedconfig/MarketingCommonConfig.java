@@ -1071,5 +1071,10 @@ public class MarketingCommonConfig {
      */
     private String ZhongBangDataProcessApiCode;
 
+    /**
+     * 众邦财富定制标签线程数
+     */
+    private Integer zhongBangCaifuLabelThreadNum;
+
 }
 

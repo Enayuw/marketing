@@ -55,10 +55,12 @@ import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.vo.*;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.api.PulsarClientException;
@@ -150,6 +152,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     private ZhongyouFileDataMapper zhongyouFileDataMapper;
 
     @Resource
+    private ZhongbangCaifuDataMapper zhongbangCaifuDataMapper;
+
+    @Resource
     private RestTemplate restTemplate;
 
     @Value("#{${api.pushTransfer.robotAi.tailor.apiCodeMap:{'7410787':true}}}")
@@ -163,6 +168,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     private PushTransferRobotaiLogService pushTransferRobotaiLogService;
+
+    @Resource
+    private MethodRetryHandlerService methodRetryHandlerService;
 
     private static final String msTimeRegex = "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$";
 
@@ -3625,5 +3633,68 @@ public class PushRuleServiceImpl implements PushRuleService {
                 throw new KnowException("redis异常");
             }
         }
+    }
+
+    /**
+     * 众邦财富定制标签数据推送
+     *
+     */
+
+    @Override
+    public Result<Boolean> cunsumerZhongBangLabelData(Long id) {
+        Long st1 = System.currentTimeMillis();
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5, 20);
+        List<String> taskIdList = zhongbangCaifuDataMapper.selectZhongBangTaskIds(id);
+        //根据taskId分组查询
+        taskIdList.forEach(taskId -> {
+            Long minId = null;
+            Boolean isContiue = Boolean.TRUE;
+            while (isContiue) {
+                if (marketingCommonConfig.getZhongBangCaifuLabelThreadNum() != null) {
+                    pool.setCorePoolSize(marketingCommonConfig.getZhongBangCaifuLabelThreadNum());
+                    pool.setMaximumPoolSize(marketingCommonConfig.getZhongBangCaifuLabelThreadNum());
+                    log.warn("众邦财富定制标签线程调整，taskId={},corePoolSize={},maxPoolSize={}", taskId, pool.getCorePoolSize(), pool.getMaximumPoolSize());
+                }
+                List<ZhongbangCaifuData> zhongbangCaifuDataList = zhongbangCaifuDataMapper.zhongBangLabelDataPage(id, minId, taskId);
+                if (zhongbangCaifuDataList.size() <= 0) {
+                    isContiue = Boolean.FALSE;
+                    continue;
+                }
+                minId = zhongbangCaifuDataList.get(zhongbangCaifuDataList.size() - 1).getId() + 1;
+                pool.submit(() -> {
+                    try {
+                        List<List<ZhongbangCaifuData>> labelList = Lists.partition(zhongbangCaifuDataList, 100);
+                        //组装数据调接口
+                        labelList.forEach(labels -> {
+                            JSONObject jsonObject = new JSONObject();
+                            jsonObject.put("TskId", taskId);
+                            jsonObject.put("PrimKey", labels.get(0).getId());
+                            JSONArray cstIndoList = new JSONArray();
+                            labels.forEach(label -> {
+                                JSONObject cstInfo = new JSONObject();
+                                cstInfo.put("CstNo", label.getCstNo());
+                                cstInfo.put("TagGrd", label.getTagGrd());
+                                cstInfo.put("Rmk", label.getRmk());
+                                cstIndoList.add(cstInfo);
+                            });
+                            jsonObject.put("CstInfoArray", cstIndoList);
+                            methodRetryHandlerService.pushZbankLabelRatingRe(jsonObject, null);
+                        });
+                    } catch (Exception ex) {
+                        log.error("众邦财富定制标签推送异常", ex);
+                    }
+                });
+            }
+        });
+
+        pool.shutdown();
+        try {
+            while (!pool.awaitTermination(5L, TimeUnit.SECONDS)) {
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+        log.warn("众邦财富定制标签推送结束，耗时：{} ms", System.currentTimeMillis() - st1);
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(false).setMessage("成功");
     }
 }

@@ -186,4 +186,6 @@ public interface PushRuleService {
      * @param apiCode
      */
     void mockDbOrRedisError(Integer mockType,String apiCode);
+
+    Result<Boolean> cunsumerZhongBangLabelData(Long id);
 }
