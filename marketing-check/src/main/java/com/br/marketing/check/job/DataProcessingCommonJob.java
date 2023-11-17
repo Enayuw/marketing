@@ -83,7 +83,8 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob{
         for (DataProcessingConfig config : configs) {
             // 根据apiCode和fileType查询b_local_file
             LocalFileExample localFileExample = new LocalFileExample();
-            localFileExample.createCriteria().andStatusEqualTo("2").andCompleteEqualTo("1").andPushStatusEqualTo("0").andApiCodeEqualTo(config.getApiCode()).andFileTypeEqualTo(config.getFileType());
+            // todo 不判断complete
+            localFileExample.createCriteria().andStatusEqualTo("2").andPushStatusEqualTo("0").andApiCodeEqualTo(config.getApiCode()).andFileTypeEqualTo(config.getFileType());
             List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
 
             if (CollectionUtils.isEmpty(localFiles)) {
@@ -113,6 +114,7 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob{
     private static int getPrefixOrder(DataProcessingConfig task){
         String fileName = task.getLocalFile().getFileName();
         if (fileName.startsWith("original_caifu_")) {
+            task.setUrl("ff");
             return 1;
         }else if (fileName.startsWith("original_daikuan_")) {
             return 2;

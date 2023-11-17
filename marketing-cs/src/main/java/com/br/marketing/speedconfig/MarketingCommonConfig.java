@@ -1066,5 +1066,10 @@ public class MarketingCommonConfig {
      */
     private String ZhongBangTransferExecuteTime;
 
+    /**
+     * 众邦财富数据清洗apiCode
+     */
+    private String ZhongBangDataProcessApiCode;
+
 }
 
