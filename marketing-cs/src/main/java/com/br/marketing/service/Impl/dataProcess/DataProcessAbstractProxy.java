@@ -9,6 +9,7 @@ import com.br.marketing.entity.dataProcess.DataProcessingConfig;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.PullCustomerFileDataMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -31,10 +32,14 @@ public abstract class DataProcessAbstractProxy {
     private PullCustomerFileDataMapper customerFileDataMapper;
 
     @Resource
-    private LocalFileMapper localFileMapper;
+    LocalFileMapper localFileMapper;
 
     @Resource
     MarketingSyncInfoMapper marketingSyncInfoMapper;
+
+    @Resource
+    MarketingCommonConfig marketingCommonConfig;
+
 //    @Autowired
 //    private RestTemplate restTemplate;
 
@@ -55,20 +60,17 @@ public abstract class DataProcessAbstractProxy {
     // 可以拓展结果处理（子类可重写）
     // b_local_file表push_status记为2（任务结束）
     public final void doProcess(DataProcessingConfig config) {
-        if (!canStart(config.getLocalFile())) {
+        if (!canStart(config)) {
             return;
         }
 
-        String apiCode = config.getApiCode();
         Long localFileId = config.getLocalFile().getId();
-        String url = config.getUrl();
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(2, 2);
         // b_local_file表push_status记为1（任务开始）
         LocalFile localFile = localFileMapper.selectByPrimaryKey(localFileId);
         localFile.setPushStatus("1");
         localFileMapper.updateByPrimaryKeySelective(localFile);
 
-        String fileName = localFile.getFileName();
         Long id = null;
         PullCustomerFileDataExample pullCustomerFileDataExample = new PullCustomerFileDataExample();
         buildExample(localFileId, id, pullCustomerFileDataExample);
@@ -124,7 +126,7 @@ public abstract class DataProcessAbstractProxy {
         return data;
     }
 
-    public Boolean canStart(LocalFile localFile){
+    public Boolean canStart(DataProcessingConfig config){
         return true;
     }
 }
