@@ -100,7 +100,6 @@ public class ZhongBangTransferProxy extends UploadDataProxy{
 
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String taskId = yyyyMMdd.concat("_").concat(apiCode);
-        // 说明和示例不一致，apicode后面缺_
         String requestId = taskId.concat("_").concat(UUID.randomUUID().toString().substring(0, 5)) + System.currentTimeMillis();
 
         TransferDataDTO transferDataDTO = new TransferDataDTO();

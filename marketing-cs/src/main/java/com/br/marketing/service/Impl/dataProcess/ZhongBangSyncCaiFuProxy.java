@@ -65,13 +65,13 @@ public class ZhongBangSyncCaiFuProxy extends UploadDataProxy {
 
             // reserveField1
             // original_caifu_yyyymmdd对应1
-            reserveField1.put("userType", 1);
+            reserveField1.put("userType", "1");
 
             String gender = dataList.get(header.indexOf("gender"));
             if ("女".equals(gender)) {
-                reserveField1.put("gender", 0);
+                reserveField1.put("gender", "0");
             } else if ("男".equals(gender)) {
-                reserveField1.put("gender", 1);
+                reserveField1.put("gender", "1");
             } else {
                 reserveField1.put("gender", "");
                 log.error("众邦转化数据清洗,字段:gender,枚举非男女,id:{}", data.getId());
@@ -119,7 +119,6 @@ public class ZhongBangSyncCaiFuProxy extends UploadDataProxy {
 
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String taskId = yyyyMMdd.concat("_").concat(apiCode);
-        // 说明和示例不一致，apicode后面缺_
         String requestId = taskId.concat("_").concat(UUID.randomUUID().toString().substring(0, 5)) + System.currentTimeMillis();
 
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();

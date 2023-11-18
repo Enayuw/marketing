@@ -49,13 +49,13 @@ public class ZhongBangSyncXinDaiProxy extends UploadDataProxy {
 
             // reserveField1
             // original_caifu_yyyymmdd对应1
-            reserveField1.put("userType", 1);
+            reserveField1.put("userType", "1");
 
             String gender = dataList.get(header.indexOf("gender"));
             if ("女".equals(gender)) {
-                reserveField1.put("gender", 0);
+                reserveField1.put("gender", "0");
             } else if ("男".equals(gender)) {
-                reserveField1.put("gender", 1);
+                reserveField1.put("gender", "1");
             } else {
                 reserveField1.put("gender", "");
                 log.error("众邦转化数据清洗,字段:gender,枚举非男女,id:{}", data.getId());
@@ -76,9 +76,6 @@ public class ZhongBangSyncXinDaiProxy extends UploadDataProxy {
             String ifApply = dataList.get(header.indexOf("ifApply"));
             reserveField1.put("ifApply", ifApply);
 
-//            String applyResult = dataList.get(header.indexOf("applyResult"));
-//            reserveField1.put("applyResult", applyResult);
-
             String ifLent = dataList.get(header.indexOf("ifLent"));
             reserveField1.put("ifLent", ifLent);
 
@@ -88,15 +85,6 @@ public class ZhongBangSyncXinDaiProxy extends UploadDataProxy {
             String region = dataList.get(header.indexOf("region"));
             reserveField1.put("region", region);
 
-//            String productStartTime = dataList.get(header.indexOf("productStartTime"));
-//            reserveField1.put("productStartTime", productStartTime);
-
-//            String productEndTime = dataList.get(header.indexOf("productEndTime"));
-//            reserveField1.put("productEndTime", productEndTime);
-//
-//            String ifApplyAmount = dataList.get(header.indexOf("ifApplyAmount"));
-//            reserveField1.put("ifApplyAmount", ifApplyAmount);
-
             syncUser.setReserveField1(reserveField1.toJSONString());
             syncUsers.add(syncUser);
         }
@@ -104,7 +92,6 @@ public class ZhongBangSyncXinDaiProxy extends UploadDataProxy {
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String taskId = yyyyMMdd.concat("_").concat(apiCode);
-        // 说明和示例不一致，apicode后面缺_
         String requestId = taskId.concat("_").concat(UUID.randomUUID().toString().substring(0, 5)) + System.currentTimeMillis();
 
         marketingPreUserDTO.setTaskId(taskId);
