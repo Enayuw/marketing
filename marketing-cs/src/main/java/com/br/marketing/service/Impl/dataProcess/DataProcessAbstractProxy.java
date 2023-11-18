@@ -107,7 +107,7 @@ public abstract class DataProcessAbstractProxy {
 
     private void buildExample(Long localFileId, Long id, PullCustomerFileDataExample pullCustomerFileDataExample) {
         PullCustomerFileDataExample.Criteria criteria =
-                pullCustomerFileDataExample.createCriteria().andDataStatusEqualTo(0).andLocalFileIdEqualTo(localFileId);
+                pullCustomerFileDataExample.createCriteria().andDataStatusEqualTo(1).andLocalFileIdEqualTo(localFileId);
         if (id != null) {
             criteria.andIdGreaterThan(id);
         }
