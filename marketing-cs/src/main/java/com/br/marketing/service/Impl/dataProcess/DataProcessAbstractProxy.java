@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public abstract class DataProcessAbstractProxy {
-
     @Autowired
     MarketingApiService marketingApiService;
     @Resource
@@ -40,25 +39,14 @@ public abstract class DataProcessAbstractProxy {
     @Resource
     MarketingCommonConfig marketingCommonConfig;
 
-//    @Autowired
-//    private RestTemplate restTemplate;
-
-//    @Qualifier("interfaceLogDbpool")
-//    @Autowired
-//    private ThreadPoolExecutor interfaceLogDbpool;
-
-//    @Autowired
-//    private InterfaceLogMapper interfaceLogMapper;
-
-//    public InterfaceLogMapper getInterfaceLogMapper() {
-//        return interfaceLogMapper;
-//    }
-
-    // 开启线程池，遍历b_pull_customer_file_data，查询要处理的数据，单个线程2000条，b_local_file表push_status记为1（任务开始）（子类可重写）
-    // 组装参数：将客户字段映射到标准接口字段（子类必须实现）
-    // 调用上传接口（子类可重写）
-    // 可以拓展结果处理（子类可重写）
-    // b_local_file表push_status记为2（任务结束）
+    /**
+     * 开启线程池，遍历b_pull_customer_file_data，查询要处理的数据，单个线程2000条，b_local_file表push_status记为1（任务开始）（子类可重写）
+     * 组装参数：将客户字段映射到标准接口字段（子类必须实现）
+     * 调用上传接口（子类可重写）
+     * 可以拓展结果处理（子类可重写）
+     * b_local_file表push_status记为2（任务结束）
+     * @param config
+     */
     public final void doProcess(DataProcessingConfig config) {
         if (!canStart(config)) {
             return;

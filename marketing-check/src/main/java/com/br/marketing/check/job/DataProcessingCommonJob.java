@@ -7,7 +7,6 @@ import com.br.marketing.context.spring.DataProcessingContext;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
 import com.br.marketing.entity.dataProcess.DataProcessingConfig;
-import com.br.marketing.enums.DataProcessByFileNameEnum;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.dataProcess.DataProcessingConfigMapper;
 import com.br.marketing.service.Impl.dataProcess.DataProcessAbstractProxy;
@@ -104,24 +103,6 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
         for (DataProcessingConfig task : tasks) {
             process(task);
         }
-    }
-
-    /**
-     * 根据前缀返回对应的排序顺序。对于其他前缀，放在列表末尾
-     * @param task
-     * @return
-     */
-    private static int getPrefixOrder(DataProcessingConfig task) {
-        String fileName = task.getLocalFile().getFileName();
-        for (DataProcessByFileNameEnum anEnum : DataProcessByFileNameEnum.values()) {
-            if (fileName.startsWith(anEnum.getFileNamePrefix())) {
-                // todo
-//                task.setUrl(anEnum.getUrl());
-                return anEnum.getOrder();
-            }
-        }
-
-        return Integer.MAX_VALUE;
     }
 
     private void process(DataProcessingConfig task) {
