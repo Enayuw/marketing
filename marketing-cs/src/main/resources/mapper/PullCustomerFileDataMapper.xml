@@ -53,7 +53,7 @@
         <if test="orderByClause != null">
             order by ${orderByClause}
         </if>
-        limit 1
+        limit 2000
                 ) t2 on t1.id = t2.id
     </select>
 </mapper>

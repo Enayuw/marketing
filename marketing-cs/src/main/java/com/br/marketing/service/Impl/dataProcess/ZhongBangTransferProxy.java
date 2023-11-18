@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * @Description ZhongBangTransferProxy
@@ -66,14 +67,14 @@ public class ZhongBangTransferProxy extends UploadDataProxy{
 
         List<TransferDataItemDTO> dataItems = new ArrayList<>();
         for (PullCustomerFileData data : customerFileDataList) {
-            List<String> dataList = new ArrayList<>(Arrays.asList(data.getFileData().split(dataSplit, -1)));
+            List<String> dataList = new ArrayList<>(Arrays.asList(data.getFileData().split(Pattern.quote(dataSplit), -1)));
 
             TransferDataItemDTO transferData = new TransferDataItemDTO();
             JSONObject reserveField1 = new JSONObject();
 
             // dataItems
             // custNum
-            transferData.setCustNum(dataList.get(header.indexOf("custNum")));
+            transferData.setCustNum(dataList.get(header.indexOf("custNum")).trim());
             // userType
             transferData.setUserType(dataList.get(header.indexOf("userType")));
             // ifLogin

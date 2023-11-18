@@ -14,6 +14,7 @@ import com.br.marketing.service.Impl.dataProcess.DataProcessAbstractProxy;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -58,7 +59,7 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
-        // 自定义参数 todo
+        // 自定义参数 todo 用拓展字段 只处理某一天
         String jobParameter = shardingContext.getJobParameter();
         // 遍历通用配置表
         List<DataProcessingConfig> configs =
@@ -68,28 +69,36 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
         List<DataProcessingConfig> tasks = new ArrayList<>();
         for (DataProcessingConfig config : configs) {
             // 根据条件查询b_local_file
+            // 查询b_local_file 状态为2（已完成）且文件推送状态为0（待推送）不判断complete
+            LocalFileExample localFileExample = new LocalFileExample();
+            LocalFileExample.Criteria criteria =
+                    localFileExample.createCriteria().andStatusEqualTo("2").andPushStatusEqualTo("0").andApiCodeEqualTo(config.getApiCode());
+
             // 如果file_type中配置了fileName，则根据fileName和apiCode查询；否则，根据fileType和apiCode查询
             String fileTypeJson = config.getFileType();
             JSONObject jsonObject = JSON.parseObject(fileTypeJson);
-            String type;
             String fileName = jsonObject.getString("fileName");
+            String fileType = jsonObject.getString("fileType");
+
             if (StringUtils.isNotEmpty(fileName)) {
-                type = fileName;
+                criteria.andFileNameLike(fileName+"%");
             } else {
-                type = jsonObject.getString("fileType");
+                criteria.andFileTypeEqualTo(fileType);
             }
 
-            // 查询b_local_file 状态为2（已完成）且文件推送状态为0（待推送）不判断complete
-            LocalFileExample localFileExample = new LocalFileExample();
-            localFileExample.createCriteria().andStatusEqualTo("2").andPushStatusEqualTo("0").andApiCodeEqualTo(config.getApiCode()).andFileTypeEqualTo(type);
             List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
 
             if (CollectionUtils.isEmpty(localFiles)) {
                 continue;
             }
 
-            config.setLocalFile(localFiles.get(0));
-            tasks.add(config);
+            // 同一文件名前缀或同一类型可能查到多个文件，也按照priority_level排序
+            for (LocalFile localFile : localFiles) {
+                DataProcessingConfig task = new DataProcessingConfig();
+                BeanUtils.copyProperties(config, task);
+                task.setLocalFile(localFile);
+                tasks.add(task);
+            }
         }
 
         for (DataProcessingConfig task : tasks) {

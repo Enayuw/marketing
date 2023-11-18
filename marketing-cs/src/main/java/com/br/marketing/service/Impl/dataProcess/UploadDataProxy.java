@@ -25,13 +25,14 @@ public abstract class UploadDataProxy extends DataProcessAbstractProxy {
     @Override
     Object call(Object data, DataProcessingConfig config) {
         if (data instanceof UploadDataDTO) {
+            UploadDataDTO uploadDataDTO = (UploadDataDTO) data;
             UploadDataUrlDTO uploadDataUrlDTO = new UploadDataUrlDTO();
-            UploadDataDTO uploadDataDTO;
-            uploadDataDTO = (UploadDataDTO) data;
             uploadDataUrlDTO.setUrl(config.getUrl());
             uploadDataUrlDTO.setUploadDataDTO(uploadDataDTO);
+
             return marketingApiService.callUploadDataByUrlRetry(uploadDataUrlDTO, null);
         }
+
         return null;
     }
 

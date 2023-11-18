@@ -1071,5 +1071,10 @@ public class MarketingCommonConfig {
      */
     private Integer zhongBangCaifuLabelThreadNum;
 
+    /**
+     * 数据处理通用流程单任务线程数
+     */
+    private Integer dataProcessAnTaskThreadNum;
+
 }
 

@@ -9,6 +9,7 @@ import com.br.marketing.entity.dataProcess.DataProcessingConfig;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.PullCustomerFileDataMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -36,8 +37,8 @@ public abstract class DataProcessAbstractProxy {
     @Resource
     MarketingSyncInfoMapper marketingSyncInfoMapper;
 
-//    @Resource
-//    MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    MarketingCommonConfig marketingCommonConfig;
 
 //    @Autowired
 //    private RestTemplate restTemplate;
@@ -64,7 +65,7 @@ public abstract class DataProcessAbstractProxy {
         }
 
         Long localFileId = config.getLocalFile().getId();
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(2, 2);
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(marketingCommonConfig.getDataProcessAnTaskThreadNum(), marketingCommonConfig.getDataProcessAnTaskThreadNum());
         // b_local_file表push_status记为1（任务开始）
         LocalFile localFile = localFileMapper.selectByPrimaryKey(localFileId);
         localFile.setPushStatus("1");
@@ -74,8 +75,9 @@ public abstract class DataProcessAbstractProxy {
         PullCustomerFileDataExample pullCustomerFileDataExample = new PullCustomerFileDataExample();
         buildExample(localFileId, id, pullCustomerFileDataExample);
         while (true) {
-            // 调整线程数 todo
-            // 遍历b_pull_customer_file_data
+            // 调整线程数
+            modifyCorePoolSize(pool);
+            // 查询b_pull_customer_file_data,条件：local_id且data_status=0
             List<PullCustomerFileData> customerFileDataList = customerFileDataMapper.selectPageListByExampletikv_(pullCustomerFileDataExample);
             if (customerFileDataList.isEmpty()) {
                 break;
@@ -98,6 +100,7 @@ public abstract class DataProcessAbstractProxy {
             log.error(ex.getMessage(), ex);
         }
 
+        // push_status置为任务结束
         localFile.setPushStatus("2");
         localFileMapper.updateByPrimaryKeySelective(localFile);
     }
@@ -109,6 +112,12 @@ public abstract class DataProcessAbstractProxy {
             criteria.andIdGreaterThan(id);
         }
         pullCustomerFileDataExample.setOrderByClause("id asc");
+    }
+
+    private void modifyCorePoolSize(ThreadPoolExecutor pool) {
+        Integer threadNum = marketingCommonConfig.getDataProcessAnTaskThreadNum();
+        pool.setCorePoolSize(threadNum);
+        pool.setMaximumPoolSize(threadNum);
     }
 
     abstract Object assembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config);

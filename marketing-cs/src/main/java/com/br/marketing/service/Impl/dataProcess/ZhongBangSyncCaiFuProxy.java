@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * @Description ZhongBangUploadDataProxy
@@ -51,16 +52,15 @@ public class ZhongBangSyncCaiFuProxy extends UploadDataProxy {
 
         List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
         for (PullCustomerFileData data : customerFileDataList) {
-            List<String> dataList = new ArrayList<>(Arrays.asList(data.getFileData().split(dataSplit, -1)));
+            List<String> dataList = new ArrayList<>(Arrays.asList(data.getFileData().split(Pattern.quote(dataSplit), -1)));
 
             MarketingPreUserDetailDTO syncUser = new MarketingPreUserDetailDTO();
             JSONObject reserveField1 = new JSONObject();
-
             // dataItems
             syncUser.setCell(dataList.get(header.indexOf("cell")));
             syncUser.setName(dataList.get(header.indexOf("name")));
             syncUser.setId(dataList.get(header.indexOf("id")));
-            syncUser.setCustNum(dataList.get(header.indexOf("custNum")));
+            syncUser.setCustNum(dataList.get(header.indexOf("custNum")).trim());
 
 
             // reserveField1
