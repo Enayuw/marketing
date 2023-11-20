@@ -44,4 +44,14 @@
 
   </select>
 
+  <select id="selectXieChengCall" resultType="com.br.marketing.entity.XieChengData">
+    select id,local_id as localId
+    from b_xiecheng_data
+    where create_time >= #{createTime}
+    <if test="id != null and id>0">
+      and id > #{id}
+    </if>
+    order by id limit 2;
+  </select>
+
 </mapper>
