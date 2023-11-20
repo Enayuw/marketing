@@ -93,8 +93,6 @@ public class UniversalTransferProcessResend implements ValidityPeriodResendStrat
      */
     @Override
     public void resend(List<MarketingTransferInfo> data, ValidityPeriodResendRecord record) {
-        long start = System.currentTimeMillis();
-        log.warn("UniversalTransferProcessResend start");
         // 创建线程池
         ThreadPoolExecutor pool =
             BrExecutors.getThreadPool(marketingCommonConfig.getUniversalTransferProcessResendThreadNum(), marketingCommonConfig.getUniversalTransferProcessResendThreadNum());
@@ -112,8 +110,6 @@ public class UniversalTransferProcessResend implements ValidityPeriodResendStrat
             pool.shutdownNow();
             log.error("UniversalTransferProcessResend 线程池关闭异常,直接关闭线程池", e);
         }
-        long end = System.currentTimeMillis();
-        log.warn("UniversalTransferProcessResend end，耗时:{}", end - start);
     }
 
     /**
