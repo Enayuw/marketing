@@ -84,6 +84,7 @@ public class ValidPeriodResendJob extends AbstractSimpleElasticJob {
                     if (data.size() < pageSize) {
                         break;
                     }
+                    ++page;
                 }
                 //修改记录状态为执行完成
                 record.setResendStatus(1);
