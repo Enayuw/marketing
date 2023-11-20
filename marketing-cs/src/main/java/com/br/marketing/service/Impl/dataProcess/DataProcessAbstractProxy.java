@@ -100,9 +100,13 @@ public abstract class DataProcessAbstractProxy {
      * @param config
      */
     private void result(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config) {
-        Object assembleData = assembleData(customerFileDataList, config);
-        Object result = call(assembleData, config);
-        assembleResult(result);
+        try {
+            Object assembleData = assembleData(customerFileDataList, config);
+            Object result = call(assembleData, config);
+            assembleResult(result);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     /**
