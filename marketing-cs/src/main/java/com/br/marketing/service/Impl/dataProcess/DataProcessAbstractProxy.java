@@ -12,7 +12,6 @@ import com.br.marketing.entity.dataProcess.DataProcessingConfig;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.PullCustomerFileDataMapper;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -22,7 +21,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @Description DataProcessAbstractProxy
+ * @Description 数据处理通用抽象类
  * @Author hong.chen
  * @CreateTime 2023/11/13
  */
@@ -39,37 +38,41 @@ public abstract class DataProcessAbstractProxy {
     @Resource
     MarketingSyncInfoMapper marketingSyncInfoMapper;
 
-    @Resource
-    MarketingCommonConfig marketingCommonConfig;
-
-    /**
-     * 开启线程池，遍历b_pull_customer_file_data，查询要处理的数据，单个线程2000条，b_local_file表push_status记为1（任务开始）（子类可重写）
-     * 组装参数：将客户字段映射到标准接口字段（子类必须实现）
-     * 调用上传接口（子类可重写）
-     * 可以拓展结果处理（子类可重写）
-     * b_local_file表push_status记为2（任务结束）
-     * @param config
-     */
     public final void doProcess(DataProcessingConfig config) {
         if (!canStart(config)) {
+            log.warn("数据处理任务cannot start，apiCode:{}，fileName:{}", config.getApiCode(), config.getLocalFile().getFileName());
             return;
         }
 
+        // 任务开始：b_local_file表push_status置为1
         Long localFileId = config.getLocalFile().getId();
-
-        // 获取线程数配置
-        Integer threadNum = getThreadNum(config);
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(threadNum, threadNum);
-        // b_local_file表push_status记为1（任务开始）
         LocalFile localFile = localFileMapper.selectByPrimaryKey(localFileId);
         localFile.setPushStatus("1");
         localFileMapper.updateByPrimaryKeySelective(localFile);
 
+        // 数据处理
+        dataProcessLoop(config, localFileId);
+
+        // 任务结束：push_status置为2
+        localFile.setPushStatus("2");
+        localFileMapper.updateByPrimaryKeySelective(localFile);
+    }
+
+    /**
+     * 多线程数据处理
+     * @param config
+     * @param localFileId
+     */
+    private void dataProcessLoop(DataProcessingConfig config, Long localFileId) {
+        // 获取线程数配置
+        Integer threadNum = getThreadNum(config);
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(threadNum, threadNum);
+
         Long id = null;
         PullCustomerFileDataExample pullCustomerFileDataExample = new PullCustomerFileDataExample();
+        // 查询b_pull_customer_file_data,条件：local_id且data_status=0
         buildExample(localFileId, id, pullCustomerFileDataExample);
         while (true) {
-            // 查询b_pull_customer_file_data,条件：local_id且data_status=0
             List<PullCustomerFileData> customerFileDataList = customerFileDataMapper.selectPageListByExampletikv_(pullCustomerFileDataExample);
             if (customerFileDataList.isEmpty()) {
                 break;
@@ -89,12 +92,59 @@ public abstract class DataProcessAbstractProxy {
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
-
-        // push_status置为任务结束
-        localFile.setPushStatus("2");
-        localFileMapper.updateByPrimaryKeySelective(localFile);
     }
 
+    /**
+     * 通用模板方法
+     * @param customerFileDataList
+     * @param config
+     */
+    private void result(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config) {
+        Object assembleData = assembleData(customerFileDataList, config);
+        Object result = call(assembleData, config);
+        assembleResult(result);
+    }
+
+    /**
+     * 判断是否可以开始（子类可重写）
+     * @param config
+     * @return 默认返回true：可以开始
+     */
+    Boolean canStart(DataProcessingConfig config) {
+        return true;
+    }
+
+    /**
+     * 封装调用前的请求数据（子类必须实现）
+     * @param customerFileDataList
+     * @param config
+     * @return
+     */
+    abstract Object assembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config);
+
+
+    /**
+     * 调用接口或方法（子类必须实现）
+     * @param data
+     * @param config
+     * @return
+     */
+    abstract Object call(Object data, DataProcessingConfig config);
+
+    /**
+     * 结果处理（子类可重写）
+     * @param data
+     * @return
+     */
+    Object assembleResult(Object data) {
+        return data;
+    }
+
+    /**
+     * 获取配置表中的线程数。若没配置，使用默认值20
+     * @param config
+     * @return
+     */
     private Integer getThreadNum(DataProcessingConfig config) {
         Integer threadNum = 20;
         String extendField = config.getExtendField();
@@ -111,6 +161,12 @@ public abstract class DataProcessAbstractProxy {
         return threadNum;
     }
 
+    /**
+     * 构建分页查询的参数
+     * @param localFileId
+     * @param id
+     * @param pullCustomerFileDataExample
+     */
     private void buildExample(Long localFileId, Long id, PullCustomerFileDataExample pullCustomerFileDataExample) {
         PullCustomerFileDataExample.Criteria criteria =
                 pullCustomerFileDataExample.createCriteria().andDataStatusEqualTo(1).andLocalFileIdEqualTo(localFileId);
@@ -118,29 +174,5 @@ public abstract class DataProcessAbstractProxy {
             criteria.andIdGreaterThan(id);
         }
         pullCustomerFileDataExample.setOrderByClause("id asc");
-    }
-
-    private void modifyCorePoolSize(ThreadPoolExecutor pool) {
-        Integer threadNum = marketingCommonConfig.getDataProcessAnTaskThreadNum();
-        pool.setCorePoolSize(threadNum);
-        pool.setMaximumPoolSize(threadNum);
-    }
-
-    abstract Object assembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config);
-
-    private void result(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config) {
-        Object assembleData = assembleData(customerFileDataList, config);
-        Object result = call(assembleData, config);
-        assembleResult(result);
-    }
-
-    abstract Object call(Object data, DataProcessingConfig config);
-
-    public Object assembleResult(Object data) {
-        return data;
-    }
-
-    public Boolean canStart(DataProcessingConfig config) {
-        return true;
     }
 }

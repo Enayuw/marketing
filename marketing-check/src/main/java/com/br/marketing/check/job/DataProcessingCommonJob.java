@@ -114,7 +114,9 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
 
     private void start(List<DataProcessingConfig> tasks) {
         for (DataProcessingConfig task : tasks) {
+            log.warn("数据处理任务开始，apiCode:{}，fileName:{}", task.getApiCode(), task.getLocalFile().getFileName());
             process(task);
+            log.warn("数据处理任务结束，apiCode:{}，fileName:{}", task.getApiCode(), task.getLocalFile().getFileName());
         }
     }
 
