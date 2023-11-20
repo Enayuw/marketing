@@ -28,12 +28,14 @@ public interface ValidityPeriodResendStrategy<T> {
     /**
      * 获取重推数据
      *
-     * @param record 有效期重新发送记录
+     * @param record   有效期重新发送记录
+     * @param page     页码
+     * @param pageSize 页大小
      * @return {@link List }<{@link T }>
      * @author senyang.zheng
-     * @date 2023/10/11
+     * @date 2023/11/20
      */
-    List<T> fetchData(ValidityPeriodResendRecord record);
+    List<T> fetchData(ValidityPeriodResendRecord record,int page,int pageSize);
 
     /**
      * 处理重推逻辑

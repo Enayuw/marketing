@@ -1,14 +1,11 @@
 package com.br.marketing.service.Impl.validityperiod;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.ValidityPeriodResendType;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTransferInfo;
-import com.br.marketing.entity.MarketingTransferInfoExample;
 import com.br.marketing.entity.ValidityPeriodResendRecord;
 import com.br.marketing.enums.ValidityPeriodResendEnum;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
@@ -24,7 +21,6 @@ import org.springframework.stereotype.Service;
 import shaded.com.google.common.base.Splitter;
 
 import javax.annotation.Resource;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,27 +63,24 @@ public class UniversalTransferProcessResend implements ValidityPeriodResendStrat
     /**
      * 获取重推数据
      *
-     * @param record 有效期重新发送记录
+     * @param record   有效期重新发送记录
+     * @param page     页码
+     * @param pageSize 页大小
      * @return {@link List }<{@link MarketingTransferInfo }>
      * @author senyang.zheng
-     * @date 2023/11/13
+     * @date 2023/11/20
      */
     @Override
-    public List<MarketingTransferInfo> fetchData(ValidityPeriodResendRecord record) {
+    public List<MarketingTransferInfo> fetchData(ValidityPeriodResendRecord record, int page, int pageSize) {
         //获取有效期范围
         Map<String, String> validPeriodRange = marketingDataValidConfigMapper.getValidPeriodRangeByApiCodeAndUserType(record.getValidityPeriodId());
         //开始结束时间范围外扩一天
         String dateStartStr = ValidityPeriodDataServiceImpl.getDateStr(validPeriodRange.get("validStartDate"), -1);
         String dateEndStr = ValidityPeriodDataServiceImpl.getDateStr(validPeriodRange.get("validEndDate"), 1);
 
-        Date validStartDate = DateUtil.beginOfDay(DateUtil.parseDate(dateStartStr));
-        Date validEndDate = DateUtil.endOfDay(DateUtil.parseDate(dateEndStr));
-
         String apiCode = validPeriodRange.get("apiCode");
         //根据时间范围获取全部转化基础数据
-        MarketingTransferInfoExample transferInfoExample = new MarketingTransferInfoExample();
-        transferInfoExample.createCriteria().andApiCodeEqualTo(apiCode).andCreateTimeGreaterThanOrEqualTo(validStartDate).andCreateTimeLessThanOrEqualTo(validEndDate);
-        return marketingTransferInfoMapper.selectByExample(transferInfoExample);
+        return marketingTransferInfoMapper.getMarketingTransferInfoIdByValidPeriodRange(apiCode, dateStartStr, dateEndStr,page,pageSize);
     }
 
     /**
@@ -144,7 +137,4 @@ public class UniversalTransferProcessResend implements ValidityPeriodResendStrat
         return mqFact;
     }
 
-    public static void main(String[] args) {
-        System.out.println(CollectionUtil.isEmpty(Sets.newHashSet(Splitter.on(",").splitToList(""))));
-    }
 }

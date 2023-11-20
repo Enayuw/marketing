@@ -1,6 +1,7 @@
 package com.br.marketing.check.job;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.entity.ValidityPeriodResendRecord;
 import com.br.marketing.entity.ValidityPeriodResendRecordExample;
 import com.br.marketing.mapper.ValidityPeriodResendRecordMapperBase;
@@ -62,10 +63,26 @@ public class ValidPeriodResendJob extends AbstractSimpleElasticJob {
         }
         for (ValidityPeriodResendRecord record : validityPeriodResendRecords) {
             try {
-                //获取推送数据
-                List<T> data = selector.fetchData(record);
-                //执行推送逻辑
-                selector.resend(data, record);
+                int page = 0;
+                int pageSize = 2000;
+                if (JSONObject.isValid(record.getResendData())) {
+                    JSONObject resendData = JSONObject.parseObject(record.getResendData());
+                    if (resendData.getInteger("pageSize") != null) {
+                        pageSize = resendData.getInteger("pageSize");
+                    }
+                }
+                for (; ; ) {
+                    //获取推送数据
+                    List<T> data = selector.fetchData(record, page, pageSize);
+                    if (data.isEmpty()) {
+                        break;
+                    }
+                    //执行推送逻辑
+                    selector.resend(data, record);
+                    if (data.size() < pageSize) {
+                        break;
+                    }
+                }
                 //修改记录状态为执行完成
                 record.setResendStatus(1);
                 validityPeriodResendRecordMapperBase.updateByPrimaryKey(record);

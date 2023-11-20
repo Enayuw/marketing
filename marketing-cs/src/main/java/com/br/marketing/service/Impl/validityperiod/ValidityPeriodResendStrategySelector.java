@@ -1,6 +1,6 @@
 package com.br.marketing.service.Impl.validityperiod;
 
- import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.ValidityPeriodResendType;
 import com.br.marketing.entity.ValidityPeriodResendRecord;
 import com.br.marketing.enums.ValidityPeriodResendEnum;
@@ -41,14 +41,14 @@ public class ValidityPeriodResendStrategySelector {
         return strategy.buildResendData(params);
     }
 
-    public <T> List<T> fetchData(ValidityPeriodResendRecord record) {
+    public <T> List<T> fetchData(ValidityPeriodResendRecord record, int page, int pageSize) {
         // 根据数据类型选择对应的策略
         @SuppressWarnings("unchecked")
         ValidityPeriodResendStrategy<T> strategy = (ValidityPeriodResendStrategy<T>) this.strategyMap.get(ValidityPeriodResendEnum.getEnumByCode(record.getResendType()));
         if (strategy == null) {
             throw new IllegalArgumentException("未匹配到对应重推规则: " + ValidityPeriodResendEnum.getEnumByCode(record.getResendType()));
         }
-        return strategy.fetchData(record);
+        return strategy.fetchData(record, page, pageSize);
     }
 
     public <T> void resend(List<T> data, ValidityPeriodResendRecord record) {
@@ -58,6 +58,6 @@ public class ValidityPeriodResendStrategySelector {
         if (strategy == null) {
             throw new IllegalArgumentException("未匹配到对应重推规则: " + ValidityPeriodResendEnum.getEnumByCode(record.getResendType()));
         }
-        strategy.resend(data,record);
+        strategy.resend(data, record);
     }
 }
