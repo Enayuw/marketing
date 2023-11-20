@@ -1,7 +1,10 @@
 package com.br.marketing.service.Impl.dataProcess;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.marketingapi.MarketingApiService;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.PullCustomerFileData;
 import com.br.marketing.entity.PullCustomerFileDataExample;
@@ -53,7 +56,10 @@ public abstract class DataProcessAbstractProxy {
         }
 
         Long localFileId = config.getLocalFile().getId();
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(marketingCommonConfig.getDataProcessAnTaskThreadNum(), marketingCommonConfig.getDataProcessAnTaskThreadNum());
+
+        // 获取线程数配置
+        Integer threadNum = getThreadNum(config);
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(threadNum, threadNum);
         // b_local_file表push_status记为1（任务开始）
         LocalFile localFile = localFileMapper.selectByPrimaryKey(localFileId);
         localFile.setPushStatus("1");
@@ -63,8 +69,6 @@ public abstract class DataProcessAbstractProxy {
         PullCustomerFileDataExample pullCustomerFileDataExample = new PullCustomerFileDataExample();
         buildExample(localFileId, id, pullCustomerFileDataExample);
         while (true) {
-            // 调整线程数
-            modifyCorePoolSize(pool);
             // 查询b_pull_customer_file_data,条件：local_id且data_status=0
             List<PullCustomerFileData> customerFileDataList = customerFileDataMapper.selectPageListByExampletikv_(pullCustomerFileDataExample);
             if (customerFileDataList.isEmpty()) {
@@ -91,6 +95,22 @@ public abstract class DataProcessAbstractProxy {
         // push_status置为任务结束
         localFile.setPushStatus("2");
         localFileMapper.updateByPrimaryKeySelective(localFile);
+    }
+
+    private Integer getThreadNum(DataProcessingConfig config) {
+        Integer threadNum = 20;
+        String extendField = config.getExtendField();
+        if (StringUtils.isEmpty(extendField)) {
+            return threadNum;
+        }
+
+        JSONObject configJson = JSON.parseObject(extendField);
+        Integer threadNumConfig = configJson.getInteger("threadNum");
+        if (StringUtils.isNotEmpty(threadNumConfig)) {
+            threadNum = threadNumConfig;
+        }
+
+        return threadNum;
     }
 
     private void buildExample(Long localFileId, Long id, PullCustomerFileDataExample pullCustomerFileDataExample) {

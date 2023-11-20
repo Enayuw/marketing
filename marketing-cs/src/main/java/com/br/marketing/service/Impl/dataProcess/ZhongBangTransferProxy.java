@@ -46,7 +46,7 @@ public class ZhongBangTransferProxy extends UploadDataProxy{
             return false;
         }
 
-        // T-1日到T日，防止跨天传输判断有误
+        // 判断是否有尾量数据没落到明细表。判断条件：T-1日到T日，防止跨天传输判断有误
         String CreateTimeDate = LocalDateTime.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String recordDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         int goingSize = marketingSyncInfoMapper.getUnresolvedCount(apiCode, CreateTimeDate, recordDate);
