@@ -56,6 +56,7 @@ import com.br.marketing.dto.zbank.ZBankLabelRatingReResultDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.DiDiAllowMarketingEnum;
 import com.br.marketing.mapper.*;
+import com.br.marketing.service.Impl.PushRuleServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.DiDiAllowReqDTO;
@@ -172,6 +173,9 @@ public class MethodRetryHandlerService {
 
     @Resource
     private ZBankClient zBankClient;
+
+    @Resource
+    private PushRuleServiceImpl pushRuleService;
 
     /**
      * @param data                     数据
@@ -1058,14 +1062,17 @@ public class MethodRetryHandlerService {
     /**
      * 武汉众邦银行推送标签评级
      *
-     * @param jsonData 封装的数据
+     * @param json 封装的数据
      * @param retry    重试切面使用的标记，正常业务调用时赋值null
      * @return 接口响应业务字段
      */
     @RetryMethod(retryNowNum = 1, isOrNoDbRetry = true)
-    public Result<ZBankResponse<ZBankLabelRatingReResultDTO>> pushZbankLabelRatingRe(JSONObject jsonData
+    public Result<ZBankResponse<ZBankLabelRatingReResultDTO>> pushZbankLabelRatingRe(JSONObject json
             , Integer retry) {
         Result<ZBankResponse<ZBankLabelRatingReResultDTO>> result = new Result<>();
+        JSONObject jsonData = new JSONObject();
+        jsonData.putAll(json);
+        jsonData.remove("ids");
         JSONObject object = new JSONObject();
         String requestId = "" + System.nanoTime() + RandomStringUtils.randomNumeric(5);
         if (retry == null) {
@@ -1097,6 +1104,10 @@ public class MethodRetryHandlerService {
         if ("000000".equals(dto.getCode())) {
             ZBankLabelRatingReResultDTO result1 = dto.getResult();
             if ("00".equals(result1.getErrCd())) {
+                //重试成功后更新状态
+                if (retry != null) {
+                    pushRuleService.updateZhongBangRetryStatus(json.get("ids"));
+                }
                 result.setCode(ResultCode.SUCCESS.getValue());
             } else if ("500".equals(result1.getErrCd())) {
                 log.error("武汉众邦银行推送标签评级接口实体不能为空或者回传数据更新失败,进入重试,响应：{},请求：{}"

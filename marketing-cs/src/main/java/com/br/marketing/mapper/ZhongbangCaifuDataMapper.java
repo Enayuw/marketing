@@ -12,7 +12,7 @@ public interface ZhongbangCaifuDataMapper extends ZhongbangCaifuDataBaseMapper{
 
     List<String> selectZhongBangTaskIds(@Param("localId")Long localId);
 
-    List<ZhongbangCaifuData> zhongBangLabelDataPage(@Param("localId") Long localId, @Param("minId") Long minId, @Param("taskId") String taskId);
+    List<ZhongbangCaifuData> zhongBangLabelDataPage(@Param("localId") Long localId, @Param("minId") Long minId);
 
 
 

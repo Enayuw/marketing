@@ -6,7 +6,6 @@
     <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
     <result column="local_id" jdbcType="BIGINT" property="localId" />
     <result column="type" jdbcType="VARCHAR" property="type" />
-    <result column="tsk_id" jdbcType="VARCHAR" property="tskId" />
     <result column="cst_no" jdbcType="VARCHAR" property="cstNo" />
     <result column="tag_grd" jdbcType="VARCHAR" property="tagGrd" />
     <result column="rmk" jdbcType="VARCHAR" property="rmk" />
@@ -77,8 +76,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, api_code, local_id, `type`, tsk_id, cst_no, tag_grd, rmk, push_status, `status`, 
-    data_message, extend, create_date, create_time, update_time
+    id, api_code, local_id, `type`, cst_no, tag_grd, rmk, push_status, `status`, data_message, 
+    extend, create_date, create_time, update_time
   </sql>
   <select id="selectByExample" parameterType="com.br.marketing.entity.ZhongbangCaifuDataExample" resultMap="BaseResultMap">
     select
@@ -112,15 +111,15 @@
   </delete>
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.ZhongbangCaifuData" useGeneratedKeys="true">
     insert into b_zhongbang_caifu_data (api_code, local_id, `type`, 
-      tsk_id, cst_no, tag_grd, 
-      rmk, push_status, `status`, 
-      data_message, extend, create_date, 
-      create_time, update_time)
+      cst_no, tag_grd, rmk, 
+      push_status, `status`, data_message, 
+      extend, create_date, create_time, 
+      update_time)
     values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR}, 
-      #{tskId,jdbcType=VARCHAR}, #{cstNo,jdbcType=VARCHAR}, #{tagGrd,jdbcType=VARCHAR}, 
-      #{rmk,jdbcType=VARCHAR}, #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, 
-      #{dataMessage,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{createDate,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+      #{cstNo,jdbcType=VARCHAR}, #{tagGrd,jdbcType=VARCHAR}, #{rmk,jdbcType=VARCHAR}, 
+      #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, 
+      #{extend,jdbcType=VARCHAR}, #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.ZhongbangCaifuData" useGeneratedKeys="true">
     insert into b_zhongbang_caifu_data
@@ -133,9 +132,6 @@
       </if>
       <if test="type != null">
         `type`,
-      </if>
-      <if test="tskId != null">
-        tsk_id,
       </if>
       <if test="cstNo != null">
         cst_no,
@@ -177,9 +173,6 @@
       </if>
       <if test="type != null">
         #{type,jdbcType=VARCHAR},
-      </if>
-      <if test="tskId != null">
-        #{tskId,jdbcType=VARCHAR},
       </if>
       <if test="cstNo != null">
         #{cstNo,jdbcType=VARCHAR},
@@ -234,9 +227,6 @@
       <if test="record.type != null">
         `type` = #{record.type,jdbcType=VARCHAR},
       </if>
-      <if test="record.tskId != null">
-        tsk_id = #{record.tskId,jdbcType=VARCHAR},
-      </if>
       <if test="record.cstNo != null">
         cst_no = #{record.cstNo,jdbcType=VARCHAR},
       </if>
@@ -278,7 +268,6 @@
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       local_id = #{record.localId,jdbcType=BIGINT},
       `type` = #{record.type,jdbcType=VARCHAR},
-      tsk_id = #{record.tskId,jdbcType=VARCHAR},
       cst_no = #{record.cstNo,jdbcType=VARCHAR},
       tag_grd = #{record.tagGrd,jdbcType=VARCHAR},
       rmk = #{record.rmk,jdbcType=VARCHAR},
@@ -304,9 +293,6 @@
       </if>
       <if test="type != null">
         `type` = #{type,jdbcType=VARCHAR},
-      </if>
-      <if test="tskId != null">
-        tsk_id = #{tskId,jdbcType=VARCHAR},
       </if>
       <if test="cstNo != null">
         cst_no = #{cstNo,jdbcType=VARCHAR},
@@ -346,7 +332,6 @@
     set api_code = #{apiCode,jdbcType=VARCHAR},
       local_id = #{localId,jdbcType=BIGINT},
       `type` = #{type,jdbcType=VARCHAR},
-      tsk_id = #{tskId,jdbcType=VARCHAR},
       cst_no = #{cstNo,jdbcType=VARCHAR},
       tag_grd = #{tagGrd,jdbcType=VARCHAR},
       rmk = #{rmk,jdbcType=VARCHAR},

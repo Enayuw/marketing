@@ -6,7 +6,7 @@ import lombok.Data;
 
 /**
  * b_zhongbang_caifu_data
- * @author : zhen.Li1
+ * @author :zhen.Li1
  */
 @Data
 public class ZhongbangCaifuData implements Serializable {
@@ -23,11 +23,6 @@ public class ZhongbangCaifuData implements Serializable {
      * 类型
      */
     private String type;
-
-    /**
-     * 任务id
-     */
-    private String tskId;
 
     /**
      * 客户号
