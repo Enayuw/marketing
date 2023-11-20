@@ -112,7 +112,6 @@ public class TransferToFileByZhongBangServiceImpl implements ITransferToFileServ
                 transferFileTask.setContextId(transferFileContextId);
                 transferFileTask.setCreateTime(new Date());
                 transferFileTask.setUpdateTime(new Date());
-                transferFileTask.setFileChildDir("transform");
                 transferFileTaskMapper.insertSelective(transferFileTask);
                 resultList.add(transferFileTask);
             }
