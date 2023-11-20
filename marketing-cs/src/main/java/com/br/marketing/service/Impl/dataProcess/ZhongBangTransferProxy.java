@@ -32,13 +32,13 @@ public class ZhongBangTransferProxy extends UploadDataProxy{
     @Override
     public Boolean canStart(DataProcessingConfig config) {
         String apiCode = config.getApiCode();
-        // 判断是否有下载中的上传数据文件，有则返回false
+        // 判断是否有待处理的上传数据文件，有则返回false
         LocalFileExample localFileExample = new LocalFileExample();
         LocalFileExample.Criteria criteria = localFileExample.createCriteria();
-        criteria.andApiCodeEqualTo(apiCode).andStatusEqualTo("1").andFileNameLike("original_caifu_%");
+        criteria.andApiCodeEqualTo(apiCode).andPushStatusNotEqualTo("2").andFileNameLike("original_caifu_%");
 
         LocalFileExample.Criteria orCriteria = localFileExample.createCriteria();
-        orCriteria.andApiCodeEqualTo(apiCode).andStatusEqualTo("1").andFileNameLike("original_daikuan_%");
+        orCriteria.andApiCodeEqualTo(apiCode).andPushStatusNotEqualTo("2").andFileNameLike("original_daikuan_%");
 
         localFileExample.or(orCriteria);
         List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
