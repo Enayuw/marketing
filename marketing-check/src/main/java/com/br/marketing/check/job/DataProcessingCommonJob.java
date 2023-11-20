@@ -104,6 +104,7 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
         String fileName = jsonObject.getString("fileName");
         String fileType = jsonObject.getString("fileType");
 
+        // 根据文件名前缀模糊匹配
         if (StringUtils.isNotEmpty(fileName)) {
             criteria.andFileNameLike(fileName + "%");
         } else {

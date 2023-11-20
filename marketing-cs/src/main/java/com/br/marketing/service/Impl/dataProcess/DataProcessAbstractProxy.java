@@ -79,14 +79,12 @@ public abstract class DataProcessAbstractProxy {
             pullCustomerFileDataExample.clear();
             buildExample(localFileId, id, pullCustomerFileDataExample);
 
-            pool.submit(() -> result(customerFileDataList,config));
+            pool.submit(() -> result(customerFileDataList, config));
         }
 
         pool.shutdown();
         try {
             while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                // todo
-                log.info("等待线程池结束");
             }
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
@@ -131,7 +129,7 @@ public abstract class DataProcessAbstractProxy {
     abstract Object assembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config);
 
     private void result(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config) {
-        Object assembleData = assembleData(customerFileDataList,config);
+        Object assembleData = assembleData(customerFileDataList, config);
         Object result = call(assembleData, config);
         assembleResult(result);
     }
@@ -142,7 +140,7 @@ public abstract class DataProcessAbstractProxy {
         return data;
     }
 
-    public Boolean canStart(DataProcessingConfig config){
+    public Boolean canStart(DataProcessingConfig config) {
         return true;
     }
 }
