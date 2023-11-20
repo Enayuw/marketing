@@ -19,7 +19,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
- * @Description ZhongBangUploadDataProxy
+ * @Description 众邦财富上传数据清洗-财富
  * @Author hong.chen
  * @CreateTime 2023/11/15
  */
@@ -30,18 +30,6 @@ public class ZhongBangSyncCaiFuProxy extends UploadDataProxy {
     @Override
     Object subAssembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config) {
         return handleCaifu(customerFileDataList, config);
-    }
-
-    private void handleYesOrNo(JSONObject reserveField1, String fieldName, String value) {
-        if ("是".equals(value)) {
-            reserveField1.put(fieldName, 1);
-        } else if ("否".equals(value)) {
-            reserveField1.put(fieldName, 0);
-        } else {
-            reserveField1.put(fieldName, "");
-            // todo 是否需要报警
-            log.error("众邦转化数据清洗,字段:{},枚举非是否", fieldName);
-        }
     }
 
     private UploadDataDTO handleCaifu(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config) {
@@ -130,5 +118,17 @@ public class ZhongBangSyncCaiFuProxy extends UploadDataProxy {
         uploadDataDTO.setApiCode(apiCode);
         uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
         return uploadDataDTO;
+    }
+
+    private void handleYesOrNo(JSONObject reserveField1, String fieldName, String value) {
+        if ("是".equals(value)) {
+            reserveField1.put(fieldName, 1);
+        } else if ("否".equals(value)) {
+            reserveField1.put(fieldName, 0);
+        } else {
+            reserveField1.put(fieldName, "");
+            // todo 是否需要报警
+            log.error("众邦转化数据清洗,字段:{},枚举非是否", fieldName);
+        }
     }
 }

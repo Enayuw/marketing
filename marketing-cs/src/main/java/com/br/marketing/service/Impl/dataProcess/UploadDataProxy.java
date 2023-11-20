@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * @Description UploadDataProxy
+ * @Description 接口数据代理类
  * @Author hong.chen
  * @CreateTime 2023/11/14
  */

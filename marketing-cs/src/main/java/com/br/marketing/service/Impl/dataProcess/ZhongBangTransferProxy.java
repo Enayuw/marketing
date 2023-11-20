@@ -22,13 +22,13 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
- * @Description ZhongBangTransferProxy
+ * @Description 众邦财富转化数据清洗
  * @Author hong.chen
  * @CreateTime 2023/11/17
  */
 @Component
 @Slf4j
-public class ZhongBangTransferProxy extends UploadDataProxy{
+public class ZhongBangTransferProxy extends UploadDataProxy {
     public static final String ORIGINAL_CAIFU = "original_caifu_";
     public static final String ORIGINAL_DAIKUAN = "original_daikuan_";
 
@@ -46,6 +46,7 @@ public class ZhongBangTransferProxy extends UploadDataProxy{
         localFileExample.or(orCriteria);
         List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
         if (localFiles.size() > 0) {
+            log.warn("众邦数据清洗，上传数据文件还没有落库完成，转化数据文件需要等待");
             return false;
         }
 
@@ -54,7 +55,7 @@ public class ZhongBangTransferProxy extends UploadDataProxy{
         String recordDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         int goingSize = marketingSyncInfoMapper.getUnresolvedCount(apiCode, CreateTimeDate, recordDate);
         if (goingSize > 0) {
-            log.warn("众邦数据清洗，上传数据文件还没有落库完成，转化数据文件需要等待，待完成量级：{}", goingSize);
+            log.warn("众邦数据清洗，上传数据文件还有尾量数据没有落库完成，转化数据文件需要等待。上传数据待完成量级：{}", goingSize);
             return false;
         }
 
@@ -78,10 +79,8 @@ public class ZhongBangTransferProxy extends UploadDataProxy{
             // dataItems
             // custNum
             transferData.setCustNum(dataList.get(header.indexOf("custNum")).trim());
-            // userType
-            transferData.setUserType(dataList.get(header.indexOf("userType")));
-            // ifLogin
-            transferData.setIfLogin(dataList.get(header.indexOf("ifLogin1")));
+            // loginTime
+            transferData.setLoginTime(dataList.get(header.indexOf("loginTime")));
             // ifApply
             transferData.setIfApply(dataList.get(header.indexOf("ifApply1")));
             // applyTime
@@ -90,6 +89,10 @@ public class ZhongBangTransferProxy extends UploadDataProxy{
             transferData.setIfLent(dataList.get(header.indexOf("ifLent1")));
             // lentTime
             transferData.setLentTime(dataList.get(header.indexOf("lentTime")));
+            // lentAmount
+            transferData.setLentAmount(dataList.get(header.indexOf("lentAmount")));
+            // userType
+            transferData.setUserType(dataList.get(header.indexOf("userType")));
 
             // reserveField1
             reserveField1.put("applyproductName", dataList.get(header.indexOf("applyproductName")));

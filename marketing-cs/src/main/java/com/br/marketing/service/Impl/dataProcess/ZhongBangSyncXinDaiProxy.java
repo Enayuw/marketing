@@ -19,7 +19,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
- * @Description ZhongBangSyncXinDaiProxy
+ * @Description 众邦财富上传数据清洗-信贷
  * @Author hong.chen
  * @CreateTime 2023/11/17
  */
@@ -48,8 +48,8 @@ public class ZhongBangSyncXinDaiProxy extends UploadDataProxy {
 
 
             // reserveField1
-            // original_caifu_yyyymmdd对应1
-            reserveField1.put("userType", "1");
+            // original_daikuan_yyyymmdd对应2
+            reserveField1.put("userType", "2");
 
             String gender = dataList.get(header.indexOf("gender"));
             if ("女".equals(gender)) {

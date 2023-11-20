@@ -152,7 +152,7 @@ public class MarketingApiService {
                 return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
         }catch (Exception ex){
-            log.error("调用营销上传接口报错："+ex.getMessage(),ex);
+            log.error("调用营销接口报错："+ex.getMessage(),ex);
             return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }
