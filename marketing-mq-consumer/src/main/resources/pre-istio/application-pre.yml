@@ -137,7 +137,7 @@ api:
   dass:
     aesKey: ovksl39fcl13m9dF
   zbank: #武汉众邦银行
-    isPorxy: false
+    isPorxy: true
     baseUrl: https://iodev-uat.z-bank.com
     api:
       serverPubKey: "049191E0402CE98C8F31564880AC47AC888DACB24B127407D351AD83725CDB4529713E585CBB14C14E4EBBE97828D64B1F2DC101E113F227B6E6ACD9A378311DC3"
