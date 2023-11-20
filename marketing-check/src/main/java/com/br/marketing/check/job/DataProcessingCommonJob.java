@@ -58,13 +58,19 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
-        // 自定义参数 todo 用拓展字段 只处理某一天
-        String jobParameter = shardingContext.getJobParameter();
-        // 遍历通用配置表
+        // 遍历通用配置表，相同fileType分在一个分片上，并将遍历结果按照优先级排序
         List<DataProcessingConfig> configs =
                 dataProcessingConfigMapper.selectByShardOrderByPriorityLevel(shardingContext.getShardingTotalCount(),
                         shardingContext.getShardingItems());
 
+        // 构建满足处理条件的任务列表
+        List<DataProcessingConfig> tasks = getTasks(configs);
+
+        // 按序执行
+        start(tasks);
+    }
+
+    private List<DataProcessingConfig> getTasks(List<DataProcessingConfig> configs) {
         List<DataProcessingConfig> tasks = new ArrayList<>();
         for (DataProcessingConfig config : configs) {
             // 根据条件查询b_local_file
@@ -74,17 +80,7 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
                     localFileExample.createCriteria().andStatusEqualTo("2").andPushStatusEqualTo("0").andApiCodeEqualTo(config.getApiCode());
 
             // 如果file_type中配置了fileName，则根据fileName和apiCode查询；否则，根据fileType和apiCode查询
-            String fileTypeJson = config.getFileType();
-            JSONObject jsonObject = JSON.parseObject(fileTypeJson);
-            String fileName = jsonObject.getString("fileName");
-            String fileType = jsonObject.getString("fileType");
-
-            if (StringUtils.isNotEmpty(fileName)) {
-                criteria.andFileNameLike(fileName+"%");
-            } else {
-                criteria.andFileTypeEqualTo(fileType);
-            }
-
+            queryByFileNameOrFileType(config, criteria);
             List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
 
             if (CollectionUtils.isEmpty(localFiles)) {
@@ -99,7 +95,23 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
                 tasks.add(task);
             }
         }
+        return tasks;
+    }
 
+    private void queryByFileNameOrFileType(DataProcessingConfig config, LocalFileExample.Criteria criteria) {
+        String fileTypeJson = config.getFileType();
+        JSONObject jsonObject = JSON.parseObject(fileTypeJson);
+        String fileName = jsonObject.getString("fileName");
+        String fileType = jsonObject.getString("fileType");
+
+        if (StringUtils.isNotEmpty(fileName)) {
+            criteria.andFileNameLike(fileName + "%");
+        } else {
+            criteria.andFileTypeEqualTo(fileType);
+        }
+    }
+
+    private void start(List<DataProcessingConfig> tasks) {
         for (DataProcessingConfig task : tasks) {
             process(task);
         }
@@ -111,7 +123,7 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
             DataProcessAbstractProxy proxy = DataProcessingContext.getBean(proxyName);
             proxy.doProcess(task);
         } catch (Exception e) {
-            log.error("");
+            log.error("数据处理流程异常,配置表id:{},apiCode:{}", task.getId(), task.getApiCode(), e.getMessage(), e);
         }
     }
 }

@@ -27,7 +27,7 @@ public class DataProcessingContext implements ApplicationContextAware {
 
     private static final Map<String, Class<? extends DataProcessAbstractProxy>> DATA_PROXY = new HashMap<>();
 
-    static{
+    static {
         DATA_PROXY.put("ZhongBangSyncCaiFuProxy", ZhongBangSyncCaiFuProxy.class);
         DATA_PROXY.put("ZhongBangSyncXinDaiProxy", ZhongBangSyncXinDaiProxy.class);
         DATA_PROXY.put("ZhongBangTransferProxy", ZhongBangTransferProxy.class);
@@ -43,7 +43,7 @@ public class DataProcessingContext implements ApplicationContextAware {
             Class<? extends DataProcessAbstractProxy> proxyClass = DATA_PROXY.get(dataProxy);
             return ac.getBean(proxyClass);
         } catch (BeansException e) {
-            log.warn("not fund dataProxy:{} --", dataProxy, e);
+            log.error("not fund dataProxy:{} --", dataProxy, e);
             throw e;
         }
     }

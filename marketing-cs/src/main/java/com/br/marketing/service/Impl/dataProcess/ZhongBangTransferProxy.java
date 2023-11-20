@@ -29,16 +29,19 @@ import java.util.regex.Pattern;
 @Component
 @Slf4j
 public class ZhongBangTransferProxy extends UploadDataProxy{
+    public static final String ORIGINAL_CAIFU = "original_caifu_";
+    public static final String ORIGINAL_DAIKUAN = "original_daikuan_";
+
     @Override
     public Boolean canStart(DataProcessingConfig config) {
         String apiCode = config.getApiCode();
         // 判断是否有待处理的上传数据文件，有则返回false
         LocalFileExample localFileExample = new LocalFileExample();
         LocalFileExample.Criteria criteria = localFileExample.createCriteria();
-        criteria.andApiCodeEqualTo(apiCode).andPushStatusNotEqualTo("2").andFileNameLike("original_caifu_%");
+        criteria.andApiCodeEqualTo(apiCode).andPushStatusNotEqualTo("2").andFileNameLike(ORIGINAL_CAIFU + "%");
 
         LocalFileExample.Criteria orCriteria = localFileExample.createCriteria();
-        orCriteria.andApiCodeEqualTo(apiCode).andPushStatusNotEqualTo("2").andFileNameLike("original_daikuan_%");
+        orCriteria.andApiCodeEqualTo(apiCode).andPushStatusNotEqualTo("2").andFileNameLike(ORIGINAL_DAIKUAN + "%");
 
         localFileExample.or(orCriteria);
         List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
