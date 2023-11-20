@@ -125,6 +125,12 @@ otherConfig:
     appSecretKey: 3a78162475b96285ea70a9edb6438ba4
     destinationName: marketing_api_upload_log
     logIceTimeout: 2000
+  proxy:
+    proxy_host: squid-proxy2.brapp.com
+    proxy_port: 3128
+    proxy_username: bairong
+    proxy_password: Proxy_br
+    proxy_host_zw: 192.168.22.169
 api:
   intelligentCustomerService:
     baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
