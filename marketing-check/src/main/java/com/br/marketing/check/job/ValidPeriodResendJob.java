@@ -64,7 +64,7 @@ public class ValidPeriodResendJob extends AbstractSimpleElasticJob {
         for (ValidityPeriodResendRecord record : validityPeriodResendRecords) {
             try {
                 long start = System.currentTimeMillis();
-                log.warn("重推任务开始执行 recordId:{} start", record.getId());
+                log.warn("ValidPeriodResendJob重推任务 recordId:{} start", record.getId());
                 int page = 0;
                 int pageSize = 2000;
                 if (JSONObject.isValid(record.getResendData())) {
@@ -89,7 +89,7 @@ public class ValidPeriodResendJob extends AbstractSimpleElasticJob {
                 record.setResendStatus(1);
                 validityPeriodResendRecordMapperBase.updateByPrimaryKey(record);
                 long end = System.currentTimeMillis();
-                log.warn("重推任务开始执行 recordId:{} end，耗时:{}", record.getId(), end - start);
+                log.warn("ValidPeriodResendJob重推任务 recordId:{} end，耗时:{}", record.getId(), end - start);
             } catch (Exception e) {
                 //捕获异常不影响其他任务
                 log.error("重推任务执行失败,record:{}", record, e);
