@@ -48,6 +48,7 @@
     select id,local_id as localId
     from b_xiecheng_data
     where create_time >= #{createTime}
+      and push_status =1 and status =1
     <if test="id != null and id>0">
       and id > #{id}
     </if>
