@@ -51,7 +51,7 @@
     <if test="id != null and id>0">
       and id > #{id}
     </if>
-    order by id limit 2;
+    order by id limit 5000;
   </select>
 
 </mapper>
