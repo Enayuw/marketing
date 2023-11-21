@@ -42,7 +42,7 @@ public class ZBankClientConfig {
     /**
      * 文件请求响应超时时间，单位ms
      */
-    private static final int FILE_SOCKET_TIMEOUT = 60000;
+    private static final int FILE_SOCKET_TIMEOUT = 120000;
 
     // api sdk参数
     /**
