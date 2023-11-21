@@ -520,16 +520,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             closeable(bufferedReader, isr, inputStream);
                         }
                     }
-                    try {
-                        StreamDownLoadInfo streamDownLoadInfo = zBankClient.downloadWholeFile(okFile);
-                        okFile.setFileMd5(streamDownLoadInfo.getFileMd5());
-                        inputStream = streamDownLoadInfo.getInputStream();
-                        downLoadFile(inputStream, filePath, okFile);
-                    } catch (SDKException e) {
-                        log.error(e.getMessage(), e);
-                    } finally {
-                        closeable(inputStream);
-                    }
+                    okFileDownLoad(okFile, filePath);
                 }
                 break;
             }
@@ -537,6 +528,28 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         return false;
     }
 
+    /**
+     * 2023-11-21 15:20
+     * 下载ok文件
+     */
+    private void okFileDownLoad(FileInfo okFile, String filePath) {
+        InputStream inputStream = null;
+        try {
+            StreamDownLoadInfo streamDownLoadInfo = zBankClient.downloadWholeFile(okFile);
+            okFile.setFileMd5(streamDownLoadInfo.getFileMd5());
+            inputStream = streamDownLoadInfo.getInputStream();
+            downLoadFile(inputStream, filePath, okFile);
+        } catch (SDKException e) {
+            log.error(e.getMessage(), e);
+        } finally {
+            closeable(inputStream);
+        }
+    }
+
+    /**
+     * 2023-11-21 15:13
+     * 获取字符流
+     */
     private InputStreamReader getInputStreamReader(File file, InputStream inputStream, FileInfo fileInfo)
             throws SDKException, IOException {
         String localMd5 = "";
@@ -750,6 +763,10 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         return f;
     }
 
+    /**
+     * 2023-11-21 15:14
+     * 关闭流
+     */
     private void closeable(Closeable... closeables) {
         for (Closeable closeable : closeables) {
             if (closeable == null) {
