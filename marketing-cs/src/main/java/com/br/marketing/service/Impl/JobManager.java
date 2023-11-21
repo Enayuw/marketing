@@ -109,7 +109,7 @@ public class JobManager {
         if (transferActionFronts.size() == 1) {
             return transferActionFronts.get(0);
         } else if (transferActionFronts.size() > 1) {
-            log.error("transferActionFront请检查apiCode:{},data:{}},type:{}当前执行日志有{}条记录！"
+            log.error("transferActionFront请检查apiCode:{},data:{},type:{}当前执行日志有{}条记录！"
                     , apiCode, date, actionType, transferActionFronts.size());
             return transferActionFronts.get(0);
         } else {
