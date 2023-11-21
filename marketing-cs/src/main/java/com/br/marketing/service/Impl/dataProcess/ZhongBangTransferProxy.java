@@ -82,7 +82,7 @@ public class ZhongBangTransferProxy extends UploadDataProxy {
             // loginTime
             transferData.setLoginTime(dataList.get(header.indexOf("loginTime")));
             // ifApply
-            transferData.setIfApply(dataList.get(header.indexOf("ifApply1")));
+            transferData.setIfApply(dataList.get(header.indexOf("ifApply")));
             // applyTime
             transferData.setApplyTime(dataList.get(header.indexOf("applyTime")));
             // ifLent

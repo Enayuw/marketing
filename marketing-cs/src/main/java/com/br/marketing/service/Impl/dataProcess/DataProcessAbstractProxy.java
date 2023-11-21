@@ -70,7 +70,7 @@ public abstract class DataProcessAbstractProxy {
 
         Long id = null;
         PullCustomerFileDataExample pullCustomerFileDataExample = new PullCustomerFileDataExample();
-        // 查询b_pull_customer_file_data,条件：local_id且data_status=0
+        // 查询b_pull_customer_file_data,条件：local_id且data_status=1
         buildExample(localFileId, id, pullCustomerFileDataExample);
         while (true) {
             List<PullCustomerFileData> customerFileDataList = customerFileDataMapper.selectPageListByExampletikv_(pullCustomerFileDataExample);
@@ -100,9 +100,13 @@ public abstract class DataProcessAbstractProxy {
      * @param config
      */
     private void result(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config) {
-        Object assembleData = assembleData(customerFileDataList, config);
-        Object result = call(assembleData, config);
-        assembleResult(result);
+        try {
+            Object assembleData = assembleData(customerFileDataList, config);
+            Object result = call(assembleData, config);
+            assembleResult(result);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     /**
