@@ -3718,7 +3718,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         localFileMapper.updateByPrimaryKeySelective(localFile);
         //统计告警
         if(!localFile.getPushNumber().equals(localFile.getActualNumber())){
-            sendAlarm(localFile.getActualNumber()-localFile.getPushNumber(),"携程财富定制标签推送失败数量统计");
+            sendAlarm(localFile.getActualNumber()-localFile.getPushNumber(),"众邦财富定制标签推送失败数量统计");
         }
         log.warn("众邦财富定制标签推送结束，耗时：{} ms", System.currentTimeMillis() - st1);
 
