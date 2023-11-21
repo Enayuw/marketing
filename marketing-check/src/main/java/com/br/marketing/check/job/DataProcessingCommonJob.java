@@ -121,9 +121,10 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
     }
 
     private void process(DataProcessingConfig task) {
+        String proxyName = task.getProxyName();
+        DataProcessAbstractProxy proxy = DataProcessingContext.getBean(proxyName);
+
         try {
-            String proxyName = task.getProxyName();
-            DataProcessAbstractProxy proxy = DataProcessingContext.getBean(proxyName);
             proxy.doProcess(task);
         } catch (Exception e) {
             log.error("数据处理流程异常,配置表id:{},apiCode:{}", task.getId(), task.getApiCode(), e.getMessage(), e);

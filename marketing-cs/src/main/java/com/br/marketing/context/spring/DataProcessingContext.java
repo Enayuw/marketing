@@ -43,7 +43,7 @@ public class DataProcessingContext implements ApplicationContextAware {
             Class<? extends DataProcessAbstractProxy> proxyClass = DATA_PROXY.get(dataProxy);
             return ac.getBean(proxyClass);
         } catch (BeansException e) {
-            log.error("not fund dataProxy:{} --", dataProxy, e);
+            log.error("数据处理任务 not fund dataProxy:{} --", dataProxy, e);
             throw e;
         }
     }
