@@ -90,7 +90,7 @@ public abstract class DataProcessAbstractProxy {
             while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
             }
         } catch (Exception e) {
-            log.error("数据处理流程异常,配置表id:{},apiCode:{}", config.getId(), config.getApiCode(), e.getMessage(), e);
+            log.error(e.getMessage(), e);
         }
     }
 
@@ -105,7 +105,7 @@ public abstract class DataProcessAbstractProxy {
             Object result = call(assembleData, config);
             assembleResult(result);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error("数据处理流程异常,配置表id:{},apiCode:{}", config.getId(), config.getApiCode(), e.getMessage(), e);
         }
     }
 
