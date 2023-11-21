@@ -724,7 +724,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 .andSrcPathIsNull()
                 .andPushNumberEqualTo(0)
                 .andErrorActualNumberEqualTo(0)
-                .andLocalPathLike(localPath);
+                .andLocalPathEqualTo(localPath);
         List<LocalFile> localFiles = localFileMapper.selectByExample(example);
         int size = localFiles.size();
         return size > 0 ? localFiles.get(0) : null;
