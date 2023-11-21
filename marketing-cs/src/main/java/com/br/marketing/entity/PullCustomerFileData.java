@@ -29,7 +29,7 @@ public class PullCustomerFileData {
     private String jsonData;
 
     /**
-     * 数据状态:0-初始 1-正常 2-异常
+     * 数据状态: 1-正常 2-异常
      */
     private Integer dataStatus;
 
