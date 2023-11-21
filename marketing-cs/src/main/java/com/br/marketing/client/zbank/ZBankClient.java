@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
- * 武汉众邦银行API接口服务调用
+ * 众邦财富API接口服务调用
  *
  * @author Guo Zeqiang
  * @dateTime 2023-11-08 17:31

@@ -1060,10 +1060,10 @@ public class MethodRetryHandlerService {
     }
 
     /**
-     * 武汉众邦银行推送标签评级
+     * 众邦财富推送标签评级
      *
-     * @param json 封装的数据
-     * @param retry    重试切面使用的标记，正常业务调用时赋值null
+     * @param json  封装的数据
+     * @param retry 重试切面使用的标记，正常业务调用时赋值null
      * @return 接口响应业务字段
      */
     @RetryMethod(retryNowNum = 1, isOrNoDbRetry = true)
@@ -1110,15 +1110,15 @@ public class MethodRetryHandlerService {
                 }
                 result.setCode(ResultCode.SUCCESS.getValue());
             } else if ("500".equals(result1.getErrCd())) {
-                log.error("武汉众邦银行推送标签评级接口实体不能为空或者回传数据更新失败,进入重试,响应：{},请求：{}"
+                log.error("众邦财富推送标签评级接口实体不能为空或者回传数据更新失败,进入重试,响应：{},请求：{}"
                         , jsonStr, jsonData.toJSONString());
                 result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             } else {
                 result.setCode(ResultCode.FAIL.getValue());
-                log.error("武汉众邦银行推送标签评级接口未知错误,不会重试,响应：{}", jsonStr);
+                log.error("众邦财富推送标签评级接口未知错误,不会重试,响应：{}", jsonStr);
             }
         } else {
-            log.error("武汉众邦银行推送标签评级接口异常,进入重试,响应：{},请求：{}", jsonStr, jsonData.toJSONString());
+            log.error("众邦财富推送标签评级接口异常,进入重试,响应：{},请求：{}", jsonStr, jsonData.toJSONString());
             result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
         result.setDate(dto);

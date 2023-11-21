@@ -246,7 +246,7 @@
             <artifactId>spring_boot_exporter</artifactId>
             <version>1.1.2</version>
         </dependency>
-        <!-- 武汉众邦银行API SDK -->
+        <!-- 众邦财富API SDK -->
         <dependency>
             <groupId>com.zbank</groupId>
             <artifactId>ZbAPISDKjdk6</artifactId>
@@ -254,7 +254,7 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/src/main/resources/sdk/zbank/ZbAPISDKjdk6-4.1.2.jar</systemPath>
         </dependency>
-        <!-- 武汉众邦银行文件SDK -->
+        <!-- 众邦财富文件SDK -->
         <dependency>
             <groupId>com.zbank</groupId>
             <artifactId>ZbFileSDKjdk6</artifactId>
@@ -262,7 +262,7 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/src/main/resources/sdk/zbank/ZbFileSDKjdk6-2.1.7.jar</systemPath>
         </dependency>
-        <!-- 武汉众邦银行安全工具 -->
+        <!-- 众邦财富安全工具 -->
         <dependency>
             <groupId>com.zbank</groupId>
             <artifactId>ZbSecurityTool</artifactId>
@@ -270,7 +270,7 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/src/main/resources/sdk/zbank/ZbSecurityTool-1.0.0.jar</systemPath>
         </dependency>
-        <!-- 武汉众邦银行工具 -->
+        <!-- 众邦财富工具 -->
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>

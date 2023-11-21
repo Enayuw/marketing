@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 
 /**
- * 武汉众邦银行API接口服务sdk配置
+ * 众邦财富API接口服务sdk配置
  *
  * @author Guo Zeqiang
  * @dateTime 2023-11-08 17:31
@@ -104,7 +104,7 @@ public class ZBankClientConfig {
 
     /**
      * 2023-11-08 19:18
-     * 武汉众邦银行API接口服务调用
+     * 众邦财富API接口服务调用
      */
     @Bean
     @Lazy
@@ -133,7 +133,7 @@ public class ZBankClientConfig {
 
     /**
      * 2023-11-08 19:18
-     * 武汉众邦银行File文件服务调用
+     * 众邦财富File文件服务调用
      */
     @Bean
     @Lazy
