@@ -8,7 +8,7 @@ import java.util.List;
  * 有效期重新发送类型映射示例
  *
  * @author senyang.zheng
- * @date 2023/10/18
+ * @date 2023/11/13
  */
 public class ValidityPeriodResendTypeMappingExample {
     protected String orderByClause;
@@ -368,6 +368,76 @@ public class ValidityPeriodResendTypeMappingExample {
 
         public Criteria andResendTypeNotBetween(Integer value1, Integer value2) {
             addCriterion("resend_type not between", value1, value2, "resendType");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendFieldIsNull() {
+            addCriterion("extend_field is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendFieldIsNotNull() {
+            addCriterion("extend_field is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendFieldEqualTo(String value) {
+            addCriterion("extend_field =", value, "extendField");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendFieldNotEqualTo(String value) {
+            addCriterion("extend_field <>", value, "extendField");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendFieldGreaterThan(String value) {
+            addCriterion("extend_field >", value, "extendField");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendFieldGreaterThanOrEqualTo(String value) {
+            addCriterion("extend_field >=", value, "extendField");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendFieldLessThan(String value) {
+            addCriterion("extend_field <", value, "extendField");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendFieldLessThanOrEqualTo(String value) {
+            addCriterion("extend_field <=", value, "extendField");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendFieldLike(String value) {
+            addCriterion("extend_field like", value, "extendField");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendFieldNotLike(String value) {
+            addCriterion("extend_field not like", value, "extendField");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendFieldIn(List<String> values) {
+            addCriterion("extend_field in", values, "extendField");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendFieldNotIn(List<String> values) {
+            addCriterion("extend_field not in", values, "extendField");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendFieldBetween(String value1, String value2) {
+            addCriterion("extend_field between", value1, value2, "extendField");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendFieldNotBetween(String value1, String value2) {
+            addCriterion("extend_field not between", value1, value2, "extendField");
             return (Criteria) this;
         }
 

@@ -8,7 +8,7 @@ import java.util.Date;
  * 有效期变更重推规则映射实体
  *
  * @author senyang.zheng
- * @date 2023/10/18
+ * @date 2023/11/13
  */
 @Data
 public class ValidityPeriodResendTypeMapping {
@@ -31,6 +31,11 @@ public class ValidityPeriodResendTypeMapping {
      * 重推类型
      */
     private Integer resendType;
+
+    /**
+     * 扩展字段
+     */
+    private String extendField;
 
     /**
      * 是否删除 0:否;1:是;
