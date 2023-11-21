@@ -143,6 +143,14 @@ public class ZBankClientConfig {
         //2、配置httpClient相关参数：连接超时时间、响应超时时间、http代理、SS5代理等。详见HttpConfig类
         HttpConfig config = new HttpConfig();
         config.setSocketTimeout(FILE_SOCKET_TIMEOUT);
+        if (isPorxy) {
+            // 设置代理的host
+            config.setProxyHost(proxyHost);
+            // 设置代理的port
+            config.setProxyPort(proxyPort);
+            config.setProxyUsername(userName);
+            config.setProxyPassword(password);
+        }
         sdk.config(config);
         //配置加解密参数
         sdk.config(new SM2AESPackSecure(encryptKey, cksStr));
