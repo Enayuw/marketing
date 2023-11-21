@@ -9,8 +9,7 @@
           AND create_time >= #{validStartDate}
           AND create_time <= #{validEndDate}
         ]]>
-        order by create_time,
-                 id desc
+        order by create_time,id
         LIMIT ${page * pageSize}, ${pageSize}
     </select>
 </mapper>
