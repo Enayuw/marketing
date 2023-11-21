@@ -2,17 +2,13 @@ package com.br.marketing.service.Impl.transfertofile;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.util.BrCipherMaker;
-import com.br.common.util.MD5Utils;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.entity.TransferFileTaskExample;
-import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
@@ -35,7 +31,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * @Author 李广秀
@@ -47,7 +42,7 @@ import java.util.stream.Collectors;
 public class TransferToFileByZhongBangServiceImpl implements ITransferToFileService {
 
     private static final String EXECUTE_TIME = "10:00:00";
-    private final static String TABLE_HEAD_TRANSFER = "custNum,ifLogin,ifApply,applyTime,applyproductName,applyAmount,ifLent1,lentTime,lentAmount,pushTime,userType,fileName";
+    private final static String TABLE_HEAD_TRANSFER = "custNum,loginTime,ifApply,applyTime,applyproductName,applyAmount,ifLent1,lentTime,lentAmount,pushTime,userType,fileName";
     @Autowired
     DynamicParameterServiceImpl dynamicParameterService;
     @Resource
@@ -185,7 +180,7 @@ public class TransferToFileByZhongBangServiceImpl implements ITransferToFileServ
                         fileName = jsonObject.getString("fileName");
                     }
                     sb.append(emptyDefault(transferFilterData.getCustNum())).append(",");
-                    sb.append(emptyDefault(transferFilterData.getIfLogin())).append(",");
+                    sb.append(removeMillisecond(emptyDefault(transferFilterData.getLoginTime()))).append(",");
                     sb.append(emptyDefault(transferFilterData.getIfApply())).append(",");
                     sb.append(removeMillisecond(emptyDefault(transferFilterData.getApplyTime()))).append(",");
                     sb.append(emptyDefault(applyProductName)).append(",");
