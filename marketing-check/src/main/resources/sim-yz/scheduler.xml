@@ -822,8 +822,8 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="check-ZhongBangFileQueryAndDownloadJob"
-                class="com.br.marketing.check.job.zhongbang.ZhongBangFileQueryAndDownloadJob"
+    <job:simple id="check-ZhongBangPullFileDataJob"
+                class="com.br.marketing.check.job.zhongbang.ZhongBangPullFileDataJob"
                 cron="1 0/15 9-18 * * ?"
                 description="众邦财富文件拉取,param格式：{apiCode:yyyyMMdd,yyyy-MM-dd HH:mm:ss,yyyy-MM-dd HH:mm:ss}"
                 registry-center-ref="regCenter"

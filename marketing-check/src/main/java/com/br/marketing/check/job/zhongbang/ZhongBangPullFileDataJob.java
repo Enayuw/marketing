@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 @Slf4j
-public class ZhongBangFileQueryAndDownloadJob extends AbstractSimpleElasticJob {
+public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
 
     @Resource
     private ZhongBangService zhongBangService;
