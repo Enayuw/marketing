@@ -1274,7 +1274,7 @@ public class PushDataServiceImpl implements PushDataService {
     public void  pushXieChengSmsCollidingToDbData(String data) {
         try {
             JSONObject jsonObject = JSONObject.parseObject(data);
-            Long localId = Long.valueOf(jsonObject.getInteger("localId"));
+            Long localId = jsonObject.getLong("localId");
             Boolean isNewFile = jsonObject.getBooleanValue("isNewFile");
             // 创建线程池
             ThreadPoolExecutor xieChengSmsCollidingThread =
