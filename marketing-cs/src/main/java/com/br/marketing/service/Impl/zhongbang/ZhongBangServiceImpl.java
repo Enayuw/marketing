@@ -451,6 +451,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 // 查询已经生成完成的文件
                 List<FileInfo> infos = zBankClient.queryFileList(okFile.getFileName().replace(
                         okFileExtension, txtFileExtension), beginDate, endDate, 1);
+                InputStream inputStream = null;
                 if (infos.size() > 0) {
                     List<FileInfo> sortedInfos = sortedFileCreateTime(infos);
                     String[] tableHeads = tableHead.split(regex);
@@ -462,63 +463,19 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         // 下载生成的文件
                         StreamDownLoadInfo streamDownLoadInfo = zBankClient.downloadWholeFile(fileInfo);
                         fileInfo.setFileMd5(streamDownLoadInfo.getFileMd5());
-                        InputStream inputStream = null;
                         InputStreamReader isr = null;
                         BufferedReader bufferedReader = null;
-                        FileInputStream fis = null;
-                        BufferedInputStream bis = null;
                         LocalFile localFileUpdate = new LocalFile();
                         localFileUpdate.setErrorActualNumber(0);
                         localFileUpdate.setPushNumber(0);
                         localFileUpdate.setId(localFileNew.getId());
                         try {
                             inputStream = streamDownLoadInfo.getInputStream();
-                            if (!localFileExist) {
-                                String path = filePath.concat(fileInfo.getFileMd5()).concat(File.separator).concat(fileInfo.getFileName());
-                                File file = new File(path);
-                                boolean bak = file.renameTo(new File(path.concat(".bak") + System.currentTimeMillis()));
-                                if (!bak) {
-                                    log.warn("众邦财富异常文件备份失败！path:{}", path);
-                                }
-                            }
+                            renameFileName(localFileExist, fileInfo, filePath);
                             File file = downLoadFile(inputStream, filePath, fileInfo);
-                            String localMd5;
-                            int errorSum = 0;
-                            if (file == null) {
-                                ByteBuffer buffer = null;
-                                InputStream is1 = null;
-                                InputStream is2 = null;
-                                try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                                     WritableByteChannel writableByteChannel = Channels.newChannel(bos);
-                                     ReadableByteChannel readableByteChannel = Channels.newChannel(inputStream)
-                                ) {
-                                    // 缓存1M
-                                    buffer = ByteBuffer.allocate(1024 << 10);
-                                    while (readableByteChannel.read(buffer) != -1 || buffer.position() > 0) {
-                                        buffer.flip();
-                                        writableByteChannel.write(buffer);
-                                        buffer.compact();
-                                    }
-                                    is1 = new ByteArrayInputStream(bos.toByteArray());
-                                    is2 = new ByteArrayInputStream(bos.toByteArray());
-                                    isr = new InputStreamReader(new BufferedInputStream(is2), StandardCharsets.UTF_8);
-                                    localMd5 = DigestUtils.md5Hex(is1);
-                                } catch (IOException e) {
-                                    log.error(e.getMessage(), e);
-                                    localMd5 = "";
-                                } finally {
-                                    if (buffer != null) {
-                                        buffer.clear();
-                                    }
-                                    closeable(is2, is1);
-                                }
-                            } else {
-                                fis = new FileInputStream(file);
-                                bis = new BufferedInputStream(fis);
-                                isr = new InputStreamReader(bis, StandardCharsets.UTF_8);
-                                localMd5 = Md5EncodeUtil.encode(file);
-                            }
-                            if (checkFileMd5(localMd5, fileInfo) && isr != null) {
+                            isr = getInputStreamReader(file, inputStream, fileInfo);
+                            if (isr != null) {
+                                int errorSum = 0;
                                 bufferedReader = new BufferedReader(isr);
                                 LineNumberReader lineNumberReader = new LineNumberReader(bufferedReader);
                                 String lineTxt;
@@ -544,11 +501,14 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                         log.error(e.getMessage(), e);
                                     }
                                 }
+                                return errorSum == 0;
                             }
-                            return errorSum == 0;
+                            return false;
                         } catch (IOException | SDKException | InterruptedException e) {
+                            if (e instanceof InterruptedException) {
+                                Thread.currentThread().interrupt();
+                            }
                             log.error(e.getMessage(), e);
-                            Thread.currentThread().interrupt();
                             return false;
                         } finally {
                             localFileUpdate.setStatus("2");
@@ -557,25 +517,99 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                 localFileUpdate.setComplete("1");
                             }
                             localFileMapper.updateByPrimaryKeySelective(localFileUpdate);
-                            try {
-                                closeable(bufferedReader, isr, bis, fis, inputStream);
-                            } catch (IOException e) {
-                                log.error(e.getMessage(), e);
-                            }
+                            closeable(bufferedReader, isr, inputStream);
                         }
                     }
                     try {
                         StreamDownLoadInfo streamDownLoadInfo = zBankClient.downloadWholeFile(okFile);
                         okFile.setFileMd5(streamDownLoadInfo.getFileMd5());
-                        downLoadFile(streamDownLoadInfo.getInputStream(), filePath, okFile);
+                        inputStream = streamDownLoadInfo.getInputStream();
+                        downLoadFile(inputStream, filePath, okFile);
                     } catch (SDKException e) {
                         log.error(e.getMessage(), e);
+                    } finally {
+                        closeable(inputStream);
                     }
                 }
                 break;
             }
         }
         return false;
+    }
+
+    private InputStreamReader getInputStreamReader(File file, InputStream inputStream, FileInfo fileInfo)
+            throws SDKException, IOException {
+        String localMd5 = "";
+        InputStreamReader isr = null;
+        if (file == null) {
+            InputStream[] inputStreams = null;
+            try {
+                inputStreams = copyTwoInputStream(inputStream);
+                if (inputStreams != null) {
+                    isr = new InputStreamReader(new BufferedInputStream(inputStreams[0]), StandardCharsets.UTF_8);
+                    localMd5 = DigestUtils.md5Hex(inputStreams[1]);
+                }
+            } finally {
+                if (inputStreams != null) {
+                    closeable(inputStreams);
+                }
+            }
+        } else {
+            isr = new InputStreamReader(new BufferedInputStream(new FileInputStream(file)), StandardCharsets.UTF_8);
+            localMd5 = Md5EncodeUtil.encode(file);
+        }
+        if (checkFileMd5(localMd5, fileInfo)) {
+            return isr;
+        }
+        closeable(isr);
+        return null;
+    }
+
+    /**
+     * 2023-11-21 13:42
+     * 复制流
+     */
+    private InputStream[] copyTwoInputStream(InputStream inputStream) {
+        ByteBuffer buffer = null;
+        InputStream is1;
+        InputStream is2;
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+             WritableByteChannel writableByteChannel = Channels.newChannel(bos);
+             ReadableByteChannel readableByteChannel = Channels.newChannel(inputStream)
+        ) {
+            // 缓存1M
+            buffer = ByteBuffer.allocate(1024 << 10);
+            while (readableByteChannel.read(buffer) != -1 || buffer.position() > 0) {
+                buffer.flip();
+                writableByteChannel.write(buffer);
+                buffer.compact();
+            }
+            is1 = new ByteArrayInputStream(bos.toByteArray());
+            is2 = new ByteArrayInputStream(bos.toByteArray());
+            return new InputStream[]{is1, is2};
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        } finally {
+            if (buffer != null) {
+                buffer.clear();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 2023-11-21 10:49
+     * 文件重命名
+     */
+    private void renameFileName(boolean localFileExist, FileInfo fileInfo, String filePath) {
+        if (!localFileExist) {
+            String path = filePath.concat(fileInfo.getFileMd5()).concat(File.separator).concat(fileInfo.getFileName());
+            File file = new File(path);
+            boolean bak = file.renameTo(new File(path.concat(".bak") + System.currentTimeMillis()));
+            if (!bak) {
+                log.warn("众邦财富异常文件备份失败！path:{}", path);
+            }
+        }
     }
 
     /**
@@ -716,12 +750,16 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         return f;
     }
 
-    private void closeable(Closeable... closeables) throws IOException {
+    private void closeable(Closeable... closeables) {
         for (Closeable closeable : closeables) {
             if (closeable == null) {
                 continue;
             }
-            closeable.close();
+            try {
+                closeable.close();
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
         }
     }
 
@@ -743,7 +781,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
      * @param fileInfo 服务端响应信息中的md5值
      * @return 一致返回true;
      */
-    private boolean checkFileMd5(String localMd5, FileInfo fileInfo) throws SDKException {
+    private boolean checkFileMd5(String localMd5, FileInfo fileInfo) {
         if (localMd5.equals(fileInfo.getFileMd5())) {
             return true;
         }
