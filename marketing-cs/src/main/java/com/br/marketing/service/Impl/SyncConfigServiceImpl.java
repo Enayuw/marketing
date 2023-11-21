@@ -194,7 +194,7 @@ public class SyncConfigServiceImpl implements SyncConfigService {
 
     @Override
     public String getPullCustomerFilePath(String apiCode) {
-        return getPath().concat(File.separator).concat("pullCustomerFile")
+        return getPath().concat("pullCustomerFile")
                 .concat(File.separator).concat(apiCode).concat(File.separator);
     }
 }
