@@ -288,7 +288,7 @@ public class AlarmAndNoticeTest {
     public void ZhongBangTransferFileTest() {
         TransferFileTask transferFileTask = new TransferFileTask();
         transferFileTask.setApiCode("7433800");
-        transferFileTask.setStartDate("2023-11-06 ");
+        transferFileTask.setStartDate("2023-11-21 ");
         String recordDate = transferFileTask.getStartDate();
         String dateyyyymmddStr =  LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         StringBuilder fileName = new StringBuilder();
