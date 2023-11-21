@@ -1052,5 +1052,10 @@ public class MarketingCommonConfig {
      */
     private Integer universalTransferProcessResendThreadNum;
 
+    /**
+     * 推送决策系统的选择
+     */
+    private Integer pushJcSelect;
+
 }
 

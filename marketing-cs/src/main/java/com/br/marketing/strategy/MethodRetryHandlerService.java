@@ -42,6 +42,7 @@ import com.br.marketing.client.robotaiapi.output.TransferRobotDataVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.zhongan.ZhongAnClient;
 import com.br.marketing.common.annoation.DistributeLog;
+import com.br.marketing.common.annoation.DistributeTempRedisLog;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -809,6 +810,38 @@ public class MethodRetryHandlerService {
     @RetryMethod(retryNowNum = 2, isOrNoDbRetry = true)
     @DistributeLog
     public Result callPolicySoleData(PolicyRetryByRuleSoleDTO soleDTO, Integer o) {
+        if (soleDTO.getData().size() <= 0) {
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        }
+        List<Long> ids = soleDTO.getIds();
+        PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
+        taskInfoDTO.setData(soleDTO.getData());
+        taskInfoDTO.setAccessNumber(UUID.randomUUID().toString());
+        taskInfoDTO.setMethod("caseAdd");
+        taskInfoDTO.setBatchNumber(soleDTO.getBatchNumber());
+        taskInfoDTO.setStrategyCode(soleDTO.getStrategyCode());
+
+        PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
+        if (StringUtils.isNotEmpty(marketingCommonConfig.getApiCodeMatch().get(soleDTO.getApiCode()))) {
+            pushMarketingUserDTO.setApiCode(marketingCommonConfig.getApiCodeMatch().get(soleDTO.getApiCode()));
+        } else {
+            pushMarketingUserDTO.setApiCode(soleDTO.getApiCode());
+        }
+        pushMarketingUserDTO.setJsonData(taskInfoDTO);
+        Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            if(ids!=null && ids.size()>0){
+                saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY_SOLE.getCode(), soleDTO.getInfoId());
+            }
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
+
+    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = true)
+    @DistributeTempRedisLog
+    public Result callPolicySoleDataByYx(PolicyRetryByRuleSoleDTO soleDTO, Integer o) {
         if (soleDTO.getData().size() <= 0) {
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         }
