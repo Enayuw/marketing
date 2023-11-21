@@ -483,7 +483,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                 List<Callable<Integer>> callables = new ArrayList<>();
                                 while ((lineTxt = lineNumberReader.readLine()) != null) {
                                     fileDataList.add(newFileData(lineTxt, apiCode, tableHeads, heads, regex, localFileUpdate));
-                                    if (saveFileData(fileDataList, 2, localFile, callables)) {
+                                    if (saveFileData(fileDataList, 2000, localFile, callables)) {
                                         fileDataList = new ArrayList<>();
                                     }
                                 }
