@@ -96,6 +96,7 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -3698,8 +3699,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     log.error("众邦财富定制标签推送异常", ex);
                 }
             });
-        }
-        ;
+        };
         pool.shutdown();
         try {
             while (!pool.awaitTermination(5L, TimeUnit.SECONDS)) {
@@ -3716,7 +3716,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(num.intValue());
         localFileMapper.updateByPrimaryKeySelective(localFile);
+        //统计告警
+        if(!localFile.getPushNumber().equals(localFile.getActualNumber())){
+            sendAlarm(localFile.getActualNumber()-localFile.getPushNumber(),"携程财富定制标签推送失败数量统计");
+        }
         log.warn("众邦财富定制标签推送结束，耗时：{} ms", System.currentTimeMillis() - st1);
+
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(false).setMessage("成功");
     }
 
@@ -3753,5 +3758,14 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     }
 
+    private void sendAlarm(Integer failNum, String title) {
+        if (failNum > 0) {
+            try {
+                alarmClient.sendAlarm("推送失败条数=" + failNum, title, AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
+        }
+    }
 
 }
