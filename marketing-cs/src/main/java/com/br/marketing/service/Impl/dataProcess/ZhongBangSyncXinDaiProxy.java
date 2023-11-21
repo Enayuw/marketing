@@ -76,9 +76,6 @@ public class ZhongBangSyncXinDaiProxy extends UploadDataProxy {
             String ifApply = dataList.get(header.indexOf("ifApply"));
             reserveField1.put("ifApply", ifApply);
 
-            String ifLent = dataList.get(header.indexOf("ifLent"));
-            reserveField1.put("ifLent", ifLent);
-
             String age = dataList.get(header.indexOf("age"));
             reserveField1.put("age", age);
 
