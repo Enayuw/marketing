@@ -127,7 +127,7 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
         try {
             proxy.doProcess(task);
         } catch (Exception e) {
-            log.error("数据处理流程异常,配置表id:{},apiCode:{}", task.getId(), task.getApiCode(), e.getMessage(), e);
+            log.error("数据处理任务异常,配置表id:{},apiCode:{}", task.getId(), task.getApiCode(), e.getMessage(), e);
         }
     }
 }
