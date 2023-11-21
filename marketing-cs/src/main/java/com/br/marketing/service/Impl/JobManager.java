@@ -94,15 +94,15 @@ public class JobManager {
     public TransferActionFront getFrontData(String apiCode, String date
             , Integer actionType, String remark) {
         TransferActionFrontExample frontExample = new TransferActionFrontExample();
-        frontExample.createCriteria()
+        TransferActionFrontExample.Criteria criteria = frontExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
                 .andActionDataEqualTo(date)
                 .andIsDelEqualTo(1);
         if (remark != null) {
-            frontExample.createCriteria().andRemarkEqualTo(remark);
+            criteria.andRemarkEqualTo(remark);
         }
         if (actionType != null) {
-            frontExample.createCriteria().andActionTypeEqualTo(actionType);
+            criteria.andActionTypeEqualTo(actionType);
         }
         frontExample.setOrderByClause("create_time desc,update_time desc");
         List<TransferActionFront> transferActionFronts = transferActionFrontMapper.selectByExample(frontExample);
