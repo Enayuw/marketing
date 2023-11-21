@@ -472,7 +472,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         try {
                             inputStream = streamDownLoadInfo.getInputStream();
                             renameFileName(localFileExist, fileInfo, filePath);
-                            File file = downLoadFile(inputStream, filePath, fileInfo);
+                            File file = downLoadFile(inputStream, filePath.concat(txtFileExtension).concat("_"), fileInfo);
                             isr = getInputStreamReader(file, inputStream, fileInfo);
                             if (isr != null) {
                                 int errorSum = 0;
@@ -483,7 +483,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                 List<Callable<Integer>> callables = new ArrayList<>();
                                 while ((lineTxt = lineNumberReader.readLine()) != null) {
                                     fileDataList.add(newFileData(lineTxt, apiCode, tableHeads, heads, regex, localFileUpdate));
-                                    if (saveFileData(fileDataList, 2000, localFile, callables)) {
+                                    if (saveFileData(fileDataList, 2, localFile, callables)) {
                                         fileDataList = new ArrayList<>();
                                     }
                                 }
@@ -518,9 +518,9 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             }
                             localFileMapper.updateByPrimaryKeySelective(localFileUpdate);
                             closeable(bufferedReader, isr, inputStream);
+                            okFileDownLoad(okFile, filePath.concat(okFileExtension).concat("_"));
                         }
                     }
-                    okFileDownLoad(okFile, filePath);
                 }
                 break;
             }
@@ -696,10 +696,12 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                     }
                     fileDataList.removeIf(f -> dataFingerprintSet.contains(f.getDataFingerprint()));
                 }
-                int i = pullCustomerFileDataMapper.insertBatchSelective(fileDataList);
-                if (i > 0) {
-                    fileDataList.clear();
-                    return 0;
+                if (fileDataList.size() > 0) {
+                    int i = pullCustomerFileDataMapper.insertBatchSelective(fileDataList);
+                    if (i > 0) {
+                        fileDataList.clear();
+                        return 0;
+                    }
                 }
                 return fileDataList.size();
             });
