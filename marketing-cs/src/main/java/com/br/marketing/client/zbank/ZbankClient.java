@@ -31,7 +31,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 @Component
 @Slf4j
-public class ZBankClient {
+public class ZbankClient {
     @Resource
     private SDK sdk;
 

@@ -1,6 +1,6 @@
 package com.br.marketing.dto.zbank;
 
-import com.br.marketing.client.zbank.ZBankResult;
+import com.br.marketing.client.zbank.ZbankResult;
 
 /**
  * 标签评级接口结果
@@ -8,7 +8,7 @@ import com.br.marketing.client.zbank.ZBankResult;
  * @author Guo Zeqiang
  * @dateTime 2023-11-14 11:15
  */
-public class ZBankLabelRatingReResultDTO extends ZBankResult {
+public class ZbankLabelRatingReResultDTO extends ZbankResult {
 
     private static final long serialVersionUID = -6359941299736521610L;
     /**
@@ -22,12 +22,12 @@ public class ZBankLabelRatingReResultDTO extends ZBankResult {
      */
     private String ErrCd;
 
-    public ZBankLabelRatingReResultDTO(String errDsc, String errCd) {
+    public ZbankLabelRatingReResultDTO(String errDsc, String errCd) {
         ErrDsc = errDsc;
         ErrCd = errCd;
     }
 
-    public ZBankLabelRatingReResultDTO() {
+    public ZbankLabelRatingReResultDTO() {
     }
 
     public String getErrDsc() {

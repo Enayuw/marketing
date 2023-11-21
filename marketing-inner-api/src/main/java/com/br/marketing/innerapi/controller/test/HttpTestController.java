@@ -2,7 +2,7 @@ package com.br.marketing.innerapi.controller.test;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Md5Utils;
-import com.br.marketing.client.zbank.ZBankClient;
+import com.br.marketing.client.zbank.ZbankClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ import java.util.Map;
 public class HttpTestController {
 
     @Resource
-    private ZBankClient zBankClient;
+    private ZbankClient zBankClient;
 
     /**
      * 测试众邦代理

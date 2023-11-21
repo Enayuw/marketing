@@ -8,6 +8,6 @@ import java.io.Serializable;
  * @author Guo Zeqiang
  * @dateTime 2023-11-14 11:08
  */
-public abstract class ZBankResult implements Serializable {
+public abstract class ZbankResult implements Serializable {
     private static final long serialVersionUID = 6828266121822552689L;
 }

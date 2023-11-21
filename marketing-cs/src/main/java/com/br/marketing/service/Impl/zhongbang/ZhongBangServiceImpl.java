@@ -13,7 +13,7 @@ import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSo
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataSoleDTO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
-import com.br.marketing.client.zbank.ZBankClient;
+import com.br.marketing.client.zbank.ZbankClient;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
@@ -89,7 +89,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
     private ArtificialRealTimeUserAndCustomerTransferSoleFacade artificialRealTimeUserAndCustomerTransferSoleFacade;
 
     @Resource
-    private ZBankClient zBankClient;
+    private ZbankClient zBankClient;
 
     @Resource
     private SyncConfigService syncConfigService;

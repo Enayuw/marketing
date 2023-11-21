@@ -8,7 +8,7 @@ import java.io.Serializable;
  * @author Guo Zeqiang
  * @dateTime 2023-11-14 10:54
  */
-public class ZBankResponse<T extends ZBankResult> implements Serializable {
+public class ZbankResponse<T extends ZbankResult> implements Serializable {
 
     private static final long serialVersionUID = -5417265926698303877L;
     /**
@@ -28,13 +28,13 @@ public class ZBankResponse<T extends ZBankResult> implements Serializable {
      */
     private T result;
 
-    public ZBankResponse(String code, String msg, T result) {
+    public ZbankResponse(String code, String msg, T result) {
         this.code = code;
         this.msg = msg;
         this.result = result;
     }
 
-    public ZBankResponse() {
+    public ZbankResponse() {
     }
 
     public String getCode() {

@@ -41,8 +41,8 @@ import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotDataVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
-import com.br.marketing.client.zbank.ZBankClient;
-import com.br.marketing.client.zbank.ZBankResponse;
+import com.br.marketing.client.zbank.ZbankClient;
+import com.br.marketing.client.zbank.ZbankResponse;
 import com.br.marketing.client.zhongan.ZhongAnClient;
 import com.br.marketing.common.annoation.DistributeLog;
 import com.br.marketing.common.annoation.RetryMethod;
@@ -52,7 +52,7 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.dto.DataJoinLogDTO;
-import com.br.marketing.dto.zbank.ZBankLabelRatingReResultDTO;
+import com.br.marketing.dto.zbank.ZbankLabelRatingReResultDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.DiDiAllowMarketingEnum;
 import com.br.marketing.mapper.*;
@@ -172,7 +172,7 @@ public class MethodRetryHandlerService {
     private QifuSaveReachDeleteRecordApiPushLogMapper qifuSaveReachDeleteRecordApiPushLogMapper;
 
     @Resource
-    private ZBankClient zBankClient;
+    private ZbankClient zBankClient;
 
     @Resource
     private PushRuleServiceImpl pushRuleService;
@@ -1067,9 +1067,9 @@ public class MethodRetryHandlerService {
      * @return 接口响应业务字段
      */
     @RetryMethod(retryNowNum = 1, isOrNoDbRetry = true)
-    public Result<ZBankResponse<ZBankLabelRatingReResultDTO>> pushZbankLabelRatingRe(JSONObject json
+    public Result<ZbankResponse<ZbankLabelRatingReResultDTO>> pushZbankLabelRatingRe(JSONObject json
             , Integer retry) {
-        Result<ZBankResponse<ZBankLabelRatingReResultDTO>> result = new Result<>();
+        Result<ZbankResponse<ZbankLabelRatingReResultDTO>> result = new Result<>();
         JSONObject jsonData = new JSONObject();
         jsonData.putAll(json);
         jsonData.remove("ids");
@@ -1091,10 +1091,10 @@ public class MethodRetryHandlerService {
             log.error(e.getMessage(), e);
             return result;
         }
-        ZBankResponse<ZBankLabelRatingReResultDTO> dto;
+        ZbankResponse<ZbankLabelRatingReResultDTO> dto;
         try {
             dto = JSONObject.parseObject(jsonStr
-                    , new TypeReference<ZBankResponse<ZBankLabelRatingReResultDTO>>() {
+                    , new TypeReference<ZbankResponse<ZbankLabelRatingReResultDTO>>() {
                     });
         } catch (Exception e) {
             log.error(e.getMessage() + "响应：" + jsonStr, e);
@@ -1102,7 +1102,7 @@ public class MethodRetryHandlerService {
             return result;
         }
         if ("000000".equals(dto.getCode())) {
-            ZBankLabelRatingReResultDTO result1 = dto.getResult();
+            ZbankLabelRatingReResultDTO result1 = dto.getResult();
             if ("00".equals(result1.getErrCd())) {
                 //重试成功后更新状态
                 if (retry != null) {

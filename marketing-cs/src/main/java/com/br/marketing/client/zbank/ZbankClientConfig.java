@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Lazy;
  */
 @Configuration
 @Slf4j
-public class ZBankClientConfig {
+public class ZbankClientConfig {
 
     @Value("${otherConfig.proxy.proxy_host:00}")
     private String proxyHost;
