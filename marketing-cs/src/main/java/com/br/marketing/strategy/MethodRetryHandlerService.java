@@ -1115,6 +1115,7 @@ public class MethodRetryHandlerService {
                 result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             } else {
                 result.setCode(ResultCode.FAIL.getValue());
+                log.error("武汉众邦银行推送标签评级接口未知错误,不会重试,响应：{}", jsonStr);
             }
         } else {
             log.error("武汉众邦银行推送标签评级接口异常,进入重试,响应：{},请求：{}", jsonStr, jsonData.toJSONString());
