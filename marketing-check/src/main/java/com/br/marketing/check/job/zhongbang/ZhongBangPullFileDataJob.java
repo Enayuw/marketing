@@ -83,7 +83,7 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
             return;
         }
         configMap.forEach((apiCode, v) -> {
-            List<String> dateStrList = getDateStrList(apiCode, paramJson, localDate);
+            List<String> dateStrList = getDateStrList(apiCode, paramJson);
             String dateStr = dateStrList.get(0);
             String beginDateTime = dateStrList.get(1);
             String endDateTime = dateStrList.get(2);
@@ -197,6 +197,10 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
      * 根据apiCode获取参数中的时间
      * 时间数组中index位置0为文件名称中拼接的日期(yyyyMMdd),1为查询文件的开始时间(yyyy-MM-dd HH:mm:ss),2为查询文件的结束时间(yyyy-MM-dd HH:mm:ss)
      */
+    private List<String> getDateStrList(String apiCode, JSONObject parameJson) {
+        return getDateStrList(apiCode, parameJson, LocalDate.now().minusDays(1).format(DateTimeFormatter.BASIC_ISO_DATE));
+    }
+
     private List<String> getDateStrList(String apiCode, JSONObject parameJson, String localDate) {
         List<String> list = new ArrayList<>();
         String dateStr;
@@ -208,7 +212,7 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
         String[] dateTimeStr;
         if (parameJson == null || (dateTimeStr = parameJson.getString(apiCode).split(regex)).length == 0) {
             dateStr = localDate;
-            beginDateTime = LocalDate.now().plusDays(-1).atStartOfDay().format(DATE_TIME_FORMATTER);
+            beginDateTime = LocalDate.now().atStartOfDay().format(DATE_TIME_FORMATTER);
             endDateTime = LocalDate.now().atTime(23, 59, 59)
                     .atZone(ZoneId.systemDefault()).format(DATE_TIME_FORMATTER);
         } else if (lengthIs3 == dateTimeStr.length) {
@@ -221,7 +225,7 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
             endDateTime = dateTimeStr[1];
         } else {
             dateStr = dateTimeStr[0];
-            beginDateTime = LocalDate.now().plusDays(-1).atStartOfDay().format(DATE_TIME_FORMATTER);
+            beginDateTime = LocalDate.now().atStartOfDay().format(DATE_TIME_FORMATTER);
             endDateTime = LocalDate.now().atTime(23, 59, 59)
                     .atZone(ZoneId.systemDefault()).format(DATE_TIME_FORMATTER);
         }
