@@ -1080,7 +1080,7 @@ public class MarketingCommonConfig {
     /**
      * 众邦银行拉取文件
      * 格式：{apiCode:{文件名称:表头}}
-     * 文件名称带扩展名时直接使用该名称
+     * 文件名称带扩展名时直接使用该名称,文件名最后一个字符为“_”时系统自动默认拼接日期
      * eg:{"3710027":[{"original_caifu_":"custNum,id,cell"},{"original_daikuan_":"custNum,id","transform_":"custNum,ifLogin1"}]}
      */
     private Map<String, List<Map<String, String>>> zhongBangPullFileDataConfigMap;
