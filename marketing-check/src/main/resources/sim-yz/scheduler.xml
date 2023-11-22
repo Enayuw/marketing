@@ -812,7 +812,7 @@
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="数据处理通用流程，每10分钟执行一次"
                 registry-center-ref="regCenter"
-                sharding-total-count="7"
+                sharding-total-count="9"
                 sharding-item-parameters="0=A"
                 monitor-execution="true"
                 failover="false"
