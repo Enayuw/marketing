@@ -431,7 +431,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         String timeStr = "10:00:00";
         if (LocalTime.now().isAfter(LocalTime.parse(timeStr))) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode()
-                    , "众邦转化数据推送到daas(单条)与外呼，推送时间已过“10点”,任务将继续执行...,apiCode:" + apiCode
+                    , "众邦转化数据推送到daas(单条)与外呼，推送时间已过“10点”,任务继续执行...,apiCode:" + apiCode
                     , "众邦转化数据推送daas(单条)与外呼告警"));
         }
     }
