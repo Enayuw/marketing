@@ -449,8 +449,8 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             List<FileInfo> sortedOkFiles = sortedFileCreateTime(okFiles);
             for (FileInfo okFile : sortedOkFiles) {
                 // 查询已经生成完成的文件
-                List<FileInfo> infos = zBankClient.queryFileList(okFile.getFileName().replace(
-                        okFileExtension, txtFileExtension), beginDate, endDate, 1);
+                String txtFileName = okFile.getFileName().replace(okFileExtension, txtFileExtension);
+                List<FileInfo> infos = zBankClient.queryFileList(txtFileName, beginDate, endDate, 1);
                 InputStream inputStream = null;
                 if (infos.size() > 0) {
                     List<FileInfo> sortedInfos = sortedFileCreateTime(infos);
@@ -468,6 +468,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         LocalFile localFileUpdate = new LocalFile();
                         localFileUpdate.setErrorActualNumber(0);
                         localFileUpdate.setPushNumber(0);
+                        localFileUpdate.setActualNumber(0);
                         localFileUpdate.setId(localFileNew.getId());
                         try {
                             inputStream = streamDownLoadInfo.getInputStream();
@@ -489,7 +490,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                 }
                                 saveFileData(fileDataList, 1, localFile, callables);
                                 List<Future<Integer>> futures = executor.invokeAll(callables);
-                                localFileUpdate.setPushNumber(lineNumberReader.getLineNumber());
+                                localFileUpdate.setActualNumber(lineNumberReader.getLineNumber());
                                 localFileUpdate.setSrcPath(fileInfo.getFileMd5());
                                 for (Future<Integer> future : futures) {
                                     try {
@@ -515,15 +516,19 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             if (localFileUpdate.getComplete() == null) {
                                 localFileUpdate.setComplete("1");
                             }
-                            setActualNumber(apiCode, localFileUpdate);
+                            setNumber(apiCode, localFileUpdate);
                             localFileMapper.updateByPrimaryKeySelective(localFileUpdate);
                             closeable(bufferedReader, isr, inputStream);
                             okFileDownLoad(okFile, filePath.concat(okFileExtension).concat("_"));
                         }
                     }
+                } else {
+                    log.warn("众邦财富({})在{}~{}时间段内没有查询到txt文件{}", apiCode, beginDate, endDate, txtFileName);
                 }
                 break;
             }
+        } else {
+            log.warn("众邦财富({})在{}~{}时间段内没有查询到ok文件{}", apiCode, beginDate, endDate, fileName);
         }
         return false;
     }
@@ -532,13 +537,13 @@ public class ZhongBangServiceImpl implements ZhongBangService {
      * 2023-11-22 10:56
      * 实际入库量
      */
-    private void setActualNumber(String apiCode, LocalFile localFileUpdate) {
+    private void setNumber(String apiCode, LocalFile localFileUpdate) {
         PullCustomerFileDataExample example = new PullCustomerFileDataExample();
         example.createCriteria().andApiCodeEqualTo(apiCode)
                 .andLocalFileIdEqualTo(localFileUpdate.getId())
                 .andDataStatusEqualTo(1);
         int i = pullCustomerFileDataMapper.countByExample(example);
-        localFileUpdate.setActualNumber(i);
+        localFileUpdate.setPushNumber(i);
     }
 
     /**
@@ -652,6 +657,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         localFile.setStatus("1");
         localFile.setComplete("3");
         localFile.setPushStatus("0");
+        localFile.setActualNumber(0);
         localFile.setPushNumber(0);
         localFile.setErrorActualNumber(0);
         // 众邦财富
