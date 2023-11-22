@@ -116,8 +116,10 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
                                 , tableHead, filePath.concat(fileNameNew).concat(File.separator), beginDateTime, endDateTime
                                 , threadPool);
                     } else {
-                        // 任务未完成已到截至时间,如果已存在文件记录，就标记任务完成了
+                        // 任务未完成但已到截至时间并且已存在文件记录，标记任务已完成
                         b = true;
+                        log.warn("众邦财富FileSDK文件下载任务未完成但已到截至时间并且已存在文件记录，标记任务已完成，当前文件为{}"
+                                , fileNameNew.concat(txtFileExtension));
                     }
                 }
                 if (b) {
