@@ -497,7 +497,6 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                     } catch (ExecutionException | TimeoutException e) {
                                         localFileUpdate.setSrcPath(null);
                                         localFileUpdate.setComplete("3");
-                                        localFileUpdate.setErrorActualNumber(localFileUpdate.getPushNumber() - errorSum);
                                         log.error(e.getMessage(), e);
                                     }
                                 }
@@ -516,6 +515,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             if (localFileUpdate.getComplete() == null) {
                                 localFileUpdate.setComplete("1");
                             }
+                            setActualNumber(apiCode, localFileUpdate);
                             localFileMapper.updateByPrimaryKeySelective(localFileUpdate);
                             closeable(bufferedReader, isr, inputStream);
                             okFileDownLoad(okFile, filePath.concat(okFileExtension).concat("_"));
@@ -526,6 +526,19 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             }
         }
         return false;
+    }
+
+    /**
+     * 2023-11-22 10:56
+     * 实际入库量
+     */
+    private void setActualNumber(String apiCode, LocalFile localFileUpdate) {
+        PullCustomerFileDataExample example = new PullCustomerFileDataExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode)
+                .andLocalFileIdEqualTo(localFileUpdate.getId())
+                .andDataStatusEqualTo(1);
+        int i = pullCustomerFileDataMapper.countByExample(example);
+        localFileUpdate.setActualNumber(i);
     }
 
     /**
@@ -660,7 +673,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         String[] rows;
         if (StringUtils.isBlank(lineTxt) || (rows = lineTxt.split(regex)).length != heads) {
             fileData.setDataStatus(2);
-            localFile.setComplete("3");
+            localFile.setComplete(StringUtils.isBlank(lineTxt) ? null : "3");
             localFile.setErrorActualNumber(localFile.getErrorActualNumber() + 1);
         } else {
             JSONObject jsonObject = new JSONObject();
@@ -668,11 +681,11 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 jsonObject.put(tableHead[i], rows[i]);
             }
             fileData.setJsonData(jsonObject.toJSONString());
+            fileData.setDataStatus(1);
         }
         fileData.setFileData(lineTxt);
         fileData.setApiCode(apiCode);
         fileData.setDataFingerprint(MD5Utils.cell32(lineTxt));
-        fileData.setDataStatus(1);
         fileData.setLocalFileId(localFile.getId());
         fileData.setCreateDate(LocalDate.now().toString());
         fileData.setCreateTime(new Date());
