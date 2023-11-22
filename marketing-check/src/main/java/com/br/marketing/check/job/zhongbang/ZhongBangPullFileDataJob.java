@@ -198,7 +198,8 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
      * 时间数组中index位置0为文件名称中拼接的日期(yyyyMMdd),1为查询文件的开始时间(yyyy-MM-dd HH:mm:ss),2为查询文件的结束时间(yyyy-MM-dd HH:mm:ss)
      */
     private List<String> getDateStrList(String apiCode, JSONObject parameJson) {
-        return getDateStrList(apiCode, parameJson, LocalDate.now().minusDays(1).format(DateTimeFormatter.BASIC_ISO_DATE));
+        int day = marketingCommonConfig.getZhongBangPullFileDataDay();
+        return getDateStrList(apiCode, parameJson, LocalDate.now().plusDays(day).format(DateTimeFormatter.BASIC_ISO_DATE));
     }
 
     private List<String> getDateStrList(String apiCode, JSONObject parameJson, String localDate) {
