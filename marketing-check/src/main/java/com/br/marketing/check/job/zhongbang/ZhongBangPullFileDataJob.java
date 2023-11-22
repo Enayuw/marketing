@@ -110,11 +110,12 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
                     return;
                 } else {
                     id = frontData.getId();
-                    if (LocalTime.now().isBefore(repeatPullAsOfTime) || getLocalFileCount(apiCode, cId, fileNameNew.concat(txtFileExtension)) < 1) {
+                    if (LocalTime.now().isBefore(repeatPullAsOfTime)
+                            || getLocalFileCount(apiCode, cId, fileNameNew.concat(txtFileExtension)) < 1) {
                         // 任务未完成且没有到截至时间
-                        b = zhongBangService.zhongBangFileQueryAndDownload(apiCode, cId, fileNameNew.concat(okFileExtension)
-                                , tableHead, filePath.concat(fileNameNew).concat(File.separator), beginDateTime, endDateTime
-                                , threadPool);
+                        b = zhongBangService.zhongBangFileQueryAndDownload(apiCode, cId
+                                , fileNameNew.concat(okFileExtension), tableHead, filePath.concat(fileNameNew)
+                                        .concat(File.separator), beginDateTime, endDateTime, threadPool);
                     } else {
                         // 任务未完成但已到截至时间并且已存在文件记录，标记任务已完成
                         b = true;
@@ -146,16 +147,21 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
      * 2023-11-18 17:49
      * 任务执行的默认参数
      */
-    private Map<String, LinkedHashMap<String, String>> zhongBangPullFileDataConfigDefault(Map<String, List<Map<String, String>>> zhongBangPullFileDataConfigMap) {
+    private Map<String, LinkedHashMap<String, String>> zhongBangPullFileDataConfigDefault(
+            Map<String, List<Map<String, String>>> zhongBangPullFileDataConfigMap) {
         Map<String, LinkedHashMap<String, String>> map = new HashMap<>(4);
         LinkedHashMap<String, String> linkedHashMap = new LinkedHashMap<>();
         if (zhongBangPullFileDataConfigMap == null) {
             linkedHashMap.put("original_caifu_"
-                    , "custNum|@|id|@|cell|@|name|@|gender|@|age|@|region|@|registerTime|@|ifRegister|@|ifApply|@|ifLogin|@|loginTime|@|applyResult|@|productStartTime|@|productEndTime|@|ifApplyAmount|@|ifLent|@|userType");
+                    , "custNum|@|id|@|cell|@|name|@|gender|@|age|@|region|@|registerTime|@|ifRegister|@|ifApply"
+                            + "|@|ifLogin|@|loginTime|@|applyResult|@|productStartTime|@|productEndTime|@|ifApplyAmount"
+                            + "|@|ifLent|@|userType");
             linkedHashMap.put("original_daikuan_"
-                    , "custNum|@|id|@|cell|@|name|@|gender|@|age|@|region|@|registerTime|@|ifRegister|@|ifApply|@|ifLogin|@|loginTime|@|userType");
+                    , "custNum|@|id|@|cell|@|name|@|gender|@|age|@|region|@|registerTime|@|ifRegister|@|ifApply"
+                            + "|@|ifLogin|@|loginTime|@|userType");
             linkedHashMap.put("transform_"
-                    , "custNum|@|ifLogin1|@|ifApply1|@|applyTime|@|applyproductName|@|applyAmount|@|ifLent1|@|lentTime|@|lentAmount|@|pushTime|@|userType");
+                    , "custNum|@|ifLogin1|@|ifApply1|@|applyTime|@|applyproductName|@|applyAmount|@|ifLent1|@|lentTime"
+                            + "|@|lentAmount|@|pushTime|@|userType");
             map.put("3710099", linkedHashMap);
         } else {
             zhongBangPullFileDataConfigMap.forEach((k, l) -> {
@@ -197,7 +203,8 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
     /**
      * 2023-11-18 17:47
      * 根据apiCode获取参数中的时间
-     * 时间数组中index位置0为文件名称中拼接的日期(yyyyMMdd),1为查询文件的开始时间(yyyy-MM-dd HH:mm:ss),2为查询文件的结束时间(yyyy-MM-dd HH:mm:ss)
+     * 时间数组中index位置0为文件名称中拼接的日期(yyyyMMdd),1为查询文件的开始时间(yyyy-MM-dd HH:mm:ss)
+     * ,2为查询文件的结束时间(yyyy-MM-dd HH:mm:ss)
      */
     private List<String> getDateStrList(String apiCode, JSONObject paramJson) {
         int day = marketingCommonConfig.getZhongBangPullFileDataDay();
