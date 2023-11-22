@@ -197,12 +197,16 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
      * 根据apiCode获取参数中的时间
      * 时间数组中index位置0为文件名称中拼接的日期(yyyyMMdd),1为查询文件的开始时间(yyyy-MM-dd HH:mm:ss),2为查询文件的结束时间(yyyy-MM-dd HH:mm:ss)
      */
-    private List<String> getDateStrList(String apiCode, JSONObject parameJson) {
+    private List<String> getDateStrList(String apiCode, JSONObject paramJson) {
         int day = marketingCommonConfig.getZhongBangPullFileDataDay();
-        return getDateStrList(apiCode, parameJson, LocalDate.now().plusDays(day).format(DateTimeFormatter.BASIC_ISO_DATE));
+        return getDateStrList(apiCode, paramJson, LocalDate.now().plusDays(day).format(DateTimeFormatter.BASIC_ISO_DATE));
     }
 
-    private List<String> getDateStrList(String apiCode, JSONObject parameJson, String localDate) {
+    /**
+     * 2023-11-22 15:31
+     * 获取文件名中的日期及查询范围
+     */
+    private List<String> getDateStrList(String apiCode, JSONObject paramJson, String localDate) {
         List<String> list = new ArrayList<>();
         String dateStr;
         String beginDateTime;
@@ -211,7 +215,7 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
         int lengthIs3 = 3;
         int lengthIs2 = 2;
         String[] dateTimeStr;
-        if (parameJson == null || (dateTimeStr = parameJson.getString(apiCode).split(regex)).length == 0) {
+        if (paramJson == null || (dateTimeStr = paramJson.getString(apiCode).split(regex)).length == 0) {
             dateStr = localDate;
             beginDateTime = LocalDate.now().atStartOfDay().format(DATE_TIME_FORMATTER);
             endDateTime = LocalDate.now().atTime(23, 59, 59)
