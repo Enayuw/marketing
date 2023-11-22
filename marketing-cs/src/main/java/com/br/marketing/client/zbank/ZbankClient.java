@@ -80,7 +80,7 @@ public class ZbankClient {
 
     /**
      * 2023-11-08 19:42
-     * api调用
+     * api调用，记录接口日志
      */
     public String apiCall(Object obj, String serviceId, String requestId) throws Exception {
         String jsonString = apiCall(obj, serviceId);
