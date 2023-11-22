@@ -25,7 +25,6 @@ import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PullCustomerFileDataMapper;
 import com.br.marketing.service.Impl.PhoneSaleExtendServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
-import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.ArtificialRealTimeUserAndCustomerTransferSoleFacade;
@@ -90,9 +89,6 @@ public class ZhongBangServiceImpl implements ZhongBangService {
 
     @Resource
     private ZbankClient zBankClient;
-
-    @Resource
-    private SyncConfigService syncConfigService;
 
     @Resource
     private PullCustomerFileDataMapper pullCustomerFileDataMapper;
