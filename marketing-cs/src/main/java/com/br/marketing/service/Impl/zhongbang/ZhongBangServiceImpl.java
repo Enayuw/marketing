@@ -55,7 +55,11 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -472,7 +476,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             File file = downLoadFile(inputStream, filePath.concat(txtFileExtension).concat("_"), fileInfo);
                             isr = getInputStreamReader(file, inputStream, fileInfo);
                             if (isr != null) {
-                                int errorSum = 0;
+                                AtomicInteger errorSum = new AtomicInteger(0);
                                 bufferedReader = new BufferedReader(isr);
                                 LineNumberReader lineNumberReader = new LineNumberReader(bufferedReader);
                                 String lineTxt;
@@ -480,30 +484,17 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                 List<Callable<Integer>> callables = new ArrayList<>();
                                 while ((lineTxt = lineNumberReader.readLine()) != null) {
                                     fileDataList.add(newFileData(lineTxt, apiCode, tableHeads, heads, regex, localFileUpdate));
-                                    if (saveFileData(fileDataList, 2000, localFile, callables)) {
+                                    if (saveFileData(fileDataList, 1000, localFile, executor, errorSum)) {
                                         fileDataList = new ArrayList<>();
                                     }
                                 }
-                                saveFileData(fileDataList, 1, localFile, callables);
-                                List<Future<Integer>> futures = executor.invokeAll(callables);
+                                saveFileData(fileDataList, 1, localFile, executor, errorSum);
                                 localFileUpdate.setActualNumber(lineNumberReader.getLineNumber());
                                 localFileUpdate.setSrcPath(fileInfo.getFileMd5());
-                                for (Future<Integer> future : futures) {
-                                    try {
-                                        errorSum += future.get(10, TimeUnit.SECONDS);
-                                    } catch (ExecutionException | TimeoutException e) {
-                                        localFileUpdate.setSrcPath(null);
-                                        localFileUpdate.setComplete("3");
-                                        log.error(e.getMessage(), e);
-                                    }
-                                }
-                                return errorSum == 0;
+                                return errorSum.get() == 0;
                             }
                             return false;
-                        } catch (IOException | SDKException | InterruptedException e) {
-                            if (e instanceof InterruptedException) {
-                                Thread.currentThread().interrupt();
-                            }
+                        } catch (IOException | SDKException e) {
                             log.error(e.getMessage(), e);
                             return false;
                         } finally {
@@ -702,6 +693,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
      * 2023-11-20 9:47
      * 批量保存
      */
+    @Deprecated
     private boolean saveFileData(List<PullCustomerFileData> fileDataList, int saveSize, LocalFile localFile
             , List<Callable<Integer>> callables) {
         if (fileDataList.size() >= saveSize) {
@@ -722,6 +714,39 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                     }
                 }
                 return fileDataList.size();
+            });
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 2023-11-20 9:47
+     * 批量保存
+     */
+    private boolean saveFileData(List<PullCustomerFileData> fileDataList, int saveSize, LocalFile localFile
+            , ExecutorService executor, AtomicInteger errorSum) {
+        if (fileDataList.size() >= saveSize) {
+            executor.execute(() -> {
+                if (localFile != null) {
+                    Set<String> dataFingerprintSet = pullCustomerFileDataMapper.getDataFingerprintSet(localFile.getId()
+                            , fileDataList);
+                    if (dataFingerprintSet.size() == fileDataList.size()) {
+                        return;
+                    }
+                    fileDataList.removeIf(f -> dataFingerprintSet.contains(f.getDataFingerprint()));
+                }
+                if (fileDataList.size() > 0) {
+                    int i = pullCustomerFileDataMapper.insertBatchSelective(fileDataList);
+                    if (i > 0) {
+                        fileDataList.clear();
+                        return;
+                    }
+                    log.error("众邦财富数据入库失败！localFile:{},数据指纹集合{}"
+                            , fileDataList.get(0).getLocalFileId()
+                            , fileDataList.stream().map(PullCustomerFileData::getDataFingerprint).toArray());
+                }
+                errorSum.addAndGet(fileDataList.size());
             });
             return true;
         }
@@ -758,7 +783,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         File parentFile = f.getParentFile();
         if (!parentFile.exists()) {
             if (!parentFile.mkdirs()) {
-                log.error("众邦银行拉取文件目录创建失败，path:{},name:{}", parentFile.getAbsolutePath()
+                log.error("众邦财富拉取文件目录创建失败，path:{},name:{}", parentFile.getAbsolutePath()
                         , fileInfo.getFileName());
                 return null;
             }
@@ -773,7 +798,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 position += channel.transferFrom(readableByteChannel, position
                         , (count = (position + (1024 << 10))) > fileSize ? fileSize : count);
                 channel.force(false);
-                log.warn("###众邦银行文件{}下载进度{}/{}：{}%", fileInfo.getFileName(), position, fileSize
+                log.warn("###众邦财富文件{}下载进度{}/{}：{}%", fileInfo.getFileName(), position, fileSize
                         , (position * 100 / fileSize));
             }
         } catch (IOException e) {
@@ -822,7 +847,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         if (localMd5.equals(fileInfo.getFileMd5())) {
             return true;
         }
-        log.error("众邦银行文件{}下载完成后md5不一致，resultMd5={}, localMd5={}", fileInfo.getFileName()
+        log.error("众邦财富文件{}下载完成后md5不一致，resultMd5={}, localMd5={}", fileInfo.getFileName()
                 , fileInfo.getFileMd5(), localMd5);
         return false;
     }

@@ -110,16 +110,19 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
                     return;
                 } else {
                     id = frontData.getId();
-                    if (LocalTime.now().isBefore(repeatPullAsOfTime)
-                            || getLocalFileCount(apiCode, cId, fileNameNew.concat(txtFileExtension)) < 1) {
+                    boolean before = LocalTime.now().isBefore(repeatPullAsOfTime);
+                    if (before || getLocalFileCount(apiCode, cId, fileNameNew.concat(txtFileExtension)) < 1) {
                         // 任务未完成且没有到截至时间
                         b = zhongBangService.zhongBangFileQueryAndDownload(apiCode, cId
                                 , fileNameNew.concat(okFileExtension), tableHead, filePath.concat(fileNameNew)
                                         .concat(File.separator), beginDateTime, endDateTime, threadPool);
+                        if (!before) {
+                            log.error("众邦财富FileSDK文件下载任务未拉取到文件{}！", fileNameNew.concat(txtFileExtension));
+                        }
                     } else {
                         // 任务未完成但已到截至时间并且已存在文件记录，标记任务已完成
                         b = true;
-                        log.warn("众邦财富FileSDK文件下载任务未完成但已到截至时间并且已存在文件记录，标记任务已完成，当前文件为{}"
+                        log.error("众邦财富FileSDK文件下载任务未完成但已到截至时间并且已存在文件记录，标记任务已完成，当前文件为{}"
                                 , fileNameNew.concat(txtFileExtension));
                     }
                 }
