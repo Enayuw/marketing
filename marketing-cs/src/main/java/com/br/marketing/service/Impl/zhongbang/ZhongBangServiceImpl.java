@@ -678,11 +678,14 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             localFile.setComplete(StringUtils.isBlank(lineTxt) ? null : "3");
             localFile.setErrorActualNumber(localFile.getErrorActualNumber() + 1);
         } else {
-            JSONObject jsonObject = new JSONObject();
-            for (int i = 0; i < heads; i++) {
-                jsonObject.put(tableHead[i], rows[i]);
+            try {
+                JSONObject jsonObject = new JSONObject();
+                for (int i = 0; i < heads; i++) {
+                    jsonObject.put(tableHead[i], rows[i]);
+                }
+                fileData.setJsonData(jsonObject.toJSONString());
+            } catch (Exception ignored) {
             }
-            fileData.setJsonData(jsonObject.toJSONString());
             fileData.setDataStatus(1);
         }
         fileData.setFileData(lineTxt);
