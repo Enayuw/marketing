@@ -793,9 +793,13 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             long position = 0;
             long fileSize = fileInfo.getFileSize().longValue();
             while (position < fileSize) {
-                long count;
-                position += channel.transferFrom(readableByteChannel, position
+                final long count;
+                final long bytesCopied = channel.transferFrom(readableByteChannel, position
                         , (count = (position + (1024 << 10))) > fileSize ? fileSize : count);
+                if (bytesCopied == 0) { // 确保我们不会永远循环
+                    break;
+                }
+                position += bytesCopied;
                 channel.force(false);
                 log.warn("###众邦财富文件{}下载进度{}/{}：{}%", fileInfo.getFileName(), position, fileSize
                         , (position * 100 / fileSize));
