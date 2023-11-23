@@ -156,7 +156,7 @@ public class TransferToFileByZhongBangServiceImpl implements ITransferToFileServ
         syncUser.setRequestData(requestDate);
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(2, 2, 1);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
         Integer pageSize = dynamicParameterService.getPageSize(null);
         for (; ; ) {
             List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper.findTransferByApiCodeAndCreateTimePage(syncUser, null, null, null, page * pageSize, pageSize);
