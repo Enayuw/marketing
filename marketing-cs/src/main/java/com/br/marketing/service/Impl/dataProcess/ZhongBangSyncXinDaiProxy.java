@@ -84,7 +84,7 @@ public class ZhongBangSyncXinDaiProxy extends UploadDataProxy {
         } else if ("男".equals(gender)) {
             reserveField1.put("gender", "1");
         } else {
-            reserveField1.put("gender", "");
+            reserveField1.put("gender", gender);
             log.error("众邦转化数据清洗,字段:gender,枚举非男女,id:{}", data.getId());
         }
 
