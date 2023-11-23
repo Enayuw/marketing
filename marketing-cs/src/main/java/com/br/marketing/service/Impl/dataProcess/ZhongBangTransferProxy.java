@@ -53,7 +53,7 @@ public class ZhongBangTransferProxy extends UploadDataProxy {
 
         // 判断是否有尾量数据没落到明细表。判断条件：T-1日到T日，防止跨天传输判断有误
         String CreateTimeDate = LocalDateTime.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String recordDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String recordDate = LocalDateTime.now().plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         int goingSize = marketingSyncInfoMapper.getUnresolvedCount(apiCode, CreateTimeDate, recordDate);
         if (goingSize > 0) {
             log.warn("众邦数据清洗，上传数据文件还有尾量数据没有落库完成，转化数据文件需要等待。上传数据待完成量级：{}", goingSize);
