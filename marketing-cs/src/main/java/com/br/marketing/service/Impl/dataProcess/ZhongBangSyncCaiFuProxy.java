@@ -9,6 +9,7 @@ import com.br.marketing.entity.PullCustomerFileData;
 import com.br.marketing.entity.dataProcess.DataProcessingConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -40,69 +41,15 @@ public class ZhongBangSyncCaiFuProxy extends UploadDataProxy {
 
         List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
         for (PullCustomerFileData data : customerFileDataList) {
-            List<String> dataList = new ArrayList<>(Arrays.asList(data.getFileData().split(Pattern.quote(dataSplit), -1)));
-
-            MarketingPreUserDetailDTO syncUser = new MarketingPreUserDetailDTO();
-            JSONObject reserveField1 = new JSONObject();
-            // dataItems
-            syncUser.setCell(dataList.get(header.indexOf("cell")));
-            syncUser.setName(dataList.get(header.indexOf("name")));
-            syncUser.setId(dataList.get(header.indexOf("id")));
-            syncUser.setCustNum(dataList.get(header.indexOf("custNum")).trim());
-
-
-            // reserveField1
-            // original_caifu_yyyymmdd对应1
-            reserveField1.put("userType", "1");
-
-            String gender = dataList.get(header.indexOf("gender"));
-            if ("女".equals(gender)) {
-                reserveField1.put("gender", "0");
-            } else if ("男".equals(gender)) {
-                reserveField1.put("gender", "1");
-            } else {
-                reserveField1.put("gender", "");
-                log.error("众邦转化数据清洗,字段:gender,枚举非男女,id:{}", data.getId());
+            try {
+                single(header, dataSplit, syncUsers, data);
+            } catch (Exception e) {
+                log.error("众邦上传数据清洗（财富），客户数据处理异常，数据表id：{}", data.getId());
             }
+        }
 
-            String ifRegister = dataList.get(header.indexOf("ifRegister"));
-            reserveField1.put("ifRegister", ifRegister);
-
-            String registerTime = dataList.get(header.indexOf("registerTime"));
-            reserveField1.put("registerTime", registerTime);
-
-            String ifLogin = dataList.get(header.indexOf("ifLogin"));
-            reserveField1.put("ifLogin", ifLogin);
-
-            String loginTime = dataList.get(header.indexOf("loginTime"));
-            reserveField1.put("loginTime", loginTime);
-
-            String ifApply = dataList.get(header.indexOf("ifApply"));
-            reserveField1.put("ifApply", ifApply);
-
-            String applyResult = dataList.get(header.indexOf("applyResult"));
-            reserveField1.put("applyResult", applyResult);
-
-            String ifLent = dataList.get(header.indexOf("ifLent"));
-            reserveField1.put("ifLent", ifLent);
-
-            String age = dataList.get(header.indexOf("age"));
-            reserveField1.put("age", age);
-
-            String region = dataList.get(header.indexOf("region"));
-            reserveField1.put("region", region);
-
-            String productStartTime = dataList.get(header.indexOf("productStartTime"));
-            reserveField1.put("productStartTime", productStartTime);
-
-            String productEndTime = dataList.get(header.indexOf("productEndTime"));
-            reserveField1.put("productEndTime", productEndTime);
-
-            String ifApplyAmount = dataList.get(header.indexOf("ifApplyAmount"));
-            reserveField1.put("ifApplyAmount", ifApplyAmount);
-
-            syncUser.setReserveField1(reserveField1.toJSONString());
-            syncUsers.add(syncUser);
+        if (CollectionUtils.isEmpty(syncUsers)) {
+            return null;
         }
 
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -118,6 +65,72 @@ public class ZhongBangSyncCaiFuProxy extends UploadDataProxy {
         uploadDataDTO.setApiCode(apiCode);
         uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
         return uploadDataDTO;
+    }
+
+    private void single(List<String> header, String dataSplit, List<MarketingPreUserDetailDTO> syncUsers, PullCustomerFileData data) {
+        List<String> dataList = new ArrayList<>(Arrays.asList(data.getFileData().split(Pattern.quote(dataSplit), -1)));
+
+        MarketingPreUserDetailDTO syncUser = new MarketingPreUserDetailDTO();
+        JSONObject reserveField1 = new JSONObject();
+        // dataItems
+        syncUser.setCell(dataList.get(header.indexOf("cell")));
+        syncUser.setName(dataList.get(header.indexOf("name")));
+        syncUser.setId(dataList.get(header.indexOf("id")));
+        syncUser.setCustNum(dataList.get(header.indexOf("custNum")).trim());
+
+
+        // reserveField1
+        // original_caifu_yyyymmdd对应1
+        reserveField1.put("userType", "1");
+
+        String gender = dataList.get(header.indexOf("gender"));
+        if ("女".equals(gender)) {
+            reserveField1.put("gender", "0");
+        } else if ("男".equals(gender)) {
+            reserveField1.put("gender", "1");
+        } else {
+            reserveField1.put("gender", "");
+            log.error("众邦转化数据清洗,字段:gender,枚举非男女,id:{}", data.getId());
+        }
+
+        String ifRegister = dataList.get(header.indexOf("ifRegister"));
+        reserveField1.put("ifRegister", ifRegister);
+
+        String registerTime = dataList.get(header.indexOf("registerTime"));
+        reserveField1.put("registerTime", registerTime);
+
+        String ifLogin = dataList.get(header.indexOf("ifLogin"));
+        reserveField1.put("ifLogin", ifLogin);
+
+        String loginTime = dataList.get(header.indexOf("loginTime"));
+        reserveField1.put("loginTime", loginTime);
+
+        String ifApply = dataList.get(header.indexOf("ifApply"));
+        reserveField1.put("ifApply", ifApply);
+
+        String applyResult = dataList.get(header.indexOf("applyResult"));
+        reserveField1.put("applyResult", applyResult);
+
+        String ifLent = dataList.get(header.indexOf("ifLent"));
+        reserveField1.put("ifLent", ifLent);
+
+        String age = dataList.get(header.indexOf("age"));
+        reserveField1.put("age", age);
+
+        String region = dataList.get(header.indexOf("region"));
+        reserveField1.put("region", region);
+
+        String productStartTime = dataList.get(header.indexOf("productStartTime"));
+        reserveField1.put("productStartTime", productStartTime);
+
+        String productEndTime = dataList.get(header.indexOf("productEndTime"));
+        reserveField1.put("productEndTime", productEndTime);
+
+        String ifApplyAmount = dataList.get(header.indexOf("ifApplyAmount"));
+        reserveField1.put("ifApplyAmount", ifApplyAmount);
+
+        syncUser.setReserveField1(reserveField1.toJSONString());
+        syncUsers.add(syncUser);
     }
 
     private void handleYesOrNo(JSONObject reserveField1, String fieldName, String value) {

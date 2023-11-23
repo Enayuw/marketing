@@ -11,6 +11,7 @@ import com.br.marketing.entity.PullCustomerFileData;
 import com.br.marketing.entity.dataProcess.DataProcessingConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -71,37 +72,15 @@ public class ZhongBangTransferProxy extends UploadDataProxy {
 
         List<TransferDataItemDTO> dataItems = new ArrayList<>();
         for (PullCustomerFileData data : customerFileDataList) {
-            List<String> dataList = new ArrayList<>(Arrays.asList(data.getFileData().split(Pattern.quote(dataSplit), -1)));
+            try {
+                single(config, header, dataSplit, dataItems, data);
+            } catch (Exception e) {
+                log.error("众邦转化数据清洗，客户数据处理异常，数据表id：{}", data.getId());
+            }
+        }
 
-            TransferDataItemDTO transferData = new TransferDataItemDTO();
-            JSONObject reserveField1 = new JSONObject();
-
-            // dataItems
-            // custNum
-            transferData.setCustNum(dataList.get(header.indexOf("custNum")).trim());
-            // loginTime
-            transferData.setLoginTime(dataList.get(header.indexOf("loginTime")));
-            // ifApply
-            transferData.setIfApply(dataList.get(header.indexOf("ifApply")));
-            // applyTime
-            transferData.setApplyTime(dataList.get(header.indexOf("applyTime")));
-            // ifLent
-            transferData.setIfLent(dataList.get(header.indexOf("ifLent1")));
-            // lentTime
-            transferData.setLentTime(dataList.get(header.indexOf("lentTime")));
-            // lentAmount
-            transferData.setLentAmount(dataList.get(header.indexOf("lentAmount")));
-            // userType
-            transferData.setUserType(dataList.get(header.indexOf("userType")));
-
-            // reserveField1
-            reserveField1.put("applyproductName", dataList.get(header.indexOf("applyproductName")));
-            reserveField1.put("pushTime", dataList.get(header.indexOf("pushTime")));
-            reserveField1.put("applyAmount", dataList.get(header.indexOf("applyAmount")));
-            reserveField1.put("fileName", config.getLocalFile().getFileName());
-
-            transferData.setReserveField1(reserveField1.toJSONString());
-            dataItems.add(transferData);
+        if (CollectionUtils.isEmpty(dataItems)) {
+            return null;
         }
 
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -116,5 +95,40 @@ public class ZhongBangTransferProxy extends UploadDataProxy {
         uploadDataDTO.setApiCode(apiCode);
         uploadDataDTO.setJsonData(JSON.toJSONString(transferDataDTO));
         return uploadDataDTO;
+    }
+
+    private void single(DataProcessingConfig config, List<String> header, String dataSplit, List<TransferDataItemDTO> dataItems,
+                                  PullCustomerFileData data) {
+        List<String> dataList = new ArrayList<>(Arrays.asList(data.getFileData().split(Pattern.quote(dataSplit), -1)));
+
+        TransferDataItemDTO transferData = new TransferDataItemDTO();
+        JSONObject reserveField1 = new JSONObject();
+
+        // dataItems
+        // custNum
+        transferData.setCustNum(dataList.get(header.indexOf("custNum")).trim());
+        // loginTime
+        transferData.setLoginTime(dataList.get(header.indexOf("loginTime")));
+        // ifApply
+        transferData.setIfApply(dataList.get(header.indexOf("ifApply")));
+        // applyTime
+        transferData.setApplyTime(dataList.get(header.indexOf("applyTime")));
+        // ifLent
+        transferData.setIfLent(dataList.get(header.indexOf("ifLent1")));
+        // lentTime
+        transferData.setLentTime(dataList.get(header.indexOf("lentTime")));
+        // lentAmount
+        transferData.setLentAmount(dataList.get(header.indexOf("lentAmount")));
+        // userType
+        transferData.setUserType(dataList.get(header.indexOf("userType")));
+
+        // reserveField1
+        reserveField1.put("applyproductName", dataList.get(header.indexOf("applyproductName")));
+        reserveField1.put("pushTime", dataList.get(header.indexOf("pushTime")));
+        reserveField1.put("applyAmount", dataList.get(header.indexOf("applyAmount")));
+        reserveField1.put("fileName", config.getLocalFile().getFileName());
+
+        transferData.setReserveField1(reserveField1.toJSONString());
+        dataItems.add(transferData);
     }
 }
