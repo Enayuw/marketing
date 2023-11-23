@@ -98,7 +98,7 @@ otherConfig:
         pageSize: 5000
         apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
         path: /opt/data/inloan/download/warning/
-        ftpHost: 192.168.188.120
+        ftpHost: 10.100.188.120
         ftpPort: 21
         ftpUsername: dev_web
         ftpPwd: 0tMKa8jf@8zg

@@ -102,10 +102,10 @@ otherConfig:
         path: /opt/data/inloan/download/marketing/
         ruleList: Rule_W_SpecialList_c_mix_c,Rule_W_InfoRelation_mix_c,Rule_W_ApplyLoanStr_mix_c,Rule_W_ApplyLoanUsury_mix,Rule_W_ExecutionLimited_mix
         ftpBasePath: /dp_mkplat/
-        ftpHost: 192.168.188.120
+        ftpHost: 10.100.188.120
         ftpPort: 21
         ftpUsername: dp_mkplat_r
-        ftpPwd: 80uoC1ErhqdPyk9GTPNF@_2022.08.08
+        ftpPwd: 9nW3Dk47HlS0@_2022.08.03
         sftpHost: brsftp.brapp.com
         sftpPort: 9999
         sftpUser: BRmarketing
