@@ -102,6 +102,11 @@ public class BackendTransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByXieChengServiceImpl transferToFileByXieChengService;
     /**
+     * 携程新场景
+     */
+    @Resource
+    private NewTransferToFileByXieChengServiceImpl newTransferToFileByXieChengService;
+    /**
      * 拍拍贷老客
      */
     @Resource
@@ -133,6 +138,12 @@ public class BackendTransferFileTaskJob extends AbstractSimpleElasticJob {
      */
     @Resource
     private TransferToFileByYonghuiServiceImpl transferToFileByYonghuiService;
+
+    /**
+     * 众邦财富
+     */
+    @Resource
+    private TransferToFileByZhongBangServiceImpl transferToFileByZhongBangService;
 
 
     @Override
@@ -225,6 +236,8 @@ public class BackendTransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByZhongAnService, marketingCommonConfig.getZhongAnTransferApiCodes())
                 // 携程转化数据提取
                 .addBind(transferToFileByXieChengService, marketingCommonConfig.getXieChengTransferApiCodes())
+                // 携程新场景转化数据提取
+                .addBind(newTransferToFileByXieChengService, marketingCommonConfig.getXieChengNewTransferApiCodes())
                 // 拍拍贷老客转人工数据提取
                 .addBind(transferToFileByPPDOldService, marketingCommonConfig.getPPDOldTransferFileApiCodes())
                 // 桔子转化数据提取
@@ -236,6 +249,8 @@ public class BackendTransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByGomeService, marketingCommonConfig.getGomeApiCodes())
                 // 永辉转化数据提取
                 .addBind(transferToFileByYonghuiService, marketingCommonConfig.getYonghuiTransferExtractApiCodes())
+                // 众邦财富转换数据提取
+                .addBind(transferToFileByZhongBangService, marketingCommonConfig.getZhongBangTransferApiCodes())
                 // 滴滴转化数据提取
                 .addBind(transferToFileByDiDiService,marketingCommonConfig.getDidiApiCodes())
                 .build();
