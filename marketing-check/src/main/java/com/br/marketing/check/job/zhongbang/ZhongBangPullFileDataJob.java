@@ -134,8 +134,9 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
                     log.warn("众邦财富FileSDK文件下载任务等待入库任务结束，预估还有任务{}", threadPool.getTaskCount());
                 }
             } catch (InterruptedException e) {
+                List<Runnable> runnables = threadPool.shutdownNow();
                 Thread.currentThread().interrupt();
-                log.error(e.getMessage(), e);
+                log.error(e.getMessage() + "还在运行的任务数:" + runnables.size(), e);
             }
         });
         long end = System.currentTimeMillis();
