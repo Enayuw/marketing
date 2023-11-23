@@ -481,7 +481,6 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                 LineNumberReader lineNumberReader = new LineNumberReader(bufferedReader);
                                 String lineTxt;
                                 List<PullCustomerFileData> fileDataList = new ArrayList<>();
-                                List<Callable<Integer>> callables = new ArrayList<>();
                                 while ((lineTxt = lineNumberReader.readLine()) != null) {
                                     fileDataList.add(newFileData(lineTxt, apiCode, tableHeads, heads, regex, localFileUpdate));
                                     if (saveFileData(fileDataList, 1000, localFile, executor, errorSum)) {
