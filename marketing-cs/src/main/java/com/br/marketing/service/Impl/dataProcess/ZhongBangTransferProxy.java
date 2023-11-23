@@ -5,8 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
-import com.br.marketing.entity.LocalFile;
-import com.br.marketing.entity.LocalFileExample;
 import com.br.marketing.entity.PullCustomerFileData;
 import com.br.marketing.entity.dataProcess.DataProcessingConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,39 +27,6 @@ import java.util.regex.Pattern;
 @Component
 @Slf4j
 public class ZhongBangTransferProxy extends UploadDataProxy {
-    public static final String ORIGINAL_CAIFU = "original_caifu_";
-    public static final String ORIGINAL_DAIKUAN = "original_daikuan_";
-
-    @Override
-    public Boolean canStart(DataProcessingConfig config) {
-        String apiCode = config.getApiCode();
-        // 判断是否有待处理的上传数据文件，有则返回false
-        LocalFileExample localFileExample = new LocalFileExample();
-        LocalFileExample.Criteria criteria = localFileExample.createCriteria();
-        criteria.andApiCodeEqualTo(apiCode).andPushStatusNotEqualTo("2").andFileNameLike(ORIGINAL_CAIFU + "%");
-
-        LocalFileExample.Criteria orCriteria = localFileExample.createCriteria();
-        orCriteria.andApiCodeEqualTo(apiCode).andPushStatusNotEqualTo("2").andFileNameLike(ORIGINAL_DAIKUAN + "%");
-
-        localFileExample.or(orCriteria);
-        List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
-        if (localFiles.size() > 0) {
-            log.warn("众邦数据清洗，上传数据文件还没有落库完成，转化数据文件需要等待");
-            return false;
-        }
-
-        // 判断是否有尾量数据没落到明细表。判断条件：T-1日到T日，防止跨天传输判断有误
-        String CreateTimeDate = LocalDateTime.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String recordDate = LocalDateTime.now().plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        int goingSize = marketingSyncInfoMapper.getUnresolvedCount(apiCode, CreateTimeDate, recordDate);
-        if (goingSize > 0) {
-            log.warn("众邦数据清洗，上传数据文件还有尾量数据没有落库完成，转化数据文件需要等待。上传数据待完成量级：{}", goingSize);
-            return false;
-        }
-
-        return true;
-    }
-
     @Override
     Object subAssembleData(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config) {
         String apiCode = config.getApiCode();
