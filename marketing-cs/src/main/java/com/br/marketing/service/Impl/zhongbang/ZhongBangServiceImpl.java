@@ -490,7 +490,12 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                 saveFileData(fileDataList, 1, localFile, executor, errorSum);
                                 localFileUpdate.setActualNumber(lineNumberReader.getLineNumber());
                                 localFileUpdate.setSrcPath(fileInfo.getFileMd5());
-                                return errorSum.get() == 0;
+                                int sum;
+                                if ((sum = errorSum.get()) == 0) {
+                                    return true;
+                                }
+                                log.warn("众邦财富({})文件{}入库大量失败！失败量：{}", apiCode, txtFileName, sum);
+                                return false;
                             }
                             return false;
                         } catch (IOException | SDKException e) {
