@@ -90,7 +90,7 @@ public class ZhongBangSyncCaiFuProxy extends UploadDataProxy {
             reserveField1.put("gender", "1");
         } else {
             reserveField1.put("gender", gender);
-            log.error("众邦转化数据清洗,字段:gender,枚举非男女,id:{}", data.getId());
+            log.error("众邦上传数据清洗,字段:gender,枚举非男女,id:{}", data.getId());
         }
 
         String ifRegister = dataList.get(header.indexOf("ifRegister")).trim();
