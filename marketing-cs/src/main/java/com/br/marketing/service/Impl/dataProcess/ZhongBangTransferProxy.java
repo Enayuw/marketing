@@ -72,24 +72,24 @@ public class ZhongBangTransferProxy extends UploadDataProxy {
         // custNum
         transferData.setCustNum(dataList.get(header.indexOf("custNum")).trim());
         // loginTime
-        transferData.setLoginTime(dataList.get(header.indexOf("loginTime")));
+        transferData.setLoginTime(dataList.get(header.indexOf("loginTime")).trim());
         // ifApply
-        transferData.setIfApply(dataList.get(header.indexOf("ifApply")));
+        transferData.setIfApply(dataList.get(header.indexOf("ifApply")).trim());
         // applyTime
-        transferData.setApplyTime(dataList.get(header.indexOf("applyTime")));
+        transferData.setApplyTime(dataList.get(header.indexOf("applyTime")).trim());
         // ifLent
-        transferData.setIfLent(dataList.get(header.indexOf("ifLent1")));
+        transferData.setIfLent(dataList.get(header.indexOf("ifLent1")).trim());
         // lentTime
-        transferData.setLentTime(dataList.get(header.indexOf("lentTime")));
+        transferData.setLentTime(dataList.get(header.indexOf("lentTime")).trim());
         // lentAmount
-        transferData.setLentAmount(dataList.get(header.indexOf("lentAmount")));
+        transferData.setLentAmount(dataList.get(header.indexOf("lentAmount")).trim());
         // userType
-        transferData.setUserType(dataList.get(header.indexOf("userType")));
+        transferData.setUserType(dataList.get(header.indexOf("userType")).trim());
 
         // reserveField1
-        reserveField1.put("applyproductName", dataList.get(header.indexOf("applyproductName")));
-        reserveField1.put("pushTime", dataList.get(header.indexOf("pushTime")));
-        reserveField1.put("applyAmount", dataList.get(header.indexOf("applyAmount")));
+        reserveField1.put("applyproductName", dataList.get(header.indexOf("applyproductName")).trim());
+        reserveField1.put("pushTime", dataList.get(header.indexOf("pushTime")).trim());
+        reserveField1.put("applyAmount", dataList.get(header.indexOf("applyAmount")).trim());
         reserveField1.put("fileName", config.getLocalFile().getFileName());
 
         transferData.setReserveField1(reserveField1.toJSONString());
