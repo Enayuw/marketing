@@ -55,6 +55,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -475,29 +476,33 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             File file = downLoadFile(inputStream, filePath.concat(txtFileExtension).concat("_"), fileInfo);
                             isr = getInputStreamReader(file, inputStream, fileInfo);
                             if (isr != null) {
+                                int maxSaveSize = 1000;
                                 AtomicInteger errorSum = new AtomicInteger(0);
                                 bufferedReader = new BufferedReader(isr);
                                 LineNumberReader lineNumberReader = new LineNumberReader(bufferedReader);
+                                int lineNumber = lineNumberReader.getLineNumber();
+                                localFileUpdate.setActualNumber(lineNumber);
+                                CountDownLatch downLatch = new CountDownLatch(lineNumber % maxSaveSize == 0
+                                        ? lineNumber / maxSaveSize : lineNumber / maxSaveSize + 1);
                                 String lineTxt;
                                 List<PullCustomerFileData> fileDataList = new ArrayList<>();
                                 while ((lineTxt = lineNumberReader.readLine()) != null) {
                                     fileDataList.add(newFileData(lineTxt, apiCode, tableHeads, heads, regex, localFileUpdate));
-                                    if (saveFileData(fileDataList, 1000, localFile, executor, errorSum)) {
+                                    if (saveFileData(fileDataList, maxSaveSize, localFile, executor, errorSum, downLatch)) {
                                         fileDataList = new ArrayList<>();
                                     }
                                 }
-                                saveFileData(fileDataList, 1, localFile, executor, errorSum);
-                                localFileUpdate.setActualNumber(lineNumberReader.getLineNumber());
+                                saveFileData(fileDataList, 1, localFile, executor, errorSum, downLatch);
                                 localFileUpdate.setSrcPath(fileInfo.getFileMd5());
-                                int sum;
-                                if ((sum = errorSum.get()) == 0) {
+                                int sum = 0;
+                                if (downLatch.await(10, TimeUnit.MINUTES) && (sum = errorSum.get()) == 0) {
                                     return true;
                                 }
-                                log.warn("众邦财富({})文件{}入库大量失败！失败量：{}", apiCode, txtFileName, sum);
+                                log.error("众邦财富({})文件{}入库大量失败或入库异常！失败量：{}", apiCode, txtFileName, sum);
                                 return false;
                             }
                             return false;
-                        } catch (IOException | SDKException e) {
+                        } catch (IOException | SDKException | InterruptedException e) {
                             log.error(e.getMessage(), e);
                             return false;
                         } finally {
@@ -697,9 +702,10 @@ public class ZhongBangServiceImpl implements ZhongBangService {
      * 批量保存
      */
     private boolean saveFileData(List<PullCustomerFileData> fileDataList, int saveSize, LocalFile localFile
-            , ExecutorService executor, AtomicInteger errorSum) {
+            , ExecutorService executor, AtomicInteger errorSum, CountDownLatch downLatch) {
         if (fileDataList.size() >= saveSize) {
             executor.execute(() -> {
+                downLatch.countDown();
                 if (localFile != null) {
                     Set<String> dataFingerprintSet = pullCustomerFileDataMapper.getDataFingerprintSet(localFile.getId()
                             , fileDataList);
