@@ -75,6 +75,7 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
         String parameter = context.getJobParameter();
         JSONObject paramJson = StringUtils.isBlank(parameter) ? null : JSONObject.parseObject(parameter);
         String localDate = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String local2Date = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
         Integer status = 2;
         Map<String, List<Map<String, String>>> config2Map = marketingCommonConfig.getZhongBangPullFileDataConfigMap();
         Map<String, LinkedHashMap<String, String>> configMap = zhongBangPullFileDataConfigDefault(config2Map);
@@ -100,7 +101,7 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
                 boolean b;
                 if (frontData == null) {
                     // 创建任务记录
-                    frontData = newTransferActionFront(localDate, apiCode, fileNameNew.concat(txtFileExtension));
+                    frontData = newTransferActionFront(local2Date, apiCode, fileNameNew.concat(txtFileExtension));
                     id = jobManager.saveFrontData(frontData);
                     b = zhongBangService.zhongBangFileQueryAndDownload(apiCode, cId, fileNameNew.concat(okFileExtension)
                             , tableHead, filePath.concat(fileNameNew).concat(File.separator), beginDateTime, endDateTime
@@ -116,9 +117,6 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
                         b = zhongBangService.zhongBangFileQueryAndDownload(apiCode, cId
                                 , fileNameNew.concat(okFileExtension), tableHead, filePath.concat(fileNameNew)
                                         .concat(File.separator), beginDateTime, endDateTime, threadPool);
-                        if (!before && !b) {
-                            log.error("众邦财富FileSDK文件下载任务未拉取到文件{}！", fileNameNew.concat(txtFileExtension));
-                        }
                     } else {
                         // 任务未完成但已到截至时间并且已存在文件记录，标记任务已完成
                         b = true;
