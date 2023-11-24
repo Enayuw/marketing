@@ -21,7 +21,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @Description 数据处理通用抽象类
+ * @Description 文件数据处理通用抽象类
  * @Author hong.chen
  * @CreateTime 2023/11/13
  */
