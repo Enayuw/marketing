@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl.zhongbang;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -32,5 +31,5 @@ public interface ZhongBangService {
      * @return true 文件下载成功
      */
     boolean zhongBangFileQueryAndDownload(String apiCode, String cid, String fileName
-            , String tableHead, String filePath, String beginDate, String endDate, ExecutorService executor);
+            , String tableHead, String filePath, String beginDate, String endDate, ThreadPoolExecutor threadPool);
 }

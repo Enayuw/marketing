@@ -55,8 +55,6 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -438,7 +436,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
 
     @Override
     public boolean zhongBangFileQueryAndDownload(String apiCode, String cid, String fileName
-            , String tableHead, String filePath, String beginDate, String endDate, ExecutorService executor) {
+            , String tableHead, String filePath, String beginDate, String endDate, ThreadPoolExecutor threadPool) {
         // 2023-11-16 speed 控制文件名称，调度参数控制时间
         String okFileExtension = ".ok";
         String txtFileExtension = ".txt";
@@ -480,32 +478,28 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                 AtomicInteger errorSum = new AtomicInteger(0);
                                 bufferedReader = new BufferedReader(isr);
                                 LineNumberReader lineNumberReader = new LineNumberReader(bufferedReader);
-                                int lineNumber = lineNumberReader.getLineNumber();
-                                localFileUpdate.setActualNumber(lineNumber);
-                                CountDownLatch downLatch = new CountDownLatch(lineNumber % maxSaveSize == 0
-                                        ? lineNumber / maxSaveSize : lineNumber / maxSaveSize + 1);
                                 String lineTxt;
                                 List<PullCustomerFileData> fileDataList = new ArrayList<>();
                                 while ((lineTxt = lineNumberReader.readLine()) != null) {
                                     fileDataList.add(newFileData(lineTxt, apiCode, tableHeads, heads, regex, localFileUpdate));
-                                    if (saveFileData(fileDataList, maxSaveSize, localFile, executor, errorSum, downLatch)) {
+                                    if (saveFileData(fileDataList, maxSaveSize, localFile, threadPool, errorSum)) {
                                         fileDataList = new ArrayList<>();
                                     }
                                 }
-                                saveFileData(fileDataList, 1, localFile, executor, errorSum, downLatch);
+                                int lineNumber = lineNumberReader.getLineNumber();
+                                localFileUpdate.setActualNumber(lineNumber);
+                                saveFileData(fileDataList, 1, localFile, threadPool, errorSum);
                                 localFileUpdate.setSrcPath(fileInfo.getFileMd5());
-                                int sum = 0;
-                                if (downLatch.await(10, TimeUnit.MINUTES) && (sum = errorSum.get()) == 0) {
+                                isCompletedByTaskCount(threadPool, fileInfo.getFileName());
+                                int sum;
+                                if ((sum = errorSum.get()) == 0) {
                                     return true;
                                 }
                                 log.error("众邦财富({})文件{}入库大量失败或入库异常！失败量：{}", apiCode, txtFileName, sum);
                                 return false;
                             }
                             return false;
-                        } catch (IOException | SDKException | InterruptedException e) {
-                            if (e instanceof InterruptedException) {
-                                Thread.currentThread().interrupt();
-                            }
+                        } catch (IOException | SDKException e) {
                             log.error(e.getMessage(), e);
                             return false;
                         } finally {
@@ -531,6 +525,21 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         return false;
     }
 
+    private void isCompletedByTaskCount(ThreadPoolExecutor threadPool, String fileName) {
+        int count = 0;
+        while (threadPool.getTaskCount() != threadPool.getCompletedTaskCount() && count < 12) {
+            log.warn("众邦财富文件{}批量入库未完成，计划执行的任务总数{},完成执行任务的总数{}，等待入库线程执行完。。。",
+                    fileName, threadPool.getTaskCount(), threadPool.getCompletedTaskCount());
+            count++;
+            try {
+                TimeUnit.SECONDS.sleep(10);
+            } catch (InterruptedException e) {
+                log.error(e.getMessage(), e);
+                break;
+            }
+        }
+    }
+
     /**
      * 2023-11-22 10:56
      * 实际入库量
@@ -541,7 +550,8 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 .andLocalFileIdEqualTo(localFileUpdate.getId())
                 .andDataStatusEqualTo(1);
         int i = pullCustomerFileDataMapper.countByExample(example);
-        localFileUpdate.setPushNumber(i);
+        int num = localFileUpdate.getActualNumber() - localFileUpdate.getErrorActualNumber();
+        localFileUpdate.setPushNumber(Math.max(num, i));
     }
 
     /**
@@ -705,10 +715,9 @@ public class ZhongBangServiceImpl implements ZhongBangService {
      * 批量保存
      */
     private boolean saveFileData(List<PullCustomerFileData> fileDataList, int saveSize, LocalFile localFile
-            , ExecutorService executor, AtomicInteger errorSum, CountDownLatch downLatch) {
+            , ThreadPoolExecutor threadPool, AtomicInteger errorSum) {
         if (fileDataList.size() >= saveSize) {
-            executor.execute(() -> {
-                downLatch.countDown();
+            threadPool.execute(() -> {
                 if (localFile != null) {
                     Set<String> dataFingerprintSet = pullCustomerFileDataMapper.getDataFingerprintSet(localFile.getId()
                             , fileDataList);
