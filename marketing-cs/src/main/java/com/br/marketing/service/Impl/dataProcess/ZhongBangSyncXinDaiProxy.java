@@ -68,9 +68,9 @@ public class ZhongBangSyncXinDaiProxy extends UploadDataProxy {
         JSONObject reserveField1 = new JSONObject();
 
         // dataItems
-        syncUser.setCell(dataList.get(header.indexOf("cell")));
-        syncUser.setName(dataList.get(header.indexOf("name")));
-        syncUser.setId(dataList.get(header.indexOf("id")));
+        syncUser.setCell(dataList.get(header.indexOf("cell")).trim());
+        syncUser.setName(dataList.get(header.indexOf("name")).trim());
+        syncUser.setId(dataList.get(header.indexOf("id")).trim());
         syncUser.setCustNum(dataList.get(header.indexOf("custNum")).trim());
 
 
@@ -78,7 +78,7 @@ public class ZhongBangSyncXinDaiProxy extends UploadDataProxy {
         // original_daikuan_yyyymmdd对应2
         reserveField1.put("userType", "2");
 
-        String gender = dataList.get(header.indexOf("gender"));
+        String gender = dataList.get(header.indexOf("gender")).trim();
         if ("女".equals(gender)) {
             reserveField1.put("gender", "0");
         } else if ("男".equals(gender)) {
@@ -88,25 +88,25 @@ public class ZhongBangSyncXinDaiProxy extends UploadDataProxy {
             log.error("众邦转化数据清洗,字段:gender,枚举非男女,id:{}", data.getId());
         }
 
-        String ifRegister = dataList.get(header.indexOf("ifRegister"));
+        String ifRegister = dataList.get(header.indexOf("ifRegister")).trim();
         reserveField1.put("ifRegister", ifRegister);
 
-        String registerTime = dataList.get(header.indexOf("registerTime"));
+        String registerTime = dataList.get(header.indexOf("registerTime")).trim();
         reserveField1.put("registerTime", registerTime);
 
-        String ifLogin = dataList.get(header.indexOf("ifLogin"));
+        String ifLogin = dataList.get(header.indexOf("ifLogin")).trim();
         reserveField1.put("ifLogin", ifLogin);
 
-        String loginTime = dataList.get(header.indexOf("loginTime"));
+        String loginTime = dataList.get(header.indexOf("loginTime")).trim();
         reserveField1.put("loginTime", loginTime);
 
-        String ifApply = dataList.get(header.indexOf("ifApply"));
+        String ifApply = dataList.get(header.indexOf("ifApply")).trim();
         reserveField1.put("ifApply", ifApply);
 
-        String age = dataList.get(header.indexOf("age"));
+        String age = dataList.get(header.indexOf("age")).trim();
         reserveField1.put("age", age);
 
-        String region = dataList.get(header.indexOf("region"));
+        String region = dataList.get(header.indexOf("region")).trim();
         reserveField1.put("region", region);
 
         syncUser.setReserveField1(reserveField1.toJSONString());

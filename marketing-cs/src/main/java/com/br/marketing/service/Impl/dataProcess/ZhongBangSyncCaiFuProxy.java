@@ -73,9 +73,9 @@ public class ZhongBangSyncCaiFuProxy extends UploadDataProxy {
         MarketingPreUserDetailDTO syncUser = new MarketingPreUserDetailDTO();
         JSONObject reserveField1 = new JSONObject();
         // dataItems
-        syncUser.setCell(dataList.get(header.indexOf("cell")));
-        syncUser.setName(dataList.get(header.indexOf("name")));
-        syncUser.setId(dataList.get(header.indexOf("id")));
+        syncUser.setCell(dataList.get(header.indexOf("cell")).trim());
+        syncUser.setName(dataList.get(header.indexOf("name")).trim());
+        syncUser.setId(dataList.get(header.indexOf("id")).trim());
         syncUser.setCustNum(dataList.get(header.indexOf("custNum")).trim());
 
 
@@ -83,7 +83,7 @@ public class ZhongBangSyncCaiFuProxy extends UploadDataProxy {
         // original_caifu_yyyymmdd对应1
         reserveField1.put("userType", "1");
 
-        String gender = dataList.get(header.indexOf("gender"));
+        String gender = dataList.get(header.indexOf("gender")).trim();
         if ("女".equals(gender)) {
             reserveField1.put("gender", "0");
         } else if ("男".equals(gender)) {
@@ -93,40 +93,40 @@ public class ZhongBangSyncCaiFuProxy extends UploadDataProxy {
             log.error("众邦转化数据清洗,字段:gender,枚举非男女,id:{}", data.getId());
         }
 
-        String ifRegister = dataList.get(header.indexOf("ifRegister"));
+        String ifRegister = dataList.get(header.indexOf("ifRegister")).trim();
         reserveField1.put("ifRegister", ifRegister);
 
-        String registerTime = dataList.get(header.indexOf("registerTime"));
+        String registerTime = dataList.get(header.indexOf("registerTime")).trim();
         reserveField1.put("registerTime", registerTime);
 
-        String ifLogin = dataList.get(header.indexOf("ifLogin"));
+        String ifLogin = dataList.get(header.indexOf("ifLogin")).trim();
         reserveField1.put("ifLogin", ifLogin);
 
-        String loginTime = dataList.get(header.indexOf("loginTime"));
+        String loginTime = dataList.get(header.indexOf("loginTime")).trim();
         reserveField1.put("loginTime", loginTime);
 
-        String ifApply = dataList.get(header.indexOf("ifApply"));
+        String ifApply = dataList.get(header.indexOf("ifApply")).trim();
         reserveField1.put("ifApply", ifApply);
 
-        String applyResult = dataList.get(header.indexOf("applyResult"));
+        String applyResult = dataList.get(header.indexOf("applyResult")).trim();
         reserveField1.put("applyResult", applyResult);
 
-        String ifLent = dataList.get(header.indexOf("ifLent"));
+        String ifLent = dataList.get(header.indexOf("ifLent")).trim();
         reserveField1.put("ifLent", ifLent);
 
-        String age = dataList.get(header.indexOf("age"));
+        String age = dataList.get(header.indexOf("age")).trim();
         reserveField1.put("age", age);
 
-        String region = dataList.get(header.indexOf("region"));
+        String region = dataList.get(header.indexOf("region")).trim();
         reserveField1.put("region", region);
 
-        String productStartTime = dataList.get(header.indexOf("productStartTime"));
+        String productStartTime = dataList.get(header.indexOf("productStartTime")).trim();
         reserveField1.put("productStartTime", productStartTime);
 
-        String productEndTime = dataList.get(header.indexOf("productEndTime"));
+        String productEndTime = dataList.get(header.indexOf("productEndTime")).trim();
         reserveField1.put("productEndTime", productEndTime);
 
-        String ifApplyAmount = dataList.get(header.indexOf("ifApplyAmount"));
+        String ifApplyAmount = dataList.get(header.indexOf("ifApplyAmount")).trim();
         reserveField1.put("ifApplyAmount", ifApplyAmount);
 
         syncUser.setReserveField1(reserveField1.toJSONString());
@@ -140,7 +140,6 @@ public class ZhongBangSyncCaiFuProxy extends UploadDataProxy {
             reserveField1.put(fieldName, 0);
         } else {
             reserveField1.put(fieldName, "");
-            // todo 是否需要报警
             log.error("众邦转化数据清洗,字段:{},枚举非是否", fieldName);
         }
     }
