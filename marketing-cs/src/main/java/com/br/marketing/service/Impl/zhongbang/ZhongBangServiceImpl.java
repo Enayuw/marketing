@@ -763,13 +763,13 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(f, "rw");
              FileChannel channel = randomAccessFile.getChannel();
              ReadableByteChannel readableByteChannel = Channels.newChannel(inputStream)) {
-            long position = 0;
+            long position = 0L;
             long fileSize = fileInfo.getFileSize().longValue();
             while (position < fileSize) {
                 final long count;
                 final long bytesCopied = channel.transferFrom(readableByteChannel, position
                         , (count = (position + (1024 << 10))) > fileSize ? fileSize : count);
-                if (bytesCopied == 0) { // 确保我们不会永远循环
+                if (bytesCopied == 0L) { // 确保我们不会永远循环
                     break;
                 }
                 position += bytesCopied;
