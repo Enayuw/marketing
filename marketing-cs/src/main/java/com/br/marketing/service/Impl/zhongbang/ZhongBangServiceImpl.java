@@ -735,8 +735,8 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                     log.error("众邦财富数据入库失败！localFile:{},数据指纹集合{}"
                             , fileDataList.get(0).getLocalFileId()
                             , fileDataList.stream().map(PullCustomerFileData::getDataFingerprint).toArray());
+                    errorSum.addAndGet(fileDataList.size());
                 }
-                errorSum.addAndGet(fileDataList.size());
             });
             return true;
         }
