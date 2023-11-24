@@ -116,7 +116,7 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
                         b = zhongBangService.zhongBangFileQueryAndDownload(apiCode, cId
                                 , fileNameNew.concat(okFileExtension), tableHead, filePath.concat(fileNameNew)
                                         .concat(File.separator), beginDateTime, endDateTime, threadPool);
-                        if (!before) {
+                        if (!before && !b) {
                             log.error("众邦财富FileSDK文件下载任务未拉取到文件{}！", fileNameNew.concat(txtFileExtension));
                         }
                     } else {
