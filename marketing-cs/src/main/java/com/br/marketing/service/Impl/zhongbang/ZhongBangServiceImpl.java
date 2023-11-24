@@ -503,6 +503,9 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             }
                             return false;
                         } catch (IOException | SDKException | InterruptedException e) {
+                            if (e instanceof InterruptedException) {
+                                Thread.currentThread().interrupt();
+                            }
                             log.error(e.getMessage(), e);
                             return false;
                         } finally {
