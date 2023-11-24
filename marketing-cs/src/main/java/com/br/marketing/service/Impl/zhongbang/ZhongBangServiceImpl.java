@@ -55,7 +55,6 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -691,37 +690,6 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         fileData.setCreateTime(new Date());
         fileData.setUpdateTime(fileData.getCreateTime());
         return fileData;
-    }
-
-    /**
-     * 2023-11-20 9:47
-     * 批量保存
-     */
-    @Deprecated
-    private boolean saveFileData(List<PullCustomerFileData> fileDataList, int saveSize, LocalFile localFile
-            , List<Callable<Integer>> callables) {
-        if (fileDataList.size() >= saveSize) {
-            callables.add(() -> {
-                if (localFile != null) {
-                    Set<String> dataFingerprintSet = pullCustomerFileDataMapper.getDataFingerprintSet(localFile.getId()
-                            , fileDataList);
-                    if (dataFingerprintSet.size() == fileDataList.size()) {
-                        return 0;
-                    }
-                    fileDataList.removeIf(f -> dataFingerprintSet.contains(f.getDataFingerprint()));
-                }
-                if (fileDataList.size() > 0) {
-                    int i = pullCustomerFileDataMapper.insertBatchSelective(fileDataList);
-                    if (i > 0) {
-                        fileDataList.clear();
-                        return 0;
-                    }
-                }
-                return fileDataList.size();
-            });
-            return true;
-        }
-        return false;
     }
 
     /**
