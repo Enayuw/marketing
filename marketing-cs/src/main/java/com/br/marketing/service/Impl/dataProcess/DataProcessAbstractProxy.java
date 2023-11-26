@@ -114,7 +114,7 @@ public abstract class DataProcessAbstractProxy {
      * @param config
      * @return 默认返回true：可以开始
      */
-    Boolean canStart(DataProcessingConfig config) {
+    boolean canStart(DataProcessingConfig config) {
         return true;
     }
 
