@@ -474,7 +474,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             File file = downLoadFile(inputStream, filePath.concat(txtFileExtension).concat("_"), fileInfo);
                             isr = getInputStreamReader(file, inputStream, fileInfo);
                             if (isr != null) {
-                                int maxSaveSize = 1000;
+                                int maxSaveSize = 30;
                                 AtomicInteger errorSum = new AtomicInteger(0);
                                 bufferedReader = new BufferedReader(isr);
                                 LineNumberReader lineNumberReader = new LineNumberReader(bufferedReader);
