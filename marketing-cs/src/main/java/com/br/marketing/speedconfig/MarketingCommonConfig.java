@@ -1092,5 +1092,10 @@ public class MarketingCommonConfig {
      */
     private int zhongBangPullFileDataDay = -1;
 
+    /**
+     * 众邦财富定制标签测试
+     */
+    private Boolean zhongBangCaifuLabelTest;
+
 }
 
