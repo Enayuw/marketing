@@ -528,8 +528,12 @@ public class ZhongBangServiceImpl implements ZhongBangService {
     private void isCompletedByTaskCount(ThreadPoolExecutor threadPool, String fileName) {
         int count = 0;
         while (threadPool.getTaskCount() != threadPool.getCompletedTaskCount() && count < 12) {
-            log.warn("众邦财富文件{}批量入库未完成，计划执行的任务总数{},完成执行任务的总数{}，等待入库线程执行完。。。",
-                    fileName, threadPool.getTaskCount(), threadPool.getCompletedTaskCount());
+            log.warn("众邦财富文件{}批量入库未完成，计划执行的任务总数{},完成执行任务的总数{}，当前工作线程数{}，最大线程数{}" +
+                            "，等待入库线程执行完。。。",
+                    fileName, threadPool.getTaskCount()
+                    , threadPool.getCompletedTaskCount()
+                    , threadPool.getActiveCount()
+                    , threadPool.getMaximumPoolSize());
             count++;
             try {
                 TimeUnit.SECONDS.sleep(10);
