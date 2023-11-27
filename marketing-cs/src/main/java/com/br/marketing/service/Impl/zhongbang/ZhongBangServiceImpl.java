@@ -790,7 +790,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             while (position < fileSize) {
                 final long count;
                 final long bytesCopied = channel.transferFrom(readableByteChannel, position
-                        , (count = (position + (1024 << 10))) > fileSize ? fileSize : count);
+                        , (count = (position + (1024 << 15))) > fileSize ? fileSize : count); // 32M
                 if (bytesCopied == 0L) { // 确保我们不会永远循环
                     break;
                 }
