@@ -11,6 +11,7 @@ import com.br.marketing.dto.RequestPushInfoDTO;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.service.Impl.RuleCenterServiceImpl;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.PushInfoDetailVO;
@@ -42,6 +43,9 @@ public class PushRuleFilterController {
 
     @Autowired
     PushRuleService pushRuleService;
+
+    @Autowired
+    RuleCenterServiceImpl ruleCenterService;
 
 
 
@@ -110,7 +114,7 @@ public class PushRuleFilterController {
     @PostMapping("/pushCustomer")
     public ApiResult pushCustomer(@RequestBody PushCustomerDTO dto) {
         dto.setUserDetail(ThreadContextInfo.getUser());
-        return new ApiResult().fromResult(pushRuleService.pushCustomer(dto), 1);
+        return new ApiResult().fromResult(ruleCenterService.pushCustomer(dto), 1);
     }
 
     @ApiOperation(value = "推送预览")

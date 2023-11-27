@@ -340,6 +340,8 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Autowired
     TransferFiledProcessImpl transferFiledProcess;
 
+
+
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<String> pushCustomer(PushCustomerDTO dto) {
@@ -404,11 +406,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         });
         //endregion
 
-        //region push mq
-        producter.send("Marketing.Push.CustomerService", customerInfoPushMain.getId().toString());
-        //endregion
-
-        return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMain.getId().toString());
     }
 
     private Result<Integer> getTotal(PushCustomerDTO dto) {
