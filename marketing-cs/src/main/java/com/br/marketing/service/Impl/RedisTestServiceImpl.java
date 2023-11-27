@@ -31,6 +31,13 @@ public class RedisTestServiceImpl {
 
     RedisChgService redisChgService;
 
+    MarketingCommonConfig marketingCommonConfig;
+
+    public void speedFileTest(MarketingCommonConfig marketingCommonConfig) {
+        if(marketingCommonConfig !=null){
+            log.warn("测试speedFile:"+JSON.toJSONString(marketingCommonConfig));
+        }
+    }
 
     public void redisTest(Integer redisOpt, RedisChgService redisChgService) {
         this.redisChgService = redisChgService;

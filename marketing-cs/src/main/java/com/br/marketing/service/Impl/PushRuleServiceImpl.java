@@ -194,7 +194,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Override
     public PageResultReturn getBatchInfos(CustomerBatchNumDTO dto) {
         dto = getCustomerBatchNumDTO(dto);
-        PageHelper.startPage(dto.getCurrent(), dto.getSize());
+        PageHelper.startPage(dto.getCurrent(), dto.getSize()).setOrderBy(" scoreBeginTime desc,fileId desc ");
         List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchs(dto);
         return PageResultReturn.setPageResult(scoreDetailVos, dto.getCurrent(), dto.getSize());
     }

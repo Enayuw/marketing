@@ -58,7 +58,6 @@ HOSTNAME=`hostname`
         if [ "$1" = "stop" ]; then exit 0;
         else exit 5; fi; }
 
-APPNAME="${HOSTNAME}:${NAME}:${PORT}" 
 
 CLOUDSERVER_PID_FILE="$CLOUDSERVER_HOME/pid" 
 

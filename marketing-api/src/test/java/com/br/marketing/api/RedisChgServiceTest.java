@@ -22,28 +22,28 @@ public class RedisChgServiceTest {
 
     @Test
     public void Testmain(){
-        set();
-        setex();
-        setnx();
-        get();
-        del();
-        incr();
-        incrBy();
-        expire();
-        hkeys();
-        hget();
-        hset();
-        hdel();
-        exists();
-        sadd();
-        saddMember();
-        sismember();
-        smembers();
-        spop();
-        scard();
+//        set();
+//        setex();
+//        setnx();
+//        get();
+//        del();
+//        incr();
+//        incrBy();
+//        expire();
+//        hkeys();
+//        hget();
+//        hset();
+//        hdel();
+//        exists();
+//        sadd();
+//        saddMember();
+//        sismember();
+//        smembers();
+//        spop();
+//        scard();
         lock();
-        unlock();
-        delBigSet();
+//        unlock();
+//        delBigSet();
     }
 
     @Test
@@ -198,10 +198,17 @@ public class RedisChgServiceTest {
     public void lock() {
         ArrayList<Boolean> list = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            list.add(redisChgService.lock("juman9", i + "", 3000L));
+                new Thread(()->{
+                    try {
+                        redisChgService.lock("juman9", "123");
+                        System.out.println("强到锁了");
+                    }catch (Exception ex){
+                        System.out.println(ex.getMessage());
+                    }
+                }).start();
         }
         try {
-            Thread.sleep(4000L);
+            Thread.sleep(10000L);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

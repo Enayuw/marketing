@@ -102,6 +102,11 @@ public class BackendTransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByXieChengServiceImpl transferToFileByXieChengService;
     /**
+     * 携程新场景
+     */
+    @Resource
+    private NewTransferToFileByXieChengServiceImpl newTransferToFileByXieChengService;
+    /**
      * 拍拍贷老客
      */
     @Resource
@@ -225,6 +230,8 @@ public class BackendTransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByZhongAnService, marketingCommonConfig.getZhongAnTransferApiCodes())
                 // 携程转化数据提取
                 .addBind(transferToFileByXieChengService, marketingCommonConfig.getXieChengTransferApiCodes())
+                // 携程新场景转化数据提取
+                .addBind(newTransferToFileByXieChengService, marketingCommonConfig.getXieChengNewTransferApiCodes())
                 // 拍拍贷老客转人工数据提取
                 .addBind(transferToFileByPPDOldService, marketingCommonConfig.getPPDOldTransferFileApiCodes())
                 // 桔子转化数据提取

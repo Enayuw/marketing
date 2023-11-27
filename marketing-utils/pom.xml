@@ -120,7 +120,7 @@
         <dependency>
             <groupId>com.br.speed</groupId>
             <artifactId>speed-client</artifactId>
-            <version>1.2.0</version>
+            <version>${speed.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>log4j</groupId>

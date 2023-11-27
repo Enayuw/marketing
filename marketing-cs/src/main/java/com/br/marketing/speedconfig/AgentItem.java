@@ -44,6 +44,8 @@ public class AgentItem {
 
     private Integer redisTest;
 
+    private Integer speedTest;
+
     @SpeedItem(topic = "marketing",key = "marketing_broadcast_notice_item")
     public String getMessage(){
         return message;

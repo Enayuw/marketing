@@ -59,6 +59,7 @@ public class SpeedConfig implements ISpeedAppendPipeline {
         AgentItem item = JSON.parseObject(value, AgentItem.class);
         String message = item.getMessage();
         Integer redisTest = item.getRedisTest();
+        Integer speedTest = item.getSpeedTest();
         switch (key) {
             case "marketing_broadcast_notice_item": {
                 // {"message":"customer_rule_mapping","update_time":"2022-04-01 14:53:01"}
@@ -72,7 +73,13 @@ public class SpeedConfig implements ISpeedAppendPipeline {
                         redisTestServiceImpl.redisTest(redisTest,redisChgService);
                     }
                 }
-
+                if(!new Integer(0).equals(speedTest)){
+                    RedisTestServiceImpl redisTestServiceImpl = context.getBean("redisTestServiceImpl", RedisTestServiceImpl.class);
+                    MarketingCommonConfig marketingCommonConfig = context.getBean("marketingCommonConfig",MarketingCommonConfig.class);
+                    if(redisTestServiceImpl !=null){
+                        redisTestServiceImpl.speedFileTest(marketingCommonConfig);
+                    }
+                }
                 break;
             }
             default: {
@@ -82,6 +89,10 @@ public class SpeedConfig implements ISpeedAppendPipeline {
 
     }
 
+    @Override
+    public void onError(String s, String s1, byte[] bytes, Long aLong, ApplicationContext applicationContext, Exception e) throws Exception {
+        log.error(String.format("speed报错：%s",e.getMessage()),e);
+    }
 
     <T> void setValue(T config, String path) {
         try (FileReader read = new FileReader(path);

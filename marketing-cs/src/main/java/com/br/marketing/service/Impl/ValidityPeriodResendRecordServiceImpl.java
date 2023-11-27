@@ -1,5 +1,4 @@
 package com.br.marketing.service.Impl;
-import java.util.Date;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSONObject;
@@ -15,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -71,6 +71,8 @@ public class ValidityPeriodResendRecordServiceImpl implements ValidityPeriodRese
         JSONObject paramJson = new JSONObject();
         paramJson.put("apiCode", mapping.getApiCode());
         paramJson.put("userType", mapping.getUserType());
-        return selector.buildResendData(paramJson, resendType);
+        JSONObject resendData = selector.buildResendData(paramJson, resendType);
+        resendData.putAll(JSONObject.parseObject(mapping.getExtendField()));
+        return resendData.toJSONString();
     }
 }

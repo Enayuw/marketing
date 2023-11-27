@@ -71,7 +71,6 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
@@ -1229,7 +1228,7 @@ public class PushDataServiceImpl implements PushDataService {
             int xieChengCount = 1;
             if (isJson(data)) {
                 JSONObject jsonObject = JSONObject.parseObject(data);
-                id = Long.valueOf(jsonObject.getInteger("localId"));
+                id = jsonObject.getLong("localId");
             } else {
                 id = Long.valueOf(data);
                 localFile = localFileMapper.selectByPrimaryKey(id);
@@ -1275,7 +1274,7 @@ public class PushDataServiceImpl implements PushDataService {
     public void  pushXieChengSmsCollidingToDbData(String data) {
         try {
             JSONObject jsonObject = JSONObject.parseObject(data);
-            Long localId = Long.valueOf(jsonObject.getInteger("localId"));
+            Long localId = jsonObject.getLong("localId");
             Boolean isNewFile = jsonObject.getBooleanValue("isNewFile");
             // 创建线程池
             ThreadPoolExecutor xieChengSmsCollidingThread =
@@ -1879,6 +1878,7 @@ public class PushDataServiceImpl implements PushDataService {
                         String orgChannel = returnData.getString("orgChannel");
                         String mktLevel = returnData.getString("mktLevel");
                         String info = returnData.getString("info");
+                        String releaseTime = returnData.getString("releaseTime");
 
                         XieChengSmsCollidingDataLog xieChengSmsCollidingDataLog = new XieChengSmsCollidingDataLog();
                         xieChengSmsCollidingDataLog.setSha256CodeList(sha256Code);
@@ -1888,6 +1888,7 @@ public class PushDataServiceImpl implements PushDataService {
                         xieChengSmsCollidingDataLog.setOrgChannel(orgChannel);
                         xieChengSmsCollidingDataLog.setStatus(2);
                         xieChengSmsCollidingDataLog.setLocalId(localId);
+                        xieChengSmsCollidingDataLog.setReleaseTime(releaseTime);
                         XieChengSmsCollidingDataLogExample xe = new XieChengSmsCollidingDataLogExample();
                         xe.createCriteria()
                                 .andStatusEqualTo(1)

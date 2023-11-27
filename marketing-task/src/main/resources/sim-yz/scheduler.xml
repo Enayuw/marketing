@@ -28,7 +28,7 @@
 
     <job:simple id="buildTaskJob"
                 class="com.br.marketing.task.job.BuildTaskJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/10 * * * ? "
                 description="生成任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -56,7 +56,7 @@
     />
     <job:simple id="taskScoreStartJob"
                 class="com.br.marketing.task.job.TaskScoreStartJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/10 * * * ? "
                 description="跑分任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="4"
