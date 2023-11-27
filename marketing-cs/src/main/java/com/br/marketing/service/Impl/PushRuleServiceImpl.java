@@ -3715,6 +3715,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         Long num = zhongbangCaifuDataMapper.countByExample(zhongbangCaifuDataExample);
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(num.intValue());
+        //更新状态推送成功
+        localFile.setPushStatus("2");
         localFileMapper.updateByPrimaryKeySelective(localFile);
         //统计告警
         if(!localFile.getPushNumber().equals(localFile.getActualNumber())){
