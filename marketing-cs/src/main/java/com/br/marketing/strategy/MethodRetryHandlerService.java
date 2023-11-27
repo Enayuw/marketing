@@ -1102,6 +1102,11 @@ public class MethodRetryHandlerService {
     @RetryMethod(retryNowNum = 1, isOrNoDbRetry = true)
     public Result<ZbankResponse<ZbankLabelRatingReResultDTO>> pushZbankLabelRatingRe(JSONObject json
             , Integer retry) {
+        //测试mock
+        if(marketingCommonConfig.getZhongBangCaifuLabelTest()){
+            log.warn("测试众邦不真实调用接口");
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        }
         Result<ZbankResponse<ZbankLabelRatingReResultDTO>> result = new Result<>();
         JSONObject jsonData = new JSONObject();
         jsonData.putAll(json);
