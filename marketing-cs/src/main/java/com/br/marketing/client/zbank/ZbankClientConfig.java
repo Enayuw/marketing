@@ -54,38 +54,38 @@ public class ZbankClientConfig {
     /**
      * 访问Api URL（由众邦银行提供）
      */
-    @Value("${api.zbank.api.baseUrl:}")
+    @Value("${api.zbank.api.baseUrl:https://iodev-uat.z-bank.com}")
     private String apiUrl;
 
     /**
      * 访问File URL（由众邦银行提供）
      */
-    @Value("${api.zbank.file.baseUrl:}")
+    @Value("${api.zbank.file.baseUrl:https://iodev-uat.z-bank.com}")
     private String fileUrl;
 
 
     /**
      * 开放平台开放平台公钥（由众邦银行提供）
      */
-    @Value("${api.zbank.api.serverPubKey:}")
+    @Value("${api.zbank.api.serverPubKey:049191E0402CE98C8F31564880AC47AC888DACB24B127407D351AD83725CDB4529713E585CBB14C14E4EBBE97828D64B1F2DC101E113F227B6E6ACD9A378311DC3}")
     private String serverPubKey;
 
     /**
      * appId（由众邦银行提供）
      */
-    @Value("${api.zbank.api.appId:}")
+    @Value("${api.zbank.api.appId:2a0f9f71_29e5_466c_95a7_8cab99d93880}")
     private String appId;
 
     /**
      * appSecretKey（由众邦银行提供）
      */
-    @Value("${api.zbank.api.appSecretKey:}")
+    @Value("${api.zbank.api.appSecretKey:65ed7e3b-bcff-4f5b-a029-185a538e3ee8}")
     private String appSecretKey;
 
     /**
      * 渠道自己的私钥字符串，生成方式和提取方式请参照【证书的生成及提取】目录下的文档说明，另，证书生成完成之后将【server.crt】文件提供给众邦银行
      */
-    @Value("${api.zbank.api.priKey:}")
+    @Value("${api.zbank.api.priKey:1DF4C616DE52063F5BB9525121160DF2F0607122A5FE69EB382D57020B27EA6A}")
     private String priKey;
 
     /**
@@ -99,12 +99,12 @@ public class ZbankClientConfig {
     /**
      * 用于加密的密钥（由众邦银行提供），行外渠道加密使用
      */
-    @Value("${api.zbank.file.encryptKey:}")
+    @Value("${api.zbank.file.encryptKey:0463455a993b27010c80ceaca36f8faddcc5bb942b242faad8196ccda08d9ba556a669d6682d62d5278dbdc7a65d87ea8071635825725c35b92607eb379b369949}")
     private String encryptKey;
     /**
      * 用于加密的校验和字符串（由众邦银行提供），行外渠道加密使用
      */
-    @Value("${api.zbank.file.cksStr:}")
+    @Value("${api.zbank.file.cksStr:YRPZSSUEDOXHGNBYYYDGWPDASZJIIHXMJBZZFZTOSSHWABKGBHSBTUSJAMDFHIRX}")
     private String cksStr;
 
 

@@ -47,13 +47,13 @@ public class ZbankClient {
     /**
      * 渠道唯一标识（由众邦银行提供）
      */
-    @Value("${api.zbank.file.channelId:}")
+    @Value("${api.zbank.file.channelId:2023042701}")
     private String channelId;
 
     /**
      * 用于调用文件查询方法(queryFileList)时使用的slotKey
      */
-    @Value("${api.zbank.file.slotKey:}")
+    @Value("${api.zbank.file.slotKey:rEFhYy7SRHzCrsMnzjqPoQ==}")
     private String slotKey;
 
     @Resource
