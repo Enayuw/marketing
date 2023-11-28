@@ -385,7 +385,6 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                     ProcessHandlerContext context = new ProcessHandlerContext();
                     context.setApiCode(apiCode);
                     artificialRealTimeUserAndCustomerTransferSoleFacade.call(list, context);
-                    pushWarnMessage(apiCode);
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                 }
@@ -470,8 +469,9 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         localFileUpdate.setId(localFileNew.getId());
                         try {
                             inputStream = streamDownLoadInfo.getInputStream();
-                            renameFileName(localFileExist, fileInfo, filePath);
-                            File file = downLoadFile(inputStream, filePath.concat(txtFileExtension).concat("_"), fileInfo);
+                            String txtFilePath = filePath.concat(txtFileExtension).concat("_");
+                            File fileLocal = secondDownload(localFileExist, fileInfo, txtFilePath);
+                            File file = fileLocal == null ? downLoadFile(inputStream, txtFilePath, fileInfo) : fileLocal;
                             isr = getInputStreamReader(file, inputStream, fileInfo);
                             if (isr != null) {
                                 int maxSaveSize = 30;
@@ -642,17 +642,23 @@ public class ZhongBangServiceImpl implements ZhongBangService {
 
     /**
      * 2023-11-21 10:49
-     * 文件重命名
+     * 完整文件已下载时，秒传
      */
-    private void renameFileName(boolean localFileExist, FileInfo fileInfo, String filePath) {
+    private File secondDownload(boolean localFileExist, FileInfo fileInfo, String filePath) throws SDKException {
         if (!localFileExist) {
             String path = filePath.concat(fileInfo.getFileMd5()).concat(File.separator).concat(fileInfo.getFileName());
             File file = new File(path);
+            if (file.getParentFile().exists() && file.exists() && file.isFile()
+                    && checkFileMd5(Md5EncodeUtil.encode(file), fileInfo)) {
+                log.warn("###众邦财富文件{}下载进度{}/{}：100%", fileInfo.getFileName(), file.length(), file.length());
+                return file;
+            }
             boolean bak = file.renameTo(new File(path.concat(".bak") + System.currentTimeMillis()));
             if (!bak) {
                 log.warn("众邦财富异常文件备份失败！path:{}", path);
             }
         }
+        return null;
     }
 
     /**
