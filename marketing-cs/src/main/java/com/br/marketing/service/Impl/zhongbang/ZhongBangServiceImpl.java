@@ -595,7 +595,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 }
             } finally {
                 if (inputStreams != null) {
-                    closeable(inputStreams);
+                    closeable(inputStreams[1]);
                 }
             }
         } else {
