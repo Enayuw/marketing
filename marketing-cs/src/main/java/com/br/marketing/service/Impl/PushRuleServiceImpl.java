@@ -3746,7 +3746,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         ZhongbangCaifuData record = new ZhongbangCaifuData();
         record.setPushStatus(2);
         zhongbangCaifuDataMapper.updateByExampleSelective(record, updateExample);
-        Long localId = zhongbangCaifuDataMapper.selectByPrimaryKey(labelIds.get(0)).getLocalId();
+        Long localId = zhongbangCaifuDataMapper.selectByPrimaryKey(Long.valueOf(labelIds.get(0))).getLocalId();
         //更新文件表推送数据量
         LocalFile localFile = localFileMapper.selectByPrimaryKey(localId);
         ZhongbangCaifuDataExample zhongbangCaifuDataExample = new ZhongbangCaifuDataExample();
