@@ -96,7 +96,6 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -3738,15 +3737,14 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
 
-    public void updateZhongBangRetryStatus(Object ids) {
-        List<Long> labelIds = (List<Long>) ids;
+    public void updateZhongBangRetryStatus(List<Long> ids) {
         //更新数据表状态
         ZhongbangCaifuDataExample updateExample = new ZhongbangCaifuDataExample();
-        updateExample.createCriteria().andIdIn(labelIds);
+        updateExample.createCriteria().andIdIn(ids);
         ZhongbangCaifuData record = new ZhongbangCaifuData();
         record.setPushStatus(2);
         zhongbangCaifuDataMapper.updateByExampleSelective(record, updateExample);
-        Long localId = zhongbangCaifuDataMapper.selectByPrimaryKey(Long.valueOf(labelIds.get(0))).getLocalId();
+        Long localId = zhongbangCaifuDataMapper.selectByPrimaryKey(ids.get(0)).getLocalId();
         //更新文件表推送数据量
         LocalFile localFile = localFileMapper.selectByPrimaryKey(localId);
         ZhongbangCaifuDataExample zhongbangCaifuDataExample = new ZhongbangCaifuDataExample();

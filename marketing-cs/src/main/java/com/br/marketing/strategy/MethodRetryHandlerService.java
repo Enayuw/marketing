@@ -1,6 +1,7 @@
 package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.bo.SaveReachDeleteRecordReqBO;
@@ -1144,7 +1145,8 @@ public class MethodRetryHandlerService {
             if ("00".equals(result1.getErrCd())) {
                 //重试成功后更新状态
                 if (retry != null) {
-                    pushRuleService.updateZhongBangRetryStatus(json.get("ids"));
+                    JSONArray ids = json.getJSONArray("ids");
+                    pushRuleService.updateZhongBangRetryStatus(ids.toJavaList(Long.class));
                 }
                 result.setCode(ResultCode.SUCCESS.getValue());
             } else if ("500".equals(result1.getErrCd())) {
