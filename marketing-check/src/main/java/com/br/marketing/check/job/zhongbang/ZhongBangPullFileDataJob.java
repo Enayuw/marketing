@@ -90,7 +90,7 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
             String endDateTime = dateStrList.get(2);
             String cId = tableCreateService.getCId(apiCode);
             String filePath = syncConfigService.getPullCustomerFilePath(apiCode).concat(localDate).concat(File.separator);
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(1, 50, new SynchronousQueue<>());
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(25, 50, new SynchronousQueue<>());
             v.forEach((fileName, tableHead) -> {
                 String fileNameNew = fileName.endsWith(txtFileExtension) ? fileName.replace(txtFileExtension
                         , "") : fileName.endsWith("_") ? fileName.concat(dateStr) : fileName;
