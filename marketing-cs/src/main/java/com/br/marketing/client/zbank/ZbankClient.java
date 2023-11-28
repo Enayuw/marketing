@@ -41,19 +41,19 @@ public class ZbankClient {
     /**
      * 业务接口
      */
-    @Value("${api.zbank.baseUrl.api.serviceId:CMBrLabelRatingRe}")
+    @Value("${api.zbank.api.serviceId:CMBrLabelRatingRe}")
     private String serviceId;
 
     /**
      * 渠道唯一标识（由众邦银行提供）
      */
-    @Value("${api.zbank.baseUrl.file.channelId:}")
+    @Value("${api.zbank.file.channelId:}")
     private String channelId;
 
     /**
      * 用于调用文件查询方法(queryFileList)时使用的slotKey
      */
-    @Value("${api.zbank.baseUrl.file.slotKey:}")
+    @Value("${api.zbank.file.slotKey:}")
     private String slotKey;
 
     @Resource

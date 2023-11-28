@@ -67,31 +67,31 @@ public class ZbankClientConfig {
     /**
      * 开放平台开放平台公钥（由众邦银行提供）
      */
-    @Value("${api.zbank.baseUrl.api.serverPubKey:}")
+    @Value("${api.zbank.api.serverPubKey:}")
     private String serverPubKey;
 
     /**
      * appId（由众邦银行提供）
      */
-    @Value("${api.zbank.baseUrl.api.appId:}")
+    @Value("${api.zbank.api.appId:}")
     private String appId;
 
     /**
      * appSecretKey（由众邦银行提供）
      */
-    @Value("${api.zbank.baseUrl.api.appSecretKey:}")
+    @Value("${api.zbank.api.appSecretKey:}")
     private String appSecretKey;
 
     /**
      * 渠道自己的私钥字符串，生成方式和提取方式请参照【证书的生成及提取】目录下的文档说明，另，证书生成完成之后将【server.crt】文件提供给众邦银行
      */
-    @Value("${api.zbank.baseUrl.api.priKey:}")
+    @Value("${api.zbank.api.priKey:}")
     private String priKey;
 
     /**
      * 业务接口
      */
-    @Value("${api.zbank.baseUrl.api.serviceId:}")
+    @Value("${api.zbank.api.serviceId:}")
     private String serviceId;
 
     // 文件sdk参数
@@ -99,12 +99,12 @@ public class ZbankClientConfig {
     /**
      * 用于加密的密钥（由众邦银行提供），行外渠道加密使用
      */
-    @Value("${api.zbank.baseUrl.file.encryptKey:}")
+    @Value("${api.zbank.file.encryptKey:}")
     private String encryptKey;
     /**
      * 用于加密的校验和字符串（由众邦银行提供），行外渠道加密使用
      */
-    @Value("${api.zbank.baseUrl.file.cksStr:}")
+    @Value("${api.zbank.file.cksStr:}")
     private String cksStr;
 
 

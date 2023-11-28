@@ -462,6 +462,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         fileInfo.setFileMd5(streamDownLoadInfo.getFileMd5());
                         InputStreamReader isr = null;
                         BufferedReader bufferedReader = null;
+                        LineNumberReader lineNumberReader = null;
                         LocalFile localFileUpdate = new LocalFile();
                         localFileUpdate.setErrorActualNumber(0);
                         localFileUpdate.setPushNumber(0);
@@ -477,7 +478,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                 int maxSaveSize = 30;
                                 AtomicInteger errorSum = new AtomicInteger(0);
                                 bufferedReader = new BufferedReader(isr);
-                                LineNumberReader lineNumberReader = new LineNumberReader(bufferedReader);
+                                lineNumberReader = new LineNumberReader(bufferedReader);
                                 String lineTxt;
                                 List<PullCustomerFileData> fileDataList = new ArrayList<>();
                                 while ((lineTxt = lineNumberReader.readLine()) != null) {
@@ -510,7 +511,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             }
                             setNumber(apiCode, localFileUpdate);
                             localFileMapper.updateByPrimaryKeySelective(localFileUpdate);
-                            closeable(bufferedReader, isr, inputStream);
+                            closeable(lineNumberReader, bufferedReader, isr, inputStream);
                             okFileDownLoad(okFile, filePath.concat(okFileExtension).concat("_"));
                         }
                     }
