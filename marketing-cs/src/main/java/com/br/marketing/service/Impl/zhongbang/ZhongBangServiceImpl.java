@@ -648,14 +648,15 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         if (!localFileExist) {
             String path = filePath.concat(fileInfo.getFileMd5()).concat(File.separator).concat(fileInfo.getFileName());
             File file = new File(path);
-            if (file.getParentFile().exists() && file.exists() && file.isFile()
-                    && checkFileMd5(Md5EncodeUtil.encode(file), fileInfo)) {
-                log.warn("###众邦财富文件{}下载进度{}/{}：100%", fileInfo.getFileName(), file.length(), file.length());
-                return file;
-            }
-            boolean bak = file.renameTo(new File(path.concat(".bak") + System.currentTimeMillis()));
-            if (!bak) {
-                log.warn("众邦财富异常文件备份失败！path:{}", path);
+            if (file.getParentFile().exists() && file.exists() && file.isFile()) {
+                if (checkFileMd5(Md5EncodeUtil.encode(file), fileInfo)) {
+                    log.warn("###众邦财富文件{}下载(秒传)进度{}/{}：100%", fileInfo.getFileName(), file.length(), file.length());
+                    return file;
+                }
+                boolean bak = file.renameTo(new File(path.concat(".bak") + System.currentTimeMillis()));
+                if (!bak) {
+                    log.warn("众邦财富异常文件备份失败！path:{}", path);
+                }
             }
         }
         return null;
