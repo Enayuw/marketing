@@ -221,6 +221,8 @@ api:
       appId: "2a0f9f71_29e5_466c_95a7_8cab99d93880"
       appSecretKey: "65ed7e3b-bcff-4f5b-a029-185a538e3ee8"
       priKey: "1DF4C616DE52063F5BB9525121160DF2F0607122A5FE69EB382D57020B27EA6A"
+      serviceId:
+        labelRating: "CMBrLabelRatingRe"
     file:
       baseUrl: "https://iodev-uat.z-bank.com"
       channelId: "2023042701"

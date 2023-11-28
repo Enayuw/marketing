@@ -239,6 +239,8 @@ api:
       appId: "26cd2e1f_f116_4947_94d9_c68194400186"
       appSecretKey: "5c995d09-b371-48aa-af63-5e79909e6908"
       priKey: "3B82FE82D970F247C391358D360DA50486FE2266D5919028BD26A3AC4940E845"
+      serviceId:
+        labelRating: "CMBrLabelRatingRe"
     file:
       baseUrl: "https://file.z-bank.com"
       channelId: "1741195375"

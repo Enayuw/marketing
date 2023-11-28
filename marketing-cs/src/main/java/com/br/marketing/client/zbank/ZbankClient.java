@@ -41,8 +41,8 @@ public class ZbankClient {
     /**
      * 业务接口
      */
-    @Value("${api.zbank.api.serviceId:CMBrLabelRatingRe}")
-    private String serviceId;
+    @Value("${api.zbank.api.serviceId.labelRating:CMBrLabelRatingRe}")
+    private String serviceIdLabelRating;
 
     /**
      * 渠道唯一标识（由众邦银行提供）
@@ -67,7 +67,7 @@ public class ZbankClient {
      * 标签评级
      */
     public String labelRatingRe(Object obj) throws Exception {
-        return apiCall(obj, serviceId);
+        return apiCall(obj, serviceIdLabelRating);
     }
 
     /**
@@ -75,7 +75,7 @@ public class ZbankClient {
      * 标签评级
      */
     public String labelRatingRe(Object obj, String requestId) throws Exception {
-        return apiCall(obj, serviceId, requestId);
+        return apiCall(obj, serviceIdLabelRating, requestId);
     }
 
     /**
@@ -86,6 +86,9 @@ public class ZbankClient {
         String jsonString = apiCall(obj, serviceId);
         JSONObject localInterfaceLogContext = sdk.getLocalInterfaceLogContext();
         THREAD_POOL.execute(() -> {
+            if (localInterfaceLogContext == null) {
+                return;
+            }
             try {
                 InterfaceLog interfaceLog = localInterfaceLogContext.toJavaObject(InterfaceLog.class);
                 interfaceLog.setRequestId(requestId);

@@ -91,8 +91,8 @@ public class ZbankClientConfig {
     /**
      * 业务接口
      */
-    @Value("${api.zbank.api.serviceId:}")
-    private String serviceId;
+    @Value("${api.zbank.api.serviceId.labelRating:CMBrLabelRatingRe}")
+    private String serviceIdLabelRating;
 
     // 文件sdk参数
 
@@ -130,7 +130,7 @@ public class ZbankClientConfig {
                 config.setProxyPassword(password);
             }
             // 开启记录接口日志
-            sdk.getConfig().getInterfaceLogServiceIdList().add(serviceId);
+            sdk.getConfig().getInterfaceLogServiceIdList().add(serviceIdLabelRating);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
