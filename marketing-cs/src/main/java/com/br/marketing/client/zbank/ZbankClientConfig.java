@@ -52,40 +52,46 @@ public class ZbankClientConfig {
     private Boolean isPorxy;
 
     /**
-     * 访问URL（由众邦银行提供）
+     * 访问Api URL（由众邦银行提供）
      */
-    @Value("${api.zbank.baseUrl:https://iodev-uat.z-bank.com}")
-    private String url;
+    @Value("${api.zbank.api.baseUrl:}")
+    private String apiUrl;
+
+    /**
+     * 访问File URL（由众邦银行提供）
+     */
+    @Value("${api.zbank.file.baseUrl:}")
+    private String fileUrl;
 
 
     /**
      * 开放平台开放平台公钥（由众邦银行提供）
      */
-    @Value("${api.zbank.baseUrl.api.serverPubKey:049191E0402CE98C8F31564880AC47AC888DACB24B127407D351AD83725CDB4529713E585CBB14C14E4EBBE97828D64B1F2DC101E113F227B6E6ACD9A378311DC3}")
+    @Value("${api.zbank.baseUrl.api.serverPubKey:}")
     private String serverPubKey;
 
     /**
      * appId（由众邦银行提供）
      */
-    @Value("${api.zbank.baseUrl.api.appId:2a0f9f71_29e5_466c_95a7_8cab99d93880}")
+    @Value("${api.zbank.baseUrl.api.appId:}")
     private String appId;
 
     /**
      * appSecretKey（由众邦银行提供）
      */
-    @Value("${api.zbank.baseUrl.api.appSecretKey:65ed7e3b-bcff-4f5b-a029-185a538e3ee8}")
+    @Value("${api.zbank.baseUrl.api.appSecretKey:}")
     private String appSecretKey;
 
     /**
      * 渠道自己的私钥字符串，生成方式和提取方式请参照【证书的生成及提取】目录下的文档说明，另，证书生成完成之后将【server.crt】文件提供给众邦银行
      */
-    @Value("${api.zbank.baseUrl.api.priKey:1DF4C616DE52063F5BB9525121160DF2F0607122A5FE69EB382D57020B27EA6A}")
+    @Value("${api.zbank.baseUrl.api.priKey:}")
     private String priKey;
 
     /**
      * 业务接口
      */
-    @Value("${api.zbank.baseUrl.api.serviceId:CMBrLabelRatingRe}")
+    @Value("${api.zbank.baseUrl.api.serviceId:}")
     private String serviceId;
 
     // 文件sdk参数
@@ -93,12 +99,12 @@ public class ZbankClientConfig {
     /**
      * 用于加密的密钥（由众邦银行提供），行外渠道加密使用
      */
-    @Value("${api.zbank.baseUrl.file.encryptKey:0463455a993b27010c80ceaca36f8faddcc5bb942b242faad8196ccda08d9ba556a669d6682d62d5278dbdc7a65d87ea8071635825725c35b92607eb379b369949}")
+    @Value("${api.zbank.baseUrl.file.encryptKey:}")
     private String encryptKey;
     /**
      * 用于加密的校验和字符串（由众邦银行提供），行外渠道加密使用
      */
-    @Value("${api.zbank.baseUrl.file.cksStr:YRPZSSUEDOXHGNBYYYDGWPDASZJIIHXMJBZZFZTOSSHWABKGBHSBTUSJAMDFHIRX}")
+    @Value("${api.zbank.baseUrl.file.cksStr:}")
     private String cksStr;
 
 
@@ -113,7 +119,7 @@ public class ZbankClientConfig {
         SDK sdk = new SDK();
         try {
             //SDK初始化
-            sdk.init(appId, appSecretKey, priKey, serverPubKey, url, CONN_TIMEOUT, SOCKET_TIMEOUT);
+            sdk.init(appId, appSecretKey, priKey, serverPubKey, apiUrl, CONN_TIMEOUT, SOCKET_TIMEOUT);
             if (isPorxy) {
                 Config config = sdk.getConfig();
                 // 设置代理的host
@@ -139,7 +145,7 @@ public class ZbankClientConfig {
     @Lazy
     public FileSDK zBankClientFileSdk() {
         //1、初始化配置服务方接口url。
-        FileSDK sdk = FileSDK.build(url);
+        FileSDK sdk = FileSDK.build(fileUrl);
         //2、配置httpClient相关参数：连接超时时间、响应超时时间、http代理、SS5代理等。详见HttpConfig类
         HttpConfig config = new HttpConfig();
         config.setSocketTimeout(FILE_SOCKET_TIMEOUT);

@@ -47,19 +47,19 @@ public class ZbankClient {
     /**
      * 渠道唯一标识（由众邦银行提供）
      */
-    @Value("${api.zbank.baseUrl.file.channelId:2023042701}")
+    @Value("${api.zbank.baseUrl.file.channelId:}")
     private String channelId;
 
     /**
      * 用于调用文件查询方法(queryFileList)时使用的slotKey
      */
-    @Value("${api.zbank.baseUrl.file.slotKey:rEFhYy7SRHzCrsMnzjqPoQ==}")
+    @Value("${api.zbank.baseUrl.file.slotKey:}")
     private String slotKey;
 
     @Resource
     private InterfaceLogMapper interfaceLogMapper;
 
-    private final static ThreadPoolExecutor THREAD_POOL = BrExecutors.getThreadPool(1, 5, 5);
+    private final static ThreadPoolExecutor THREAD_POOL = BrExecutors.getThreadPool(5, 50, 100);
 
 
     /**
