@@ -200,7 +200,6 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 transferFileTask.setStatus(1);
                 transferFileTask.setCreateTime(new Date());
                 transferFileTask.setUpdateTime(transferFileTask.getCreateTime());
-                transferFileTaskMapper.insertSelective(transferFileTask);
                 transferFileTaskList.add(transferFileTask);
             });
         }
@@ -253,15 +252,8 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
             List<MarketingTransferSyncUser> mtsuList, String apiCode, String userType) {
         Set<String> custNums = mtsuList.parallelStream().map(
                 MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-        log.warn("@@@@@@@@:\n{}\n{}\n{}", apiCode, custNums, userType);
-        List<Map<String, Object>> creatTimeList = null;
-        try {
-            creatTimeList = iMarketingSyncUserService
-                    .getCreatTimeByCustNumAndUserTypeList(apiCode, custNums, userType);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            log.error("######:\n{}\n{}\n{}", apiCode, custNums, userType);
-        }
+        List<Map<String, Object>> creatTimeList = iMarketingSyncUserService
+                .getCreatTimeByCustNumAndUserTypeList(apiCode, custNums, userType);
         return creatTimeList.parallelStream().collect(
                 Collectors.toMap(m -> (String) m.get("custNum")
                         , m -> m, (v1, v2) -> {
