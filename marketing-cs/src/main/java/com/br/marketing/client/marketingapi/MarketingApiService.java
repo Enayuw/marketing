@@ -4,7 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDTO;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
+import com.br.marketing.client.marketingapi.input.UploadDataUrlDTO;
 import com.br.marketing.client.net.ApiCallerUtil;
+import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.net.ApiCaller;
@@ -127,6 +129,30 @@ public class MarketingApiService {
             }
         }catch (Exception ex){
             log.error("调用营销上传接口报错："+ex.getMessage(),ex);
+            return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+    }
+
+    @RetryMethod(retryNowNum = 2,isOrNoDbRetry = true)
+    public Result callUploadDataByUrlRetry(UploadDataUrlDTO dto, Integer retry) {
+        try{
+            ThirdApiResultTransfer res = new ApiCallerUtil(restTemplate,interfaceLogMapper,interfaceLogDbpool)
+                    .setUrl(dto.getUrl())
+                    .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .setRequestParam(dto.getUploadDataDTO())
+                    .postTransferStr();
+            if (Integer.valueOf(200).equals(res.getHttpCode())) {
+                JSONObject jsonObject = JSON.parseObject(res.getResult());
+                String code = jsonObject.getString("code");
+                if (!"00".equals(code)) {
+                    return new Result().setCode(ResultCode.FAIL.getValue());
+                }
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
+            }else{
+                return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            }
+        }catch (Exception ex){
+            log.error("调用营销接口报错："+ex.getMessage(),ex);
             return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }

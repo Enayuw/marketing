@@ -109,6 +109,7 @@
                 </executions>
                 <configuration>
                     <mainClass>com.br.marketing.monkey.MarketingDataMonkeyApplication</mainClass>
+                    <includeSystemScope>true</includeSystemScope>
                 </configuration>
             </plugin>
         </plugins>

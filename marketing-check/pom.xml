@@ -97,6 +97,7 @@
                 </executions>
                 <configuration>
                     <mainClass>com.br.marketing.check.CkeckApplication</mainClass>
+                    <includeSystemScope>true</includeSystemScope>
                 </configuration>
             </plugin>
         </plugins>

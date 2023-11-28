@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.ZhongbangCaifuDataMapper">
+
+     <select id="zhongBangLabelDataPage" resultType="com.br.marketing.entity.ZhongbangCaifuData">
+         select * from
+         b_zhongbang_caifu_data
+         where
+         <if test="minId != null and minId >0">
+             id >=#{minId} and
+         </if>
+         local_id = #{localId}  and status =1 and push_status =1
+         order by id asc limit 2000;
+
+     </select>
+
+</mapper>

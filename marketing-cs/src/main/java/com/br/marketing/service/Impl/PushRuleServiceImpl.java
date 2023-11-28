@@ -55,11 +55,14 @@ import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.vo.*;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.slf4j.Logger;
@@ -93,6 +96,7 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -150,6 +154,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     private ZhongyouFileDataMapper zhongyouFileDataMapper;
 
     @Resource
+    private ZhongbangCaifuDataMapper zhongbangCaifuDataMapper;
+
+    @Resource
     private RestTemplate restTemplate;
 
     @Value("#{${api.pushTransfer.robotAi.tailor.apiCodeMap:{'7410787':true}}}")
@@ -163,6 +170,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     private PushTransferRobotaiLogService pushTransferRobotaiLogService;
+
+    @Resource
+    private MethodRetryHandlerService methodRetryHandlerService;
 
     private static final String msTimeRegex = "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$";
 
@@ -3626,4 +3636,138 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
     }
+
+    /**
+     * 众邦财富定制标签数据推送
+     *
+     */
+
+    @Override
+    public Result<Boolean> cunsumerZhongBangLabelData(Long id) {
+        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
+        if (localFile == null) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
+        }
+        Long st1 = System.currentTimeMillis();
+        localFile.setPushStartTime(new Date());
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5, 20);
+        Long minId = null;
+        Boolean isContiue = Boolean.TRUE;
+        while (isContiue) {
+            if (marketingCommonConfig.getZhongBangCaifuLabelThreadNum() != null) {
+                pool.setCorePoolSize(marketingCommonConfig.getZhongBangCaifuLabelThreadNum());
+                pool.setMaximumPoolSize(marketingCommonConfig.getZhongBangCaifuLabelThreadNum());
+                log.warn("众邦财富定制标签线程调整，corePoolSize={},maxPoolSize={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
+            }
+            List<ZhongbangCaifuData> zhongbangCaifuDataList = zhongbangCaifuDataMapper.zhongBangLabelDataPage(id, minId);
+            if (zhongbangCaifuDataList.size() <= 0) {
+                isContiue = Boolean.FALSE;
+                continue;
+            }
+            minId = zhongbangCaifuDataList.get(zhongbangCaifuDataList.size() - 1).getId() + 1;
+            pool.submit(() -> {
+                try {
+                    List<List<ZhongbangCaifuData>> labelList = Lists.partition(zhongbangCaifuDataList, 1000);
+                    //组装数据调接口
+                    labelList.forEach(labels -> {
+                        List<Long> ids = labels.stream().map(t -> t.getId()).collect(Collectors.toList());
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("TskId", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_" + labels.get(0).getApiCode()+"_"
+                                + RandomStringUtils.randomNumeric(5) + System.currentTimeMillis());
+                        jsonObject.put("PrimKey", labels.get(0).getId());
+                        JSONArray cstIndoList = new JSONArray();
+                        labels.forEach(label -> {
+                            JSONObject cstInfo = new JSONObject();
+                            cstInfo.put("CstNo", label.getCstNo());
+                            cstInfo.put("TagGrd", label.getTagGrd());
+                            cstInfo.put("Rmk", label.getRmk());
+                            cstIndoList.add(cstInfo);
+                        });
+                        jsonObject.put("CstInfoArray", cstIndoList);
+                        jsonObject.put("ids", ids);
+                        Result result = methodRetryHandlerService.pushZbankLabelRatingRe(jsonObject, null);
+                        //更新数据表状态
+                        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                            //更新成功
+                            updateStatus(ids, 2);
+                        } else {
+                            //更新失败
+                            updateStatus(ids, 3);
+                        }
+                    });
+                } catch (Exception ex) {
+                    log.error("众邦财富定制标签推送异常", ex);
+                }
+            });
+        };
+        pool.shutdown();
+        try {
+            while (!pool.awaitTermination(5L, TimeUnit.SECONDS)) {
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+        //更新文件表推送数据量
+        ZhongbangCaifuDataExample zhongbangCaifuDataExample = new ZhongbangCaifuDataExample();
+        zhongbangCaifuDataExample.createCriteria().andLocalIdEqualTo(localFile.getId())
+                .andPushStatusEqualTo(2)
+                .andStatusEqualTo(1);
+        Long num = zhongbangCaifuDataMapper.countByExample(zhongbangCaifuDataExample);
+        localFile.setPushEndTime(new Date());
+        localFile.setPushNumber(num.intValue());
+        //更新状态推送成功
+        localFile.setPushStatus("2");
+        localFileMapper.updateByPrimaryKeySelective(localFile);
+        //统计告警
+        if(!localFile.getPushNumber().equals(localFile.getActualNumber())){
+            sendAlarm(localFile.getActualNumber()-localFile.getPushNumber(),"众邦财富定制标签推送失败数量统计");
+        }
+        log.warn("众邦财富定制标签推送结束，耗时：{} ms", System.currentTimeMillis() - st1);
+
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(false).setMessage("成功");
+    }
+
+    private void updateStatus(List<Long> ids, int status) {
+        if (ids.size() > 0) {
+            ZhongbangCaifuDataExample updateExample = new ZhongbangCaifuDataExample();
+            updateExample.createCriteria().andIdIn(ids);
+            ZhongbangCaifuData record = new ZhongbangCaifuData();
+            record.setPushStatus(status);
+            zhongbangCaifuDataMapper.updateByExampleSelective(record, updateExample);
+        }
+    }
+
+
+    public void updateZhongBangRetryStatus(Object ids) {
+        List<Long> labelIds = (List<Long>) ids;
+        //更新数据表状态
+        ZhongbangCaifuDataExample updateExample = new ZhongbangCaifuDataExample();
+        updateExample.createCriteria().andIdIn(labelIds);
+        ZhongbangCaifuData record = new ZhongbangCaifuData();
+        record.setPushStatus(2);
+        zhongbangCaifuDataMapper.updateByExampleSelective(record, updateExample);
+        Long localId = zhongbangCaifuDataMapper.selectByPrimaryKey(labelIds.get(0)).getLocalId();
+        //更新文件表推送数据量
+        LocalFile localFile = localFileMapper.selectByPrimaryKey(localId);
+        ZhongbangCaifuDataExample zhongbangCaifuDataExample = new ZhongbangCaifuDataExample();
+        zhongbangCaifuDataExample.createCriteria().andLocalIdEqualTo(localId)
+                .andPushStatusEqualTo(2)
+                .andStatusEqualTo(1);
+        Long num = zhongbangCaifuDataMapper.countByExample(zhongbangCaifuDataExample);
+        localFile.setPushEndTime(new Date());
+        localFile.setPushNumber(num.intValue());
+        localFileMapper.updateByPrimaryKeySelective(localFile);
+
+    }
+
+    private void sendAlarm(Integer failNum, String title) {
+        if (failNum > 0) {
+            try {
+                alarmClient.sendAlarm("推送失败条数=" + failNum, title, AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
+        }
+    }
+
 }

@@ -48,4 +48,6 @@ public interface SyncConfigService {
     JSONArray getDataTypeList();
 
     String getPath();
+
+    String getPullCustomerFilePath(String apiCode);
 }
