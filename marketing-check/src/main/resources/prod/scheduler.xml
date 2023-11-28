@@ -895,7 +895,7 @@
 
     <job:simple id="ZhongBangCaiFuLabelPushJob"
                 class="com.br.marketing.check.job.zhongbang.ZhongBangCaiFuLabelPushJob"
-                cron="0 */5 * ? * *"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="众邦财富定制标签推送任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
