@@ -1,6 +1,7 @@
 package com.br.marketing.check.job.zhongbang;
 
 
+import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
 import com.br.marketing.mapper.LocalFileMapper;
@@ -36,7 +37,7 @@ public class ZhongBangCaiFuLabelPushJob extends AbstractSimpleElasticJob {
 
         LocalFileExample example = new LocalFileExample();
         //查询待推送文件
-        example.createCriteria().andFileTypeEqualTo("zhongbanglabel")
+        example.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.ZHONGBANGLABEL.getValue())
                 .andStatusEqualTo("2").andPushStatusIsNull();
         List<LocalFile> localFiles = localFileMapper.selectByExample(example);
         if (CollectionUtils.isEmpty(localFiles)) {
@@ -49,9 +50,9 @@ public class ZhongBangCaiFuLabelPushJob extends AbstractSimpleElasticJob {
         try {
             pushRuleService.cunsumerZhongBangLabelData(localFiles.get(0).getId());
         } catch (Exception e) {
-            //推送异常更新状态
+            //推送异常更新状态,更新为失败status=3
             LocalFile localFile = new LocalFile();
-            localFile.setPushStatus("1");
+            localFile.setPushStatus("3");
             localFile.setId(localFiles.get(0).getId());
             localFileMapper.updateByPrimaryKeySelective(localFile);
             log.error("众邦财富定制标签推送异常", e);
