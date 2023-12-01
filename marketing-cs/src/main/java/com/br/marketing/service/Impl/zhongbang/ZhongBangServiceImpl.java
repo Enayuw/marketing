@@ -468,8 +468,11 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             AtomicInteger errorSum = new AtomicInteger(0);
                             String lineTxt;
                             List<PullCustomerFileData> fileDataList = new ArrayList<>();
+                            int rowNum = 1;
                             while ((lineTxt = lineNumberReader.readLine()) != null) {
-                                fileDataList.add(newFileData(lineTxt, apiCode, tableHeads, heads, regex, localFileUpdate));
+                                fileDataList.add(newFileData(lineTxt, apiCode, tableHeads, heads, regex, localFileUpdate
+                                        , rowNum));
+                                rowNum++;
                                 if (saveFileData(fileDataList, maxSaveSize, localFile, threadPool, errorSum)) {
                                     fileDataList = new ArrayList<>();
                                 }
@@ -577,7 +580,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
      * 创建文件数据日志
      */
     private PullCustomerFileData newFileData(String lineTxt
-            , String apiCode, String[] tableHead, int heads, String regex, LocalFile localFile) {
+            , String apiCode, String[] tableHead, int heads, String regex, LocalFile localFile, int rowNum) {
         PullCustomerFileData fileData = new PullCustomerFileData();
         String[] rows;
         if (StringUtils.isBlank(lineTxt) || (rows = lineTxt.split(regex)).length != heads) {
@@ -597,7 +600,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         }
         fileData.setFileData(lineTxt);
         fileData.setApiCode(apiCode);
-        fileData.setDataFingerprint(MD5Utils.cell32(lineTxt));
+        fileData.setDataFingerprint(MD5Utils.cell32(lineTxt.concat("_") + rowNum));
         fileData.setLocalFileId(localFile.getId());
         fileData.setCreateDate(LocalDate.now().toString());
         fileData.setCreateTime(new Date());
