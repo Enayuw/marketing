@@ -160,7 +160,7 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
             linkedHashMap.put("original_daikuan_"
                     , "custNum|@|id|@|cell|@|name|@|gender|@|age|@|region|@|registerTime|@|ifRegister|@|ifApply"
                             + "|@|ifLogin|@|loginTime|@|userType");
-            linkedHashMap.put("transform_"
+            linkedHashMap.put("transform_br_"
                     , "custNum|@|ifLogin1|@|ifApply1|@|applyTime|@|applyproductName|@|applyAmount|@|ifLent1|@|lentTime"
                             + "|@|lentAmount|@|pushTime|@|userType");
             map.put("3710099", linkedHashMap);
