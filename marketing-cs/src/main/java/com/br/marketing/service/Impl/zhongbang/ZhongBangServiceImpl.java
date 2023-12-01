@@ -600,7 +600,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         }
         fileData.setFileData(lineTxt);
         fileData.setApiCode(apiCode);
-        fileData.setDataFingerprint(MD5Utils.cell32(lineTxt.concat("_") + rowNum));
+        fileData.setDataFingerprint(MD5Utils.cell32(lineTxt).concat("_") + rowNum);
         fileData.setLocalFileId(localFile.getId());
         fileData.setCreateDate(LocalDate.now().toString());
         fileData.setCreateTime(new Date());
