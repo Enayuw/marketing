@@ -461,6 +461,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         localFileUpdate.setPushNumber(0);
                         localFileUpdate.setActualNumber(0);
                         localFileUpdate.setId(localFileNew.getId());
+                        localFileUpdate.setLocalPath(fileDownLoadInfo.getDestFile().getParent());
                         try (LineNumberReader lineNumberReader = new LineNumberReader(new BufferedReader(
                                 new InputStreamReader(new BufferedInputStream(new FileInputStream(
                                         fileDownLoadInfo.getDestFile())), StandardCharsets.UTF_8)))) {
