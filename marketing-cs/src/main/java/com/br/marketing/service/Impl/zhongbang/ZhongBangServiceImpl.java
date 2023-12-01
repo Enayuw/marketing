@@ -436,16 +436,22 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                     String[] tableHeads = tableHead.split(regex);
                     int heads = tableHeads.length;
                     for (FileInfo fileInfo : sortedInfos) {
+                        log.warn("众邦财富({})文件{}开始下载FileId:{}...", apiCode, fileInfo.getFileName(), fileInfo.getFileId());
                         String txtFilePath = filePath.concat(txtFileExtension);
                         if (mkdirPath(txtFilePath, apiCode, fileName)) {
                             return false;
                         }
+                        long startTime = System.currentTimeMillis();
                         // 下载生成的文件
                         FileDownLoadInfo fileDownLoadInfo = zBankClient.downLoadSplitFileMergeInLocal(fileInfo, txtFilePath);
+                        long endTime = System.currentTimeMillis();
                         if (fileDownLoadInfo == null || fileDownLoadInfo.getDestFile() == null) {
-                            log.error("众邦财富({})文件{}下载失败！", apiCode, txtFileName);
+                            log.error("众邦财富({})文件{}下载失败！耗时：{}ms", apiCode, txtFileName, endTime - startTime);
                             return false;
                         }
+                        log.warn("众邦财富({})文件{}下载完成，FileMd5:{},FileId:{},文件大小:{},耗时：{}ms"
+                                , apiCode, fileDownLoadInfo.getFileName(), fileDownLoadInfo.getFileMd5()
+                                , fileDownLoadInfo.getFileId(), fileDownLoadInfo.getFileSize(), endTime - startTime);
                         LocalFile localFile = selectLocalFile(apiCode, txtFilePath, fileInfo);
                         boolean localFileExist = localFile == null;
                         LocalFile localFileNew = localFileExist ? saveLocalFile(cid, apiCode, txtFilePath, fileInfo) : localFile;
@@ -458,9 +464,6 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         try (LineNumberReader lineNumberReader = new LineNumberReader(new BufferedReader(
                                 new InputStreamReader(new BufferedInputStream(new FileInputStream(
                                         fileDownLoadInfo.getDestFile())), StandardCharsets.UTF_8)))) {
-                            log.warn("众邦财富({})文件{}下载完成，FileMd5:{},FileId:{},文件大小:{}"
-                                    , apiCode, fileDownLoadInfo.getFileName(), fileDownLoadInfo.getFileMd5()
-                                    , fileDownLoadInfo.getFileId(), fileDownLoadInfo.getFileSize());
                             AtomicInteger errorSum = new AtomicInteger(0);
                             String lineTxt;
                             List<PullCustomerFileData> fileDataList = new ArrayList<>();
