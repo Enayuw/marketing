@@ -29,12 +29,9 @@ import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.ArtificialRealTimeUserAndCustomerTransferSoleFacade;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
+import com.zbank.file.bean.FileDownLoadInfo;
 import com.zbank.file.bean.FileInfo;
-import com.zbank.file.bean.StreamDownLoadInfo;
-import com.zbank.file.common.utils.Md5EncodeUtil;
-import com.zbank.file.exception.SDKException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -43,15 +40,9 @@ import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -424,15 +415,6 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         return data;
     }
 
-    private void pushWarnMessage(String apiCode) {
-        String timeStr = "10:00:00";
-        if (LocalTime.now().isAfter(LocalTime.parse(timeStr))) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode()
-                    , "众邦转化数据推送到daas(单条)与外呼，推送时间已过“10点”,任务继续执行...,apiCode:" + apiCode
-                    , "众邦转化数据推送daas(单条)与外呼告警"));
-        }
-    }
-
     @Override
     public boolean zhongBangFileQueryAndDownload(String apiCode, String cid, String fileName
             , String tableHead, String filePath, String beginDate, String endDate, ThreadPoolExecutor threadPool) {
@@ -440,6 +422,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         String okFileExtension = ".ok";
         String txtFileExtension = ".txt";
         String regex = "\\|@\\|";
+        int maxSaveSize = 30;
         // 查询文件是否已创建完成
         List<FileInfo> okFiles = zBankClient.queryFileList(fileName, beginDate, endDate, 1);
         if (okFiles.size() > 0) {
@@ -448,59 +431,64 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 // 查询已经生成完成的文件
                 String txtFileName = okFile.getFileName().replace(okFileExtension, txtFileExtension);
                 List<FileInfo> infos = zBankClient.queryFileList(txtFileName, beginDate, endDate, 1);
-                InputStream inputStream = null;
                 if (infos.size() > 0) {
                     List<FileInfo> sortedInfos = sortedFileCreateTime(infos);
                     String[] tableHeads = tableHead.split(regex);
                     int heads = tableHeads.length;
                     for (FileInfo fileInfo : sortedInfos) {
-                        LocalFile localFile = selectLocalFile(apiCode, filePath, fileInfo);
-                        boolean localFileExist = localFile == null;
-                        LocalFile localFileNew = localFileExist ? saveLocalFile(cid, apiCode, filePath, fileInfo) : localFile;
+                        log.warn("众邦财富({})文件{}开始下载FileId:{}...", apiCode, fileInfo.getFileName(), fileInfo.getFileId());
+                        String txtFilePath = filePath.concat(txtFileExtension);
+                        if (mkdirPath(txtFilePath, apiCode, fileName)) {
+                            return false;
+                        }
+                        long startTime = System.currentTimeMillis();
                         // 下载生成的文件
-                        StreamDownLoadInfo streamDownLoadInfo = zBankClient.downloadWholeFile(fileInfo);
-                        fileInfo.setFileMd5(streamDownLoadInfo.getFileMd5());
-                        InputStreamReader isr = null;
-                        BufferedReader bufferedReader = null;
-                        LineNumberReader lineNumberReader = null;
+                        FileDownLoadInfo fileDownLoadInfo = zBankClient.downLoadSplitFileMergeInLocal(fileInfo, txtFilePath);
+                        long endTime = System.currentTimeMillis();
+                        if (fileDownLoadInfo == null || fileDownLoadInfo.getDestFile() == null) {
+                            log.error("众邦财富({})文件{}下载失败！耗时：{}ms", apiCode, txtFileName, endTime - startTime);
+                            return false;
+                        }
+                        log.warn("众邦财富({})文件{}下载完成，FileMd5:{},FileId:{},文件大小:{},耗时：{}ms"
+                                , apiCode, fileDownLoadInfo.getFileName(), fileDownLoadInfo.getFileMd5()
+                                , fileDownLoadInfo.getFileId(), fileDownLoadInfo.getFileSize(), endTime - startTime);
+                        LocalFile localFile = selectLocalFile(apiCode, txtFilePath, fileInfo);
+                        boolean localFileExist = localFile == null;
+                        LocalFile localFileNew = localFileExist ? saveLocalFile(cid, apiCode, txtFilePath, fileInfo) : localFile;
+                        fileInfo.setFileMd5(fileDownLoadInfo.getFileMd5());
                         LocalFile localFileUpdate = new LocalFile();
                         localFileUpdate.setErrorActualNumber(0);
                         localFileUpdate.setPushNumber(0);
                         localFileUpdate.setActualNumber(0);
                         localFileUpdate.setId(localFileNew.getId());
-                        try {
-                            inputStream = streamDownLoadInfo.getInputStream();
-                            String txtFilePath = filePath.concat(txtFileExtension).concat("_");
-                            File fileLocal = secondDownload(localFileExist, fileInfo, txtFilePath);
-                            File file = fileLocal == null ? downLoadFile(inputStream, txtFilePath, fileInfo) : fileLocal;
-                            isr = getInputStreamReader(file, inputStream, fileInfo);
-                            if (isr != null) {
-                                int maxSaveSize = 30;
-                                AtomicInteger errorSum = new AtomicInteger(0);
-                                bufferedReader = new BufferedReader(isr);
-                                lineNumberReader = new LineNumberReader(bufferedReader);
-                                String lineTxt;
-                                List<PullCustomerFileData> fileDataList = new ArrayList<>();
-                                while ((lineTxt = lineNumberReader.readLine()) != null) {
-                                    fileDataList.add(newFileData(lineTxt, apiCode, tableHeads, heads, regex, localFileUpdate));
-                                    if (saveFileData(fileDataList, maxSaveSize, localFile, threadPool, errorSum)) {
-                                        fileDataList = new ArrayList<>();
-                                    }
+                        localFileUpdate.setLocalPath(fileDownLoadInfo.getDestFile().getParent());
+                        try (LineNumberReader lineNumberReader = new LineNumberReader(new BufferedReader(
+                                new InputStreamReader(new BufferedInputStream(new FileInputStream(
+                                        fileDownLoadInfo.getDestFile())), StandardCharsets.UTF_8)))) {
+                            AtomicInteger errorSum = new AtomicInteger(0);
+                            String lineTxt;
+                            List<PullCustomerFileData> fileDataList = new ArrayList<>();
+                            int rowNum = 1;
+                            while ((lineTxt = lineNumberReader.readLine()) != null) {
+                                fileDataList.add(newFileData(lineTxt, apiCode, tableHeads, heads, regex, localFileUpdate
+                                        , rowNum));
+                                rowNum++;
+                                if (saveFileData(fileDataList, maxSaveSize, localFile, threadPool, errorSum)) {
+                                    fileDataList = new ArrayList<>();
                                 }
-                                int lineNumber = lineNumberReader.getLineNumber();
-                                localFileUpdate.setActualNumber(lineNumber);
-                                saveFileData(fileDataList, 1, localFile, threadPool, errorSum);
-                                localFileUpdate.setSrcPath(fileInfo.getFileMd5());
-                                isCompletedByTaskCount(threadPool, fileInfo.getFileName());
-                                int sum;
-                                if ((sum = errorSum.get()) == 0) {
-                                    return true;
-                                }
-                                log.error("众邦财富({})文件{}入库大量失败或入库异常！失败量：{}", apiCode, txtFileName, sum);
-                                return false;
                             }
+                            int lineNumber = lineNumberReader.getLineNumber();
+                            localFileUpdate.setActualNumber(lineNumber);
+                            saveFileData(fileDataList, 1, localFile, threadPool, errorSum);
+                            localFileUpdate.setSrcPath(fileInfo.getFileMd5());
+                            isCompletedByTaskCount(threadPool, fileInfo.getFileName());
+                            int sum;
+                            if ((sum = errorSum.get()) == 0) {
+                                return true;
+                            }
+                            log.error("众邦财富({})文件{}入库大量失败或入库异常！失败量：{}", apiCode, txtFileName, sum);
                             return false;
-                        } catch (IOException | SDKException e) {
+                        } catch (IOException e) {
                             log.error(e.getMessage(), e);
                             return false;
                         } finally {
@@ -511,8 +499,10 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             }
                             setNumber(apiCode, localFileUpdate);
                             localFileMapper.updateByPrimaryKeySelective(localFileUpdate);
-                            closeable(lineNumberReader, bufferedReader, isr, inputStream);
-                            okFileDownLoad(okFile, filePath.concat(okFileExtension).concat("_"));
+                            String okFilePath = filePath.concat(okFileExtension);
+                            if (!mkdirPath(okFilePath, apiCode, okFile.getFileName())) {
+                                zBankClient.downLoadSplitFileMergeInLocal(okFile, okFilePath);
+                            }
                         }
                     }
                 } else {
@@ -560,115 +550,6 @@ public class ZhongBangServiceImpl implements ZhongBangService {
     }
 
     /**
-     * 2023-11-21 15:20
-     * 下载ok文件
-     */
-    private void okFileDownLoad(FileInfo okFile, String filePath) {
-        InputStream inputStream = null;
-        try {
-            StreamDownLoadInfo streamDownLoadInfo = zBankClient.downloadWholeFile(okFile);
-            okFile.setFileMd5(streamDownLoadInfo.getFileMd5());
-            inputStream = streamDownLoadInfo.getInputStream();
-            downLoadFile(inputStream, filePath, okFile);
-        } catch (SDKException e) {
-            log.error(e.getMessage(), e);
-        } finally {
-            closeable(inputStream);
-        }
-    }
-
-    /**
-     * 2023-11-21 15:13
-     * 获取字符流
-     */
-    private InputStreamReader getInputStreamReader(File file, InputStream inputStream, FileInfo fileInfo)
-            throws SDKException, IOException {
-        String localMd5 = "";
-        InputStreamReader isr = null;
-        if (file == null) {
-            InputStream[] inputStreams = null;
-            try {
-                inputStreams = copyTwoInputStream(inputStream);
-                if (inputStreams != null) {
-                    isr = new InputStreamReader(new BufferedInputStream(inputStreams[0]), StandardCharsets.UTF_8);
-                    localMd5 = DigestUtils.md5Hex(inputStreams[1]);
-                }
-            } finally {
-                if (inputStreams != null) {
-                    closeable(inputStreams[1]);
-                }
-            }
-        } else {
-            isr = new InputStreamReader(new BufferedInputStream(new FileInputStream(file)), StandardCharsets.UTF_8);
-            localMd5 = Md5EncodeUtil.encode(file);
-        }
-        if (checkFileMd5(localMd5, fileInfo)) {
-            return isr;
-        }
-        closeable(isr);
-        return null;
-    }
-
-    /**
-     * 2023-11-21 13:42
-     * 复制流
-     */
-    private InputStream[] copyTwoInputStream(InputStream inputStream) {
-        ByteBuffer buffer = null;
-        InputStream is1;
-        InputStream is2;
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-             WritableByteChannel writableByteChannel = Channels.newChannel(bos);
-             ReadableByteChannel readableByteChannel = Channels.newChannel(inputStream)
-        ) {
-            // 缓存1M
-            buffer = ByteBuffer.allocate(1024 << 10);
-            while (readableByteChannel.read(buffer) != -1 || buffer.position() > 0) {
-                buffer.flip();
-                writableByteChannel.write(buffer);
-                buffer.compact();
-            }
-            is1 = new ByteArrayInputStream(bos.toByteArray());
-            is2 = new ByteArrayInputStream(bos.toByteArray());
-            return new InputStream[]{is1, is2};
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-        } finally {
-            if (buffer != null) {
-                buffer.clear();
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 2023-11-21 10:49
-     * 完整文件已下载时，秒传
-     */
-    private File secondDownload(boolean localFileExist, FileInfo fileInfo, String filePath) {
-        try {
-            if (!localFileExist) {
-                String path = filePath.concat(fileInfo.getFileMd5()).concat(File.separator).concat(fileInfo.getFileName());
-                File file = new File(path);
-                if (file.exists()) {
-                    if (file.isFile() && checkFileMd5(Md5EncodeUtil.encode(file), fileInfo)) {
-                        log.warn("###众邦财富文件{}下载(秒传)进度{}/{}：100%"
-                                , fileInfo.getFileName(), file.length(), file.length());
-                        return file;
-                    }
-                    boolean bak = file.renameTo(new File(path.concat(".bak") + System.currentTimeMillis()));
-                    if (!bak) {
-                        log.warn("众邦财富异常文件备份失败！path:{}", path);
-                    }
-                }
-            }
-        } catch (SDKException e) {
-            log.error(e.getMessage());
-        }
-        return null;
-    }
-
-    /**
      * 2023-11-20 9:49
      * 保存本地文件记录
      */
@@ -699,7 +580,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
      * 创建文件数据日志
      */
     private PullCustomerFileData newFileData(String lineTxt
-            , String apiCode, String[] tableHead, int heads, String regex, LocalFile localFile) {
+            , String apiCode, String[] tableHead, int heads, String regex, LocalFile localFile, int rowNum) {
         PullCustomerFileData fileData = new PullCustomerFileData();
         String[] rows;
         if (StringUtils.isBlank(lineTxt) || (rows = lineTxt.split(regex)).length != heads) {
@@ -719,7 +600,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         }
         fileData.setFileData(lineTxt);
         fileData.setApiCode(apiCode);
-        fileData.setDataFingerprint(MD5Utils.cell32(lineTxt));
+        fileData.setDataFingerprint(MD5Utils.cell32(lineTxt).concat("_") + rowNum);
         fileData.setLocalFileId(localFile.getId());
         fileData.setCreateDate(LocalDate.now().toString());
         fileData.setCreateTime(new Date());
@@ -780,60 +661,19 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         return size > 0 ? localFiles.get(0) : null;
     }
 
-
     /**
-     * 2023-11-16 17:15
-     * 下载
+     * 2023-12-01 12:22
+     * true 创建失败
      */
-    private File downLoadFile(InputStream inputStream, String filePath, FileInfo fileInfo) {
-        File f = new File(filePath.concat(fileInfo.getFileMd5()).concat(File.separator).concat(fileInfo.getFileName()));
-        File parentFile = f.getParentFile();
-        if (!parentFile.exists()) {
-            if (!parentFile.mkdirs()) {
-                log.error("众邦财富拉取文件目录创建失败，path:{},name:{}", parentFile.getAbsolutePath()
-                        , fileInfo.getFileName());
-                return null;
+    private boolean mkdirPath(String path, String apiCode, String fileName) {
+        File file = new File(path);
+        if (!file.exists()) {
+            if (!file.mkdirs()) {
+                log.error("众邦财富({})拉取文件目录创建失败，path:{},name:{}", apiCode, path, fileName);
+                return true;
             }
         }
-        try (RandomAccessFile randomAccessFile = new RandomAccessFile(f, "rw");
-             FileChannel channel = randomAccessFile.getChannel();
-             ReadableByteChannel readableByteChannel = Channels.newChannel(inputStream)) {
-            long position = 0L;
-            long fileSize = fileInfo.getFileSize().longValue();
-            while (position < fileSize) {
-                final long count;
-                final long bytesCopied = channel.transferFrom(readableByteChannel, position
-                        , (count = (position + (1024 << 15))) > fileSize ? fileSize : count); // 32M
-                if (bytesCopied == 0L) { // 确保我们不会永远循环
-                    break;
-                }
-                position += bytesCopied;
-                channel.force(false);
-                log.warn("###众邦财富文件{}下载进度{}/{}：{}%", fileInfo.getFileName(), position, fileSize
-                        , (position * 100 / fileSize));
-            }
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-            return null;
-        }
-        return f;
-    }
-
-    /**
-     * 2023-11-21 15:14
-     * 关闭流
-     */
-    private void closeable(Closeable... closeables) {
-        for (Closeable closeable : closeables) {
-            if (closeable == null) {
-                continue;
-            }
-            try {
-                closeable.close();
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-            }
-        }
+        return false;
     }
 
 
@@ -844,23 +684,6 @@ public class ZhongBangServiceImpl implements ZhongBangService {
     private static List<FileInfo> sortedFileCreateTime(List<FileInfo> files) {
         return files.stream().sorted(Comparator.comparing(FileInfo::getCreateTime)
                 .thenComparing(FileInfo::getFileId).reversed()).collect(Collectors.toList());
-    }
-
-
-    /**
-     * 比较文件md5
-     *
-     * @param localMd5 本地下载后的文件生成的md5值
-     * @param fileInfo 服务端响应信息中的md5值
-     * @return 一致返回true;
-     */
-    private boolean checkFileMd5(String localMd5, FileInfo fileInfo) {
-        if (localMd5.equals(fileInfo.getFileMd5())) {
-            return true;
-        }
-        log.error("众邦财富文件{}下载完成后md5不一致，resultMd5={}, localMd5={}", fileInfo.getFileName()
-                , fileInfo.getFileMd5(), localMd5);
-        return false;
     }
 
 

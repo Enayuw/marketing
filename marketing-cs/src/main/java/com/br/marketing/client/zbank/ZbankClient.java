@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
+import com.zbank.file.bean.FileDownLoadInfo;
 import com.zbank.file.bean.FileInfo;
 import com.zbank.file.bean.StreamDownLoadInfo;
 import com.zbank.file.exception.EmptyFileException;
@@ -145,6 +146,21 @@ public class ZbankClient {
         // 注意：使用影像平台的fileId或url下载后的文件 无文件名
         try {
             return fileSdk.downloadStream(fileInfo.getFileId(), channelId, seqNo);
+        } catch (EmptyFileException | SDKException e) {
+            log.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    /**
+     * 2023-12-01 9:34
+     * 将文件下载到本地磁盘指定的目录。
+     * 此下载方式内部已进行了文件Md5值校验，无需重复校验
+     */
+    public FileDownLoadInfo downLoadSplitFileMergeInLocal(FileInfo fileInfo, String dir) {
+        String seqNo = "" + System.nanoTime() + RandomStringUtils.randomNumeric(3);
+        try {
+            return fileSdk.downloadFile(fileInfo.getFileId(), channelId, dir, seqNo, true, true);
         } catch (EmptyFileException | SDKException e) {
             log.error(e.getMessage(), e);
         }
