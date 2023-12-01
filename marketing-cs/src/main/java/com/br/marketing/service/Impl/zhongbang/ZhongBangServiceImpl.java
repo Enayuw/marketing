@@ -448,6 +448,9 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                     int heads = tableHeads.length;
                     for (FileInfo fileInfo : sortedInfos) {
                         String txtFilePath = filePath.concat(txtFileExtension);
+                        if (mkdirPath(txtFilePath, apiCode, fileName)) {
+                            return false;
+                        }
                         // 下载生成的文件
                         FileDownLoadInfo fileDownLoadInfo = zBankClient.downLoadSplitFileMergeInLocal(fileInfo, txtFilePath);
                         if (fileDownLoadInfo == null || fileDownLoadInfo.getDestFile() == null) {
@@ -500,7 +503,10 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             }
                             setNumber(apiCode, localFileUpdate);
                             localFileMapper.updateByPrimaryKeySelective(localFileUpdate);
-                            zBankClient.downLoadSplitFileMergeInLocal(okFile, filePath.concat(okFileExtension));
+                            String okFilePath = filePath.concat(okFileExtension);
+                            if (!mkdirPath(okFilePath, apiCode, okFile.getFileName())) {
+                                zBankClient.downLoadSplitFileMergeInLocal(okFile, okFilePath);
+                            }
                         }
                     }
                 } else {
@@ -659,22 +665,19 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         return size > 0 ? localFiles.get(0) : null;
     }
 
-
     /**
-     * 2023-11-21 15:14
-     * 关闭流
+     * 2023-12-01 12:22
+     * true 创建失败
      */
-    private void closeable(Closeable... closeables) {
-        for (Closeable closeable : closeables) {
-            if (closeable == null) {
-                continue;
-            }
-            try {
-                closeable.close();
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
+    private boolean mkdirPath(String path, String apiCode, String fileName) {
+        File file = new File(path);
+        if (!file.exists()) {
+            if (!file.mkdirs()) {
+                log.error("众邦财富({})拉取文件目录创建失败，path:{},name:{}", apiCode, path, fileName);
+                return true;
             }
         }
+        return false;
     }
 
 
