@@ -43,7 +43,6 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -414,16 +413,6 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         data.setConversionData(conversionData);
         data.setRealTimeUserDataSoleDTO(dto);
         return data;
-    }
-
-    @Deprecated
-    private void pushWarnMessage(String apiCode) {
-        String timeStr = "10:00:00";
-        if (LocalTime.now().isAfter(LocalTime.parse(timeStr))) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode()
-                    , "众邦转化数据推送到daas(单条)与外呼，推送时间已过“10点”,任务继续执行...,apiCode:" + apiCode
-                    , "众邦转化数据推送daas(单条)与外呼告警"));
-        }
     }
 
     @Override
