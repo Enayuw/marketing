@@ -745,8 +745,8 @@
     />
     <job:simple id="ZhongYuanTransferDataToCustomerNotFirstTimeJob"
                 class="com.br.marketing.check.job.zhongyuan.ZhongYuanTransferDataToCustomerNotFirstTimeJob"
-                cron="0 0 18 29 9 ? 2050-2050"
-                description="中原转化数据推客非首次服转化过滤定时任务"
+                cron="0 10/15 8-11 * * ?"
+                description="中原转化数据推客服非首次转化过滤定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
