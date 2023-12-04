@@ -242,7 +242,7 @@ public class ZhongYuanServiceImpl implements ZhongYuanService {
         dassSingleImportDataDTO.setSource("30");
         dassSingleImportDataDTO.setId(transfer.getId());
         dassSingleImportDataDTO.setUid(transfer.getCustNum());
-        dassSingleImportDataDTO.setRegisterTime(formatDate(registerTimeAndLoginTimeByCreateTimeOrderDesc.getRegisterTime()));
+//        dassSingleImportDataDTO.setRegisterTime(formatDate(registerTimeAndLoginTimeByCreateTimeOrderDesc.getRegisterTime()));
         dassSingleImportDataDTO.setLoginTime(formatDate(registerTimeAndLoginTimeByCreateTimeOrderDesc.getLoginTime()));
         return dassSingleImportDataDTO;
     }
