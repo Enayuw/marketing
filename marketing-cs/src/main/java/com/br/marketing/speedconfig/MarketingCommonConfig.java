@@ -1097,5 +1097,10 @@ public class MarketingCommonConfig {
      */
     private Boolean zhongBangCaifuLabelTest;
 
+    /**
+     * 数据转化提取任务锁失效时间
+     */
+    private Long transferFileTaskJobLockExpireTime;
+
 }
 

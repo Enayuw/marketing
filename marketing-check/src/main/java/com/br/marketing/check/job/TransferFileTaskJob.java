@@ -10,7 +10,6 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.mapper.SyncLogMapper;
-import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.SftpInnerServiceImpl;
@@ -37,10 +36,6 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
 
     @Autowired
     MarketingCustomerMapper customerMapper;
-
-    @Resource
-    TransferFileTaskMapper transferFileTaskMapper;
-
     /*萨摩耶的实现*/
     @Resource
     ITransferToFileService transferToFileBySamoyeServiveImpl;
@@ -151,7 +146,6 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     private TransferToFileByZhongBangServiceImpl transferToFileByZhongBangService;
 
 
-
     @Autowired
     ICompatibleService iCompatibleService;
 
@@ -167,8 +161,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 , context.getShardingTotalCount()
                 , context.getShardingItems());
         for (MarketingCustomer marketingCustomer : marketingCustomers) {
-            Boolean action = iCompatibleService.isAction(marketingCustomer.getExtendConfigInfo(),context.getJobName());
-            if(!action){
+            String redisKey = RedisKeyConstant.TRANSFER_FILE_TASK_JOB_KEY.concat(":").concat(marketingCustomer.getApiCode());
+            Boolean action = iCompatibleService.isAction(marketingCustomer.getExtendConfigInfo(), context.getJobName());
+            if (!action) {
                 continue;
             }
             Set<ITransferToFileService> serviceImplSet = bind.get(marketingCustomer.getApiCode());
@@ -179,7 +174,17 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                     if (StringUtils.isNotBlank(myParam)) {
                         log.warn("apicode={}获取的自定义参数为{}", marketingCustomer.getApiCode(), myParam);
                     }
-                    Result<List<TransferFileTask>> listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(), myParam);
+                    Result<List<TransferFileTask>> listResult = new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Lists.newArrayList());
+                    try {
+                        boolean lock = redisChgService.lock(redisKey, serviceImpl.getClass().getName(), marketingCommonConfig.getTransferFileTaskJobLockExpireTime());
+                        if (lock) {
+                            listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(), myParam);
+                        }
+                    } catch (Exception e) {
+                        log.error("该apiCode:{}执行数据提取任务获取锁:{}异常", marketingCustomer.getApiCode(), redisKey);
+                    } finally {
+                        redisChgService.unlock(redisKey, serviceImpl.getClass().getName());
+                    }
                     if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
                         List<TransferFileTask> data = listResult.getData();
                         for (TransferFileTask datum : data) {
