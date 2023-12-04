@@ -130,7 +130,7 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
                         new FileOutputStream(file), "UTF-8"));) {
             fw.append(FILE_HEADER);
             fw.append("\r\n");
-            writeXieChengTransferToFile(fw, apiCode, transferFileTask);
+            writeZhongYouTransferToFile(fw, apiCode, transferFileTask);
         } catch (Exception ex) {
             log.error(ex.getMessage());
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
@@ -138,7 +138,7 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    public void writeXieChengTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) {
+    public void writeZhongYouTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) {
         Long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         LocalDate date = LocalDate.now();
