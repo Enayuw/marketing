@@ -102,7 +102,7 @@ otherConfig:
         ftpPort: 21
         ftpUsername: dev_web
         ftpPwd: 0tMKa8jf@8zg
-        sftpHost: brsftp.brapp.com
+        sftpHost: brsftp3.brapp.com
         sftpPort: 9999
         sftpUser: loan_warning
         sftpPwd: 2lT57nWUlel0FxkNDHlK@_2020.11.03
