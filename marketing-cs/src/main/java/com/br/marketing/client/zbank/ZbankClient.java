@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.zbank.file.bean.FileDownLoadInfo;
 import com.zbank.file.bean.FileInfo;
 import com.zbank.file.bean.StreamDownLoadInfo;
@@ -15,13 +16,16 @@ import com.zbank.file.sdk.FileSDK;
 import com.zbank.open.SDK;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -59,6 +63,9 @@ public class ZbankClient {
 
     @Resource
     private InterfaceLogMapper interfaceLogMapper;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     private final static ThreadPoolExecutor THREAD_POOL = BrExecutors.getThreadPool(5, 50, 100);
 
@@ -125,6 +132,23 @@ public class ZbankClient {
      */
     public List<FileInfo> queryFileList(String fileName, String beginDate, String endDate, int pageNo) {
         List<FileInfo> l = new ArrayList<>();
+        Map<String, String> infoMap = marketingCommonConfig.getZhongBangDownloadFileInfoMap();
+        if (!CollectionUtils.isEmpty(infoMap)) {
+            String channelIdKey = "channelId";
+            if (infoMap.containsKey(channelIdKey)) {
+                channelId = infoMap.get(channelIdKey);
+            }
+            infoMap.forEach((k, v) -> {
+                if ("password".equals(k) || "encryptKey".equals(k)) {
+                    return;
+                }
+                log.warn("众邦财富文件下载配置信息:{}={}", k, v);
+            });
+        }
+        String fileSlotKey = marketingCommonConfig.getZhongBangDownloadFileSlotKey();
+        if (StringUtils.isNotBlank(fileSlotKey)) {
+            slotKey = fileSlotKey;
+        }
         try {
             String seqNo = "" + System.nanoTime() + RandomStringUtils.randomNumeric(4);
             l.addAll(fileSdk.queryFileList(channelId, fileName, slotKey, beginDate, endDate
@@ -158,9 +182,14 @@ public class ZbankClient {
      * 此下载方式内部已进行了文件Md5值校验，无需重复校验
      */
     public FileDownLoadInfo downLoadSplitFileMergeInLocal(FileInfo fileInfo, String dir) {
+        Map<String, String> infoMap = marketingCommonConfig.getZhongBangDownloadFileInfoMap();
+        String channelIdKey = "channelId";
+        if (!CollectionUtils.isEmpty(infoMap) && infoMap.containsKey(channelIdKey)) {
+            channelId = infoMap.get(channelIdKey);
+        }
         String seqNo = "" + System.nanoTime() + RandomStringUtils.randomNumeric(3);
         try {
-            return fileSdk.downloadFile(fileInfo.getFileId(), channelId, dir, seqNo, true, true);
+            return fileSdk.downloadFile(fileInfo.getFileId(), channelId, dir, seqNo, false, true);
         } catch (EmptyFileException | SDKException e) {
             log.error(e.getMessage(), e);
         }
