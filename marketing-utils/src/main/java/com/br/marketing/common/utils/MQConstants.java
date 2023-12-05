@@ -80,6 +80,10 @@ public class MQConstants {
 
     //众邦财富定制标签 队列
     public static final String MARKETING_ZHONGBANGCAIFU_LABEL_DATA = "Marketing_ZhongBangCaiFu_Label_Data";
+    public static final String MARKETING_TEST_QUEUE_ONE = "Marketing_Test_Queue_One";
+
+    public static final String MARKETING_TEST_QUEUE_Two = "Marketing_Test_Queue_Two";
+
 
     /**
      * routingkey
@@ -145,4 +149,8 @@ public class MQConstants {
 
     //众邦财富标签队列路由key
     public static final String ROUTING_KEY_MARKETING_ZHONGBANGCAIFU_LABEL_DATA = "Marketing.ZhongBangCaiFu.Label.Data";
+
+    public static final String ROUTING_KEY_MARKETING_TEST_QUEUE_ONE = "Marketing.Test.Queue.One";
+
+    public static final String ROUTING_KEY_MARKETING_TEST_QUEUE_Two = "Marketing.Test.Queue.Two";
 }

@@ -3,7 +3,10 @@ package com.br.marketing.service.Impl;
 import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.context.spring.ContainerContext;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.brgroup.redis.BrRedisClients;
 import com.brgroup.redis.client.BrRedisClient;
@@ -438,5 +441,12 @@ public class RedisTestServiceImpl {
         log.warn("剩余数量:" + redisChgService.scard(key));
         //删除bigkey
         marketingRedisClient.del(key);
+    }
+
+
+    public Result<Boolean> testConsumer(String msg){
+        String decode = RpcClientProxy.decode(msg, "cell", "sha", "");
+        System.out.println("消费成功---------"+decode);
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 }

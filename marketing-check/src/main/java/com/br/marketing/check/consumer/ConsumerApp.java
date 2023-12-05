@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.Impl.ConsumerService;
+import com.br.marketing.service.Impl.RedisTestServiceImpl;
 import com.br.marketing.service.XieChengSmsPushToTransferService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.PushRuleService;
@@ -43,6 +44,9 @@ public class ConsumerApp {
 
     @Autowired
     XieChengSmsPushToTransferService xieChengSmsPushToTransferService;
+
+    @Autowired
+    RedisTestServiceImpl redisTestService;
 
     /**
      * 延迟消费 获取推送客服中心数据状态
@@ -204,5 +208,22 @@ public class ConsumerApp {
     public void consumerXiechengSmsCollidingVtUser(Channel channel, Message message) {
         String o = new String(message.getBody(), StandardCharsets.UTF_8);
         consumerService.consumerRun(channel, message, xieChengSmsPushToTransferService::consumerXiechengSmsCollidingVtUser, o, null);
+    }
+
+
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_TEST_QUEUE_ONE, durable = "true")
+            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_TEST_QUEUE_ONE)}, containerFactory = "containerFactory")
+    public void consumerTestOne(Channel channel, Message message) {
+        String o = new String(message.getBody(), StandardCharsets.UTF_8);
+        consumerService.consumerRun(channel, message, redisTestService::testConsumer, o, null);
+    }
+
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_TEST_QUEUE_Two, durable = "true")
+            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_TEST_QUEUE_Two)}, containerFactory = "containerFactory")
+    public void consumerTestTwo(Channel channel, Message message) {
+        String o = new String(message.getBody(), StandardCharsets.UTF_8);
+        consumerService.consumerRun(channel, message, redisTestService::testConsumer, o, null);
     }
 }

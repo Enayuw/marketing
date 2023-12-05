@@ -34,6 +34,8 @@ public class ConsumerService {
     @Autowired
     private RabbitMqProducter producter;
 
+    public static Boolean consumerDownStatus = Boolean.FALSE;
+
     /**
      * rabbitMQ消费端
      * @param channel 渠道
@@ -45,6 +47,15 @@ public class ConsumerService {
      */
     public <T> void consumerRun(Channel channel, Message message, Function<T, Result<Boolean>> method, T t, String retryRouteKey) {
         try {
+            /**
+             * 下线标识，不在消费消息
+             */
+            if(consumerDownStatus){
+                log.warn("服务下线，消费者不在接收新的流量");
+                Thread.sleep(10000L);
+                log.warn("服务下线，消费者休眠时间到");
+            }
+
             Result<Boolean> apply = method.apply(t);
             /**
              * code 为SUCCESS 认为消费成功
