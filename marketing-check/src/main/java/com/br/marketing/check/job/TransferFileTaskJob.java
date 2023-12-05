@@ -157,9 +157,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"))
                 .andApiCodeIn(new ArrayList<>(bind.keySet()));
-        List<MarketingCustomer> marketingCustomers = customerMapper.selectByExampleAndShard(customerExample
-                , context.getShardingTotalCount()
-                , context.getShardingItems());
+        List<MarketingCustomer> marketingCustomers = customerMapper.selectByExample(customerExample);
         for (MarketingCustomer marketingCustomer : marketingCustomers) {
             String redisKey = RedisKeyConstant.TRANSFER_FILE_TASK_JOB_KEY.concat(":").concat(marketingCustomer.getApiCode());
             Boolean action = iCompatibleService.isAction(marketingCustomer.getExtendConfigInfo(), context.getJobName());
