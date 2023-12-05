@@ -160,7 +160,7 @@ public class ZbankClient {
     public FileDownLoadInfo downLoadSplitFileMergeInLocal(FileInfo fileInfo, String dir) {
         String seqNo = "" + System.nanoTime() + RandomStringUtils.randomNumeric(3);
         try {
-            return fileSdk.downloadFile(fileInfo.getFileId(), channelId, dir, seqNo, true, true);
+            return fileSdk.downloadFile(fileInfo.getFileId(), channelId, dir, seqNo, false, true);
         } catch (EmptyFileException | SDKException e) {
             log.error(e.getMessage(), e);
         }
