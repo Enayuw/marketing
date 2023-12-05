@@ -1228,7 +1228,7 @@ public class PushDataServiceImpl implements PushDataService {
             int xieChengCount = 1;
             if (isJson(data)) {
                 JSONObject jsonObject = JSONObject.parseObject(data);
-                id = Long.valueOf(jsonObject.getInteger("localId"));
+                id = jsonObject.getLong("localId");
             } else {
                 id = Long.valueOf(data);
                 localFile = localFileMapper.selectByPrimaryKey(id);

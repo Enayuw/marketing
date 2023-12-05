@@ -41,7 +41,7 @@
 
     <job:simple id="ZhongAnPushBlackDataJob"
                 class="com.br.marketing.monkey.job.ZhongAnPushBlackDataJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/30 * * * ?"
                 description="众安信贷自动化推送黑名单"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -85,7 +85,7 @@
     />
     <job:simple id="DidiAllowJob"
                 class="com.br.marketing.monkey.job.didi.DidiAllowJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/2 0-2 * * ?"
                 description="滴滴流量准入"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -130,7 +130,7 @@
 
     <job:simple id="DidiaInvalidityJob"
                 class="com.br.marketing.monkey.job.didi.DidiaInvalidityJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/10 21-23 * * ?"
                 description="滴滴营销失败"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -145,7 +145,7 @@
 
     <job:simple id="dataMonkey-QiFuSaveReachDeleteRecordPushJob"
                 class="com.br.marketing.monkey.job.qifu.QiFuSaveReachDeleteRecordPushJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 1/30 0,7,8,9 * * ?"
                 description="奇富保存触达记录删除;parameter格式:apiCode:yyyy-MM-dd或apiCode"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
