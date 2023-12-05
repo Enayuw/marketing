@@ -141,6 +141,12 @@ public class ZbankClient {
             if (infoMap.containsKey(slotKeyKey)) {
                 channelId = infoMap.get(slotKeyKey);
             }
+            infoMap.forEach((k, v) -> {
+                if ("password".equals(k) || "encryptKey".equals(k) || slotKeyKey.equals(k)) {
+                    return;
+                }
+                log.warn("众邦财富文件下载配置信息:{}={}", k, v);
+            });
         }
         try {
             String seqNo = "" + System.nanoTime() + RandomStringUtils.randomNumeric(4);
