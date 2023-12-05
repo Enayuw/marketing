@@ -1102,6 +1102,7 @@ public class MarketingCommonConfig {
      * 众邦文件下载配置信息
      */
     private Map<String, String> zhongBangDownloadFileInfoMap;
+    private String zhongBangDownloadFileSlotKey;
 
 }
 
