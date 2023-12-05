@@ -241,12 +241,18 @@ api:
       priKey: "3B82FE82D970F247C391358D360DA50486FE2266D5919028BD26A3AC4940E845"
       serviceId:
         labelRating: "CMBrLabelRatingRe"
-    file:
-      baseUrl: "https://file.z-bank.com"
-      channelId: "1741195375"
-      encryptKey: "0496a17bc0917d63e02b2e09b75d3ae6c496a8efc053c722123744dd094227254404006e9a23509deaeeb9f543158bd30483ef39d5a7fdf41c1e40a0a2a603ef2b"
-      cksStr: "87522C1758A0493D99BD05FE9300DDEA"
-      slotKey: "AJJouRpxr9dw0ldw/ZoMpw=="
+    #    file: # 生产配置，暂时不启用，用于测试 2023年12月5日
+    #      baseUrl: "https://file.z-bank.com"
+    #      channelId: "1741195375"
+    #      encryptKey: "0496a17bc0917d63e02b2e09b75d3ae6c496a8efc053c722123744dd094227254404006e9a23509deaeeb9f543158bd30483ef39d5a7fdf41c1e40a0a2a603ef2b"
+    #      cksStr: "87522C1758A0493D99BD05FE9300DDEA"
+    #      slotKey: "AJJouRpxr9dw0ldw/ZoMpw=="
+    file: # 测试环境配置，用于测试 2023年12月5日
+      baseUrl: "https://iodev-uat.z-bank.com"
+      channelId: "2023042701"
+      encryptKey: "0463455a993b27010c80ceaca36f8faddcc5bb942b242faad8196ccda08d9ba556a669d6682d62d5278dbdc7a65d87ea8071635825725c35b92607eb379b369949"
+      cksStr: "YRPZSSUEDOXHGNBYYYDGWPDASZJIIHXMJBZZFZTOSSHWABKGBHSBTUSJAMDFHIRX"
+      slotKey: "rEFhYy7SRHzCrsMnzjqPoQ=="
 spring:
   rabbitmq:
     zw:
