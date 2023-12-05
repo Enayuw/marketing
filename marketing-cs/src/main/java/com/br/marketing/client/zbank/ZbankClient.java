@@ -16,6 +16,7 @@ import com.zbank.file.sdk.FileSDK;
 import com.zbank.open.SDK;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -137,16 +138,16 @@ public class ZbankClient {
             if (infoMap.containsKey(channelIdKey)) {
                 channelId = infoMap.get(channelIdKey);
             }
-            String slotKeyKey = "slotKey";
-            if (infoMap.containsKey(slotKeyKey)) {
-                channelId = infoMap.get(slotKeyKey);
-            }
             infoMap.forEach((k, v) -> {
-                if ("password".equals(k) || "encryptKey".equals(k) || slotKeyKey.equals(k)) {
+                if ("password".equals(k) || "encryptKey".equals(k)) {
                     return;
                 }
                 log.warn("众邦财富文件下载配置信息:{}={}", k, v);
             });
+        }
+        String fileSlotKey = marketingCommonConfig.getZhongBangDownloadFileSlotKey();
+        if (StringUtils.isNotBlank(fileSlotKey)) {
+            slotKey = fileSlotKey;
         }
         try {
             String seqNo = "" + System.nanoTime() + RandomStringUtils.randomNumeric(4);
