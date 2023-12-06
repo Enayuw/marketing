@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.JobPushDecisionParameterBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.check.service.AutomatedPushDecisionService;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
 import com.br.marketing.common.commondto.Result;
@@ -34,10 +35,8 @@ import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * D20230406众安自动化转决策-3710048
@@ -66,7 +65,6 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
     @Resource
     private PolicySoleHandler policySoleHandler;
 
-    private static final List<String> eventTypes = Lists.newArrayList("LOGIN","APP_LAUNCH");
 
     @Override
     public CustomerPushDecisionActionEnum customerAction() {
@@ -149,69 +147,68 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             log.error("{}_{}未配置场景,配置参数:{}", customerAction(), apiCode, parameter);
             return sum;
         }
-        Map<String, SyncUserValidityPeriodBO> validityPeriodUserTypeMap =
-                transferDataValidityPeriodService.getValidityPeriodUserTypeBatchFirstVersion(
-                        list, apiCode, new Date());
-        List<PushMarketingUserDetailByRuleDTO> pushMarketingUserDetailByRuleDTOList = new ArrayList<>();
-        for (MarketingTransferSyncUser transferSyncUser : list) {
-            String reserveField1 = transferSyncUser.getReserveField1();
-            if (StringUtils.isBlank(reserveField1)) {
-                continue;
-            }
-            String userType = transferSyncUser.getUserType();
-            Object o = paramMap.get(userType);
-            if (ObjectUtils.isEmpty(o)) {
-                log.warn("{}_{}未获取到场景配置,custNum:{};userType:{};配置参数:{}", customerAction(), apiCode
-                        , transferSyncUser.getCustNum(), userType, parameter);
-                continue;
-            }
-            String value = String.valueOf(o);
-            String[] values = value.split("&");
-            String strategyCode;
-            String cell;
-            String status = values[0];
-            if (values.length > 1) {
-                strategyCode = values[1];
-            } else {
-                strategyCode = "";
-            }
-            try {
-                JSONObject jsonObject = JSON.parseObject(reserveField1);
-                if (!eventTypes.contains(jsonObject.get("eventType")) || validityPeriodUserTypeMap == null) {
-                    continue;
+        //{"ZHONG_AN":[{"apiCode":"3710048","timeStr":"09:00:00","paramMap":{"1":"a","2":"b"}},{"apiCode":"7410906","timeStr":"09:00:00","paramMap":{"1":"a","2":"b"}}]}
+        Set<String> custNumLists = list.stream().map(u -> u.getCustNum()).collect(Collectors.toSet());
+        // 循环配置的场景
+        for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
+            String userType = entry.getKey();
+            Object o = entry.getValue();
+            List<PushMarketingUserDetailByRuleDTO> pushMarketingUserDetailByRuleDTOList = new ArrayList<>();
+            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNumAndUserType = transferDataValidityPeriodService.getValidityPeriodsByCustNumAndUserType(custNumLists, userType, apiCode, new Date());
+            if (validityPeriodsByCustNumAndUserType != null) {
+                for (MarketingTransferSyncUser transferSyncUser : list) {
+                    SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNumAndUserType.get(transferSyncUser.getCustNum());
+                    // 有效
+                    if (syncUserValidityPeriodsBO != null) {
+                        String reserveField1 = transferSyncUser.getReserveField1();
+                        if (!StringUtils.isBlank(reserveField1)) {
+                            JSONObject jsonObjectReserveField1 = JSON.parseObject(reserveField1);
+                            if (
+                                    (jsonObjectReserveField1.get("eventType").equals("APP_LOGIN") && userType.equals("1"))
+                                            || (jsonObjectReserveField1.get("eventType").equals("APP_LAUNCH") && userType.equals("1"))
+                                            || (jsonObjectReserveField1.get("eventType").equals("LOGIN") && userType.equals("2"))
+                                            || (jsonObjectReserveField1.get("eventType").equals("APP_LAUNCH") && userType.equals("2"))
+                            ) {
+                                String value = String.valueOf(o);
+                                String[] values = value.split("&");
+                                String strategyCode;
+                                String status = values[0];
+                                if (values.length > 1) {
+                                    strategyCode = values[1];
+                                } else {
+                                    strategyCode = "";
+                                }
+                                String cell = jsonObjectReserveField1.getString("initCustNum");
+                                if (StringUtils.isBlank(cell)) {
+                                    continue;
+                                }
+                                // 推送
+                                PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
+                                pushMarketingUserDetailByRuleDTO.setCaseNumber(transferSyncUser.getCustNum());
+                                JSONObject jsonObject = new JSONObject();
+                                jsonObject.put("userType", transferSyncUser.getUserType());
+                                pushMarketingUserDetailByRuleDTO.setVariables(jsonObject);
+                                pushMarketingUserDetailByRuleDTO.setStrategyCode(strategyCode);
+                                pushMarketingUserDetailByRuleDTO.setStatus(status);
+                                pushMarketingUserDetailByRuleDTO.setPhone(cell);
+                                pushMarketingUserDetailByRuleDTO.setCell(decodePhone(cell));
+                                pushMarketingUserDetailByRuleDTO.setInitId(transferSyncUser.getId());
+                                pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "_" + apiCode + "_" + status);
+                                pushMarketingUserDetailByRuleDTOList.add(pushMarketingUserDetailByRuleDTO);
+                            }
+                        }
+
+                    }
                 }
-                // 有效期判断
-                SyncUserValidityPeriodBO boMap = validityPeriodUserTypeMap.get(transferSyncUser.getCustNum() + userType);
-                if (boMap == null) {
-                    continue;
-                }
-                cell = jsonObject.getString("initCustNum");
-                if (StringUtils.isBlank(cell)) {
-                    continue;
-                }
-            } catch (Exception e) {
-                log.warn(e.getMessage(), e);
-                continue;
+
             }
-            PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
-            pushMarketingUserDetailByRuleDTO.setCaseNumber(transferSyncUser.getCustNum());
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("userType", transferSyncUser.getUserType());
-            pushMarketingUserDetailByRuleDTO.setVariables(jsonObject);
-            pushMarketingUserDetailByRuleDTO.setStrategyCode(strategyCode);
-            pushMarketingUserDetailByRuleDTO.setStatus(status);
-            pushMarketingUserDetailByRuleDTO.setPhone(cell);
-            pushMarketingUserDetailByRuleDTO.setCell(decodePhone(cell));
-            pushMarketingUserDetailByRuleDTO.setInitId(transferSyncUser.getId());
-            pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "_" + apiCode + "_" + status);
-            pushMarketingUserDetailByRuleDTOList.add(pushMarketingUserDetailByRuleDTO);
+            sum = pushMarketingUserDetailByRuleDTOList.size();
+            ProcessHandlerContext context = new ProcessHandlerContext();
+            context.setApiCode(apiCode);
+            context.setMqFact(new MqFact());
+            //推送决策
+            policySoleHandler.call(pushMarketingUserDetailByRuleDTOList, context);
         }
-        sum = pushMarketingUserDetailByRuleDTOList.size();
-        ProcessHandlerContext context = new ProcessHandlerContext();
-        context.setApiCode(apiCode);
-        context.setMqFact(new MqFact());
-        //推送决策
-        policySoleHandler.call(pushMarketingUserDetailByRuleDTOList, context);
         return sum;
     }
 

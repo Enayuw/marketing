@@ -51,7 +51,7 @@ public class CustomerTransferSoleHandler extends AbstractExternalInterfaceHandle
                     , Long.valueOf(conversionData.getDataId())
                     , conversionData.getDistributeSourceTypeEnum() == null
                             ? DistributeSourceTypeEnum.TRANSFER : conversionData.getDistributeSourceTypeEnum()
-                    , null
+                    , conversionData.getStatus()
                     , conversionData.getExpireEndDate()));
             if (sendList.size() == pageSize || sum == totalCount) {
                 // 对象继承 DataDistributeLogBase
