@@ -1182,7 +1182,7 @@ public class PushDataServiceImpl implements PushDataService {
             minId = dataList.get(dataList.size() - 1).getId();
             dataList.forEach(pushList -> {
                 pool.submit(() -> {
-                    SmsQuitReq smsQuitReq = new SmsQuitReq(pushList.getCipherMobile(), pushList.getBlackListType());
+                    SmsQuitReq smsQuitReq = new SmsQuitReq(pushList.getCipherMobile(), pushList.getBlackListType(),pushList.getApiCode());
                     //兼容Md5手机号
                     String phone = smsQuitReq.getCipherMobile();
                     if (DecodeClient.isMd5(phone)) {

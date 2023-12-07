@@ -1104,5 +1104,12 @@ public class MarketingCommonConfig {
     private Map<String, String> zhongBangDownloadFileInfoMap;
     private String zhongBangDownloadFileSlotKey;
 
+    /**
+     * 携程推送短信退订接口配置信息
+     * eg:{"3710090":{"appid":"bairong002","signKey":"95cc01ec07387a44","aesKey":"f3df6f62f0527bf0","aesIv":"3b2dac323465b024"}}
+     */
+    private Map<String, Map<String, String>> xieChengSmsQuitConfig;
+
+
 }
 
