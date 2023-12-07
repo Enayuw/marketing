@@ -1104,5 +1104,10 @@ public class MarketingCommonConfig {
     private Map<String, String> zhongBangDownloadFileInfoMap;
     private String zhongBangDownloadFileSlotKey;
 
+    /**
+     * 数据转化提取任务锁失效时间
+     */
+    private Long transferFileTaskJobLockExpireTime;
+
 }
 
