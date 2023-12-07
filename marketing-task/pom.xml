@@ -119,6 +119,7 @@
                 </executions>
                 <configuration>
                     <mainClass>com.br.marketing.task.Scheduler</mainClass>
+                    <includeSystemScope>true</includeSystemScope>
                 </configuration>
             </plugin>
         </plugins>

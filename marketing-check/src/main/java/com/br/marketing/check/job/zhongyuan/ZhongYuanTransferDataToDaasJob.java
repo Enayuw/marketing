@@ -149,11 +149,5 @@ public class ZhongYuanTransferDataToDaasJob extends AbstractSimpleElasticJob {
     private void threadDoProcess(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
         // 推daas
         zhongYuanService.zhongYuanTransferDataToDaas(marketingTransferSyncUserList);
-
-        // 推客服转化
-        zhongYuanService.zhongYuanTransferDataToCustomerFilter(marketingTransferSyncUserList);
-
-
-        zhongYuanService.zhongYuanTransferDataToCustomerFilterByDaasTwo(marketingTransferSyncUserList);
     }
 }

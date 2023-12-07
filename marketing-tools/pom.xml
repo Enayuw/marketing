@@ -119,6 +119,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>com.br.marketing.tools.ToolsApplication</mainClass>
+                    <includeSystemScope>true</includeSystemScope>
                     <fork>true</fork>
                 </configuration>
                 <version>1.5.3.RELEASE</version>

@@ -144,6 +144,14 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByYonghuiServiceImpl transferToFileByYonghuiService;
 
+    /**
+     * 众邦财富
+     */
+    @Resource
+    private TransferToFileByZhongBangServiceImpl transferToFileByZhongBangService;
+
+
+
     @Autowired
     ICompatibleService iCompatibleService;
 
@@ -258,6 +266,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByGomeService, marketingCommonConfig.getGomeApiCodes())
                 // 永辉转化数据提取
                 .addBind(transferToFileByYonghuiService, marketingCommonConfig.getYonghuiTransferExtractApiCodes())
+                // 众邦财富转换数据提取
+                .addBind(transferToFileByZhongBangService, marketingCommonConfig.getZhongBangTransferApiCodes())
                 // 滴滴转化数据提取
                 .addBind(transferToFileByDiDiService,marketingCommonConfig.getDidiApiCodes())
                 .build();

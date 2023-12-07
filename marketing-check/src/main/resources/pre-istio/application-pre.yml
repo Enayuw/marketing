@@ -225,6 +225,22 @@ api:
     scas: "0001"
     channelId: 3140738836439875
     isProxy: true
+  zbank: #众邦财富
+    isPorxy: true
+    api:
+      baseUrl: "https://iodev-uat.z-bank.com"
+      serverPubKey: "049191E0402CE98C8F31564880AC47AC888DACB24B127407D351AD83725CDB4529713E585CBB14C14E4EBBE97828D64B1F2DC101E113F227B6E6ACD9A378311DC3"
+      appId: "2a0f9f71_29e5_466c_95a7_8cab99d93880"
+      appSecretKey: "65ed7e3b-bcff-4f5b-a029-185a538e3ee8"
+      priKey: "1DF4C616DE52063F5BB9525121160DF2F0607122A5FE69EB382D57020B27EA6A"
+      serviceId:
+        labelRating: "CMBrLabelRatingRe"
+    file:
+      baseUrl: "https://iodev-uat.z-bank.com"
+      channelId: "2023042701"
+      encryptKey: "0463455a993b27010c80ceaca36f8faddcc5bb942b242faad8196ccda08d9ba556a669d6682d62d5278dbdc7a65d87ea8071635825725c35b92607eb379b369949"
+      cksStr: "YRPZSSUEDOXHGNBYYYDGWPDASZJIIHXMJBZZFZTOSSHWABKGBHSBTUSJAMDFHIRX"
+      slotKey: "rEFhYy7SRHzCrsMnzjqPoQ=="
 spring:
   rabbitmq:
     zw:

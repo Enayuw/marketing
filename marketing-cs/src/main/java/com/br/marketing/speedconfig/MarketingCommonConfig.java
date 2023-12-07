@@ -1034,20 +1034,10 @@ public class MarketingCommonConfig {
     private Integer qiFuBreakPointDataToJueCeThreadNum;
 
     /**
-     * 奇富360重推任务线程数
-     */
-    private Integer qiFuResendJobThreadNum;
-
-    /**
      * 页数动态调整配置
      * dynamicPageSize={"yxToDx":20000,"yxToCustomer":20000,"yhGet":20000}
      */
     private HashMap<String, Integer> dynamicPageSize;
-
-    /**
-     * 国美转化数据自动过滤重推任务线程数
-     */
-    private Integer goMeTransferDataResendJobThreadNum;
 
     /**
      * 2023-10-28 10:35
@@ -1056,10 +1046,63 @@ public class MarketingCommonConfig {
      */
     private Map<String, List<String>> customerHandlerEnumConfigMap;
 
+
+    /**
+     * 转化数据执行通用规则重推流程线程数
+     */
+    private Integer universalTransferProcessResendThreadNum;
+
     /**
      * 推送决策系统的选择
      */
     private Integer pushJcSelect;
+
+    /**
+     * 众邦财富转化数据提取apiCode集合
+     */
+    private List<String> ZhongBangTransferApiCodes;
+
+    /**
+     * 众邦财富转化数据提取执行时间
+     */
+    private String ZhongBangTransferExecuteTime;
+
+    /**
+     * 众邦财富定制标签线程数
+     */
+    private Integer zhongBangCaifuLabelThreadNum;
+
+    /**
+     * 数据处理通用流程单任务线程数
+     */
+    private Integer dataProcessAnTaskThreadNum;
+
+
+    /**
+     * 众邦财富拉取文件
+     * 格式：{apiCode:{文件名称:表头}}
+     * 文件名称带扩展名时直接使用该名称,文件名最后一个字符为“_”时系统自动默认拼接日期
+     * eg:{"3710027":[{"original_caifu_":"custNum,id,cell"},{"original_daikuan_":"custNum,id","transform_":"custNum,ifLogin1"}]}
+     */
+    private Map<String, List<Map<String, String>>> zhongBangPullFileDataConfigMap;
+
+    /**
+     * 2023-11-22 13:20
+     * 众邦财富拉取文件，拉取（T+/-N）天的文件
+     */
+    private int zhongBangPullFileDataDay = -1;
+
+    /**
+     * 众邦财富定制标签测试
+     */
+    private Boolean zhongBangCaifuLabelTest;
+
+    /**
+     * 2023-12-05 10:35
+     * 众邦文件下载配置信息
+     */
+    private Map<String, String> zhongBangDownloadFileInfoMap;
+    private String zhongBangDownloadFileSlotKey;
 
 }
 

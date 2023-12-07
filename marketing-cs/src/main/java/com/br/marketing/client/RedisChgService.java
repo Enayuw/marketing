@@ -327,7 +327,7 @@ public class RedisChgService {
     }
 
     public void delBigSet(String bigSetKey, int deleteCount) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis_yz");
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         String cursorIndex = "0";
         ScanCursor cursor = ScanCursor.of(cursorIndex);
         do {

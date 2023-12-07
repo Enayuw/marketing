@@ -12,6 +12,7 @@ public enum SftpFileTypeEnum {
     ,SHBYTRANSFORM("sh_transform")
     ,DXTRANSFORM("dx_transform")
     ,DXIBU("dx_ibu")
+    ,ZHONGBANGLABEL("zhongbanglabel")
     ,DD("didi");
    private String value;
 }

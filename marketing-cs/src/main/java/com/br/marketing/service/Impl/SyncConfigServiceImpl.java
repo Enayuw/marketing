@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.List;
@@ -189,5 +190,11 @@ public class SyncConfigServiceImpl implements SyncConfigService {
     public String getPath() {
         String nfsPath = marketingCommonConfig.getNfsPath();
         return StringUtils.isBlank(nfsPath) ? "/opt/data/inloan/download/marketing/" : nfsPath;
+    }
+
+    @Override
+    public String getPullCustomerFilePath(String apiCode) {
+        return getPath().concat("pullCustomerFile")
+                .concat(File.separator).concat(apiCode).concat(File.separator);
     }
 }

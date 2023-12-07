@@ -3,6 +3,7 @@ package com.br.marketing.tools.controller;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.tools.rpcclient.RpcClientProxy;
 import com.br.marketing.tools.util.EncAndDecUtil;
 import com.br.marketing.tools.util.ThreeKeyEncryptEnum;
@@ -23,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 常用文件操作方法
@@ -151,6 +153,8 @@ public class FileController {
                         new OutputStreamWriter(
                                 new FileOutputStream(wFile), StandardCharsets.UTF_8));
                 int rownum = 1;
+                AtomicInteger error = new AtomicInteger();
+                AtomicInteger success = new AtomicInteger();
                 read = new FileReader(file.getPath());
                 br = new BufferedReader(read);
                 String row;
@@ -166,12 +170,20 @@ public class FileController {
                                 sb.append("\r\n");
                                 writer.append(sb.toString());
                             }else{
-//                                String cell = RpcClientProxy.decode(content.trim(), "cell", "sha", "");
-//                                String[] split = content.split(",");
-                                StringBuilder sb = new StringBuilder();
-                                sb.append(BrCipherMaker.getInstance().encode(content.trim()));
-                                sb.append("\r\n");
-                                writer.append(sb.toString());
+                                if(!"".equals(content.trim())||!"\"\"".equals(content.trim())){
+                                    String cell = RpcClientProxy.decode(content.trim(), "cell", "sha", "");
+                                    if(StringUtils.isBlank(cell)){
+                                        error.incrementAndGet();
+                                    }else{
+                                        String[] split = content.split(",");
+                                        StringBuilder sb = new StringBuilder();
+                                        sb.append(BrCipherMaker.getInstance().encode(cell));
+                                        sb.append("\r\n");
+                                        writer.append(sb.toString());
+                                        success.incrementAndGet();
+                                    }
+//
+                                }
                             }
 
                         } catch (IOException e) {
@@ -199,6 +211,8 @@ public class FileController {
                 }
                 writer.close();
                 log.warn("rownum=" + rownum);
+                log.warn("解密失败="+error.get());
+                log.warn("解密失败="+success.get());
             } catch (FileNotFoundException e) {
                 log.error("FileNotFoundException ", e);
             } catch (Exception e) {
@@ -400,6 +414,89 @@ public class FileController {
                 writer.close();
                 log.warn("rownum=" + rownum);
                 log.warn("setNum=" + set.size());
+            } catch (FileNotFoundException e) {
+                log.error("FileNotFoundException ", e);
+            } catch (Exception e) {
+                log.error("合并文件出错", e);
+            } finally {
+                if (br != null) {
+                    try {
+                        br.close();
+                    } catch (IOException e) {
+                        log.error("IOException ", e);
+                    }
+                }
+                if (read != null) {
+                    try {
+                        read.close();
+                    } catch (IOException e) {
+                        log.error("IOException ", e);
+                    }
+                }
+            }
+            log.warn("合并文件结束--耗时：{}", System.currentTimeMillis() - l);
+        }
+
+        return "123";
+    }
+
+    @GetMapping("/replaceContentByFile")
+    public String replaceContentByFile(@RequestParam(value = "path") String path){
+        long l = System.currentTimeMillis();
+        FileReader read = null;
+        BufferedReader br = null;
+        File file1 = new File(path);
+        File[] files = file1.listFiles();
+        for (File file : files) {
+            ExecutorService mergeExecutor = BrExecutors.getThreadPool(100, 100);
+            String[] fileSplit = file.getPath().split("\\.");
+            String wFilePath = fileSplit[0] + "_phoneAction." + fileSplit[1];
+            File wFile = new File(wFilePath);
+            try {
+                BufferedWriter writer = new BufferedWriter(
+                        new OutputStreamWriter(
+                                new FileOutputStream(wFile), StandardCharsets.UTF_8));
+                int rownum = 1;
+                AtomicInteger error = new AtomicInteger();
+                AtomicInteger success = new AtomicInteger();
+                read = new FileReader(file.getPath());
+                br = new BufferedReader(read);
+                String row;
+                while ((row = br.readLine()) != null) {
+                    String content = row;
+                    mergeExecutor.submit(()->{
+                        try {
+                            if(StringUtils.isNotBlank(content)) {
+                                StringBuilder sb = new StringBuilder();
+                                sb.append(content.replace("\t", ","));
+                                sb.append("\r\n");
+                                writer.append(sb.toString());
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                    rownum++;
+                }
+                br.close();
+                read.close();
+                /**
+                 * 等待所有任务都执行完成
+                 **/
+                mergeExecutor.shutdown();
+                while (true) {
+                    if (mergeExecutor.isTerminated()) {
+                        log.warn("所有合并线程都执行结束");
+                        break;
+                    }
+                    try {
+                        Thread.sleep(3000);
+                    } catch (Exception e) {
+                        log.error("sleep ", e);
+                    }
+                }
+                writer.close();
+                log.warn("rownum=" + rownum);
             } catch (FileNotFoundException e) {
                 log.error("FileNotFoundException ", e);
             } catch (Exception e) {

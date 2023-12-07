@@ -20,4 +20,6 @@ public interface XieChengDataMapper extends XieChengDataMapperBase{
     List<XieChengData> getByCellToday(@Param("cell") String cell,@Param("apiCodes") JSONArray apiCodes);
 
     List<XieChengData> getByCellTodayAndLocalId(@Param("createDate")Integer createDate, @Param("minlocalId") Long minlocalId);
+
+    List<XieChengData> selectXieChengCall(@Param("createTime") String createTime, @Param("id") Long id);
 }

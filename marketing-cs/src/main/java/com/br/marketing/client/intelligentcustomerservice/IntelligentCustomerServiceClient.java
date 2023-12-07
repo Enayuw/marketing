@@ -115,8 +115,8 @@ public class IntelligentCustomerServiceClient {
             }
             if ("00".equals(jsonObject.getString("code"))) {
                 result.setCode(ResultCode.SUCCESS.getValue());
-                PushMarketingUserTaskInfoDTO taskInfoDTO = (PushMarketingUserTaskInfoDTO) dto.getJsonData();
                 try {
+                    PushMarketingUserTaskInfoDTO taskInfoDTO = (PushMarketingUserTaskInfoDTO) dto.getJsonData();
                 //调用数量监控
                 BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME,dto.getApiCode(),"policy-api",
                         taskInfoDTO.getData().size());
@@ -128,7 +128,7 @@ public class IntelligentCustomerServiceClient {
             }
         } catch (Exception ex) {
             logger.error(ex.getMessage(),ex);
-            result.setDate(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
+            result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
         return result;
     }

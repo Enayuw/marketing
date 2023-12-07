@@ -107,6 +107,7 @@
                 </executions>
                 <configuration>
                     <mainClass>com.br.marketing.sync.SyncApplication</mainClass>
+                    <includeSystemScope>true</includeSystemScope>
                 </configuration>
             </plugin>
         </plugins>

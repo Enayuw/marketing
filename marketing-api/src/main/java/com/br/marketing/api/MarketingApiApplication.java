@@ -66,6 +66,7 @@ public class MarketingApiApplication {
     public static void stop() {
         try {
             if ("GRPC".equals(EnvUtil.getProperties("GRPC_MODE"))) {
+                Thread.sleep(4500L);
                 BrGrpcUtils.shutDown();
             }
         } catch (Exception e) {
