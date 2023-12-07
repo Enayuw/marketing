@@ -1,5 +1,6 @@
 package com.br.marketing.client.zbank;
 
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.zbank.file.common.http.config.HttpConfig;
 import com.zbank.file.sdk.FileSDK;
 import com.zbank.file.secure.SM2AESPackSecure;
@@ -10,6 +11,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.util.CollectionUtils;
+
+import javax.annotation.Resource;
+import java.util.Map;
 
 /**
  * 众邦财富API接口服务sdk配置
@@ -107,6 +112,9 @@ public class ZbankClientConfig {
     @Value("${api.zbank.file.cksStr:YRPZSSUEDOXHGNBYYYDGWPDASZJIIHXMJBZZFZTOSSHWABKGBHSBTUSJAMDFHIRX}")
     private String cksStr;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
 
     /**
      * 2023-11-08 19:18
@@ -144,11 +152,47 @@ public class ZbankClientConfig {
     @Bean
     @Lazy
     public FileSDK zBankClientFileSdk() {
+        int socketTimeout = FILE_SOCKET_TIMEOUT;
+        Map<String, String> infoMap = marketingCommonConfig.getZhongBangDownloadFileInfoMap();
+        if (!CollectionUtils.isEmpty(infoMap)) {
+            String fileUrlKey = "fileUrl";
+            if (infoMap.containsKey(fileUrlKey)) {
+                fileUrl = infoMap.get(fileUrlKey);
+            }
+            String fileSocketTimeoutKey = "FILE_SOCKET_TIMEOUT";
+            if (infoMap.containsKey(fileSocketTimeoutKey)) {
+                socketTimeout = Integer.parseInt(infoMap.get(fileSocketTimeoutKey));
+            }
+            String isPorxyKey = "isPorxy";
+            if (infoMap.containsKey(isPorxyKey)) {
+                isPorxy = Boolean.getBoolean(infoMap.get(isPorxyKey));
+            }
+            String proxyHostKey = "proxyHost";
+            if (infoMap.containsKey(proxyHostKey)) {
+                proxyHost = infoMap.get(proxyHostKey);
+            }
+            String proxyPortKey = "proxyPort";
+            if (infoMap.containsKey(proxyPortKey)) {
+                proxyPort = Integer.parseInt(infoMap.get(proxyPortKey));
+            }
+            String userNameKey = "userName";
+            if (infoMap.containsKey(userNameKey)) {
+                userName = infoMap.get(userNameKey);
+            }
+            String passwordKey = "password";
+            if (infoMap.containsKey(passwordKey)) {
+                password = infoMap.get(passwordKey);
+            }
+            String encryptKeyKey = "encryptKey";
+            if (infoMap.containsKey(encryptKeyKey)) {
+                encryptKey = infoMap.get(encryptKeyKey);
+            }
+        }
         //1、初始化配置服务方接口url。
         FileSDK sdk = FileSDK.build(fileUrl);
         //2、配置httpClient相关参数：连接超时时间、响应超时时间、http代理、SS5代理等。详见HttpConfig类
         HttpConfig config = new HttpConfig();
-        config.setSocketTimeout(FILE_SOCKET_TIMEOUT);
+        config.setSocketTimeout(socketTimeout);
         if (isPorxy) {
             // 设置代理的host
             config.setProxyHost(proxyHost);
