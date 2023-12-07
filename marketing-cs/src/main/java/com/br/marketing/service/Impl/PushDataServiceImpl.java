@@ -1215,6 +1215,7 @@ public class PushDataServiceImpl implements PushDataService {
                 .andStatusEqualTo(1);
         Long i = xiechengSmsQuitDataMapper.countByExample(xiechengSmsQuitDataExample);
         localFile.setPushNumber(i.intValue());
+        localFile.setPushStatus("2");
         localFileMapper.updateByPrimaryKeySelective(localFile);
         xieChengSendAlarm(failNum, "携程短信退订接口推送异常，请检查");
     }
