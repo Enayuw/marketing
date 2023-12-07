@@ -257,7 +257,7 @@
     />
     <job:simple id="TransferFileTaskJob"
                 class="com.br.marketing.check.job.TransferFileTaskJob"
-                cron="0 1/10 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="转化数据作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="9"
