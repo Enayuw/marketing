@@ -19,7 +19,7 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class CustomerTransferSoleHandler extends AbstractExternalInterfaceHandler<ConversionData> {
+public class CustomerTransferSoleStatusHandler extends AbstractExternalInterfaceHandler<ConversionData> {
 
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
@@ -51,7 +51,7 @@ public class CustomerTransferSoleHandler extends AbstractExternalInterfaceHandle
                     , Long.valueOf(conversionData.getDataId())
                     , conversionData.getDistributeSourceTypeEnum() == null
                             ? DistributeSourceTypeEnum.TRANSFER : conversionData.getDistributeSourceTypeEnum()
-                    , null
+                    , "1"
                     , conversionData.getExpireEndDate()));
             if (sendList.size() == pageSize || sum == totalCount) {
                 // 对象继承 DataDistributeLogBase
@@ -86,6 +86,6 @@ public class CustomerTransferSoleHandler extends AbstractExternalInterfaceHandle
 
     @Override
     public InterfaceHandlerEnum handlerEnum() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE;
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE_STATUS;
     }
 }

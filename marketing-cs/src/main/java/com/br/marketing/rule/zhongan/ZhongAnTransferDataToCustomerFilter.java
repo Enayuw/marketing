@@ -47,7 +47,6 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
         conversionData.setInitId(marketingTransferSyncUser.getId());
         conversionData.setSoleField(SoleFieldEnum.CELL_STATUS_SOLE.getValue());
         conversionData.setSoleType(-1);
-        conversionData.setStatus("1");
         PeriodOfValidityBO periodOfValidityBO = syncUserValidityPeriodsBO.getBuilders().get(0).addDateString().addOfDayTimeStrString().builder();
         conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
         conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
@@ -88,7 +87,7 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE_STATUS.getCode();
     }
 
     @Override

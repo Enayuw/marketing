@@ -47,13 +47,6 @@ public class SourceData extends InterfaceParams{
      */
     @JSONField(serialize = false)
     private Integer soleField;
-
-    /**
-     * 去重字段
-     */
-    @JSONField(serialize = false)
-    private String status;
-
     /**
      * 2023-09-07 10:28
      * 数据来源,默认转化数据 TRANSFER
