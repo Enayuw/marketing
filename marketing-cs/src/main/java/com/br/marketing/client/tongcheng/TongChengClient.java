@@ -16,7 +16,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @Description DiDiClient
@@ -27,28 +26,9 @@ import java.util.Map;
 @Service
 @Slf4j
 public class TongChengClient {
-    @Value("${api.didi.smsUrl:https://admarketing-manhattan.xiaojukeji.com/crow/collision/bairong}")
-    String smsUrl;
-    @Value("${api.didi.reachUrl:https://admarketing-manhattan.xiaojukeji.com/crow/user/success/bairong}")
+    @Value("${api.tongcheng.address:0}")
     String reachUrl;
-    @Value("${api.didi.jmassSUrl:https://admarketing-manhattan.xiaojukeji.com/model/sample/bairong}")
-    String jmassSUrl;
-    @Value("${api.didi.failedUrl:https://admarketing-manhattan.xiaojukeji.com/crow/faileduser/mediaName}")
-    String failUserUrl;
-
-    @Value("${api.didi.token:DK&SgWl!fZ%WVSXe}")
-    String token;
-
-    @Value("${api.didi.scas:0001}")
-    String scas;
-
-    @Value("${api.didi.channelId:3140738836439875}")
-    String channelId;
-
-    @Value("#{${api.didi.channelIdMap:{bairong:'3140738836439875',bairongA:'3140738898634899'}}}")
-    private Map<String, String> channelIdMap;
-
-    @Value("${api.didi.isProxy:false}")
+    @Value("${api.tongcheng.isProxy:0}")
     Boolean isProxy;
 
     @Autowired
@@ -69,10 +49,10 @@ public class TongChengClient {
         HashMap<String, String> resMap = new HashMap<>();
         // 获取挡板开关
         HashMap<String, Object> mock = marketingCommonConfig.getTongChengUndoMock();
-        if (mock.get("switch").equals(true)) {
+        if (mock.get("switch") == Boolean.TRUE) {
             JSONObject mockJson = new JSONObject();
-            mockJson.put("code",mock.get("code"));
-            mockJson.put("message","处理成功");
+            mockJson.put("code", mock.get("code"));
+            mockJson.put("message", "处理成功");
             resMap.put("content", JSON.toJSONString(mockJson));
             resMap.put("httpcode", mock.get("httpcode").toString());
         } else {
@@ -94,7 +74,7 @@ public class TongChengClient {
         JSONObject resultJson = JSONObject.parseObject(content);
         Integer code = resultJson.getInteger("code");
 
-        if (code == 0){
+        if (code == 0) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
         }
 

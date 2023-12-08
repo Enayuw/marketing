@@ -1098,7 +1098,7 @@ public class MarketingCommonConfig {
     private Boolean zhongBangCaifuLabelTest;
 
     /**
-     * 同程不运营名单推送客户接口挡板开关
+     * 同程不运营名单推送客户接口挡板开关 true:开启挡板。false:关闭挡板
      * tongChengUndoMock={"switch":false,"httpcode":"200","code":"1001"}
      */
     private HashMap<String, Object> tongChengUndoMock;

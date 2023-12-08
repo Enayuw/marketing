@@ -104,7 +104,7 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
         try {
             Map<String, List<TongChengUndoData>> listMap = tongChengUndoDataList.stream().collect(Collectors.groupingBy(t -> t.getTaskId()));
             List<String> taskIds = listMap.keySet().stream().collect(Collectors.toList());
-            log.warn("同程不运营名单推送客户，单批次taskId：{}，size：{}", Joiner.on(",").join(taskIds),taskIds.size());
+            log.warn("同程不运营名单推送客户，单批次taskId：{},size：{}", Joiner.on(",").join(taskIds),taskIds.size());
 
             for (Map.Entry<String, List<TongChengUndoData>> entry : listMap.entrySet()) {
                 String taskId = entry.getKey();
@@ -157,6 +157,4 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
             }
         }
     }
-
-
 }

@@ -249,6 +249,11 @@ api:
       encryptKey: "0463455a993b27010c80ceaca36f8faddcc5bb942b242faad8196ccda08d9ba556a669d6682d62d5278dbdc7a65d87ea8071635825725c35b92607eb379b369949"
       cksStr: "YRPZSSUEDOXHGNBYYYDGWPDASZJIIHXMJBZZFZTOSSHWABKGBHSBTUSJAMDFHIRX"
       slotKey: "rEFhYy7SRHzCrsMnzjqPoQ=="
+  tongcheng:
+    baseUrl: https://mns.qa.lylend.com
+    address: ${api.tongcheng.baseUrl}/api/cep/agent/ret/baiRong
+    isProxy: true
+
 spring:
   rabbitmq:
     zw:
