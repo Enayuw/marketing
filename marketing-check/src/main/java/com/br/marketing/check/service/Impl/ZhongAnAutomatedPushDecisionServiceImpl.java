@@ -3,14 +3,12 @@ package com.br.marketing.check.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.JobPushDecisionParameterBO;
-import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.check.service.AutomatedPushDecisionService;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.enums.CustomerPushDecisionActionEnum;
@@ -19,17 +17,14 @@ import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
-import com.br.marketing.service.ICustomerConfigService;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.strategy.PolicySoleHandler;
-import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.security.SecureRandom;
@@ -60,8 +55,7 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
-    @Resource
-    private ICustomerConfigService iCustomerConfigService;
+
 
     @Resource
     private PolicySoleHandler policySoleHandler;
