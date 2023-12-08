@@ -1183,7 +1183,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      */
     @Override
     public Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNumAndUserType(Set<String> custNumSet, String userType, String apiCode, Object requestDateObj) {
-        if (CollectionUtils.isEmpty(custNumSet)) {
+        if (CollectionUtils.isEmpty(custNumSet) || StringUtils.isEmpty(userType) || StringUtils.isEmpty(apiCode)) {
             return Collections.emptyMap();
         }
         Map<String, SyncUserValidityPeriodsBO> resultMap = new ConcurrentHashMap<>(2048);
@@ -1214,7 +1214,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      */
     @Override
     public Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCellAndUserType(Set<String> cellSet, String userType, String apiCode, Object requestDateObj) {
-        if (CollectionUtils.isEmpty(cellSet)) {
+        if (CollectionUtils.isEmpty(cellSet) || StringUtils.isEmpty(userType) || StringUtils.isEmpty(apiCode)) {
             return Collections.emptyMap();
         }
         Map<String, SyncUserValidityPeriodsBO> resultMap = new ConcurrentHashMap<>(2048);
