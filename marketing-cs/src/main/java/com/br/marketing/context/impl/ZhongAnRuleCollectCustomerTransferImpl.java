@@ -35,7 +35,7 @@ public class ZhongAnRuleCollectCustomerTransferImpl extends CommonMethodHandlerS
             List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
             Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
-                    transferDataValidityPeriodService.getValidityPeriodsByCellAndUserType(MarketingSyncUser::getCell,set,"1", context.getApiCode(), new Date());
+                    transferDataValidityPeriodService.getValidityPeriodsByCellAndUserType(set,"1", context.getApiCode(), new Date());
             ZhongAnRuleCollectCustomerTransferImpl.ZhongAnRuleNecessaryData zhongBangRuleNecessaryData = new ZhongAnRuleCollectCustomerTransferImpl.ZhongAnRuleNecessaryData();
             zhongBangRuleNecessaryData.setCustomerMap(validityPeriodsByCustNum);
             context.setRuleNecessaryData(zhongBangRuleNecessaryData);

@@ -223,7 +223,6 @@ public interface TransferDataValidityPeriodService {
     /**
      * 根据上传数据custNum+userType获取多组有效期范围 Tips：仅支持新版有效期规则，有效期配置valid_start_date和valid_end_date字段都非空
      *
-     * @param keyMapper      自定义key
      * @param custNumSet     custNum集合
      * @param userType       场景
      * @param apiCode        apiCode
@@ -232,13 +231,12 @@ public interface TransferDataValidityPeriodService {
      * @author senyang.zheng
      * @date 2023/12/08
      */
-    Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNumAndUserType(Function<MarketingSyncUser, String> keyMapper, Set<String> custNumSet, String userType, String apiCode, Object requestDateObj);
+    Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNumAndUserType(Set<String> custNumSet, String userType, String apiCode, Object requestDateObj);
 
 
     /**
      * 根据上传数据cell+userType获取多组有效期范围 Tips：仅支持新版有效期规则，有效期配置valid_start_date和valid_end_date字段都非空
      *
-     * @param keyMapper      自定义key
      * @param cellSet        cell集合
      * @param userType       场景
      * @param apiCode        apiCode
@@ -247,5 +245,5 @@ public interface TransferDataValidityPeriodService {
      * @author senyang.zheng
      * @date 2023/12/08
      */
-    Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCellAndUserType(Function<MarketingSyncUser, String> keyMapper, Set<String> cellSet, String userType, String apiCode, Object requestDateObj);
+    Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCellAndUserType(Set<String> cellSet, String userType, String apiCode, Object requestDateObj);
 }

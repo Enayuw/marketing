@@ -1173,7 +1173,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     /**
      * 根据custNum+userType获取多组有效期范围 Tips：仅支持新版有效期规则，有效期配置valid_start_date和valid_end_date字段都非空
      *
-     * @param keyMapper      自定义key
      * @param custNumSet     custNum集合
      * @param userType       场景
      * @param apiCode        apiCode
@@ -1183,7 +1182,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      * @date 2023/12/08
      */
     @Override
-    public Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNumAndUserType(Function<MarketingSyncUser, String> keyMapper, Set<String> custNumSet, String userType, String apiCode, Object requestDateObj) {
+    public Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNumAndUserType(Set<String> custNumSet, String userType, String apiCode, Object requestDateObj) {
         if (CollectionUtils.isEmpty(custNumSet)) {
             return Collections.emptyMap();
         }
@@ -1198,14 +1197,13 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         //包含请求日期的T,T （范围）模式的配置记录不为空则查询所有符合的上传数据
         List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserByCustNumAndAppletDateList(apiCode, configList, custNumSet);
         //根据自定义Key组装有效期数据
-        buildValidityPeriodsInfoByKeyMapper(keyMapper,syncUserList, configList, resultMap);
+        buildValidityPeriodsInfoByKeyMapper(MarketingSyncUser::getCustNum,syncUserList, configList, resultMap);
         return resultMap;
     }
 
     /**
      * 根据上传数据cell+userType获取多组有效期范围 Tips：仅支持新版有效期规则，有效期配置valid_start_date和valid_end_date字段都非空
      *
-     * @param keyMapper      自定义key
      * @param cellSet        cell集合
      * @param userType       场景
      * @param apiCode        apiCode
@@ -1215,7 +1213,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      * @date 2023/12/08
      */
     @Override
-    public Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCellAndUserType(Function<MarketingSyncUser, String> keyMapper, Set<String> cellSet, String userType, String apiCode, Object requestDateObj) {
+    public Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCellAndUserType(Set<String> cellSet, String userType, String apiCode, Object requestDateObj) {
         if (CollectionUtils.isEmpty(cellSet)) {
             return Collections.emptyMap();
         }
@@ -1230,7 +1228,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         //包含请求日期的T,T （范围）模式的配置记录不为空则查询所有符合的上传数据
         List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserByCellAndAppletDateList(apiCode, configList, cellSet);
         //根据自定义Key组装有效期数据
-        buildValidityPeriodsInfoByKeyMapper(keyMapper, syncUserList, configList, resultMap);
+        buildValidityPeriodsInfoByKeyMapper(MarketingSyncUser::getCell, syncUserList, configList, resultMap);
         return resultMap;
     }
 
