@@ -1126,37 +1126,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     }
 
     /**
-     * 根据custNum+userType获取多组有效期范围 Tips：仅支持新版有效期规则，有效期配置valid_start_date和valid_end_date字段都非空
-     *
-     * @param custNumSet     custNum集合
-     * @param userType       场景
-     * @param apiCode        apiCode
-     * @param requestDateObj 日期
-     * @return {@link Map }<{@link String }, {@link SyncUserValidityPeriodsBO }>
-     * @author senyang.zheng
-     * @date 2023/12/04
-     */
-    @Override
-    public Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNumAndUserType(Set<String> custNumSet, String userType, String apiCode, Object requestDateObj) {
-        if (CollectionUtils.isEmpty(custNumSet)) {
-            return Collections.emptyMap();
-        }
-        Map<String, SyncUserValidityPeriodsBO> resultMap = new ConcurrentHashMap<>(2048);
-        //统一时间格式
-        final String requestDateStr = switchDateStr(requestDateObj);
-        //获取有效期配置不分页
-        List<MarketingDataValidConfig> configList = getDataValidConfig(apiCode, requestDateStr, Sets.newHashSet(userType), null, null);
-        if (CollectionUtil.isEmpty(configList)) {
-            return resultMap;
-        }
-        //包含请求日期的T,T （范围）模式的配置记录不为空则查询所有符合的上传数据
-        List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserByCustNumAndAppletDateList(apiCode, configList, custNumSet);
-        //组装有效期数据
-        buildValidityPeriodsInfo(syncUserList, configList, resultMap);
-        return resultMap;
-    }
-
-    /**
      * 构建有效期信息
      *
      * @param syncUserList 有效上传数据集合
@@ -1200,6 +1169,79 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         validityPeriodsBO.getSyncUsers().sort(Comparator.comparing(MarketingSyncUser::getAppletTime, Comparator.reverseOrder()));
         return validityPeriodsBO;
     }
+
+    /**
+     * 根据custNum+userType获取多组有效期范围 Tips：仅支持新版有效期规则，有效期配置valid_start_date和valid_end_date字段都非空
+     *
+     * @param keyMapper      自定义key
+     * @param custNumSet     custNum集合
+     * @param userType       场景
+     * @param apiCode        apiCode
+     * @param requestDateObj 日期
+     * @return {@link Map }<{@link String }, {@link SyncUserValidityPeriodsBO }>
+     * @author senyang.zheng
+     * @date 2023/12/08
+     */
+    @Override
+    public Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNumAndUserType(Function<MarketingSyncUser, String> keyMapper, Set<String> custNumSet, String userType, String apiCode, Object requestDateObj) {
+        if (CollectionUtils.isEmpty(custNumSet)) {
+            return Collections.emptyMap();
+        }
+        Map<String, SyncUserValidityPeriodsBO> resultMap = new ConcurrentHashMap<>(2048);
+        //统一时间格式
+        final String requestDateStr = switchDateStr(requestDateObj);
+        //获取有效期配置不分页
+        List<MarketingDataValidConfig> configList = getDataValidConfig(apiCode, requestDateStr, Sets.newHashSet(userType), null, null);
+        if (CollectionUtil.isEmpty(configList)) {
+            return resultMap;
+        }
+        //包含请求日期的T,T （范围）模式的配置记录不为空则查询所有符合的上传数据
+        List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserByCustNumAndAppletDateList(apiCode, configList, custNumSet);
+        //根据自定义Key组装有效期数据
+        buildValidityPeriodsInfoByKeyMapper(keyMapper,syncUserList, configList, resultMap);
+        return resultMap;
+    }
+
+    /**
+     * 根据上传数据cell+userType获取多组有效期范围 Tips：仅支持新版有效期规则，有效期配置valid_start_date和valid_end_date字段都非空
+     *
+     * @param keyMapper      自定义key
+     * @param cellSet        cell集合
+     * @param userType       场景
+     * @param apiCode        apiCode
+     * @param requestDateObj 日期
+     * @return {@link Map }<{@link String }, {@link SyncUserValidityPeriodsBO }>
+     * @author senyang.zheng
+     * @date 2023/12/08
+     */
+    @Override
+    public Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCellAndUserType(Function<MarketingSyncUser, String> keyMapper, Set<String> cellSet, String userType, String apiCode, Object requestDateObj) {
+        if (CollectionUtils.isEmpty(cellSet)) {
+            return Collections.emptyMap();
+        }
+        Map<String, SyncUserValidityPeriodsBO> resultMap = new ConcurrentHashMap<>(2048);
+        //统一时间格式
+        final String requestDateStr = switchDateStr(requestDateObj);
+        //获取有效期配置不分页
+        List<MarketingDataValidConfig> configList = getDataValidConfig(apiCode, requestDateStr, Sets.newHashSet(userType), null, null);
+        if (CollectionUtil.isEmpty(configList)) {
+            return resultMap;
+        }
+        //包含请求日期的T,T （范围）模式的配置记录不为空则查询所有符合的上传数据
+        List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserByCellAndAppletDateList(apiCode, configList, cellSet);
+        //根据自定义Key组装有效期数据
+        buildValidityPeriodsInfoByKeyMapper(keyMapper, syncUserList, configList, resultMap);
+        return resultMap;
+    }
+
+    private void buildValidityPeriodsInfoByKeyMapper(Function<MarketingSyncUser, String> keyMapper, List<MarketingSyncUser> syncUserList, List<MarketingDataValidConfig> configList, Map<String, SyncUserValidityPeriodsBO> resultMap) {
+        Map<String, List<MarketingSyncUser>> custNumMap = syncUserList.stream().collect(Collectors.groupingBy(keyMapper));
+        Map<String, MarketingDataValidConfig> configMap =
+            configList.stream().collect(Collectors.toMap(config -> config.getUserType() + config.getAppletDate(), Function.identity(),
+                BinaryOperator.maxBy(Comparator.comparing(c -> c.getUpdateTime() == null ? c.getCreateTime() : c.getUpdateTime()))));
+        custNumMap.forEach((key, value) -> resultMap.put(key, buildSyncUserValidityPeriodsBO(value, configMap)));
+    }
+
 
     /**
      * 2023-07-13 17:31

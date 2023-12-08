@@ -5,6 +5,7 @@ import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.RuleNecessaryData;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import lombok.Data;
@@ -34,7 +35,7 @@ public class ZhongAnRuleCollectCustomerTransferImpl extends CommonMethodHandlerS
             List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
             Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
-                    transferDataValidityPeriodService.getValidityPeriodsByCustNumAndUserType(set,"1", context.getApiCode(), new Date());
+                    transferDataValidityPeriodService.getValidityPeriodsByCellAndUserType(MarketingSyncUser::getCell,set,"1", context.getApiCode(), new Date());
             ZhongAnRuleCollectCustomerTransferImpl.ZhongAnRuleNecessaryData zhongBangRuleNecessaryData = new ZhongAnRuleCollectCustomerTransferImpl.ZhongAnRuleNecessaryData();
             zhongBangRuleNecessaryData.setCustomerMap(validityPeriodsByCustNum);
             context.setRuleNecessaryData(zhongBangRuleNecessaryData);

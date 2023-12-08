@@ -10,6 +10,7 @@ import com.br.marketing.client.intelligentcustomerservice.input.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.enums.CustomerPushDecisionActionEnum;
@@ -154,7 +155,7 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             String userType = entry.getKey();
             Object o = entry.getValue();
             List<PushMarketingUserDetailByRuleDTO> pushMarketingUserDetailByRuleDTOList = new ArrayList<>();
-            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNumAndUserType = transferDataValidityPeriodService.getValidityPeriodsByCustNumAndUserType(custNumLists, userType, apiCode, new Date());
+            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNumAndUserType = transferDataValidityPeriodService.getValidityPeriodsByCellAndUserType(MarketingSyncUser::getCell,custNumLists, userType, apiCode, new Date());
             if (validityPeriodsByCustNumAndUserType != null) {
                 for (MarketingTransferSyncUser transferSyncUser : list) {
                     SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNumAndUserType.get(transferSyncUser.getCustNum());
