@@ -4,12 +4,12 @@ import java.util.Date;
 
 public class TongChengUndoData {
     /**
-     * 
+     *
      */
     private Long id;
 
     /**
-     * 
+     *
      */
     private String apiCode;
 
@@ -26,12 +26,12 @@ public class TongChengUndoData {
     /**
      * 任务id
      */
-    private String taskid;
+    private String taskId;
 
     /**
      * 客户号
      */
-    private String custnum;
+    private String custNum;
 
     /**
      * 备注
@@ -105,20 +105,20 @@ public class TongChengUndoData {
         this.type = type == null ? null : type.trim();
     }
 
-    public String getTaskid() {
-        return taskid;
+    public String getTaskId() {
+        return taskId;
     }
 
-    public void setTaskid(String taskid) {
-        this.taskid = taskid == null ? null : taskid.trim();
+    public void setTaskId(String taskId) {
+        this.taskId = taskId == null ? null : taskId.trim();
     }
 
-    public String getCustnum() {
-        return custnum;
+    public String getCustNum() {
+        return custNum;
     }
 
-    public void setCustnum(String custnum) {
-        this.custnum = custnum == null ? null : custnum.trim();
+    public void setCustNum(String custNum) {
+        this.custNum = custNum == null ? null : custNum.trim();
     }
 
     public String getReason() {

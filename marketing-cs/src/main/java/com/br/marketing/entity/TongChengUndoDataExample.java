@@ -365,143 +365,143 @@ public class TongChengUndoDataExample {
             return (Criteria) this;
         }
 
-        public Criteria andTaskidIsNull() {
-            addCriterion("taskId is null");
+        public Criteria andTaskIdIsNull() {
+            addCriterion("task_id is null");
             return (Criteria) this;
         }
 
-        public Criteria andTaskidIsNotNull() {
-            addCriterion("taskId is not null");
+        public Criteria andTaskIdIsNotNull() {
+            addCriterion("task_id is not null");
             return (Criteria) this;
         }
 
-        public Criteria andTaskidEqualTo(String value) {
-            addCriterion("taskId =", value, "taskid");
+        public Criteria andTaskIdEqualTo(String value) {
+            addCriterion("task_id =", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTaskidNotEqualTo(String value) {
-            addCriterion("taskId <>", value, "taskid");
+        public Criteria andTaskIdNotEqualTo(String value) {
+            addCriterion("task_id <>", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTaskidGreaterThan(String value) {
-            addCriterion("taskId >", value, "taskid");
+        public Criteria andTaskIdGreaterThan(String value) {
+            addCriterion("task_id >", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTaskidGreaterThanOrEqualTo(String value) {
-            addCriterion("taskId >=", value, "taskid");
+        public Criteria andTaskIdGreaterThanOrEqualTo(String value) {
+            addCriterion("task_id >=", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTaskidLessThan(String value) {
-            addCriterion("taskId <", value, "taskid");
+        public Criteria andTaskIdLessThan(String value) {
+            addCriterion("task_id <", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTaskidLessThanOrEqualTo(String value) {
-            addCriterion("taskId <=", value, "taskid");
+        public Criteria andTaskIdLessThanOrEqualTo(String value) {
+            addCriterion("task_id <=", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTaskidLike(String value) {
-            addCriterion("taskId like", value, "taskid");
+        public Criteria andTaskIdLike(String value) {
+            addCriterion("task_id like", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTaskidNotLike(String value) {
-            addCriterion("taskId not like", value, "taskid");
+        public Criteria andTaskIdNotLike(String value) {
+            addCriterion("task_id not like", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTaskidIn(List<String> values) {
-            addCriterion("taskId in", values, "taskid");
+        public Criteria andTaskIdIn(List<String> values) {
+            addCriterion("task_id in", values, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTaskidNotIn(List<String> values) {
-            addCriterion("taskId not in", values, "taskid");
+        public Criteria andTaskIdNotIn(List<String> values) {
+            addCriterion("task_id not in", values, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTaskidBetween(String value1, String value2) {
-            addCriterion("taskId between", value1, value2, "taskid");
+        public Criteria andTaskIdBetween(String value1, String value2) {
+            addCriterion("task_id between", value1, value2, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTaskidNotBetween(String value1, String value2) {
-            addCriterion("taskId not between", value1, value2, "taskid");
+        public Criteria andTaskIdNotBetween(String value1, String value2) {
+            addCriterion("task_id not between", value1, value2, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andCustnumIsNull() {
-            addCriterion("custNum is null");
+        public Criteria andCustNumIsNull() {
+            addCriterion("cust_num is null");
             return (Criteria) this;
         }
 
-        public Criteria andCustnumIsNotNull() {
-            addCriterion("custNum is not null");
+        public Criteria andCustNumIsNotNull() {
+            addCriterion("cust_num is not null");
             return (Criteria) this;
         }
 
-        public Criteria andCustnumEqualTo(String value) {
-            addCriterion("custNum =", value, "custnum");
+        public Criteria andCustNumEqualTo(String value) {
+            addCriterion("cust_num =", value, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCustnumNotEqualTo(String value) {
-            addCriterion("custNum <>", value, "custnum");
+        public Criteria andCustNumNotEqualTo(String value) {
+            addCriterion("cust_num <>", value, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCustnumGreaterThan(String value) {
-            addCriterion("custNum >", value, "custnum");
+        public Criteria andCustNumGreaterThan(String value) {
+            addCriterion("cust_num >", value, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCustnumGreaterThanOrEqualTo(String value) {
-            addCriterion("custNum >=", value, "custnum");
+        public Criteria andCustNumGreaterThanOrEqualTo(String value) {
+            addCriterion("cust_num >=", value, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCustnumLessThan(String value) {
-            addCriterion("custNum <", value, "custnum");
+        public Criteria andCustNumLessThan(String value) {
+            addCriterion("cust_num <", value, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCustnumLessThanOrEqualTo(String value) {
-            addCriterion("custNum <=", value, "custnum");
+        public Criteria andCustNumLessThanOrEqualTo(String value) {
+            addCriterion("cust_num <=", value, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCustnumLike(String value) {
-            addCriterion("custNum like", value, "custnum");
+        public Criteria andCustNumLike(String value) {
+            addCriterion("cust_num like", value, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCustnumNotLike(String value) {
-            addCriterion("custNum not like", value, "custnum");
+        public Criteria andCustNumNotLike(String value) {
+            addCriterion("cust_num not like", value, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCustnumIn(List<String> values) {
-            addCriterion("custNum in", values, "custnum");
+        public Criteria andCustNumIn(List<String> values) {
+            addCriterion("cust_num in", values, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCustnumNotIn(List<String> values) {
-            addCriterion("custNum not in", values, "custnum");
+        public Criteria andCustNumNotIn(List<String> values) {
+            addCriterion("cust_num not in", values, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCustnumBetween(String value1, String value2) {
-            addCriterion("custNum between", value1, value2, "custnum");
+        public Criteria andCustNumBetween(String value1, String value2) {
+            addCriterion("cust_num between", value1, value2, "custNum");
             return (Criteria) this;
         }
 
-        public Criteria andCustnumNotBetween(String value1, String value2) {
-            addCriterion("custNum not between", value1, value2, "custnum");
+        public Criteria andCustNumNotBetween(String value1, String value2) {
+            addCriterion("cust_num not between", value1, value2, "custNum");
             return (Criteria) this;
         }
 

@@ -102,7 +102,7 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
 
     private void buildDataAndPush(List<TongChengUndoData> tongChengUndoDataList) {
         try {
-            Map<String, List<TongChengUndoData>> listMap = tongChengUndoDataList.stream().collect(Collectors.groupingBy(t -> t.getTaskid()));
+            Map<String, List<TongChengUndoData>> listMap = tongChengUndoDataList.stream().collect(Collectors.groupingBy(t -> t.getTaskId()));
             List<String> taskIds = listMap.keySet().stream().collect(Collectors.toList());
             log.warn("同程不运营名单推送客户，单批次taskId：{}，size：{}", Joiner.on(",").join(taskIds),taskIds.size());
 
@@ -115,7 +115,7 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
                 JSONArray jsonArray = new JSONArray();
                 dataList.forEach(tongChengUndoData -> {
                     JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("custNum ", tongChengUndoData.getCustnum());
+                    jsonObject.put("custNum ", tongChengUndoData.getCustNum());
                     jsonObject.put("reason", tongChengUndoData.getReason());
 
                     jsonArray.add(jsonObject);

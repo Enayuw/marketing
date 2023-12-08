@@ -6,8 +6,8 @@
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="local_id" property="localId" jdbcType="BIGINT" />
     <result column="type" property="type" jdbcType="VARCHAR" />
-    <result column="taskId" property="taskid" jdbcType="VARCHAR" />
-    <result column="custNum" property="custnum" jdbcType="VARCHAR" />
+    <result column="task_id" property="taskId" jdbcType="VARCHAR" />
+    <result column="cust_num" property="custNum" jdbcType="VARCHAR" />
     <result column="reason" property="reason" jdbcType="VARCHAR" />
     <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
     <result column="status" property="status" jdbcType="INTEGER" />
@@ -76,8 +76,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, local_id, `type`, taskId, custNum, reason, push_status, `status`, data_message, 
-    extend, create_date, create_time, update_time
+    id, api_code, local_id, `type`, task_id, cust_num, reason, push_status, `status`,
+    data_message, extend, create_date, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TongChengUndoDataExample" >
     select
@@ -94,7 +94,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_tongcheng_undo_data
     where id = #{id,jdbcType=BIGINT}
@@ -113,15 +113,15 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_tongcheng_undo_data (api_code, local_id, `type`, 
-      taskId, custNum, reason, 
-      push_status, `status`, data_message, 
-      extend, create_date, create_time, 
+    insert into b_tongcheng_undo_data (api_code, local_id, `type`,
+      task_id, cust_num, reason,
+      push_status, `status`, data_message,
+      extend, create_date, create_time,
       update_time)
-    values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR}, 
-      #{taskid,jdbcType=VARCHAR}, #{custnum,jdbcType=VARCHAR}, #{reason,jdbcType=VARCHAR}, 
-      #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, 
-      #{extend,jdbcType=VARCHAR}, #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+    values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR},
+      #{taskId,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, #{reason,jdbcType=VARCHAR},
+      #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR},
+      #{extend,jdbcType=VARCHAR}, #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
       #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.TongChengUndoData" >
@@ -139,11 +139,11 @@
       <if test="type != null" >
         `type`,
       </if>
-      <if test="taskid != null" >
-        taskId,
+      <if test="taskId != null" >
+        task_id,
       </if>
-      <if test="custnum != null" >
-        custNum,
+      <if test="custNum != null" >
+        cust_num,
       </if>
       <if test="reason != null" >
         reason,
@@ -180,11 +180,11 @@
       <if test="type != null" >
         #{type,jdbcType=VARCHAR},
       </if>
-      <if test="taskid != null" >
-        #{taskid,jdbcType=VARCHAR},
+      <if test="taskId != null" >
+        #{taskId,jdbcType=VARCHAR},
       </if>
-      <if test="custnum != null" >
-        #{custnum,jdbcType=VARCHAR},
+      <if test="custNum != null" >
+        #{custNum,jdbcType=VARCHAR},
       </if>
       <if test="reason != null" >
         #{reason,jdbcType=VARCHAR},
@@ -212,7 +212,7 @@
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.TongChengUndoDataExample" resultType="java.lang.Integer" >
+  <select id="countByExample" parameterType="com.br.marketing.entity.TongChengUndoDataExample" resultType="java.lang.Long" >
     select count(*) from b_tongcheng_undo_data
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
@@ -233,11 +233,11 @@
       <if test="record.type != null" >
         `type` = #{record.type,jdbcType=VARCHAR},
       </if>
-      <if test="record.taskid != null" >
-        taskId = #{record.taskid,jdbcType=VARCHAR},
+      <if test="record.taskId != null" >
+        task_id = #{record.taskId,jdbcType=VARCHAR},
       </if>
-      <if test="record.custnum != null" >
-        custNum = #{record.custnum,jdbcType=VARCHAR},
+      <if test="record.custNum != null" >
+        cust_num = #{record.custNum,jdbcType=VARCHAR},
       </if>
       <if test="record.reason != null" >
         reason = #{record.reason,jdbcType=VARCHAR},
@@ -274,8 +274,8 @@
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       local_id = #{record.localId,jdbcType=BIGINT},
       `type` = #{record.type,jdbcType=VARCHAR},
-      taskId = #{record.taskid,jdbcType=VARCHAR},
-      custNum = #{record.custnum,jdbcType=VARCHAR},
+      task_id = #{record.taskId,jdbcType=VARCHAR},
+      cust_num = #{record.custNum,jdbcType=VARCHAR},
       reason = #{record.reason,jdbcType=VARCHAR},
       push_status = #{record.pushStatus,jdbcType=INTEGER},
       `status` = #{record.status,jdbcType=INTEGER},
@@ -300,11 +300,11 @@
       <if test="type != null" >
         `type` = #{type,jdbcType=VARCHAR},
       </if>
-      <if test="taskid != null" >
-        taskId = #{taskid,jdbcType=VARCHAR},
+      <if test="taskId != null" >
+        task_id = #{taskId,jdbcType=VARCHAR},
       </if>
-      <if test="custnum != null" >
-        custNum = #{custnum,jdbcType=VARCHAR},
+      <if test="custNum != null" >
+        cust_num = #{custNum,jdbcType=VARCHAR},
       </if>
       <if test="reason != null" >
         reason = #{reason,jdbcType=VARCHAR},
@@ -338,8 +338,8 @@
     set api_code = #{apiCode,jdbcType=VARCHAR},
       local_id = #{localId,jdbcType=BIGINT},
       `type` = #{type,jdbcType=VARCHAR},
-      taskId = #{taskid,jdbcType=VARCHAR},
-      custNum = #{custnum,jdbcType=VARCHAR},
+      task_id = #{taskId,jdbcType=VARCHAR},
+      cust_num = #{custNum,jdbcType=VARCHAR},
       reason = #{reason,jdbcType=VARCHAR},
       push_status = #{pushStatus,jdbcType=INTEGER},
       `status` = #{status,jdbcType=INTEGER},
