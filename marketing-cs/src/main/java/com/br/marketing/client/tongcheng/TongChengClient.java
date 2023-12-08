@@ -67,9 +67,19 @@ public class TongChengClient {
     public Result pushToTongChengCustomer(JSONObject jsonObject
             , Integer retry) {
         HashMap<String, String> resMap = new HashMap<>();
-        resMap = httpProxyClient.sendByCodeWithLog(jsonObject, reachUrl, isProxy,
-                MediaType.APPLICATION_JSON_UTF8_VALUE,
-                JSON.toJSONString(jsonObject), true, true);
+        // 获取挡板开关
+        HashMap<String, Object> mock = marketingCommonConfig.getTongChengUndoMock();
+        if (mock.get("switch").equals(true)) {
+            JSONObject mockJson = new JSONObject();
+            mockJson.put("code",mock.get("code"));
+            mockJson.put("message","处理成功");
+            resMap.put("content", JSON.toJSONString(mockJson));
+            resMap.put("httpcode", mock.get("httpcode").toString());
+        } else {
+            resMap = httpProxyClient.sendByCodeWithLog(jsonObject, reachUrl, isProxy,
+                    MediaType.APPLICATION_JSON_UTF8_VALUE,
+                    JSON.toJSONString(jsonObject), true, true);
+        }
 
         // 1.httpcode不为200，需要重试
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {

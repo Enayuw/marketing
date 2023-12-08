@@ -6,7 +6,7 @@
          b_tongcheng_undo_data
          where
          <if test="minId != null and minId >0">
-             id >=#{minId} and
+             id > #{minId} and
          </if>
          local_id = #{localId}  and status =1 and push_status =1
          order by id asc limit 2000;

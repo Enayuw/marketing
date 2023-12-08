@@ -4,7 +4,6 @@ import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
 import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.service.Impl.PushRuleServiceImpl;
 import com.br.marketing.service.Impl.tongcheng.TongChengUndoListPushToCustomerService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -24,12 +23,8 @@ import java.util.List;
 @Component
 @Slf4j
 public class TongChengUndoListPushToCustomerJob extends AbstractSimpleElasticJob {
-
     @Resource
     private LocalFileMapper localFileMapper;
-
-    @Autowired
-    private PushRuleServiceImpl pushRuleService;
 
     @Autowired
     TongChengUndoListPushToCustomerService service;

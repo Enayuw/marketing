@@ -14,6 +14,7 @@ import com.br.marketing.entity.TongChengUndoDataExample;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.TongChengUndoDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -61,52 +62,20 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
         Long minId = null;
         Boolean isContiue = Boolean.TRUE;
         while (isContiue) {
-            // todo
-            if (marketingCommonConfig.getZhongBangCaifuLabelThreadNum() != null) {
-                pool.setCorePoolSize(marketingCommonConfig.getZhongBangCaifuLabelThreadNum());
-                pool.setMaximumPoolSize(marketingCommonConfig.getZhongBangCaifuLabelThreadNum());
+            if (marketingCommonConfig.getTongChengUndoThreadNum() != null) {
+                pool.setCorePoolSize(marketingCommonConfig.getTongChengUndoThreadNum());
+                pool.setMaximumPoolSize(marketingCommonConfig.getTongChengUndoThreadNum());
             }
+
             List<TongChengUndoData> tongChengUndoDataList = tongChengUndoDataMapper.tongChengUndoDataPage(id, minId);
             if (tongChengUndoDataList.size() <= 0) {
                 isContiue = Boolean.FALSE;
                 continue;
             }
-            minId = tongChengUndoDataList.get(tongChengUndoDataList.size() - 1).getId() + 1;
+
+            minId = tongChengUndoDataList.get(tongChengUndoDataList.size() - 1).getId();
             pool.submit(() -> {
-                try {
-                    Map<String, List<TongChengUndoData>> listMap = tongChengUndoDataList.stream().collect(Collectors.groupingBy(t -> t.getTaskid()));
-                    for (Map.Entry<String, List<TongChengUndoData>> entry : listMap.entrySet()) {
-                        String taskId = entry.getKey();
-                        List<TongChengUndoData> dataList = entry.getValue();
-                        // id
-                        List<Long> ids = dataList.stream().map(t -> t.getId()).collect(Collectors.toList());
-                        //组装数据调接口
-                        JSONArray jsonArray = new JSONArray();
-                        dataList.forEach(tongChengUndoData -> {
-                            JSONObject jsonObject = new JSONObject();
-                            jsonObject.put("custNum ", tongChengUndoData.getCustnum());
-                            jsonObject.put("reason", tongChengUndoData.getReason());
-
-                            jsonArray.add(jsonObject);
-                        });
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("taskId", taskId);
-                        jsonObject.put("dataList", jsonArray);
-                        Result result = tongChengClient.pushToTongChengCustomer(jsonObject, null);
-                        //更新数据表状态
-                        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                            //更新成功
-                            updateStatus(ids, 2);
-                        } else {
-                            //更新失败
-                            updateStatus(ids, 3);
-                        }
-                    }
-//
-
-                } catch (Exception ex) {
-                    log.error("众邦财富定制标签推送异常", ex);
-                }
+                buildDataAndPush(tongChengUndoDataList);
             });
         }
         pool.shutdown();
@@ -128,6 +97,44 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
         //统计告警
         if (!localFile.getPushNumber().equals(localFile.getActualNumber())) {
             sendAlarm(localFile.getActualNumber() - localFile.getPushNumber(), "同程不运营名单推送客户接口推送失败数量统计");
+        }
+    }
+
+    private void buildDataAndPush(List<TongChengUndoData> tongChengUndoDataList) {
+        try {
+            Map<String, List<TongChengUndoData>> listMap = tongChengUndoDataList.stream().collect(Collectors.groupingBy(t -> t.getTaskid()));
+            List<String> taskIds = listMap.keySet().stream().collect(Collectors.toList());
+            log.warn("同程不运营名单推送客户，单批次taskId：{}，size：{}", Joiner.on(",").join(taskIds),taskIds.size());
+
+            for (Map.Entry<String, List<TongChengUndoData>> entry : listMap.entrySet()) {
+                String taskId = entry.getKey();
+                List<TongChengUndoData> dataList = entry.getValue();
+                // id
+                List<Long> ids = dataList.stream().map(t -> t.getId()).collect(Collectors.toList());
+                //组装数据调接口
+                JSONArray jsonArray = new JSONArray();
+                dataList.forEach(tongChengUndoData -> {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("custNum ", tongChengUndoData.getCustnum());
+                    jsonObject.put("reason", tongChengUndoData.getReason());
+
+                    jsonArray.add(jsonObject);
+                });
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("taskId", taskId);
+                jsonObject.put("dataList", jsonArray);
+                Result result = tongChengClient.pushToTongChengCustomer(jsonObject, null);
+                //更新数据表状态
+                if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                    //更新成功
+                    updateStatus(ids, 2);
+                } else {
+                    //更新失败
+                    updateStatus(ids, 3);
+                }
+            }
+        } catch (Exception ex) {
+            log.error("同程不运营名单推送客户接口子线程异常", ex);
         }
     }
 
