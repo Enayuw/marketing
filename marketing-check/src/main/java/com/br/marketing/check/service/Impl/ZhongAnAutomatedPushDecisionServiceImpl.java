@@ -164,11 +164,13 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
                         String reserveField1 = transferSyncUser.getReserveField1();
                         if (!StringUtils.isBlank(reserveField1)) {
                             JSONObject jsonObjectReserveField1 = JSON.parseObject(reserveField1);
-                            if (
+                            if (jsonObjectReserveField1.size() > 0 && (
                                     (jsonObjectReserveField1.get("eventType").equals("APP_LOGIN") && userType.equals("1"))
                                             || (jsonObjectReserveField1.get("eventType").equals("APP_LAUNCH") && userType.equals("1"))
                                             || (jsonObjectReserveField1.get("eventType").equals("LOGIN") && userType.equals("2"))
-                                            || (jsonObjectReserveField1.get("eventType").equals("APP_LAUNCH") && userType.equals("2"))
+                                            || (jsonObjectReserveField1.get("eventType").equals("APP_LAUNCH") && userType.equals("2")
+                                    )
+                            )
                             ) {
                                 String value = String.valueOf(o);
                                 String[] values = value.split("&");
