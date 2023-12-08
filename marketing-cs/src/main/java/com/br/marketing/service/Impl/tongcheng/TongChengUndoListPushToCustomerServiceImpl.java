@@ -79,12 +79,19 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
             });
         }
         pool.shutdown();
+
         try {
             while (!pool.awaitTermination(5L, TimeUnit.SECONDS)) {
             }
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
+
+        // 更新文件表状态并发送告警
+        updateFileStatusAndSendAlarm(localFile);
+    }
+
+    private void updateFileStatusAndSendAlarm(LocalFile localFile) {
         //更新文件表推送数据量
         TongChengUndoDataExample TongChengUndoDataExample = new TongChengUndoDataExample();
         TongChengUndoDataExample.createCriteria().andLocalIdEqualTo(localFile.getId()).andPushStatusEqualTo(2).andStatusEqualTo(1);
@@ -96,7 +103,7 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
         localFileMapper.updateByPrimaryKeySelective(localFile);
         //统计告警
         if (!localFile.getPushNumber().equals(localFile.getActualNumber())) {
-            sendAlarm(localFile.getActualNumber() - localFile.getPushNumber(), "同程不运营名单推送客户接口推送失败数量统计");
+            sendAlarm(localFile.getActualNumber() - localFile.getPushNumber(), "同程不运营名单推送客户接口失败数量统计");
         }
     }
 
@@ -109,9 +116,8 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
             for (Map.Entry<String, List<TongChengUndoData>> entry : listMap.entrySet()) {
                 String taskId = entry.getKey();
                 List<TongChengUndoData> dataList = entry.getValue();
-                // id
-                List<Long> ids = dataList.stream().map(t -> t.getId()).collect(Collectors.toList());
-                //组装数据调接口
+
+                // 组装数据调接口
                 JSONArray jsonArray = new JSONArray();
                 dataList.forEach(tongChengUndoData -> {
                     JSONObject jsonObject = new JSONObject();
@@ -120,11 +126,14 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
 
                     jsonArray.add(jsonObject);
                 });
+
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("taskId", taskId);
                 jsonObject.put("dataList", jsonArray);
                 Result result = tongChengClient.pushToTongChengCustomer(jsonObject, null);
-                //更新数据表状态
+
+                // 更新数据表状态
+                List<Long> ids = dataList.stream().map(t -> t.getId()).collect(Collectors.toList());
                 if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                     //更新成功
                     updateStatus(ids, 2);
