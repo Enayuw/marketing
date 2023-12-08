@@ -3,6 +3,9 @@ package com.br.marketing.service.Impl.tongcheng;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.client.tongcheng.TongChengClient;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.LocalFile;
@@ -12,6 +15,7 @@ import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.TongChengUndoDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -29,7 +33,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndoListPushToCustomerService{
+public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndoListPushToCustomerService {
     @Resource
     LocalFileMapper localFileMapper;
 
@@ -42,11 +46,14 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
     @Resource
     private AlarmApiClient alarmClient;
 
+    @Autowired
+    TongChengClient tongChengClient;
+
     @Override
     public void process(Long id) {
         LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
         if (localFile == null) {
-            return ;
+            return;
         }
 
         localFile.setPushStartTime(new Date());
@@ -77,23 +84,23 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
                         JSONArray jsonArray = new JSONArray();
                         dataList.forEach(tongChengUndoData -> {
                             JSONObject jsonObject = new JSONObject();
-                            jsonObject.put("custNum ",tongChengUndoData.getCustnum());
+                            jsonObject.put("custNum ", tongChengUndoData.getCustnum());
                             jsonObject.put("reason", tongChengUndoData.getReason());
 
                             jsonArray.add(jsonObject);
                         });
                         JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("taskId",taskId);
-                        jsonObject.put("dataList",jsonArray);
-//                        Result result = methodRetryHandlerService.pushZbankLabelRatingRe(jsonObject, null);
+                        jsonObject.put("taskId", taskId);
+                        jsonObject.put("dataList", jsonArray);
+                        Result result = tongChengClient.pushToTongChengCustomer(jsonObject, null);
                         //更新数据表状态
-//                        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-//                            //更新成功
-//                            updateStatus(ids, 2);
-//                        } else {
-//                            //更新失败
-//                            updateStatus(ids, 3);
-//                        }
+                        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                            //更新成功
+                            updateStatus(ids, 2);
+                        } else {
+                            //更新失败
+                            updateStatus(ids, 3);
+                        }
                     }
 //
 
@@ -101,7 +108,7 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
                     log.error("众邦财富定制标签推送异常", ex);
                 }
             });
-        };
+        }
         pool.shutdown();
         try {
             while (!pool.awaitTermination(5L, TimeUnit.SECONDS)) {
@@ -111,9 +118,7 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
         }
         //更新文件表推送数据量
         TongChengUndoDataExample TongChengUndoDataExample = new TongChengUndoDataExample();
-        TongChengUndoDataExample.createCriteria().andLocalIdEqualTo(localFile.getId())
-                .andPushStatusEqualTo(2)
-                .andStatusEqualTo(1);
+        TongChengUndoDataExample.createCriteria().andLocalIdEqualTo(localFile.getId()).andPushStatusEqualTo(2).andStatusEqualTo(1);
         Long num = tongChengUndoDataMapper.countByExample(TongChengUndoDataExample);
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(num.intValue());
@@ -121,8 +126,8 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
         localFile.setPushStatus("2");
         localFileMapper.updateByPrimaryKeySelective(localFile);
         //统计告警
-        if(!localFile.getPushNumber().equals(localFile.getActualNumber())){
-            sendAlarm(localFile.getActualNumber()-localFile.getPushNumber(),"同程不运营名单推送客户接口推送失败数量统计");
+        if (!localFile.getPushNumber().equals(localFile.getActualNumber())) {
+            sendAlarm(localFile.getActualNumber() - localFile.getPushNumber(), "同程不运营名单推送客户接口推送失败数量统计");
         }
     }
 

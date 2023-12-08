@@ -63,25 +63,37 @@ public class TongChengClient {
     /**
      * 同程不运营名单推送客户接口
      */
-    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = true)
+    @RetryMethod(retryNowNum = 3)
     public Result pushToTongChengCustomer(JSONObject jsonObject
             , Integer retry) {
         HashMap<String, String> resMap = new HashMap<>();
         resMap = httpProxyClient.sendByCodeWithLog(jsonObject, reachUrl, isProxy,
                 MediaType.APPLICATION_JSON_UTF8_VALUE,
-                JSON.toJSONString(jsonObject), false, false);
+                JSON.toJSONString(jsonObject), true, true);
 
         // 1.httpcode不为200，需要重试
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
 //            if (!islogs.get(1)) {
 //                log.error("调用滴滴短信流量接口异常-请求参数:{};返回:{}", JSON.toJSONString(smsReqVO), JSON.toJSONString(resMap));
 //            }
-            log.error("调用滴滴短信流量接口异常-请求参数:{};返回:{}", JSON.toJSONString(jsonObject), JSON.toJSONString(resMap));
+            log.error("调用同程不运营名单接口异常-请求参数:{};返回:{}", JSON.toJSONString(jsonObject), JSON.toJSONString(resMap));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
 
-        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(jsonObject);
+        String content = resMap.get("content");
+        JSONObject resultJson = JSONObject.parseObject(content);
+        Integer code = resultJson.getInteger("code");
+
+        if (code == 0){
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
+        }
+
+        if (code == 1002 || code == 1003 || code == 1004) {
+            log.error("调用同程不运营名单接口，返回code非0。立即重试，最多重试三次");
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+
+        log.error("调用同程不运营名单接口，返回code非0且非重试code。不会重试");
+        return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
     }
-
-
 }
