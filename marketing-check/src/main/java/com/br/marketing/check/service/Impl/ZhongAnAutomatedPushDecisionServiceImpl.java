@@ -155,7 +155,7 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             String userType = entry.getKey();
             Object o = entry.getValue();
             List<PushMarketingUserDetailByRuleDTO> pushMarketingUserDetailByRuleDTOList = new ArrayList<>();
-            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNumAndUserType = transferDataValidityPeriodService.getValidityPeriodsByCellAndUserType(custNumLists, userType, apiCode, new Date());
+            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNumAndUserType = transferDataValidityPeriodService.getValidityPeriodsByCustNumAndUserType(custNumLists, userType, apiCode, new Date());
             if (validityPeriodsByCustNumAndUserType != null) {
                 for (MarketingTransferSyncUser transferSyncUser : list) {
                     SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNumAndUserType.get(transferSyncUser.getCustNum());
