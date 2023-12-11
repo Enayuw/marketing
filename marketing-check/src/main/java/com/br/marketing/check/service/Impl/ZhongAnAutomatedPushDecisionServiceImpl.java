@@ -1,5 +1,6 @@
 package com.br.marketing.check.service.Impl;
 
+import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.JobPushDecisionParameterBO;
@@ -152,52 +153,55 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNumAndUserType = transferDataValidityPeriodService.getValidityPeriodsByCustNumAndUserType(custNumLists, userType, apiCode, new Date());
             if (validityPeriodsByCustNumAndUserType != null) {
                 for (MarketingTransferSyncUser transferSyncUser : list) {
-                    SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNumAndUserType.get(transferSyncUser.getCustNum());
-                    // 有效
-                    if (syncUserValidityPeriodsBO != null) {
-                        String reserveField1 = transferSyncUser.getReserveField1();
-                        if (!StringUtils.isBlank(reserveField1)) {
-                            JSONObject jsonObjectReserveField1 = JSON.parseObject(reserveField1);
-                            if (!jsonObjectReserveField1.isEmpty() && (
-                                    ("APP_LOGIN".equals(jsonObjectReserveField1.get("eventType")) && "1".equals(userType))
-                                            || ("APP_LAUNCH".equals(jsonObjectReserveField1.get("eventType")) && "1".equals(userType))
-                                            || ("LOGIN".equals(jsonObjectReserveField1.get("eventType")) && "2".equals(userType))
-                                            || ("APP_LAUNCH".equals(jsonObjectReserveField1.get("eventType")) && "2".equals(userType)
-                                    )
-                            )
-                            ) {
-                                String value = String.valueOf(o);
-                                String[] values = value.split("&");
-                                String strategyCode;
-                                String status = values[0];
-                                if (values.length > 1) {
-                                    strategyCode = values[1];
-                                } else {
-                                    strategyCode = "";
+                    try {
+                        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNumAndUserType.get(transferSyncUser.getCustNum());
+                        // 有效
+                        if (syncUserValidityPeriodsBO != null) {
+                            String reserveField1 = transferSyncUser.getReserveField1();
+                            if (!StringUtils.isBlank(reserveField1)) {
+                                JSONObject jsonObjectReserveField1 = JSON.parseObject(reserveField1);
+                                if (!jsonObjectReserveField1.isEmpty() && (
+                                        ("APP_LOGIN".equals(jsonObjectReserveField1.get("eventType")) && "1".equals(userType))
+                                                || ("APP_LAUNCH".equals(jsonObjectReserveField1.get("eventType")) && "1".equals(userType))
+                                                || ("LOGIN".equals(jsonObjectReserveField1.get("eventType")) && "2".equals(userType))
+                                                || ("APP_LAUNCH".equals(jsonObjectReserveField1.get("eventType")) && "2".equals(userType)
+                                        )
+                                )
+                                ) {
+                                    String value = String.valueOf(o);
+                                    String[] values = value.split("&");
+                                    String strategyCode;
+                                    String status = values[0];
+                                    if (values.length > 1) {
+                                        strategyCode = values[1];
+                                    } else {
+                                        strategyCode = "";
+                                    }
+                                    String cell = jsonObjectReserveField1.getString("initCustNum");
+                                    if (StringUtils.isBlank(cell)) {
+                                        continue;
+                                    }
+                                    // 推送
+                                    PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
+                                    pushMarketingUserDetailByRuleDTO.setCaseNumber(transferSyncUser.getCustNum());
+                                    JSONObject jsonObject = new JSONObject();
+                                    jsonObject.put("userType", transferSyncUser.getUserType());
+                                    pushMarketingUserDetailByRuleDTO.setVariables(jsonObject);
+                                    pushMarketingUserDetailByRuleDTO.setStrategyCode(strategyCode);
+                                    pushMarketingUserDetailByRuleDTO.setStatus(status);
+                                    pushMarketingUserDetailByRuleDTO.setPhone(cell);
+                                    pushMarketingUserDetailByRuleDTO.setCell(decodePhone(cell));
+                                    pushMarketingUserDetailByRuleDTO.setInitId(transferSyncUser.getId());
+                                    pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "_" + apiCode + "_" + status);
+                                    pushMarketingUserDetailByRuleDTOList.add(pushMarketingUserDetailByRuleDTO);
                                 }
-                                String cell = jsonObjectReserveField1.getString("initCustNum");
-                                if (StringUtils.isBlank(cell)) {
-                                    continue;
-                                }
-                                // 推送
-                                PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
-                                pushMarketingUserDetailByRuleDTO.setCaseNumber(transferSyncUser.getCustNum());
-                                JSONObject jsonObject = new JSONObject();
-                                jsonObject.put("userType", transferSyncUser.getUserType());
-                                pushMarketingUserDetailByRuleDTO.setVariables(jsonObject);
-                                pushMarketingUserDetailByRuleDTO.setStrategyCode(strategyCode);
-                                pushMarketingUserDetailByRuleDTO.setStatus(status);
-                                pushMarketingUserDetailByRuleDTO.setPhone(cell);
-                                pushMarketingUserDetailByRuleDTO.setCell(decodePhone(cell));
-                                pushMarketingUserDetailByRuleDTO.setInitId(transferSyncUser.getId());
-                                pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "_" + apiCode + "_" + status);
-                                pushMarketingUserDetailByRuleDTOList.add(pushMarketingUserDetailByRuleDTO);
                             }
-                        }
 
+                        }
+                    }catch (Exception e){
+                        log.warn(e.getMessage(), e);
                     }
                 }
-
             }
             sum = pushMarketingUserDetailByRuleDTOList.size();
             ProcessHandlerContext context = new ProcessHandlerContext();
