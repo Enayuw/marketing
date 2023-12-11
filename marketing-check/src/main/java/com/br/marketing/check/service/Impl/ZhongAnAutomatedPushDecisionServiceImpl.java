@@ -143,7 +143,7 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             return sum;
         }
         //{"ZHONG_AN":[{"apiCode":"3710048","timeStr":"09:00:00","paramMap":{"1":"a","2":"b"}},{"apiCode":"7410906","timeStr":"09:00:00","paramMap":{"1":"a","2":"b"}}]}
-        Set<String> custNumLists = list.stream().map(u -> u.getCustNum()).collect(Collectors.toSet());
+        Set<String> custNumLists = list.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
         // 循环配置的场景
         for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
             String userType = entry.getKey();
@@ -158,11 +158,11 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
                         String reserveField1 = transferSyncUser.getReserveField1();
                         if (!StringUtils.isBlank(reserveField1)) {
                             JSONObject jsonObjectReserveField1 = JSON.parseObject(reserveField1);
-                            if (jsonObjectReserveField1.size() > 0 && (
-                                    (jsonObjectReserveField1.get("eventType").equals("APP_LOGIN") && userType.equals("1"))
-                                            || (jsonObjectReserveField1.get("eventType").equals("APP_LAUNCH") && userType.equals("1"))
-                                            || (jsonObjectReserveField1.get("eventType").equals("LOGIN") && userType.equals("2"))
-                                            || (jsonObjectReserveField1.get("eventType").equals("APP_LAUNCH") && userType.equals("2")
+                            if (!jsonObjectReserveField1.isEmpty() && (
+                                    ("APP_LOGIN".equals(jsonObjectReserveField1.get("eventType")) && "1".equals(userType))
+                                            || ("APP_LAUNCH".equals(jsonObjectReserveField1.get("eventType")) && "1".equals(userType))
+                                            || ("LOGIN".equals(jsonObjectReserveField1.get("eventType")) && "2".equals(userType))
+                                            || ("APP_LAUNCH".equals(jsonObjectReserveField1.get("eventType")) && "2".equals(userType)
                                     )
                             )
                             ) {
