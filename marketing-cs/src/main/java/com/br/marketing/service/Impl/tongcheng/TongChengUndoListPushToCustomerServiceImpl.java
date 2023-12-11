@@ -121,7 +121,7 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
                 JSONArray jsonArray = new JSONArray();
                 dataList.forEach(tongChengUndoData -> {
                     JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("custNum ", tongChengUndoData.getCustNum());
+                    jsonObject.put("custNum", tongChengUndoData.getCustNum());
                     jsonObject.put("reason", tongChengUndoData.getReason());
 
                     jsonArray.add(jsonObject);
