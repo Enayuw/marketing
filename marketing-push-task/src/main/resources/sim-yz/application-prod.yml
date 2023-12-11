@@ -106,7 +106,7 @@ otherConfig:
         ftpPort: 21
         ftpUsername: dp_mkplat_r
         ftpPwd: 9nW3Dk47HlS0@_2022.08.03
-        sftpHost: brsftp.brapp.com
+        sftpHost: brsftp3.brapp.com
         sftpPort: 9999
         sftpUser: BRmarketing
         sftpPwd: gKjTC62qUJMKigEyvn01@_2021.06.07

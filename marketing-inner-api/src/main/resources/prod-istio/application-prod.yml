@@ -130,7 +130,7 @@ otherConfig:
     pageSize: 5000
     apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
     path: /opt/data/inloan/download/marketing/
-    sftpHost: brsftp.brapp.com
+    sftpHost: brsftp3.brapp.com
     sftpPort: 9999
     sftpUser: BRmarketing
     sftpPwd: gKjTC62qUJMKigEyvn01@_2021.06.07

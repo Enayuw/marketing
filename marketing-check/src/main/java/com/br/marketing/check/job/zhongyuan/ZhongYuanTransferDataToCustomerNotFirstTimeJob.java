@@ -4,10 +4,12 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
+import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.service.ZhongYuanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -20,20 +22,18 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 描述：： 中原转化数据推Daas
- * <p>
- * ------------------------------------
- *
+ * 中原转化数据推客服转化过滤非首次以及转化规则2(转化数据推daas的数据推客服)
+ * http://c.100credit.cn/pages/viewpage.action?pageId=125085427
  * @program: marketing
- * @ClassName ZhongYuanTransferDataToDaasJob
- * @author: it-yml
- * @create: 2023-08-25 19:34
+ * @ClassName ZhongYuanTransferDataToCustomerNotFirstTimeJob
+ * @author: chenh
+ * @create: 2023-11-10 19:34
  * @Version 1.0
  * --------------------------------------
  **/
 @Component
 @Slf4j
-public class ZhongYuanTransferDataToDaasJob extends AbstractSimpleElasticJob {
+public class ZhongYuanTransferDataToCustomerNotFirstTimeJob extends AbstractSimpleElasticJob {
 
     @Resource
     private ZhongYuanService zhongYuanService;
@@ -42,11 +42,6 @@ public class ZhongYuanTransferDataToDaasJob extends AbstractSimpleElasticJob {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
-
-    /**
-     * 入参为空为当日
-     * @param context 入参 20230-08-23,2023-08-30
-     */
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         String parameter = context.getJobParameter();
@@ -71,7 +66,46 @@ public class ZhongYuanTransferDataToDaasJob extends AbstractSimpleElasticJob {
             log.error("中原转化数据推daas job未配置apiCode,请检查配置字段 【zhongYouJobApiCodes】");
         }
     }
+    /**
+     * 关闭线程池
+     * @param zhongYuanTransferToDaasAndCustomerFilterThreadPool 线程池
+     */
+    private static void threadClosed(ThreadPoolExecutor zhongYuanTransferToDaasAndCustomerFilterThreadPool) {
+        zhongYuanTransferToDaasAndCustomerFilterThreadPool.shutdown();
+        try {
+            while (!zhongYuanTransferToDaasAndCustomerFilterThreadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("等待线程池结束");
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+    }
+    private void dealTransferDataWithThread(ThreadPoolExecutor zhongYuanTransferToDaasAndCustomerFilterThreadPool, List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+        zhongYuanTransferToDaasAndCustomerFilterThreadPool
+                .setCorePoolSize(marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum());
+        zhongYuanTransferToDaasAndCustomerFilterThreadPool
+                .setMaximumPoolSize(marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum());
 
+        zhongYuanTransferToDaasAndCustomerFilterThreadPool.execute(() -> threadDoProcess(marketingTransferSyncUserList));
+    }
+    /**
+     * 执行推电销 和客服逻辑
+     *
+     * @param marketingTransferSyncUserList 转化数据集
+     */
+    private void threadDoProcess(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+
+        // 推客服转化 非首次 （registerTime非空）
+        zhongYuanService.zhongYuanTransferDataToCustomerFilter(marketingTransferSyncUserList);
+
+        // 转化数据推客服 规则1 因非首次包含规则1 推送条件 为了防止多次判断，增加效率，规则1 代码注释掉，如果规则1 有修改
+        // 可在此代码基础上进行修改 （registerTime非空）
+//        zhongYuanService.zhongYuanTransferDataToCustomerFilterRuleFirst(marketingTransferSyncUserList);
+
+        // 转化数据推客服 规则2
+        zhongYuanService.zhongYuanTransferDataToCustomerFilterByDaasTwo(marketingTransferSyncUserList);
+
+    }
     /**
      * 获取基础转化数据
      * @param apiCode apiCode
@@ -95,29 +129,13 @@ public class ZhongYuanTransferDataToDaasJob extends AbstractSimpleElasticJob {
         }
         return marketingTransferSyncUserList;
     }
-
     /**
-     * 关闭线程池
-     * @param zhongYuanTransferToDaasAndCustomerFilterThreadPool 线程池
+     * 获取中邮apiCode
+     *
+     * @return 返回 apiCode
      */
-    private static void threadClosed(ThreadPoolExecutor zhongYuanTransferToDaasAndCustomerFilterThreadPool) {
-        zhongYuanTransferToDaasAndCustomerFilterThreadPool.shutdown();
-        try {
-            while (!zhongYuanTransferToDaasAndCustomerFilterThreadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.info("等待线程池结束");
-            }
-        } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
-        }
-    }
-
-    private void dealTransferDataWithThread(ThreadPoolExecutor zhongYuanTransferToDaasAndCustomerFilterThreadPool, List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
-        zhongYuanTransferToDaasAndCustomerFilterThreadPool
-                .setCorePoolSize(marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum());
-        zhongYuanTransferToDaasAndCustomerFilterThreadPool
-                .setMaximumPoolSize(marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum());
-
-        zhongYuanTransferToDaasAndCustomerFilterThreadPool.execute(() -> threadDoProcess(marketingTransferSyncUserList));
+    private Set<String> getZhongYuanApiCodes() {
+        return marketingCommonConfig.getZhongYuanJobApiCodes();
     }
 
     /**
@@ -130,24 +148,5 @@ public class ZhongYuanTransferDataToDaasJob extends AbstractSimpleElasticJob {
                 marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum(),
                 marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum()
         );
-    }
-
-    /**
-     * 获取中邮apiCode
-     *
-     * @return 返回 apiCode
-     */
-    private Set<String> getZhongYuanApiCodes() {
-        return marketingCommonConfig.getZhongYuanJobApiCodes();
-    }
-
-    /**
-     * 执行推电销 和客服逻辑
-     *
-     * @param marketingTransferSyncUserList 转化数据集
-     */
-    private void threadDoProcess(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
-        // 推daas
-        zhongYuanService.zhongYuanTransferDataToDaas(marketingTransferSyncUserList);
     }
 }

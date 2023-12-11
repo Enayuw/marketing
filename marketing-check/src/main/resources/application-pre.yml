@@ -222,13 +222,13 @@ api:
     appId: "bairong"
     isProxy: false
   zbank: #众邦财富
-    isPorxy: false
+    isPorxy: true
     api:
-      baseUrl: "https://iodev-uat.z-bank.com"
-      serverPubKey: "049191E0402CE98C8F31564880AC47AC888DACB24B127407D351AD83725CDB4529713E585CBB14C14E4EBBE97828D64B1F2DC101E113F227B6E6ACD9A378311DC3"
-      appId: "2a0f9f71_29e5_466c_95a7_8cab99d93880"
-      appSecretKey: "65ed7e3b-bcff-4f5b-a029-185a538e3ee8"
-      priKey: "1DF4C616DE52063F5BB9525121160DF2F0607122A5FE69EB382D57020B27EA6A"
+      baseUrl: "https://iopf.z-bank.com"
+      serverPubKey: "04FA9C039AFC14D3F75A3290BB5A698F93316D508D419B73A237F7FCA048A92CE20F3C1B3BE4517E370563DAE64E474840EB2E11FCC011B506D3D1CBEE956BA774"
+      appId: "26cd2e1f_f116_4947_94d9_c68194400186"
+      appSecretKey: "5c995d09-b371-48aa-af63-5e79909e6908"
+      priKey: "3B82FE82D970F247C391358D360DA50486FE2266D5919028BD26A3AC4940E845"
       serviceId:
         labelRating: "CMBrLabelRatingRe"
     file:
@@ -241,7 +241,6 @@ api:
     baseUrl: https://mns.qa.lylend.com
     address: ${api.tongcheng.baseUrl}/api/cep/agent/ret/baiRong
     isProxy: false
-
 spring:
   rabbitmq:
     zw:

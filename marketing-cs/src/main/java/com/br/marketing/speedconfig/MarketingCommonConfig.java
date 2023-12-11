@@ -1098,6 +1098,18 @@ public class MarketingCommonConfig {
     private Boolean zhongBangCaifuLabelTest;
 
     /**
+     * 2023-12-05 10:35
+     * 众邦文件下载配置信息
+     */
+    private Map<String, String> zhongBangDownloadFileInfoMap;
+    private String zhongBangDownloadFileSlotKey;
+
+    /**
+     * 数据转化提取任务锁失效时间
+     */
+    private Long transferFileTaskJobLockExpireTime;
+
+    /**
      * 同程不运营名单推送客户接口挡板开关 true:开启挡板。false:关闭挡板
      * tongChengUndoMock={"switch":false,"httpcode":"200","code":"1001"}
      */

@@ -206,9 +206,8 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                         if (StringUtils.isNotBlank(value)) {
                             error = error.replace(String.format("%s不能为空;", field), "");
                         }
-                        valueSb.append(StringUtils.isBlank(value) ? "''" : String.format("'%s'",value)).append(",");
                     }
-
+                    valueSb.append(StringUtils.isBlank(value) ? "''" : String.format("'%s'", value)).append(",");
                     if (field.equals("extend")) {
                         String s = extSetField.get(i);
                         if (StringUtils.isNotBlank(s)) {
