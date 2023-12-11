@@ -1110,6 +1110,11 @@ public class MarketingCommonConfig {
      */
     private Map<String, Map<String, String>> xieChengSmsQuitConfig;
 
+    /**
+     * 携程推送短信退订apiCode
+     */
+    private List<String> xieChengSmsQuitApiCodes;
+
 
 }
 

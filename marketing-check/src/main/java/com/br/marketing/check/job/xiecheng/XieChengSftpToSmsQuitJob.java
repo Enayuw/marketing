@@ -5,6 +5,7 @@ import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.service.Impl.PushDataServiceImpl;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -31,23 +32,25 @@ public class XieChengSftpToSmsQuitJob extends AbstractSimpleElasticJob {
     @Autowired
     private PushDataServiceImpl pushDataServiceImpl;
 
+    @Autowired
+    private MarketingCommonConfig marketingCommonConfig;
+
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
 
         LocalFileExample example = new LocalFileExample();
         //查询待推送文件
         example.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.XIECHENGSMSQUIT.getValue())
-                .andStatusEqualTo("2").andPushStatusIsNull();
+                .andStatusEqualTo("2").andPushStatusIsNull().andApiCodeIn(marketingCommonConfig.getXieChengSmsQuitApiCodes());
         List<LocalFile> localFiles = localFileMapper.selectByExample(example);
         if (CollectionUtils.isEmpty(localFiles)) {
             return;
         }
-        if (localFiles.size() > 1) {
-            log.error("携程短信退订推送文件数异常，推送文件数 size={}", localFiles.size());
-            return;
-        }
+
         try {
-            pushDataServiceImpl.pushSmsQuitData(localFiles.get(0));
+            localFiles.forEach(localFile -> {
+                pushDataServiceImpl.pushSmsQuitData(localFile);
+            });
         } catch (Exception e) {
             //推送异常更新状态,更新为失败status=3
             LocalFile localFile = new LocalFile();
