@@ -1119,5 +1119,10 @@ public class MarketingCommonConfig {
      * 同程不运营名单推送客户接口线程数
      */
     private Integer tongChengUndoThreadNum;
+
+    /**
+     * 同程不运营名单推送客户接口apiCode集合
+     */
+    private List<String> tongChengUndoApiCodes;
 }
 
