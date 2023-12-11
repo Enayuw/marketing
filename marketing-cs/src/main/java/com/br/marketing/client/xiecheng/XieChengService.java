@@ -252,9 +252,6 @@ public class XieChengService {
         }
         JSONObject resultJson = JSONObject.parseObject(resMap.get("content"));
         Integer code = resultJson.getInteger("code");
-        if (code == 0) {
-            return new Result().setCode(ResultCode.SUCCESS.getValue());
-        }
         if (smsQuitReq.getCipherMobile().equals("6a2000545b963e940b0e4d8293f02f4e79393445677e6ba448f970988ecd2bb5") ||
                 smsQuitReq.getCipherMobile().equals("fc489fd5ff8437c2a1369ccc61d69d02e5896ade8a9fd3ee5e947ff126417cf8") ||
                 smsQuitReq.getCipherMobile().equals("fa139bb95228b7195f33a9fc656aec21938b425bfc73051137d4466e5c611c3d")) {
@@ -264,6 +261,9 @@ public class XieChengService {
                 smsQuitReq.getCipherMobile().equals("fc489fd5ff8437c2a1369ccc61d69d02e5896ade8a9fd3ee5e947ff126417cf8") ||
                 smsQuitReq.getCipherMobile().equals("fa139bb95228b7195f33a9fc656aec21938b425bfc73051137d4466e5c611c3d")) {
             code =704;
+        }
+        if (code == 0) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         //需要重试
         if (code == 500 || code == 704) {
