@@ -51,12 +51,7 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
     TongChengClient tongChengClient;
 
     @Override
-    public void process(Long id) {
-        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
-        if (localFile == null) {
-            return;
-        }
-
+    public void process(LocalFile localFile) {
         localFile.setPushStartTime(new Date());
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5);
         Long minId = null;
@@ -67,16 +62,14 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
                 pool.setMaximumPoolSize(marketingCommonConfig.getTongChengUndoThreadNum());
             }
 
-            List<TongChengUndoData> tongChengUndoDataList = tongChengUndoDataMapper.tongChengUndoDataPage(id, minId);
+            List<TongChengUndoData> tongChengUndoDataList = tongChengUndoDataMapper.tongChengUndoDataPage(localFile.getId(), minId);
             if (tongChengUndoDataList.size() <= 0) {
                 isContiue = Boolean.FALSE;
                 continue;
             }
 
             minId = tongChengUndoDataList.get(tongChengUndoDataList.size() - 1).getId();
-            pool.submit(() -> {
-                buildDataAndPush(tongChengUndoDataList);
-            });
+            pool.submit(() -> buildDataAndPush(tongChengUndoDataList));
         }
         pool.shutdown();
 

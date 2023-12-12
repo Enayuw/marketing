@@ -48,7 +48,7 @@ public class TongChengUndoListPushToCustomerJob extends AbstractSimpleElasticJob
             for (LocalFile localFile : localFiles) {
                 try {
                     Long st1 = System.currentTimeMillis();
-                    service.process(localFile.getId());
+                    service.process(localFile);
                     log.warn("同程不运营名单推送客户JOB，localFIleId：{}，耗时：{} ms", localFile.getId(), System.currentTimeMillis() - st1);
                 } catch (Exception e) {
                     //推送异常更新状态,更新为失败status=3
