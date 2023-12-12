@@ -63,10 +63,7 @@ public class TongChengClient {
 
         // 1.httpcode不为200，需要重试
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-//            if (!islogs.get(1)) {
-//                log.error("调用滴滴短信流量接口异常-请求参数:{};返回:{}", JSON.toJSONString(smsReqVO), JSON.toJSONString(resMap));
-//            }
-            log.error("调用同程不运营名单接口异常-请求参数:{};返回:{}", JSON.toJSONString(jsonObject), JSON.toJSONString(resMap));
+            log.error("调用同程不运营名单接口异常-请求参数taskId:{};返回:{}", JSON.toJSONString(jsonObject.get("taskId")), JSON.toJSONString(resMap));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
 
@@ -75,6 +72,7 @@ public class TongChengClient {
         Integer code = resultJson.getInteger("code");
 
         if (code == 0) {
+            log.warn("调用同程不运营名单接口，返回code为0，请求正常");
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
         }
 
