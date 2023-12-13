@@ -241,6 +241,7 @@ api:
       priKey: "3B82FE82D970F247C391358D360DA50486FE2266D5919028BD26A3AC4940E845"
       serviceId:
         labelRating: "CMBrLabelRatingRe"
+        CMBrScoDaFeBack: "CMBrScoDaFeBack"
     #    file: # 生产配置，暂时不启用，用于测试 2023年12月5日
     #      baseUrl: "https://file.z-bank.com"
     #      channelId: "1741195375"

@@ -241,6 +241,7 @@ api:
       priKey: "3B82FE82D970F247C391358D360DA50486FE2266D5919028BD26A3AC4940E845"
       serviceId:
         labelRating: "CMBrLabelRatingRe"
+        CMBrScoDaFeBack: "CMBrScoDaFeBack"
     file:
       baseUrl: "https://file.z-bank.com"
       channelId: "1741195375"

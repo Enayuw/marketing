@@ -234,6 +234,7 @@ api:
       priKey: "1DF4C616DE52063F5BB9525121160DF2F0607122A5FE69EB382D57020B27EA6A"
       serviceId:
         labelRating: "CMBrLabelRatingRe"
+        CMBrScoDaFeBack: "CMBrScoDaFeBack"
     file:
       baseUrl: "https://iodev-uat.z-bank.com"
       channelId: "2023042701"

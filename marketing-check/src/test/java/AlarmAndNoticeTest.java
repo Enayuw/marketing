@@ -1,5 +1,7 @@
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.CkeckApplication;
+import com.br.marketing.client.zbank.ZbankClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
@@ -20,11 +22,13 @@ import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.ZhongYuanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -36,6 +40,7 @@ import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -384,4 +389,40 @@ public class AlarmAndNoticeTest {
         System.err.println(new Result().setCode(ResultCode.SUCCESS.getValue()));;
     }
 
+    @Value("${api.zbank.api.appId:2a0f9f71_29e5_466c_95a7_8cab99d93880}")
+    private String appId;
+
+    @Autowired
+    ZbankClient zbankClient;
+    @Test
+    public void testDaFeBack(){
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("TxnSrlNo", appId+LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                + RandomStringUtils.randomNumeric(8));
+        jsonObject.put("TskId", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+        jsonObject.put("TxnDt", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+        jsonObject.put("TxnTs", LocalTime.now().format(DateTimeFormatter.ofPattern("HHmmssSSS")));
+        jsonObject.put("RqsSeqNo", "7492366_"+jsonObject.getString("TskId")+"_"+UUID.randomUUID().toString());
+        JSONArray CstInfoArray = new JSONArray();
+        for (int i = 0; i < 10; i++) {
+            JSONObject cstInfo = new JSONObject();
+            cstInfo.put("CstNo", i);
+            cstInfo.put("QltySrt", "");
+            cstInfo.put("IntnSrt", "");
+            cstInfo.put("GrpTp", "dai");
+            CstInfoArray.add(cstInfo);
+        }
+        jsonObject.put("CstInfoArray", CstInfoArray);
+        JSONObject object = new JSONObject();
+        object.put("request", jsonObject);
+
+        try {
+            String rqsSeqNo = zbankClient.cMBrScoDaFeBack(object, jsonObject.getString("RqsSeqNo"));
+            System.out.println(rqsSeqNo);
+        } catch (Exception e) {
+            log.error(e.getMessage(),e);
+            throw new RuntimeException(e);
+        }
+
+    }
 }
