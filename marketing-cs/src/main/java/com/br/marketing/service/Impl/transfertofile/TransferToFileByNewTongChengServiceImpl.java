@@ -167,16 +167,30 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
         LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
         LocalDate startDate = localDate.minusDays(31);
         LocalDate endDate = localDate;
+        LocalDate today = LocalDate.now();
         String appletDate = localDate.minusDays(1).toString();
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50, 1);
-        MarketingDataValidConfig validityDataByApiCode = marketingDataValidConfigMapper.getValidityDataByApiCode(apiCode, appletDate);
-        //去重后的Set
-        HashSet custNumResult = new HashSet();
-        if (validityDataByApiCode.getValidStartDate().isEmpty() || validityDataByApiCode.getValidEndDate().isEmpty()) {
-            log.warn("列表可能为空，无法获取ValidStartDate和ValidEndDate");
+        List<MarketingDataValidConfig> validityDataByApiCode = marketingDataValidConfigMapper.getValidityDataByApiCode(apiCode, appletDate);
+        if (validityDataByApiCode.size() <= 0){
+            log.warn("列表可能为空");
+            mark = Boolean.FALSE;
+        }
+        Optional<MarketingDataValidConfig> minDateConfig = validityDataByApiCode.stream()
+                .min(Comparator.comparing(MarketingDataValidConfig::getValidStartDate));
+        if (minDateConfig.isPresent()) {
+            startDate = LocalDate.parse(minDateConfig.get().getValidStartDate(), YYYYMMDDSHORTLINE);
         } else {
-            startDate = LocalDate.parse(validityDataByApiCode.getValidStartDate(), YYYYMMDDSHORTLINE);
-            endDate = LocalDate.parse(validityDataByApiCode.getValidEndDate(),YYYYMMDDSHORTLINE).plusDays(1);
+            log.warn("列表为空，无法获取最小的startDate");
+        }
+        Optional<MarketingDataValidConfig> maxDateConfig = validityDataByApiCode.stream()
+                .max(Comparator.comparing(MarketingDataValidConfig::getValidEndDate));
+        if (maxDateConfig.isPresent()) {
+            endDate = LocalDate.parse(maxDateConfig.get().getValidEndDate(), YYYYMMDDSHORTLINE);
+            if (endDate.isBefore(today) || endDate.isEqual(today)){
+                endDate = today.plusDays(1);
+            }
+        } else {
+            log.warn("列表为空，无法获取最大的ValidEndDate");
         }
         while (mark) {
             Result<List<MarketingTransferSyncUser>> transferData = getOrderTransferData(tcId, startDate.toString(), endDate.toString(), page);
@@ -248,9 +262,7 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
             });
             totalSize = totalSize + dataFilter.size();
         }
-
         threadPool.shutdown();
-        custNumResult.clear();
         try {
             while (!threadPool.awaitTermination(timeout, TimeUnit.SECONDS)) {
                 if (log.isInfoEnabled()) {

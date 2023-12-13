@@ -68,9 +68,9 @@
         SELECT *
         FROM b_marketing_data_valid_config
         WHERE is_del = 1
-          AND valid_type = 1
-          AND api_code = #{apiCode}
-          AND applet_date = #{appletDate}
+        AND valid_type = 1
+        AND api_code = #{apiCode}
+        <![CDATA[ AND valid_start_date <= #{appletDate} AND valid_end_date >= #{appletDate} ]]>
     </select>
 
 </mapper>
