@@ -331,7 +331,7 @@ public class AlarmAndNoticeTest {
         TransferFileTask transferFileTask = new TransferFileTask();
         transferFileTask.setApiCode("7492638");
         StringBuilder fileName = new StringBuilder();
-        String myParam = "7492638#2023-11-30";
+        String myParam = "7492638#2023-12-13";
         String dd = isMyParam("7492638", myParam);
         transferFileTask.setStartDate(dd);
         String recordDate = transferFileTask.getStartDate();
