@@ -161,11 +161,10 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
                             if (!StringUtils.isBlank(reserveField1)) {
                                 JSONObject jsonObjectReserveField1 = JSON.parseObject(reserveField1);
                                 if (!jsonObjectReserveField1.isEmpty() && (
-                                        ("APP_LOGIN".equals(jsonObjectReserveField1.get("eventType")) && "1".equals(userType))
-                                                || ("APP_LAUNCH".equals(jsonObjectReserveField1.get("eventType")) && "1".equals(userType))
-                                                || ("LOGIN".equals(jsonObjectReserveField1.get("eventType")) && "2".equals(userType))
-                                                || ("APP_LAUNCH".equals(jsonObjectReserveField1.get("eventType")) && "2".equals(userType)
-                                        )
+                                        isEventType(jsonObjectReserveField1, userType)
+                                                || isType(jsonObjectReserveField1, userType)
+                                                || isEventTypeTwo(jsonObjectReserveField1, userType)
+                                                || isTypeTwo(jsonObjectReserveField1, userType)
                                 )
                                 ) {
                                     String value = String.valueOf(o);
@@ -211,6 +210,22 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             policySoleHandler.call(pushMarketingUserDetailByRuleDTOList, context);
         }
         return sum;
+    }
+
+    private static boolean isTypeTwo(JSONObject jsonObjectReserveField1, String userType) {
+        return "APP_LAUNCH".equals(jsonObjectReserveField1.get("eventType")) && "2".equals(userType);
+    }
+
+    private static boolean isEventTypeTwo(JSONObject jsonObjectReserveField1, String userType) {
+        return "LOGIN".equals(jsonObjectReserveField1.get("eventType")) && "2".equals(userType);
+    }
+
+    private static boolean isType(JSONObject jsonObjectReserveField1, String userType) {
+        return "APP_LAUNCH".equals(jsonObjectReserveField1.get("eventType")) && "1".equals(userType);
+    }
+
+    private static boolean isEventType(JSONObject jsonObjectReserveField1, String userType) {
+        return "APP_LOGIN".equals(jsonObjectReserveField1.get("eventType")) && "1".equals(userType);
     }
 
     private String decodePhone(String cell) {
