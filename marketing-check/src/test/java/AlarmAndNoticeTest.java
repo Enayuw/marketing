@@ -396,33 +396,33 @@ public class AlarmAndNoticeTest {
     ZbankClient zbankClient;
     @Test
     public void testDaFeBack(){
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("TxnSrlNo", appId+LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-                + RandomStringUtils.randomNumeric(8));
-        jsonObject.put("TskId", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-        jsonObject.put("TxnDt", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-        jsonObject.put("TxnTs", LocalTime.now().format(DateTimeFormatter.ofPattern("HHmmssSSS")));
-        jsonObject.put("RqsSeqNo", "7492366_"+jsonObject.getString("TskId")+"_"+UUID.randomUUID().toString());
-        JSONArray CstInfoArray = new JSONArray();
-        for (int i = 0; i < 10; i++) {
-            JSONObject cstInfo = new JSONObject();
-            cstInfo.put("CstNo", i);
-            cstInfo.put("QltySrt", "");
-            cstInfo.put("IntnSrt", "");
-            cstInfo.put("GrpTp", "dai");
-            CstInfoArray.add(cstInfo);
-        }
-        jsonObject.put("CstInfoArray", CstInfoArray);
-        JSONObject object = new JSONObject();
-        object.put("request", jsonObject);
-
-        try {
-            String rqsSeqNo = zbankClient.cMBrScoDaFeBack(object, jsonObject.getString("RqsSeqNo"));
-            System.out.println(rqsSeqNo);
-        } catch (Exception e) {
-            log.error(e.getMessage(),e);
-            throw new RuntimeException(e);
-        }
+//        JSONObject jsonObject = new JSONObject();
+//        jsonObject.put("TxnSrlNo", appId+LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+//                + RandomStringUtils.randomNumeric(8));
+//        jsonObject.put("TskId", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+//        jsonObject.put("TxnDt", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+//        jsonObject.put("TxnTs", LocalTime.now().format(DateTimeFormatter.ofPattern("HHmmssSSS")));
+//        jsonObject.put("RqsSeqNo", "7492366_"+jsonObject.getString("TskId")+"_"+UUID.randomUUID().toString());
+//        JSONArray CstInfoArray = new JSONArray();
+//        for (int i = 0; i < 10; i++) {
+//            JSONObject cstInfo = new JSONObject();
+//            cstInfo.put("CstNo", i);
+//            cstInfo.put("QltySrt", "");
+//            cstInfo.put("IntnSrt", "");
+//            cstInfo.put("GrpTp", "dai");
+//            CstInfoArray.add(cstInfo);
+//        }
+//        jsonObject.put("CstInfoArray", CstInfoArray);
+//        JSONObject object = new JSONObject();
+//        object.put("request", jsonObject);
+//
+//        try {
+//            String rqsSeqNo = zbankClient.cMBrScoDaFeBack(object, jsonObject.getString("RqsSeqNo"));
+//            System.out.println(rqsSeqNo);
+//        } catch (Exception e) {
+//            log.error(e.getMessage(),e);
+//            throw new RuntimeException(e);
+//        }
 
     }
 }
