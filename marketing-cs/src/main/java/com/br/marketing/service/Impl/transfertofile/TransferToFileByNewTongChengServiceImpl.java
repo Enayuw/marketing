@@ -25,7 +25,9 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -63,9 +65,6 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
 
     final static String EXECUTE_TIME = "08:00:00";
 
-    final static String NEWTONGCHENG_TRANSFER_FILE = "tongcheng_zhuanhua_";
-
-    final static DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
 
     final static DateTimeFormatter YYYYMMDDSHORTLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
 
@@ -91,78 +90,84 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
     @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam) {
         List<TransferFileTask> resultList = new ArrayList<>();
-        Date now = new Date();
-        //可配置
-        String execute = EXECUTE_TIME;
-        if (StringUtils.isNotEmpty(marketingCommonConfig.getNewTongChengTransferExecuteTime())) {
-            execute = " " + marketingCommonConfig.getNewTongChengTransferExecuteTime();
-        }
-        Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, execute);
-        if (now.after(executeTime)) {
-            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
+        Date now = new Date();//执行时间可配置
+        String extractTime = StringUtils.isBlank(marketingCommonConfig.getZhongBangTransferExecuteTime())
+                ? EXECUTE_TIME : marketingCommonConfig.getZhongBangTransferExecuteTime();
+        LocalTime localTime = LocalTime.parse(extractTime);
+        boolean isParam = StringUtils.isNotBlank(myParam);
+        if (LocalTime.now().isAfter(localTime) || isParam) {
+            // 指定日期提取，生成指定日期的记录，不是当天的记录
+            String dateyyyymmddStr = isParam ? myParam.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
-            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(1);
+            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(dateyyyymmddStr)
+                    .andFileTypeEqualTo(1);
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
             if (CollectionUtils.isEmpty(transferFileTasks)) {
                 log.warn("同程新系统转化数据提取-开始执行,apiCode ={}", apiCode);
                 Long transferFileContextId = ruleRedisService.getTransferFileContextId();
-                String batchNumber = createBatchNumber(apiCode, transferFileContextId);
+                String batchNumber = createBatchNumber(apiCode, transferFileContextId, dateyyyymmddStr);
                 TransferFileTask transferFileTask = new TransferFileTask();
                 transferFileTask.setApiCode(apiCode);
                 transferFileTask.setFileType(1);
                 transferFileTask.setBatchNumber(batchNumber);
-                transferFileTask.setFileName("");
+                transferFileTask.setFileName(String.format("tongcheng_zhuanhua_%s.txt", dateyyyymmddStr));
                 transferFileTask.setTaskNumber(0);
-                transferFileTask.setStartDate(yyyyMMdd);
+                transferFileTask.setStartDate(dateyyyymmddStr);
                 transferFileTask.setContextId(transferFileContextId);
                 transferFileTask.setCreateTime(new Date());
                 transferFileTask.setUpdateTime(new Date());
                 transferFileTaskMapper.insertSelective(transferFileTask);
                 resultList.add(transferFileTask);
             }
+
         }
-        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultList);
+        Result<List<TransferFileTask>> result = new Result<>();
+        result.setCode(ResultCode.SUCCESS.getValue());
+        result.setDate(resultList);
+        return result;
     }
 
     @Override
     public Result actionTransferToFile(TransferFileTask transferFileTask,String jobParameter) {
         log.warn("同程新系统转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        Result<String> result = new Result<>();
         String apiCode = transferFileTask.getApiCode();
-        String recordDate = transferFileTask.getStartDate();//yyyyMMdd
-        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
+        String requestDate = StringUtils.isBlank(jobParameter) ? LocalDate.now().toString() : jobParameter;
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
-            writeDic.mkdirs();
+            boolean mkdirs = writeDic.mkdirs();
+            if (!mkdirs) {
+                log.error(descPath + "目录创建失败！");
+            }
         }
-        StringBuilder fileName = new StringBuilder();
-        fileName.append(NEWTONGCHENG_TRANSFER_FILE).append(recordDate).append(".txt");
-        String fileAllPath = descPath.concat(fileName.toString());
-        transferFileTask.setFileName(fileName.toString());
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
         transferFileTask.setFilePath(descPath);
         File file = new File(fileAllPath);
-        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
+        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
             fw.append(TABLE_HEAD_TRANSFER);
             fw.append("\r\n");
-            LocalDate localDate = LocalDate.parse(recordDate, YYYYMMDDSHORTDF);
-            LocalDate startDate = localDate.minusDays(31);
-            LocalDate endDate = localDate;
-            writeNewTongChengTransferToFile(fw, apiCode, startDate, endDate,transferFileTask);
+            writeNewTongChengTransferToFile(fw, apiCode, transferFileTask, requestDate);
         } catch (Exception ex) {
             log.error(ex.getMessage());
-            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
+            result.setCode(ResultCode.FAIL.getValue());
+            result.setMessage(ex.getMessage());
         }
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
+        result.setCode(ResultCode.SUCCESS.getValue());
+        return result;
     }
 
-    public void writeNewTongChengTransferToFile(Writer fw, String apiCode, LocalDate startDate, LocalDate endDate,TransferFileTask transferFileTask) {
+    public void writeNewTongChengTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
         Long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         Integer page = 0;
         Boolean mark = Boolean.TRUE;
         int totalSize = 0;
         long timeout = 5L;
-        LocalDate now = LocalDate.now();
-        String appletDate = now.minusDays(1).toString();
+        LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
+        LocalDate startDate = localDate.minusDays(31);
+        LocalDate endDate = localDate;
+        String appletDate = localDate.minusDays(1).toString();
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50, 1);
         MarketingDataValidConfig validityDataByApiCode = marketingDataValidConfigMapper.getValidityDataByApiCode(apiCode, appletDate);
         //去重后的Set
@@ -180,14 +185,7 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
                 continue;
             }
             page++;
-            List<MarketingTransferSyncUser> data = transferData.getData();
-            List<MarketingTransferSyncUser> dataFilter = new ArrayList<>();
-            for (MarketingTransferSyncUser marketingTransferSyncUser : data) {
-                //过滤掉 同一custNum的其他insertTime数据，custNumResult
-                if (StringUtils.isNotEmpty(marketingTransferSyncUser.getCustNum()) && custNumResult.add(marketingTransferSyncUser.getCustNum())) {
-                    dataFilter.add(marketingTransferSyncUser);
-                }
-            }
+            List<MarketingTransferSyncUser> dataFilter = transferData.getData();
             if (dataFilter.size() <= 0) {
                 continue;
             }
@@ -258,13 +256,11 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
                 if (log.isInfoEnabled()) {
                     long taskCount = threadPool.getTaskCount();
                     long completedTaskCount = threadPool.getCompletedTaskCount();
-                    log.info("同程新系统转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
-                            , taskCount, completedTaskCount, taskCount - completedTaskCount);
+                    log.info("同程新系统转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}", taskCount, completedTaskCount, taskCount - completedTaskCount);
                 }
             }
             saveUpdateTask(transferFileTask, totalSize);
-            log.warn("同程新系统转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode
-                    , System.currentTimeMillis() - start, totalSize);
+            log.warn("同程新系统转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
         } catch (InterruptedException e) {
             log.error("同程新系统转化数据提取-本地文件生成失败！" + e.getMessage(), e);
             threadPool.shutdownNow();
@@ -307,4 +303,7 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(transferOrderInsertTime);
     }
 
+    private String createBatchNumber(String apiCode, Long contextId, String dateStr) {
+        return apiCode.concat("_").concat(dateStr).concat("_").concat(contextId.toString());
+    }
 }

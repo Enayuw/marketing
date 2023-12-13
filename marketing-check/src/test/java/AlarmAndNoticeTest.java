@@ -1,5 +1,6 @@
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.CkeckApplication;
+import com.br.marketing.check.job.TransferFileTaskJob;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
@@ -21,6 +22,7 @@ import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.ZhongYuanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -323,20 +325,19 @@ public class AlarmAndNoticeTest {
 
     @Resource
     private TransferToFileByNewTongChengServiceImpl transfer;
-    final static DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
-    public static final String SHORT_DATE_FORMAT = "yyyyMMdd";
 
     @Test
     public void NewTongChengTransferFileTest() {
         TransferFileTask transferFileTask = new TransferFileTask();
         transferFileTask.setApiCode("7492638");
-        LocalDate now = LocalDate.now();
-        transferFileTask.setStartDate(now.toString());
-        String recordDate = transferFileTask.getStartDate();
-        String dateyyyymmddStr =  LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         StringBuilder fileName = new StringBuilder();
-        fileName.append(NEWTONGCHENG_TRANSFER_FILE).append(dateyyyymmddStr).append(".txt");
-        transferFileTask.setFileName(fileName.toString());
+        String myParam = "7492638#2023-12-11";
+        String dd = isMyParam("7492638", myParam);
+        transferFileTask.setStartDate(dd);
+        String recordDate = transferFileTask.getStartDate();
+        boolean isParam = StringUtils.isNotBlank(dd);
+        String dateyyyymmddStr = isParam ? dd.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        transferFileTask.setFileName(String.format("tongcheng_zhuanhua_%s.txt", dateyyyymmddStr));
         log.warn("同程新系统转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
         String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");
@@ -350,15 +351,23 @@ public class AlarmAndNoticeTest {
         try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
             fw.append(TABLE_HEAD_TRANSFER);
             fw.append("\r\n");
-            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-            LocalDate localDate = LocalDate.parse(yyyyMMdd, YYYYMMDDSHORTDF);
-            LocalDate startDate = localDate.minusDays(31);
-            LocalDate endDate = localDate;
-            transfer.writeNewTongChengTransferToFile(fw,apiCode,startDate, endDate,transferFileTask);
+            transfer.writeNewTongChengTransferToFile(fw,apiCode,transferFileTask, recordDate);
         } catch (Exception ex) {
             log.error(ex.getMessage());
         }
 
+    }
+
+    public String isMyParam(String apiCode, String jobParameter) {
+        if (jobParameter.contains(apiCode)) {
+            String[] split = jobParameter.split(";");
+            for (String s : split) {
+                if (s.contains(apiCode)) {
+                    return s.split("#")[1];
+                }
+            }
+        }
+        return "";
     }
 
 
