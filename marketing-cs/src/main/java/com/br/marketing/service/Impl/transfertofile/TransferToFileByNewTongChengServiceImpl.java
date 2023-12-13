@@ -61,8 +61,8 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
 
 
-    private final static String TABLE_HEAD_TRANSFER = "custNum、cell、userType、applyDt、applyResult、auditTime、" +
-            "ifLent、lentTime、lentAmount、effectiveTime、applyLoan";
+    private final static String TABLE_HEAD_TRANSFER = "custNum,cell,userType,applyDt,applyResult,auditTime," +
+            "ifLent,lentTime,lentAmount,effectiveTime,applyLoan";
 
     final static String EXECUTE_TIME = "08:00:00";
 
