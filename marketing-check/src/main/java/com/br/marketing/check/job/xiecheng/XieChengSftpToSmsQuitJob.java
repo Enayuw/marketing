@@ -48,7 +48,7 @@ public class XieChengSftpToSmsQuitJob extends AbstractSimpleElasticJob {
         }
 
         try {
-            localFiles.forEach(localFile -> {
+            localFiles.forEach((LocalFile localFile) -> {
                 pushDataServiceImpl.pushSmsQuitData(localFile);
             });
         } catch (Exception e) {
