@@ -50,7 +50,7 @@ public class ZhongAnRuleCollectCustomerTransferImpl extends CommonMethodHandlerS
     @Data
     public class ZhongAnRuleNecessaryData extends RuleNecessaryData {
         /**
-         * 360转化所需信息
+         * 转化所需要的数据
          */
         private Map<String, SyncUserValidityPeriodsBO> customerMap;
 
