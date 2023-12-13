@@ -1109,5 +1109,20 @@ public class MarketingCommonConfig {
      */
     private Long transferFileTaskJobLockExpireTime;
 
+    /**
+     * 同程不运营名单推送客户接口挡板开关 true:开启挡板。false:关闭挡板
+     * tongChengUndoMock={"switch":false,"httpcode":"200","code":"1001"}
+     */
+    private HashMap<String, Object> tongChengUndoMock;
+
+    /**
+     * 同程不运营名单推送客户接口线程数
+     */
+    private Integer tongChengUndoThreadNum;
+
+    /**
+     * 同程不运营名单推送客户接口apiCode集合
+     */
+    private List<String> tongChengUndoApiCodes;
 }
 
