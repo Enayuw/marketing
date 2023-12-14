@@ -143,14 +143,16 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             log.error("{}_{}未配置场景,配置参数:{}", customerAction(), apiCode, parameter);
             return sum;
         }
-        //{"ZHONG_AN":[{"apiCode":"3710048","timeStr":"09:00:00","paramMap":{"1":"a","2":"b"}},{"apiCode":"7410906","timeStr":"09:00:00","paramMap":{"1":"a","2":"b"}}]}
+        //{"ZHONG_AN":[{"apiCode":"3710048","timeStr":"09:00:00","paramMap":{"1":"a","2":"b"}},
+        // {"apiCode":"7410906","timeStr":"09:00:00","paramMap":{"1":"a","2":"b"}}]}
         Set<String> custNumLists = list.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
         // 循环配置的场景
         for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
             String userType = entry.getKey();
             Object o = entry.getValue();
             List<PushMarketingUserDetailByRuleDTO> pushMarketingUserDetailByRuleDTOList = new ArrayList<>();
-            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNumAndUserType = transferDataValidityPeriodService.getValidityPeriodsByCustNumAndUserType(custNumLists, userType, apiCode, new Date());
+            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNumAndUserType = transferDataValidityPeriodService
+                    .getValidityPeriodsByCustNumAndUserType(custNumLists, userType, apiCode, new Date());
             if (validityPeriodsByCustNumAndUserType != null) {
                 for (MarketingTransferSyncUser transferSyncUser : list) {
                     try {
@@ -191,7 +193,8 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
                                     pushMarketingUserDetailByRuleDTO.setPhone(cell);
                                     pushMarketingUserDetailByRuleDTO.setCell(decodePhone(cell));
                                     pushMarketingUserDetailByRuleDTO.setInitId(transferSyncUser.getId());
-                                    pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "_" + apiCode + "_" + status);
+                                    pushMarketingUserDetailByRuleDTO.setBatchNumber(
+                                            LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "_" + apiCode + "_" + status);
                                     pushMarketingUserDetailByRuleDTOList.add(pushMarketingUserDetailByRuleDTO);
                                 }
                             }

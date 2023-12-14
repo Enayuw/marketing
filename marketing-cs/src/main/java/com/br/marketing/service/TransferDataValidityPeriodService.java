@@ -231,7 +231,10 @@ public interface TransferDataValidityPeriodService {
      * @author senyang.zheng
      * @date 2023/12/08
      */
-    Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNumAndUserType(Set<String> custNumSet, String userType, String apiCode, Object requestDateObj);
+    Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNumAndUserType(Set<String> custNumSet,
+                                                                                  String userType,
+                                                                                  String apiCode,
+                                                                                  Object requestDateObj);
 
 
     /**
@@ -245,5 +248,8 @@ public interface TransferDataValidityPeriodService {
      * @author senyang.zheng
      * @date 2023/12/08
      */
-    Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCellAndUserType(Set<String> cellSet, String userType, String apiCode, Object requestDateObj);
+    Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCellAndUserType(Set<String> cellSet,
+                                                                               String userType,
+                                                                               String apiCode,
+                                                                               Object requestDateObj);
 }

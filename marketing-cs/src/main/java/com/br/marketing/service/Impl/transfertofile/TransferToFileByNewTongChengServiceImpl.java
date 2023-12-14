@@ -210,7 +210,8 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
             page++;
             Set<String> set = transferData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
             //判断转化数据是否在有效期内
-            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService.getValidityPeriodsByCustNum(set, apiCode, appletDate);
+            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService
+                    .getValidityPeriodsByCustNum(set, apiCode, appletDate);
             threadPool.submit(() -> {
                 for (MarketingTransferSyncUser transferFilterData : transferData) {
                     String custNum = transferFilterData.getCustNum();
