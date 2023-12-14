@@ -81,11 +81,24 @@
     </select>
 
     <select id="getTransferByStartAndEndDate" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-        select * from
-            b_marketing_transfer_sync_${cid}
-        where request_data >= #{startDate}  and
-            <![CDATA[  request_data <= #{endDate} ]]>
-        order by create_time desc,id desc limit #{limitStart},2000;
+        select t2.* from b_marketing_transfer_sync_${transferSyncUser.tCid} t2,(select id from
+        b_marketing_transfer_sync_${transferSyncUser.tCid}
+        where
+            <if test="transferSyncUser.apiCode != null and transferSyncUser.apiCode.trim() neq ''">
+                api_code=#{transferSyncUser.apiCode}
+            </if>
+            <![CDATA[ and request_data >= #{startDate}  and  request_data <= #{endDate} ]]>
+        order by
+        <choose>
+            <when test="orderByClause != null and orderByClause.trim() neq ''">
+                ${orderByClause}
+            </when>
+            <otherwise>
+                id
+            </otherwise>
+        </choose>
+        limit ${rowCount},${offset}
+        ) as t1 where t1.id = t2.id
     </select>
 
     <select id="getTransferData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">

@@ -228,9 +228,9 @@ public class AlarmAndNoticeTest {
 
     final static String ZHONGBANG_TRANSFER_FILE = "caifu_transform_";
 
-    private final static String TABLE_HEAD_TRANSFER = "custNum、cell、userType、applyDt、applyResult、auditTime、ifLent、lentTime、lentAmount、effectiveTime、applyLoan";
+    private final static String TABLE_HEAD_TRANSFER = "custNum,cell,userType,applyDt,applyResult,auditTime," +
+            "ifLent,lentTime,lentAmount,effectiveTime,applyLoan";
 
-    final static String NEWTONGCHENG_TRANSFER_FILE = "tongcheng_zhuanhua_";
 
     @Test
     public void newTransferFileTest() {
