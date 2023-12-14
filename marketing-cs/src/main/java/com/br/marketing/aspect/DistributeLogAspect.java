@@ -180,7 +180,6 @@ public class DistributeLogAspect {
                         redisChgService.unlock(key, uuid.toString());
                         //endregion
                     } catch (Exception ex) {
-                        ex.printStackTrace();
                         continue;
                     }
                     //endregion
