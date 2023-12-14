@@ -1,6 +1,7 @@
 package com.br.marketing.check.service;
 
 import com.br.marketing.entity.Customer;
+import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 
 /**
  * //				    _ooOoo_
@@ -30,6 +31,6 @@ import com.br.marketing.entity.Customer;
  **/
 public interface PushCustomerService {
 
-    void push(Customer customer);
+    void push(Customer customer,Long fileId);
     void retry(Customer customer);
 }

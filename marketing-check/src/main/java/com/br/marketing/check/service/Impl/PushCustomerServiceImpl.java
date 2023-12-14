@@ -9,6 +9,7 @@ import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
@@ -16,12 +17,13 @@ import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.es.util.UuidUtils;
-import com.br.marketing.mapper.PushErrorLogMapper;
-import com.br.marketing.mapper.StraHisFileMapper;
+import com.br.marketing.mapper.*;
+import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.TaskExtendInfoVO;
 import com.google.common.base.Joiner;
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -74,8 +76,19 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     PushErrorLogMapper pushErrorLogMapper;
     @Resource
     HttpProxyClient httpProxyClient;
+
+    @Resource
+    ScorePushCustomerConfigMapper scorePushCustomerConfigMapper;
+
+
+    @Resource
+    ScoreSearchConditionMapper scoreSearchConditionMapper;
+
     @Override
-    public void push(Customer customer) {
+    public void push(Customer customer,Long fileId) {
+
+        //region 获取回传配置信息
+        String apiCode = customer.getApiCode();
         ExecutorService pushExecutor;
         if(customer.getPushThreadNum()!=null){
             pushExecutor = BrExecutors.getThreadPool(customer.getPushThreadNum(),customer.getPushThreadNum());
@@ -89,10 +102,39 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             log.error("格式化日期错误",e);
         }
 
-        StraHisFileExample straHisFileExample =new StraHisFileExample();
-        straHisFileExample.createCriteria().andApiCodeEqualTo(customer.getApiCode()).andPushStatusEqualTo(0)
-                .andPushTypeEqualTo(1).andScoreStatusEqualTo(2).andCreateTimeGreaterThanOrEqualTo(createTime);
-        List<StraHisFile> straHisFileList=straHisFileMapper.selectByExample(straHisFileExample);
+        //获取回传配置
+        ScorePushCustomerConfigExample scorePushCustomerConfigExample = new ScorePushCustomerConfigExample();
+        scorePushCustomerConfigExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(Constants.DATA_VALID);
+        List<ScorePushCustomerConfig> scorePushCustomerConfigs = scorePushCustomerConfigMapper.selectByExample(scorePushCustomerConfigExample);
+        if(scorePushCustomerConfigs.size()<=0){
+            return;
+        }
+
+        //跑分筛选条件配置
+        List<ConditionOfScoreVO> scoreByConditionType = scoreSearchConditionMapper.getScoreByConditionType(apiCode, 3);
+
+        //endregion
+
+        //region 获取需要回传给客户的跑分文件
+        List<StraHisFile> straHisFileList=new ArrayList<>();
+        if(fileId!=null && fileId>0){
+            StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(fileId);
+            if (straHisFile == null) {
+                return;
+            }
+            if(!straHisFile.getApiCode().equals(apiCode)){
+                return;
+            }
+            straHisFileList.add(straHisFile);
+        }else{
+            StraHisFileExample straHisFileExample =new StraHisFileExample();
+            straHisFileExample.createCriteria().andApiCodeEqualTo(apiCode).andPushStatusEqualTo(0)
+                    .andCreateTimeGreaterThanOrEqualTo(createTime);
+            straHisFileList=straHisFileMapper.selectByExample(straHisFileExample);
+        }
+        //endregion
+
+
         straHisFileList.forEach(straHisFile -> {
             List<Long> fileIds=new ArrayList<>();
             fileIds.add(straHisFile.getId());
@@ -136,7 +178,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             }catch (Exception e){
             }
         }
-        log.warn("所有批次推送结束，apiCode={},批次数量为{}",customer.getApiCode(),straHisFileList.size());
+        log.warn("所有批次推送结束，apiCode={},批次数量为{}", apiCode,straHisFileList.size());
     }
 
     @Override
