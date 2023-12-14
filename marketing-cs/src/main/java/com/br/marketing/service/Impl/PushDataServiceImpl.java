@@ -1182,7 +1182,7 @@ public class PushDataServiceImpl implements PushDataService {
             minId = dataList.get(dataList.size() - 1).getId();
             dataList.forEach(pushList -> {
                 pool.submit(() -> {
-                    SmsQuitReq smsQuitReq = new SmsQuitReq(pushList.getCipherMobile(), pushList.getBlackListType());
+                    SmsQuitReq smsQuitReq = new SmsQuitReq(pushList.getCipherMobile(), pushList.getBlackListType(),pushList.getApiCode());
                     //兼容Md5手机号
                     String phone = smsQuitReq.getCipherMobile();
                     if (DecodeClient.isMd5(phone)) {
@@ -1215,6 +1215,7 @@ public class PushDataServiceImpl implements PushDataService {
                 .andStatusEqualTo(1);
         Long i = xiechengSmsQuitDataMapper.countByExample(xiechengSmsQuitDataExample);
         localFile.setPushNumber(i.intValue());
+        localFile.setPushStatus("2");
         localFileMapper.updateByPrimaryKeySelective(localFile);
         xieChengSendAlarm(failNum, "携程短信退订接口推送异常，请检查");
     }

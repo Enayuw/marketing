@@ -1,5 +1,6 @@
 package com.br.marketing.client.xiecheng;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 
 /**
@@ -19,9 +20,16 @@ public class SmsQuitReq {
      */
     private String blackListType;
 
-    public SmsQuitReq(String cipherMobile, String blackListType) {
+    /**
+     ApiCode
+     */
+    @JSONField(serialize = false)
+    private String apiCode;
+
+    public SmsQuitReq(String cipherMobile, String blackListType ,String apiCode) {
         this.cipherMobile = cipherMobile;
         this.blackListType = blackListType;
+        this.apiCode = apiCode;
     }
 
 
