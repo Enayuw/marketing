@@ -35,7 +35,7 @@ public class TongChengUndoListPushToCustomerJob extends AbstractSimpleElasticJob
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        marketingCommonConfig.getTongChengUndoApiCodes().forEach(apiCode -> {
+        marketingCommonConfig.getTongChengUndoApiCodes().forEach((String apiCode) -> {
             LocalFileExample example = new LocalFileExample();
             //查询待推送文件 查询条件b_local_file：status=2 且 push_status=空
             example.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.TONGCHENG_UNDO_PUSHTOCUSTOMER.getValue())
