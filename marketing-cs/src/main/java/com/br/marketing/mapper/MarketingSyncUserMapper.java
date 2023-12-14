@@ -272,4 +272,18 @@ public interface MarketingSyncUserMapper {
     List<MarketingSyncUser> getSyncUserByCustNumAndAppletDateList(@Param("apiCode") String apiCode,
                                                                   @Param("configList") List<MarketingDataValidConfig> configList,
                                                                   @Param("custNumSet") Set<String> custNumSet);
+
+    /**
+     * 根据手机号+有效期配置获取上传数据
+     *
+     * @param apiCode    apiCode
+     * @param configList 有效配置
+     * @param cellSet    cell集合
+     * @return {@link List }<{@link MarketingSyncUser }>
+     * @author senyang.zheng
+     * @date 2023/12/08
+     */
+    List<MarketingSyncUser> getSyncUserByCellAndAppletDateList(@Param("apiCode") String apiCode,
+                                                               @Param("configList") List<MarketingDataValidConfig> configList,
+                                                               @Param("cellSet") Set<String> cellSet);
 }

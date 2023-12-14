@@ -65,7 +65,7 @@ public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDa
             String encode = BrCipherMaker.getInstance().encode(phone);
             // 加解密失败，不推送
             if (StringUtils.isEmpty(encode)) {
-                log.error("携程通话明细数据推送客户接口(3710090/3710091)，sha256解密log加密失败。custNum：{}，sha256解密后：{}，log加密后：{}", bo.getCaseNum(), phone, encode);
+                log.error("携程通话明细数据推送客户接口(3710090/3710091)，sha256解密log加密失败。custNum：{}，log加密后：{}", bo.getCaseNum(), encode);
                 return null;
             }
 
