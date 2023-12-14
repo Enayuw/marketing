@@ -246,9 +246,9 @@ public class XieChengService {
                 Objects.isNull(config.get("aesKey"))?smsQuitKey: config.get("aesKey"),
                 Objects.isNull(config.get("aesIv"))?smsQuitIv: config.get("aesIv")));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, Objects.isNull(config.get("signKey"))?smsQuitSingKey: config.get("signKey")));
+        List<Boolean> logStore = httpProxyClient.isLogStore(XIECHENGSMSQUIT);
         HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsQuitOpenUrl, smsQuitIsProxy,
-                MediaType.APPLICATION_JSON_UTF8_VALUE, "", httpProxyClient.isLogStore(XIECHENGSMSQUIT).get(0),
-                httpProxyClient.isLogStore(XIECHENGSMSQUIT).get(1));
+                MediaType.APPLICATION_JSON_UTF8_VALUE, "", logStore.get(0), logStore.get(1));
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.error("携程短信退订接口-请求参数:{};返回:{}", JSON.toJSONString(resMap), JSON.toJSONString(resMap));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
