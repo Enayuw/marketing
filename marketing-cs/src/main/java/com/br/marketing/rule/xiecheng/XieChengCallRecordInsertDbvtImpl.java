@@ -33,7 +33,7 @@ import java.util.*;
  */
 @Service
 @Slf4j
-public class XieChengCallRecordInsertDBVTImpl implements AssembleData<XieChengDataDTO> {
+public class XieChengCallRecordInsertDbvtImpl implements AssembleData<XieChengDataDTO> {
     @Resource
     private XieChengDataMapper xieChengDataMapper;
     @Resource
