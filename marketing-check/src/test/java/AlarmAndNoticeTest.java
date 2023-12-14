@@ -277,7 +277,7 @@ public class AlarmAndNoticeTest {
                         new FileOutputStream(file), "UTF-8"));) {
             fw.append(FILE_HEADER);
             fw.append("\r\n");
-            transferToFileByZhongYouService.writeXieChengTransferToFile(fw, apiCode, transferFileTask);
+            transferToFileByZhongYouService.writeZhongYouTransferToFile(fw, apiCode, transferFileTask);
         } catch (Exception ex) {
             log.error(ex.getMessage());
         }
