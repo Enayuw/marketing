@@ -49,6 +49,7 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
         }
         List<MarketingSyncUser> syncUsers = syncUserValidityPeriodsBO.getSyncUsers();
         conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUsers.get(0).getCell()));
+        conversionData.setGroupType(syncUsers.get(0).getUserType());
         // 去重参数设置
         conversionData.setInitId(marketingTransferSyncUser.getId());
         conversionData.setSoleField(SoleFieldEnum.CELL_STATUS_SOLE.getValue());
