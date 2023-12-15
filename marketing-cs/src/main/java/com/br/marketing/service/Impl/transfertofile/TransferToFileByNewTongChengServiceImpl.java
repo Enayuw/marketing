@@ -249,7 +249,7 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
                     String applyResult = StringUtils.isNotEmpty(transferFilterData.getApplyResult())
                             ? transferFilterData.getApplyResult() : "";
                     String auditTime = StringUtils.isNotEmpty(transferFilterData.getAuditTime())
-                            ? transferFilterData.getAuditTime() : "";
+                            ? transferFilterData.getAuditTime().replace(":000","")  : "";
                     String ifLent = StringUtils.isNotEmpty(transferFilterData.getIfLent())
                             ? transferFilterData.getIfLent() : "";
                     String lentTime = StringUtils.isNotEmpty(transferFilterData.getLentTime())
