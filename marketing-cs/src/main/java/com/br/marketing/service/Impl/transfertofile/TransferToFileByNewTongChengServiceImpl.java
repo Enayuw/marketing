@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl.transfertofile;
 
 import com.alibaba.fastjson.JSON;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -8,6 +9,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.ThreeKeyEncryptEnum;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
@@ -18,10 +20,12 @@ import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.EncAndDecUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
@@ -224,12 +228,15 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
                         continue;
                     }
                     MarketingSyncUser marketingSyncUser = boMap.getSyncUsers().get(0);
-                    cell = StringUtils.isNotEmpty(marketingSyncUser.getCell())
-                            ? marketingSyncUser.getCell() : "";
+                    if (StringUtils.isNotEmpty(marketingSyncUser.getCell())){
+                        cell = EncAndDecUtil.logTodigest(marketingSyncUser.getCell(), ThreeKeyEncryptEnum.md5);
+                    }
                     if (StringUtils.isNotEmpty(marketingSyncUser.getReserveField1())) {
                         effectiveTime = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("effectiveTime");
-                        applyLoan = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("applyLoan");
-                        effectiveTime = StringUtils.isNotEmpty(effectiveTime) ? effectiveTime : "";
+                        effectiveTime = StringUtils.isNotEmpty(effectiveTime) ? effectiveTime.replace(":000","") : "";
+                    }
+                    if (StringUtils.isNotEmpty(transferFilterData.getReserveField1())) {
+                        applyLoan = JSON.parseObject(transferFilterData.getReserveField1()).getString("applyLoan");
                         applyLoan = StringUtils.isNotEmpty(applyLoan) ? applyLoan : "";
                     }
                     StringBuilder sb = new StringBuilder();
@@ -238,7 +245,7 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
                     String userType = StringUtils.isNotEmpty(transferFilterData.getUserType())
                             ? transferFilterData.getUserType() : "";
                     String applyDt = StringUtils.isNotEmpty(transferFilterData.getApplyDt())
-                            ? transferFilterData.getApplyDt() : "";
+                            ? transferFilterData.getApplyDt().replace(":000","") : "";
                     String applyResult = StringUtils.isNotEmpty(transferFilterData.getApplyResult())
                             ? transferFilterData.getApplyResult() : "";
                     String auditTime = StringUtils.isNotEmpty(transferFilterData.getAuditTime())
@@ -246,7 +253,7 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
                     String ifLent = StringUtils.isNotEmpty(transferFilterData.getIfLent())
                             ? transferFilterData.getIfLent() : "";
                     String lentTime = StringUtils.isNotEmpty(transferFilterData.getLentTime())
-                            ? transferFilterData.getLentTime() : "";
+                            ? transferFilterData.getLentTime().replace(":000","") : "";
                     String lentAmount = StringUtils.isNotEmpty(transferFilterData.getLentAmount())
                             ? transferFilterData.getLentAmount() : "";
                     sb.append(custNum.concat(","))
