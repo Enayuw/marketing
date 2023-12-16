@@ -4,6 +4,7 @@
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.ScorePushCustomerConfig" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="score_rule_short_name" property="scoreRuleShortName" jdbcType="VARCHAR" />
     <result column="field_mapping" property="fieldMapping" jdbcType="VARCHAR" />
     <result column="score_sort1_mapping" property="scoreSort1Mapping" jdbcType="VARCHAR" />
     <result column="score_sort2_mapping" property="scoreSort2Mapping" jdbcType="VARCHAR" />
@@ -72,8 +73,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, field_mapping, score_sort1_mapping, score_sort2_mapping, score_sort3_mapping, 
-    score_sort4_mapping, is_del, create_time, update_time
+    id, api_code, score_rule_short_name, field_mapping, score_sort1_mapping, score_sort2_mapping, 
+    score_sort3_mapping, score_sort4_mapping, is_del, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ScorePushCustomerConfigExample" >
     select
@@ -109,14 +110,14 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_score_push_customer_config (api_code, field_mapping, score_sort1_mapping, 
-      score_sort2_mapping, score_sort3_mapping, score_sort4_mapping, 
-      is_del, create_time, update_time
-      )
-    values (#{apiCode,jdbcType=VARCHAR}, #{fieldMapping,jdbcType=VARCHAR}, #{scoreSort1Mapping,jdbcType=VARCHAR}, 
-      #{scoreSort2Mapping,jdbcType=VARCHAR}, #{scoreSort3Mapping,jdbcType=VARCHAR}, #{scoreSort4Mapping,jdbcType=VARCHAR}, 
-      #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+    insert into b_score_push_customer_config (api_code, score_rule_short_name, field_mapping, 
+      score_sort1_mapping, score_sort2_mapping, score_sort3_mapping, 
+      score_sort4_mapping, is_del, create_time, 
+      update_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{scoreRuleShortName,jdbcType=VARCHAR}, #{fieldMapping,jdbcType=VARCHAR}, 
+      #{scoreSort1Mapping,jdbcType=VARCHAR}, #{scoreSort2Mapping,jdbcType=VARCHAR}, #{scoreSort3Mapping,jdbcType=VARCHAR}, 
+      #{scoreSort4Mapping,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.ScorePushCustomerConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -126,6 +127,9 @@
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
         api_code,
+      </if>
+      <if test="scoreRuleShortName != null" >
+        score_rule_short_name,
       </if>
       <if test="fieldMapping != null" >
         field_mapping,
@@ -155,6 +159,9 @@
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
         #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="scoreRuleShortName != null" >
+        #{scoreRuleShortName,jdbcType=VARCHAR},
       </if>
       <if test="fieldMapping != null" >
         #{fieldMapping,jdbcType=VARCHAR},
@@ -197,6 +204,9 @@
       <if test="record.apiCode != null" >
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
+      <if test="record.scoreRuleShortName != null" >
+        score_rule_short_name = #{record.scoreRuleShortName,jdbcType=VARCHAR},
+      </if>
       <if test="record.fieldMapping != null" >
         field_mapping = #{record.fieldMapping,jdbcType=VARCHAR},
       </if>
@@ -230,6 +240,7 @@
     update b_score_push_customer_config
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
+      score_rule_short_name = #{record.scoreRuleShortName,jdbcType=VARCHAR},
       field_mapping = #{record.fieldMapping,jdbcType=VARCHAR},
       score_sort1_mapping = #{record.scoreSort1Mapping,jdbcType=VARCHAR},
       score_sort2_mapping = #{record.scoreSort2Mapping,jdbcType=VARCHAR},
@@ -247,6 +258,9 @@
     <set >
       <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="scoreRuleShortName != null" >
+        score_rule_short_name = #{scoreRuleShortName,jdbcType=VARCHAR},
       </if>
       <if test="fieldMapping != null" >
         field_mapping = #{fieldMapping,jdbcType=VARCHAR},
@@ -278,6 +292,7 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ScorePushCustomerConfig" >
     update b_score_push_customer_config
     set api_code = #{apiCode,jdbcType=VARCHAR},
+      score_rule_short_name = #{scoreRuleShortName,jdbcType=VARCHAR},
       field_mapping = #{fieldMapping,jdbcType=VARCHAR},
       score_sort1_mapping = #{scoreSort1Mapping,jdbcType=VARCHAR},
       score_sort2_mapping = #{scoreSort2Mapping,jdbcType=VARCHAR},

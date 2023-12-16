@@ -14,6 +14,11 @@ public class ScorePushCustomerConfig {
     private String apiCode;
 
     /**
+     * 跑分规则编号
+     */
+    private String scoreRuleShortName;
+
+    /**
      * 字段映射
      */
     private String fieldMapping;
@@ -67,6 +72,14 @@ public class ScorePushCustomerConfig {
 
     public void setApiCode(String apiCode) {
         this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public String getScoreRuleShortName() {
+        return scoreRuleShortName;
+    }
+
+    public void setScoreRuleShortName(String scoreRuleShortName) {
+        this.scoreRuleShortName = scoreRuleShortName == null ? null : scoreRuleShortName.trim();
     }
 
     public String getFieldMapping() {

@@ -1,5 +1,7 @@
 package com.br.marketing.check.service.Impl;
 
+import cn.hutool.core.collection.ListUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.DateUtils;
 import com.br.marketing.check.service.PushCustomerService;
@@ -8,10 +10,7 @@ import com.br.marketing.check.utils.MomUtil;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailDTO;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.common.utils.*;
 import com.br.marketing.entity.*;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
@@ -20,21 +19,30 @@ import com.br.marketing.es.util.UuidUtils;
 import com.br.marketing.mapper.*;
 import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.TaskExtendInfoVO;
+import com.br.marketing.vo.scorepushcustomer.HxResultVO;
+import com.br.marketing.vo.scorepushcustomer.ScoreSortJsonVO;
 import com.google.common.base.Joiner;
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang.ObjectUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -84,35 +92,42 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     @Resource
     ScoreSearchConditionMapper scoreSearchConditionMapper;
 
+    @Resource
+    TaskBatchnumberPreMapper taskBatchnumberPreMapper;
+
     @Override
     public void push(Customer customer,Long fileId) {
 
         //region 获取回传配置信息
         String apiCode = customer.getApiCode();
+        ScorePushCustomerConfig pushCustomerConfig = new ScorePushCustomerConfig();
+        ConditionOfScoreVO condition = new ConditionOfScoreVO();
         ExecutorService pushExecutor;
         if(customer.getPushThreadNum()!=null){
             pushExecutor = BrExecutors.getThreadPool(customer.getPushThreadNum(),customer.getPushThreadNum());
         }else{
             pushExecutor = BrExecutors.getThreadPool(20,20);
         }
-        Date createTime=new Date();
-        try {
-            createTime=DateUtils.parse(DateHelper.getDateAdd(-1),"yyyy-mm-dd");
-        }catch (ParseException e){
-            log.error("格式化日期错误",e);
-        }
+
+        Date createTime=Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
         //获取回传配置
         ScorePushCustomerConfigExample scorePushCustomerConfigExample = new ScorePushCustomerConfigExample();
         scorePushCustomerConfigExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(Constants.DATA_VALID);
         List<ScorePushCustomerConfig> scorePushCustomerConfigs = scorePushCustomerConfigMapper.selectByExample(scorePushCustomerConfigExample);
         if(scorePushCustomerConfigs.size()<=0){
+            log.warn(String.format("该客户未配置回传参数配置,apiCode:%s",apiCode));
             return;
         }
+        pushCustomerConfig = scorePushCustomerConfigs.get(0);
 
         //跑分筛选条件配置
-        List<ConditionOfScoreVO> scoreByConditionType = scoreSearchConditionMapper.getScoreByConditionType(apiCode, 3);
-
+        List<ConditionOfScoreVO> scoreCondtitions = scoreSearchConditionMapper.getScoreByConditionType(apiCode, 3);
+        if(scoreCondtitions.size()<=0||scoreCondtitions.size()>1){
+            log.warn(String.format("该客户跑分筛选条件配置异常,apiCode:%s",apiCode));
+            return;
+        }
+        condition = scoreCondtitions.get(0);
         //endregion
 
         //region 获取需要回传给客户的跑分文件
@@ -127,22 +142,57 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             }
             straHisFileList.add(straHisFile);
         }else{
-            StraHisFileExample straHisFileExample =new StraHisFileExample();
-            straHisFileExample.createCriteria().andApiCodeEqualTo(apiCode).andPushStatusEqualTo(0)
-                    .andCreateTimeGreaterThanOrEqualTo(createTime);
-            straHisFileList=straHisFileMapper.selectByExample(straHisFileExample);
+            String ruleNumber = StringUtils.isNotBlank(pushCustomerConfig.getScoreRuleShortName())
+                    ? pushCustomerConfig.getScoreRuleShortName()
+                    : "";
+            List<StraHisFile> fileByRule = straHisFileMapper.getFileByRule(createTime, ruleNumber);
+            StraHisFile straHisFile = fileByRule.get(0);
+            straHisFileList.add(straHisFile);
         }
         //endregion
 
+        if(straHisFileList.size()<=0){
+            log.warn(String.format("该客户当前无跑分记录,apiCode:%s",apiCode));
+            return;
+        }
 
-        straHisFileList.forEach(straHisFile -> {
-            List<Long> fileIds=new ArrayList<>();
-            fileIds.add(straHisFile.getId());
-            StraHisFileExample straHisFileExample1 =new StraHisFileExample();
-            straHisFileExample1.createCriteria().andBatchNumberEqualTo(straHisFile.getBatchNumber()).andApiCodeEqualTo(straHisFile.getApiCode());
-            List<StraHisFile> straHisFiles=straHisFileMapper.selectByExample(straHisFileExample1);
-            List<TaskExtendInfoVO> extendInfosByFileIds = straHisFileMapper.getExtendInfosByFileIds(fileIds);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(2, 5, "job_scoreBackSort");
 
+        for (StraHisFile straHisFile : straHisFileList) {
+            List<ScoreSortJsonVO> vos = new ArrayList<>();
+            // region 获取排序字段集合
+            for (int i = 0; i < 4; i++) {
+                ScoreSortJsonVO scoreSortJson = null;
+                switch (i){
+                    case 0:
+                        if(StringUtils.isNotBlank(pushCustomerConfig.getScoreSort1Mapping())){
+                            scoreSortJson = JSON.parseObject(pushCustomerConfig.getScoreSort1Mapping(), ScoreSortJsonVO.class);
+                        }
+                    case 1:
+                        if(StringUtils.isNotBlank(pushCustomerConfig.getScoreSort2Mapping())){
+                            scoreSortJson = JSON.parseObject(pushCustomerConfig.getScoreSort1Mapping(), ScoreSortJsonVO.class);
+                        }
+                    case 2:
+                        if(StringUtils.isNotBlank(pushCustomerConfig.getScoreSort3Mapping())){
+                            scoreSortJson = JSON.parseObject(pushCustomerConfig.getScoreSort1Mapping(), ScoreSortJsonVO.class);
+                        }
+                    case 3:
+                        if(StringUtils.isNotBlank(pushCustomerConfig.getScoreSort4Mapping())){
+                            scoreSortJson = JSON.parseObject(pushCustomerConfig.getScoreSort1Mapping(), ScoreSortJsonVO.class);
+                        }
+                }
+                if(vos.size()<=0 && scoreSortJson !=null){
+                    scoreSortJson.setFirst(Boolean.TRUE);
+                }
+                if(scoreSortJson !=null){
+                    vos.add(scoreSortJson);
+                }
+            }
+            // endregion
+
+            for (ScoreSortJsonVO vo : vos) {
+                threadPool.submit()
+            }
             QueryBaseBean queryBaseBean = new QueryBaseBean();
             queryBaseBean.setApiCode(straHisFile.getApiCode());
             queryBaseBean.setBatchNumbers(straHisFile.getBatchNumber());
@@ -161,7 +211,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             }
             straHisFile.setPushStatus(1);
             straHisFileMapper.updateByPrimaryKeySelective(straHisFile);
-        });
+        }
 
         /**
          * 等待所有任务都执行完成
@@ -180,6 +230,111 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         }
         log.warn("所有批次推送结束，apiCode={},批次数量为{}", apiCode,straHisFileList.size());
     }
+
+    private void searchData(String apiCode,String batchNumber
+            ,String fileId,JSONObject queryData,ScoreSortJsonVO scoreSortJsonVO
+    ,ThreadPoolExecutor executors){
+        if(scoreSortJsonVO !=null){
+            JSONObject sort = new JSONObject();
+            sort.put("key",scoreSortJsonVO.getSourceKey());
+            sort.put("order",scoreSortJsonVO.getSort());
+            queryData.put("sort",sort);
+        }
+        QueryBaseBean queryBaseBean = new QueryBaseBean();
+        queryBaseBean.setApiCode(apiCode);
+        queryBaseBean.setBatchNumbers(batchNumber);
+        queryBaseBean.setFileIds(fileId);
+        queryBaseBean.setJsonData(JSON.toJSONString(queryData));
+        int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
+        String searchAfterStr="";
+        Integer pageSize = 2000;
+        int totalYuShu = total % pageSize;
+        int totalPage = total / pageSize + (totalYuShu > 0 ? 1 : 0);
+        for (int i = 1; i <= totalPage; i++) {
+            if (i == totalPage && totalYuShu > 0) {
+                queryBaseBean.setPageSize(totalYuShu);
+            } else {
+                queryBaseBean.setPageSize(pageSize);
+            }
+            queryBaseBean.setSearchAfter(searchAfterStr);
+            List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+            if (marketingHistories.size() > 0) {
+
+            }
+        }
+    }
+
+    class StoreData implements Callable<List<Future<Result<Integer>>>>{
+
+        List<MarketingHistory> marketingHistories;
+
+        ScoreSortJsonVO scoreSortJsonVO;
+
+        Boolean first;
+
+        List<HxResultVO> hxResultVOS;
+
+        Integer startIndex;
+
+        public StoreData(List<MarketingHistory> marketingHistories,ScoreSortJsonVO scoreSortJsonVO,Boolean first,Integer startIndex){
+            this.marketingHistories = marketingHistories;
+            this.scoreSortJsonVO = scoreSortJsonVO;
+            this.first = first;
+            this.startIndex = startIndex;
+        }
+
+        @Override
+        public List<Future<Result<Integer>>> call() throws Exception {
+            if(marketingHistories.size()>0){
+                for (MarketingHistory marketingHistory : marketingHistories) {
+                    Integer nowNumber;
+                    if(scoreSortJsonVO !=null){
+                        nowNumber = startIndex;
+                        startIndex++;
+                    }
+
+                    List pushParams = new ArrayList();
+                    if(first){
+                        hxResultVOS.forEach(t->{
+                            HxResultVO hxResultVO = new HxResultVO();
+                            BeanUtils.copyProperties(t,hxResultVO);
+                            switch (t.getSourceKey()){
+                                case "apiCode":
+                                    hxResultVO.setValue(marketingHistory.getApiCode());
+                                case "custNum":
+                                    hxResultVO.setValue(marketingHistory.getCusNum());
+                                case "idCard":
+                                    hxResultVO.setValue(marketingHistory.getIdCard());
+                                case "cell":
+                                    hxResultVO.setValue(marketingHistory.getCell());
+                                case "name":
+                                    hxResultVO.setValue(marketingHistory.getName());
+                                case "swiftNumber":
+                                    hxResultVO.setValue(marketingHistory.getSwiftNumber());
+                                case "requestTime":
+                                    hxResultVO.setValue(new SimpleDateFormat("yyyy-MM-dd").format(marketingHistory.getRequestTime()));
+                                case "batchNumber":
+                                    hxResultVO.setValue(marketingHistory.getBatchNumber());
+                                case "cusBatchNumber":
+                                    hxResultVO.setValue(marketingHistory.getCusBatchNumber());
+                                case "taskId":
+                                    hxResultVO.setValue(marketingHistory.getTaskId());
+                                case "userType":
+                                    hxResultVO.setValue(marketingHistory.getUserType());
+                            }
+                            pushParams.add(hxResultVO);
+                        });
+                        PushCustomerDetail pushCustomerDetail = new PushCustomerDetail();
+                    }else{
+
+                    }
+
+                }
+            }
+            return null;
+        }
+    }
+
 
     @Override
     public void retry(Customer customer) {
