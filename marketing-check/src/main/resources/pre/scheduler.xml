@@ -182,7 +182,7 @@
     />
     <job:simple id="pushCustomerRetryJob"
                 class="com.br.marketing.check.job.PushCustomerRetryJob"
-                cron="0 0/2 * * * ? "
+                cron="0 0 0/1 * * ? "
                 description="api推送失败重试job"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

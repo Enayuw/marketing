@@ -170,8 +170,10 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                     ? pushCustomerConfig.getScoreRuleShortName()
                     : "";
             List<StraHisFile> fileByRule = straHisFileMapper.getFileByRule(createTime, ruleNumber);
-            StraHisFile straHisFile = fileByRule.get(0);
-            straHisFileList.add(straHisFile);
+            if(fileByRule.size()>0) {
+                StraHisFile straHisFile = fileByRule.get(0);
+                straHisFileList.add(straHisFile);
+            }
         }
         //endregion
 
