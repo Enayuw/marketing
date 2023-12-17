@@ -7,6 +7,6 @@ public class ScoreSortJsonVO {
     private String sourceKey;
     private String mappingKey;
     private String sort;
-    private Boolean first;
+    private Boolean first = Boolean.FALSE;
     private Integer dbNumber;
 }

@@ -59,7 +59,7 @@ public class PushCustomerJob extends AbstractSimpleElasticJob {
         log.warn("【api推送客户数据】调度开始");
         List<Customer> customers =customerMapper.getAllCustomer();
         customers.forEach(customer -> {
-            if(customer.getPushCustomer()==1){
+            if(customer.getPushCustomer()==2){
                 pushCustomerService.push(customer,null);
             }
         });
