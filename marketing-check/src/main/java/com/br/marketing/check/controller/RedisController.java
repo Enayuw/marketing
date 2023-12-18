@@ -96,6 +96,12 @@ public class RedisController {
         return "success";
     }
 
+    @GetMapping("delBigHash")
+    public String delBigHash(String key){
+        redisChgService.delBigHash(key,3000);
+        return "success";
+    }
+
     private volatile int count = 0;
 
     @GetMapping("test")

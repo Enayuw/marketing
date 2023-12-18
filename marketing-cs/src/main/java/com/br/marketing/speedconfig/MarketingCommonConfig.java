@@ -1114,5 +1114,10 @@ public class MarketingCommonConfig {
      */
     private Integer scorePushRetryNum;
 
+    /**
+     * 跑分入库线程数量
+     */
+    private Integer scoreDbAndRedisThreadNum;
+
 }
 

@@ -31,6 +31,7 @@ import com.br.marketing.es.util.UuidUtils;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IJobManagerService;
 import com.br.marketing.service.Impl.jobmanager.JobManagerServiceImpl;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.TaskExtendInfoVO;
 import com.br.marketing.vo.scorepushcustomer.HxResultVO;
@@ -127,9 +128,14 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     @Autowired
     AlarmApiClient alarmApiClient;
 
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
 
     @Override
     public void push(Customer customer, Long fileId) {
+
+        long start = System.currentTimeMillis();
 
         //region 获取回传配置信息
         String apiCode = customer.getApiCode();
@@ -185,9 +191,10 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         }
         //endregion
 
+        int dataBuildThread = marketingCommonConfig.getScoreDbAndRedisThreadNum() != null ? marketingCommonConfig.getScoreDbAndRedisThreadNum() : 10;
 
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(2, 4, "job_scoreBackSort");
-        ThreadPoolExecutor dataBuild = BrExecutors.getThreadPool(2, 5, "job_dataBuild");
+        ThreadPoolExecutor dataBuild = BrExecutors.getThreadPool(dataBuildThread, dataBuildThread, "job_dataBuild");
 
         for (StraHisFile straHisFile : straHisFileList) {
             Result<TransferActionFront> allowExecute =
@@ -243,6 +250,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                         }
 
                     }
+
                 } else {
                     List<Future<Result<Integer>>> futures = searchData(apiCode, straHisFile.getBatchNumber()
                             , straHisFile.getId(), conditionJb
@@ -262,6 +270,8 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 }
             }
             //endregion
+
+            log.warn(String.format("数据捞取耗时：%d",System.currentTimeMillis()-start));
 
             if(pause){
                 pointStatus=3;
@@ -385,6 +395,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             }
             //endregion
 
+            log.warn(String.format("数据推送耗时：%d",System.currentTimeMillis()-start));
             //region 修改状态
             if (straHisFile.getPushStatus().equals(1)) {
                 jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.TRUE);
@@ -527,6 +538,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                         , fileId, scoreSortJsonVO
                         , first != null ? first : scoreSortJsonVO.getFirst()
                         , partStart)));
+                searchAfterStr = marketingHistories.get(marketingHistories.size()-1).getSearchAfter();
             }
             partStart += queryBaseBean.getPageSize();
         }
