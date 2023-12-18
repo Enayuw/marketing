@@ -23,6 +23,6 @@
         <if test="ruleNumber!=null and ruleNumber!=''">
             and bsrc.rule_name_short =#{ruleNumber}
         </if>
-        and shf.push_status=0 order by shf.create_time desc limit 1
+        and shf.push_status!=1 order by shf.create_time desc limit 1
     </select>
 </mapper>

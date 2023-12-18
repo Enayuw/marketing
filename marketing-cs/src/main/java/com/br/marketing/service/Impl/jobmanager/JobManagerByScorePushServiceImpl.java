@@ -58,7 +58,7 @@ public class JobManagerByScorePushServiceImpl implements IJobManagerService {
             return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage("参数错误");
         }
 
-        if (new Integer(2).equals(actionType) || new Integer(4).equals(actionType)) {
+        if (new Integer(11).equals(actionType)) {
             return isDataAllowExe(apiCode, actionType, actionDate, taskArgs);
         }
 
@@ -71,7 +71,7 @@ public class JobManagerByScorePushServiceImpl implements IJobManagerService {
         if (task == null || taskArgs.length <= 0) {
             return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage("参数错误");
         }
-        if (new Integer(2).equals(task.getActionType()) || new Integer(4).equals(task.getActionType())) {
+        if (new Integer(11).equals(task.getActionType())) {
             return updateAllowJobStatus(task, taskArgs);
         }
         return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未找到更新的实现");
@@ -128,8 +128,8 @@ public class JobManagerByScorePushServiceImpl implements IJobManagerService {
         } else {
             String[] split = task.getRemark().split("-");
             Integer num = Integer.valueOf(split[1]);
-            Integer didiAllowRetryNum = marketingCommonConfig.getDidiAllowRetryNum() != null ? marketingCommonConfig.getDidiAllowRetryNum() : 3;
-            if (num >= didiAllowRetryNum) {
+            Integer scorePushRetryNum = marketingCommonConfig.getScorePushRetryNum() != null ? marketingCommonConfig.getScorePushRetryNum() : 3;
+            if (num >= scorePushRetryNum) {
                 updateEntity.setStatus(JobStatusEnum.RETRY_FAIL.getValue());
                 isRetry = Boolean.FALSE;
                 alarmApiClient.sendAlarm(String.format("作业类型：%d,作业任务记录id：%d",task.getActionType(),task.getId()),"滴滴作业重试多次仍然失败", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());

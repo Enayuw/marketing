@@ -1109,5 +1109,10 @@ public class MarketingCommonConfig {
      */
     private Long transferFileTaskJobLockExpireTime;
 
+    /**
+     * 跑分结果推送重试次数
+     */
+    private Integer scorePushRetryNum;
+
 }
 
