@@ -1,5 +1,6 @@
 package com.br.marketing.check.job;
 
+import IceInternal.Ex;
 import com.br.marketing.check.service.PushCustomerService;
 import com.br.marketing.check.service.ResultCheckService;
 import com.br.marketing.common.utils.StringUtils;
@@ -57,12 +58,16 @@ public class PushCustomerJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         Long start=System.currentTimeMillis();
         log.warn("【api推送客户数据】调度开始");
-        List<Customer> customers =customerMapper.getAllCustomer();
-        customers.forEach(customer -> {
-            if(customer.getPushCustomer()==1){
-                pushCustomerService.push(customer,null);
-            }
-        });
+        try {
+            List<Customer> customers = customerMapper.getAllCustomer();
+            customers.forEach(customer -> {
+                if (customer.getPushCustomer() == 1) {
+                    pushCustomerService.push(customer, null);
+                }
+            });
+        }catch (Exception ex){
+            log.error("跑分推送客户报错"+ex.getMessage(),ex);
+        }
         Long end =System.currentTimeMillis();
         log.warn("【结果文件校验api推送客户数据】调度结束，耗时：{}",end-start);
 

@@ -43,6 +43,8 @@ public class BigKeyCleanJob extends AbstractSimpleElasticJob {
         }
         redisChgService.delBigSet(transferKey,3000);
 
+
+
         log.warn(String.format("删除转化key：%s,耗时：%dms",transferKey,System.currentTimeMillis()-transferFirstTime));
     }
 

@@ -2,15 +2,14 @@ package com.br.marketing.client;
 
 import com.brgroup.redis.BrRedisClients;
 import com.brgroup.redis.client.BrRedisClient;
-import io.lettuce.core.ScanArgs;
-import io.lettuce.core.ScanCursor;
-import io.lettuce.core.ScriptOutputType;
-import io.lettuce.core.ValueScanCursor;
+import io.lettuce.core.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -302,6 +301,27 @@ public class RedisChgService {
                 sleep();
             }
             cursorIndex = sscan.getCursor();
+            cursor.setCursor(cursorIndex);
+        } while (!"0".equals(cursorIndex));
+        //删除bigkey
+        marketingRedisClient.del(bigSetKey);
+    }
+
+    public void delBigHash(String bigSetKey, int deleteCount) {
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        String cursorIndex = "0";
+        ScanCursor cursor = ScanCursor.of(cursorIndex);
+        do {
+            MapScanCursor<String, String> hscan = marketingRedisClient.hscan(bigSetKey, cursor, ScanArgs.Builder.limit(deleteCount));
+            Map<String, String> map = hscan.getMap();
+            if (map!=null) {
+                String[] keys = map.keySet().stream().toArray(String[]::new);
+                if(keys.length>0) {
+                    marketingRedisClient.hdel(bigSetKey, keys);
+                    sleep();
+                }
+            }
+            cursorIndex = hscan.getCursor();
             cursor.setCursor(cursorIndex);
         } while (!"0".equals(cursorIndex));
         //删除bigkey

@@ -10,6 +10,7 @@ import com.br.common.util.DateUtils;
 import com.br.marketing.check.service.PushCustomerService;
 import com.br.marketing.check.thread.PushDataThread;
 import com.br.marketing.check.utils.MomUtil;
+import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailDTO;
@@ -18,6 +19,7 @@ import com.br.marketing.client.zbank.ZbankResponse;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.dto.zbank.ZbankLabelRatingReResultDTO;
 import com.br.marketing.entity.*;
@@ -35,6 +37,7 @@ import com.br.marketing.vo.scorepushcustomer.HxResultVO;
 import com.br.marketing.vo.scorepushcustomer.ScoreSortJsonVO;
 import com.google.common.base.Joiner;
 import com.sun.org.apache.xpath.internal.operations.Bool;
+import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang.ObjectUtils;
@@ -52,10 +55,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -124,6 +124,10 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     @Autowired
     IJobManagerService jobManagerByScorePushServiceImpl;
 
+    @Autowired
+    AlarmApiClient alarmApiClient;
+
+
     @Override
     public void push(Customer customer, Long fileId) {
 
@@ -191,37 +195,89 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             if (!ResultCode.SUCCESS.getValue().equals(allowExecute.getCode())) {
                 continue;
             }
-            Integer pointStatus = straHisFile.getStatus();
+            Integer pointStatus = straHisFile.getPushStatus();
             List<ScoreSortJsonVO> vos = getScoreSortField(pushCustomerConfig);
             JSONObject conditionJb = JSON.parseObject(condition.getContent());
 
             //region 数据捞取
+            AtomicInteger getRes = new AtomicInteger();
+            Boolean pause = Boolean.FALSE;
             if (pointStatus == 0) {
                 if (vos.size() > 0) {
+                    List<Future<List<Future<Result<Integer>>>>> res = new ArrayList<>();
                     for (ScoreSortJsonVO vo : vos) {
-                        threadPool.submit(() -> {
-                            try {
-                                searchData(apiCode, straHisFile.getBatchNumber(), straHisFile.getId()
-                                        , conditionJb, vo, vo.getFirst(), dataBuild);
-                            } catch (Exception ex) {
-                                log.error(ex.getMessage(), ex);
+                        Future<List<Future<Result<Integer>>>> resFuture = threadPool.submit(new Callable() {
+                            @Override
+                            public List<Future<Result<Integer>>> call() throws Exception {
+                                try {
+                                    List<Future<Result<Integer>>> futures = searchData(apiCode, straHisFile.getBatchNumber(), straHisFile.getId()
+                                            , conditionJb, vo, vo.getFirst(), dataBuild);
+                                    return futures;
+                                } catch (Exception ex) {
+                                    log.error(ex.getMessage(), ex);
+                                    return null;
+                                }
                             }
                         });
+                        res.add(resFuture);
                     }
                     waitThreadPool(threadPool);
                     waitThreadPool(dataBuild);
+
+                    for (Future<List<Future<Result<Integer>>>> re : res) {
+                        try {
+                            if (re == null) {
+                                pause = Boolean.TRUE;
+                            } else {
+                                List<Future<Result<Integer>>> futures = re.get();
+                                for (Future<Result<Integer>> future : futures) {
+                                    if (!ResultCode.SUCCESS.getValue().equals(future.get().getCode())) {
+                                        pause = Boolean.TRUE;
+                                    }
+                                }
+                            }
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        } catch (ExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                    }
                 } else {
-                    searchData(apiCode, straHisFile.getBatchNumber()
+                    List<Future<Result<Integer>>> futures = searchData(apiCode, straHisFile.getBatchNumber()
                             , straHisFile.getId(), conditionJb
                             , null, true, dataBuild);
                     waitThreadPool(dataBuild);
+                    for (Future<Result<Integer>> future : futures) {
+                        try {
+                            if (!ResultCode.SUCCESS.getValue().equals(future.get().getCode())) {
+                                pause = Boolean.TRUE;
+                            }
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        } catch (ExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                 }
             }
             //endregion
 
+            if(pause){
+                pointStatus=3;
+                straHisFile.setPushStatus(3);
+                straHisFileMapper.updateByPrimaryKeySelective(straHisFile);
+            }
+
+            if(pointStatus == 3){
+                alarmApiClient.sendAlarm(String.format("数据捞取过程有错误，暂停后续的推送动作！fileId:%d",straHisFile.getId()),"跑分推送客户", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
+                jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.FALSE);
+                return;
+            }
+
             //region 数据推送
             if (pointStatus == 0 || pointStatus == 2) {
-                int pushThream = customer.getPushThreadNum() == null ? 5 : customer.getPushThreadNum();
+                int pushThream = (customer.getPushThreadNum() == null||new Integer(0).equals(customer.getPushThreadNum()))  ? 5 : customer.getPushThreadNum();
                 ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_pushCustomer");
                 PushCustomerDetailExample pushCustomerDetailExample = new PushCustomerDetailExample();
                 pushCustomerDetailExample.setOrderByClause(" id limit 2000");
@@ -435,7 +491,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         return "";
     }
 
-    private void searchData(String apiCode, String batchNumber
+    private List<Future<Result<Integer>>> searchData(String apiCode, String batchNumber
             , Long fileId, JSONObject queryData
             , ScoreSortJsonVO scoreSortJsonVO
             , Boolean first
@@ -446,6 +502,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             sort.put("order", scoreSortJsonVO.getSort());
             queryData.put("sort", sort);
         }
+        List<Future<Result<Integer>>> futures = new ArrayList<>();
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(apiCode);
         queryBaseBean.setBatchNumbers(batchNumber);
@@ -466,16 +523,17 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             queryBaseBean.setSearchAfter(searchAfterStr);
             List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
             if (marketingHistories.size() > 0) {
-                executors.submit(new StoreData(marketingHistories
+                futures.add(executors.submit(new StoreData(marketingHistories
                         , fileId, scoreSortJsonVO
                         , first != null ? first : scoreSortJsonVO.getFirst()
-                        , partStart));
+                        , partStart)));
             }
             partStart += queryBaseBean.getPageSize();
         }
+        return futures;
     }
 
-    class StoreData implements Callable<List<Future<Result<Integer>>>> {
+    class StoreData implements Callable<Result<Integer>> {
 
         List<MarketingHistory> marketingHistories;
 
@@ -501,7 +559,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         }
 
         @Override
-        public List<Future<Result<Integer>>> call() throws Exception {
+        public Result<Integer> call() throws Exception {
             try {
                 if (marketingHistories.size() > 0) {
                     for (MarketingHistory marketingHistory : marketingHistories) {
@@ -515,8 +573,6 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                             startIndex++;
                         }
 
-                        List pushParams = new ArrayList();
-
                         if (first) {
                             pushCustomerDetail.setApiCode(marketingHistory.getApiCode());
                             pushCustomerDetail.setCustNum(marketingHistory.getCusNum());
@@ -529,11 +585,11 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                         }
                     }
                 }
-                return null;
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
+                return new Result().setCode(ResultCode.SUCCESS.getValue());
             }
-            return null;
         }
     }
 
