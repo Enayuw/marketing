@@ -27,6 +27,8 @@ import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.es.util.UuidUtils;
 import com.br.marketing.mapper.*;
+import com.br.marketing.service.IJobManagerService;
+import com.br.marketing.service.Impl.jobmanager.JobManagerServiceImpl;
 import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.TaskExtendInfoVO;
 import com.br.marketing.vo.scorepushcustomer.HxResultVO;
@@ -119,6 +121,9 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     @Autowired
     ZbankClient zbankClient;
 
+    @Autowired
+    IJobManagerService iJobManagerService;
+
     @Override
     public void push(Customer customer,Long fileId) {
 
@@ -126,12 +131,6 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         String apiCode = customer.getApiCode();
         ScorePushCustomerConfig pushCustomerConfig = new ScorePushCustomerConfig();
         ConditionOfScoreVO condition = new ConditionOfScoreVO();
-        ExecutorService pushExecutor;
-        if(customer.getPushThreadNum()!=null){
-            pushExecutor = BrExecutors.getThreadPool(customer.getPushThreadNum(),customer.getPushThreadNum());
-        }else{
-            pushExecutor = BrExecutors.getThreadPool(20,20);
-        }
 
         Date createTime=Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
@@ -175,13 +174,16 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 straHisFileList.add(straHisFile);
             }
         }
-        //endregion
 
         if(straHisFileList.size()<=0){
             log.warn(String.format("该客户当前无跑分记录,apiCode:%s",apiCode));
             return;
         }
+        //endregion
 
+        //region
+        iJobManagerService.isAllowExecute(apiCode,11,LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        //endregion
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(2, 4, "job_scoreBackSort");
         ThreadPoolExecutor dataBuild = BrExecutors.getThreadPool(2, 5, "job_dataBuild");
 
