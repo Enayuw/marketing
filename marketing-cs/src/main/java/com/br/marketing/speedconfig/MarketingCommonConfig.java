@@ -759,11 +759,11 @@ public class MarketingCommonConfig {
      * 滴滴准入重试次数
      */
     private Integer didiAllowRetryNum;
-
-    /**
-     * 滴滴有效期天数
-     */
-    private Long didiValidDays;
+//
+//    /**
+//     * 滴滴有效期天数
+//     */
+//    private Long didiValidDays;
 
     /**
      * 推送客服黑名单apiCode(一对多分发)

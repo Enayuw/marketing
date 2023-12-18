@@ -1,12 +1,12 @@
 package com.br.marketing.monkey.job.didi;
-import java.util.Date;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.DidiDataExample;
+import com.br.marketing.entity.LocalFile;
+import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.enums.DiDiAllowMarketingEnum;
 import com.br.marketing.mapper.DidiDataMapper;
 import com.br.marketing.mapper.LocalFileMapper;
@@ -14,7 +14,6 @@ import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.monkeydata.entity.didi.DiDiAllowCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import com.br.marketing.service.IJobManagerService;
-import com.br.marketing.service.Impl.jobmanager.JobManagerServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -27,7 +26,8 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
 
 
 @Component
@@ -96,7 +96,7 @@ public class DidiAllowJob extends AbstractSimpleElasticJob {
             }else{
                 if ("1".equals(transferActionFrontResult.getMessage())) {
                     updaEntity.setPushStatus("3");
-                }else{
+                } else {
                     updaEntity.setPushStatus("4");
                 }
             }
@@ -104,32 +104,32 @@ public class DidiAllowJob extends AbstractSimpleElasticJob {
             //endregion
 
             //region 生成有效期配置记录
-            Long validDays = marketingCommonConfig.getDidiValidDays()!=null && marketingCommonConfig.getDidiValidDays()>0 ?marketingCommonConfig.getDidiValidDays()-1L:29L;
-            List<String> pushDates = didiDataMapper.getPushDateByLocalId(localFile.getId());
-            if(pushDates.size()>0){
-                MarketingDataValidConfigExample configExample = new MarketingDataValidConfigExample();
-                configExample.createCriteria().andApiCodeEqualTo(localFile.getApiCode())
-                        .andValidTypeEqualTo(1)
-                        .andAppletDateIn(pushDates)
-                        .andIsDelEqualTo(Constants.DATA_VALID);
-                List<MarketingDataValidConfig> validConfigs = dataValidConfigMapper.selectByExample(configExample);
-                for (String pushDate : pushDates) {
-                    String endDate = LocalDate.parse(pushDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")).plusDays(validDays).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                    Optional<MarketingDataValidConfig> first = validConfigs.stream().filter(t -> t.getAppletDate().equals(pushDate)).findFirst();
-                    if(!first.isPresent()){
-                        MarketingDataValidConfig marketingDataValidConfig = new MarketingDataValidConfig();
-                        marketingDataValidConfig.setApiCode(apiCode);
-                        marketingDataValidConfig.setAppletDate(pushDate);
-                        marketingDataValidConfig.setUserType("1");
-                        marketingDataValidConfig.setValidStartDate(pushDate);
-                        marketingDataValidConfig.setValidEndDate(endDate);
-                        marketingDataValidConfig.setValidType(1);
-                        marketingDataValidConfig.setCreateTime(new Date());
-                        marketingDataValidConfig.setIsDel(Constants.DATA_VALID);
-                        dataValidConfigMapper.insertSelective(marketingDataValidConfig);
-                    }
-                }
-            }
+//            Long validDays = marketingCommonConfig.getDidiValidDays()!=null && marketingCommonConfig.getDidiValidDays()>0 ?marketingCommonConfig.getDidiValidDays()-1L:29L;
+//            List<String> pushDates = didiDataMapper.getPushDateByLocalId(localFile.getId());
+//            if(pushDates.size()>0){
+//                MarketingDataValidConfigExample configExample = new MarketingDataValidConfigExample();
+//                configExample.createCriteria().andApiCodeEqualTo(localFile.getApiCode())
+//                        .andValidTypeEqualTo(1)
+//                        .andAppletDateIn(pushDates)
+//                        .andIsDelEqualTo(Constants.DATA_VALID);
+//                List<MarketingDataValidConfig> validConfigs = dataValidConfigMapper.selectByExample(configExample);
+//                for (String pushDate : pushDates) {
+//                    String endDate = LocalDate.parse(pushDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")).plusDays(validDays).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+//                    Optional<MarketingDataValidConfig> first = validConfigs.stream().filter(t -> t.getAppletDate().equals(pushDate)).findFirst();
+//                    if(!first.isPresent()){
+//                        MarketingDataValidConfig marketingDataValidConfig = new MarketingDataValidConfig();
+//                        marketingDataValidConfig.setApiCode(apiCode);
+//                        marketingDataValidConfig.setAppletDate(pushDate);
+//                        marketingDataValidConfig.setUserType("1");
+//                        marketingDataValidConfig.setValidStartDate(pushDate);
+//                        marketingDataValidConfig.setValidEndDate(endDate);
+//                        marketingDataValidConfig.setValidType(1);
+//                        marketingDataValidConfig.setCreateTime(new Date());
+//                        marketingDataValidConfig.setIsDel(Constants.DATA_VALID);
+//                        dataValidConfigMapper.insertSelective(marketingDataValidConfig);
+//                    }
+//                }
+//            }
             //endregion
         }
     }
