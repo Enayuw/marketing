@@ -31,16 +31,6 @@ public class RedisTestServiceImpl {
 
     MarketingCommonConfig marketingCommonConfig;
 
-    public void speedFileTest(MarketingCommonConfig marketingCommonConfig) {
-        if(marketingCommonConfig !=null){
-            testSpeed t = new testSpeed();
-            BeanUtils.copyProperties(marketingCommonConfig,t);
-
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("a","123");
-            log.warn("测试speedFile:"+JSON.toJSONString(jsonObject));
-        }
-    }
 
     public void redisTest(Integer redisOpt, RedisChgService redisChgService) {
         this.redisChgService = redisChgService;
