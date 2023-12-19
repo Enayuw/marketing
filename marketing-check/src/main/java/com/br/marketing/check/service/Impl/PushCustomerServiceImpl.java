@@ -394,7 +394,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         PushCustomerDetailExample pushCustomerDetailExample = new PushCustomerDetailExample();
         pushCustomerDetailExample.setOrderByClause(" id limit 1000");
         PushCustomerDetailExample.Criteria criteria = pushCustomerDetailExample.createCriteria();
-        criteria.andFileIdEqualTo(straHisFile.getId()).andPushStatusEqualTo(1);
+        criteria.andFileIdEqualTo(straHisFile.getId()).andPushStatusIn(Arrays.asList(1,3));
         Boolean action = Boolean.TRUE;
 
         Long minId = null;
@@ -465,6 +465,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                             }
                         } catch (Exception ex) {
                             log.error(ex.getMessage() + "响应：" + rqsSeqNo, ex);
+                            update.setPushStatus(3);
                             error.incrementAndGet();
                         }
                         pushCustomerDetailMapper.updateByExampleSelective(update, example);

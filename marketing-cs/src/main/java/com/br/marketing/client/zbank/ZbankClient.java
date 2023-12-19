@@ -100,6 +100,7 @@ public class ZbankClient {
      * @throws Exception
      */
     public String cMBrScoDaFeBack(Object obj, String requestId) throws Exception {
+//        return "{\"msg\":\"服务调用异常:106100400008,请查证！\",\"result\":{},\"code\":\"106100720036\"}";
         return apiCall(obj, CMBrScoDaFeBack, requestId);
     }
 
