@@ -143,7 +143,6 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         String apiCode = customer.getApiCode();
         ScorePushCustomerConfig pushCustomerConfig = new ScorePushCustomerConfig();
         ConditionOfScoreVO condition = new ConditionOfScoreVO();
-
         Date createTime = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
         //获取回传配置
@@ -249,8 +248,10 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                             }
                         } catch (InterruptedException e) {
                             log.error(e.getMessage(),e);
+                            Thread.currentThread().interrupt();
                         } catch (ExecutionException e) {
                             log.error(e.getMessage(),e);
+                            Thread.currentThread().interrupt();
                         }
 
                     }
@@ -267,8 +268,10 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                             }
                         } catch (InterruptedException e) {
                             log.error(e.getMessage(),e);
+                            Thread.currentThread().interrupt();
                         } catch (ExecutionException e) {
                             log.error(e.getMessage(),e);
+                            Thread.currentThread().interrupt();
                         }
                     }
                 }
@@ -335,7 +338,9 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     }
 
     private void sortDb(Customer customer,StraHisFile straHisFile,List<ScoreSortJsonVO> vos,AtomicInteger error){
-        int pushThream = (customer.getPushThreadNum() == null||Integer.valueOf(0).equals(customer.getPushThreadNum()))  ? 5 : customer.getPushThreadNum();
+        int pushThream = (customer.getPushThreadNum() == null
+                ||Integer.valueOf(0).equals(customer.getPushThreadNum()))
+                ? 5 : customer.getPushThreadNum();
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_pushCustomer");
         PushCustomerDetailExample pushCustomerDetailExample = new PushCustomerDetailExample();
         pushCustomerDetailExample.setOrderByClause(" id limit 2000");
@@ -391,7 +396,9 @@ public class PushCustomerServiceImpl implements PushCustomerService {
 
 
     private void pushCustomer(Customer customer,StraHisFile straHisFile,List<ScoreSortJsonVO> vos,AtomicInteger error){
-        int pushThream = (customer.getPushThreadNum() == null||Integer.valueOf(0).equals(customer.getPushThreadNum()))  ? 5 : customer.getPushThreadNum();
+        int pushThream = (customer.getPushThreadNum() == null
+                ||Integer.valueOf(0).equals(customer.getPushThreadNum()))
+                ? 5 : customer.getPushThreadNum();
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_pushCustomer");
         PushCustomerDetailExample pushCustomerDetailExample = new PushCustomerDetailExample();
         pushCustomerDetailExample.setOrderByClause(" id limit 1000");
@@ -533,17 +540,6 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             }
         }
         return vos;
-    }
-
-    private void setScoreSortField(ScoreSortJsonVO scoreSortJsonVO, PushCustomerDetail detail, Long fileId, Integer index) {
-        if (scoreSortJsonVO.getFirst()) {
-            setScoreSort(scoreSortJsonVO, detail, index);
-        } else {
-            String key = RedisKeyConstant.SCORE_TO_CUSTOMER_SORT_KEY
-                    .concat(":").concat(fileId.toString())
-                    .concat(":").concat(scoreSortJsonVO.getDbNumber().toString());
-            redisChgService.hset(key, detail.getScoreId(), index.toString());
-        }
     }
 
     private void setScoreSort(ScoreSortJsonVO scoreSortJsonVO, PushCustomerDetail detail, Integer index) {
@@ -761,6 +757,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             retryPushExecutor.invokeAll(list);
         } catch (InterruptedException e) {
             log.error(e.getMessage(),e);
+            Thread.currentThread().interrupt();
         }
         /**
          * 等待所有重试任务都执行完成

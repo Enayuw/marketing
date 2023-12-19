@@ -58,7 +58,7 @@ public class JobManagerByScorePushServiceImpl implements IJobManagerService {
             return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage("参数错误");
         }
 
-        if (new Integer(11).equals(actionType)) {
+        if (Integer.valueOf(11).equals(actionType)) {
             return isDataAllowExe(apiCode, actionType, actionDate, taskArgs);
         }
 

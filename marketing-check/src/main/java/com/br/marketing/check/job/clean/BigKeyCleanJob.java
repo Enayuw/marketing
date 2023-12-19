@@ -47,4 +47,5 @@ public class BigKeyCleanJob extends AbstractSimpleElasticJob {
         log.warn(String.format("删除转化key：%s,耗时：%dms",transferKey,System.currentTimeMillis()-transferFirstTime));
     }
 
+
 }
