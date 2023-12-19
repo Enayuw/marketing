@@ -183,10 +183,23 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         ScorePushCustomerConfig pushCustomerConfig = new ScorePushCustomerConfig();
         ConditionOfScoreVO condition = new ConditionOfScoreVO();
         Date createTime = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-        Boolean config = getConfig(condition, pushCustomerConfig, apiCode);
-        if(!config){
+        //获取回传配置
+        ScorePushCustomerConfigExample scorePushCustomerConfigExample = new ScorePushCustomerConfigExample();
+        scorePushCustomerConfigExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(Constants.DATA_VALID);
+        List<ScorePushCustomerConfig> scorePushCustomerConfigs = scorePushCustomerConfigMapper.selectByExample(scorePushCustomerConfigExample);
+        if (scorePushCustomerConfigs.size() <= 0) {
+            log.warn(String.format("该客户未配置回传参数配置,apiCode:%s", apiCode));
             return;
         }
+        pushCustomerConfig = scorePushCustomerConfigs.get(0);
+
+        //跑分筛选条件配置
+        List<ConditionOfScoreVO> scoreCondtitions = scoreSearchConditionMapper.getScoreByConditionType(apiCode, 3);
+        if (scoreCondtitions.size() <= 0 || scoreCondtitions.size() > 1) {
+            log.warn(String.format("该客户跑分筛选条件配置异常,apiCode:%s", apiCode));
+            return;
+        }
+        condition = scoreCondtitions.get(0);
         //endregion
 
         //region 获取需要回传给客户的跑分文件
