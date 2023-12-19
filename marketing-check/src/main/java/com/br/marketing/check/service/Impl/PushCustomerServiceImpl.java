@@ -133,25 +133,14 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
-
-    @Override
-    public void push(Customer customer, Long fileId) {
-
-        long start = System.currentTimeMillis();
-
-        //region 获取回传配置信息
-        String apiCode = customer.getApiCode();
-        ScorePushCustomerConfig pushCustomerConfig = new ScorePushCustomerConfig();
-        ConditionOfScoreVO condition = new ConditionOfScoreVO();
-        Date createTime = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-
+    private Boolean getConfig(ConditionOfScoreVO condition,ScorePushCustomerConfig pushCustomerConfig,String apiCode){
         //获取回传配置
         ScorePushCustomerConfigExample scorePushCustomerConfigExample = new ScorePushCustomerConfigExample();
         scorePushCustomerConfigExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(Constants.DATA_VALID);
         List<ScorePushCustomerConfig> scorePushCustomerConfigs = scorePushCustomerConfigMapper.selectByExample(scorePushCustomerConfigExample);
         if (scorePushCustomerConfigs.size() <= 0) {
             log.warn(String.format("该客户未配置回传参数配置,apiCode:%s", apiCode));
-            return;
+            return Boolean.FALSE;
         }
         pushCustomerConfig = scorePushCustomerConfigs.get(0);
 
@@ -159,13 +148,14 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         List<ConditionOfScoreVO> scoreCondtitions = scoreSearchConditionMapper.getScoreByConditionType(apiCode, 3);
         if (scoreCondtitions.size() <= 0 || scoreCondtitions.size() > 1) {
             log.warn(String.format("该客户跑分筛选条件配置异常,apiCode:%s", apiCode));
-            return;
+            return Boolean.FALSE;
         }
         condition = scoreCondtitions.get(0);
-        //endregion
+        return Boolean.TRUE;
+    }
 
-        //region 获取需要回传给客户的跑分文件
-        List<StraHisFile> straHisFileList = new ArrayList<>();
+    private void addScoreFile(List<StraHisFile> straHisFileList,Long fileId
+            ,String apiCode,Date createTime,ScorePushCustomerConfig pushCustomerConfig){
         if (fileId != null && fileId > 0) {
             StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(fileId);
             if (straHisFile == null) {
@@ -182,7 +172,26 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 straHisFileList.add(straHisFile);
             }
         }
+    }
+    @Override
+    public void push(Customer customer, Long fileId) {
 
+        long start = System.currentTimeMillis();
+
+        //region 获取回传配置信息
+        String apiCode = customer.getApiCode();
+        ScorePushCustomerConfig pushCustomerConfig = new ScorePushCustomerConfig();
+        ConditionOfScoreVO condition = new ConditionOfScoreVO();
+        Date createTime = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        Boolean config = getConfig(condition, pushCustomerConfig, apiCode);
+        if(!config){
+            return;
+        }
+        //endregion
+
+        //region 获取需要回传给客户的跑分文件
+        List<StraHisFile> straHisFileList = new ArrayList<>();
+        addScoreFile(straHisFileList,fileId,apiCode,createTime,pushCustomerConfig);
         if (straHisFileList.size() <= 0) {
             log.warn(String.format("该客户当前无跑分记录,apiCode:%s", apiCode));
             return;
@@ -452,9 +461,6 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                                 ZbankLabelRatingReResultDTO result1 = rqZbank.getResult();
                                 if ("00".equals(result1.getErrCd())) {
                                     update.setPushStatus(2);
-                                } else if ("500".equals(result1.getErrCd())) {
-                                    update.setPushStatus(3);
-                                    error.incrementAndGet();
                                 } else {
                                     update.setPushStatus(3);
                                     error.incrementAndGet();
