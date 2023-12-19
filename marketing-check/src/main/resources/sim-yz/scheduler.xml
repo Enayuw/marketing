@@ -127,7 +127,7 @@
     />
     <job:simple id="SftpToDbByCommonJob"
                 class="com.br.marketing.check.job.SftpToDbByCommonJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 4/20 * * * ?"
                 description="sftp文件数据入库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -229,7 +229,7 @@
     />
     <job:simple id="RetryCommonServiceJob"
                 class="com.br.marketing.check.job.RetryCommonServiceJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 1/10 * * * ?"
                 description="重试作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -418,7 +418,7 @@
     />
     <job:simple id="XieChengSmsDataCollidingToSendJob"
                 class="com.br.marketing.check.job.XieChengSmsDataCollidingToSendJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/1 20-23,0,1 * * ?"
                 description="携程短信撞库数据发送定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -595,7 +595,7 @@
     />
     <job:simple id="YiXinTransferToJueCeJob"
                 class="com.br.marketing.check.job.yixin.YiXinTransferToJueCeJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/10 8-23 * * ? *"
                 description="宜信推决策定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -609,7 +609,7 @@
     />
     <job:simple id="XieChengSmsCollidingDataVtToSendJob"
                 class="com.br.marketing.check.job.XieChengSmsCollidingDataVtToSendJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/10 6-8 * * ? *"
                 description="携程短信撞库早 8 点定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -695,7 +695,7 @@
 
     <job:simple id="BigKeyCleanJob"
                 class="com.br.marketing.check.job.clean.BigKeyCleanJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0 1 * * ? *"
                 description="删除大keyjob"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -795,7 +795,7 @@
     />
     <job:simple id="DataProcessingCommonJob"
                 class="com.br.marketing.check.job.DataProcessingCommonJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 */10 * ? * *"
                 description="文件数据处理通用流程，每10分钟执行一次"
                 registry-center-ref="regCenter"
                 sharding-total-count="9"
@@ -810,7 +810,7 @@
 
     <job:simple id="check-ZhongBangPullFileDataJob"
                 class="com.br.marketing.check.job.zhongbang.ZhongBangPullFileDataJob"
-                cron="1 0/15 9-18 * * ? 2050-2050"
+                cron="1 0/15 9-18 * * ?"
                 description="众邦财富文件拉取,param格式：{'apiCode':'yyyyMMdd,yyyy-MM-dd HH:mm:ss,yyyy-MM-dd HH:mm:ss'}"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

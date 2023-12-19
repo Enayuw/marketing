@@ -497,32 +497,33 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 case 0:
                     if (StringUtils.isNotBlank(pushCustomerConfig.getScoreSort1Mapping())) {
                         scoreSortJson = JSON.parseObject(pushCustomerConfig.getScoreSort1Mapping(), ScoreSortJsonVO.class);
+                        scoreSortJson.setFirst(Boolean.TRUE);
                         scoreSortJson.setDbNumber(0);
                     }
                     break;
                 case 1:
                     if (StringUtils.isNotBlank(pushCustomerConfig.getScoreSort2Mapping())) {
                         scoreSortJson = JSON.parseObject(pushCustomerConfig.getScoreSort2Mapping(), ScoreSortJsonVO.class);
+                        scoreSortJson.setFirst(Boolean.FALSE);
                         scoreSortJson.setDbNumber(1);
                     }
                     break;
                 case 2:
                     if (StringUtils.isNotBlank(pushCustomerConfig.getScoreSort3Mapping())) {
                         scoreSortJson = JSON.parseObject(pushCustomerConfig.getScoreSort3Mapping(), ScoreSortJsonVO.class);
+                        scoreSortJson.setFirst(Boolean.FALSE);
                         scoreSortJson.setDbNumber(2);
                     }
                     break;
                 case 3:
                     if (StringUtils.isNotBlank(pushCustomerConfig.getScoreSort4Mapping())) {
                         scoreSortJson = JSON.parseObject(pushCustomerConfig.getScoreSort4Mapping(), ScoreSortJsonVO.class);
+                        scoreSortJson.setFirst(Boolean.FALSE);
                         scoreSortJson.setDbNumber(3);
                     }
                     break;
                 default:
                     break;
-            }
-            if (vos.size() <= 0 && scoreSortJson != null) {
-                scoreSortJson.setFirst(Boolean.TRUE);
             }
             if (scoreSortJson != null) {
                 vos.add(scoreSortJson);
@@ -570,18 +571,21 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             , ScoreSortJsonVO scoreSortJsonVO
             , Boolean first
             , ThreadPoolExecutor executors) {
+
+        JSONObject condtionQuery = new JSONObject();
+        BeanUtils.copyProperties(queryData,condtionQuery);
         if (scoreSortJsonVO != null) {
             JSONObject sort = new JSONObject();
             sort.put("key", scoreSortJsonVO.getSourceKey());
             sort.put("order", scoreSortJsonVO.getSort());
-            queryData.put("sort", sort);
+            condtionQuery.put("sort", sort);
         }
         List<Future<Result<Integer>>> futures = new ArrayList<>();
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(apiCode);
         queryBaseBean.setBatchNumbers(batchNumber);
         queryBaseBean.setFileIds(fileId.toString());
-        queryBaseBean.setJsonData(JSON.toJSONString(queryData));
+        queryBaseBean.setJsonData(JSON.toJSONString(condtionQuery));
         int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         String searchAfterStr = "";
         Integer pageSize = 2000;

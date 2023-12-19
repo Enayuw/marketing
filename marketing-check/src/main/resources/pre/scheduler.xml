@@ -168,7 +168,7 @@
     />
     <job:simple id="pushCustomerJob"
                 class="com.br.marketing.check.job.PushCustomerJob"
-                cron="0 0/2 * * * ? "
+                cron="0 0 0/1 * * ? "
                 description="api推送跑批结果"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
