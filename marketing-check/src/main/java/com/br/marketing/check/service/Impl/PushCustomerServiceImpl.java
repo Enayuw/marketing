@@ -133,27 +133,6 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
-    private Boolean getConfig(ConditionOfScoreVO condition,ScorePushCustomerConfig pushCustomerConfig,String apiCode){
-        //获取回传配置
-        ScorePushCustomerConfigExample scorePushCustomerConfigExample = new ScorePushCustomerConfigExample();
-        scorePushCustomerConfigExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(Constants.DATA_VALID);
-        List<ScorePushCustomerConfig> scorePushCustomerConfigs = scorePushCustomerConfigMapper.selectByExample(scorePushCustomerConfigExample);
-        if (scorePushCustomerConfigs.size() <= 0) {
-            log.warn(String.format("该客户未配置回传参数配置,apiCode:%s", apiCode));
-            return Boolean.FALSE;
-        }
-        pushCustomerConfig = scorePushCustomerConfigs.get(0);
-
-        //跑分筛选条件配置
-        List<ConditionOfScoreVO> scoreCondtitions = scoreSearchConditionMapper.getScoreByConditionType(apiCode, 3);
-        if (scoreCondtitions.size() <= 0 || scoreCondtitions.size() > 1) {
-            log.warn(String.format("该客户跑分筛选条件配置异常,apiCode:%s", apiCode));
-            return Boolean.FALSE;
-        }
-        condition = scoreCondtitions.get(0);
-        return Boolean.TRUE;
-    }
-
     private void addScoreFile(List<StraHisFile> straHisFileList,Long fileId
             ,String apiCode,Date createTime,ScorePushCustomerConfig pushCustomerConfig){
         if (fileId != null && fileId > 0) {
