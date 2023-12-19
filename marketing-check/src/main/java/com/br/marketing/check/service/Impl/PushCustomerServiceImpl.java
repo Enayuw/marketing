@@ -573,7 +573,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             , ThreadPoolExecutor executors) {
 
         JSONObject condtionQuery = new JSONObject();
-        BeanUtils.copyProperties(queryData,condtionQuery);
+        condtionQuery.putAll(queryData);
         if (scoreSortJsonVO != null) {
             JSONObject sort = new JSONObject();
             sort.put("key", scoreSortJsonVO.getSourceKey());

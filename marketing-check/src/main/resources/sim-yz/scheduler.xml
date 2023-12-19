@@ -27,7 +27,7 @@
 
     <job:simple id="closeDateAlarmJob"
                 class="com.br.marketing.check.job.CloseDateAlarmJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="00 00 10 * * ?"
                 description="监控今日到期"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -839,7 +839,7 @@
     />
     <job:simple id="TongChengUndoListPushToCustomerJob"
                 class="com.br.marketing.check.job.tongcheng.TongChengUndoListPushToCustomerJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 */10 * ? * *"
                 description="同程不运营名单推送客户JOB，每10分钟执行一次"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
