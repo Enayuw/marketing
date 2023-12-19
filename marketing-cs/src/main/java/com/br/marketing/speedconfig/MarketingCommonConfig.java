@@ -313,6 +313,16 @@ public class MarketingCommonConfig {
     private String tongChengTransferExecuteTime;
 
     /**
+     * 同程转化数据提取apicode集合
+     */
+    private List<String> NewTongChengTransferFileApiCodes;
+
+    /**
+     * 同程转化数据提取执行时间
+     */
+    private String NewTongChengTransferExecuteTime;
+
+    /**
      * 携程数据推送线程数
      */
     private Integer xiechengDataSendThread;
@@ -1108,6 +1118,33 @@ public class MarketingCommonConfig {
      * 数据转化提取任务锁失效时间
      */
     private Long transferFileTaskJobLockExpireTime;
+
+    /**
+     * 同程不运营名单推送客户接口挡板开关 true:开启挡板。false:关闭挡板
+     * tongChengUndoMock={"switch":false,"httpcode":"200","code":"1001"}
+     */
+    private HashMap<String, Object> tongChengUndoMock;
+
+    /**
+     * 同程不运营名单推送客户接口线程数
+     */
+    private Integer tongChengUndoThreadNum;
+
+    /**
+     * 同程不运营名单推送客户接口apiCode集合
+     */
+    private List<String> tongChengUndoApiCodes;
+    /**
+     * 携程推送短信退订接口配置信息
+     * eg:{"3710090":{"appid":"bairong002","signKey":"95cc01ec07387a44","aesKey":"f3df6f62f0527bf0","aesIv":"3b2dac323465b024"}}
+     */
+    private Map<String, Map<String, String>> xieChengSmsQuitConfig;
+
+    /**
+     * 携程推送短信退订apiCode
+     */
+    private List<String> xieChengSmsQuitApiCodes;
+
 
     /**
      * 跑分结果推送重试次数
