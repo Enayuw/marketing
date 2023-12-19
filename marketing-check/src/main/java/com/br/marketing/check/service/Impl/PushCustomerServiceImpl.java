@@ -330,10 +330,9 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     }
 
     private void sortDb(Customer customer,StraHisFile straHisFile,List<ScoreSortJsonVO> vos,AtomicInteger error){
-        int pushThream = (customer.getPushThreadNum() == null
-                ||Integer.valueOf(0).equals(customer.getPushThreadNum()))
-                ? 5 : customer.getPushThreadNum();
-        ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_pushCustomer");
+        int pushThream = marketingCommonConfig.getScoreUpdateSortThreadNum() == null
+                ? 5 : marketingCommonConfig.getScoreUpdateSortThreadNum();
+        ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_updateSort");
         PushCustomerDetailExample pushCustomerDetailExample = new PushCustomerDetailExample();
         pushCustomerDetailExample.setOrderByClause(" id limit 2000");
         PushCustomerDetailExample.Criteria criteria = pushCustomerDetailExample.createCriteria();

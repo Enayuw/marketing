@@ -1119,5 +1119,9 @@ public class MarketingCommonConfig {
      */
     private Integer scoreDbAndRedisThreadNum;
 
+    /**
+     * 跑分更新顺序线程数量
+     */
+    private Integer scoreUpdateSortThreadNum;
 }
 
