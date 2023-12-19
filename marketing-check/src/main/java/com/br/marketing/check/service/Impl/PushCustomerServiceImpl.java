@@ -200,14 +200,16 @@ public class PushCustomerServiceImpl implements PushCustomerService {
 
         for (StraHisFile straHisFile : straHisFileList) {
             Result<TransferActionFront> allowExecute =
-                    jobManagerByScorePushServiceImpl.isAllowExecute(apiCode, 11, LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), straHisFile);
+                    jobManagerByScorePushServiceImpl
+                            .isAllowExecute(apiCode, 11
+                                    , LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                                    , straHisFile);
             if (!ResultCode.SUCCESS.getValue().equals(allowExecute.getCode())) {
                 continue;
             }
             Integer pointStatus = straHisFile.getPushStatus();
             List<ScoreSortJsonVO> vos = getScoreSortField(pushCustomerConfig);
             JSONObject conditionJb = JSON.parseObject(condition.getContent());
-
             //region 数据捞取
             AtomicInteger getRes = new AtomicInteger();
             Boolean pause = Boolean.FALSE;
@@ -246,9 +248,9 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                                 }
                             }
                         } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
+                            log.error(e.getMessage(),e);
                         } catch (ExecutionException e) {
-                            throw new RuntimeException(e);
+                            log.error(e.getMessage(),e);
                         }
 
                     }
@@ -264,30 +266,25 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                                 pause = Boolean.TRUE;
                             }
                         } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
+                            log.error(e.getMessage(),e);
                         } catch (ExecutionException e) {
-                            throw new RuntimeException(e);
+                            log.error(e.getMessage(),e);
                         }
                     }
                 }
             }
             //endregion
-
-
             log.warn(String.format("数据捞取耗时：%d",System.currentTimeMillis()-start));
-
             if(pause){
                 pointStatus=3;
                 straHisFile.setPushStatus(3);
                 straHisFileMapper.updateByPrimaryKeySelective(straHisFile);
             }
-
             if(pointStatus == 3){
-                alarmApiClient.sendAlarm(String.format("数据捞取过程有错误，暂停后续的推送动作！fileId:%d",straHisFile.getId()),"跑分推送客户", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
+                sendAlarm(String.format("数据捞取过程有错误，暂停后续的推送动作！fileId:%d",straHisFile.getId()));
                 jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.FALSE);
                 return;
             }
-
             //region数据更新排序
             if(pointStatus == 0 || pointStatus == 4) {
                 AtomicInteger errorSort = new AtomicInteger();
@@ -303,15 +300,13 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 } else {
                     straHisFile.setPushStatus(4);
                     straHisFileMapper.updateByPrimaryKeySelective(straHisFile);
-                    alarmApiClient.sendAlarm(String.format("数据更新顺序过程有错误，暂停后续的推送动作！fileId:%d",straHisFile.getId()),"跑分推送客户", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
+                    sendAlarm(String.format("数据更新顺序过程有错误，暂停后续的推送动作！fileId:%d",straHisFile.getId()));
                     jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.FALSE);
                     return;
                 }
             }
             //endregion
-
             log.warn(String.format("更新排序耗时：%d",System.currentTimeMillis()-start));
-
             //region 数据推送
             if (pointStatus == 0 || pointStatus == 2) {
                 AtomicInteger error = new AtomicInteger();
@@ -324,7 +319,6 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 straHisFileMapper.updateByPrimaryKeySelective(straHisFile);
             }
             //endregion
-
             log.warn(String.format("数据推送耗时：%d",System.currentTimeMillis()-start));
             //region 修改状态
             if (straHisFile.getPushStatus().equals(1)) {
@@ -336,8 +330,12 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         }
     }
 
+    private void sendAlarm(String message){
+        alarmApiClient.sendAlarm(message,"跑分推送客户", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
+    }
+
     private void sortDb(Customer customer,StraHisFile straHisFile,List<ScoreSortJsonVO> vos,AtomicInteger error){
-        int pushThream = (customer.getPushThreadNum() == null||new Integer(0).equals(customer.getPushThreadNum()))  ? 5 : customer.getPushThreadNum();
+        int pushThream = (customer.getPushThreadNum() == null||Integer.valueOf(0).equals(customer.getPushThreadNum()))  ? 5 : customer.getPushThreadNum();
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_pushCustomer");
         PushCustomerDetailExample pushCustomerDetailExample = new PushCustomerDetailExample();
         pushCustomerDetailExample.setOrderByClause(" id limit 2000");
@@ -393,7 +391,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
 
 
     private void pushCustomer(Customer customer,StraHisFile straHisFile,List<ScoreSortJsonVO> vos,AtomicInteger error){
-        int pushThream = (customer.getPushThreadNum() == null||new Integer(0).equals(customer.getPushThreadNum()))  ? 5 : customer.getPushThreadNum();
+        int pushThream = (customer.getPushThreadNum() == null||Integer.valueOf(0).equals(customer.getPushThreadNum()))  ? 5 : customer.getPushThreadNum();
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_pushCustomer");
         PushCustomerDetailExample pushCustomerDetailExample = new PushCustomerDetailExample();
         pushCustomerDetailExample.setOrderByClause(" id limit 1000");
@@ -419,9 +417,9 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                     for (String s : taskByMap.keySet()) {
                         JSONObject reqJb = new JSONObject();
                         JSONObject request = new JSONObject();
-                        JSONArray CstInfoArray = new JSONArray();
+                        JSONArray cstInfoArray = new JSONArray();
                         reqJb.put("request", request);
-                        request.put("CstInfoArray", CstInfoArray);
+                        request.put("CstInfoArray", cstInfoArray);
                         request.put("TxnSrlNo", appId + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
                                 + RandomStringUtils.randomNumeric(8));
                         request.put("TskId", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
@@ -440,7 +438,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                                 cstInfo.put(vo.getMappingKey(), getScoreSortByDb(vo.getDbNumber(), pushCustomerDetail));
                             }
                             cstInfo.put("CstNo", pushCustomerDetail.getCustNum());
-                            CstInfoArray.add(cstInfo);
+                            cstInfoArray.add(cstInfo);
                         }
                         //region push
                         PushCustomerDetailExample example = new PushCustomerDetailExample();
@@ -524,6 +522,8 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                         scoreSortJson.setDbNumber(3);
                     }
                     break;
+                default:
+                    break;
             }
             if (vos.size() <= 0 && scoreSortJson != null) {
                 scoreSortJson.setFirst(Boolean.TRUE);
@@ -560,6 +560,8 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             case 3:
                 detail.setScoreSort4(index.toString());
                 break;
+            default:
+                break;
         }
     }
 
@@ -573,8 +575,9 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 return detail.getScoreSort3();
             case 3:
                 return detail.getScoreSort4();
+            default:
+                return "";
         }
-        return "";
     }
 
     private List<Future<Result<Integer>>> searchData(String apiCode, String batchNumber
@@ -629,8 +632,6 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         Boolean first;
 
         Long fileId;
-
-        List<HxResultVO> hxResultVOS;
 
         Integer startIndex;
 
@@ -759,7 +760,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         try {
             retryPushExecutor.invokeAll(list);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(),e);
         }
         /**
          * 等待所有重试任务都执行完成

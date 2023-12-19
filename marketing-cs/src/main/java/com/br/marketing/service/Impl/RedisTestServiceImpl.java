@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
@@ -9,7 +8,6 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.context.spring.ContainerContext;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.speedconfig.testSpeed;
 import com.brgroup.redis.BrRedisClients;
 import com.brgroup.redis.client.BrRedisClient;
 import io.lettuce.core.ScanArgs;
@@ -17,10 +15,7 @@ import io.lettuce.core.ScanCursor;
 import io.lettuce.core.ValueScanCursor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.junit.Test;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

@@ -71,7 +71,7 @@ public class JobManagerByScorePushServiceImpl implements IJobManagerService {
         if (task == null || taskArgs.length <= 0) {
             return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage("参数错误");
         }
-        if (new Integer(11).equals(task.getActionType())) {
+        if (Integer.valueOf(11).equals(task.getActionType())) {
             return updateAllowJobStatus(task, taskArgs);
         }
         return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未找到更新的实现");
@@ -89,7 +89,7 @@ public class JobManagerByScorePushServiceImpl implements IJobManagerService {
         List<TransferActionFront> transferActionFronts = transferActionFrontMapper.selectByExample(frontExample);
         if (transferActionFronts.size() > 0) {
             TransferActionFront actionFront = transferActionFronts.get(0);
-            if (new Integer(2).equals(actionFront.getStatus()) || new Integer(4).equals(actionFront.getStatus())) {
+            if (Integer.valueOf(2).equals(actionFront.getStatus()) || Integer.valueOf(4).equals(actionFront.getStatus())) {
                 return new Result<>().setCode(ResultCode.FAIL.getValue());
             }
             String remark = actionFront.getRemark();
@@ -132,7 +132,9 @@ public class JobManagerByScorePushServiceImpl implements IJobManagerService {
             if (num >= scorePushRetryNum) {
                 updateEntity.setStatus(JobStatusEnum.RETRY_FAIL.getValue());
                 isRetry = Boolean.FALSE;
-                alarmApiClient.sendAlarm(String.format("作业类型：%d,作业任务记录id：%d",task.getActionType(),task.getId()),"滴滴作业重试多次仍然失败", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
+                alarmApiClient.sendAlarm(String.format("作业类型：%d,作业任务记录id：%d"
+                        ,task.getActionType(),task.getId())
+                        ,"跑分推送客戶重试多次仍然失败", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
             } else {
                 updateEntity.setStatus(JobStatusEnum.RETRY.getValue());
             }
