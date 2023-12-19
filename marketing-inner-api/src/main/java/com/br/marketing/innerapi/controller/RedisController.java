@@ -6,6 +6,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
@@ -17,6 +18,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("redis")
@@ -97,5 +101,16 @@ public class RedisController {
         return marketingCommonConfig.toString();
     }
 
-    
+    @GetMapping("/getScoreToCustomerBigKey")
+    public String getScoreToCustomerBigKey(Long fileId){
+        HashMap<String, Boolean> res = new HashMap<>();
+        for (int i = 0; i < 4; i++) {
+            String key = RedisKeyConstant.SCORE_TO_CUSTOMER_SORT_KEY
+                    .concat(":").concat(fileId.toString())
+                    .concat(":").concat("" + i);
+            Boolean exists = redisChgService.exists(key);
+            res.put(key,exists);
+        }
+        return JSON.toJSONString(res);
+    }
 }

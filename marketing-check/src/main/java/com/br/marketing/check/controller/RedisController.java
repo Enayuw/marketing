@@ -10,6 +10,7 @@ import com.br.marketing.client.haier.output.PushDTO;
 import com.br.marketing.client.haier.output.Response2Entity;
 import com.br.marketing.client.haier.output.ResponseInfoEntity;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.context.spring.ContainerContext;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.internal.job.AbstractElasticJob;
@@ -144,5 +145,18 @@ public class RedisController {
     public String getRuleFile(){
         Map<String, IFileToMarketingRuleService> beansOfType = CkeckApplication.ac.getBeansOfType(IFileToMarketingRuleService.class);
         return "123";
+    }
+
+    @GetMapping("/getScoreToCustomerBigKey")
+    public String getScoreToCustomerBigKey(Long fileId){
+        HashMap<String, Boolean> res = new HashMap<>();
+        for (int i = 0; i < 4; i++) {
+            String key = RedisKeyConstant.SCORE_TO_CUSTOMER_SORT_KEY
+                    .concat(":").concat(fileId.toString())
+                    .concat(":").concat("" + i);
+            Boolean exists = redisChgService.exists(key);
+            res.put(key,exists);
+        }
+        return JSON.toJSONString(res);
     }
 }

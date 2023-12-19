@@ -176,10 +176,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             }
             straHisFileList.add(straHisFile);
         } else {
-            String ruleNumber = StringUtils.isNotBlank(pushCustomerConfig.getScoreRuleShortName())
-                    ? pushCustomerConfig.getScoreRuleShortName()
-                    : "";
-            List<StraHisFile> fileByRule = straHisFileMapper.getFileByRule(createTime, ruleNumber);
+            List<StraHisFile> fileByRule = straHisFileMapper.getFileByRule(createTime, pushCustomerConfig.getScoreRuleShortName());
             if (fileByRule.size() > 0) {
                 StraHisFile straHisFile = fileByRule.get(0);
                 straHisFileList.add(straHisFile);
@@ -294,12 +291,6 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 sortDb(customer, straHisFile, vos, errorSort);
                 if (errorSort.get() <= 0) {
                     pointStatus = 0;
-                    for (int i = 0; i < 4; i++) {
-                        String key = RedisKeyConstant.SCORE_TO_CUSTOMER_SORT_KEY
-                                .concat(":").concat(straHisFile.getId().toString())
-                                .concat(":").concat("" + i);
-                        redisChgService.delBigHash(key, 3000);
-                    }
                 } else {
                     straHisFile.setPushStatus(4);
                     straHisFileMapper.updateByPrimaryKeySelective(straHisFile);
