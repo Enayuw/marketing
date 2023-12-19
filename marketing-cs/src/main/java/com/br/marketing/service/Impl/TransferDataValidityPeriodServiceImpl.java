@@ -1182,7 +1182,10 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      * @date 2023/12/08
      */
     @Override
-    public Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNumAndUserType(Set<String> custNumSet, String userType, String apiCode, Object requestDateObj) {
+    public Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNumAndUserType(Set<String> custNumSet,
+                                                                                         String userType,
+                                                                                         String apiCode,
+                                                                                         Object requestDateObj) {
         if (CollectionUtils.isEmpty(custNumSet) || StringUtils.isEmpty(userType) || StringUtils.isEmpty(apiCode)) {
             return Collections.emptyMap();
         }
@@ -1213,7 +1216,10 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      * @date 2023/12/08
      */
     @Override
-    public Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCellAndUserType(Set<String> cellSet, String userType, String apiCode, Object requestDateObj) {
+    public Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCellAndUserType(Set<String> cellSet,
+                                                                                      String userType,
+                                                                                      String apiCode,
+                                                                                      Object requestDateObj) {
         if (CollectionUtils.isEmpty(cellSet) || StringUtils.isEmpty(userType) || StringUtils.isEmpty(apiCode)) {
             return Collections.emptyMap();
         }
@@ -1232,7 +1238,10 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         return resultMap;
     }
 
-    private void buildValidityPeriodsInfoByKeyMapper(Function<MarketingSyncUser, String> keyMapper, List<MarketingSyncUser> syncUserList, List<MarketingDataValidConfig> configList, Map<String, SyncUserValidityPeriodsBO> resultMap) {
+    private void buildValidityPeriodsInfoByKeyMapper(Function<MarketingSyncUser, String> keyMapper,
+                                                     List<MarketingSyncUser> syncUserList,
+                                                     List<MarketingDataValidConfig> configList,
+                                                     Map<String, SyncUserValidityPeriodsBO> resultMap) {
         Map<String, List<MarketingSyncUser>> custNumMap = syncUserList.stream().collect(Collectors.groupingBy(keyMapper));
         Map<String, MarketingDataValidConfig> configMap =
             configList.stream().collect(Collectors.toMap(config -> config.getUserType() + config.getAppletDate(), Function.identity(),

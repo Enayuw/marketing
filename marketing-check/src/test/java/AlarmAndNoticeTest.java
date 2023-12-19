@@ -1,8 +1,10 @@
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.CkeckApplication;
+import com.br.marketing.check.job.TransferFileTaskJob;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.TransferActionFront;
@@ -20,6 +22,7 @@ import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.ZhongYuanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -225,6 +228,10 @@ public class AlarmAndNoticeTest {
 
     final static String ZHONGBANG_TRANSFER_FILE = "caifu_transform_";
 
+    private final static String TABLE_HEAD_TRANSFER = "custNum,cell,userType,applyDt,applyResult,auditTime," +
+            "ifLent,lentTime,lentAmount,effectiveTime,applyLoan";
+
+
     @Test
     public void newTransferFileTest() {
         TransferFileTask transferFileTask = new TransferFileTask();
@@ -314,6 +321,52 @@ public class AlarmAndNoticeTest {
             log.error(ex.getMessage());
         }
 
+    }
+
+    @Resource
+    private TransferToFileByNewTongChengServiceImpl transfer;
+
+    @Test
+    public void NewTongChengTransferFileTest() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7492638");
+        String myParam = "7492638#2023-12-15";
+        String dd = isMyParam("7492638", myParam);
+        transferFileTask.setStartDate(dd);
+        String recordDate = transferFileTask.getStartDate();
+        boolean isParam = StringUtils.isNotBlank(dd);
+        String dateyyyymmddStr = isParam ? dd.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        transferFileTask.setFileName(String.format("tongcheng_zhuanhua_%s.txt", dateyyyymmddStr));
+        log.warn("同程新系统转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String apiCode = transferFileTask.getApiCode();
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
+            fw.append(TABLE_HEAD_TRANSFER);
+            fw.append("\r\n");
+            transfer.writeNewTongChengTransferToFile(fw,apiCode,transferFileTask, recordDate);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+
+    }
+
+    public String isMyParam(String apiCode, String jobParameter) {
+        if (jobParameter.contains(apiCode)) {
+            String[] split = jobParameter.split(";");
+            for (String s : split) {
+                if (s.contains(apiCode)) {
+                    return s.split("#")[1];
+                }
+            }
+        }
+        return "";
     }
 
 

@@ -313,6 +313,16 @@ public class MarketingCommonConfig {
     private String tongChengTransferExecuteTime;
 
     /**
+     * 同程转化数据提取apicode集合
+     */
+    private List<String> NewTongChengTransferFileApiCodes;
+
+    /**
+     * 同程转化数据提取执行时间
+     */
+    private String NewTongChengTransferExecuteTime;
+
+    /**
      * 携程数据推送线程数
      */
     private Integer xiechengDataSendThread;
