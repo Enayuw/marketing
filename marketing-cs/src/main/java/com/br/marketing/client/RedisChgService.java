@@ -162,9 +162,9 @@ public class RedisChgService {
         return marketingRedisClient.hset(hkey, key, value);
     }
 
-    public Long hset(String hkey, HashMap<String,String> map) {
+    public String hset(String hkey, HashMap<String,String> map) {
         BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        return marketingRedisClient.hset(hkey, map);
+        return marketingRedisClient.hmset(hkey, map);
     }
 
     /**
