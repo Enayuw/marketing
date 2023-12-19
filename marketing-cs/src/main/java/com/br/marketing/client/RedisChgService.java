@@ -7,10 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * redis客户端
@@ -147,6 +144,12 @@ public class RedisChgService {
         return result;
     }
 
+    public List<KeyValue<String, String>> hmget(String hkey,String... key){
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.hmget(hkey, key);
+    }
+
+
     /**
      * 给hash赋值一个key和value
      * @param hkey
@@ -157,6 +160,11 @@ public class RedisChgService {
     public Boolean hset(String hkey, String key, String value) {
         BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         return marketingRedisClient.hset(hkey, key, value);
+    }
+
+    public Long hset(String hkey, HashMap<String,String> map) {
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.hset(hkey, map);
     }
 
     /**

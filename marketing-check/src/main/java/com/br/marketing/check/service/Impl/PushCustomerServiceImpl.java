@@ -38,6 +38,7 @@ import com.br.marketing.vo.scorepushcustomer.HxResultVO;
 import com.br.marketing.vo.scorepushcustomer.ScoreSortJsonVO;
 import com.google.common.base.Joiner;
 import com.sun.org.apache.xpath.internal.operations.Bool;
+import io.lettuce.core.KeyValue;
 import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
@@ -49,6 +50,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -271,6 +273,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             }
             //endregion
 
+
             log.warn(String.format("数据捞取耗时：%d",System.currentTimeMillis()-start));
 
             if(pause){
@@ -285,107 +288,34 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 return;
             }
 
+            //region数据更新排序
+            if(pointStatus == 0 || pointStatus == 4) {
+                AtomicInteger errorSort = new AtomicInteger();
+                sortDb(customer, straHisFile, vos, errorSort);
+                if (errorSort.get() <= 0) {
+                    pointStatus = 0;
+                    for (int i = 0; i < 4; i++) {
+                        String key = RedisKeyConstant.SCORE_TO_CUSTOMER_SORT_KEY
+                                .concat(":").concat(straHisFile.getId().toString())
+                                .concat(":").concat("" + i);
+                        redisChgService.delBigHash(key, 3000);
+                    }
+                } else {
+                    straHisFile.setPushStatus(4);
+                    straHisFileMapper.updateByPrimaryKeySelective(straHisFile);
+                    alarmApiClient.sendAlarm(String.format("数据更新顺序过程有错误，暂停后续的推送动作！fileId:%d",straHisFile.getId()),"跑分推送客户", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
+                    jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.FALSE);
+                    return;
+                }
+            }
+            //endregion
+
+            log.warn(String.format("更新排序耗时：%d",System.currentTimeMillis()-start));
+
             //region 数据推送
             if (pointStatus == 0 || pointStatus == 2) {
-                int pushThream = (customer.getPushThreadNum() == null||new Integer(0).equals(customer.getPushThreadNum()))  ? 5 : customer.getPushThreadNum();
-                ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_pushCustomer");
-                PushCustomerDetailExample pushCustomerDetailExample = new PushCustomerDetailExample();
-                pushCustomerDetailExample.setOrderByClause(" id limit 2000");
-                PushCustomerDetailExample.Criteria criteria = pushCustomerDetailExample.createCriteria();
-                criteria.andFileIdEqualTo(straHisFile.getId()).andPushStatusEqualTo(1);
-                Boolean action = Boolean.TRUE;
                 AtomicInteger error = new AtomicInteger();
-                Long minId = null;
-                while (action) {
-                    if (minId != null) {
-                        criteria.andIdGreaterThan(minId);
-                    }
-                    List<PushCustomerDetail> pushCustomerDetails = pushCustomerDetailMapper.selectByExample(pushCustomerDetailExample);
-                    if (pushCustomerDetails.size() <= 0) {
-                        action = Boolean.FALSE;
-                        continue;
-                    }
-                    minId = pushCustomerDetails.get(pushCustomerDetails.size() - 1).getId();
-                    pushPool.submit(() -> {
-                        try {
-                            Map<String, List<PushCustomerDetail>> taskByMap = pushCustomerDetails.stream()
-                                    .collect(Collectors.groupingBy(PushCustomerDetail::getTaskId));
-                            for (String s : taskByMap.keySet()) {
-                                JSONObject reqJb = new JSONObject();
-                                JSONObject request = new JSONObject();
-                                JSONArray CstInfoArray = new JSONArray();
-                                reqJb.put("request", request);
-                                request.put("CstInfoArray", CstInfoArray);
-                                request.put("TxnSrlNo", appId + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-                                        + RandomStringUtils.randomNumeric(8));
-                                request.put("TskId", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-                                request.put("TxnDt", s);
-                                request.put("TxnTs", LocalTime.now().format(DateTimeFormatter.ofPattern("HHmmssSSS")));
-                                request.put("RqsSeqNo", apiCode
-                                        + "_" + request.getString("TskId")
-                                        + "_" + UUID.randomUUID().toString());
-                                List<PushCustomerDetail> pushCustomerDetails1 = taskByMap.get(s);
-                                List<Long> detailIds = new ArrayList<>();
-                                for (PushCustomerDetail pushCustomerDetail : pushCustomerDetails1) {
-                                    PushCustomerDetail updateEntity = new PushCustomerDetail();
-                                    JSONObject cstInfo = new JSONObject();
-                                    cstInfo.put("GrpTp", pushCustomerDetail.getUserType());
-                                    updateEntity.setId(pushCustomerDetail.getId());
-                                    detailIds.add(pushCustomerDetail.getId());
-                                    for (ScoreSortJsonVO vo : vos) {
-                                        if (!vo.getFirst()) {
-                                            String key = RedisKeyConstant.SCORE_TO_CUSTOMER_SORT_KEY
-                                                    .concat(":").concat(straHisFile.getId().toString())
-                                                    .concat(":").concat(vo.getDbNumber().toString());
-                                            String sortIndex = redisChgService.hget(key, pushCustomerDetail.getScoreId());
-                                            setScoreSort(vo, updateEntity, Integer.valueOf(sortIndex));
-                                            cstInfo.put(vo.getMappingKey(), sortIndex);
-                                        } else {
-                                            cstInfo.put(vo.getMappingKey(), getScoreSortByDb(vo.getDbNumber(), pushCustomerDetail));
-                                        }
-                                    }
-                                    pushCustomerDetailMapper.updateByPrimaryKeySelective(updateEntity);
-                                    cstInfo.put("CstNo", pushCustomerDetail.getCustNum());
-                                    CstInfoArray.add(cstInfo);
-                                }
-                                //region push
-                                PushCustomerDetailExample example = new PushCustomerDetailExample();
-                                example.createCriteria().andIdIn(detailIds);
-                                PushCustomerDetail update = new PushCustomerDetail();
-                                String rqsSeqNo = "";
-                                try {
-                                    rqsSeqNo = zbankClient.cMBrScoDaFeBack(reqJb, request.getString("RqsSeqNo"));
-                                    ZbankResponse<ZbankLabelRatingReResultDTO> rqZbank = JSONObject.parseObject(rqsSeqNo
-                                            , new TypeReference<ZbankResponse<ZbankLabelRatingReResultDTO>>() {
-                                            });
-                                    if ("000000".equals(rqZbank.getCode())) {
-                                        ZbankLabelRatingReResultDTO result1 = rqZbank.getResult();
-                                        if ("00".equals(result1.getErrCd())) {
-                                            update.setPushStatus(2);
-                                        } else if ("500".equals(result1.getErrCd())) {
-                                            update.setPushStatus(3);
-                                            error.incrementAndGet();
-                                        } else {
-                                            update.setPushStatus(3);
-                                            error.incrementAndGet();
-                                        }
-                                    } else {
-                                        update.setPushStatus(3);
-                                        error.incrementAndGet();
-                                    }
-                                } catch (Exception ex) {
-                                    log.error(ex.getMessage() + "响应：" + rqsSeqNo, ex);
-                                    error.incrementAndGet();
-                                }
-                                pushCustomerDetailMapper.updateByExampleSelective(update, example);
-                                //endregion
-                            }
-                        } catch (Exception e) {
-                            log.error("推送客户线程报错" + e.getMessage(), e);
-                        }
-                    });
-                }
-                waitThreadPool(pushPool);
+                pushCustomer(customer,straHisFile, vos,error);
                 if (error.get() > 0) {
                     straHisFile.setPushStatus(2);
                 } else {
@@ -406,6 +336,151 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         }
     }
 
+    private void sortDb(Customer customer,StraHisFile straHisFile,List<ScoreSortJsonVO> vos,AtomicInteger error){
+        int pushThream = (customer.getPushThreadNum() == null||new Integer(0).equals(customer.getPushThreadNum()))  ? 5 : customer.getPushThreadNum();
+        ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_pushCustomer");
+        PushCustomerDetailExample pushCustomerDetailExample = new PushCustomerDetailExample();
+        pushCustomerDetailExample.setOrderByClause(" id limit 2000");
+        PushCustomerDetailExample.Criteria criteria = pushCustomerDetailExample.createCriteria();
+        criteria.andFileIdEqualTo(straHisFile.getId()).andPushStatusEqualTo(1);
+        Boolean action = Boolean.TRUE;
+        Long minId = null;
+        while (action) {
+            if (minId != null) {
+                criteria.andIdGreaterThan(minId);
+            }
+            List<PushCustomerDetail> pushCustomerDetails = pushCustomerDetailMapper.selectByExample(pushCustomerDetailExample);
+            if (pushCustomerDetails.size() <= 0) {
+                action = Boolean.FALSE;
+                continue;
+            }
+            minId = pushCustomerDetails.get(pushCustomerDetails.size() - 1).getId();
+            pushPool.submit(() -> {
+                try{
+                    String[] scorIds = new String[pushCustomerDetails.size()];
+                    HashMap<String,PushCustomerDetail> detalMap = new HashMap();
+                    for (int i = 0; i < pushCustomerDetails.size(); i++) {
+                        scorIds[i]= pushCustomerDetails.get(i).getScoreId();
+                        PushCustomerDetail updateEntity = new PushCustomerDetail();
+                        updateEntity.setId(pushCustomerDetails.get(i).getId());
+                        detalMap.put(pushCustomerDetails.get(i).getScoreId(),updateEntity);
+                    }
+                    for (ScoreSortJsonVO vo : vos) {
+                        if (!vo.getFirst()) {
+                            String key = RedisKeyConstant.SCORE_TO_CUSTOMER_SORT_KEY
+                                    .concat(":").concat(straHisFile.getId().toString())
+                                    .concat(":").concat(vo.getDbNumber().toString());
+                            List<KeyValue<String, String>> hmget = redisChgService.hmget(key, scorIds);
+                            for (KeyValue<String, String> kv : hmget) {
+                                if (detalMap.get(kv.getKey())!=null) {
+                                    setScoreSort(vo,detalMap.get(kv.getKey()),Integer.valueOf(kv.getValue()));
+                                }
+                            }
+                        }
+                    }
+                    for (String s : detalMap.keySet()) {
+                        PushCustomerDetail pushCustomerDetail = detalMap.get(s);
+                        pushCustomerDetailMapper.updateByPrimaryKeySelective(pushCustomerDetail);
+                    }
+                }catch (Exception ex){
+                    error.incrementAndGet();
+                    log.error("更新顺序报错："+ex.getMessage(),ex);
+                }
+            });
+        }
+        waitThreadPool(pushPool);
+    }
+
+
+    private void pushCustomer(Customer customer,StraHisFile straHisFile,List<ScoreSortJsonVO> vos,AtomicInteger error){
+        int pushThream = (customer.getPushThreadNum() == null||new Integer(0).equals(customer.getPushThreadNum()))  ? 5 : customer.getPushThreadNum();
+        ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_pushCustomer");
+        PushCustomerDetailExample pushCustomerDetailExample = new PushCustomerDetailExample();
+        pushCustomerDetailExample.setOrderByClause(" id limit 1000");
+        PushCustomerDetailExample.Criteria criteria = pushCustomerDetailExample.createCriteria();
+        criteria.andFileIdEqualTo(straHisFile.getId()).andPushStatusEqualTo(1);
+        Boolean action = Boolean.TRUE;
+
+        Long minId = null;
+        while (action) {
+            if (minId != null) {
+                criteria.andIdGreaterThan(minId);
+            }
+            List<PushCustomerDetail> pushCustomerDetails = pushCustomerDetailMapper.selectByExample(pushCustomerDetailExample);
+            if (pushCustomerDetails.size() <= 0) {
+                action = Boolean.FALSE;
+                continue;
+            }
+            minId = pushCustomerDetails.get(pushCustomerDetails.size() - 1).getId();
+            pushPool.submit(() -> {
+                try {
+                    Map<String, List<PushCustomerDetail>> taskByMap = pushCustomerDetails.stream()
+                            .collect(Collectors.groupingBy(PushCustomerDetail::getTaskId));
+                    for (String s : taskByMap.keySet()) {
+                        JSONObject reqJb = new JSONObject();
+                        JSONObject request = new JSONObject();
+                        JSONArray CstInfoArray = new JSONArray();
+                        reqJb.put("request", request);
+                        request.put("CstInfoArray", CstInfoArray);
+                        request.put("TxnSrlNo", appId + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                                + RandomStringUtils.randomNumeric(8));
+                        request.put("TskId", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+                        request.put("TxnDt", s);
+                        request.put("TxnTs", LocalTime.now().format(DateTimeFormatter.ofPattern("HHmmssSSS")));
+                        request.put("RqsSeqNo", customer.getApiCode()
+                                + "_" + request.getString("TskId")
+                                + "_" + UUID.randomUUID().toString());
+                        List<PushCustomerDetail> pushCustomerDetails1 = taskByMap.get(s);
+                        List<Long> detailIds = new ArrayList<>();
+                        for (PushCustomerDetail pushCustomerDetail : pushCustomerDetails1) {
+                            JSONObject cstInfo = new JSONObject();
+                            cstInfo.put("GrpTp", pushCustomerDetail.getUserType());
+                            detailIds.add(pushCustomerDetail.getId());
+                            for (ScoreSortJsonVO vo : vos) {
+                                cstInfo.put(vo.getMappingKey(), getScoreSortByDb(vo.getDbNumber(), pushCustomerDetail));
+                            }
+                            cstInfo.put("CstNo", pushCustomerDetail.getCustNum());
+                            CstInfoArray.add(cstInfo);
+                        }
+                        //region push
+                        PushCustomerDetailExample example = new PushCustomerDetailExample();
+                        example.createCriteria().andIdIn(detailIds);
+                        PushCustomerDetail update = new PushCustomerDetail();
+                        String rqsSeqNo = "";
+                        try {
+                            rqsSeqNo = zbankClient.cMBrScoDaFeBack(reqJb, request.getString("RqsSeqNo"));
+                            ZbankResponse<ZbankLabelRatingReResultDTO> rqZbank = JSONObject.parseObject(rqsSeqNo
+                                    , new TypeReference<ZbankResponse<ZbankLabelRatingReResultDTO>>() {
+                                    });
+                            if ("000000".equals(rqZbank.getCode())) {
+                                ZbankLabelRatingReResultDTO result1 = rqZbank.getResult();
+                                if ("00".equals(result1.getErrCd())) {
+                                    update.setPushStatus(2);
+                                } else if ("500".equals(result1.getErrCd())) {
+                                    update.setPushStatus(3);
+                                    error.incrementAndGet();
+                                } else {
+                                    update.setPushStatus(3);
+                                    error.incrementAndGet();
+                                }
+                            } else {
+                                update.setPushStatus(3);
+                                error.incrementAndGet();
+                            }
+                        } catch (Exception ex) {
+                            log.error(ex.getMessage() + "响应：" + rqsSeqNo, ex);
+                            error.incrementAndGet();
+                        }
+                        pushCustomerDetailMapper.updateByExampleSelective(update, example);
+                        //endregion
+                    }
+                } catch (Exception e) {
+                    log.error("推送客户线程报错" + e.getMessage(), e);
+                }
+            });
+        }
+        waitThreadPool(pushPool);
+    }
     private void waitThreadPool(ThreadPoolExecutor executor) {
         executor.shutdown();
         while (true) {
@@ -521,7 +596,8 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         queryBaseBean.setJsonData(JSON.toJSONString(queryData));
         int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         String searchAfterStr = "";
-        Integer pageSize = 2000;
+        //todo 合并测试改回该数量2000
+        Integer pageSize = 10;
         int totalYuShu = total % pageSize;
         int totalPage = total / pageSize + (totalYuShu > 0 ? 1 : 0);
         Integer partStart = 1;
@@ -574,14 +650,24 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         public Result<Integer> call() throws Exception {
             try {
                 if (marketingHistories.size() > 0) {
-                    for (MarketingHistory marketingHistory : marketingHistories) {
+                    HashMap<String, String> sortMap = new HashMap<>();
+                    ArrayList<PushCustomerDetail> dbEntitys = new ArrayList<>();
+                    String key = RedisKeyConstant.SCORE_TO_CUSTOMER_SORT_KEY
+                            .concat(":").concat(fileId.toString())
+                            .concat(":").concat(scoreSortJsonVO.getDbNumber().toString());
+                    for (int i = 0; i < marketingHistories.size(); i++) {
+                        MarketingHistory marketingHistory = marketingHistories.get(i);
                         Integer nowNumber;
                         PushCustomerDetail pushCustomerDetail = new PushCustomerDetail();
                         pushCustomerDetail.setScoreId(marketingHistory.getSwiftNumber());
                         pushCustomerDetail.setFileId(fileId);
                         if (scoreSortJsonVO != null) {
                             nowNumber = startIndex;
-                            setScoreSortField(scoreSortJsonVO, pushCustomerDetail, fileId, nowNumber);
+                            if(first){
+                                setScoreSort(scoreSortJsonVO, pushCustomerDetail, nowNumber);
+                            }else{
+                                sortMap.put(pushCustomerDetail.getScoreId(),nowNumber.toString());
+                            }
                             startIndex++;
                         }
 
@@ -593,7 +679,15 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                             pushCustomerDetail.setUserType(marketingHistory.getUserType());
                             pushCustomerDetail.setUserType(marketingHistory.getUserType());
                             pushCustomerDetail.setCreateTime(new Date());
-                            pushCustomerDetailMapper.insertSelective(pushCustomerDetail);
+                            dbEntitys.add(pushCustomerDetail);
+                        }
+                        if(dbEntitys.size()==50||(first && i==marketingHistories.size()-1)){
+                            pushCustomerDetailMapper.insertBatch(dbEntitys);
+                            dbEntitys.clear();
+                        }
+                        if(sortMap.keySet().size()==50||(!first && i==marketingHistories.size()-1)){
+                            redisChgService.hset(key,sortMap);
+                            sortMap.clear();
                         }
                     }
                 }
