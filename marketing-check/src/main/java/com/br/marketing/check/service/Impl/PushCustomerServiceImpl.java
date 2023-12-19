@@ -596,8 +596,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         queryBaseBean.setJsonData(JSON.toJSONString(queryData));
         int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         String searchAfterStr = "";
-        //todo 合并测试改回该数量2000
-        Integer pageSize = 10;
+        Integer pageSize = 2000;
         int totalYuShu = total % pageSize;
         int totalPage = total / pageSize + (totalYuShu > 0 ? 1 : 0);
         Integer partStart = 1;
