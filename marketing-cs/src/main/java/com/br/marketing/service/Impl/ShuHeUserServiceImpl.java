@@ -5,16 +5,12 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.br.common.encryption.Md5Utils;
 import com.br.marketing.adapter.transfer.TransferSyncAdapter;
 import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.exception.BusinessException;
-import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
-import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.dto.shuhe.ResponseShuheDTO;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.dto.shuhe.factory.CaseShuheUserFactory;
@@ -23,9 +19,6 @@ import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.dto.shuhe.strategy.UnknownUserType;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
-import com.br.marketing.origin.MqFact;
-import com.br.marketing.origin.TransferSource;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.util.ShuHeAESencUtil;
@@ -82,15 +75,18 @@ public class ShuHeUserServiceImpl {
     DateTimeFormatter ymdhms = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
-
     @Transactional(rollbackFor = Exception.class)
     public Long saveShUploadData(CaseShuheUploadData shuheUploadData, JSONObject uploadDataDTO, JSONArray listInfo) {
         //todo 模拟异常上线后要删除
-        pushRuleService.mockDbOrRedisError(1,shuheUploadData.getApiCode());
+        pushRuleService.mockDbOrRedisError(1, shuheUploadData.getApiCode());
         caseShuheUploadDataMapper.insertSelective(shuheUploadData);
         return saveSyncInfo(adapterMarketingPreUserDTO(uploadDataDTO, listInfo, shuheUploadData), shuheUploadData);
     }
 
+    /**
+     * 2023-12-21 17:10
+     * 数禾上传数据适配上传数据
+     */
     private MarketingPreUserDTO adapterMarketingPreUserDTO(JSONObject uploadDataDTO, JSONArray listInfo
             , CaseShuheUploadData shuheUploadData) {
         try {
@@ -123,13 +119,22 @@ public class ShuHeUserServiceImpl {
                 if (!CollectionUtils.isEmpty(varData)) {
                     String keyId = "identificationNo";
                     String keyName = "name";
-                    if (varData.containsKey(keyId)) {
+                    String keySex = "sex";
+                    String keyIdNew = "idt_no";
+                    if (varData.containsKey(keyIdNew)) {
+                        dto.setId(varData.getString(keyIdNew));
+                        varData.remove(keyIdNew);
+                    } else if (varData.containsKey(keyId)) {
                         dto.setId(varData.getString(keyId));
                         varData.remove(keyId);
                     }
                     if (varData.containsKey(keyName)) {
                         dto.setName(varData.getString(keyName));
                         varData.remove(keyName);
+                    }
+                    if (varData.containsKey(keySex)) {
+                        reserveField1.put("gender", varData.getString(keySex));
+                        varData.remove(keySex);
                     }
                     reserveField1.putAll(varData);
                 }
