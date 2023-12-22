@@ -420,8 +420,8 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                         request.put("CstInfoArray", cstInfoArray);
                         request.put("TxnSrlNo", appId + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
                                 + RandomStringUtils.randomNumeric(8));
-                        request.put("TskId", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-                        request.put("TxnDt", s);
+                        request.put("TskId", s);
+                        request.put("TxnDt", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
                         request.put("TxnTs", LocalTime.now().format(DateTimeFormatter.ofPattern("HHmmssSSS")));
                         request.put("RqsSeqNo", customer.getApiCode()
                                 + "_" + request.getString("TskId")
