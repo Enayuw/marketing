@@ -91,7 +91,8 @@ public class ShuHeUserServiceImpl {
             , CaseShuheUploadData shuheUploadData) {
         try {
             MarketingPreUserDTO userDTO = new MarketingPreUserDTO();
-            userDTO.setTaskId(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE));
+            userDTO.setTaskId(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)
+                    .concat("_").concat(shuheUploadData.getApiCode()));
             userDTO.setRequestId(shuheUploadData.getRequestId());
             userDTO.setLast("0");
             userDTO.setTotal("0");
@@ -171,6 +172,7 @@ public class ShuHeUserServiceImpl {
         syncInfo.setLast((byte) 0);
         syncInfo.setTotal(0L);
         syncInfo.setCreateTime(shuheUploadData.getCreateTime());
+        syncInfo.setUpdateTime(shuheUploadData.getCreateTime());
         syncInfo.setActualNum(userDTO.getDataItems().size());
         syncInfo.setJsonData(JSON.toJSONString(userDTO, SerializerFeature.WriteNullStringAsEmpty
                 , SerializerFeature.WriteNullListAsEmpty));
