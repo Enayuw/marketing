@@ -289,7 +289,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             //region数据更新排序
             if(pointStatus == 0 || pointStatus == 4) {
                 AtomicInteger errorSort = new AtomicInteger();
-                sortDb(customer, straHisFile, vos, errorSort);
+                sortDb(straHisFile, vos, errorSort);
                 if (errorSort.get() <= 0) {
                     pointStatus = 0;
                 } else {
@@ -329,7 +329,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         alarmApiClient.sendAlarm(message,"跑分推送客户", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
     }
 
-    private void sortDb(Customer customer,StraHisFile straHisFile,List<ScoreSortJsonVO> vos,AtomicInteger error){
+    private void sortDb(StraHisFile straHisFile,List<ScoreSortJsonVO> vos,AtomicInteger error){
         int pushThream = marketingCommonConfig.getScoreUpdateSortThreadNum() == null
                 ? 5 : marketingCommonConfig.getScoreUpdateSortThreadNum();
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_updateSort");
