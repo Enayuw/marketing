@@ -85,7 +85,7 @@
 
     <job:simple id="SftpToDbByResultDataJob"
                 class="com.br.marketing.check.job.SftpToDbByResultDataJob"
-                cron="0 2/30 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="sftp运营结果文件数据入库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -99,7 +99,7 @@
     />
     <job:simple id="SftpToDbByDxTransferDataJob"
                 class="com.br.marketing.check.job.SftpToDbByDxTransferDataJob"
-                cron="0 4/30 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="sftpDass转化文件数据入库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -113,7 +113,7 @@
     />
     <job:simple id="SftpToDbByDxIbuDataJob"
                 class="com.br.marketing.check.job.SftpToDbByDxIbuDataJob"
-                cron="0 6/30 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="sftpDassIbu文件数据入库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -127,7 +127,7 @@
     />
     <job:simple id="SftpToDbByTwoSevenJob"
                 class="com.br.marketing.check.job.SftpToDbByTwoSevenJob"
-                cron="0 1/15 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="77转化文件数据入库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -199,7 +199,7 @@
 
     <job:simple id="haierToDxJob"
                 class="com.br.marketing.check.job.HaierToDxJob"
-                cron="0 0 0/1 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="海尔转化数据推送电销"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -243,7 +243,7 @@
     />
     <job:simple id="ZhongYouTransferToFileTaskJob"
                 class="com.br.marketing.check.job.zhongyou.ZhongYouTransferToFileTaskJob"
-                cron="0 1/10 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="中邮转化数据作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -313,7 +313,7 @@
     />
     <job:simple id="SftpToDbByCallingJbo"
                 class="com.br.marketing.check.job.SftpToDbByCallingJbo"
-                cron="0 0 0 1/1 * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="客服拨打明细落库"
                 registry-center-ref="regCenter"
                 sharding-total-count="4"
@@ -327,7 +327,7 @@
     />
     <job:simple id="CallingToSendJob"
                 class="com.br.marketing.check.job.CallingToSendJob"
-                cron="0 0 0 1/1 * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="客服拨打明细发送给第三方"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -386,7 +386,7 @@
 
     <job:simple id="ShuHeBlackPhonePushDaasJob"
                 class="com.br.marketing.check.job.ShuHeBlackPhonePushDaasJob"
-                cron="0 0 20 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="数禾黑名单推电销转化接口"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -401,7 +401,7 @@
 
     <job:simple id="HaluoDassJob"
                 class="com.br.marketing.check.job.HaluoDassJob"
-                cron="0 0 10 * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="哈罗推送电销"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -431,7 +431,7 @@
 
     <job:simple id="ShuHeInvalidDataFilterToDaasTransferJob"
                 class="com.br.marketing.check.job.ShuHeInvalidDataFilterToDaasTransferJob"
-                cron="0 0 20 * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="数禾失效数据过虑到Dass转化接口调度任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -475,7 +475,7 @@
 
     <job:simple id="SmyUploadDataToDaasJob"
                 class="com.br.marketing.check.job.SmyUploadDataToDaasJob"
-                cron="0 0 9 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="萨摩耶上传数据推送daas"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -489,7 +489,7 @@
     />
     <job:simple id="SmyTransferDataToDaasJob"
                 class="com.br.marketing.check.job.SmyTransferDataToDaasJob"
-                cron="0 30 21 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="萨摩耶转化数据剔除"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -532,7 +532,7 @@
 
     <job:simple id="PPDaiOldPeriodicityPushDxJob"
                 class="com.br.marketing.check.job.ppdai.PPDaiOldPeriodicityPushDxJob"
-                cron="0 30 10 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="拍拍贷老客周期性推送电销"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -562,7 +562,7 @@
     />
     <job:simple id="OrangeTransferDataPeriodToDassJob"
                 class="com.br.marketing.check.job.juzi.OrangeTransferDataPeriodToDassJob"
-                cron="0 0/30 9-23 * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="桔子周期推送电销Daas"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -623,7 +623,7 @@
 
     <job:simple id="AutomatedPushDecisionJob"
                 class="com.br.marketing.check.job.decision.AutomatedPushDecisionJob"
-                cron="0 1/10 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="自动化推送决策作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -665,7 +665,7 @@
     />
     <job:simple id="ZhongYouDataPullJob"
                 class="com.br.marketing.check.job.zhongyou.ZhongYouDataPullJob"
-                cron="0 05 8 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="中邮数据拉取"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -809,7 +809,7 @@
 
     <job:simple id="ValidPeriodResendJob"
                 class="com.br.marketing.check.job.ValidPeriodResendJob"
-                cron="0 */30 * ? * *"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="有效期任务变更重推任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -823,7 +823,7 @@
     />
     <job:simple id="QiFuBreakPointDataToJueCeJob"
                 class="com.br.marketing.check.job.qifu.QiFuBreakPointDataToJueCeJob"
-                cron="0 0 8 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="奇富断点自动化数据推决策，每天8点执行一次"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
