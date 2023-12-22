@@ -247,4 +247,7 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     int getUnresolvedCount(@Param("apiCode") String apiCode, @Param("startDate") String startDate,@Param("endDate") String endDate);
 
+    String getAppletDateByCusBatch(String cusBatch);
+    List<String> getCusBatchByAppletDate(String appletDate);
+
 }
