@@ -129,7 +129,7 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
         List<String> validityPeriodApiCodeList = marketingCommonConfig.getValidityPeriodApiCodeList();
         // 校验apiCode
         if (!validityPeriodApiCodeList.contains(apiCode)) {
-            log.error("有效期变更接口异常：{}", API_CODE_AUTH_ERROR.getErrorMsg());
+            log.error("有效期变更接口异常：{}，jsonData:{}", API_CODE_AUTH_ERROR.getErrorMsg(),jsonData);
             return new ApiNoDataResult().setCode(API_CODE_AUTH_ERROR.getErrorCode())
                     .setMessage(API_CODE_AUTH_ERROR.getErrorMsg());
         }
@@ -138,7 +138,7 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
         try {
             jsonObject = JSON.parseObject(jsonData);
         } catch (Exception e) {
-            log.error("有效期变更接口异常：{}", JSON_DATA_ERROR.getErrorMsg());
+            log.error("有效期变更接口异常：{}，jsonData:{}", JSON_DATA_ERROR.getErrorMsg(),jsonData);
             return new ApiNoDataResult().setCode(JSON_DATA_ERROR.getErrorCode())
                     .setMessage(JSON_DATA_ERROR.getErrorMsg());
         }
@@ -146,7 +146,7 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
         // 校验 taskId
         String taskId = jsonObject.getString("taskId");
         if (StringUtils.isBlank(taskId)) {
-            log.error("有效期变更接口异常：{}", TASK_ID_ERROR.getErrorMsg());
+            log.error("有效期变更接口异常：{}，jsonData:{}", TASK_ID_ERROR.getErrorMsg(),jsonData);
             return new ApiNoDataResult().setCode(TASK_ID_ERROR.getErrorCode())
                     .setMessage(TASK_ID_ERROR.getErrorMsg());
         }
@@ -162,41 +162,44 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
             effectiveDateTransfer = formatDate(effectiveDate);
             expireDateTransfer = formatDate(expireDate);
         } catch (Exception e) {
-            log.error("有效期变更接口异常：日期格式不符合要求，{},{} ",effectiveDate,expireDate);
+            log.error("有效期变更接口异常：日期格式不符合要求，jsonData:{} ",jsonData);
             return new ApiNoDataResult().setCode(TIME_FORMAT_ERROR.getErrorCode())
                     .setMessage(TIME_FORMAT_ERROR.getErrorMsg());
         }
         // 根据批次号查询appletDate
-        String appletDate = marketingSyncInfoMapper.getAppletDateByCusBatch(taskId);
-        if (!StringUtils.isBlank(appletDate)) {
-            // 根据appletDate 查询有效期配置表
-            List<MarketingDataValidConfig> validityDataByAppletDate = marketingDataValidConfigMapper.getValidityDataByAppletDate(apiCode, appletDate);
-            for (int i = 0; i < validityDataByAppletDate.size(); i++) {
-                MarketingDataValidConfig marketingDataValidConfig = validityDataByAppletDate.get(i);
-                String validStartDate = marketingDataValidConfig.getValidStartDate();
-                String validEndDate = marketingDataValidConfig.getValidEndDate();
-                // 判断开始时间和结束时间是否有变化 有变化则更改 没有变化返回成功报警通知
-                if (effectiveDateTransfer.equals(validStartDate) && expireDateTransfer.equals(validEndDate)) {
-                    log.error("有效期变更接口传入有效期参数与历史有效期时间相同，未重新推送数据 ：{},{},{}", taskId, effectiveDateTransfer, expireDateTransfer);
-                } else {
-                    // 更新有效期配置表
-                    MarketingDataValidConfig newData = new MarketingDataValidConfig();
-                    newData.setId(marketingDataValidConfig.getId());
-                    newData.setValidStartDate(validStartDate);
-                    newData.setValidEndDate(validEndDate);
-                    int n = marketingDataValidConfigMapper.updateByPrimaryKeySelective(newData);
-                    if (n > 0) {
-                        // 新增记录表
-                        recordService.saveRecord(apiCode, marketingDataValidConfig.getUserType(), newData.getId());
-                    }
-                }
-            }
-        } else {
-            log.error("有效期变更接口异常：{}", TASK_ID_ERROR.getErrorMsg());
+        String appletDate = marketingSyncInfoMapper.getAppletDateByCusBatch(taskId, apiCode);
+        if (StringUtils.isBlank(appletDate)) {
+            log.error("有效期变更接口异常：{}，jsonData:{}", TASK_ID_ERROR.getErrorMsg(),jsonData);
             return new ApiNoDataResult().setCode(TASK_ID_ERROR.getErrorCode())
                     .setMessage(TASK_ID_ERROR.getErrorMsg());
         }
-
+        List<String> cusBatchByAppletDate = marketingSyncInfoMapper.getCusBatchByAppletDate(appletDate, apiCode);
+        if (cusBatchByAppletDate.size() > 1) {
+            log.error("有效期变更接口异常：{}:包含多个cus_batch:{}，联系运营确认，手动处理，jsonData:{}", appletDate, cusBatchByAppletDate,jsonData);
+            return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
+        }
+        // 根据appletDate 查询有效期配置表
+        List<MarketingDataValidConfig> validityDataByAppletDate = marketingDataValidConfigMapper.getValidityDataByAppletDate(apiCode, appletDate);
+        for (int i = 0; i < validityDataByAppletDate.size(); i++) {
+            MarketingDataValidConfig marketingDataValidConfig = validityDataByAppletDate.get(i);
+            String validStartDate = marketingDataValidConfig.getValidStartDate();
+            String validEndDate = marketingDataValidConfig.getValidEndDate();
+            // 判断开始时间和结束时间是否有变化 有变化则更改 没有变化返回成功报警通知
+            if (effectiveDateTransfer.equals(validStartDate) && expireDateTransfer.equals(validEndDate)) {
+                log.error("有效期变更接口传入有效期参数与历史有效期时间相同，未重新推送数据 ：{},场景：{}，jsonData:{}", appletDate,marketingDataValidConfig.getUserType(), jsonData);
+            } else {
+                // 更新有效期配置表
+                MarketingDataValidConfig newData = new MarketingDataValidConfig();
+                newData.setId(marketingDataValidConfig.getId());
+                newData.setValidStartDate(effectiveDateTransfer);
+                newData.setValidEndDate(expireDateTransfer);
+                int n = marketingDataValidConfigMapper.updateByPrimaryKeySelective(newData);
+                if (n > 0) {
+                    // 新增记录表
+                    recordService.saveRecord(apiCode, marketingDataValidConfig.getUserType(), newData.getId());
+                }
+            }
+        }
         return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
     }
 
