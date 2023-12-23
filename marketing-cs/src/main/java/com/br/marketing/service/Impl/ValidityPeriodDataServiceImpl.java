@@ -158,6 +158,11 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
         String effectiveDateTransfer = "";
         String expireDateTransfer = "";
         try {
+            if(effectiveDate.length()!=8 || expireDate.length()!=8){
+                log.error("有效期变更接口异常：日期格式不符合要求，jsonData:{} ,{}",jsonData);
+                return new ApiNoDataResult().setCode(TIME_FORMAT_ERROR.getErrorCode())
+                        .setMessage(TIME_FORMAT_ERROR.getErrorMsg());
+            }
             effectiveDateTransfer = formatDate(effectiveDate);
             expireDateTransfer = formatDate(expireDate);
         } catch (Exception e) {
@@ -203,9 +208,6 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
     }
 
     private String formatDate(String date) throws ParseException {
-        if(date.length()!=8){
-            date= null;
-        }
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
         SimpleDateFormat simpleDateFormatResult = new SimpleDateFormat("yyyy-MM-dd");
         Date parse = simpleDateFormat.parse(date);
