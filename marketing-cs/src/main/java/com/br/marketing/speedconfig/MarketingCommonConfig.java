@@ -1160,5 +1160,14 @@ public class MarketingCommonConfig {
      * 跑分更新顺序线程数量
      */
     private Integer scoreUpdateSortThreadNum;
+
+    /**
+     * 数禾电销apiCode
+     */
+    private List<String> shuheDxApiCodes;
+
+
+
+
 }
 
