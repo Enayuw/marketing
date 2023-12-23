@@ -129,7 +129,7 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
         List<String> validityPeriodApiCodeList = marketingCommonConfig.getValidityPeriodApiCodeList();
         // 校验apiCode
         if (!validityPeriodApiCodeList.contains(apiCode)) {
-            log.error("有效期变更接口异常：{}，jsonData:{}", API_CODE_AUTH_ERROR.getErrorMsg(),jsonData);
+            log.error("有效期变更接口异常：{}，{}，jsonData:{}", API_CODE_AUTH_ERROR.getErrorMsg(),apiCode,jsonData);
             return new ApiNoDataResult().setCode(API_CODE_AUTH_ERROR.getErrorCode())
                     .setMessage(API_CODE_AUTH_ERROR.getErrorMsg());
         }
