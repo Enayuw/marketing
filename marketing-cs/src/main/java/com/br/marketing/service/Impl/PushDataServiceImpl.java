@@ -199,6 +199,11 @@ public class PushDataServiceImpl implements PushDataService {
     @Resource
     private ValidityPeriodDataService validityPeriodDataService;
 
+    @Resource
+    private HaierCollidingDataMapper haierCollidingDataMapper;
+    @Resource
+    private HaierCollidingDataLogMapper haierCollidingDataLogMapper;
+
     final static DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     private final static int XIECHENGSMSCOLLIDINGPARTATIONNUM = 50;
@@ -834,6 +839,119 @@ public class PushDataServiceImpl implements PushDataService {
             }
         }
         return "";
+    }
+
+    /**
+     * 海尔撞库数据推送
+     *
+     * @param localId 本地文件id
+     * @author senyang.zheng
+     * @date 2023/12/23
+     */
+    @Override
+    public void pushHaierCollidingData(Long localId) {
+        try {
+            // 初始化线程池
+            ThreadPoolExecutor executor =
+                BrExecutors.getThreadPool(marketingCommonConfig.getHaierCollidingDataThreadNum(), marketingCommonConfig.getHaierCollidingDataThreadNum());
+            ThreadPoolExecutor logSaveExecutor =
+                BrExecutors.getThreadPool(marketingCommonConfig.getHaierCollidingDataThreadNum(), marketingCommonConfig.getHaierCollidingDataThreadNum());
+
+            Integer sendDate = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+            for (; ; ) {
+                // 动态修改线程参数
+                executor.setCorePoolSize(marketingCommonConfig.getHaierCollidingDataThreadNum());
+                executor.setMaximumPoolSize(marketingCommonConfig.getHaierCollidingDataThreadNum());
+                HaierCollidingDataExample example = new HaierCollidingDataExample();
+                example.createCriteria().andPushStatusEqualTo(1).andStatusEqualTo(1);
+                // 查询需要推送的基础数据
+                List<HaierCollidingData> haierCollidingDataList =
+                    haierCollidingDataMapper.selectByLocalId(localId, sendDate, marketingCommonConfig.getHaierCollidingDataPageSize());
+                if (CollectionUtils.isEmpty(haierCollidingDataList)) break;
+                // 存储推送日志
+                List<List<HaierCollidingData>> partition = Lists.partition(haierCollidingDataList, 1000);
+                List<Callable<Integer>> saveLogListTask = new ArrayList<>();
+                partition.forEach(p -> {
+                    saveLogListTask.add(() -> {
+                        return saveHaierCollingDataLog(sendDate, p);
+                    });
+                });
+                List<Future<Integer>> futures = logSaveExecutor.invokeAll(saveLogListTask);
+                for (int i = 0; i < futures.size(); i++) {
+                    Integer integer = futures.get(i).get();
+                    if (integer == 0) {
+                        log.error("插入数据库异常");
+                    }
+                }
+                sendHaierCollidingData(executor, haierCollidingDataList, sendDate);
+            }
+            executor.shutdown();
+            try {
+                while (!executor.awaitTermination(10L, TimeUnit.SECONDS)) {
+                    log.warn("海尔撞库等待线程池结束");
+                }
+            } catch (Exception e) {
+                executor.shutdownNow();
+                log.error("海尔撞库线程池关闭异常,直接关闭线程池", e);
+            }
+
+            logSaveExecutor.shutdown();
+            try {
+                while (!logSaveExecutor.awaitTermination(10L, TimeUnit.SECONDS)) {
+                    log.warn("海尔撞库结果插入线程池等待线程池结束");
+                }
+            } catch (Exception e) {
+                logSaveExecutor.shutdownNow();
+                log.error("海尔撞库结果插入线程池关闭异常,直接关闭线程池", e);
+            }
+        } catch (Exception e) {
+            log.error("海尔撞库数据推送异常: {}", e);
+        }
+    }
+
+    private void sendHaierCollidingData(ThreadPoolExecutor executor, List<HaierCollidingData> haierCollidingDataList, Integer sendDate) {
+        haierCollidingDataList.stream()
+            .map(HaierCollidingData::getMobileDigest)
+            .filter(StringUtils::isNotEmpty)
+            .forEach(mobileDigest -> executor.submit(() -> processHaierCollidingData(mobileDigest, sendDate)));
+    }
+
+    private void processHaierCollidingData(String mobileDigest, Integer sendDate) {
+        Result<String> postResult = haierServiceClient.pushHaierCollidingData(mobileDigest);
+        JSONObject resultJson = JSONObject.parseObject(postResult.getData());
+        HaierCollidingDataLog updateLog = new HaierCollidingDataLog();
+        updateLog.setMobileDigest(mobileDigest);
+        updateLog.setSendDate(sendDate);
+        JSONObject data = resultJson.getJSONObject("data");
+        Integer result = data != null ? data.getInteger("status") : null;
+        updateLog.setResult(result);
+        updateLog.setStatus(2);
+        haierCollidingDataLogMapper.updateBySelective(updateLog);
+
+        HaierCollidingData updateData = new HaierCollidingData();
+        updateData.setPushStatus(2);
+        updateData.setMobileDigest(mobileDigest);
+        updateData.setPushDate(String.valueOf(sendDate));
+        haierCollidingDataMapper.updateBySelective(updateData);
+    }
+
+
+
+    private Integer saveHaierCollingDataLog(Integer sendDate, List<HaierCollidingData> haierCollidingDataList) {
+        List<HaierCollidingDataLog> haierCollidingDataLogs = haierCollidingDataList.stream()
+            .map(data -> {
+                    HaierCollidingDataLog haierCollidingDataLog = new HaierCollidingDataLog();
+                    haierCollidingDataLog.setCollidingDataId(data.getId());
+                    haierCollidingDataLog.setApiCode(data.getApiCode());
+                    haierCollidingDataLog.setLocalId(data.getLocalId());
+                    haierCollidingDataLog.setType("1");
+                    haierCollidingDataLog.setMobileDigest(data.getMobileDigest());
+                    haierCollidingDataLog.setStatus(1);
+                    haierCollidingDataLog.setSendDate(sendDate);
+                    return haierCollidingDataLog;
+                }
+            ).collect(Collectors.toList());
+        return haierCollidingDataLogMapper.saveBatchLog(haierCollidingDataLogs);
     }
 
     @Override

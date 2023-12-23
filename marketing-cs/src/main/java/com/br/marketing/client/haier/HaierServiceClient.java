@@ -1,14 +1,19 @@
 package com.br.marketing.client.haier;
-import com.google.common.collect.Sets;
 
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.http.HttpRequest;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.client.haier.input.HaierCollidingDataDTO;
 import com.br.marketing.client.haier.input.HaierReqDTO;
 import com.br.marketing.client.haier.output.PushDTO;
 import com.br.marketing.client.haier.output.Response2Entity;
 import com.br.marketing.client.haier.output.ResponseInfoEntity;
 import com.br.marketing.client.haier.output.ResultQueryDTO;
+import com.br.marketing.client.haier.utils.AESUtil;
+import com.br.marketing.client.haier.utils.RsaUtil;
+import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.HaierData;
@@ -16,9 +21,12 @@ import com.br.marketing.entity.HaierDataExample;
 import com.br.marketing.entity.HaierReq;
 import com.br.marketing.mapper.HaierDataMapper;
 import com.br.marketing.mapper.HaierReqMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -26,9 +34,15 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * 海尔消金客户端
@@ -66,6 +80,19 @@ public class HaierServiceClient {
     @Resource
     HaierReqMapper haierReqMapper;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
+    @Value("${api.haier.colliding.isProxy:00}")
+    private Boolean collidingIsProxy;
+    @Value("${api.haier.colliding.rsaPublicKey:00}")
+    private String collidingRsaPublicKey;
+    @Value("${api.haier.colliding.rsaPrivateKey:0}")
+    private String collidingRsaPrivateKey;
+    @Value("${api.haier.colliding.url:0}")
+    private String collidingUrl;
+
+
     /**
      * 推送数据客户端
      *
@@ -99,15 +126,15 @@ public class HaierServiceClient {
     }
 
 
-//    @RetryMethod
+    //    @RetryMethod
     public Result<Response2Entity> pushToTeleSalesWithIds(HaierReqDTO haierReqDTO, int retr) throws Exception {
         PushDTO.FormData formData = haierReqDTO.getFormData();
         List<Long> ids = haierReqDTO.getIds();
         Result<Response2Entity> result = new Result<>();
         Assert.notNull(formData, "\"List\" is not null");
 //        log.warn("##地址：{}；apicode：{}；apikey：{}", url, apiCode, apiKey);
-        if(log.isWarnEnabled()){
-            log.warn(String.format("推送海尔数据：%s",JSON.toJSONString(formData)));
+        if (log.isWarnEnabled()) {
+            log.warn(String.format("推送海尔数据：%s", JSON.toJSONString(formData)));
         }
         PushDTO pushDTO = new PushDTO(apiCode, formData, apiKey);
 //        log.warn("&&发送内容：[{}]", pushDTO);
@@ -121,15 +148,15 @@ public class HaierServiceClient {
                 return result;
             }
             Response2Entity response2Entity = JSONObject.parseObject(respStr, Response2Entity.class);
-            if(response2Entity!=null
-                    && response2Entity.getHead()!= null
-                    && "00000".equals(response2Entity.getHead().getRetFlag())){
+            if (response2Entity != null
+                && response2Entity.getHead() != null
+                && "00000".equals(response2Entity.getHead().getRetFlag())) {
                 HaierData record = new HaierData();
                 record.setPushStatus(2);
-                record.setRuleType("2".equals(haierReqDTO.getFormData().getType())?"3":("3".equals(haierReqDTO.getFormData().getType())?"4":null));
+                record.setRuleType("2".equals(haierReqDTO.getFormData().getType()) ? "3" : ("3".equals(haierReqDTO.getFormData().getType()) ? "4" : null));
                 HaierDataExample updateExample = new HaierDataExample();
                 updateExample.createCriteria().andIdIn(ids);
-                haierDataMapper.updateByExampleSelective(record,updateExample);
+                haierDataMapper.updateByExampleSelective(record, updateExample);
 
                 HaierReq req = new HaierReq();
                 req.setReqId(formData.getRequestId());
@@ -138,7 +165,7 @@ public class HaierServiceClient {
                 req.setNum(ids.size());
                 haierReqMapper.insertSelective(req);
                 result.setCode(ResultCode.SUCCESS.getValue()).setDate(response2Entity);
-            }else{
+            } else {
                 result.setCode(ResultCode.FAIL.getValue()).setDate(response2Entity);
             }
         } else {
@@ -148,14 +175,14 @@ public class HaierServiceClient {
     }
 
 
-    public Result<Response2Entity> pushToTeleSalesWithSave(HaierReqDTO haierReqDTO){
+    public Result<Response2Entity> pushToTeleSalesWithSave(HaierReqDTO haierReqDTO) {
         PushDTO.FormData formData = haierReqDTO.getFormData();
         HashMap<String, String> ruleMap = haierReqDTO.getRuleMap();
         Result<Response2Entity> result = new Result<>();
         Assert.notNull(formData, "\"List\" is not null");
 //        log.warn("##地址：{}；apicode：{}；apikey：{}", url, apiCode, apiKey);
-        if(log.isWarnEnabled()){
-            log.warn(String.format("推送海尔数据：%s",JSON.toJSONString(formData)));
+        if (log.isWarnEnabled()) {
+            log.warn(String.format("推送海尔数据：%s", JSON.toJSONString(formData)));
         }
         PushDTO pushDTO = null;
         try {
@@ -175,9 +202,9 @@ public class HaierServiceClient {
             }
             Response2Entity response2Entity = JSONObject.parseObject(respStr, Response2Entity.class);
             Date date = new Date();
-            if(response2Entity!=null
-                    && response2Entity.getHead()!= null
-                    && "00000".equals(response2Entity.getHead().getRetFlag())){
+            if (response2Entity != null
+                && response2Entity.getHead() != null
+                && "00000".equals(response2Entity.getHead().getRetFlag())) {
                 ArrayList<Long> ids = new ArrayList<>();
                 String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
                 for (PushDTO.DataItems dataItem : haierReqDTO.getFormData().getDataItems()) {
@@ -201,7 +228,7 @@ public class HaierServiceClient {
                 req.setNum(ids.size());
                 haierReqMapper.insertSelective(req);
                 result.setCode(ResultCode.SUCCESS.getValue()).setDate(response2Entity);
-            }else{
+            } else {
                 result.setCode(ResultCode.FAIL.getValue()).setDate(response2Entity);
             }
         } else {
@@ -248,4 +275,62 @@ public class HaierServiceClient {
         return resultQueryPushToTeleSales(requestId, 0);
     }
 
+    @RetryMethod(retryNowNum = 1)
+    public Result<String> pushHaierCollidingData(String mobileDigest) {
+        Map<String, String> retMap = buildHaierCollidingDataParams(mobileDigest);
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, collidingUrl, collidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(retMap), true, false);
+        String content = resMap.get("content");
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isEmpty(content)) {
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(content);
+        }
+        JSONObject resultJson = JSONObject.parseObject(content);
+        String retCode = resultJson.getString("retCode");
+        if ("00000".equals(retCode)) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(content);
+        } else {
+            log.error("海尔撞库接口请求返回 code 非00000异常。返回报文:{}",content);
+            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(content);
+        }
+    }
+
+    private Map<String, String> buildHaierCollidingDataParams(String mobileDigest) {
+        Map<String, String> retMap = new HashMap<>();
+        try {
+            String aesKey = RandomStringUtils.randomAlphabetic(16);
+            String pid = marketingCommonConfig.getHaierCollidingDataConfig().get("pid");
+            String apiCode = marketingCommonConfig.getHaierCollidingDataConfig().get("apiCode");
+            String channelNo = marketingCommonConfig.getHaierCollidingDataConfig().get("channelNo");
+            String utmNo = marketingCommonConfig.getHaierCollidingDataConfig().get("utmNo");
+            String encryptAlg = marketingCommonConfig.getHaierCollidingDataConfig().get("encryptAlg");
+            String haierPublicKey = marketingCommonConfig.getHaierApiPublicKey();
+            long timestamp = System.currentTimeMillis();
+            String currentDate = DateUtil.formatDate(new Date());
+            String requestId = apiCode + "_" + currentDate + "_" + RandomStringUtils.randomAlphabetic(16) + UUID.randomUUID();
+
+            //拼接公共参数
+            String sb = "pid=" + pid + "&" +
+                "requestId=" + requestId + "&" +
+                "timestamp=" + timestamp + aesKey;
+            String encryptSign = RsaUtil.sign(sb, collidingRsaPrivateKey);
+
+            // 构造业务参数
+            Map<String, Object> data = new HashMap<>();
+            data.put("mobileDigest", mobileDigest);
+            data.put("channelNo", channelNo);
+            data.put("utmNo", utmNo);
+            data.put("encryptAlg", encryptAlg);
+
+            HaierCollidingDataDTO dto = new HaierCollidingDataDTO(pid, timestamp, requestId, encryptSign, data);
+            ObjectMapper mapper = new ObjectMapper();
+            String json = mapper.writeValueAsString(dto);
+            String encryptData = AESUtil.encrypt(json, aesKey);
+            String encryptKey = RsaUtil.encrypt(aesKey.getBytes(StandardCharsets.UTF_8), haierPublicKey);
+            retMap.put("key", encryptKey);
+            retMap.put("data", encryptData);
+
+        } catch (Exception e) {
+            log.error("海尔撞库接口拼装参数异常", e);
+        }
+        return retMap;
+    }
 }

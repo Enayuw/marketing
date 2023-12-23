@@ -1160,5 +1160,25 @@ public class MarketingCommonConfig {
      * 跑分更新顺序线程数量
      */
     private Integer scoreUpdateSortThreadNum;
+
+
+    /**
+     * 海尔撞库线程池数量配置
+     */
+    private Integer haierCollidingDataThreadNum;
+    /**
+     * 海尔撞库单次查询数量配置
+     */
+    private Integer haierCollidingDataPageSize;
+
+    /**
+     * 海尔撞库配置
+     */
+    private Map<String, String> haierCollidingDataConfig;
+
+    /**
+     * 海尔接口公钥
+     */
+    private String haierApiPublicKey;
 }
 
