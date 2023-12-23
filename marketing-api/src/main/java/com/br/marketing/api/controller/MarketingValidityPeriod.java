@@ -32,10 +32,6 @@ public class MarketingValidityPeriod {
 
     /**
      * 智能营销数据有效期更改接口
-     *
-     * @param apiCode
-     * @param jsonData
-     * @return
      */
     @ApiOperation(value = "智能营销数据有效期更改接口")
     @PostMapping("/changeValidityPeriod")

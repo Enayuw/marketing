@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiNoDataResult;
@@ -138,7 +137,7 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
         try {
             jsonObject = JSON.parseObject(jsonData);
         } catch (Exception e) {
-            log.error("有效期变更接口异常：{}，jsonData:{}", JSON_DATA_ERROR.getErrorMsg(),jsonData);
+            log.error("有效期变更接口异常：{}，jsonData:{},{}", JSON_DATA_ERROR.getErrorMsg(),jsonData,e);
             return new ApiNoDataResult().setCode(JSON_DATA_ERROR.getErrorCode())
                     .setMessage(JSON_DATA_ERROR.getErrorMsg());
         }
@@ -162,7 +161,7 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
             effectiveDateTransfer = formatDate(effectiveDate);
             expireDateTransfer = formatDate(expireDate);
         } catch (Exception e) {
-            log.error("有效期变更接口异常：日期格式不符合要求，jsonData:{} ",jsonData);
+            log.error("有效期变更接口异常：日期格式不符合要求，jsonData:{} ,{}",jsonData,e);
             return new ApiNoDataResult().setCode(TIME_FORMAT_ERROR.getErrorCode())
                     .setMessage(TIME_FORMAT_ERROR.getErrorMsg());
         }
