@@ -204,6 +204,9 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
     }
 
     private String formatDate(String date) throws ParseException {
+        if(date.length()!=8){
+            date= null;
+        }
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
         SimpleDateFormat simpleDateFormatResult = new SimpleDateFormat("yyyy-MM-dd");
         Date parse = simpleDateFormat.parse(date);
