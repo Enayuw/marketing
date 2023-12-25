@@ -1,11 +1,6 @@
 package com.br.marketing.thread;
 
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.Resource;
-
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 
 import lombok.extern.slf4j.Slf4j;
 
