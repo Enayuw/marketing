@@ -289,7 +289,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             //region数据更新排序
             if(pointStatus == 0 || pointStatus == 4) {
                 AtomicInteger errorSort = new AtomicInteger();
-                sortDb(customer, straHisFile, vos, errorSort);
+                sortDb(straHisFile, vos, errorSort);
                 if (errorSort.get() <= 0) {
                     pointStatus = 0;
                 } else {
@@ -329,7 +329,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         alarmApiClient.sendAlarm(message,"跑分推送客户", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
     }
 
-    private void sortDb(Customer customer,StraHisFile straHisFile,List<ScoreSortJsonVO> vos,AtomicInteger error){
+    private void sortDb(StraHisFile straHisFile,List<ScoreSortJsonVO> vos,AtomicInteger error){
         int pushThream = marketingCommonConfig.getScoreUpdateSortThreadNum() == null
                 ? 5 : marketingCommonConfig.getScoreUpdateSortThreadNum();
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_updateSort");
@@ -420,8 +420,8 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                         request.put("CstInfoArray", cstInfoArray);
                         request.put("TxnSrlNo", appId + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
                                 + RandomStringUtils.randomNumeric(8));
-                        request.put("TskId", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-                        request.put("TxnDt", s);
+                        request.put("TskId", s);
+                        request.put("TxnDt", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
                         request.put("TxnTs", LocalTime.now().format(DateTimeFormatter.ofPattern("HHmmssSSS")));
                         request.put("RqsSeqNo", customer.getApiCode()
                                 + "_" + request.getString("TskId")

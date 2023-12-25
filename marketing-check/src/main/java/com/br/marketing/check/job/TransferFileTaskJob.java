@@ -180,14 +180,14 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                     }
                     Result<List<TransferFileTask>> listResult = new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Lists.newArrayList());
                     try {
-                        boolean lock = redisChgService.lock(redisKey, serviceImpl.getClass().getName(), marketingCommonConfig.getTransferFileTaskJobLockExpireTime());
+                        boolean lock = redisChgService.lock(redisKey, UUID.randomUUID().toString(), marketingCommonConfig.getTransferFileTaskJobLockExpireTime());
                         if (lock) {
                             listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(), myParam);
                         }
                     } catch (Exception e) {
                         log.error("该apiCode:{}执行数据提取任务获取锁:{}异常", marketingCustomer.getApiCode(), redisKey);
                     } finally {
-                        redisChgService.unlock(redisKey, serviceImpl.getClass().getName());
+                        redisChgService.unlock(redisKey, UUID.randomUUID().toString());
                     }
                     if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
                         List<TransferFileTask> data = listResult.getData();
