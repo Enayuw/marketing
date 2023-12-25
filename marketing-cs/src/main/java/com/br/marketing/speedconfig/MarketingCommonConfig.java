@@ -1162,6 +1162,17 @@ public class MarketingCommonConfig {
     private Integer scoreUpdateSortThreadNum;
 
     /**
+     * 有效期变更apiCode
+     */
+    private List<String> validityPeriodApiCodeList;
+
+    /**
+     * 有效期变更接口开关
+     */
+    private Boolean changeValidityPeriodIndex;
+
+
+    /**
      * 数禾上传数据推决策，策略编号设置
      */
     private Map<String, String> shuheToJueCeStrategy;
