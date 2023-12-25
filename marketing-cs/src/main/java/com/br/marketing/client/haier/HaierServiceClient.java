@@ -291,8 +291,15 @@ public class HaierServiceClient {
         } catch (Exception e) {
             log.error("海尔撞库接口拼装参数AES加密异常", e);
         }
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, collidingUrl, collidingIsProxy,
-            MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(dto), true, false);
+        HashMap<String, String> resMap = Maps.newHashMap();
+        HashMap<String, Object> mock = marketingCommonConfig.getHaierCollidingDataMock();
+        if (mock.get("switch") == Boolean.TRUE) {
+            resMap.put("content", mock.get("content").toString());
+            resMap.put("httpcode", mock.get("httpcode").toString());
+        } else {
+            resMap = httpProxyClient.sendByCodeWithLog(retMap, collidingUrl, collidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,
+                JSON.toJSONString(dto), true, false);
+        }
         String content = resMap.get("content");
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isEmpty(content)) {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(content);

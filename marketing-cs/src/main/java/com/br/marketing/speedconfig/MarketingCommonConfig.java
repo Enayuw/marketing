@@ -1180,5 +1180,10 @@ public class MarketingCommonConfig {
      * 海尔接口公钥
      */
     private String haierApiPublicKey;
+
+    /**
+     * 海尔撞库接口mock配置
+     */
+    private HashMap<String, Object> haierCollidingDataMock;
 }
 
