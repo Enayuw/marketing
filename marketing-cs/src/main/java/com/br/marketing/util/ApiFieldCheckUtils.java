@@ -65,9 +65,9 @@ public class ApiFieldCheckUtils {
         if (fieldStr.length() > 0) {
             String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_NEW_FIELD_CHECK.getCode()
                     , "“" + apiNameShort + "”接口接收到客户编码为" + apiCode
-                            + (StringUtils.isEmpty(customerNameShort) ? "" : "(" + customerNameShort + ")")
+                            + (StringUtils.isEmpty(customerNameShort) ? "" : ("(" + customerNameShort + ")"))
                             + "的请求"
-                            + (StringUtils.isEmpty(requestId) ? "" : "(" + requestId + ")")
+                            + (StringUtils.isEmpty(requestId) ? "" : ("(" + requestId + ")"))
                             + "中有新增字段：".concat(fieldStr.toString())
                             .concat("\n请及时与客户沟通确认^_^")
                     , apiCode

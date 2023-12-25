@@ -135,7 +135,7 @@ public class ShuHeUserServiceImpl {
                     }
                     if (varData.containsKey(keySex)) {
                         String sex = varData.getString(keySex);
-                        reserveField1.put("gender", "男".equals(sex) ? "1" : "女".equals(sex) ? "2" : sex);
+                        reserveField1.put("gender", "男".equals(sex) ? "1" : ("女".equals(sex) ? "2" : sex));
                         varData.remove(keySex);
                     }
                     reserveField1.putAll(varData);

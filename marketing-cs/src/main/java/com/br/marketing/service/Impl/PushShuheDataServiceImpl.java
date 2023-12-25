@@ -777,7 +777,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
      * 2022/9/1 10:45
      * 新增字段检查
      */
-    @Deprecated
+//    @Deprecated
 //    private void checkField(JSONObject uploadDataDTO, JSONArray listInfo) {
 //        try {
 //            Set<String> keySet = new HashSet<>(uploadDataDTO.keySet());
@@ -815,6 +815,15 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
 //        }
 //    }
 
+    /**
+     * 2023-12-25 10:56
+     * 数禾上传数据检查字段
+     *
+     * @param uploadDataDTO 上传数据外层
+     * @param listInfo      上传数据内层
+     * @param apiCode       客户编号
+     * @param requestId     请求流水号
+     */
     private void checkField(JSONObject uploadDataDTO, JSONArray listInfo, String apiCode
             , String requestId) {
         try {
