@@ -277,8 +277,22 @@ public class HaierServiceClient {
 
     @RetryMethod(retryNowNum = 1)
     public Result<String> pushHaierCollidingData(String mobileDigest) {
-        Map<String, String> retMap = buildHaierCollidingDataParams(mobileDigest);
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, collidingUrl, collidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(retMap), true, false);
+        String aesKey = RandomStringUtils.randomAlphabetic(16);
+        String haierPublicKey = marketingCommonConfig.getHaierApiPublicKey();
+        HaierCollidingDataDTO dto = buildHaierCollidingDataDTO(aesKey, mobileDigest);
+        Map<String, String> retMap = Maps.newHashMap();
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String json = mapper.writeValueAsString(dto);
+            String encryptData = AESUtil.encrypt(json, aesKey);
+            String encryptKey = RsaUtil.encrypt(aesKey.getBytes(StandardCharsets.UTF_8), haierPublicKey);
+            retMap.put("key", encryptKey);
+            retMap.put("data", encryptData);
+        } catch (Exception e) {
+            log.error("海尔撞库接口拼装参数AES加密异常", e);
+        }
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, collidingUrl, collidingIsProxy,
+            MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(dto), true, false);
         String content = resMap.get("content");
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isEmpty(content)) {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(content);
@@ -288,31 +302,25 @@ public class HaierServiceClient {
         if ("00000".equals(retCode)) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(content);
         } else {
-            log.error("海尔撞库接口请求返回 code 非00000异常。返回报文:{}",content);
+            log.error("海尔撞库接口请求返回 code 非00000异常。返回报文:{}", content);
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(content);
         }
     }
 
-    private Map<String, String> buildHaierCollidingDataParams(String mobileDigest) {
-        Map<String, String> retMap = new HashMap<>();
+    private HaierCollidingDataDTO buildHaierCollidingDataDTO(String aesKey, String mobileDigest) {
+        HaierCollidingDataDTO dto = new HaierCollidingDataDTO();
         try {
-            String aesKey = RandomStringUtils.randomAlphabetic(16);
             String pid = marketingCommonConfig.getHaierCollidingDataConfig().get("pid");
             String apiCode = marketingCommonConfig.getHaierCollidingDataConfig().get("apiCode");
             String channelNo = marketingCommonConfig.getHaierCollidingDataConfig().get("channelNo");
             String utmNo = marketingCommonConfig.getHaierCollidingDataConfig().get("utmNo");
             String encryptAlg = marketingCommonConfig.getHaierCollidingDataConfig().get("encryptAlg");
-            String haierPublicKey = marketingCommonConfig.getHaierApiPublicKey();
             long timestamp = System.currentTimeMillis();
             String currentDate = DateUtil.formatDate(new Date());
             String requestId = apiCode + "_" + currentDate + "_" + RandomStringUtils.randomAlphabetic(16) + UUID.randomUUID();
-
-            //拼接公共参数
-            String sb = "pid=" + pid + "&" +
-                "requestId=" + requestId + "&" +
-                "timestamp=" + timestamp + aesKey;
+            // 拼接公共参数
+            String sb = "pid=" + pid + "&" + "requestId=" + requestId + "&" + "timestamp=" + timestamp + aesKey;
             String encryptSign = RsaUtil.sign(sb, collidingRsaPrivateKey);
-
             // 构造业务参数
             Map<String, Object> data = new HashMap<>();
             data.put("mobileDigest", mobileDigest);
@@ -320,17 +328,14 @@ public class HaierServiceClient {
             data.put("utmNo", utmNo);
             data.put("encryptAlg", encryptAlg);
 
-            HaierCollidingDataDTO dto = new HaierCollidingDataDTO(pid, timestamp, requestId, encryptSign, data);
-            ObjectMapper mapper = new ObjectMapper();
-            String json = mapper.writeValueAsString(dto);
-            String encryptData = AESUtil.encrypt(json, aesKey);
-            String encryptKey = RsaUtil.encrypt(aesKey.getBytes(StandardCharsets.UTF_8), haierPublicKey);
-            retMap.put("key", encryptKey);
-            retMap.put("data", encryptData);
-
+            dto.setPid(pid);
+            dto.setTimestamp(timestamp);
+            dto.setRequestId(requestId);
+            dto.setSign(encryptSign);
+            dto.setData(data);
         } catch (Exception e) {
             log.error("海尔撞库接口拼装参数异常", e);
         }
-        return retMap;
+        return dto;
     }
 }
