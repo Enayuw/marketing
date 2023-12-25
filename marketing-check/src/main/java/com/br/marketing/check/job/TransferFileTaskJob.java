@@ -185,7 +185,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                     }
                     Result<List<TransferFileTask>> listResult = new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Lists.newArrayList());
                     try {
-                        boolean lock = redisChgService.lock(redisKey, UUID.randomUUID().toString(), marketingCommonConfig.getTransferFileTaskJobLockExpireTime());
+                        boolean lock = redisChgService.lock(redisKey, UUID.randomUUID().toString(),
+                                marketingCommonConfig.getTransferFileTaskJobLockExpireTime());
                         if (lock) {
                             listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(), myParam);
                         }

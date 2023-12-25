@@ -124,7 +124,11 @@ public class TransferToFileByNewHaierServiceImpl implements ITransferToFileServi
         String requestDate = StringUtils.isBlank(jobParameter) ? LocalDate.now().toString() : jobParameter;
         Result<String> result = new Result<>();
         String apiCode = transferFileTask.getApiCode();
-        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");
+        String descPath = syncConfigService.getPath()
+                .concat("transferToFile/")
+                .concat(apiCode)
+                .concat("/")
+                .concat(transferFileTask.getStartDate()).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
             boolean mkdirs = writeDic.mkdirs();
@@ -138,9 +142,9 @@ public class TransferToFileByNewHaierServiceImpl implements ITransferToFileServi
         try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
             fw.append(TABLE_HEAD_TRANSFER);
             fw.append("\r\n");
-            writeTransferToFile(fw, apiCode, transferFileTask, requestDate);
+            writeTransferToFile(fw, apiCode, transferFileTask);
         } catch (Exception ex) {
-            log.error(ex.getMessage());
+            log.error("写入文件错误！",ex);
             result.setCode(ResultCode.FAIL.getValue());
             result.setMessage(ex.getMessage());
         }
@@ -148,7 +152,7 @@ public class TransferToFileByNewHaierServiceImpl implements ITransferToFileServi
         return result;
     }
 
-    public void writeTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
+    public void writeTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) {
         long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         int page = 0;
@@ -169,15 +173,22 @@ public class TransferToFileByNewHaierServiceImpl implements ITransferToFileServi
             threadPool.submit(() -> {
                 for (MarketingTransferSyncUser transferFilterData : transferOrderInsertTime) {
                     StringBuilder sb = new StringBuilder();
+                    String custNum = emptyDefault(transferFilterData.getCustNum());
+                    String userType = emptyDefault(transferFilterData.getUserType());
+                    String customName = emptyDefault(transferFilterData.getCustomName());
+                    String registerTime = emptyDefault(transferFilterData.getRegisterTime());
+                    String applyDt = removeMillisecond(emptyDefault(transferFilterData.getApplyDt()));
+                    String auditTime = removeMillisecond(emptyDefault(transferFilterData.getAuditTime()));
+                    String requestTime = removeMillisecond(emptyDefault(transferFilterData.getRequestTime()));
                     //custNum,userType,customName,registerTime,applyDt,auditTime,requestTime
-                    sb.append(emptyDefault(transferFilterData.getCustNum())).append(",");
-                    sb.append(emptyDefault(transferFilterData.getUserType())).append(",");
-                    sb.append(emptyDefault(transferFilterData.getCustomName())).append(",");
-                    sb.append(emptyDefault(transferFilterData.getRegisterTime())).append(",");
-                    sb.append(removeMillisecond(emptyDefault(transferFilterData.getApplyDt()))).append(",");
-                    sb.append(removeMillisecond(emptyDefault(transferFilterData.getAuditTime()))).append(",");
-                    sb.append(removeMillisecond(emptyDefault(transferFilterData.getRequestTime())));
-                    sb.append("\r\n");
+                    sb.append(custNum.concat(","))
+                            .append(userType.concat(","))
+                            .append(customName.concat(","))
+                            .append(registerTime.concat(","))
+                            .append(applyDt.concat(","))
+                            .append(auditTime.concat(","))
+                            .append(requestTime.concat(","))
+                            .append("\r\n");
                     try {
                         fw.append(sb.toString());
                     } catch (IOException e) {
@@ -203,6 +214,7 @@ public class TransferToFileByNewHaierServiceImpl implements ITransferToFileServi
         } catch (InterruptedException e) {
             log.error("海尔新系统转化数据提取-本地文件生成失败！" + e.getMessage(), e);
             threadPool.shutdownNow();
+            Thread.currentThread().interrupt();
             transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
         }
     }

@@ -372,7 +372,7 @@ public class AlarmAndNoticeTest {
         TransferFileTask transferFileTask = new TransferFileTask();
         transferFileTask.setApiCode("7410930");
         String apiCode = "7410930";
-        String myParam = "7410930#2023-12-23";
+        String myParam = "7410930#2023-12-25";
         String dd = isMyParam("7410930", myParam);
         transferFileTask.setStartDate(dd);
         String recordDate = transferFileTask.getStartDate();
@@ -391,7 +391,7 @@ public class AlarmAndNoticeTest {
         try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
             fw.append(TABLE_HEAD_HAIER_TRANSFER);
             fw.append("\r\n");
-            toFileByNewHaierService.writeTransferToFile(fw,apiCode,transferFileTask, recordDate);
+            toFileByNewHaierService.writeTransferToFile(fw,apiCode,transferFileTask);
         } catch (Exception ex) {
             log.error(ex.getMessage());
         }
