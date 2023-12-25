@@ -51,6 +51,7 @@ import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.thread.HaierCollidingDataThread;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
@@ -850,24 +851,21 @@ public class PushDataServiceImpl implements PushDataService {
      */
     @Override
     public void pushHaierCollidingData(Long localId) {
+        // 初始化线程池
+        HaierCollidingDataThread collidingDataThread = getHaierCollidingDataThread();
         try {
-            // 初始化线程池
-            ThreadPoolExecutor executor =
-                BrExecutors.getThreadPool(marketingCommonConfig.getHaierCollidingDataThreadNum(), marketingCommonConfig.getHaierCollidingDataThreadNum());
-            ThreadPoolExecutor logSaveExecutor =
-                BrExecutors.getThreadPool(marketingCommonConfig.getHaierCollidingDataThreadNum(), marketingCommonConfig.getHaierCollidingDataThreadNum());
-
             Integer sendDate = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
             for (; ; ) {
                 // 动态修改线程参数
-                executor.setCorePoolSize(marketingCommonConfig.getHaierCollidingDataThreadNum());
-                executor.setMaximumPoolSize(marketingCommonConfig.getHaierCollidingDataThreadNum());
+                changeHaierCollidingDataThread(collidingDataThread.collidingExecutor,collidingDataThread.saveExecutor);
                 HaierCollidingDataExample example = new HaierCollidingDataExample();
                 example.createCriteria().andPushStatusEqualTo(1).andStatusEqualTo(1);
                 // 查询需要推送的基础数据
                 List<HaierCollidingData> haierCollidingDataList =
                     haierCollidingDataMapper.selectByLocalId(localId, sendDate, marketingCommonConfig.getHaierCollidingDataPageSize());
-                if (CollectionUtils.isEmpty(haierCollidingDataList)) break;
+                if (CollectionUtils.isEmpty(haierCollidingDataList)) {
+                    break;
+                }
                 // 存储推送日志
                 List<List<HaierCollidingData>> partition = Lists.partition(haierCollidingDataList, 1000);
                 List<Callable<Integer>> saveLogListTask = new ArrayList<>();
@@ -876,44 +874,71 @@ public class PushDataServiceImpl implements PushDataService {
                         return saveHaierCollingDataLog(sendDate, p);
                     });
                 });
-                List<Future<Integer>> futures = logSaveExecutor.invokeAll(saveLogListTask);
+                List<Future<Integer>> futures = collidingDataThread.saveExecutor.invokeAll(saveLogListTask);
                 for (int i = 0; i < futures.size(); i++) {
                     Integer integer = futures.get(i).get();
                     if (integer == 0) {
                         log.error("插入数据库异常");
                     }
                 }
-                sendHaierCollidingData(executor, haierCollidingDataList, sendDate);
+                sendHaierCollidingData(collidingDataThread, haierCollidingDataList, sendDate);
             }
-            executor.shutdown();
-            try {
-                while (!executor.awaitTermination(10L, TimeUnit.SECONDS)) {
-                    log.warn("海尔撞库等待线程池结束");
-                }
-            } catch (Exception e) {
-                executor.shutdownNow();
-                log.error("海尔撞库线程池关闭异常,直接关闭线程池", e);
-            }
-
-            logSaveExecutor.shutdown();
-            try {
-                while (!logSaveExecutor.awaitTermination(10L, TimeUnit.SECONDS)) {
-                    log.warn("海尔撞库结果插入线程池等待线程池结束");
-                }
-            } catch (Exception e) {
-                logSaveExecutor.shutdownNow();
-                log.error("海尔撞库结果插入线程池关闭异常,直接关闭线程池", e);
-            }
+            
         } catch (Exception e) {
-            log.error("海尔撞库数据推送异常: {}", e);
+            log.error("海尔撞库数据推送异常。", e);
+        }finally {
+            //关闭线程池
+            closeHaierCollidingDataThread(collidingDataThread);
         }
     }
 
-    private void sendHaierCollidingData(ThreadPoolExecutor executor, List<HaierCollidingData> haierCollidingDataList, Integer sendDate) {
-        haierCollidingDataList.stream()
-            .map(HaierCollidingData::getMobileDigest)
-            .filter(StringUtils::isNotEmpty)
-            .forEach(mobileDigest -> executor.submit(() -> processHaierCollidingData(mobileDigest, sendDate)));
+    public HaierCollidingDataThread getHaierCollidingDataThread() {
+        // 创建推送线程池
+        ThreadPoolExecutor collidingExecutor = BrExecutors.getThreadPool(marketingCommonConfig.getHaierCollidingDataThreadNum(),
+            marketingCommonConfig.getHaierCollidingDataThreadNum());
+
+        // 创建插入线程池
+        ThreadPoolExecutor saveExecutor = BrExecutors.getThreadPool(marketingCommonConfig.getHaierCollidingDataThreadNum(),
+            marketingCommonConfig.getHaierCollidingDataThreadNum());
+
+        return new HaierCollidingDataThread(collidingExecutor, saveExecutor);
+    }
+
+    public void changeHaierCollidingDataThread(ThreadPoolExecutor collidingExecutor,ThreadPoolExecutor saveExecutor) {
+        collidingExecutor.setMaximumPoolSize(marketingCommonConfig.getHaierCollidingDataThreadNum());
+        collidingExecutor.setCorePoolSize(marketingCommonConfig.getHaierCollidingDataThreadNum());
+        saveExecutor.setMaximumPoolSize(marketingCommonConfig.getHaierCollidingDataThreadNum());
+        saveExecutor.setCorePoolSize(marketingCommonConfig.getHaierCollidingDataThreadNum());
+    }
+
+
+    public void closeHaierCollidingDataThread(HaierCollidingDataThread haierCollidingDataThread){
+        haierCollidingDataThread.collidingExecutor.shutdown();
+        try {
+            while (!haierCollidingDataThread.collidingExecutor.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.warn("海尔撞库线程池等待释放");
+            }
+        } catch (Exception e) {
+            haierCollidingDataThread.collidingExecutor.shutdownNow();
+            log.error("海尔撞库线程池等待释放线程池关闭异常,直接关闭", e);
+        }
+
+        haierCollidingDataThread.saveExecutor.shutdown();
+        try {
+            while (!haierCollidingDataThread.saveExecutor.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.warn("海尔撞库插入线程池等待释放");
+            }
+        } catch (Exception e) {
+            haierCollidingDataThread.saveExecutor.shutdownNow();
+            log.error("海尔撞库插入线程池关闭异常,直接关闭", e);
+        }
+    }
+    
+
+    private void sendHaierCollidingData(HaierCollidingDataThread collidingDataThread, List<HaierCollidingData> haierCollidingDataList,
+        Integer sendDate) {
+        List<String> mobileDigests = haierCollidingDataList.stream().map(HaierCollidingData::getMobileDigest).collect(Collectors.toList());
+        mobileDigests.forEach(mobileDigest -> collidingDataThread.collidingExecutor.submit(() -> processHaierCollidingData(mobileDigest, sendDate)));
     }
 
     private void processHaierCollidingData(String mobileDigest, Integer sendDate) {
@@ -924,8 +949,9 @@ public class PushDataServiceImpl implements PushDataService {
         updateLog.setSendDate(sendDate);
         JSONObject data = resultJson.getJSONObject("data");
         Integer result = data != null ? data.getInteger("status") : null;
+        Integer status = data != null ? 2 : 3;
         updateLog.setResult(result);
-        updateLog.setStatus(2);
+        updateLog.setStatus(status);
         haierCollidingDataLogMapper.updateBySelective(updateLog);
 
         HaierCollidingData updateData = new HaierCollidingData();
