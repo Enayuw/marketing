@@ -1160,5 +1160,10 @@ public class MarketingCommonConfig {
      * 跑分更新顺序线程数量
      */
     private Integer scoreUpdateSortThreadNum;
+
+    /**
+     * 海尔上传数据推决策，策略编号设置
+     */
+    private Map<String, String> haierToJueCeStrategy;
 }
 
