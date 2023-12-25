@@ -40,7 +40,7 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
         String apiCode = syncUser.getApiCode();
         pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_" + apiCode);
 
-        String strategyCode = marketingCommonConfig.getHaierToJueCeStrategy().get(apiCode);
+        String strategyCode = marketingCommonConfig.getShuheToJueCeStrategy().get(apiCode);
         pushMarketingUserDetailByRuleDTO.setStrategyCode(strategyCode);
 
         JSONObject varDto = new JSONObject();
