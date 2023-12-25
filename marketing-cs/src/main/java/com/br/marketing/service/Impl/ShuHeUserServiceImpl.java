@@ -154,7 +154,7 @@ public class ShuHeUserServiceImpl {
                 reserveField1.remove("mobile");
                 reserveField1.remove("varData");
                 reserveField1.remove("orderId");
-                reserveField1.remove("extraInfo");
+//                reserveField1.remove("extraInfo");
                 dto.setReserveField1(JSON.toJSONString(reserveField1, SerializerFeature.WriteNullStringAsEmpty
                         , SerializerFeature.WriteNullListAsEmpty));
                 list.add(dto);
