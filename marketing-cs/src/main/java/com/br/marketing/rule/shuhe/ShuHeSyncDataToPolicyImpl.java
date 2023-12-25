@@ -8,6 +8,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -21,6 +22,7 @@ import java.time.format.DateTimeFormatter;
  * @author chenh
  */
 @Service
+@Slf4j
 public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUserDetailByRuleDTO> {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
@@ -36,7 +38,7 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
         pushMarketingUserDetailByRuleDTO.setPhone(cell);
 
         String apiCode = syncUser.getApiCode();
-        pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) +"_"+ apiCode);
+        pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_" + apiCode);
 
         String strategyCode = marketingCommonConfig.getHaierToJueCeStrategy().get(apiCode);
         pushMarketingUserDetailByRuleDTO.setStrategyCode(strategyCode);
@@ -45,6 +47,7 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
         varDto.put("userType", syncUser.getUserType());
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
 
+        log.warn("数禾上传数据推送决策,apicode={}", apiCode);
         return pushMarketingUserDetailByRuleDTO;
     }
 
