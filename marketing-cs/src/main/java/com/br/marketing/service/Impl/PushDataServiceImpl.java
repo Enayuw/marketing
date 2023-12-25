@@ -942,12 +942,23 @@ public class PushDataServiceImpl implements PushDataService {
     private void processHaierCollidingData(String mobileDigest, Integer sendDate) {
         Result<String> postResult = haierServiceClient.pushHaierCollidingData(mobileDigest);
         JSONObject resultJson = JSONObject.parseObject(postResult.getData());
+        if (ResultCode.SUCCESS.getValue().equals(postResult.getCode())) {
+            //更新成功
+            updateHaierCollidingDataStatus(mobileDigest, sendDate, resultJson,2);
+        } else {
+            //更新失败
+            updateHaierCollidingDataStatus(mobileDigest, sendDate, resultJson,3);
+        }
+
+
+    }
+
+    private void updateHaierCollidingDataStatus(String mobileDigest, Integer sendDate, JSONObject resultJson, Integer status) {
+        JSONObject data = resultJson.getJSONObject("data");
+        Integer result = data != null ? data.getInteger("status") : null;
         HaierCollidingDataLog updateLog = new HaierCollidingDataLog();
         updateLog.setMobileDigest(mobileDigest);
         updateLog.setSendDate(sendDate);
-        JSONObject data = resultJson.getJSONObject("data");
-        Integer result = data != null ? data.getInteger("status") : null;
-        Integer status = data != null ? 2 : 3;
         updateLog.setResult(result);
         updateLog.setStatus(status);
         haierCollidingDataLogMapper.updateBySelective(updateLog);
@@ -958,7 +969,6 @@ public class PushDataServiceImpl implements PushDataService {
         updateData.setCreateDate(String.valueOf(sendDate));
         haierCollidingDataMapper.updateBySelective(updateData);
     }
-
 
 
     private Integer saveHaierCollingDataLog(Integer sendDate, List<HaierCollidingData> haierCollidingDataList) {

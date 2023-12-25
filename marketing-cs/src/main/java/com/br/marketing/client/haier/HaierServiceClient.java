@@ -302,6 +302,7 @@ public class HaierServiceClient {
         }
         String content = resMap.get("content");
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isEmpty(content)) {
+            log.error("海尔撞库接口请求返回 httpcode 非200异常。立即重试1次，mobileDigest:{}", mobileDigest);
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(content);
         }
         JSONObject resultJson = JSONObject.parseObject(content);
@@ -309,8 +310,8 @@ public class HaierServiceClient {
         if ("00000".equals(retCode)) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(content);
         } else {
-            log.error("海尔撞库接口请求返回 code 非00000异常。返回报文:{}", content);
-            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(content);
+            log.error("海尔撞库接口请求返回 code 非00000异常。立即重试1次，mobileDigest:{},返回报文:{}", mobileDigest,content);
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(content);
         }
     }
 
