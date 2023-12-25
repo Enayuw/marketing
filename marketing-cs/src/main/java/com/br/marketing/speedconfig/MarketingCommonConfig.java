@@ -1160,5 +1160,15 @@ public class MarketingCommonConfig {
      * 跑分更新顺序线程数量
      */
     private Integer scoreUpdateSortThreadNum;
+
+    /**
+     * 海尔转化数据提取apiCode集合
+     */
+    private List<String> NewHaierTransferApiCodes;
+
+    /**
+     * 海尔转化数据提取执行时间
+     */
+    private String NewHaierTransferExecuteTime;
 }
 

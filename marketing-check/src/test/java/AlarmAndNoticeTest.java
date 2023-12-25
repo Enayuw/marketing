@@ -362,6 +362,43 @@ public class AlarmAndNoticeTest {
 
     }
 
+    @Resource
+    private TransferToFileByNewHaierServiceImpl toFileByNewHaierService;
+
+    private final static String TABLE_HEAD_HAIER_TRANSFER = "custNum,userType,customName,registerTime,applyDt,auditTime,requestTime";
+
+    @Test
+    public void NewHaierTransferFileTest() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7410930");
+        String apiCode = "7410930";
+        String myParam = "7410930#2023-12-23";
+        String dd = isMyParam("7410930", myParam);
+        transferFileTask.setStartDate(dd);
+        String recordDate = transferFileTask.getStartDate();
+        boolean isParam = StringUtils.isNotBlank(dd);
+        String dateyyyymmddStr = isParam ? dd.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        transferFileTask.setFileName(String.format("%s_transform_%s.txt", apiCode, dateyyyymmddStr));
+        log.warn("海尔新系统转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
+            fw.append(TABLE_HEAD_HAIER_TRANSFER);
+            fw.append("\r\n");
+            toFileByNewHaierService.writeTransferToFile(fw,apiCode,transferFileTask, recordDate);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+
+    }
+
+
     public String isMyParam(String apiCode, String jobParameter) {
         if (jobParameter.contains(apiCode)) {
             String[] split = jobParameter.split(";");
