@@ -162,7 +162,15 @@ public class ShuHeUserServiceImpl {
             userDTO.setDataItems(list);
             return userDTO;
         } catch (Exception e) {
-            log.error(String.format("数禾上传数据封装对象报错：%s",e.getMessage()), e);
+            String smg = String.format("数禾上传数据封装对象报错：%s", e.getMessage());
+            log.error(smg, e);
+            CaseShuheUploadData record = new CaseShuheUploadData();
+            record.setId(shuheUploadData.getId());
+            record.setStatus(1);
+            record.setSaveInfoStatus(1);
+            record.setUpdateTime(new Date());
+            record.setErrorInfo(smg);
+            caseShuheUploadDataMapper.updateByPrimaryKeySelective(record);
         }
         return null;
     }
