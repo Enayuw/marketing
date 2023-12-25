@@ -435,6 +435,76 @@ public class HaierCollidingDataExample {
             return (Criteria) this;
         }
 
+        public Criteria andDataMessageIsNull() {
+            addCriterion("data_message is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageIsNotNull() {
+            addCriterion("data_message is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageEqualTo(String value) {
+            addCriterion("data_message =", value, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageNotEqualTo(String value) {
+            addCriterion("data_message <>", value, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageGreaterThan(String value) {
+            addCriterion("data_message >", value, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageGreaterThanOrEqualTo(String value) {
+            addCriterion("data_message >=", value, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageLessThan(String value) {
+            addCriterion("data_message <", value, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageLessThanOrEqualTo(String value) {
+            addCriterion("data_message <=", value, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageLike(String value) {
+            addCriterion("data_message like", value, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageNotLike(String value) {
+            addCriterion("data_message not like", value, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageIn(List<String> values) {
+            addCriterion("data_message in", values, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageNotIn(List<String> values) {
+            addCriterion("data_message not in", values, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageBetween(String value1, String value2) {
+            addCriterion("data_message between", value1, value2, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageNotBetween(String value1, String value2) {
+            addCriterion("data_message not between", value1, value2, "dataMessage");
+            return (Criteria) this;
+        }
+
         public Criteria andPushStatusIsNull() {
             addCriterion("push_status is null");
             return (Criteria) this;
@@ -615,76 +685,6 @@ public class HaierCollidingDataExample {
             return (Criteria) this;
         }
 
-        public Criteria andExtendIsNull() {
-            addCriterion("extend is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendIsNotNull() {
-            addCriterion("extend is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendEqualTo(String value) {
-            addCriterion("extend =", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendNotEqualTo(String value) {
-            addCriterion("extend <>", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendGreaterThan(String value) {
-            addCriterion("extend >", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendGreaterThanOrEqualTo(String value) {
-            addCriterion("extend >=", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendLessThan(String value) {
-            addCriterion("extend <", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendLessThanOrEqualTo(String value) {
-            addCriterion("extend <=", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendLike(String value) {
-            addCriterion("extend like", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendNotLike(String value) {
-            addCriterion("extend not like", value, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendIn(List<String> values) {
-            addCriterion("extend in", values, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendNotIn(List<String> values) {
-            addCriterion("extend not in", values, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendBetween(String value1, String value2) {
-            addCriterion("extend between", value1, value2, "extend");
-            return (Criteria) this;
-        }
-
-        public Criteria andExtendNotBetween(String value1, String value2) {
-            addCriterion("extend not between", value1, value2, "extend");
-            return (Criteria) this;
-        }
-
         public Criteria andCreateTimeIsNull() {
             addCriterion("create_time is null");
             return (Criteria) this;
@@ -805,143 +805,73 @@ public class HaierCollidingDataExample {
             return (Criteria) this;
         }
 
-        public Criteria andPushDateIsNull() {
-            addCriterion("push_date is null");
+        public Criteria andCreateDateIsNull() {
+            addCriterion("create_date is null");
             return (Criteria) this;
         }
 
-        public Criteria andPushDateIsNotNull() {
-            addCriterion("push_date is not null");
+        public Criteria andCreateDateIsNotNull() {
+            addCriterion("create_date is not null");
             return (Criteria) this;
         }
 
-        public Criteria andPushDateEqualTo(String value) {
-            addCriterion("push_date =", value, "pushDate");
+        public Criteria andCreateDateEqualTo(String value) {
+            addCriterion("create_date =", value, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andPushDateNotEqualTo(String value) {
-            addCriterion("push_date <>", value, "pushDate");
+        public Criteria andCreateDateNotEqualTo(String value) {
+            addCriterion("create_date <>", value, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andPushDateGreaterThan(String value) {
-            addCriterion("push_date >", value, "pushDate");
+        public Criteria andCreateDateGreaterThan(String value) {
+            addCriterion("create_date >", value, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andPushDateGreaterThanOrEqualTo(String value) {
-            addCriterion("push_date >=", value, "pushDate");
+        public Criteria andCreateDateGreaterThanOrEqualTo(String value) {
+            addCriterion("create_date >=", value, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andPushDateLessThan(String value) {
-            addCriterion("push_date <", value, "pushDate");
+        public Criteria andCreateDateLessThan(String value) {
+            addCriterion("create_date <", value, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andPushDateLessThanOrEqualTo(String value) {
-            addCriterion("push_date <=", value, "pushDate");
+        public Criteria andCreateDateLessThanOrEqualTo(String value) {
+            addCriterion("create_date <=", value, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andPushDateLike(String value) {
-            addCriterion("push_date like", value, "pushDate");
+        public Criteria andCreateDateLike(String value) {
+            addCriterion("create_date like", value, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andPushDateNotLike(String value) {
-            addCriterion("push_date not like", value, "pushDate");
+        public Criteria andCreateDateNotLike(String value) {
+            addCriterion("create_date not like", value, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andPushDateIn(List<String> values) {
-            addCriterion("push_date in", values, "pushDate");
+        public Criteria andCreateDateIn(List<String> values) {
+            addCriterion("create_date in", values, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andPushDateNotIn(List<String> values) {
-            addCriterion("push_date not in", values, "pushDate");
+        public Criteria andCreateDateNotIn(List<String> values) {
+            addCriterion("create_date not in", values, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andPushDateBetween(String value1, String value2) {
-            addCriterion("push_date between", value1, value2, "pushDate");
+        public Criteria andCreateDateBetween(String value1, String value2) {
+            addCriterion("create_date between", value1, value2, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andPushDateNotBetween(String value1, String value2) {
-            addCriterion("push_date not between", value1, value2, "pushDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncDateIsNull() {
-            addCriterion("sync_date is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncDateIsNotNull() {
-            addCriterion("sync_date is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncDateEqualTo(String value) {
-            addCriterion("sync_date =", value, "syncDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncDateNotEqualTo(String value) {
-            addCriterion("sync_date <>", value, "syncDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncDateGreaterThan(String value) {
-            addCriterion("sync_date >", value, "syncDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncDateGreaterThanOrEqualTo(String value) {
-            addCriterion("sync_date >=", value, "syncDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncDateLessThan(String value) {
-            addCriterion("sync_date <", value, "syncDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncDateLessThanOrEqualTo(String value) {
-            addCriterion("sync_date <=", value, "syncDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncDateLike(String value) {
-            addCriterion("sync_date like", value, "syncDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncDateNotLike(String value) {
-            addCriterion("sync_date not like", value, "syncDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncDateIn(List<String> values) {
-            addCriterion("sync_date in", values, "syncDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncDateNotIn(List<String> values) {
-            addCriterion("sync_date not in", values, "syncDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncDateBetween(String value1, String value2) {
-            addCriterion("sync_date between", value1, value2, "syncDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncDateNotBetween(String value1, String value2) {
-            addCriterion("sync_date not between", value1, value2, "syncDate");
+        public Criteria andCreateDateNotBetween(String value1, String value2) {
+            addCriterion("create_date not between", value1, value2, "createDate");
             return (Criteria) this;
         }
     }

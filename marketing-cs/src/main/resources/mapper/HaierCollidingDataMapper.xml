@@ -21,6 +21,6 @@
             </if>
         </set>
         where mobile_digest = #{mobileDigest,jdbcType=VARCHAR}
-        and push_date = #{pushDate} and status = 1
+        and create_date = #{createDate,jdbcType=VARCHAR} and status = 1
     </update>
 </mapper>

@@ -957,7 +957,7 @@ public class PushDataServiceImpl implements PushDataService {
         HaierCollidingData updateData = new HaierCollidingData();
         updateData.setPushStatus(2);
         updateData.setMobileDigest(mobileDigest);
-        updateData.setPushDate(String.valueOf(sendDate));
+        updateData.setCreateDate(String.valueOf(sendDate));
         haierCollidingDataMapper.updateBySelective(updateData);
     }
 

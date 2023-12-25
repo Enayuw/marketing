@@ -4,17 +4,19 @@
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.HaierCollidingData" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
-    <result column="local_id" property="localId" jdbcType="INTEGER" />
+    <result column="local_id" property="localId" jdbcType="BIGINT" />
     <result column="type" property="type" jdbcType="VARCHAR" />
     <result column="mobile_digest" property="mobileDigest" jdbcType="VARCHAR" />
+    <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
     <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
     <result column="sync_status" property="syncStatus" jdbcType="INTEGER" />
     <result column="status" property="status" jdbcType="INTEGER" />
-    <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
-    <result column="push_date" property="pushDate" jdbcType="VARCHAR" />
-    <result column="sync_date" property="syncDate" jdbcType="VARCHAR" />
+    <result column="create_date" property="createDate" jdbcType="VARCHAR" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.HaierCollidingData" extends="BaseResultMap" >
+    <result column="extend" property="extend" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -75,9 +77,28 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, local_id, `type`, mobile_digest, push_status, sync_status, `status`, 
-    extend, create_time, update_time, push_date, sync_date
+    id, api_code, local_id, `type`, mobile_digest, data_message, push_status, sync_status, 
+    `status`, create_time, update_time, create_date
   </sql>
+  <sql id="Blob_Column_List" >
+    extend
+  </sql>
+  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.HaierCollidingDataExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from b_haier_colliding_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.HaierCollidingDataExample" >
     select
     <if test="distinct" >
@@ -92,9 +113,11 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
     from b_haier_colliding_data
     where id = #{id,jdbcType=BIGINT}
   </select>
@@ -113,14 +136,14 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_haier_colliding_data (api_code, local_id, `type`, 
-      mobile_digest, push_status, sync_status, 
-      `status`, extend, create_time, 
-      update_time, push_date, sync_date
+      mobile_digest, data_message, push_status, 
+      sync_status, `status`, create_time, 
+      update_time, create_date, extend
       )
-    values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=INTEGER}, #{type,jdbcType=VARCHAR}, 
-      #{mobileDigest,jdbcType=VARCHAR}, #{pushStatus,jdbcType=INTEGER}, #{syncStatus,jdbcType=INTEGER}, 
-      #{status,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{pushDate,jdbcType=VARCHAR}, #{syncDate,jdbcType=VARCHAR}
+    values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR}, 
+      #{mobileDigest,jdbcType=VARCHAR}, #{dataMessage,jdbcType=VARCHAR}, #{pushStatus,jdbcType=INTEGER}, 
+      #{syncStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{createDate,jdbcType=VARCHAR}, #{extend,jdbcType=LONGVARCHAR}
       )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.HaierCollidingData" >
@@ -141,6 +164,9 @@
       <if test="mobileDigest != null" >
         mobile_digest,
       </if>
+      <if test="dataMessage != null" >
+        data_message,
+      </if>
       <if test="pushStatus != null" >
         push_status,
       </if>
@@ -150,20 +176,17 @@
       <if test="status != null" >
         `status`,
       </if>
-      <if test="extend != null" >
-        extend,
-      </if>
       <if test="createTime != null" >
         create_time,
       </if>
       <if test="updateTime != null" >
         update_time,
       </if>
-      <if test="pushDate != null" >
-        push_date,
+      <if test="createDate != null" >
+        create_date,
       </if>
-      <if test="syncDate != null" >
-        sync_date,
+      <if test="extend != null" >
+        extend,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -171,13 +194,16 @@
         #{apiCode,jdbcType=VARCHAR},
       </if>
       <if test="localId != null" >
-        #{localId,jdbcType=INTEGER},
+        #{localId,jdbcType=BIGINT},
       </if>
       <if test="type != null" >
         #{type,jdbcType=VARCHAR},
       </if>
       <if test="mobileDigest != null" >
         #{mobileDigest,jdbcType=VARCHAR},
+      </if>
+      <if test="dataMessage != null" >
+        #{dataMessage,jdbcType=VARCHAR},
       </if>
       <if test="pushStatus != null" >
         #{pushStatus,jdbcType=INTEGER},
@@ -188,20 +214,17 @@
       <if test="status != null" >
         #{status,jdbcType=INTEGER},
       </if>
-      <if test="extend != null" >
-        #{extend,jdbcType=VARCHAR},
-      </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="pushDate != null" >
-        #{pushDate,jdbcType=VARCHAR},
+      <if test="createDate != null" >
+        #{createDate,jdbcType=VARCHAR},
       </if>
-      <if test="syncDate != null" >
-        #{syncDate,jdbcType=VARCHAR},
+      <if test="extend != null" >
+        #{extend,jdbcType=LONGVARCHAR},
       </if>
     </trim>
   </insert>
@@ -221,13 +244,16 @@
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
       <if test="record.localId != null" >
-        local_id = #{record.localId,jdbcType=INTEGER},
+        local_id = #{record.localId,jdbcType=BIGINT},
       </if>
       <if test="record.type != null" >
         `type` = #{record.type,jdbcType=VARCHAR},
       </if>
       <if test="record.mobileDigest != null" >
         mobile_digest = #{record.mobileDigest,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dataMessage != null" >
+        data_message = #{record.dataMessage,jdbcType=VARCHAR},
       </if>
       <if test="record.pushStatus != null" >
         push_status = #{record.pushStatus,jdbcType=INTEGER},
@@ -238,22 +264,38 @@
       <if test="record.status != null" >
         `status` = #{record.status,jdbcType=INTEGER},
       </if>
-      <if test="record.extend != null" >
-        extend = #{record.extend,jdbcType=VARCHAR},
-      </if>
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.pushDate != null" >
-        push_date = #{record.pushDate,jdbcType=VARCHAR},
+      <if test="record.createDate != null" >
+        create_date = #{record.createDate,jdbcType=VARCHAR},
       </if>
-      <if test="record.syncDate != null" >
-        sync_date = #{record.syncDate,jdbcType=VARCHAR},
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=LONGVARCHAR},
       </if>
     </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExampleWithBLOBs" parameterType="map" >
+    update b_haier_colliding_data
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      local_id = #{record.localId,jdbcType=BIGINT},
+      `type` = #{record.type,jdbcType=VARCHAR},
+      mobile_digest = #{record.mobileDigest,jdbcType=VARCHAR},
+      data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      push_status = #{record.pushStatus,jdbcType=INTEGER},
+      sync_status = #{record.syncStatus,jdbcType=INTEGER},
+      `status` = #{record.status,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      create_date = #{record.createDate,jdbcType=VARCHAR},
+      extend = #{record.extend,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -262,17 +304,16 @@
     update b_haier_colliding_data
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
-      local_id = #{record.localId,jdbcType=INTEGER},
+      local_id = #{record.localId,jdbcType=BIGINT},
       `type` = #{record.type,jdbcType=VARCHAR},
       mobile_digest = #{record.mobileDigest,jdbcType=VARCHAR},
+      data_message = #{record.dataMessage,jdbcType=VARCHAR},
       push_status = #{record.pushStatus,jdbcType=INTEGER},
       sync_status = #{record.syncStatus,jdbcType=INTEGER},
       `status` = #{record.status,jdbcType=INTEGER},
-      extend = #{record.extend,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      push_date = #{record.pushDate,jdbcType=VARCHAR},
-      sync_date = #{record.syncDate,jdbcType=VARCHAR}
+      create_date = #{record.createDate,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -284,13 +325,16 @@
         api_code = #{apiCode,jdbcType=VARCHAR},
       </if>
       <if test="localId != null" >
-        local_id = #{localId,jdbcType=INTEGER},
+        local_id = #{localId,jdbcType=BIGINT},
       </if>
       <if test="type != null" >
         `type` = #{type,jdbcType=VARCHAR},
       </if>
       <if test="mobileDigest != null" >
         mobile_digest = #{mobileDigest,jdbcType=VARCHAR},
+      </if>
+      <if test="dataMessage != null" >
+        data_message = #{dataMessage,jdbcType=VARCHAR},
       </if>
       <if test="pushStatus != null" >
         push_status = #{pushStatus,jdbcType=INTEGER},
@@ -301,38 +345,50 @@
       <if test="status != null" >
         `status` = #{status,jdbcType=INTEGER},
       </if>
-      <if test="extend != null" >
-        extend = #{extend,jdbcType=VARCHAR},
-      </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="pushDate != null" >
-        push_date = #{pushDate,jdbcType=VARCHAR},
+      <if test="createDate != null" >
+        create_date = #{createDate,jdbcType=VARCHAR},
       </if>
-      <if test="syncDate != null" >
-        sync_date = #{syncDate,jdbcType=VARCHAR},
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=LONGVARCHAR},
       </if>
     </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.HaierCollidingData" >
+    update b_haier_colliding_data
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      local_id = #{localId,jdbcType=BIGINT},
+      `type` = #{type,jdbcType=VARCHAR},
+      mobile_digest = #{mobileDigest,jdbcType=VARCHAR},
+      data_message = #{dataMessage,jdbcType=VARCHAR},
+      push_status = #{pushStatus,jdbcType=INTEGER},
+      sync_status = #{syncStatus,jdbcType=INTEGER},
+      `status` = #{status,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      create_date = #{createDate,jdbcType=VARCHAR},
+      extend = #{extend,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.HaierCollidingData" >
     update b_haier_colliding_data
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      local_id = #{localId,jdbcType=INTEGER},
+      local_id = #{localId,jdbcType=BIGINT},
       `type` = #{type,jdbcType=VARCHAR},
       mobile_digest = #{mobileDigest,jdbcType=VARCHAR},
+      data_message = #{dataMessage,jdbcType=VARCHAR},
       push_status = #{pushStatus,jdbcType=INTEGER},
       sync_status = #{syncStatus,jdbcType=INTEGER},
       `status` = #{status,jdbcType=INTEGER},
-      extend = #{extend,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
-      push_date = #{pushDate,jdbcType=VARCHAR},
-      sync_date = #{syncDate,jdbcType=VARCHAR}
+      create_date = #{createDate,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
