@@ -937,8 +937,7 @@ public class PushDataServiceImpl implements PushDataService {
 
     private void sendHaierCollidingData(HaierCollidingDataThread collidingDataThread, List<HaierCollidingData> haierCollidingDataList,
         Integer sendDate) {
-        List<String> mobileDigests =
-            haierCollidingDataList.stream().map(HaierCollidingData::getMobileDigest).filter(StringUtils::isEmpty).collect(Collectors.toList());
+        List<String> mobileDigests = haierCollidingDataList.stream().map(HaierCollidingData::getMobileDigest).collect(Collectors.toList());
         mobileDigests.forEach(mobileDigest -> collidingDataThread.collidingExecutor.submit(() -> processHaierCollidingData(mobileDigest, sendDate)));
     }
 
