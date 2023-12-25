@@ -34,7 +34,6 @@ public class ShuHeDxCustomerBlackListImpl implements AssembleData<BlackDetailDTO
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
-    public static final DateTimeFormatter ymhdms = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
     public BlackDetailDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -50,7 +49,7 @@ public class ShuHeDxCustomerBlackListImpl implements AssembleData<BlackDetailDTO
             if (shuhePushBlackDay != null) {
                 blackDays = shuhePushBlackDay.getOrDefault("customerBlack", 30);
             }
-            endTime = LocalDateTime.now().withHour(23).withMinute(59).withSecond(59).plusDays(blackDays).format(ymhdms);
+            endTime = LocalDateTime.now().withHour(23).withMinute(59).withSecond(59).plusDays(blackDays).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         } else {
             if (StringUtils.isEmpty(clcUsrMaxDxRrtEnd)) {
                 endTime = usrForbidCallEndTim.substring(0, 10).concat(" 23:59:59");
@@ -82,18 +81,20 @@ public class ShuHeDxCustomerBlackListImpl implements AssembleData<BlackDetailDTO
                 if (!StringUtils.isEmpty(clcUsrMaxDxRrtEnd)) {
                     LocalDate rrtEndDate;
                     try {
-                        rrtEndDate = LocalDate.parse(clcUsrMaxDxRrtEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                    } catch (Exception e) {
                         rrtEndDate = LocalDateTime.parse(clcUsrMaxDxRrtEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toLocalDate();
+                    } catch (Exception e) {
+                        log.error("数禾clc_usr_max_dx_rrt_end={}，时间转换异常,转化id={}", clcUsrMaxDxRrtEnd, transfer.getId());
+                        return false;
                     }
                     bool2 = rrtEndDate.isAfter(todayDate) || rrtEndDate.isEqual(todayDate);
                 }
                 if (!StringUtils.isEmpty(usrForbidCallEndTim)) {
                     LocalDate callEndTim;
                     try {
-                        callEndTim = LocalDate.parse(usrForbidCallEndTim, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                    } catch (Exception e) {
                         callEndTim = LocalDateTime.parse(usrForbidCallEndTim, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toLocalDate();
+                    } catch (Exception e) {
+                        log.error("数禾usr_forbid_call_end_tim={}时间转换异常,转化id={}", usrForbidCallEndTim, transfer.getId());
+                        return false;
                     }
                     bool1 = callEndTim.isAfter(todayDate) || callEndTim.isEqual(todayDate);
                 }
