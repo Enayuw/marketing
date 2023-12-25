@@ -858,8 +858,6 @@ public class PushDataServiceImpl implements PushDataService {
             for (; ; ) {
                 // 动态修改线程参数
                 changeHaierCollidingDataThread(collidingDataThread.collidingExecutor,collidingDataThread.saveExecutor);
-                HaierCollidingDataExample example = new HaierCollidingDataExample();
-                example.createCriteria().andPushStatusEqualTo(1).andStatusEqualTo(1);
                 // 查询需要推送的基础数据
                 List<HaierCollidingData> haierCollidingDataList =
                     haierCollidingDataMapper.selectByLocalId(localId, sendDate, marketingCommonConfig.getHaierCollidingDataPageSize());
