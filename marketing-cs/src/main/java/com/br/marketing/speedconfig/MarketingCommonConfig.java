@@ -1160,5 +1160,16 @@ public class MarketingCommonConfig {
      * 跑分更新顺序线程数量
      */
     private Integer scoreUpdateSortThreadNum;
+
+    /**
+     * 有效期变更apiCode
+     */
+    private List<String> validityPeriodApiCodeList;
+
+    /**
+     * 有效期变更接口开关
+     */
+    private Boolean changeValidityPeriodIndex;
+
 }
 
