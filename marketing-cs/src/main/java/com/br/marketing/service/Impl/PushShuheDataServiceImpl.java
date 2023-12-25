@@ -774,48 +774,6 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     }
 
     /**
-     * 2022/9/1 10:45
-     * 新增字段检查
-     */
-//    @Deprecated
-//    private void checkField(JSONObject uploadDataDTO, JSONArray listInfo) {
-//        try {
-//            Set<String> keySet = new HashSet<>(uploadDataDTO.keySet());
-//            StringBuilder fieldStr = new StringBuilder();
-//            int size = listInfo.size();
-//            for (int i = 0; i < size; i++) {
-//                JSONObject info = listInfo.getJSONObject(i);
-//                keySet.addAll(info.keySet());
-//                JSONObject varData = info.getJSONObject("varData");
-//                if (varData != null) {
-//                    keySet.addAll(varData.keySet());
-//                }
-//            }
-//            String separator = "、";
-//            for (String key : keySet) {
-//                if (FIELD_SET.add(key)) {
-//                    Long aLong = redisChgService.saddMember(RedisKeyConstant.shuHeUploadDataFieldKey, key);
-//                    if (aLong == 1) {
-//                        fieldStr.append(fieldStr.length() > 0 ? separator : "\n").append(key);
-//                    }
-//                }
-//            }
-//            if (fieldStr.length() > 0) {
-//                alarmClient.sendAlarm("本次请求发现新增字段："
-//                                .concat(fieldStr.toString())
-//                                .concat("\n请及时与客户沟通确认^_^"), "数禾上传数据接口字段新增检查",
-//                                AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
-//                Long rSum = redisChgService.scard(RedisKeyConstant.shuHeUploadDataFieldKey);
-//                if (rSum == null || rSum < FIELD_SET.size()) {
-//                    redisChgService.sadd(RedisKeyConstant.shuHeUploadDataFieldKey, new ArrayList<>(FIELD_SET));
-//                }
-//            }
-//        } catch (Exception e) {
-//            log.error(e.getMessage(), e);
-//        }
-//    }
-
-    /**
      * 2023-12-25 10:56
      * 数禾上传数据检查字段
      *
