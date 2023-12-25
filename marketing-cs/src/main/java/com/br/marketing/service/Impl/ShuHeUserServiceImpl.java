@@ -117,44 +117,13 @@ public class ShuHeUserServiceImpl {
                 dto.setGroupType(type);
                 dto.setCustNum(info.getString("orderId"));
                 varData = info.getJSONObject("varData");
-                if (!CollectionUtils.isEmpty(varData)) {
-                    String keyId = "identificationNo";
-                    String keyName = "name";
-                    String keyCusName = "cus_name";
-                    String keySex = "sex";
-                    String keyIdNew = "idt_no";
-                    if (varData.containsKey(keyIdNew)) {
-                        dto.setId(varData.getString(keyIdNew));
-                        varData.remove(keyIdNew);
-                    } else if (varData.containsKey(keyId)) {
-                        dto.setId(varData.getString(keyId));
-                        varData.remove(keyId);
-                    }
-                    if (varData.containsKey(keyCusName)) {
-                        dto.setName(varData.getString(keyCusName));
-                        varData.remove(keyCusName);
-                    } else if (varData.containsKey(keyName)) {
-                        dto.setName(varData.getString(keyName));
-                        varData.remove(keyName);
-                    }
-                    if (varData.containsKey(keySex)) {
-                        String sex = varData.getString(keySex);
-                        if ("男".equals(sex)) {
-                            reserveField1.put("gender", "1");
-                        } else {
-                            reserveField1.put("gender", "女".equals(sex) ? "2" : sex);
-                        }
-                        varData.remove(keySex);
-                    }
-                    reserveField1.putAll(varData);
-                }
+                varDataHandle(varData, dto, reserveField1);
                 reserveField1.putAll(info);
                 reserveField1.putAll(uploadDataDTO);
                 reserveField1.remove("listInfo");
                 reserveField1.remove("mobile");
                 reserveField1.remove("varData");
                 reserveField1.remove("orderId");
-//                reserveField1.remove("extraInfo");
                 dto.setReserveField1(JSON.toJSONString(reserveField1, SerializerFeature.WriteNullStringAsEmpty
                         , SerializerFeature.WriteNullListAsEmpty));
                 list.add(dto);
@@ -173,6 +142,48 @@ public class ShuHeUserServiceImpl {
             caseShuheUploadDataMapper.updateByPrimaryKeySelective(record);
         }
         return null;
+    }
+
+    /**
+     * 2023-12-25 22:27
+     * 处理业务字段
+     *
+     * @param varData       客户业务字段
+     * @param dto           百融业务字段
+     * @param reserveField1 百融扩展字段
+     */
+    private void varDataHandle(JSONObject varData, MarketingPreUserDetailDTO dto, Map<String, Object> reserveField1) {
+        if (!CollectionUtils.isEmpty(varData)) {
+            String keyId = "identificationNo";
+            String keyName = "name";
+            String keyCusName = "cus_name";
+            String keySex = "sex";
+            String keyIdNew = "idt_no";
+            if (varData.containsKey(keyIdNew)) {
+                dto.setId(varData.getString(keyIdNew));
+                varData.remove(keyIdNew);
+            } else if (varData.containsKey(keyId)) {
+                dto.setId(varData.getString(keyId));
+                varData.remove(keyId);
+            }
+            if (varData.containsKey(keyCusName)) {
+                dto.setName(varData.getString(keyCusName));
+                varData.remove(keyCusName);
+            } else if (varData.containsKey(keyName)) {
+                dto.setName(varData.getString(keyName));
+                varData.remove(keyName);
+            }
+            if (varData.containsKey(keySex)) {
+                String sex = varData.getString(keySex);
+                if ("男".equals(sex)) {
+                    reserveField1.put("gender", "1");
+                } else {
+                    reserveField1.put("gender", "女".equals(sex) ? "2" : sex);
+                }
+                varData.remove(keySex);
+            }
+            reserveField1.putAll(varData);
+        }
     }
 
     private Long saveSyncInfo(MarketingPreUserDTO userDTO, CaseShuheUploadData shuheUploadData) {
