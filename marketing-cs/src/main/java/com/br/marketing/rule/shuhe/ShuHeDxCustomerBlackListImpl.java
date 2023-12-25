@@ -49,7 +49,8 @@ public class ShuHeDxCustomerBlackListImpl implements AssembleData<BlackDetailDTO
             if (shuhePushBlackDay != null) {
                 blackDays = shuhePushBlackDay.getOrDefault("customerBlack", 30);
             }
-            endTime = LocalDateTime.now().withHour(23).withMinute(59).withSecond(59).plusDays(blackDays).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            LocalDateTime expireData = LocalDateTime.now().withHour(23).withMinute(59).withSecond(59).plusDays(blackDays);
+            endTime = expireData.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         } else {
             if (StringUtils.isEmpty(clcUsrMaxDxRrtEnd)) {
                 endTime = usrForbidCallEndTim.substring(0, 10).concat(" 23:59:59");
@@ -83,7 +84,7 @@ public class ShuHeDxCustomerBlackListImpl implements AssembleData<BlackDetailDTO
                     try {
                         rrtEndDate = LocalDateTime.parse(clcUsrMaxDxRrtEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toLocalDate();
                     } catch (Exception e) {
-                        log.error("数禾clc_usr_max_dx_rrt_end={}，时间转换异常,转化id={}", clcUsrMaxDxRrtEnd, transfer.getId());
+                        log.error("数禾clc_usr_max_dx_rrt_end={}，时间转换异常,转化id={}", clcUsrMaxDxRrtEnd, transfer.getId(), e.getMessage());
                         return false;
                     }
                     bool2 = rrtEndDate.isAfter(todayDate) || rrtEndDate.isEqual(todayDate);
@@ -93,7 +94,7 @@ public class ShuHeDxCustomerBlackListImpl implements AssembleData<BlackDetailDTO
                     try {
                         callEndTim = LocalDateTime.parse(usrForbidCallEndTim, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toLocalDate();
                     } catch (Exception e) {
-                        log.error("数禾usr_forbid_call_end_tim={}时间转换异常,转化id={}", usrForbidCallEndTim, transfer.getId());
+                        log.error("数禾usr_forbid_call_end_tim={}时间转换异常,转化id={}", usrForbidCallEndTim, transfer.getId(), e.getMessage());
                         return false;
                     }
                     bool1 = callEndTim.isAfter(todayDate) || callEndTim.isEqual(todayDate);
