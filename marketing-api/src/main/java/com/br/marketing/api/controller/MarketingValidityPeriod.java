@@ -38,10 +38,9 @@ public class MarketingValidityPeriod {
      */
     @ApiOperation(value = "智能营销数据有效期更改接口")
     @PostMapping("/changeValidityPeriod")
-    @LogAnnotation
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public ApiNoDataResult changeValidityPeriod(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
-        log.info("有效期变更接口入参：{},{}",apiCode,jsonData);
+        log.warn("有效期变更接口入参：{},{}",apiCode,jsonData);
         ApiNoDataResult apiNoDataResult = validityPeriodDataService.marketingValidityPeriod(apiCode, jsonData);
         return apiNoDataResult;
     }
