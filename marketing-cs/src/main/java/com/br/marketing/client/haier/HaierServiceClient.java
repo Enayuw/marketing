@@ -83,7 +83,7 @@ public class HaierServiceClient {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
-    @Value("${api.haier.colliding.isProxy:00}")
+    @Value("${api.haier.colliding.isProxy:true}")
     private Boolean collidingIsProxy;
     @Value("${api.haier.colliding.rsaPublicKey:00}")
     private String collidingRsaPublicKey;
