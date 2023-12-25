@@ -120,6 +120,7 @@ public class ShuHeUserServiceImpl {
                 if (!CollectionUtils.isEmpty(varData)) {
                     String keyId = "identificationNo";
                     String keyName = "name";
+                    String keyCusName = "cus_name";
                     String keySex = "sex";
                     String keyIdNew = "idt_no";
                     if (varData.containsKey(keyIdNew)) {
@@ -129,7 +130,10 @@ public class ShuHeUserServiceImpl {
                         dto.setId(varData.getString(keyId));
                         varData.remove(keyId);
                     }
-                    if (varData.containsKey(keyName)) {
+                    if (varData.containsKey(keyCusName)) {
+                        dto.setName(varData.getString(keyCusName));
+                        varData.remove(keyCusName);
+                    } else if (varData.containsKey(keyName)) {
                         dto.setName(varData.getString(keyName));
                         varData.remove(keyName);
                     }
