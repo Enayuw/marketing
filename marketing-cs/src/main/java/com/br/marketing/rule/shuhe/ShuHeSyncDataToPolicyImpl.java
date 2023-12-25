@@ -29,7 +29,7 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
-//        pushMarketingUserDetailByRuleDTO.setInitId(syncUser.getId());
+        pushMarketingUserDetailByRuleDTO.setInitId(syncUser.getId());
         pushMarketingUserDetailByRuleDTO.setCaseNumber(syncUser.getCustNum());
         // 手机号log解密  md5加密
         String cell = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(syncUser.getCell()).getBytes());
