@@ -1,8 +1,6 @@
 package com.br.marketing.service.Impl;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
-import com.br.marketing.entity.RequestInterfaceLogExample;
 import com.br.marketing.entity.RequestInterfaceLogWithBlobs;
 import com.br.marketing.mapper.RequestInterfaceLogMapper;
 import com.br.marketing.service.RequestInterfaceLogService;
@@ -26,20 +24,23 @@ public class RequestInterfaceLogServiceImpl implements RequestInterfaceLogServic
     ThreadPoolExecutor requestInterfaceLogDbpool;
     @Override
     public void saveLog(String apiCode, String url, Object data,Object result,long expireTime) {
-        RequestInterfaceLogWithBlobs req = new RequestInterfaceLogWithBlobs();
-        req.setApiCode(apiCode);
-        req.setUrl(url);
-        String s = JSON.toJSONString(data);
-        req.setRequestParam(s);
-        req.setResult(JSON.toJSONString(result));
-        req.setExpire(expireTime);
-        requestInterfaceLogDbpool.submit(()->{
-            try {
-                requestInterfaceLogMapper.insertSelective(req);
-            }catch (Exception e){
-                log.error("第三方调用api 接口 日志存储异常，{}",e);
-            }
-        });
+        try {
+            RequestInterfaceLogWithBlobs req = new RequestInterfaceLogWithBlobs();
+            req.setApiCode(apiCode);
+            req.setUrl(url);
+            req.setRequestParam(data.toString());
+            req.setResult(JSON.toJSONString(result));
+            req.setExpire(expireTime);
+            requestInterfaceLogDbpool.submit(()->{
+                try {
+                    requestInterfaceLogMapper.insertSelective(req);
+                }catch (Exception e){
+                    log.error("第三方调用api 接口 日志存储异常，{}",e);
+                }
+            });
+        }catch (Exception e){
+            log.error("第三方调用api 接口 日志存储异常，{}",e);
+        }
     }
 
 
