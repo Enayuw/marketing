@@ -394,10 +394,12 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_pushCustomer");
         Integer pageIndex = 0;
         Integer pageSize = marketingCommonConfig.getScoreTaskPageSizeByPushCustomer() == null
-                ? 2000 :marketingCommonConfig.getScoreTaskPageSizeByPushCustomer();
+                ? 2000 : marketingCommonConfig.getScoreTaskPageSizeByPushCustomer();
+        Integer dataPageSize = marketingCommonConfig.getScoreDataPageSizeByPushCustomer() == null
+                ? 1000 : marketingCommonConfig.getScoreDataPageSizeByPushCustomer();
         Boolean taskAction = Boolean.TRUE;
         while (taskAction) {
-            Integer start = pageIndex*pageSize;
+            Integer start = pageIndex * pageSize;
             List<String> taskId = pushCustomerDetailMapper.getTaskId(straHisFile.getId(), start, pageSize);
             if (taskId.size() <= 0) {
                 taskAction = Boolean.FALSE;
@@ -409,7 +411,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 Long minId = null;
                 while (dataAction) {
                     PushCustomerDetailExample pushCustomerDetailExample = new PushCustomerDetailExample();
-                    pushCustomerDetailExample.setOrderByClause(" id limit 1000");
+                    pushCustomerDetailExample.setOrderByClause(String.format(" id limit %d",dataPageSize));
                     PushCustomerDetailExample.Criteria criteria = pushCustomerDetailExample.createCriteria();
                     criteria.andFileIdEqualTo(straHisFile.getId()).andTaskIdEqualTo(s).andPushStatusIn(Arrays.asList(1, 3));
                     if (minId != null) {
