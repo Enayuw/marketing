@@ -2,8 +2,8 @@ package com.br.marketing.api.controller;
 
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
-import com.br.marketing.aspect.LogAnnotation;
 import com.br.marketing.common.commondto.ApiNoDataResult;
+import com.br.marketing.service.RequestInterfaceLogService;
 import com.br.marketing.service.ValidityPeriodDataService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -29,6 +29,9 @@ public class MarketingValidityPeriod {
     private ValidityPeriodDataService validityPeriodDataService;
 
 
+    @Resource
+    private RequestInterfaceLogService requestInterfaceLogService;
+
 
     /**
      *  智能营销数据有效期更改接口
@@ -41,7 +44,10 @@ public class MarketingValidityPeriod {
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public ApiNoDataResult changeValidityPeriod(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
         log.warn("有效期变更接口入参：{},{}",apiCode,jsonData);
+        long startTime = System.currentTimeMillis();
         ApiNoDataResult apiNoDataResult = validityPeriodDataService.marketingValidityPeriod(apiCode, jsonData);
+        long endTime = System.currentTimeMillis();
+        requestInterfaceLogService.saveLog(apiCode,"marketingUser/changeValidityPeriod",jsonData,apiNoDataResult,endTime - startTime);
         return apiNoDataResult;
     }
 }

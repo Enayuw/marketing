@@ -1,0 +1,46 @@
+package com.br.marketing.service.Impl;
+
+import IceInternal.Ex;
+import com.alibaba.fastjson.JSON;
+import com.br.marketing.entity.RequestInterfaceLogExample;
+import com.br.marketing.entity.RequestInterfaceLogWithBlobs;
+import com.br.marketing.mapper.RequestInterfaceLogMapper;
+import com.br.marketing.service.RequestInterfaceLogService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.concurrent.ThreadPoolExecutor;
+
+@Service
+@Slf4j
+public class RequestInterfaceLogServiceImpl implements RequestInterfaceLogService {
+
+    @Resource
+    private RequestInterfaceLogMapper requestInterfaceLogMapper;
+
+    @Qualifier("requestInterfaceLogDbpool")
+    @Autowired
+    ThreadPoolExecutor requestInterfaceLogDbpool;
+    @Override
+    public void saveLog(String apiCode, String url, Object data,Object result,long expireTime) {
+        RequestInterfaceLogWithBlobs req = new RequestInterfaceLogWithBlobs();
+        req.setApiCode(apiCode);
+        req.setUrl(url);
+        String s = JSON.toJSONString(data);
+        req.setRequestParam(s);
+        req.setResult(JSON.toJSONString(result));
+        req.setExpire(expireTime);
+        requestInterfaceLogDbpool.submit(()->{
+            try {
+                requestInterfaceLogMapper.insertSelective(req);
+            }catch (Exception e){
+                log.error("第三方调用api 接口 日志存储异常，{}",e);
+            }
+        });
+    }
+
+
+}
