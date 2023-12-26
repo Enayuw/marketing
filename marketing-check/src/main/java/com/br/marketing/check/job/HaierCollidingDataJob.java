@@ -37,11 +37,7 @@ public class HaierCollidingDataJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         String formatted = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        final LocalFileExample localFileExample = new LocalFileExample();
-        localFileExample.createCriteria().andFileTypeEqualTo(HAIER_COLLIDING).andFileNameLike("%" + formatted + "%").andStatusEqualTo("2")
-            .andPushStatusNotEqualTo("2");
-        localFileExample.setOrderByClause("id desc");
-        List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
+        List<LocalFile> localFileList = localFileMapper.getNotPushLocalFileByFileTypeAndFileName("%" + formatted + "%",HAIER_COLLIDING);
         localFileList.forEach((LocalFile localFile) -> {
 
             if(localFile.getPushStartTime() == null){
