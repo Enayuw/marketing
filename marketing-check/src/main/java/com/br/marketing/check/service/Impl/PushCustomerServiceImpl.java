@@ -405,6 +405,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 taskAction = Boolean.FALSE;
                 continue;
             }
+            log.warn(String.format("分页：%d",start)+JSON.toJSONString(taskId));
             pageIndex++;
             for (String s : taskId) {
                 Boolean dataAction = Boolean.TRUE;
