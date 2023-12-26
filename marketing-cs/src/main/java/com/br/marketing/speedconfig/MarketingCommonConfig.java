@@ -1160,5 +1160,10 @@ public class MarketingCommonConfig {
      * 跑分更新顺序线程数量
      */
     private Integer scoreUpdateSortThreadNum;
+
+    /**
+     * 跑分回调获取taskId分页
+     */
+    private Integer scoreTaskPageSizeByPushCustomer;
 }
 
