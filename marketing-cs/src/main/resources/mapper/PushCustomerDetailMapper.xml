@@ -62,7 +62,6 @@
         from (select task_id
               from b_push_customer_detail
               where file_id = #{fileId}
-                and push_status in (1, 3)
               group by task_id) as t
         order by task_id limit #{pageIndex}, #{pageSize}
     </select>
