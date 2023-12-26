@@ -142,7 +142,7 @@ public class TransferToFileByNewHaierServiceImpl implements ITransferToFileServi
         try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
             fw.append(TABLE_HEAD_TRANSFER);
             fw.append("\r\n");
-            writeTransferToFile(fw, apiCode, transferFileTask);
+            writeTransferToFile(fw, apiCode, transferFileTask, requestDate);
         } catch (Exception ex) {
             log.error("写入文件错误！",ex);
             result.setCode(ResultCode.FAIL.getValue());
@@ -152,12 +152,14 @@ public class TransferToFileByNewHaierServiceImpl implements ITransferToFileServi
         return result;
     }
 
-    public void writeTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) {
+    public void writeTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
         long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         int page = 0;
         int totalSize = 0;
         long timeout = 5L;
+        String startTime = "2001-01-01";
+        String endTime = requestDate + " 23:59:59";
         MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
@@ -165,7 +167,7 @@ public class TransferToFileByNewHaierServiceImpl implements ITransferToFileServi
         Integer pageSize = dynamicParameterService.getPageSize(null);
         for (; ; ) {
             List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper
-                    .findTransferByApiCodeAndCreateTimePage(syncUser, null, null, null, page * pageSize, pageSize);
+                    .findTransferByApiCodeAndCreateTimePage(syncUser, startTime, endTime, null, page * pageSize, pageSize);
             if (CollectionUtils.isEmpty(transferOrderInsertTime)) {
                 break;
             }
