@@ -1171,5 +1171,15 @@ public class MarketingCommonConfig {
      */
     private Boolean changeValidityPeriodIndex;
 
+
+    /**
+     * 跑分回调获取taskId分页
+     */
+    private Integer scoreTaskPageSizeByPushCustomer;
+
+    /**
+     * 跑分回调获取数据分页
+     */
+    private Integer scoreDataPageSizeByPushCustomer;
 }
 
