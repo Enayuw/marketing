@@ -1,10 +1,11 @@
 package com.br.marketing.mapper;
 
-import com.br.marketing.entity.HaierCollidingDataLog;
-import com.br.marketing.entity.HaierCollidingDataLogExample;
+import java.util.List;
+
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
+import com.br.marketing.entity.HaierCollidingDataLog;
+import com.br.marketing.entity.HaierCollidingDataLogExample;
 
 public interface HaierCollidingDataLogMapperBase {
     int countByExample(HaierCollidingDataLogExample example);

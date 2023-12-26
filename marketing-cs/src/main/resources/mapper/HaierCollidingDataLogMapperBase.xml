@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.HaierCollidingDataLogMapperBase" >
+<mapper namespace="com.br.marketing.mapper.HaierCollidingDataLogMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.HaierCollidingDataLog" >
     <id column="id" property="id" jdbcType="BIGINT" />
-    <result column="colliding_data_id" property="collidingDataId" jdbcType="INTEGER" />
+    <result column="colliding_data_id" property="collidingDataId" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
-    <result column="local_id" property="localId" jdbcType="INTEGER" />
+    <result column="local_id" property="localId" jdbcType="BIGINT" />
     <result column="type" property="type" jdbcType="VARCHAR" />
     <result column="mobile_digest" property="mobileDigest" jdbcType="VARCHAR" />
-    <result column="param" property="param" jdbcType="VARCHAR" />
-    <result column="param_secret" property="paramSecret" jdbcType="VARCHAR" />
-    <result column="info" property="info" jdbcType="VARCHAR" />
     <result column="result" property="result" jdbcType="INTEGER" />
+    <result column="sync_status" property="syncStatus" jdbcType="INTEGER" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -79,8 +77,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, colliding_data_id, api_code, local_id, `type`, mobile_digest, param, param_secret, 
-    info, `result`, `status`, create_time, update_time, send_date
+    id, colliding_data_id, api_code, local_id, `type`, mobile_digest, `result`, sync_status, 
+    `status`, create_time, update_time, send_date
   </sql>
   <sql id="Blob_Column_List" >
     extend
@@ -138,15 +136,15 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_haier_colliding_data_log (colliding_data_id, api_code, local_id, 
-      `type`, mobile_digest, param, 
-      param_secret, info, `result`, 
-      `status`, create_time, update_time, 
-      send_date, extend)
-    values (#{collidingDataId,jdbcType=INTEGER}, #{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=INTEGER}, 
-      #{type,jdbcType=VARCHAR}, #{mobileDigest,jdbcType=VARCHAR}, #{param,jdbcType=VARCHAR}, 
-      #{paramSecret,jdbcType=VARCHAR}, #{info,jdbcType=VARCHAR}, #{result,jdbcType=INTEGER}, 
-      #{status,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{sendDate,jdbcType=INTEGER}, #{extend,jdbcType=LONGVARCHAR})
+      `type`, mobile_digest, `result`, 
+      sync_status, `status`, create_time, 
+      update_time, send_date, extend
+      )
+    values (#{collidingDataId,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, 
+      #{type,jdbcType=VARCHAR}, #{mobileDigest,jdbcType=VARCHAR}, #{result,jdbcType=INTEGER},
+      #{syncStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{sendDate,jdbcType=INTEGER}, #{extend,jdbcType=LONGVARCHAR}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.HaierCollidingDataLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -169,17 +167,11 @@
       <if test="mobileDigest != null" >
         mobile_digest,
       </if>
-      <if test="param != null" >
-        param,
-      </if>
-      <if test="paramSecret != null" >
-        param_secret,
-      </if>
-      <if test="info != null" >
-        info,
-      </if>
       <if test="result != null" >
         `result`,
+      </if>
+      <if test="syncStatus != null" >
+        sync_status,
       </if>
       <if test="status != null" >
         `status`,
@@ -199,13 +191,13 @@
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="collidingDataId != null" >
-        #{collidingDataId,jdbcType=INTEGER},
+        #{collidingDataId,jdbcType=BIGINT},
       </if>
       <if test="apiCode != null" >
         #{apiCode,jdbcType=VARCHAR},
       </if>
       <if test="localId != null" >
-        #{localId,jdbcType=INTEGER},
+        #{localId,jdbcType=BIGINT},
       </if>
       <if test="type != null" >
         #{type,jdbcType=VARCHAR},
@@ -213,17 +205,11 @@
       <if test="mobileDigest != null" >
         #{mobileDigest,jdbcType=VARCHAR},
       </if>
-      <if test="param != null" >
-        #{param,jdbcType=VARCHAR},
-      </if>
-      <if test="paramSecret != null" >
-        #{paramSecret,jdbcType=VARCHAR},
-      </if>
-      <if test="info != null" >
-        #{info,jdbcType=VARCHAR},
-      </if>
       <if test="result != null" >
         #{result,jdbcType=INTEGER},
+      </if>
+      <if test="syncStatus != null" >
+        #{syncStatus,jdbcType=INTEGER},
       </if>
       <if test="status != null" >
         #{status,jdbcType=INTEGER},
@@ -255,13 +241,13 @@
         id = #{record.id,jdbcType=BIGINT},
       </if>
       <if test="record.collidingDataId != null" >
-        colliding_data_id = #{record.collidingDataId,jdbcType=INTEGER},
+        colliding_data_id = #{record.collidingDataId,jdbcType=BIGINT},
       </if>
       <if test="record.apiCode != null" >
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
       <if test="record.localId != null" >
-        local_id = #{record.localId,jdbcType=INTEGER},
+        local_id = #{record.localId,jdbcType=BIGINT},
       </if>
       <if test="record.type != null" >
         `type` = #{record.type,jdbcType=VARCHAR},
@@ -269,17 +255,11 @@
       <if test="record.mobileDigest != null" >
         mobile_digest = #{record.mobileDigest,jdbcType=VARCHAR},
       </if>
-      <if test="record.param != null" >
-        param = #{record.param,jdbcType=VARCHAR},
-      </if>
-      <if test="record.paramSecret != null" >
-        param_secret = #{record.paramSecret,jdbcType=VARCHAR},
-      </if>
-      <if test="record.info != null" >
-        info = #{record.info,jdbcType=VARCHAR},
-      </if>
       <if test="record.result != null" >
         `result` = #{record.result,jdbcType=INTEGER},
+      </if>
+      <if test="record.syncStatus != null" >
+        sync_status = #{record.syncStatus,jdbcType=INTEGER},
       </if>
       <if test="record.status != null" >
         `status` = #{record.status,jdbcType=INTEGER},
@@ -304,15 +284,13 @@
   <update id="updateByExampleWithBLOBs" parameterType="map" >
     update b_haier_colliding_data_log
     set id = #{record.id,jdbcType=BIGINT},
-      colliding_data_id = #{record.collidingDataId,jdbcType=INTEGER},
+      colliding_data_id = #{record.collidingDataId,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
-      local_id = #{record.localId,jdbcType=INTEGER},
+      local_id = #{record.localId,jdbcType=BIGINT},
       `type` = #{record.type,jdbcType=VARCHAR},
       mobile_digest = #{record.mobileDigest,jdbcType=VARCHAR},
-      param = #{record.param,jdbcType=VARCHAR},
-      param_secret = #{record.paramSecret,jdbcType=VARCHAR},
-      info = #{record.info,jdbcType=VARCHAR},
       `result` = #{record.result,jdbcType=INTEGER},
+      sync_status = #{record.syncStatus,jdbcType=INTEGER},
       `status` = #{record.status,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
@@ -325,15 +303,13 @@
   <update id="updateByExample" parameterType="map" >
     update b_haier_colliding_data_log
     set id = #{record.id,jdbcType=BIGINT},
-      colliding_data_id = #{record.collidingDataId,jdbcType=INTEGER},
+      colliding_data_id = #{record.collidingDataId,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
-      local_id = #{record.localId,jdbcType=INTEGER},
+      local_id = #{record.localId,jdbcType=BIGINT},
       `type` = #{record.type,jdbcType=VARCHAR},
       mobile_digest = #{record.mobileDigest,jdbcType=VARCHAR},
-      param = #{record.param,jdbcType=VARCHAR},
-      param_secret = #{record.paramSecret,jdbcType=VARCHAR},
-      info = #{record.info,jdbcType=VARCHAR},
       `result` = #{record.result,jdbcType=INTEGER},
+      sync_status = #{record.syncStatus,jdbcType=INTEGER},
       `status` = #{record.status,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
@@ -346,13 +322,13 @@
     update b_haier_colliding_data_log
     <set >
       <if test="collidingDataId != null" >
-        colliding_data_id = #{collidingDataId,jdbcType=INTEGER},
+        colliding_data_id = #{collidingDataId,jdbcType=BIGINT},
       </if>
       <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
       </if>
       <if test="localId != null" >
-        local_id = #{localId,jdbcType=INTEGER},
+        local_id = #{localId,jdbcType=BIGINT},
       </if>
       <if test="type != null" >
         `type` = #{type,jdbcType=VARCHAR},
@@ -360,17 +336,11 @@
       <if test="mobileDigest != null" >
         mobile_digest = #{mobileDigest,jdbcType=VARCHAR},
       </if>
-      <if test="param != null" >
-        param = #{param,jdbcType=VARCHAR},
-      </if>
-      <if test="paramSecret != null" >
-        param_secret = #{paramSecret,jdbcType=VARCHAR},
-      </if>
-      <if test="info != null" >
-        info = #{info,jdbcType=VARCHAR},
-      </if>
       <if test="result != null" >
         `result` = #{result,jdbcType=INTEGER},
+      </if>
+      <if test="syncStatus != null" >
+        sync_status = #{syncStatus,jdbcType=INTEGER},
       </if>
       <if test="status != null" >
         `status` = #{status,jdbcType=INTEGER},
@@ -392,15 +362,13 @@
   </update>
   <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.HaierCollidingDataLog" >
     update b_haier_colliding_data_log
-    set colliding_data_id = #{collidingDataId,jdbcType=INTEGER},
+    set colliding_data_id = #{collidingDataId,jdbcType=BIGINT},
       api_code = #{apiCode,jdbcType=VARCHAR},
-      local_id = #{localId,jdbcType=INTEGER},
+      local_id = #{localId,jdbcType=BIGINT},
       `type` = #{type,jdbcType=VARCHAR},
       mobile_digest = #{mobileDigest,jdbcType=VARCHAR},
-      param = #{param,jdbcType=VARCHAR},
-      param_secret = #{paramSecret,jdbcType=VARCHAR},
-      info = #{info,jdbcType=VARCHAR},
       `result` = #{result,jdbcType=INTEGER},
+      sync_status = #{syncStatus,jdbcType=INTEGER},
       `status` = #{status,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
@@ -410,15 +378,13 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.HaierCollidingDataLog" >
     update b_haier_colliding_data_log
-    set colliding_data_id = #{collidingDataId,jdbcType=INTEGER},
+    set colliding_data_id = #{collidingDataId,jdbcType=BIGINT},
       api_code = #{apiCode,jdbcType=VARCHAR},
-      local_id = #{localId,jdbcType=INTEGER},
+      local_id = #{localId,jdbcType=BIGINT},
       `type` = #{type,jdbcType=VARCHAR},
       mobile_digest = #{mobileDigest,jdbcType=VARCHAR},
-      param = #{param,jdbcType=VARCHAR},
-      param_secret = #{paramSecret,jdbcType=VARCHAR},
-      info = #{info,jdbcType=VARCHAR},
       `result` = #{result,jdbcType=INTEGER},
+      sync_status = #{syncStatus,jdbcType=INTEGER},
       `status` = #{status,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},

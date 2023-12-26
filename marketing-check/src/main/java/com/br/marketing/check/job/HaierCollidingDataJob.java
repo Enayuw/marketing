@@ -2,16 +2,18 @@ package com.br.marketing.check.job;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.entity.HaierCollidingDataExample;
+import com.br.marketing.entity.HaierCollidingDataLogExample;
+import com.br.marketing.mapper.HaierCollidingDataLogMapper;
 import org.springframework.stereotype.Component;
 
-import com.br.marketing.entity.HaierCollidingDataExample;
 import com.br.marketing.entity.LocalFile;
-import com.br.marketing.entity.LocalFileExample;
 import com.br.marketing.mapper.HaierCollidingDataMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.service.PushDataService;
@@ -31,36 +33,26 @@ public class HaierCollidingDataJob extends AbstractSimpleElasticJob {
     @Resource
     private LocalFileMapper localFileMapper;
     @Resource
-    private HaierCollidingDataMapper haierCollidingDataMapper;
-
+    private HaierCollidingDataLogMapper haierCollidingDataLogMapper;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        String formatted = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        List<LocalFile> localFileList = localFileMapper.getNotPushLocalFileByFileTypeAndFileName("%" + formatted + "%",HAIER_COLLIDING);
+        String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        List<LocalFile> localFileList = localFileMapper.getNotPushLocalFileByFileTypeAndFileName("%" + currentDate + "%", HAIER_COLLIDING);
         localFileList.forEach((LocalFile localFile) -> {
-
-            if(localFile.getPushStartTime() == null){
+            if (localFile.getPushStartTime() == null) {
                 localFile.setPushStartTime(new Date());
-                localFile.setPushStatus("1");
             }
-            //执行撞库逻辑
+            // 执行撞库逻辑
             pushDataService.pushHaierCollidingData(localFile.getId());
-            //更新文件表
-            HaierCollidingDataExample dataExample = new HaierCollidingDataExample();
-            dataExample.createCriteria()
-                .andLocalIdEqualTo(localFile.getId())
-                .andPushStatusEqualTo(2)
-                .andStatusEqualTo(1);
-            //获取推送数量
-            int pushNum = haierCollidingDataMapper.countByExample(dataExample);
+             //更新文件表
+            HaierCollidingDataLogExample dataLogExample = new HaierCollidingDataLogExample();
+            dataLogExample.createCriteria().andLocalIdEqualTo(localFile.getId()).andStatusIn(Arrays.asList(2, 3))
+                .andSendDateEqualTo(Integer.valueOf(currentDate));
+            // 获取推送数量
+            int pushNum = haierCollidingDataLogMapper.countByExample(dataLogExample);
             localFile.setPushNumber(pushNum);
-            int total = localFile.getActualNumber() - localFile.getErrorActualNumber();
-            //判断是否推送完成
-            if(total == pushNum){
-                localFile.setPushEndTime(new Date());
-                localFile.setPushStatus("2");
-            }
+            localFile.setUpdateTime(new Date());
             localFileMapper.updateByPrimaryKeySelective(localFile);
         });
     }

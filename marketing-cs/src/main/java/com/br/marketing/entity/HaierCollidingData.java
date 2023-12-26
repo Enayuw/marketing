@@ -34,16 +34,6 @@ public class HaierCollidingData {
     private String dataMessage;
 
     /**
-     * 状态 1-未推送；2-推送；3-推送失败
-     */
-    private Integer pushStatus;
-
-    /**
-     * 状态 1-未上传；2-已上传；3-上传失败
-     */
-    private Integer syncStatus;
-
-    /**
      * 状态 1-正常；2-非正常；3-删除
      */
     private Integer status;
@@ -114,22 +104,6 @@ public class HaierCollidingData {
 
     public void setDataMessage(String dataMessage) {
         this.dataMessage = dataMessage == null ? null : dataMessage.trim();
-    }
-
-    public Integer getPushStatus() {
-        return pushStatus;
-    }
-
-    public void setPushStatus(Integer pushStatus) {
-        this.pushStatus = pushStatus;
-    }
-
-    public Integer getSyncStatus() {
-        return syncStatus;
-    }
-
-    public void setSyncStatus(Integer syncStatus) {
-        this.syncStatus = syncStatus;
     }
 
     public Integer getStatus() {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.HaierCollidingDataMapperBase" >
+<mapper namespace="com.br.marketing.mapper.HaierCollidingDataMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.HaierCollidingData" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
@@ -8,8 +8,6 @@
     <result column="type" property="type" jdbcType="VARCHAR" />
     <result column="mobile_digest" property="mobileDigest" jdbcType="VARCHAR" />
     <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
-    <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
-    <result column="sync_status" property="syncStatus" jdbcType="INTEGER" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -77,8 +75,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, local_id, `type`, mobile_digest, data_message, push_status, sync_status, 
-    `status`, create_time, update_time, create_date
+    id, api_code, local_id, `type`, mobile_digest, data_message, `status`, create_time, 
+    update_time, create_date
   </sql>
   <sql id="Blob_Column_List" >
     extend
@@ -136,15 +134,13 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_haier_colliding_data (api_code, local_id, `type`, 
-      mobile_digest, data_message, push_status, 
-      sync_status, `status`, create_time, 
-      update_time, create_date, extend
-      )
+      mobile_digest, data_message, `status`, 
+      create_time, update_time, create_date, 
+      extend)
     values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR}, 
-      #{mobileDigest,jdbcType=VARCHAR}, #{dataMessage,jdbcType=VARCHAR}, #{pushStatus,jdbcType=INTEGER}, 
-      #{syncStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{createDate,jdbcType=VARCHAR}, #{extend,jdbcType=LONGVARCHAR}
-      )
+      #{mobileDigest,jdbcType=VARCHAR}, #{dataMessage,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{createDate,jdbcType=VARCHAR}, 
+      #{extend,jdbcType=LONGVARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.HaierCollidingData" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -166,12 +162,6 @@
       </if>
       <if test="dataMessage != null" >
         data_message,
-      </if>
-      <if test="pushStatus != null" >
-        push_status,
-      </if>
-      <if test="syncStatus != null" >
-        sync_status,
       </if>
       <if test="status != null" >
         `status`,
@@ -204,12 +194,6 @@
       </if>
       <if test="dataMessage != null" >
         #{dataMessage,jdbcType=VARCHAR},
-      </if>
-      <if test="pushStatus != null" >
-        #{pushStatus,jdbcType=INTEGER},
-      </if>
-      <if test="syncStatus != null" >
-        #{syncStatus,jdbcType=INTEGER},
       </if>
       <if test="status != null" >
         #{status,jdbcType=INTEGER},
@@ -255,12 +239,6 @@
       <if test="record.dataMessage != null" >
         data_message = #{record.dataMessage,jdbcType=VARCHAR},
       </if>
-      <if test="record.pushStatus != null" >
-        push_status = #{record.pushStatus,jdbcType=INTEGER},
-      </if>
-      <if test="record.syncStatus != null" >
-        sync_status = #{record.syncStatus,jdbcType=INTEGER},
-      </if>
       <if test="record.status != null" >
         `status` = #{record.status,jdbcType=INTEGER},
       </if>
@@ -289,8 +267,6 @@
       `type` = #{record.type,jdbcType=VARCHAR},
       mobile_digest = #{record.mobileDigest,jdbcType=VARCHAR},
       data_message = #{record.dataMessage,jdbcType=VARCHAR},
-      push_status = #{record.pushStatus,jdbcType=INTEGER},
-      sync_status = #{record.syncStatus,jdbcType=INTEGER},
       `status` = #{record.status,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
@@ -308,8 +284,6 @@
       `type` = #{record.type,jdbcType=VARCHAR},
       mobile_digest = #{record.mobileDigest,jdbcType=VARCHAR},
       data_message = #{record.dataMessage,jdbcType=VARCHAR},
-      push_status = #{record.pushStatus,jdbcType=INTEGER},
-      sync_status = #{record.syncStatus,jdbcType=INTEGER},
       `status` = #{record.status,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
@@ -336,12 +310,6 @@
       <if test="dataMessage != null" >
         data_message = #{dataMessage,jdbcType=VARCHAR},
       </if>
-      <if test="pushStatus != null" >
-        push_status = #{pushStatus,jdbcType=INTEGER},
-      </if>
-      <if test="syncStatus != null" >
-        sync_status = #{syncStatus,jdbcType=INTEGER},
-      </if>
       <if test="status != null" >
         `status` = #{status,jdbcType=INTEGER},
       </if>
@@ -367,8 +335,6 @@
       `type` = #{type,jdbcType=VARCHAR},
       mobile_digest = #{mobileDigest,jdbcType=VARCHAR},
       data_message = #{dataMessage,jdbcType=VARCHAR},
-      push_status = #{pushStatus,jdbcType=INTEGER},
-      sync_status = #{syncStatus,jdbcType=INTEGER},
       `status` = #{status,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
@@ -383,8 +349,6 @@
       `type` = #{type,jdbcType=VARCHAR},
       mobile_digest = #{mobileDigest,jdbcType=VARCHAR},
       data_message = #{dataMessage,jdbcType=VARCHAR},
-      push_status = #{pushStatus,jdbcType=INTEGER},
-      sync_status = #{syncStatus,jdbcType=INTEGER},
       `status` = #{status,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},

@@ -1185,5 +1185,10 @@ public class MarketingCommonConfig {
      * 海尔撞库接口mock配置
      */
     private HashMap<String, Object> haierCollidingDataMock;
+
+    /**
+     * 海尔撞库上传清洗apiCode配置
+     */
+    private List<String> haierCollidingDataSyncApiCode;
 }
 

@@ -495,216 +495,6 @@ public class HaierCollidingDataLogExample {
             return (Criteria) this;
         }
 
-        public Criteria andParamIsNull() {
-            addCriterion("param is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamIsNotNull() {
-            addCriterion("param is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamEqualTo(String value) {
-            addCriterion("param =", value, "param");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamNotEqualTo(String value) {
-            addCriterion("param <>", value, "param");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamGreaterThan(String value) {
-            addCriterion("param >", value, "param");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamGreaterThanOrEqualTo(String value) {
-            addCriterion("param >=", value, "param");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamLessThan(String value) {
-            addCriterion("param <", value, "param");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamLessThanOrEqualTo(String value) {
-            addCriterion("param <=", value, "param");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamLike(String value) {
-            addCriterion("param like", value, "param");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamNotLike(String value) {
-            addCriterion("param not like", value, "param");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamIn(List<String> values) {
-            addCriterion("param in", values, "param");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamNotIn(List<String> values) {
-            addCriterion("param not in", values, "param");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamBetween(String value1, String value2) {
-            addCriterion("param between", value1, value2, "param");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamNotBetween(String value1, String value2) {
-            addCriterion("param not between", value1, value2, "param");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamSecretIsNull() {
-            addCriterion("param_secret is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamSecretIsNotNull() {
-            addCriterion("param_secret is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamSecretEqualTo(String value) {
-            addCriterion("param_secret =", value, "paramSecret");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamSecretNotEqualTo(String value) {
-            addCriterion("param_secret <>", value, "paramSecret");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamSecretGreaterThan(String value) {
-            addCriterion("param_secret >", value, "paramSecret");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamSecretGreaterThanOrEqualTo(String value) {
-            addCriterion("param_secret >=", value, "paramSecret");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamSecretLessThan(String value) {
-            addCriterion("param_secret <", value, "paramSecret");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamSecretLessThanOrEqualTo(String value) {
-            addCriterion("param_secret <=", value, "paramSecret");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamSecretLike(String value) {
-            addCriterion("param_secret like", value, "paramSecret");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamSecretNotLike(String value) {
-            addCriterion("param_secret not like", value, "paramSecret");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamSecretIn(List<String> values) {
-            addCriterion("param_secret in", values, "paramSecret");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamSecretNotIn(List<String> values) {
-            addCriterion("param_secret not in", values, "paramSecret");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamSecretBetween(String value1, String value2) {
-            addCriterion("param_secret between", value1, value2, "paramSecret");
-            return (Criteria) this;
-        }
-
-        public Criteria andParamSecretNotBetween(String value1, String value2) {
-            addCriterion("param_secret not between", value1, value2, "paramSecret");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoIsNull() {
-            addCriterion("info is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoIsNotNull() {
-            addCriterion("info is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoEqualTo(String value) {
-            addCriterion("info =", value, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoNotEqualTo(String value) {
-            addCriterion("info <>", value, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoGreaterThan(String value) {
-            addCriterion("info >", value, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoGreaterThanOrEqualTo(String value) {
-            addCriterion("info >=", value, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoLessThan(String value) {
-            addCriterion("info <", value, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoLessThanOrEqualTo(String value) {
-            addCriterion("info <=", value, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoLike(String value) {
-            addCriterion("info like", value, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoNotLike(String value) {
-            addCriterion("info not like", value, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoIn(List<String> values) {
-            addCriterion("info in", values, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoNotIn(List<String> values) {
-            addCriterion("info not in", values, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoBetween(String value1, String value2) {
-            addCriterion("info between", value1, value2, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoNotBetween(String value1, String value2) {
-            addCriterion("info not between", value1, value2, "info");
-            return (Criteria) this;
-        }
-
         public Criteria andResultIsNull() {
             addCriterion("`result` is null");
             return (Criteria) this;
@@ -762,6 +552,66 @@ public class HaierCollidingDataLogExample {
 
         public Criteria andResultNotBetween(Integer value1, Integer value2) {
             addCriterion("`result` not between", value1, value2, "result");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStatusIsNull() {
+            addCriterion("sync_status is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStatusIsNotNull() {
+            addCriterion("sync_status is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStatusEqualTo(Integer value) {
+            addCriterion("sync_status =", value, "syncStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStatusNotEqualTo(Integer value) {
+            addCriterion("sync_status <>", value, "syncStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStatusGreaterThan(Integer value) {
+            addCriterion("sync_status >", value, "syncStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("sync_status >=", value, "syncStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStatusLessThan(Integer value) {
+            addCriterion("sync_status <", value, "syncStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("sync_status <=", value, "syncStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStatusIn(List<Integer> values) {
+            addCriterion("sync_status in", values, "syncStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStatusNotIn(List<Integer> values) {
+            addCriterion("sync_status not in", values, "syncStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStatusBetween(Integer value1, Integer value2) {
+            addCriterion("sync_status between", value1, value2, "syncStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("sync_status not between", value1, value2, "syncStatus");
             return (Criteria) this;
         }
 

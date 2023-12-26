@@ -2,10 +2,9 @@ package com.br.marketing.mapper;
 
 import java.util.List;
 
-import org.apache.ibatis.annotations.Param;
-
 import com.br.marketing.entity.HaierCollidingData;
 import com.br.marketing.entity.HaierCollidingDataExample;
+import org.apache.ibatis.annotations.Param;
 
 public interface HaierCollidingDataMapperBase {
     int countByExample(HaierCollidingDataExample example);

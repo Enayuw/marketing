@@ -10,17 +10,7 @@
                  left join b_haier_colliding_data_log b on a.mobile_digest = b.mobile_digest and b.send_date = #{sendDate}
         where a.local_id = #{localId}
           and a.status = 1
-          and b.id is null limit #{pageSize}
+          and b.id is null
+        order by a.id limit #{pageSize}
     </select>
-
-    <update id="updateBySelective" parameterType="map" >
-        update b_haier_colliding_data
-        <set >
-            <if test="pushStatus != null" >
-                push_status = #{pushStatus,jdbcType=INTEGER},
-            </if>
-        </set>
-        where mobile_digest = #{mobileDigest,jdbcType=VARCHAR}
-        and create_date = #{createDate,jdbcType=VARCHAR} and status = 1
-    </update>
 </mapper>

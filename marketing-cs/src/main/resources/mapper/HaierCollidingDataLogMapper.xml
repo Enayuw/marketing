@@ -11,6 +11,18 @@
         </foreach>
     </insert>
 
+
+    <select id="selectSyncDataList" resultType="com.br.marketing.vo.HaierCollidingDataToSyncVO">
+        SELECT id, api_code, mobile_digest, send_date
+        FROM b_haier_colliding_data_log
+        WHERE sync_status = 1
+          AND api_code = #{apiCode,jdbcType=VARCHAR}
+          AND send_date = #{sendDate,jdbcType=INTEGER}
+          AND result = 1
+          AND status = 2
+        order by id LIMIT 2000;
+    </select>
+
     <update id="updateBySelective" parameterType="map" >
         update b_haier_colliding_data_log
         <set >
@@ -23,5 +35,14 @@
         </set>
         where mobile_digest = #{mobileDigest,jdbcType=VARCHAR}
         and send_date = #{sendDate} and status = 1
+    </update>
+
+    <update id="updateSyncStatusByIds">
+        update b_haier_colliding_data_log
+        set sync_status=#{syncStatus}
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
     </update>
 </mapper>
