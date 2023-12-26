@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.concurrent.ThreadPoolExecutor;
 
 @Service
@@ -31,6 +32,7 @@ public class RequestInterfaceLogServiceImpl implements RequestInterfaceLogServic
             req.setRequestParam(data.toString());
             req.setResult(JSON.toJSONString(result));
             req.setExpire(expireTime);
+            req.setCreateTime(new Date());
             requestInterfaceLogDbpool.submit(()->{
                 try {
                     requestInterfaceLogMapper.insertSelective(req);
