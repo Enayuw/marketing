@@ -51,6 +51,7 @@ public class HaierCollidingDataJob extends AbstractSimpleElasticJob {
             int pushNum = haierCollidingDataLogMapper.countByExample(dataLogExample);
             localFile.setPushNumber(pushNum);
             if (pushNum == localFile.getActualNumber() - localFile.getErrorActualNumber()) {
+                localFile.setPushStatus("2");
                 localFile.setPushEndTime(new Date());
             }
             localFileMapper.updateByPrimaryKeySelective(localFile);
