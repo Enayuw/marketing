@@ -904,7 +904,7 @@
     />
     <job:simple id="HaierCollidingDataJob"
                 class="com.br.marketing.check.job.HaierCollidingDataJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 */3 * ? * *"
                 description="海尔撞库定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -918,7 +918,7 @@
     />
     <job:simple id="HaierCollidingDataSyncJob"
                 class="com.br.marketing.check.job.HaierCollidingDataSyncJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 */10 * ? * *"
                 description="海尔撞库上传清洗定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
