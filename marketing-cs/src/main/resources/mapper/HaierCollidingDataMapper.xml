@@ -7,7 +7,7 @@
                a.local_id,
                a.id
         from b_haier_colliding_data a
-                 left join b_haier_colliding_data_log b on a.mobile_digest = b.mobile_digest and b.send_date = #{sendDate}
+                 left join b_haier_colliding_data_log b on a.id = b.colliding_data_id and b.send_date = #{sendDate}
         where a.local_id = #{localId}
           and a.status = 1
           and b.id is null

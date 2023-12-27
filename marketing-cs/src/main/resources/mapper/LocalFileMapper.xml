@@ -96,6 +96,6 @@
         FROM b_local_file
         WHERE (file_type = #{fileType,jdbcType=VARCHAR}
             AND file_name like #{fileName,jdbcType=VARCHAR}
-            AND status = '2' order by create_time;
+            AND status = '2' order by create_time
     </select>
 </mapper>
