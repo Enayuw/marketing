@@ -56,4 +56,13 @@
                 ,#{dto.createTime})
             </foreach>
     </insert>
+
+    <select id="getTaskId" resultType="java.lang.String">
+        select task_id
+        from (select task_id
+              from b_push_customer_detail
+              where file_id = #{fileId}
+              group by task_id) as t
+        order by task_id limit #{pageIndex}, #{pageSize}
+    </select>
 </mapper>
