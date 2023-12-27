@@ -82,7 +82,7 @@ public class ShuHeDxCustomerBlackListImpl implements AssembleData<BlackDetailDTO
                 if (!StringUtils.isEmpty(clcUsrMaxDxRrtEnd)) {
                     LocalDate rrtEndDate;
                     try {
-                        rrtEndDate = LocalDateTime.parse(clcUsrMaxDxRrtEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toLocalDate();
+                        rrtEndDate = LocalDate.parse(clcUsrMaxDxRrtEnd.substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                     } catch (Exception e) {
                         log.error("数禾clc_usr_max_dx_rrt_end={}，时间转换异常,转化id={}", clcUsrMaxDxRrtEnd, transfer.getId(), e.getMessage());
                         return false;
@@ -92,7 +92,7 @@ public class ShuHeDxCustomerBlackListImpl implements AssembleData<BlackDetailDTO
                 if (!StringUtils.isEmpty(usrForbidCallEndTim)) {
                     LocalDate callEndTim;
                     try {
-                        callEndTim = LocalDateTime.parse(usrForbidCallEndTim, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).toLocalDate();
+                        callEndTim = LocalDate.parse(usrForbidCallEndTim.substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                     } catch (Exception e) {
                         log.error("数禾usr_forbid_call_end_tim={}时间转换异常,转化id={}", usrForbidCallEndTim, transfer.getId(), e.getMessage());
                         return false;
