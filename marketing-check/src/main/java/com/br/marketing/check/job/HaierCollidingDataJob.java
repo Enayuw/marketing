@@ -8,13 +8,11 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
-import com.br.marketing.entity.HaierCollidingDataExample;
-import com.br.marketing.entity.HaierCollidingDataLogExample;
-import com.br.marketing.mapper.HaierCollidingDataLogMapper;
 import org.springframework.stereotype.Component;
 
+import com.br.marketing.entity.HaierCollidingDataLogExample;
 import com.br.marketing.entity.LocalFile;
-import com.br.marketing.mapper.HaierCollidingDataMapper;
+import com.br.marketing.mapper.HaierCollidingDataLogMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.service.PushDataService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -45,14 +43,16 @@ public class HaierCollidingDataJob extends AbstractSimpleElasticJob {
             }
             // 执行撞库逻辑
             pushDataService.pushHaierCollidingData(localFile.getId());
-             //更新文件表
+            // 更新文件表
             HaierCollidingDataLogExample dataLogExample = new HaierCollidingDataLogExample();
             dataLogExample.createCriteria().andLocalIdEqualTo(localFile.getId()).andStatusIn(Arrays.asList(2, 3))
                 .andSendDateEqualTo(Integer.valueOf(currentDate));
             // 获取推送数量
             int pushNum = haierCollidingDataLogMapper.countByExample(dataLogExample);
             localFile.setPushNumber(pushNum);
-            localFile.setPushEndTime(new Date());
+            if (pushNum == localFile.getActualNumber() - localFile.getErrorActualNumber()) {
+                localFile.setPushEndTime(new Date());
+            }
             localFileMapper.updateByPrimaryKeySelective(localFile);
         });
     }
