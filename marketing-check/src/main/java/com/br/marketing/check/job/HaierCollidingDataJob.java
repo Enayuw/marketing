@@ -52,7 +52,7 @@ public class HaierCollidingDataJob extends AbstractSimpleElasticJob {
             // 获取推送数量
             int pushNum = haierCollidingDataLogMapper.countByExample(dataLogExample);
             localFile.setPushNumber(pushNum);
-            localFile.setUpdateTime(new Date());
+            localFile.setPushEndTime(new Date());
             localFileMapper.updateByPrimaryKeySelective(localFile);
         });
     }
