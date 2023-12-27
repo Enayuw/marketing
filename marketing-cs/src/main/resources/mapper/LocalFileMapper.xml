@@ -97,7 +97,7 @@
         WHERE file_type = #{fileType,jdbcType=VARCHAR}
           AND file_name like #{fileName,jdbcType=VARCHAR}
           AND status = '2'
-          AND (push_status != '2' or push_status is null) )
+          AND (push_status != '2' or push_status is null)
         order by create_time
     </select>
 </mapper>
