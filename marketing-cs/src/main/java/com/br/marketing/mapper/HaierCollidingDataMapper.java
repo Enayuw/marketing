@@ -8,5 +8,6 @@ import java.util.List;
 
 public interface HaierCollidingDataMapper extends HaierCollidingDataMapperBase {
 
-    List<HaierCollidingData> selectByLocalId(@Param("localId") Long localId, @Param("sendDate") Integer sendDate, @Param("pageSize") Integer pageSize);
+    List<HaierCollidingData> selectByLocalId(@Param("localId") Long localId, @Param("sendDate") Integer sendDate,
+        @Param("pageSize") Integer pageSize);
 }

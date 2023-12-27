@@ -276,10 +276,10 @@ public class HaierServiceClient {
     }
 
     @RetryMethod(retryNowNum = 1)
-    public Result<String> pushHaierCollidingData(String mobileDigest) {
+    public Result<String> pushHaierCollidingData(String mobileDigest ,String apiCode) {
         String aesKey = RandomStringUtils.randomAlphabetic(16);
         String haierPublicKey = marketingCommonConfig.getHaierApiPublicKey();
-        HaierCollidingDataDTO dto = buildHaierCollidingDataDTO(aesKey, mobileDigest);
+        HaierCollidingDataDTO dto = buildHaierCollidingDataDTO(aesKey, mobileDigest ,apiCode);
         Map<String, String> retMap = Maps.newHashMap();
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -315,11 +315,10 @@ public class HaierServiceClient {
         }
     }
 
-    private HaierCollidingDataDTO buildHaierCollidingDataDTO(String aesKey, String mobileDigest) {
+    private HaierCollidingDataDTO buildHaierCollidingDataDTO(String aesKey, String mobileDigest,String apiCode) {
         HaierCollidingDataDTO dto = new HaierCollidingDataDTO();
         try {
             String pid = marketingCommonConfig.getHaierCollidingDataConfig().get("pid");
-            String apiCode = marketingCommonConfig.getHaierCollidingDataConfig().get("apiCode");
             String channelNo = marketingCommonConfig.getHaierCollidingDataConfig().get("channelNo");
             String utmNo = marketingCommonConfig.getHaierCollidingDataConfig().get("utmNo");
             String encryptAlg = marketingCommonConfig.getHaierCollidingDataConfig().get("encryptAlg");

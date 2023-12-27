@@ -885,12 +885,12 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     private void sendHaierCollidingData(ThreadPoolExecutor collidingExecutor, List<HaierCollidingData> haierCollidingDataList, Integer sendDate) {
-        haierCollidingDataList.forEach(data -> collidingExecutor.submit(() -> processHaierCollidingData(data, sendDate)));
+        haierCollidingDataList.forEach((HaierCollidingData data) -> collidingExecutor.submit(() -> processHaierCollidingData(data, sendDate)));
     }
 
     private void processHaierCollidingData(HaierCollidingData data, Integer sendDate) {
         try {
-            Result<String> postResult = haierServiceClient.pushHaierCollidingData(data.getMobileDigest());
+            Result<String> postResult = haierServiceClient.pushHaierCollidingData(data.getMobileDigest(), data.getApiCode());
             JSONObject resultJson = JSONObject.parseObject(postResult.getData());
             if (ResultCode.SUCCESS.getValue().equals(postResult.getCode())) {
                 // 更新成功

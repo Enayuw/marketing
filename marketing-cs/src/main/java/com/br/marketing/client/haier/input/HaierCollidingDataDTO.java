@@ -11,7 +11,7 @@ import java.util.Map;
 @NoArgsConstructor
 public class HaierCollidingDataDTO {
     private String pid;
-    private long timestamp;
+    private Long timestamp;
     private String requestId;
     private String sign;
     private Map<String, Object> data;
