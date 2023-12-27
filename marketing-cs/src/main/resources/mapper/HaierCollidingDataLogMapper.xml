@@ -33,7 +33,7 @@
                 status = #{status,jdbcType=INTEGER},
             </if>
         </set>
-        where mobile_digest = #{mobileDigest,jdbcType=VARCHAR}
+        where colliding_data_id = #{collidingDataId,jdbcType=BIGINT}
         and send_date = #{sendDate} and status = 1
     </update>
 

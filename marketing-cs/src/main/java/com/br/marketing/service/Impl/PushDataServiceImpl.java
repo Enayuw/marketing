@@ -885,27 +885,30 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     private void sendHaierCollidingData(ThreadPoolExecutor collidingExecutor, List<HaierCollidingData> haierCollidingDataList, Integer sendDate) {
-        List<String> mobileDigests = haierCollidingDataList.stream().map(HaierCollidingData::getMobileDigest).collect(Collectors.toList());
-        mobileDigests.forEach(mobileDigest -> collidingExecutor.submit(() -> processHaierCollidingData(mobileDigest, sendDate)));
+        haierCollidingDataList.forEach(data -> collidingExecutor.submit(() -> processHaierCollidingData(data, sendDate)));
     }
 
-    private void processHaierCollidingData(String mobileDigest, Integer sendDate) {
-        Result<String> postResult = haierServiceClient.pushHaierCollidingData(mobileDigest);
-        JSONObject resultJson = JSONObject.parseObject(postResult.getData());
-        if (ResultCode.SUCCESS.getValue().equals(postResult.getCode())) {
-            //更新成功
-            updateHaierCollidingDataStatus(mobileDigest, sendDate, resultJson,2);
-        } else {
-            //更新失败
-            updateHaierCollidingDataStatus(mobileDigest, sendDate, resultJson,3);
+    private void processHaierCollidingData(HaierCollidingData data, Integer sendDate) {
+        try {
+            Result<String> postResult = haierServiceClient.pushHaierCollidingData(data.getMobileDigest());
+            JSONObject resultJson = JSONObject.parseObject(postResult.getData());
+            if (ResultCode.SUCCESS.getValue().equals(postResult.getCode())) {
+                // 更新成功
+                updateHaierCollidingDataStatus(data.getId(), sendDate, resultJson, 2);
+            } else {
+                // 更新失败
+                updateHaierCollidingDataStatus(data.getId(), sendDate, resultJson, 3);
+            }
+        } catch (Exception e) {
+            log.error("haier处理撞库异常", e);
         }
     }
 
-    private void updateHaierCollidingDataStatus(String mobileDigest, Integer sendDate, JSONObject resultJson, Integer status) {
+    private void updateHaierCollidingDataStatus(Long id, Integer sendDate, JSONObject resultJson, Integer status) {
         JSONObject data = resultJson.getJSONObject("data");
         Integer result = data != null ? data.getInteger("status") : null;
         HaierCollidingDataLog updateLog = new HaierCollidingDataLog();
-        updateLog.setMobileDigest(mobileDigest);
+        updateLog.setCollidingDataId(id);
         updateLog.setSendDate(sendDate);
         updateLog.setResult(result);
         updateLog.setStatus(status);
