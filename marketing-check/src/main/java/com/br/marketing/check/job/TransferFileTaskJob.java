@@ -138,6 +138,11 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByHaierServiceImpl transferToFileByHaierService;
 
+    /**
+     * 海尔新系统
+     */
+    @Resource
+    private TransferToFileByNewHaierServiceImpl transferToFileByNewHaierServicea;
 
     /**
      * 永辉
@@ -180,14 +185,15 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                     }
                     Result<List<TransferFileTask>> listResult = new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Lists.newArrayList());
                     try {
-                        boolean lock = redisChgService.lock(redisKey, serviceImpl.getClass().getName(), marketingCommonConfig.getTransferFileTaskJobLockExpireTime());
+                        boolean lock = redisChgService.lock(redisKey, UUID.randomUUID().toString(),
+                                marketingCommonConfig.getTransferFileTaskJobLockExpireTime());
                         if (lock) {
                             listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(), myParam);
                         }
                     } catch (Exception e) {
                         log.error("该apiCode:{}执行数据提取任务获取锁:{}异常", marketingCustomer.getApiCode(), redisKey);
                     } finally {
-                        redisChgService.unlock(redisKey, serviceImpl.getClass().getName());
+                        redisChgService.unlock(redisKey, UUID.randomUUID().toString());
                     }
                     if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
                         List<TransferFileTask> data = listResult.getData();
@@ -273,6 +279,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByYouMeDService, marketingCommonConfig.getYouMeDApiCodes())
                 // 海尔转化数据提取
                 .addBind(transferToFileByHaierService, marketingCommonConfig.getHaierApiCodes())
+                // 海尔新系统转换数据提取
+                .addBind(transferToFileByNewHaierServicea, marketingCommonConfig.getNewHaierTransferApiCodes())
                 // 国美转化数据提取
                 .addBind(transferToFileByGomeService, marketingCommonConfig.getGomeApiCodes())
                 // 永辉转化数据提取

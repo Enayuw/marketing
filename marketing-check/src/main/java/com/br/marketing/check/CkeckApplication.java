@@ -35,6 +35,8 @@ import org.springframework.context.annotation.ImportResource;
 public class CkeckApplication {
     public static ConfigurableApplicationContext ac;
     public static void main(String[] args) {
+        Long start = System.currentTimeMillis();
+        log.warn("marketing-check开始启动！");
         ac = SpringApplication.run(CkeckApplication.class, args);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -42,6 +44,7 @@ public class CkeckApplication {
                 CkeckApplication.stop();
             }
         });
+        log.warn("marketing-check启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
     }
 
     /**

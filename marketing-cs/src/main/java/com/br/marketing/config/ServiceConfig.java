@@ -58,4 +58,11 @@ public class ServiceConfig {
                 , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("xieCheng-sms-pushCustomer-pool-%d").build()
                 ,new ThreadPoolExecutor.CallerRunsPolicy());
     }
+
+    @Bean(name = "requestInterfaceLogDbpool")
+    public ThreadPoolExecutor requestInterfaceLogDbpool(){
+        return new ThreadPoolExecutor(10,20,10L, TimeUnit.SECONDS
+                , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("requestInterfaceLogDb-pool-%d").build()
+                ,new ThreadPoolExecutor.CallerRunsPolicy());
+    }
 }

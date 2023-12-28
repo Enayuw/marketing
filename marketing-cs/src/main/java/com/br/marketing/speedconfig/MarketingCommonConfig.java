@@ -1160,5 +1160,80 @@ public class MarketingCommonConfig {
      * 跑分更新顺序线程数量
      */
     private Integer scoreUpdateSortThreadNum;
+
+    /**
+     * 数禾电销apiCode
+     */
+    private List<String> shuheDxApiCodes;
+
+
+
+
+
+    /**
+     * 有效期变更apiCode
+     */
+    private List<String> validityPeriodApiCodeList;
+
+    /**
+     * 有效期变更接口开关
+     */
+    private Boolean changeValidityPeriodIndex;
+
+
+    /**
+     * 跑分回调获取taskId分页
+     */
+    private Integer scoreTaskPageSizeByPushCustomer;
+
+    /**
+     * 跑分回调获取数据分页
+     */
+    private Integer scoreDataPageSizeByPushCustomer;
+
+    /**
+     * 数禾上传数据推决策，策略编号设置
+     */
+    private Map<String, String> shuheToJueCeStrategy;
+
+
+    /**
+     * 海尔撞库线程池数量配置
+     */
+    private Integer haierCollidingDataThreadNum;
+    /**
+     * 海尔撞库单次查询数量配置
+     */
+    private Integer haierCollidingDataPageSize;
+
+    /**
+     * 海尔撞库配置
+     */
+    private Map<String, String> haierCollidingDataConfig;
+
+    /**
+     * 海尔接口公钥
+     */
+    private String haierApiPublicKey;
+
+    /**
+     * 海尔撞库接口mock配置
+     */
+    private HashMap<String, Object> haierCollidingDataMock;
+
+    /**
+     * 海尔撞库上传清洗apiCode配置
+     */
+    private List<String> haierCollidingDataSyncApiCode;
+
+    /**
+     * 海尔转化数据提取apiCode集合
+     */
+    private List<String> NewHaierTransferApiCodes;
+
+    /**
+     * 海尔转化数据提取执行时间
+     */
+    private String NewHaierTransferExecuteTime;
 }
 

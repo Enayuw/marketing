@@ -51,6 +51,7 @@ import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.thread.HaierCollidingDataThread;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
@@ -198,6 +199,11 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Resource
     private ValidityPeriodDataService validityPeriodDataService;
+
+    @Resource
+    private HaierCollidingDataMapper haierCollidingDataMapper;
+    @Resource
+    private HaierCollidingDataLogMapper haierCollidingDataLogMapper;
 
     final static DateTimeFormatter yyyyMMddDF = DateTimeFormatter.ofPattern("yyyyMMdd");
 
@@ -834,6 +840,97 @@ public class PushDataServiceImpl implements PushDataService {
             }
         }
         return "";
+    }
+
+    /**
+     * 海尔撞库数据推送
+     *
+     * @param localId 本地文件id
+     * @author senyang.zheng
+     * @date 2023/12/23
+     */
+    @Override
+    public void pushHaierCollidingData(Long localId) {
+        // 初始化线程池
+        // 创建推送线程池
+        ThreadPoolExecutor collidingExecutor =
+            BrExecutors.getThreadPool(marketingCommonConfig.getHaierCollidingDataThreadNum(), marketingCommonConfig.getHaierCollidingDataThreadNum());
+        try {
+            Integer sendDate = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+            // 查询需要撞库的数据
+            List<HaierCollidingData> haierCollidingDataList =
+                haierCollidingDataMapper.selectByLocalId(localId, sendDate, marketingCommonConfig.getHaierCollidingDataPageSize());
+            if (CollectionUtils.isEmpty(haierCollidingDataList)) {
+                return;
+            }
+            // 存储推送日志
+            Integer pushNum = saveHaierCollingDataLog(sendDate, haierCollidingDataList);
+
+            sendHaierCollidingData(collidingExecutor, haierCollidingDataList, sendDate);
+            
+        } catch (Exception e) {
+            log.error("海尔撞库数据推送异常。", e);
+        } finally {
+            // 关闭线程池
+            collidingExecutor.shutdown();
+            try {
+                while (!collidingExecutor.awaitTermination(10L, TimeUnit.SECONDS)) {
+                    log.warn("海尔撞库线程池等待释放");
+                }
+            } catch (Exception e) {
+                collidingExecutor.shutdownNow();
+                log.error("海尔撞库线程池等待释放线程池关闭异常,直接关闭", e);
+            }
+        }
+    }
+
+    private void sendHaierCollidingData(ThreadPoolExecutor collidingExecutor, List<HaierCollidingData> haierCollidingDataList, Integer sendDate) {
+        haierCollidingDataList.forEach((HaierCollidingData data) -> collidingExecutor.submit(() -> processHaierCollidingData(data, sendDate)));
+    }
+
+    private void processHaierCollidingData(HaierCollidingData data, Integer sendDate) {
+        try {
+            Result<String> postResult = haierServiceClient.pushHaierCollidingData(data.getMobileDigest(), data.getApiCode());
+            JSONObject resultJson = JSONObject.parseObject(postResult.getData());
+            if (ResultCode.SUCCESS.getValue().equals(postResult.getCode())) {
+                // 更新成功
+                updateHaierCollidingDataStatus(data.getId(), sendDate, resultJson, 2);
+            } else {
+                // 更新失败
+                updateHaierCollidingDataStatus(data.getId(), sendDate, resultJson, 3);
+            }
+        } catch (Exception e) {
+            log.error("haier处理撞库异常", e);
+        }
+    }
+
+    private void updateHaierCollidingDataStatus(Long id, Integer sendDate, JSONObject resultJson, Integer status) {
+        JSONObject data = resultJson.getJSONObject("data");
+        Integer result = data != null ? data.getInteger("status") : null;
+        HaierCollidingDataLog updateLog = new HaierCollidingDataLog();
+        updateLog.setCollidingDataId(id);
+        updateLog.setSendDate(sendDate);
+        updateLog.setResult(result);
+        updateLog.setStatus(status);
+        haierCollidingDataLogMapper.updateBySelective(updateLog);
+    }
+
+
+    private Integer saveHaierCollingDataLog(Integer sendDate, List<HaierCollidingData> haierCollidingDataList) {
+        List<HaierCollidingDataLog> haierCollidingDataLogs = haierCollidingDataList.stream()
+            .map(data -> {
+                    HaierCollidingDataLog haierCollidingDataLog = new HaierCollidingDataLog();
+                    haierCollidingDataLog.setCollidingDataId(data.getId());
+                    haierCollidingDataLog.setApiCode(data.getApiCode());
+                    haierCollidingDataLog.setLocalId(data.getLocalId());
+                    haierCollidingDataLog.setType("1");
+                    haierCollidingDataLog.setMobileDigest(data.getMobileDigest());
+                    haierCollidingDataLog.setStatus(1);
+                    haierCollidingDataLog.setSendDate(sendDate);
+                    return haierCollidingDataLog;
+                }
+            ).collect(Collectors.toList());
+        return haierCollidingDataLogMapper.saveBatchLog(haierCollidingDataLogs);
     }
 
     @Override

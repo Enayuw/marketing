@@ -9,4 +9,6 @@ public interface PushCustomerDetailMapper extends PushCustomerDetailMapperBase{
 
     Long insertBatch(@Param("dtos") List<PushCustomerDetail> dtos);
 
+    List<String> getTaskId(@Param("fileId") Long fileId,@Param("pageIndex") Integer pageIndex,@Param("pageSize") Integer pageSize);
+
 }
