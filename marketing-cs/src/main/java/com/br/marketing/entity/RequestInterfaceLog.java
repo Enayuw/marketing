@@ -19,6 +19,11 @@ public class RequestInterfaceLog {
     private String apiCode;
 
     /**
+     * 请求参数
+     */
+    private String requestParam;
+
+    /**
      * 方法名称
      */
     private String url;
@@ -27,6 +32,11 @@ public class RequestInterfaceLog {
      * header信息
      */
     private String header;
+
+    /**
+     * 返回结果
+     */
+    private String result;
 
     /**
      * httpcode
@@ -42,6 +52,11 @@ public class RequestInterfaceLog {
      * 耗时
      */
     private Long expire;
+
+    /**
+     * 扩展信息
+     */
+    private String extendInfo;
 
     /**
      * 入库时间
@@ -72,6 +87,14 @@ public class RequestInterfaceLog {
         this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
+    public String getRequestParam() {
+        return requestParam;
+    }
+
+    public void setRequestParam(String requestParam) {
+        this.requestParam = requestParam == null ? null : requestParam.trim();
+    }
+
     public String getUrl() {
         return url;
     }
@@ -86,6 +109,14 @@ public class RequestInterfaceLog {
 
     public void setHeader(String header) {
         this.header = header == null ? null : header.trim();
+    }
+
+    public String getResult() {
+        return result;
+    }
+
+    public void setResult(String result) {
+        this.result = result == null ? null : result.trim();
     }
 
     public Integer getHttpCode() {
@@ -110,6 +141,14 @@ public class RequestInterfaceLog {
 
     public void setExpire(Long expire) {
         this.expire = expire;
+    }
+
+    public String getExtendInfo() {
+        return extendInfo;
+    }
+
+    public void setExtendInfo(String extendInfo) {
+        this.extendInfo = extendInfo == null ? null : extendInfo.trim();
     }
 
     public Date getCreateTime() {

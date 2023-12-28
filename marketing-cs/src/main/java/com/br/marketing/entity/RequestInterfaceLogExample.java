@@ -305,6 +305,76 @@ public class RequestInterfaceLogExample {
             return (Criteria) this;
         }
 
+        public Criteria andRequestParamIsNull() {
+            addCriterion("request_param is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestParamIsNotNull() {
+            addCriterion("request_param is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestParamEqualTo(String value) {
+            addCriterion("request_param =", value, "requestParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestParamNotEqualTo(String value) {
+            addCriterion("request_param <>", value, "requestParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestParamGreaterThan(String value) {
+            addCriterion("request_param >", value, "requestParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestParamGreaterThanOrEqualTo(String value) {
+            addCriterion("request_param >=", value, "requestParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestParamLessThan(String value) {
+            addCriterion("request_param <", value, "requestParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestParamLessThanOrEqualTo(String value) {
+            addCriterion("request_param <=", value, "requestParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestParamLike(String value) {
+            addCriterion("request_param like", value, "requestParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestParamNotLike(String value) {
+            addCriterion("request_param not like", value, "requestParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestParamIn(List<String> values) {
+            addCriterion("request_param in", values, "requestParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestParamNotIn(List<String> values) {
+            addCriterion("request_param not in", values, "requestParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestParamBetween(String value1, String value2) {
+            addCriterion("request_param between", value1, value2, "requestParam");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestParamNotBetween(String value1, String value2) {
+            addCriterion("request_param not between", value1, value2, "requestParam");
+            return (Criteria) this;
+        }
+
         public Criteria andUrlIsNull() {
             addCriterion("url is null");
             return (Criteria) this;
@@ -442,6 +512,76 @@ public class RequestInterfaceLogExample {
 
         public Criteria andHeaderNotBetween(String value1, String value2) {
             addCriterion("`header` not between", value1, value2, "header");
+            return (Criteria) this;
+        }
+
+        public Criteria andResultIsNull() {
+            addCriterion("`result` is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andResultIsNotNull() {
+            addCriterion("`result` is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andResultEqualTo(String value) {
+            addCriterion("`result` =", value, "result");
+            return (Criteria) this;
+        }
+
+        public Criteria andResultNotEqualTo(String value) {
+            addCriterion("`result` <>", value, "result");
+            return (Criteria) this;
+        }
+
+        public Criteria andResultGreaterThan(String value) {
+            addCriterion("`result` >", value, "result");
+            return (Criteria) this;
+        }
+
+        public Criteria andResultGreaterThanOrEqualTo(String value) {
+            addCriterion("`result` >=", value, "result");
+            return (Criteria) this;
+        }
+
+        public Criteria andResultLessThan(String value) {
+            addCriterion("`result` <", value, "result");
+            return (Criteria) this;
+        }
+
+        public Criteria andResultLessThanOrEqualTo(String value) {
+            addCriterion("`result` <=", value, "result");
+            return (Criteria) this;
+        }
+
+        public Criteria andResultLike(String value) {
+            addCriterion("`result` like", value, "result");
+            return (Criteria) this;
+        }
+
+        public Criteria andResultNotLike(String value) {
+            addCriterion("`result` not like", value, "result");
+            return (Criteria) this;
+        }
+
+        public Criteria andResultIn(List<String> values) {
+            addCriterion("`result` in", values, "result");
+            return (Criteria) this;
+        }
+
+        public Criteria andResultNotIn(List<String> values) {
+            addCriterion("`result` not in", values, "result");
+            return (Criteria) this;
+        }
+
+        public Criteria andResultBetween(String value1, String value2) {
+            addCriterion("`result` between", value1, value2, "result");
+            return (Criteria) this;
+        }
+
+        public Criteria andResultNotBetween(String value1, String value2) {
+            addCriterion("`result` not between", value1, value2, "result");
             return (Criteria) this;
         }
 
@@ -622,6 +762,76 @@ public class RequestInterfaceLogExample {
 
         public Criteria andExpireNotBetween(Long value1, Long value2) {
             addCriterion("expire not between", value1, value2, "expire");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoIsNull() {
+            addCriterion("extend_info is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoIsNotNull() {
+            addCriterion("extend_info is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoEqualTo(String value) {
+            addCriterion("extend_info =", value, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoNotEqualTo(String value) {
+            addCriterion("extend_info <>", value, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoGreaterThan(String value) {
+            addCriterion("extend_info >", value, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoGreaterThanOrEqualTo(String value) {
+            addCriterion("extend_info >=", value, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoLessThan(String value) {
+            addCriterion("extend_info <", value, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoLessThanOrEqualTo(String value) {
+            addCriterion("extend_info <=", value, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoLike(String value) {
+            addCriterion("extend_info like", value, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoNotLike(String value) {
+            addCriterion("extend_info not like", value, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoIn(List<String> values) {
+            addCriterion("extend_info in", values, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoNotIn(List<String> values) {
+            addCriterion("extend_info not in", values, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoBetween(String value1, String value2) {
+            addCriterion("extend_info between", value1, value2, "extendInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendInfoNotBetween(String value1, String value2) {
+            addCriterion("extend_info not between", value1, value2, "extendInfo");
             return (Criteria) this;
         }
 

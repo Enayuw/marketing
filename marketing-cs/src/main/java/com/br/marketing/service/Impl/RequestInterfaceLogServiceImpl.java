@@ -1,7 +1,7 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
-import com.br.marketing.entity.RequestInterfaceLogWithBlobs;
+import com.br.marketing.entity.RequestInterfaceLog;
 import com.br.marketing.mapper.RequestInterfaceLogMapper;
 import com.br.marketing.service.RequestInterfaceLogService;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ public class RequestInterfaceLogServiceImpl implements RequestInterfaceLogServic
     @Override
     public void saveLog(String apiCode, String url, Object data,Object result,long expireTime) {
         try {
-            RequestInterfaceLogWithBlobs req = new RequestInterfaceLogWithBlobs();
+            RequestInterfaceLog req = new RequestInterfaceLog();
             req.setApiCode(apiCode);
             req.setUrl(url);
             req.setRequestParam(data.toString());
