@@ -1,10 +1,11 @@
 package com.br.marketing.client.net;
 
 import com.alibaba.fastjson.JSON;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.net.CallUtils;
+import com.br.marketing.common.utils.net.InterfaceLog;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
-import com.br.marketing.entity.InterfaceLog;
-import com.br.marketing.mapper.InterfaceLogMapper;
+import com.br.marketing.rpcclient.rpcclientImpl.BrokerGrpcClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
@@ -12,30 +13,38 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
-public class ApiCallerUtil {
+public class ApiCaller {
 
-    public ApiCallerUtil() {
+    public ApiCaller() {
         restTemplate = new RestTemplate();
         this.httpHeaders = new HttpHeaders();
     }
 
-    public ApiCallerUtil(RestTemplate restTemplate) {
+    public ApiCaller(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
         this.httpHeaders = new HttpHeaders();
     }
 
-    public ApiCallerUtil(RestTemplate restTemplate, InterfaceLogMapper interfaceLogMapper,ThreadPoolExecutor threadPoolExecutor) {
+    public ApiCaller(RestTemplate restTemplate, BrokerGrpcClient momGrpcClient, ThreadPoolExecutor threadPoolExecutor) {
         this.restTemplate = restTemplate;
         this.httpHeaders = new HttpHeaders();
+        this.momGrpcClient = momGrpcClient;
         this.logDbPool = threadPoolExecutor;
-        this.interfaceLogMapper = interfaceLogMapper;
+    }
+
+    private InterfaceLog interfaceLog = new InterfaceLog();
+
+    public ApiCaller setInterfaceLog(InterfaceLog interfaceLog) {
+        this.interfaceLog = interfaceLog;
+        return this;
     }
 
     private RestTemplate restTemplate;
+
+    private BrokerGrpcClient momGrpcClient;
 
     private String url;
 
@@ -49,49 +58,45 @@ public class ApiCallerUtil {
 
     protected String encodeName = "utf-8";
 
-    private InterfaceLogMapper interfaceLogMapper;
+    private Boolean isEncode = Boolean.FALSE;
 
     private ThreadPoolExecutor logDbPool;
 
-    private String desc;
-
-    private Boolean isEncode = Boolean.FALSE;
-
-    public ApiCallerUtil setEncode(Boolean encode) {
+    public ApiCaller setEncode(Boolean encode) {
         isEncode = encode;
         return this;
     }
 
-    public ApiCallerUtil setDesc(String desc) {
-        this.desc = desc;
-        return this;
+    public void setLogPool(ThreadPoolExecutor logPool) {
+        this.logDbPool = logPool;
     }
 
     public String getUrl() {
         return url;
     }
 
-    public ApiCallerUtil setUrl(String url) {
+    public ApiCaller setUrl(String url) {
         this.url = url;
         return this;
     }
 
-    public ApiCallerUtil setRequestParam(Object requestParam) {
+    public ApiCaller setRequestParam(Object requestParam) {
         this.requestParam = requestParam;
         return this;
     }
 
-    public ApiCallerUtil setRequestHeader(HashMap requestHeader) {
+    public ApiCaller setRequestHeader(HashMap requestHeader) {
         this.requestHeader = requestHeader;
         return this;
     }
 
-    public ApiCallerUtil setContentType(MediaType contentType) {
+    public ApiCaller setContentType(MediaType contentType) {
         this.contentType = contentType;
         return this;
     }
 
-    public ApiCallerUtil setHttpHeaders(HashMap<String, String> headers) {
+
+    public ApiCaller setHttpHeaders(HashMap<String, String> headers) {
         headers.keySet().forEach((String t) -> {
             this.httpHeaders.add(t, headers.get(t));
         });
@@ -103,32 +108,37 @@ public class ApiCallerUtil {
         return exchange.getBody();
     }
 
+    @Deprecated
     public ThirdApiResultTransfer postTransferStr() {
+        if (momGrpcClient != null) {
+            if (StringUtils.isBlank(interfaceLog.getApiCode())) {
+                throw new RuntimeException("记录接口日志 apiCode不能为空");
+            }
+            if (StringUtils.isBlank(interfaceLog.getSwiftNumber())) {
+                throw new RuntimeException("记录接口日志 SwiftNumber不能为空");
+            }
+        }
         HttpEntity postHttpEntity = createPostHttpEntity();
-        InterfaceLog interfaceLog = new InterfaceLog();
-        interfaceLog.setRequestId(UUID.randomUUID().toString());
-        interfaceLog.setRequestParam(postHttpEntity.getBody().toString());
+        interfaceLog.setRequestStr(postHttpEntity.getBody().toString());
         interfaceLog.setUrl(url);
-        interfaceLog.setHeader(postHttpEntity.getHeaders().toString());
-        interfaceLog.setExtendInfo(desc);
-        interfaceLog.setCreateTime(new Date());
+        interfaceLog.setRequestTime(new Date());
         long start = System.currentTimeMillis();
         ThirdApiResultTransfer transfer = new ThirdApiResultTransfer();
         ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(url, postHttpEntity, String.class);
         Long l = System.currentTimeMillis() - start;
-        if(interfaceLogMapper != null) {
+        if (momGrpcClient != null) {
             try {
-                interfaceLog.setResult(stringResponseEntity.getBody());
-                interfaceLog.setHttpCode(stringResponseEntity.getStatusCodeValue());
-                interfaceLog.setExpire(l.toString());
-                logDbPool.submit(()->{
-                    interfaceLogMapper.insertSelective(interfaceLog);
+                interfaceLog.setCostTime(l);
+                interfaceLog.setResponseStr(stringResponseEntity.getBody());
+                interfaceLog.setCode(String.valueOf(stringResponseEntity.getStatusCodeValue()));
+                logDbPool.submit(() -> {
+                    momGrpcClient.sendInterfaceLog(interfaceLog);
                 });
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
         }
-        if(log.isInfoEnabled()) {
+        if (log.isInfoEnabled()) {
             log.info(String.format("POST=====url:%s,cost:%d,requestbody:%s,code:%d,response:%s"
                     , url, l, postHttpEntity.getBody()
                     , stringResponseEntity.getStatusCodeValue(), stringResponseEntity.getBody()));
@@ -153,7 +163,7 @@ public class ApiCallerUtil {
             requestEntity = new HttpEntity<String>(JSON.toJSONString(requestParam), httpHeaders);
         } else if (contentType.isCompatibleWith(MediaType.APPLICATION_FORM_URLENCODED)) {
 //            requestEntity = new HttpEntity<MultiValueMap<String, Object>>(CallUtils.getFormDataMap(requestParam), httpHeaders);
-            requestEntity = new HttpEntity<String>(CallUtils.getFormUrlEncodedStr(requestParam, encodeName,isEncode), httpHeaders);
+            requestEntity = new HttpEntity<String>(CallUtils.getFormUrlEncodedStr(requestParam, encodeName, isEncode), httpHeaders);
         } else if (contentType.isCompatibleWith(MediaType.MULTIPART_FORM_DATA)) {
             requestEntity = new HttpEntity<MultiValueMap<String, Object>>(CallUtils.getFormDataMap(requestParam), httpHeaders);
         } else {
@@ -187,7 +197,7 @@ public class ApiCallerUtil {
         return encodeName;
     }
 
-    public ApiCallerUtil setEncodeName(String encodeName) {
+    public ApiCaller setEncodeName(String encodeName) {
         this.encodeName = encodeName;
         return this;
     }

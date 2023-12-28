@@ -45,7 +45,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.ValidityPeriodDataService;
@@ -1185,7 +1185,7 @@ public class PushDataServiceImpl implements PushDataService {
                     SmsQuitReq smsQuitReq = new SmsQuitReq(pushList.getCipherMobile(), pushList.getBlackListType(),pushList.getApiCode());
                     //兼容Md5手机号
                     String phone = smsQuitReq.getCipherMobile();
-                    if (DecodeClient.isMd5(phone)) {
+                    if (DecodeGrpcClient.isMd5(phone)) {
                         smsQuitReq.setCipherMobile(Sha256Util.getSHA256Encrypt(RpcClientProxy.decode(phone, "cell", "md5", "")));
                     }
                     Result result = xieChengService.sendSmsQuitData(smsQuitReq);

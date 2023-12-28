@@ -2,14 +2,10 @@ package com.br.marketing.client;
 
 import ch.qos.logback.classic.spi.ThrowableProxy;
 import com.alibaba.fastjson.JSONObject;
-import com.br.bsf.ext.app.util.Ice2BSFConsumerBean;
 import com.br.common.log.AlertLog;
-import com.br.ice.service.alarm.BrSendAlarmNewServicePrx;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.net.IpUtil;
-import com.br.marketing.es.util.SwiftNumberManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -18,9 +14,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
-import java.util.Locale;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 /**发送邮件客户端
  * @author 10400
@@ -106,40 +100,6 @@ public class AlarmApiClient implements ApplicationContextAware {
     }
 
     /**
-     * 默认方式发送邮件
-     * @param content
-     * @param title
-     * @param appName
-     * @param secretKey
-     * @param exceptionCode
-     * @param service
-     */
-    private  void sendMailData(String content, String title, String appName, String secretKey, String exceptionCode,
-                               BrSendAlarmNewServicePrx service){
-        String swiftNumber = SwiftNumberManager.getSwiftNumberManager().getSwiftNumber();
-        String result="";
-        try {
-            log.debug("调用报警服务开始,流水号：{},报警邮件标题：{},异常码：{}",swiftNumber,title,exceptionCode);
-            JSONObject alarmObj = new JSONObject();
-            JSONObject requestData = new JSONObject();
-            requestData.put("mailTitle", title);
-            alarmObj.put("appSecretKey", secretKey);
-            alarmObj.put("swiftNum",swiftNumber);
-            alarmObj.put("appName",appName);
-            requestData.put("mailContent",dealTemplate(content));
-            requestData.put("msgContent",dealTemplate(content));
-            requestData.put("wechatContent",dealTemplate(content));
-            requestData.put("sendCode",exceptionCode);
-            alarmObj.put("requestData",requestData);
-            log.debug("调用报警服务请求参数：{}",alarmObj);
-             result = service.sendAlarm(alarmObj.toJSONString());
-            log.debug("调用报警服务结束，流水号:{},返回结果为{}",swiftNumber,result);
-        } catch (Exception e1) {
-            log.error("send mail is error --", e1);
-            log.error("调用报警服务结束，流水号:{},返回结果为{}",swiftNumber,result);
-        }
-    }
-    /**
      * 处理邮件内容
      * @param content
      * @return
@@ -166,33 +126,45 @@ public class AlarmApiClient implements ApplicationContextAware {
       return  ext.toString();
     }
 
-    public void send(final String title,final String mailContent,final String mails){
-        String result ="";
+//    public void send(final String title,final String mailContent,final String mails){
+//        String result ="";
+//        try {
+//            JSONObject config = new JSONObject();
+//            JSONObject requestData = new JSONObject();
+//            requestData.put("onlyCode", new Random().nextInt(10000)+50000);
+//            requestData.put("alarmLevel","1");
+//            requestData.put("alarmType","2");
+//            requestData.put("exceptionCode", new Random().nextInt(10000)+50000);
+//            requestData.put("mailTitle", title);
+//            requestData.put("mailContent",mailContent);
+//            requestData.put("mails", mails);
+//            requestData.put("sendType","1");
+//            requestData.put("autograph","1");
+//            config.put("appName","marketing");
+//            config.put("appSecretKey",secretKey);
+//            config.put("swiftNum", UUID.randomUUID().toString());
+//            config.put("requestData",requestData);
+//            BrSendAlarmNewServicePrx service= (BrSendAlarmNewServicePrx) Ice2BSFConsumerBean.getServiceProxy(BrSendAlarmNewServicePrx.class,"V3.0.0");
+//            service= (BrSendAlarmNewServicePrx) service.ice_connectionCached(false);
+//            log.info("bean--{}",config);
+//            result = service.sendMessageToPresonal(config.toJSONString(),mailContent);
+//            log.info("【mail send result】:{}",result);
+//        } catch (Exception e) {
+//            log.error("发送邮件报错：", e);
+//        }
+//        log.info("预警邮件发送结束!!返回结果{}",result);
+//    }
+
+    public static String sendMails(String mailTitle, String mailContent, String mails) {
+        String result = "";
         try {
-            JSONObject config = new JSONObject();
-            JSONObject requestData = new JSONObject();
-            requestData.put("onlyCode", new Random().nextInt(10000)+50000);
-            requestData.put("alarmLevel","1");
-            requestData.put("alarmType","2");
-            requestData.put("exceptionCode", new Random().nextInt(10000)+50000);
-            requestData.put("mailTitle", title);
-            requestData.put("mailContent",mailContent);
-            requestData.put("mails", mails);
-            requestData.put("sendType","1");
-            requestData.put("autograph","1");
-            config.put("appName","marketing");
-            config.put("appSecretKey",secretKey);
-            config.put("swiftNum", UUID.randomUUID().toString());
-            config.put("requestData",requestData);
-            BrSendAlarmNewServicePrx service= (BrSendAlarmNewServicePrx) Ice2BSFConsumerBean.getServiceProxy(BrSendAlarmNewServicePrx.class,"V3.0.0");
-            service= (BrSendAlarmNewServicePrx) service.ice_connectionCached(false);
-            log.info("bean--{}",config);
-            result = service.sendMessageToPresonal(config.toJSONString(),mailContent);
-            log.info("【mail send result】:{}",result);
-        } catch (Exception e) {
-            log.error("发送邮件报错：", e);
+            result = AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATA_GOVERNANCE_PLATFORM_SEND_EMAIL.getCode(),
+                    mailContent, mailTitle, Arrays.asList(mails), new ArrayList(), new ArrayList());
+        } catch (Exception var5) {
+            log.warn("mailTitle:[{}]mailContent:[{}]mails:[{}]--buildWarnMessageException", new Object[]{mailTitle, mailContent, mails, var5});
         }
-        log.info("预警邮件发送结束!!返回结果{}",result);
+
+        return result;
     }
 
 

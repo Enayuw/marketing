@@ -1,21 +1,14 @@
 package com.br.marketing.rule.rongshu;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.dassservice.input.DassImportDataDTO;
-import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.RsCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.PhoneSaleExtendInfo;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IPeriodOfValidityService;
@@ -24,13 +17,10 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -41,17 +31,11 @@ import java.util.Set;
 public class RsAutoArtificialAndCustomerTransferToDelayImpl implements AssembleData<MqFact> {
 
 
-    @Resource
-    PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
-
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
     @Autowired
     TableCreateServiceImpl tableCreateService;
-
-    @Value("${api.dass.aesKey:00}")
-    private String aesKey;
 
     @Autowired
     RedisChgService redisChgService;
