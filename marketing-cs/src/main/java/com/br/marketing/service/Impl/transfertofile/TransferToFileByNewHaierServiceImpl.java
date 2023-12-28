@@ -182,6 +182,7 @@ public class TransferToFileByNewHaierServiceImpl implements ITransferToFileServi
                     String applyDt = removeMillisecond(emptyDefault(transferFilterData.getApplyDt()));
                     String auditTime = removeMillisecond(emptyDefault(transferFilterData.getAuditTime()));
                     String requestTime = removeMillisecond(emptyDefault(transferFilterData.getRequestTime()));
+                    requestTime = conversionData(requestTime);
                     //custNum,userType,customName,registerTime,applyDt,auditTime,requestTime
                     sb.append(custNum.concat(","))
                             .append(userType.concat(","))
@@ -189,7 +190,7 @@ public class TransferToFileByNewHaierServiceImpl implements ITransferToFileServi
                             .append(registerTime.concat(","))
                             .append(applyDt.concat(","))
                             .append(auditTime.concat(","))
-                            .append(requestTime.concat(","))
+                            .append(requestTime)
                             .append("\r\n");
                     try {
                         fw.append(sb.toString());
@@ -246,5 +247,14 @@ public class TransferToFileByNewHaierServiceImpl implements ITransferToFileServi
 
     private String removeMillisecond(String timeStr) {
         return timeStr.replace(":000", "");
+    }
+
+    private String conversionData(String timeStr) {
+        if (StringUtils.isNotEmpty(timeStr)){
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"); // 输入字符串的格式
+            LocalDate date = LocalDate.parse(timeStr, formatter);
+            timeStr = date.format(DateTimeFormatter.BASIC_ISO_DATE);
+        }
+        return timeStr;
     }
 }

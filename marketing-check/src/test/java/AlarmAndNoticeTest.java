@@ -370,10 +370,10 @@ public class AlarmAndNoticeTest {
     @Test
     public void NewHaierTransferFileTest() {
         TransferFileTask transferFileTask = new TransferFileTask();
-        transferFileTask.setApiCode("7410930");
-        String apiCode = "7410930";
-        String myParam = "7410930#2023-12-26";
-        String dd = isMyParam("7410930", myParam);
+            transferFileTask.setApiCode("7410931");
+        String apiCode = "7410931";
+        String myParam = "7410931#2023-12-28";
+        String dd = isMyParam("7410931", myParam);
         transferFileTask.setStartDate(dd);
         String recordDate = transferFileTask.getStartDate();
         boolean isParam = StringUtils.isNotBlank(dd);
