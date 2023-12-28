@@ -1181,5 +1181,10 @@ public class MarketingCommonConfig {
      * 跑分回调获取数据分页
      */
     private Integer scoreDataPageSizeByPushCustomer;
+
+    /**
+     * 数禾上传数据推决策，策略编号设置
+     */
+    private Map<String, String> shuheToJueCeStrategy;
 }
 
