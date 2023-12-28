@@ -1162,6 +1162,15 @@ public class MarketingCommonConfig {
     private Integer scoreUpdateSortThreadNum;
 
     /**
+     * 数禾电销apiCode
+     */
+    private List<String> shuheDxApiCodes;
+
+
+
+
+
+    /**
      * 有效期变更apiCode
      */
     private List<String> validityPeriodApiCodeList;
