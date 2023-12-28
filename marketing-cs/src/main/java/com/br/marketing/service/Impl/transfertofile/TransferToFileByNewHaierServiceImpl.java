@@ -1,7 +1,5 @@
 package com.br.marketing.service.Impl.transfertofile;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
@@ -251,7 +249,7 @@ public class TransferToFileByNewHaierServiceImpl implements ITransferToFileServi
 
     private String conversionData(String timeStr) {
         if (StringUtils.isNotEmpty(timeStr)){
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"); // 输入字符串的格式
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             LocalDate date = LocalDate.parse(timeStr, formatter);
             timeStr = date.format(DateTimeFormatter.BASIC_ISO_DATE);
         }
