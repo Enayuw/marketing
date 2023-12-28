@@ -1186,5 +1186,35 @@ public class MarketingCommonConfig {
      * 数禾上传数据推决策，策略编号设置
      */
     private Map<String, String> shuheToJueCeStrategy;
+
+
+    /**
+     * 海尔撞库线程池数量配置
+     */
+    private Integer haierCollidingDataThreadNum;
+    /**
+     * 海尔撞库单次查询数量配置
+     */
+    private Integer haierCollidingDataPageSize;
+
+    /**
+     * 海尔撞库配置
+     */
+    private Map<String, String> haierCollidingDataConfig;
+
+    /**
+     * 海尔接口公钥
+     */
+    private String haierApiPublicKey;
+
+    /**
+     * 海尔撞库接口mock配置
+     */
+    private HashMap<String, Object> haierCollidingDataMock;
+
+    /**
+     * 海尔撞库上传清洗apiCode配置
+     */
+    private List<String> haierCollidingDataSyncApiCode;
 }
 

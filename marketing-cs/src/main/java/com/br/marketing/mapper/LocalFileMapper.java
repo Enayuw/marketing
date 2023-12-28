@@ -33,4 +33,6 @@ public interface LocalFileMapper extends LocalFileMapperBase {
     LocalFile getByPrimaryKey(@Param("id") Long id);
 
     List<LocalFile> getLocalFileByPushNoOrError(@Param("apiCode") String apiCode,@Param("fileType") String fileType);
+
+    List<LocalFile> getNotPushLocalFileByFileTypeAndFileName(@Param("fileName") String fileName,@Param("fileType") String fileType);
 }
