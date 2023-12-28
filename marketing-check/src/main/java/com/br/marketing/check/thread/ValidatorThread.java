@@ -1,6 +1,6 @@
 package com.br.marketing.check.thread;
 
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
@@ -16,10 +16,10 @@ public class ValidatorThread implements Callable<String>{
     private String apiCode;
     private String path;
     private Integer currentNum;
-    private DecodeClient decodeClient;
+    private DecodeGrpcClient decodeClient;
     private String head;
     private String filename;
-    public ValidatorThread(List<String> dataList,String apiCode,String path,Integer currentNum,DecodeClient decodeClient,String head,String filename){
+    public ValidatorThread(List<String> dataList, String apiCode, String path, Integer currentNum, DecodeGrpcClient decodeClient, String head, String filename){
         this.dataList=dataList;
         this.apiCode=apiCode;
         this.path=path;

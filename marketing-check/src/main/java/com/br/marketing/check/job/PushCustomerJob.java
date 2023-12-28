@@ -1,9 +1,6 @@
 package com.br.marketing.check.job;
 
-import IceInternal.Ex;
 import com.br.marketing.check.service.PushCustomerService;
-import com.br.marketing.check.service.ResultCheckService;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.mapper.CustomerMapper;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -13,8 +10,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 /**
  * //				    _ooOoo_
