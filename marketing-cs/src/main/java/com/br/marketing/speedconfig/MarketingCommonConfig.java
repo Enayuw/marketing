@@ -1216,5 +1216,15 @@ public class MarketingCommonConfig {
      * 海尔撞库上传清洗apiCode配置
      */
     private List<String> haierCollidingDataSyncApiCode;
+
+    /**
+     * 海尔转化数据提取apiCode集合
+     */
+    private List<String> NewHaierTransferApiCodes;
+
+    /**
+     * 海尔转化数据提取执行时间
+     */
+    private String NewHaierTransferExecuteTime;
 }
 
