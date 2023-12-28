@@ -5,16 +5,12 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.br.common.encryption.Md5Utils;
 import com.br.marketing.adapter.transfer.TransferSyncAdapter;
 import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.exception.BusinessException;
-import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
-import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.dto.shuhe.ResponseShuheDTO;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.dto.shuhe.factory.CaseShuheUserFactory;
@@ -23,9 +19,6 @@ import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.dto.shuhe.strategy.UnknownUserType;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
-import com.br.marketing.origin.MqFact;
-import com.br.marketing.origin.TransferSource;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.util.ShuHeAESencUtil;
@@ -82,20 +75,24 @@ public class ShuHeUserServiceImpl {
     DateTimeFormatter ymdhms = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
-
     @Transactional(rollbackFor = Exception.class)
     public Long saveShUploadData(CaseShuheUploadData shuheUploadData, JSONObject uploadDataDTO, JSONArray listInfo) {
         //todo 模拟异常上线后要删除
-        pushRuleService.mockDbOrRedisError(1,shuheUploadData.getApiCode());
+        pushRuleService.mockDbOrRedisError(1, shuheUploadData.getApiCode());
         caseShuheUploadDataMapper.insertSelective(shuheUploadData);
         return saveSyncInfo(adapterMarketingPreUserDTO(uploadDataDTO, listInfo, shuheUploadData), shuheUploadData);
     }
 
+    /**
+     * 2023-12-21 17:10
+     * 数禾上传数据适配上传数据
+     */
     private MarketingPreUserDTO adapterMarketingPreUserDTO(JSONObject uploadDataDTO, JSONArray listInfo
             , CaseShuheUploadData shuheUploadData) {
         try {
             MarketingPreUserDTO userDTO = new MarketingPreUserDTO();
-            userDTO.setTaskId(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE));
+            userDTO.setTaskId(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)
+                    .concat("_").concat(shuheUploadData.getApiCode()));
             userDTO.setRequestId(shuheUploadData.getRequestId());
             userDTO.setLast("0");
             userDTO.setTotal("0");
@@ -120,26 +117,13 @@ public class ShuHeUserServiceImpl {
                 dto.setGroupType(type);
                 dto.setCustNum(info.getString("orderId"));
                 varData = info.getJSONObject("varData");
-                if (!CollectionUtils.isEmpty(varData)) {
-                    String keyId = "identificationNo";
-                    String keyName = "name";
-                    if (varData.containsKey(keyId)) {
-                        dto.setId(varData.getString(keyId));
-                        varData.remove(keyId);
-                    }
-                    if (varData.containsKey(keyName)) {
-                        dto.setName(varData.getString(keyName));
-                        varData.remove(keyName);
-                    }
-                    reserveField1.putAll(varData);
-                }
+                varDataHandle(varData, dto, reserveField1);
                 reserveField1.putAll(info);
                 reserveField1.putAll(uploadDataDTO);
                 reserveField1.remove("listInfo");
                 reserveField1.remove("mobile");
                 reserveField1.remove("varData");
                 reserveField1.remove("orderId");
-                reserveField1.remove("extraInfo");
                 dto.setReserveField1(JSON.toJSONString(reserveField1, SerializerFeature.WriteNullStringAsEmpty
                         , SerializerFeature.WriteNullListAsEmpty));
                 list.add(dto);
@@ -147,9 +131,59 @@ public class ShuHeUserServiceImpl {
             userDTO.setDataItems(list);
             return userDTO;
         } catch (Exception e) {
-            log.error(String.format("数禾上传数据封装对象报错：%s",e.getMessage()), e);
+            String smg = String.format("数禾上传数据封装对象报错：%s", e.getMessage());
+            log.error(smg, e);
+            CaseShuheUploadData record = new CaseShuheUploadData();
+            record.setId(shuheUploadData.getId());
+            record.setStatus(1);
+            record.setSaveInfoStatus(1);
+            record.setUpdateTime(new Date());
+            record.setErrorInfo(smg);
+            caseShuheUploadDataMapper.updateByPrimaryKeySelective(record);
         }
         return null;
+    }
+
+    /**
+     * 2023-12-25 22:27
+     * 处理业务字段
+     *
+     * @param varData       客户业务字段
+     * @param dto           百融业务字段
+     * @param reserveField1 百融扩展字段
+     */
+    private void varDataHandle(JSONObject varData, MarketingPreUserDetailDTO dto, Map<String, Object> reserveField1) {
+        if (!CollectionUtils.isEmpty(varData)) {
+            String keyId = "identificationNo";
+            String keyName = "name";
+            String keyCusName = "cus_name";
+            String keySex = "sex";
+            String keyIdNew = "idt_no";
+            if (varData.containsKey(keyIdNew)) {
+                dto.setId(varData.getString(keyIdNew));
+                varData.remove(keyIdNew);
+            } else if (varData.containsKey(keyId)) {
+                dto.setId(varData.getString(keyId));
+                varData.remove(keyId);
+            }
+            if (varData.containsKey(keyCusName)) {
+                dto.setName(varData.getString(keyCusName));
+                varData.remove(keyCusName);
+            } else if (varData.containsKey(keyName)) {
+                dto.setName(varData.getString(keyName));
+                varData.remove(keyName);
+            }
+            if (varData.containsKey(keySex)) {
+                String sex = varData.getString(keySex);
+                if ("男".equals(sex)) {
+                    reserveField1.put("gender", "1");
+                } else {
+                    reserveField1.put("gender", "女".equals(sex) ? "2" : sex);
+                }
+                varData.remove(keySex);
+            }
+            reserveField1.putAll(varData);
+        }
     }
 
     private Long saveSyncInfo(MarketingPreUserDTO userDTO, CaseShuheUploadData shuheUploadData) {
@@ -166,6 +200,7 @@ public class ShuHeUserServiceImpl {
         syncInfo.setLast((byte) 0);
         syncInfo.setTotal(0L);
         syncInfo.setCreateTime(shuheUploadData.getCreateTime());
+        syncInfo.setUpdateTime(shuheUploadData.getCreateTime());
         syncInfo.setActualNum(userDTO.getDataItems().size());
         syncInfo.setJsonData(JSON.toJSONString(userDTO, SerializerFeature.WriteNullStringAsEmpty
                 , SerializerFeature.WriteNullListAsEmpty));

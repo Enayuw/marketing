@@ -13,6 +13,7 @@ import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.mapper.PushCustomerDetailMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.EmailService;
 import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
@@ -514,5 +515,12 @@ public class AlarmAndNoticeTest {
             throw new RuntimeException(e);
         }
 
+    }
+
+    @Resource
+    PushCustomerDetailMapper pushCustomerDetailMapper;
+    public void testTask(){
+        List<String> taskId = pushCustomerDetailMapper.getTaskId(2490036L, 0, 2);
+        System.out.println(taskId);
     }
 }
