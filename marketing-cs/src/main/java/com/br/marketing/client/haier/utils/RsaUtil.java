@@ -4,10 +4,14 @@ import org.apache.commons.codec.binary.Base64;
 
 import javax.crypto.Cipher;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Signature;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -193,6 +197,95 @@ public class RsaUtil {
         byte[] toByteArray = out.toByteArray();
         out.close();
         return toByteArray;
+    }
+
+
+    /**
+     * RSA加密
+     *
+     * @param input           待加密
+     * @param publicKeyString 公钥
+     * @return {@link String }
+     * @throws Exception 异常
+     * @author senyang.zheng
+     * @date 2023/12/23
+     */
+    public static String encrypt(byte[] input, String publicKeyString) throws Exception {
+        byte[] bt = Base64.decodeBase64(publicKeyString);
+        X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(bt);
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        PublicKey publicKey = keyFactory.generatePublic(publicKeySpec);
+        Cipher cipher = Cipher.getInstance("RSA");
+        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        byte[] output = cipher.doFinal(input);
+        return Base64.encodeBase64String(output);
+    }
+
+
+    /**
+     * RSA解密
+     *
+     * @param input            待解密
+     * @param privateKeyString 私钥
+     * @return {@link String }
+     * @throws Exception 异常
+     * @author senyang.zheng
+     * @date 2023/12/23
+     */
+    public static String decrypt(String input, String privateKeyString) throws Exception {
+        byte[] bt = Base64.decodeBase64(privateKeyString);
+        PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(bt);
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
+        Cipher cipher = Cipher.getInstance("RSA");
+        cipher.init(Cipher.DECRYPT_MODE, privateKey);
+        byte[] output = cipher.doFinal(Base64.decodeBase64(input));
+        return new String(output);
+    }
+
+
+    /**
+     * RSA签名
+     *
+     * @param content    内容
+     * @param privateKey 私钥
+     * @return {@link String }
+     * @throws Exception 异常
+     * @author senyang.zheng
+     * @date 2023/12/23
+     */
+    public static String sign(String content, String privateKey) throws Exception {
+        byte[] bt = Base64.decodeBase64(privateKey);
+        PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(bt);
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        PrivateKey priKey = keyFactory.generatePrivate(privateKeySpec);
+        Signature signature = Signature.getInstance("SHA1withRSA");
+        signature.initSign(priKey);
+        signature.update(content.getBytes(StandardCharsets.UTF_8));
+        return Base64.encodeBase64String(signature.sign());
+    }
+
+
+    /**
+     * RSA验签
+     *
+     * @param data      数据
+     * @param sign      标志
+     * @param publicKey 公钥
+     * @return boolean
+     * @throws Exception 异常
+     * @author senyang.zheng
+     * @date 2023/12/23
+     */
+    private static boolean checkSign(String data, String sign, String publicKey) throws Exception{
+        byte[] bt = Base64.decodeBase64(publicKey);
+        X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(bt);
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        PublicKey pubKey = keyFactory.generatePublic(publicKeySpec);
+        Signature signature = Signature.getInstance("SHA1withRSA");
+        signature.initVerify(pubKey);
+        signature.update(data.getBytes(StandardCharsets.UTF_8));
+        return signature.verify(Base64.decodeBase64(sign));
     }
 
 }

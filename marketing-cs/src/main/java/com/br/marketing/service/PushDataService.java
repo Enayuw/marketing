@@ -74,4 +74,14 @@ public interface PushDataService {
     Boolean isPushDassWithCallGrade(String ruleLabel,String intentionGrade);
 
     String getStatusByGrade(String ruleLabel,String intentionGrade);
+
+
+    /**
+     * 海尔撞库数据推送
+     *
+     * @param localId 本地文件id
+     * @author senyang.zheng
+     * @date 2023/12/23
+     */
+    void pushHaierCollidingData(Long localId);
 }

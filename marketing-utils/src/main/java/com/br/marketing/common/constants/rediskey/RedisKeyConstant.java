@@ -126,6 +126,12 @@ public class RedisKeyConstant {
      */
     public static final String CUSTOMER_TRANSFER_FIELD_KEY = prefix.concat("customer:transfer:field");
 
+    /**
+     * 2023-12-22 15:21
+     * 定制化客户传输，字段缓存key
+     */
+    public static final String CUSTOMER_FIELD_KEY = prefix.concat("customer:field:");
+
 
     /**
      * 转化数据提取任务锁
