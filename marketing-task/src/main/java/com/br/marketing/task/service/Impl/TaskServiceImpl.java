@@ -303,7 +303,7 @@ public class TaskServiceImpl implements ITaskService {
                 List<String> loanPaths = client.getChildren().forPath(parentPath);
                 for (String path : loanPaths) {
                     String concatPath = parentPath.concat("/").concat(path);
-                    hasResource += client.getData().forPath(concatPath) == null ? 0 : Integer.valueOf(new String(client.getData().forPath(concatPath)));
+                    hasResource += client.getData().forPath(concatPath) == null ? 0 : Integer.parseInt(new String(client.getData().forPath(concatPath)));
                 }
             }
         }

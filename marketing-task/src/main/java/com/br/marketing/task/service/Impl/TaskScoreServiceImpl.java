@@ -514,7 +514,7 @@ public class TaskScoreServiceImpl {
 
             String separator = marketingSepService.querySepByApiCode(blt.getApiCode());
             String redisOpen = redisChgService.get(RedisEsOpen);
-            Integer esOpenMark = StringUtils.isNotBlank(redisOpen) ? Integer.valueOf(redisOpen) : 1;
+            Integer esOpenMark = StringUtils.isNotBlank(redisOpen) ? Integer.parseInt(redisOpen) : 1;
             MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(blt.getId());
             //析出客户上传字段
             BaseHeadConfigVO baseHeadConfigVO = baseHeadHandle(marketingTaskExtend, blt);
@@ -731,7 +731,7 @@ public class TaskScoreServiceImpl {
         NodeCache nodeCache = new NodeCache(client, zkpath);
         nodeCache.getListenable().addListener(() -> {
             if (nodeCache.getCurrentData() != null) {
-                int threadNum = Integer.valueOf(new String(nodeCache.getCurrentData().getData())).intValue();
+                int threadNum = Integer.parseInt(new String(nodeCache.getCurrentData().getData()));
                 threadContextNum.put(customer.getApiCode(), threadNum);
                 executor
                         .setCorePoolSize(threadNum);

@@ -918,7 +918,7 @@ public class PushDataServiceImpl implements PushDataService {
 
     private Integer saveHaierCollingDataLog(Integer sendDate, List<HaierCollidingData> haierCollidingDataList) {
         List<HaierCollidingDataLog> haierCollidingDataLogs = haierCollidingDataList.stream()
-            .map(data -> {
+            .map((HaierCollidingData data) -> {
                     HaierCollidingDataLog haierCollidingDataLog = new HaierCollidingDataLog();
                     haierCollidingDataLog.setCollidingDataId(data.getId());
                     haierCollidingDataLog.setApiCode(data.getApiCode());

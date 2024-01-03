@@ -12,14 +12,47 @@ import java.util.concurrent.Callable;
  */
 @Slf4j
 public class ValidatorThread implements Callable<String>{
+    /**
+     * 数据
+     */
     private List<String> dataList;
+    /**
+     * apiCode
+     */
     private String apiCode;
+    /**
+     * 路径
+     */
     private String path;
+    /**
+     * currentNum
+     */
     private Integer currentNum;
+    /**
+     * 解密客户端
+     */
     private DecodeGrpcClient decodeClient;
+    /**
+     * 表头
+     */
     private String head;
+    /**
+     * 文件名
+     */
     private String filename;
-    public ValidatorThread(List<String> dataList, String apiCode, String path, Integer currentNum, DecodeGrpcClient decodeClient, String head, String filename){
+
+    /**
+     * 构造方法
+     * @param dataList 数据
+     * @param apiCode apiCode
+     * @param path 路径
+     * @param currentNum
+     * @param decodeClient 解密客户端
+     * @param head 文件头
+     * @param filename 文件名
+     */
+    public ValidatorThread(List<String> dataList, String apiCode, String path, Integer currentNum,
+                           DecodeGrpcClient decodeClient, String head, String filename){
         this.dataList=dataList;
         this.apiCode=apiCode;
         this.path=path;

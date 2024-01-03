@@ -1202,6 +1202,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                             jo.put(s, datas.get(i));
                         }
                         break;
+                    default:
                 }
                 if (jo != null) {
                     phoneSale.setExtend(jo.toJSONString());

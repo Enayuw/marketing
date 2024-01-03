@@ -108,6 +108,10 @@ public class ApiCaller {
         return exchange.getBody();
     }
 
+    /**
+     * 弃用
+     * @return com.br.marketing.common.utils.net.ThirdApiResultTransfer ThirdApiResultTransfer对象
+     */
     @Deprecated
     public ThirdApiResultTransfer postTransferStr() {
         if (momGrpcClient != null) {
