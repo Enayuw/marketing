@@ -136,35 +136,7 @@ public class ConsumerApp {
         consumerService.consumerRun(channel, message, pushDataService::pushSftpToDbData, o, "");
     }
 
-    /**
-     * 消费 携程消费
-     *
-     * @param channel 通道
-     * @param message 消息体
-     */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, durable = "true")
-            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
-            , key = MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)}, containerFactory = "concurrentContainerFactory")
-    public void xieChengToDb(Channel channel, Message message) {
-        String mes  = new String(message.getBody(), StandardCharsets.UTF_8);
-        /*消费逻辑*/
-        consumerService.consumerRun(channel, message, pushDataService::pushXieChengToDbData, mes, null);
-    }
 
-    ///**
-    // * 消费 携程短信撞库消费
-    // *
-    // * @param channel 通道
-    // * @param message 消息体
-    // */
-    //@RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGSMSCOLLIDINGRECEIVE, durable = "true")
-    //        , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
-    //        , key = MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGSMSCOLLIDINGRECEIVE)}, containerFactory = "containerFactory")
-    //public void xieChengSmsCollidingToDb(Channel channel, Message message) {
-    //    String mes  = new String(message.getBody(), StandardCharsets.UTF_8);
-    //    /*消费逻辑*/
-    //    consumerService.consumerRun(channel, message, pushDataService::pushXieChengSmsCollidingToDbData, mes, null);
-    //}
     /**
      * 推送dass转化
      *

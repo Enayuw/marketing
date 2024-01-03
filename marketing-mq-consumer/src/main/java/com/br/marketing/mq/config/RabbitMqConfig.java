@@ -4,7 +4,8 @@ import com.br.marketing.common.utils.MQConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.AcknowledgeMode;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -133,6 +134,21 @@ public class RabbitMqConfig {
             SimpleRabbitListenerContainerFactoryConfigurer configurer,
             @Qualifier("primaryConnectionFactory") ConnectionFactory connectionFactory) {
         return containerFactory(configurer, connectionFactory,5);
+    }
+
+
+    @Bean(name = "concurrentContainerFactory")
+    public SimpleRabbitListenerContainerFactory concurrentContainerFactory(SimpleRabbitListenerContainerFactoryConfigurer configurer,
+                                                                           ConnectionFactory connectionFactory) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        //设置线程数
+        factory.setConcurrentConsumers(1);
+        //最大线程数
+        factory.setMaxConcurrentConsumers(2);
+        factory.setPrefetchCount(10);
+        factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+        configurer.configure(factory, connectionFactory);
+        return factory;
     }
 
     /**

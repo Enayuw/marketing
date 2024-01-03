@@ -10,6 +10,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.Impl.ConsumerService;
+import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.PushRuleService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
@@ -47,6 +48,9 @@ public class ConsumerApp {
 
     @Resource
     private CustomerTransferDataService customerTransferDataService;
+
+    @Autowired
+    PushDataService pushDataService;
 
 
     /**
@@ -126,18 +130,19 @@ public class ConsumerApp {
     }
 
     /**
-     * 消费 众邦财富定制标签数据
+     * 消费 携程消费
      *
-     *//*
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_ZHONGBANGCAIFU_LABEL_DATA, durable = "true")
-            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
-            , key = MQConstants.ROUTING_KEY_MARKETING_ZHONGBANGCAIFU_LABEL_DATA)}, containerFactory = "fiveDataContainerFactory")
-    public void consumerZhongBangLabelData(Channel channel, Message message) {
-
-        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
-        }.getType());
-        consumerService.consumerRun(channel, message, pushRuleService::cunsumerZhongBangLabelData, o, null);
-    }*/
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, durable = "true")
+            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
+            , key = MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)}, containerFactory = "concurrentContainerFactory")
+    public void xieChengToDb(Channel channel, Message message) {
+        String mes  = new String(message.getBody(), StandardCharsets.UTF_8);
+        /*消费逻辑*/
+        consumerService.consumerRun(channel, message, pushDataService::pushXieChengToDbData, mes, null);
+    }
 
 
 
