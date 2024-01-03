@@ -61,11 +61,6 @@
             <artifactId>asm</artifactId>
             <version>1.0.2</version>
         </dependency>
-        <dependency>
-            <groupId>com.br.mom</groupId>
-            <artifactId>broker_layer_api</artifactId>
-            <version>3.0.1</version>
-        </dependency>
         <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
