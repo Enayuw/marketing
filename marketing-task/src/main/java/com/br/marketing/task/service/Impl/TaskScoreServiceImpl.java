@@ -514,7 +514,7 @@ public class TaskScoreServiceImpl {
 
             String separator = marketingSepService.querySepByApiCode(blt.getApiCode());
             String redisOpen = redisChgService.get(RedisEsOpen);
-            Integer esOpenMark = StringUtils.isNotBlank(redisOpen) ? Integer.parseInt(redisOpen) : 1;
+            String esOpenMark = StringUtils.isNotBlank(redisOpen) ? redisOpen : "1";
             MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(blt.getId());
             //析出客户上传字段
             BaseHeadConfigVO baseHeadConfigVO = baseHeadHandle(marketingTaskExtend, blt);
@@ -614,7 +614,7 @@ public class TaskScoreServiceImpl {
             if (log.isWarnEnabled()) {
                 log.warn("apicode:".concat(blt.getBatchNumber()).concat("~~查询总耗时："
                         .concat(String.valueOf(endtime - startTime)).concat("~~轮询总次数：")
-                        .concat(String.valueOf(currentPage).concat("~~esOpen:").concat(esOpenMark.toString()))));
+                        .concat(String.valueOf(currentPage).concat("~~esOpen:").concat(esOpenMark))));
             }
 
 
@@ -731,7 +731,7 @@ public class TaskScoreServiceImpl {
         NodeCache nodeCache = new NodeCache(client, zkpath);
         nodeCache.getListenable().addListener(() -> {
             if (nodeCache.getCurrentData() != null) {
-                int threadNum = Integer.parseInt(new String(nodeCache.getCurrentData().getData()));
+                int threadNum = Integer.parseInt(new String(nodeCache.getCurrentData().getData(),StandardCharsets.UTF_8));
                 threadContextNum.put(customer.getApiCode(), threadNum);
                 executor
                         .setCorePoolSize(threadNum);

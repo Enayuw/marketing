@@ -877,9 +877,13 @@ public class PushDataServiceImpl implements PushDataService {
                 while (!collidingExecutor.awaitTermination(10L, TimeUnit.SECONDS)) {
                     log.warn("海尔撞库线程池等待释放");
                 }
+            } catch (InterruptedException e) {
+                collidingExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+                log.error("海尔撞库线程池等待释放线程池关闭异常,直接关闭-InterruptedException-", e);
             } catch (Exception e) {
                 collidingExecutor.shutdownNow();
-                log.error("海尔撞库线程池等待释放线程池关闭异常,直接关闭", e);
+                log.error("海尔撞库线程池等待释放线程池关闭异常,直接关闭-Exception-", e);
             }
         }
     }

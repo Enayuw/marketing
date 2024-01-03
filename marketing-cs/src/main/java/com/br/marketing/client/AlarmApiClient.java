@@ -126,35 +126,6 @@ public class AlarmApiClient implements ApplicationContextAware {
       return  ext.toString();
     }
 
-//    public void send(final String title,final String mailContent,final String mails){
-//        String result ="";
-//        try {
-//            JSONObject config = new JSONObject();
-//            JSONObject requestData = new JSONObject();
-//            requestData.put("onlyCode", new Random().nextInt(10000)+50000);
-//            requestData.put("alarmLevel","1");
-//            requestData.put("alarmType","2");
-//            requestData.put("exceptionCode", new Random().nextInt(10000)+50000);
-//            requestData.put("mailTitle", title);
-//            requestData.put("mailContent",mailContent);
-//            requestData.put("mails", mails);
-//            requestData.put("sendType","1");
-//            requestData.put("autograph","1");
-//            config.put("appName","marketing");
-//            config.put("appSecretKey",secretKey);
-//            config.put("swiftNum", UUID.randomUUID().toString());
-//            config.put("requestData",requestData);
-//            BrSendAlarmNewServicePrx service= (BrSendAlarmNewServicePrx) Ice2BSFConsumerBean.getServiceProxy(BrSendAlarmNewServicePrx.class,"V3.0.0");
-//            service= (BrSendAlarmNewServicePrx) service.ice_connectionCached(false);
-//            log.info("bean--{}",config);
-//            result = service.sendMessageToPresonal(config.toJSONString(),mailContent);
-//            log.info("【mail send result】:{}",result);
-//        } catch (Exception e) {
-//            log.error("发送邮件报错：", e);
-//        }
-//        log.info("预警邮件发送结束!!返回结果{}",result);
-//    }
-
     public static String sendMails(String mailTitle, String mailContent, String mails) {
         String result = "";
         try {

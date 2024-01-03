@@ -140,7 +140,7 @@ public class TaskServiceImpl implements ITaskService {
      */
     @Override
     public Result<MarketingTask> getScoreTask(String nowDay, Long taskId,Integer isTimeLimit,String jobNm) {
-        Integer resource = 0;
+        int resource = 0;
 
         try {
             resource = getResource();
@@ -294,8 +294,8 @@ public class TaskServiceImpl implements ITaskService {
         }
     }
 
-    private Integer getResource() throws Exception {
-        Integer hasResource = 0;
+    private int getResource() throws Exception {
+        int hasResource = 0;
         int maxNum = marketingCommonConfig.getTaskResourceMaxNum() == null ? 300 : marketingCommonConfig.getTaskResourceMaxNum();
         List<String> parentPaths = Arrays.asList(ZookeeperPath.loanPath, ZookeeperPath.marketPath);
         for (String parentPath : parentPaths) {
@@ -303,7 +303,8 @@ public class TaskServiceImpl implements ITaskService {
                 List<String> loanPaths = client.getChildren().forPath(parentPath);
                 for (String path : loanPaths) {
                     String concatPath = parentPath.concat("/").concat(path);
-                    hasResource += client.getData().forPath(concatPath) == null ? 0 : Integer.parseInt(new String(client.getData().forPath(concatPath)));
+                    hasResource += client.getData().forPath(concatPath) == null ?
+                            0 : Integer.parseInt(new String(client.getData().forPath(concatPath)));
                 }
             }
         }

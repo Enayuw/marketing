@@ -111,6 +111,7 @@ public class ApiCaller {
     /**
      * 弃用
      * @return com.br.marketing.common.utils.net.ThirdApiResultTransfer ThirdApiResultTransfer对象
+     * @deprecated 后面尽量不要使用
      */
     @Deprecated
     public ThirdApiResultTransfer postTransferStr() {
