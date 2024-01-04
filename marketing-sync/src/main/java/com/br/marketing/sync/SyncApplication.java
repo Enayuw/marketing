@@ -31,6 +31,8 @@ import org.springframework.context.annotation.ImportResource;
 public class SyncApplication {
     public static ConfigurableApplicationContext ac;
     public static void main(String[] args) {
+        Long start = System.currentTimeMillis();
+        log.warn("marketing-sync开始启动！");
         ac= new SpringApplicationBuilder().sources(SyncApplication.class).run(args);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -38,6 +40,7 @@ public class SyncApplication {
                 SyncApplication.stop();
             }
         });
+        log.warn("marketing-sync启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
     }
 
     /**

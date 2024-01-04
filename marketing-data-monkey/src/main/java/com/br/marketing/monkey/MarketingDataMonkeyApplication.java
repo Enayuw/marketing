@@ -35,6 +35,8 @@ import org.springframework.context.annotation.ImportResource;
 public class MarketingDataMonkeyApplication {
     public static ConfigurableApplicationContext ac;
     public static void main(String[] args) {
+        Long start = System.currentTimeMillis();
+        log.warn("marketing-data-monkey开始启动！");
         ac = SpringApplication.run(MarketingDataMonkeyApplication.class, args);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -42,6 +44,7 @@ public class MarketingDataMonkeyApplication {
                 MarketingDataMonkeyApplication.stop();
             }
         });
+        log.warn("marketing-data-monkey启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
     }
     /**
      * 对客户端调用不同服务产生的资源连接进行关闭，在项目停止时需要进行关闭

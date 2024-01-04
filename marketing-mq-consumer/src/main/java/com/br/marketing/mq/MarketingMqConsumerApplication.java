@@ -31,6 +31,8 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 public class MarketingMqConsumerApplication {
 
     public static void main(String[] args) {
+        Long start = System.currentTimeMillis();
+        log.warn("marketing-mq-consumer开始启动！");
         SpringApplication.run(MarketingMqConsumerApplication.class, args);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -38,6 +40,7 @@ public class MarketingMqConsumerApplication {
                 MarketingMqConsumerApplication.stop();
             }
         });
+        log.warn("marketing-mq-consumer启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
     }
 
 
