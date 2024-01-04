@@ -66,7 +66,7 @@ public class UserCenterGrpcClient {
                 .setColumns(BASE_COLUMNS).setTypeName(BASE).setCache(true).build();
         UserCenterResponse company = GrpcClientInitConfig.grpcUserCenter().getInfo(request);
         if (200 != company.getCode()) {
-            log.warn("从用户中心base查询的商户信息----{}", JSONObject.toJSONString(company));
+            log.warn("从用户中心base查询的商户信息----{}", company.toString());
         }
         return company.getResult();
     }
