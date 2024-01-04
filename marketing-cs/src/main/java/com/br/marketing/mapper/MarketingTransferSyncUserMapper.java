@@ -55,6 +55,14 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     List<MarketingTransferSyncUser> getTransferByRequestData(@Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
 
+    List<MarketingTransferSyncUser> getTransferByStartAndEndDate(@Param("transferSyncUser") MarketingTransferSyncUser transferSyncUser,
+                                                                 @Param("startDate") String startDate,
+                                                                 @Param("endDate") String endDate,
+                                                                 @Param("orderByClause") String orderByClause,
+                                                                 @Param("rowCount") int rowCount,
+                                                                 @Param("offset") int offset);
+
+
     List<MarketingTransferSyncUser> getTransferData(@Param("apiCode") String apiCode , @Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
 
     /**

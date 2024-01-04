@@ -94,10 +94,16 @@ public class ZbankClientConfig {
     private String priKey;
 
     /**
-     * 业务接口
+     * 业务接口-众邦财富标签回调
      */
     @Value("${api.zbank.api.serviceId.labelRating:CMBrLabelRatingRe}")
     private String serviceIdLabelRating;
+
+    /**
+     * 业务接口-众邦信贷标签回调
+     */
+    @Value("${api.zbank.api.serviceId.CMBrScoDaFeBack:CMBrScoDaFeBack}")
+    private String CMBrScoDaFeBack;
 
     // 文件sdk参数
 
@@ -139,6 +145,7 @@ public class ZbankClientConfig {
             }
             // 开启记录接口日志
             sdk.getConfig().getInterfaceLogServiceIdList().add(serviceIdLabelRating);
+            sdk.getConfig().getInterfaceLogServiceIdList().add(CMBrScoDaFeBack);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

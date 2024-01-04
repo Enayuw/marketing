@@ -53,4 +53,10 @@ public interface MarketingDataValidConfigMapper extends MarketingDataValidConfig
      */
     Map<String,String> getValidPeriodRangeByApiCodeAndUserType(@Param("id") Long id);
 
+    /**
+     * 根据apiCode获取有效期配置
+     */
+    List<MarketingDataValidConfig> getValidityDataByApiCode(@Param("apiCode") String apiCode ,@Param("appletDate") String appletDate);
+    List<MarketingDataValidConfig> getValidityDataByAppletDate(@Param("apiCode") String apiCode ,@Param("appletDate") String appletDate);
+
 }

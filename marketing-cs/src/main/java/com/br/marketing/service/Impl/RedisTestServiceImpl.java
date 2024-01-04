@@ -1,7 +1,7 @@
 package com.br.marketing.service.Impl;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -15,9 +15,7 @@ import io.lettuce.core.ScanCursor;
 import io.lettuce.core.ValueScanCursor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -33,11 +31,6 @@ public class RedisTestServiceImpl {
 
     MarketingCommonConfig marketingCommonConfig;
 
-    public void speedFileTest(MarketingCommonConfig marketingCommonConfig) {
-        if(marketingCommonConfig !=null){
-            log.warn("测试speedFile:"+JSON.toJSONString(marketingCommonConfig));
-        }
-    }
 
     public void redisTest(Integer redisOpt, RedisChgService redisChgService) {
         this.redisChgService = redisChgService;

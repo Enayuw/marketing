@@ -1,8 +1,10 @@
 package com.br.marketing.check.job.clean;
 
+import com.br.marketing.check.service.Impl.CleanScoreCustomerServiceImpl;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.mapper.DataDistributeDetailLogMapper;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 
 @Component
@@ -23,6 +26,8 @@ public class BigKeyCleanJob extends AbstractSimpleElasticJob {
     @Autowired
     RedisChgService redisChgService;
 
+    @Autowired
+    CleanScoreCustomerServiceImpl cleanScoreCustomerService;
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         long uploadFirstTime = System.currentTimeMillis();
@@ -44,6 +49,10 @@ public class BigKeyCleanJob extends AbstractSimpleElasticJob {
         redisChgService.delBigSet(transferKey,3000);
 
         log.warn(String.format("删除转化key：%s,耗时：%dms",transferKey,System.currentTimeMillis()-transferFirstTime));
+
+        long scoreTime = System.currentTimeMillis();
+        cleanScoreCustomerService.cleanScoreCustomerBigKey();
+        log.warn(String.format("删除跑分推送客户大key：%s,耗时：%dms",transferKey,System.currentTimeMillis()-scoreTime));
     }
 
 }

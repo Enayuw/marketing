@@ -158,6 +158,11 @@ api:
         url: ${api.haier.baseUlr}app/marketControl/custData/receive
         info:
           url: ${api.haier.custData.receive.url}/info
+    colliding:
+      rsaPublicKey: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAPFWKIvO0H2RXiimtALLfyOYQR39L+Mk8LDDR114ZdDCwqWh8njYena1flcBWUkvE5B0nl02P/+i3LYndo6CxZkCAwEAAQ==
+      rsaPrivateKey: MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEA8VYoi87QfZFeKKa0Ast/I5hBHf0v4yTwsMNHXXhl0MLCpaHyeNh6drV+VwFZSS8TkHSeXTY//6Lctid2joLFmQIDAQABAkEAzKySdIewoF3R6k3/KsOlDu4Ig8N/gneIvZDQDICYcOOmhGyNWGBjoX0bEUzOIal9AaMdcxbC7nk8gbsO+6xXgQIhAPwgIevLcLh4fyHqXf3tdffk+epbDN3mJR3Jipx6mOwpAiEA9QuU9NDoopq8TDpqg3phsvMh8VEHAAjTiQMxWgkHO/ECIGAibGy5RMDCCU/ISpCRI8MjBvwKPay6nXpvJ7AkuvyJAiEA32KPiB5p9NHaliMqtnD6X4gFiVe0afOh42VluA5C6gECIG39I68jhMl9Hlr0Vt6cHvMBvxZO71VwUstmIrNWcimg
+      url: https://gw.haiercash.com/gw/api/baffle/v1/validate/access
+      isProxy: true
   zhongAn:
     baseUrl: https://finance-gateway-pop.diandian.com.cn
     api: ${api.zhongAn.baseUrl}/fcpGateway
@@ -249,6 +254,7 @@ api:
       priKey: "3B82FE82D970F247C391358D360DA50486FE2266D5919028BD26A3AC4940E845"
       serviceId:
         labelRating: "CMBrLabelRatingRe"
+        CMBrScoDaFeBack: "CMBrScoDaFeBack"
     file:
       baseUrl: "https://file.z-bank.com"
       channelId: "1741195375"

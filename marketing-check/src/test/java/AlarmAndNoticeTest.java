@@ -1,14 +1,19 @@
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.CkeckApplication;
+import com.br.marketing.client.zbank.ZbankClient;
+import com.br.marketing.check.job.TransferFileTaskJob;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.mapper.PushCustomerDetailMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.EmailService;
 import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
@@ -20,11 +25,14 @@ import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.ZhongYuanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import org.apache.commons.lang3.RandomStringUtils;
+import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -36,6 +44,7 @@ import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -225,6 +234,10 @@ public class AlarmAndNoticeTest {
 
     final static String ZHONGBANG_TRANSFER_FILE = "caifu_transform_";
 
+    private final static String TABLE_HEAD_TRANSFER = "custNum,cell,userType,applyDt,applyResult,auditTime," +
+            "ifLent,lentTime,lentAmount,effectiveTime,applyLoan";
+
+
     @Test
     public void newTransferFileTest() {
         TransferFileTask transferFileTask = new TransferFileTask();
@@ -316,6 +329,89 @@ public class AlarmAndNoticeTest {
 
     }
 
+    @Resource
+    private TransferToFileByNewTongChengServiceImpl transfer;
+
+    @Test
+    public void NewTongChengTransferFileTest() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7492638");
+        String myParam = "7492638#2023-12-15";
+        String dd = isMyParam("7492638", myParam);
+        transferFileTask.setStartDate(dd);
+        String recordDate = transferFileTask.getStartDate();
+        boolean isParam = StringUtils.isNotBlank(dd);
+        String dateyyyymmddStr = isParam ? dd.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        transferFileTask.setFileName(String.format("tongcheng_zhuanhua_%s.txt", dateyyyymmddStr));
+        log.warn("同程新系统转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String apiCode = transferFileTask.getApiCode();
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
+            fw.append(TABLE_HEAD_TRANSFER);
+            fw.append("\r\n");
+            transfer.writeNewTongChengTransferToFile(fw,apiCode,transferFileTask, recordDate);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+
+    }
+
+    @Resource
+    private TransferToFileByNewHaierServiceImpl toFileByNewHaierService;
+
+    private final static String TABLE_HEAD_HAIER_TRANSFER = "custNum,userType,customName,registerTime,applyDt,auditTime,requestTime";
+
+    @Test
+    public void NewHaierTransferFileTest() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+            transferFileTask.setApiCode("7410931");
+        String apiCode = "7410931";
+        String myParam = "7410931#2023-12-28";
+        String dd = isMyParam("7410931", myParam);
+        transferFileTask.setStartDate(dd);
+        String recordDate = transferFileTask.getStartDate();
+        boolean isParam = StringUtils.isNotBlank(dd);
+        String dateyyyymmddStr = isParam ? dd.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        transferFileTask.setFileName(String.format("%s_transform_%s.txt", apiCode, dateyyyymmddStr));
+        log.warn("海尔新系统转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
+            fw.append(TABLE_HEAD_HAIER_TRANSFER);
+            fw.append("\r\n");
+            toFileByNewHaierService.writeTransferToFile(fw,apiCode,transferFileTask, recordDate);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+
+    }
+
+
+    public String isMyParam(String apiCode, String jobParameter) {
+        if (jobParameter.contains(apiCode)) {
+            String[] split = jobParameter.split(";");
+            for (String s : split) {
+                if (s.contains(apiCode)) {
+                    return s.split("#")[1];
+                }
+            }
+        }
+        return "";
+    }
+
 
     @Test
     public void transferFileTest(){
@@ -384,4 +480,47 @@ public class AlarmAndNoticeTest {
         System.err.println(new Result().setCode(ResultCode.SUCCESS.getValue()));;
     }
 
+    @Value("${api.zbank.api.appId:2a0f9f71_29e5_466c_95a7_8cab99d93880}")
+    private String appId;
+
+    @Autowired
+    ZbankClient zbankClient;
+    @Test
+    public void testDaFeBack(){
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("TxnSrlNo", appId+LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                + RandomStringUtils.randomNumeric(8));
+        jsonObject.put("TskId", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+        jsonObject.put("TxnDt", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+        jsonObject.put("TxnTs", LocalTime.now().format(DateTimeFormatter.ofPattern("HHmmssSSS")));
+        jsonObject.put("RqsSeqNo", "7492366_"+jsonObject.getString("TskId")+"_"+UUID.randomUUID().toString());
+        JSONArray CstInfoArray = new JSONArray();
+        for (int i = 0; i < 10; i++) {
+            JSONObject cstInfo = new JSONObject();
+            cstInfo.put("CstNo", i);
+            cstInfo.put("QltySrt", "");
+            cstInfo.put("IntnSrt", "");
+            cstInfo.put("GrpTp", "dai");
+            CstInfoArray.add(cstInfo);
+        }
+        jsonObject.put("CstInfoArray", CstInfoArray);
+        JSONObject object = new JSONObject();
+        object.put("request", jsonObject);
+
+        try {
+            String rqsSeqNo = zbankClient.cMBrScoDaFeBack(object, jsonObject.getString("RqsSeqNo"));
+            System.out.println(rqsSeqNo);
+        } catch (Exception e) {
+            log.error(e.getMessage(),e);
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    @Resource
+    PushCustomerDetailMapper pushCustomerDetailMapper;
+    public void testTask(){
+        List<String> taskId = pushCustomerDetailMapper.getTaskId(2490036L, 0, 2);
+        System.out.println(taskId);
+    }
 }

@@ -167,6 +167,10 @@ api:
     key: f3df6f62f0527bf0
     iv: 3b2dac323465b024
     singKey: 95cc01ec07387a44
+    appIdVt: bairong002
+    keyVt: f3df6f62f0527bf0
+    ivVt: 3b2dac323465b024
+    signKeyVt: 95cc01ec07387a44
     source: BaiRong_C01
     channel: commonOutAdMonitor
     isProxy: true
@@ -181,7 +185,7 @@ api:
     baseUrl: https://admarketing-manhattan.xiaojukeji.com
     smsUrl: ${api.didi.baseUrl}/crow/collision/bairong
     reachUrl: ${api.didi.baseUrl}/crow/user/success/bairong
-    jmassSUrl: ${api.didi.baseUrl}/model/sample/bairong
+    jmassSUrl: ${api.didi.baseUrl}/model/sample/mediaName
     failedUrl: ${api.didi.baseUrl}/crow/faileduser/mediaName
     token: DK&SgWl!fZ%WVSXe
     scas: "0001"

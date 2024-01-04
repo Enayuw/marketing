@@ -73,13 +73,6 @@ public class SpeedConfig implements ISpeedAppendPipeline {
                         redisTestServiceImpl.redisTest(redisTest,redisChgService);
                     }
                 }
-                if(!new Integer(0).equals(speedTest)){
-                    RedisTestServiceImpl redisTestServiceImpl = context.getBean("redisTestServiceImpl", RedisTestServiceImpl.class);
-                    MarketingCommonConfig marketingCommonConfig = context.getBean("marketingCommonConfig",MarketingCommonConfig.class);
-                    if(redisTestServiceImpl !=null){
-                        redisTestServiceImpl.speedFileTest(marketingCommonConfig);
-                    }
-                }
                 break;
             }
             default: {
