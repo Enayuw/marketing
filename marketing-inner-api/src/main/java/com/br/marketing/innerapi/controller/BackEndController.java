@@ -1,5 +1,7 @@
 package com.br.marketing.innerapi.controller;
 
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.service.PushRuleService;
@@ -36,6 +38,7 @@ public class BackEndController {
      */
     @ApiOperation(value = "查询客户信息接口")
     @PostMapping("/queryCustInfo")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public Result queryCustInfo(@RequestParam(required = false) String cid,
                                 @RequestParam(required = false) String apiCode,
                                 @RequestParam(required = true) String custNum) {
