@@ -334,13 +334,13 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         int pushThream = marketingCommonConfig.getScoreUpdateSortThreadNum() == null
                 ? 5 : marketingCommonConfig.getScoreUpdateSortThreadNum();
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_updateSort");
-        PushCustomerDetailExample pushCustomerDetailExample = new PushCustomerDetailExample();
-        pushCustomerDetailExample.setOrderByClause(" id limit 2000");
-        PushCustomerDetailExample.Criteria criteria = pushCustomerDetailExample.createCriteria();
-        criteria.andFileIdEqualTo(straHisFile.getId()).andPushStatusEqualTo(1);
         Boolean action = Boolean.TRUE;
         Long minId = null;
         while (action) {
+            PushCustomerDetailExample pushCustomerDetailExample = new PushCustomerDetailExample();
+            pushCustomerDetailExample.setOrderByClause(" id limit 2000");
+            PushCustomerDetailExample.Criteria criteria = pushCustomerDetailExample.createCriteria();
+            criteria.andFileIdEqualTo(straHisFile.getId()).andPushStatusEqualTo(1);
             if (minId != null) {
                 criteria.andIdGreaterThan(minId);
             }
