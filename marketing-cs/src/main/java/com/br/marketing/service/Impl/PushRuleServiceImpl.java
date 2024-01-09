@@ -121,6 +121,8 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     MarketingTaskMapper marketingTaskMapper;
+    @Resource
+    MarketingTaskUserTypeMapper marketingTaskUserTypeMapper;
 
     @Resource
     CustomerInfoPushMainMapper customerInfoPushMainMapper;
@@ -198,6 +200,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<Map<String, Object>> module = marketingTaskMapper.getModule(apiCode);
         map.put("model", module);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(map).setMessage("查询成功");
+    }
+    @Override
+    public Result<String> getUserType(String apiCode){
+        List<String> userTypeList = marketingTaskUserTypeMapper.queryUserTypeByApiCodetikv_(apiCode);
+        String userType = userTypeList.stream().collect(Collectors.joining(","));
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(userType).setMessage("查询成功");
     }
 
     @Override

@@ -47,6 +47,10 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
             , @Param("sDate") String sDate, @Param("eTimeStr") String eTimeStr
             , @Param("whereStr") String whereStr);
 
+    List<String> queryUserTypeListWithDate(@Param("apiCode") String apiCode
+            , @Param("sDate") String sDate, @Param("eTimeStr") String eTimeStr
+            , @Param("whereStr") String whereStr);
+
     Integer countByRuleScoreWithDate(@Param("apiCode") String apiCode
             , @Param("whereStr") String whereStr);
 

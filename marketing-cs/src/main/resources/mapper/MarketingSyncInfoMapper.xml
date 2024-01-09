@@ -100,6 +100,20 @@
             and (${whereStr})
     </select>
 
+    <select id="queryUserTypeListWithDate" resultType="java.lang.String">
+        select distinct(user_type)
+        from b_marketing_sync_${apiCode}
+        where is_repeat in (1,2)
+            and status = 1
+            <if test="sDate != null and sDate !=''">
+                and applet_date = #{sDate}
+            </if>
+            <if test="sDate != null and sDate !=''">
+                <![CDATA[ and applet_time < #{eTimeStr} ]]>
+            </if>
+            and (${whereStr})
+    </select>
+
     <select id="countByRuleScoreWithDate" resultType="java.lang.Integer">
         select count(*)
         from b_marketing_sync_${apiCode}
