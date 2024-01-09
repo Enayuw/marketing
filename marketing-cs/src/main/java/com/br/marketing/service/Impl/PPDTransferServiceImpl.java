@@ -18,7 +18,6 @@ import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IPPDTransferService;
-import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.ArtificialBatchRealTimeDataHandler;
@@ -57,9 +56,6 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
 
     @Resource
     private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
-
-    @Resource
-    private IPeriodOfValidityService iPeriodOfValidityService;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
