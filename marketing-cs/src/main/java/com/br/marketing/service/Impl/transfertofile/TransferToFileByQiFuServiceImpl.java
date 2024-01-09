@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.transfertofile;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
@@ -160,11 +161,16 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
         Long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         Integer page = 0;
-        Boolean mark = Boolean.TRUE;
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
         LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
-        LocalDate[] dates = getFirstAndLastDayOfMonth(localDate);
+        LocalDate now = LocalDate.now();
+        LocalDate[] dates;
+        if (localDate.isEqual(now)) {
+            dates = getFirstAndLastDayOfMonth(localDate);
+        } else {
+            dates = getStartAndEndDate(localDate);
+        }
         LocalDate startDate = dates[0];
         LocalDate endDate = dates[1];
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
@@ -189,13 +195,11 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
                         cell = EncAndDecUtil.logTodigest(custNum, ThreeKeyEncryptEnum.md5);
                     }
                     //上传给，根据cell去关联上传数据的taskId
-                    if (StringUtils.isNotEmpty(cell)){
-                        MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCellLast(apiCode, cell);
-                        taskId = StringUtils.isNotEmpty(marketingSyncUser.getCusBatch())
-                                ? marketingSyncUser.getCusBatch() : "";
+                    MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCellLast(apiCode, cell);
+                    if (ObjectUtil.isNotEmpty(marketingSyncUser)){
+                        taskId = StringUtils.isNotEmpty(marketingSyncUser.getCusBatch()) ? marketingSyncUser.getCusBatch() : "";
                     }
                     //applyDt,applyResult,custNum,loginTime,requestTime,taskId,userType
-                    StringBuilder sb = new StringBuilder();
                     custNum = StringUtils.isNotEmpty(transferFilterData.getCustNum())
                             ? transferFilterData.getCustNum() : "";
                     String applyDt = StringUtils.isNotEmpty(transferFilterData.getApplyDt())
@@ -208,6 +212,7 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
                             ? transferFilterData.getRequestTime().replace(":000","") : "";
                     String userType = StringUtils.isNotEmpty(transferFilterData.getUserType())
                             ? transferFilterData.getUserType() : "";
+                    StringBuilder sb = new StringBuilder();
                     sb.append(applyDt.concat(","))
                             .append(applyResult.concat(","))
                             .append(custNum.concat(","))
@@ -281,5 +286,22 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
         return new LocalDate[]{firstDayOfMonth, lastDayOfMonth};
     }
 
+    public static LocalDate[] getStartAndEndDate(LocalDate date) {
+        LocalDate firstDayOfMonth;
+        LocalDate lastDayOfMonth;
+
+        if (date.getDayOfMonth() == 1) {
+            firstDayOfMonth = date.minusMonths(1);
+            lastDayOfMonth = date;
+        } else {
+            firstDayOfMonth = date.withDayOfMonth(1);
+            lastDayOfMonth = date.withDayOfMonth(date.lengthOfMonth());
+            if (date.isBefore(lastDayOfMonth)) {
+                lastDayOfMonth = date;
+            }
+        }
+
+        return new LocalDate[]{firstDayOfMonth, lastDayOfMonth};
+    }
 
 }

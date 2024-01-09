@@ -443,7 +443,7 @@ public class AlarmAndNoticeTest {
         TransferFileTask transferFileTask = new TransferFileTask();
         transferFileTask.setApiCode("7491630");
         String apiCode = "7491630";
-        String myParam = "7491630#2024-01-04";
+        String myParam = "7491630#2023-12-28";
         String dd = isMyParam("7491630", myParam);
         transferFileTask.setStartDate(dd);
         String recordDate = transferFileTask.getStartDate();
@@ -469,12 +469,21 @@ public class AlarmAndNoticeTest {
     }
 
     public static void main(String[] args) {
-        String dateString = "2024-01-31";
+        String dateString = "2024-01-05";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate localDate = LocalDate.parse(dateString, formatter);
-        LocalDate[] dates = getFirstAndLastDayOfMonth(localDate);
-        System.err.println("First day of the month: " + dates[0]);
-        System.err.println("First day of the next month: " + dates[1]);
+        LocalDate now = LocalDate.now();
+        if (localDate.isEqual(now)) {
+            LocalDate[] dates = getFirstAndLastDayOfMonth(localDate);
+            System.err.println("First day of the month: " + dates[0]);
+            System.err.println("First day of the next month: " + dates[1]);
+        } else {
+            LocalDate[] dates = getStartAndEndDate(localDate);
+            System.err.println("First: " + dates[0]);
+            System.err.println("First: " + dates[1]);
+        }
+
+
     }
 
     public static LocalDate[] getFirstAndLastDayOfMonth(LocalDate date) {
@@ -487,6 +496,24 @@ public class AlarmAndNoticeTest {
         } else {
             firstDayOfMonth = date.withDayOfMonth(1);
             lastDayOfMonth = date.withDayOfMonth(date.lengthOfMonth());
+        }
+
+        return new LocalDate[]{firstDayOfMonth, lastDayOfMonth};
+    }
+
+    public static LocalDate[] getStartAndEndDate(LocalDate date) {
+        LocalDate firstDayOfMonth;
+        LocalDate lastDayOfMonth;
+
+        if (date.getDayOfMonth() == 1) {
+            firstDayOfMonth = date.minusMonths(1);
+            lastDayOfMonth = date;
+        } else {
+            firstDayOfMonth = date.withDayOfMonth(1);
+            lastDayOfMonth = date.withDayOfMonth(date.lengthOfMonth());
+            if (date.isBefore(lastDayOfMonth)) {
+                lastDayOfMonth = date;
+            }
         }
 
         return new LocalDate[]{firstDayOfMonth, lastDayOfMonth};
