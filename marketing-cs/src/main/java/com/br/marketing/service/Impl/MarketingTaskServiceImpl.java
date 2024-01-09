@@ -325,7 +325,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
         // 查询符合跑分数据的场景
         List<String> userTypeList = syncInfoMapper
-                .queryUserTypeListWithDate(apiCode, sDate, eTimeStr, conditionRes.getData());
+                .queryUserTypeListWithDatetikv_(apiCode, sDate, eTimeStr, conditionRes.getData());
 
         //跑分条件转化
         Result<String> conditionTransferRes = soleStrategyService.analysisTransferConditions(vo.getConditionInfo(), sDate, eTimeStr);
@@ -367,7 +367,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             Result<String> conditionRes = soleStrategyService.analysisCondition(vo.getConditionInfo());
             // 查询符合跑分数据的场景
             userTypeList = syncInfoMapper
-                    .queryUserTypeListWithDate(apiCode, null, null, conditionRes.getData());
+                    .queryUserTypeListWithDatetikv_(apiCode, null, null, conditionRes.getData());
         }
 
         Result<List<String>> listResult = soleStrategyService.analysisConditions(vo.getConditionInfo());

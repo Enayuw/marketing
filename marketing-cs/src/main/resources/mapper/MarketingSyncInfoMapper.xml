@@ -100,7 +100,7 @@
             and (${whereStr})
     </select>
 
-    <select id="queryUserTypeListWithDate" resultType="java.lang.String">
+    <select id="queryUserTypeListWithDatetikv_" resultType="java.lang.String">
         select distinct(user_type)
         from b_marketing_sync_${apiCode}
         where is_repeat in (1,2)
