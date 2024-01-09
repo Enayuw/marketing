@@ -63,6 +63,19 @@ public class PushRuleFilterController {
         return new ApiResult().fromResult(companyAndModule, 000000);
     }
 
+    /**
+     * 根据apiCode 查询信息
+     * @param apiCode
+     * @return
+     */
+    @ApiOperation(value = "根据apiCode 查询信息")
+    @GetMapping("/getUserType")
+    @LogAnnotation
+    public ApiResult getUserType(String apiCode) {
+        Result<String> userType = pushRuleService.getUserType(apiCode);
+        return new ApiResult().fromResult(userType, 000000);
+    }
+
 
     /**
      * 获取批次列表
