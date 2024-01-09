@@ -74,6 +74,7 @@ public interface IPeriodOfValidityService {
      * @author Guo Zeqiang
      * @dateTime 2022/2/14 9:58
      */
+    @Deprecated
     boolean isNotExpire(Date date, String validityDayStr, Date validityDate) throws IllegalArgumentException;
 
     /**
