@@ -173,7 +173,7 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
         Integer pageSize = dynamicParameterService.getPageSize(null);
-        while (mark) {
+        for (; ; ) {
             List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
                     .getTransferByStartAndEndDate(syncUser, startDate.toString(), endDate.toString(), null, page * pageSize, pageSize);
             if (CollectionUtils.isEmpty(transferData)) {

@@ -167,7 +167,6 @@ public class TransferToFileByZhongBangTransferServiceImpl implements ITransferTo
         Long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         Integer page = 0;
-        Boolean mark = Boolean.TRUE;
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
         LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
@@ -178,7 +177,7 @@ public class TransferToFileByZhongBangTransferServiceImpl implements ITransferTo
         syncUser.setApiCode(apiCode);
         syncUser.setRequestData(requestData);
         Integer pageSize = dynamicParameterService.getPageSize(null);
-        while (mark) {
+        for (; ; ) {
             List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
                     .findTransferByApiCodeAndCreateTimePage(syncUser, null, null, null, page * pageSize, pageSize);
             if (CollectionUtils.isEmpty(transferData)) {
@@ -208,7 +207,8 @@ public class TransferToFileByZhongBangTransferServiceImpl implements ITransferTo
                         firstName = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("firstName");;
                         firstName = StringUtils.isNotEmpty(firstName) ? firstName : "";
                     }
-                    //custNum,cell,firstName,userType,ifRegister,registerTime,ifLogin,loginTime,ifApply,applyDt,applyResult,applyTime,refuseTime,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount
+                    //custNum,cell,firstName,userType,ifRegister,registerTime,ifLogin,loginTime,ifApply,applyDt,applyResult
+                    // ,applyTime,refuseTime,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount
                     StringBuilder sb = new StringBuilder();
                     custNum = StringUtils.isNotEmpty(transferFilterData.getCustNum())
                             ? transferFilterData.getCustNum() : "";
