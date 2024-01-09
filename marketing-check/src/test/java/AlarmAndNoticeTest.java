@@ -45,6 +45,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -398,6 +399,100 @@ public class AlarmAndNoticeTest {
         }
 
     }
+
+    @Resource
+    TransferToFileByZhongBangTransferServiceImpl transferToFileByZhongBang;
+    private final static String ZHONGBNAG_TABLE_HEAD_TRANSFER = "custNum,cell,firstName,userType,ifRegister,registerTime,ifLogin," +
+            "loginTime,ifApply,applyDt,applyResult,applyTime,refuseTime,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount";
+    @Test
+    public void NewZhongBangTransferFileTest() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7410994");
+        String apiCode = "7410994";
+        String myParam = "7410994#2023-12-19";
+        String dd = isMyParam("7410994", myParam);
+        transferFileTask.setStartDate(dd);
+        String recordDate = transferFileTask.getStartDate();
+        boolean isParam = StringUtils.isNotBlank(dd);
+        String dateyyyymmddStr = isParam ? dd.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        transferFileTask.setFileName(String.format("transform_%s_%s.txt", apiCode, dateyyyymmddStr));
+        log.warn("众邦转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
+            fw.append(ZHONGBNAG_TABLE_HEAD_TRANSFER);
+            fw.append("\r\n");
+            transferToFileByZhongBang.writeZhongBangTransferToFile(fw,apiCode,transferFileTask, recordDate);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+    }
+
+
+    @Resource
+    TransferToFileByQiFuServiceImpl transferToFileByQiFu;
+    private final static String QIFU_TABLE_HEAD_TRANSFER = "custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId";
+    @Test
+    public void QiFuTransferFileTest() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7491630");
+        String apiCode = "7491630";
+        String myParam = "7491630#2024-01-04";
+        String dd = isMyParam("7491630", myParam);
+        transferFileTask.setStartDate(dd);
+        String recordDate = transferFileTask.getStartDate();
+        boolean isParam = StringUtils.isNotBlank(dd);
+        String dateyyyymmddStr = isParam ? dd.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        transferFileTask.setFileName(String.format("transform_qifu_%s.txt", dateyyyymmddStr));
+        log.warn("奇富360转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
+            fw.append(QIFU_TABLE_HEAD_TRANSFER);
+            fw.append("\r\n");
+            transferToFileByQiFu.writeQifuTransferToFile(fw,apiCode,transferFileTask, recordDate);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+    }
+
+    public static void main(String[] args) {
+        String dateString = "2024-01-31";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate localDate = LocalDate.parse(dateString, formatter);
+        LocalDate[] dates = getFirstAndLastDayOfMonth(localDate);
+        System.err.println("First day of the month: " + dates[0]);
+        System.err.println("First day of the next month: " + dates[1]);
+    }
+
+    public static LocalDate[] getFirstAndLastDayOfMonth(LocalDate date) {
+        LocalDate firstDayOfMonth;
+        LocalDate lastDayOfMonth;
+
+        if (date.getDayOfMonth() == 1) {
+            firstDayOfMonth = date.minusMonths(1);
+            lastDayOfMonth = date;
+        } else {
+            firstDayOfMonth = date.withDayOfMonth(1);
+            lastDayOfMonth = date.withDayOfMonth(date.lengthOfMonth());
+        }
+
+        return new LocalDate[]{firstDayOfMonth, lastDayOfMonth};
+    }
+
+
 
 
     public String isMyParam(String apiCode, String jobParameter) {

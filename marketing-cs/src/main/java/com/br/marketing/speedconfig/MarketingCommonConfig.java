@@ -1235,5 +1235,25 @@ public class MarketingCommonConfig {
      * 海尔转化数据提取执行时间
      */
     private String NewHaierTransferExecuteTime;
+
+    /**
+     * 众邦转化数据提取apiCode集合
+     */
+    private List<String> ZhongBangApiCodes;
+
+    /**
+     * 众邦转化数据提取执行时间
+     */
+    private String ZhongBangExecuteTime;
+
+    /**
+     * 奇富360转化数据提取apiCode集合
+     */
+    private List<String> QiFuTransferApiCodes;
+
+    /**
+     * 奇富360转化数据提取执行时间
+     */
+    private String QiFuTransferExecuteTime;
 }
 
