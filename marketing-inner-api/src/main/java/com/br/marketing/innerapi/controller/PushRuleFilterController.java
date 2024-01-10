@@ -40,12 +40,11 @@ public class PushRuleFilterController {
     /**
      * CODE_000000
      */
-    private static final Integer CODE_000000 = new Integer(000000);
+    private static final Integer CODE_000000 = Integer.valueOf("000000");
     /**
      * CODE_1
      */
-    private static final Integer CODE_1 = new Integer(1);
-
+    private static final Integer CODE_1 = Integer.valueOf(1);
     @Autowired
     RabbitMqProducter producter;
 
