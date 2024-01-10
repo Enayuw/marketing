@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.PeriodOfValidityBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
@@ -14,12 +15,11 @@ import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.PPDCollectDataImpl;
+import com.br.marketing.context.impl.PPDLodCollectDataImpl;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.rule.AssembleData;
-import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.IScoreResultService;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -29,10 +29,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -61,18 +59,15 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
     @Autowired
     RedisChgService redisChgService;
 
-    @Resource
-    private IPeriodOfValidityService iPeriodOfValidityService;
-
     @Override
     public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
 
-        PPDCollectDataImpl.PPDRuleNecessaryData ruleNecessaryData =
-                (PPDCollectDataImpl.PPDRuleNecessaryData) context.getRuleNecessaryData();
-        Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
-        MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, transfer.getCustNum());
+        PPDLodCollectDataImpl.PPDLodRuleNecessaryData ruleNecessaryData =
+                (PPDLodCollectDataImpl.PPDLodRuleNecessaryData) context.getRuleNecessaryData();
+        Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBOMap = ruleNecessaryData.getUserValidityPeriodsBOMap();
+        MarketingSyncUser marketingSyncUser = userValidityPeriodsBOMap.get(transfer.getCustNum()).getSyncUsers().get(0);
         batchRealTimeUserDataDTO.setDassImportDataDTO(packageDassImportData(transfer, marketingSyncUser));
         return batchRealTimeUserDataDTO;
     }
@@ -93,23 +88,27 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
                 return false;
             }
 
-            PPDCollectDataImpl.PPDRuleNecessaryData ruleNecessaryData =
-                    (PPDCollectDataImpl.PPDRuleNecessaryData) context.getRuleNecessaryData();
-            Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
-            MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, transfer.getCustNum());
-            if (marketingSyncUser == null) {
+            PPDLodCollectDataImpl.PPDLodRuleNecessaryData ruleNecessaryData =
+                    (PPDLodCollectDataImpl.PPDLodRuleNecessaryData) context.getRuleNecessaryData();
+            Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBOMap = ruleNecessaryData.getUserValidityPeriodsBOMap();
+            SyncUserValidityPeriodsBO userValidityPeriodsBO = userValidityPeriodsBOMap.get(transfer.getCustNum());
+            // 为null时不在有效期
+            if (userValidityPeriodsBO == null) {
                 return false;
             }
-
-            String ppdValidityDay = marketingCommonConfig.getPpdOldValidityDayStr();
-            Date appletTime = marketingSyncUser.getAppletTime();
-            // 2023-02-10 调整为统一有效期判断
-            boolean expire = iPeriodOfValidityService.isExpire(new Date(), ppdValidityDay, appletTime);
-            if (expire) {
-                return false;
+            List<PeriodOfValidityBO.Builder> builders = userValidityPeriodsBO.getBuilders();
+            int size = builders.size();
+            StringBuilder sb = new StringBuilder(" and (");
+            for (int i = 0; i < size; i++) {
+                PeriodOfValidityBO bo = builders.get(0).addDateString().builder();
+                String beginDateStr = bo.getBeginDateStr();
+                String enDateStr = bo.getEnDateStr();
+                sb.append("(request_data between '").append(beginDateStr).append("' and  '").append(enDateStr).append("')");
+                if (i != (size - 1)) {
+                    sb.append(" or ");
+                }
             }
-            PeriodOfValidityBO builder = iPeriodOfValidityService.getPeriodOfValidityRange(ppdValidityDay
-                    , appletTime).addDateString().builder();
+            sb.append(")");
             String tcId = tableCreateService.getTcId(context.getApiCode());
             MarketingTransferSyncUserExample transferSyncUserExample = new MarketingTransferSyncUserExample();
             transferSyncUserExample.settCid(tcId);
@@ -117,9 +116,9 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
                     .andTCidEqualTo(tcId)
                     .andApiCodeEqualTo(context.getApiCode())
                     .andCustNumEqualTo(transfer.getCustNum())
-                    .andIfLentEqualTo("Y")
-                    .andRequestDataBetween(builder.getBeginDateStr(), builder.getEnDateStr());
-            int countTransferSyncUser = marketingTransferSyncUserMapper.countByExample(transferSyncUserExample);
+                    .andIfLentEqualTo("Y");
+            int countTransferSyncUser = marketingTransferSyncUserMapper.countByExampleSql(transferSyncUserExample
+                    , sb.toString());
             if (countTransferSyncUser > 0) {
                 return false;
             }
@@ -144,6 +143,7 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
             String value = UUID.randomUUID().toString();
 
             redisChgService.lock(key, value);
+            PeriodOfValidityBO builder = builders.get(0).addDateString().builder();
             PhoneSaleExtendInfoExample extendInfoExample = new PhoneSaleExtendInfoExample();
             extendInfoExample.createCriteria().andApiCodeEqualTo(transfer.getApiCode())
                     .andCustNumEqualTo(transfer.getCustNum()).andStatusEqualTo("a")
@@ -153,7 +153,8 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
                 redisChgService.unlock(key, value);
                 return false;
             } else {
-                savePhoneSaleExtendInfo(transfer, marketingSyncUser.getCusBatch());
+                String cusBatch = userValidityPeriodsBO.getSyncUsers().get(0).getCusBatch();
+                savePhoneSaleExtendInfo(transfer, cusBatch);
                 redisChgService.unlock(key, value);
                 return true;
             }
@@ -175,7 +176,7 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
 
     @Override
     public Integer ruleDataCollection() {
-        return RuleDataCollectionEnum.PPD_DATA_COLLECTION.getCode();
+        return RuleDataCollectionEnum.PPD_LOD_DATA_COLLECTION.getCode();
     }
 
     private void savePhoneSaleExtendInfo(MarketingTransferSyncUser transfer, String cusBatch) {
