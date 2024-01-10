@@ -1,23 +1,21 @@
 package com.br.marketing.service.Impl.transfertofile;
 
 import com.br.common.util.BrCipherMaker;
-import com.br.marketing.bo.PeriodOfValidityBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.RuleRedisServiceImpl;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.util.PeriodOfValidityHelper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -25,8 +23,9 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,10 +51,11 @@ public class TransferToFileByPPDOldServiceImpl implements ITransferToFileService
     private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-    @Resource
-    private MarketingSyncInfoMapper marketingSyncInfoMapper;
     @Autowired
     private IPeriodOfValidityService periodOfValidityService;
+
+    @Resource
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     final static String EXECUTE_TIME = " 11:00:00";
 
@@ -63,9 +63,8 @@ public class TransferToFileByPPDOldServiceImpl implements ITransferToFileService
 
     final static String PPD_TRANSFER_FILE = "push_";
 
-    final static SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd");
     @Override
-    public String isMyParam(String apiCode,String jobParameter) {
+    public String isMyParam(String apiCode, String jobParameter) {
         return "";
     }
 
@@ -135,77 +134,64 @@ public class TransferToFileByPPDOldServiceImpl implements ITransferToFileService
     }
 
     private void writePPDTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException, IllegalAccessException {
-        Long start = System.currentTimeMillis();
-        String ppdOldValidityDayStr = StringUtils.isNotEmpty(marketingCommonConfig.getPpdOldValidityDayStr()) ? marketingCommonConfig.getPpdOldValidityDayStr() : VALIDITY_DATSTR;
-        Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(ppdOldValidityDayStr);
-        PeriodOfValidityBO builder = periodOfValidityService.getPeriodOfValidityRange(-day, new Date()).builder();
-        Date beginDate = builder.getBeginDate();
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(beginDate);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND,0);
-        beginDate = calendar.getTime();
-        Date enDate = builder.getEnDate();
+        long start = System.currentTimeMillis();
+        int page = 0;
         int pageSize = 2000;
-        Integer page = 0;
-        Boolean mark = Boolean.TRUE;
-        int totalSize =0;
-        while (mark) {
-            PhoneSaleExtendInfoExample phoneSaleExtendInfoExample = new PhoneSaleExtendInfoExample();
-            phoneSaleExtendInfoExample.createCriteria().andApiCodeEqualTo(apiCode)
-                    .andPushDxTimeGreaterThanOrEqualTo(beginDate)
-                    .andPushDxTimeLessThanOrEqualTo(enDate);
-            phoneSaleExtendInfoExample.setOrderByClause(" create_time desc,id desc limit ".concat(String.format("%s,%s", page * pageSize, pageSize)));
-            List<PhoneSaleExtendInfo> phoneSaleExtendInfos = phoneSaleExtendInfoMapper.selectByExample(phoneSaleExtendInfoExample);
-            if (CollectionUtils.isEmpty(phoneSaleExtendInfos)) {
-                mark = Boolean.FALSE;
-                continue;
-            }
-            page++;
-            //到上传表取最新cell
-            List<String> list = phoneSaleExtendInfos.stream().map(PhoneSaleExtendInfo::getCustNum).collect(Collectors.toList());
-            List<List<String>> partition = ListUtils.partition(list, 500);
-            Map<String, MarketingSyncUser> preUserMap = new HashMap<>();
-            for (List<String> strings : partition) {
-                Set<String> set = strings.stream().collect(Collectors.toSet());
-                List<MarketingSyncUser> preUserByTask = marketingSyncInfoMapper.getPreUserByInCust(apiCode, set);
-                Map<String, MarketingSyncUser> map = preUserByTask.stream().collect(
-                        Collectors.groupingBy(MarketingSyncUser::getCustNum
-                                , Collectors.collectingAndThen(
-                                        Collectors.reducing((v1, v2) ->
-                                                v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
-                                        , Optional::get)));
-                preUserMap.putAll(map);
-            }
-            //判断是否再有效期内
-            for (PhoneSaleExtendInfo data : phoneSaleExtendInfos){
-                String custNum = data.getCustNum();
-                if (preUserMap.containsKey(custNum)){
-                    Date validityDate = preUserMap.get(custNum).getAppletTime() != null ? preUserMap.get(custNum).getAppletTime() : preUserMap.get(custNum).getCreateTime();
-                    boolean notExpire = periodOfValidityService.isNotExpire(new Date(), ppdOldValidityDayStr, validityDate);
-                    if(notExpire){
-                        //custNum,cell,push_dx_time,status
-                        String cell = "";
-                        if (preUserMap.containsKey(custNum)) {
-                            String decode = BrCipherMaker.getInstance().decode(preUserMap.get(custNum).getCell());
-                            cell = StringUtils.isBlank(decode) ? preUserMap.get(custNum).getCell() : DigestUtils.md5DigestAsHex(decode.getBytes());
+        int totalSize = 0;
+        for (; ; ) {
+            List<MarketingDataValidConfig> dataValidityPeriodPageList =
+                    transferDataValidityPeriodService.getDataValidityPeriodPageList(apiCode, new Date(), page, pageSize);
+            for (MarketingDataValidConfig config : dataValidityPeriodPageList) {
+                Instant startInstant = LocalDate.parse(config.getValidStartDate()).atStartOfDay(ZoneId.systemDefault()).toInstant();
+                Instant endInstant = LocalDate.parse(config.getValidEndDate())
+                        .atTime(23, 59, 59, 999999).atZone(ZoneId.systemDefault()).toInstant();
+                boolean mark = Boolean.TRUE;
+                int dxPage = 0;
+                while (mark) {
+                    PhoneSaleExtendInfoExample phoneSaleExtendInfoExample = new PhoneSaleExtendInfoExample();
+                    phoneSaleExtendInfoExample.createCriteria().andApiCodeEqualTo(apiCode)
+                            .andPushDxTimeGreaterThanOrEqualTo(Date.from(startInstant))
+                            .andPushDxTimeLessThanOrEqualTo(Date.from(endInstant));
+                    phoneSaleExtendInfoExample.setOrderByClause(" create_time desc,id desc limit ".concat(String.format("%s,%s", dxPage * pageSize, pageSize)));
+                    List<PhoneSaleExtendInfo> phoneSaleExtendInfos = phoneSaleExtendInfoMapper.selectByExample(phoneSaleExtendInfoExample);
+                    if (CollectionUtils.isEmpty(phoneSaleExtendInfos)) {
+                        mark = Boolean.FALSE;
+                        continue;
+                    }
+                    dxPage++;
+                    //到上传表取最新cell
+                    Set<String> custNumSet = phoneSaleExtendInfos.stream().map(PhoneSaleExtendInfo::getCustNum)
+                            .collect(Collectors.toSet());
+                    Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
+                            transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSet, apiCode, new Date());
+                    //判断是否再有效期内
+                    for (PhoneSaleExtendInfo data : phoneSaleExtendInfos) {
+                        String custNum = data.getCustNum();
+                        SyncUserValidityPeriodsBO bo = validityPeriodsByCustNum.get(custNum);
+                        // bo 为空时不在有效期，直接跳过
+                        if (bo == null) {
+                            continue;
                         }
+                        String cell = bo.getSyncUsers().get(0).getCell();
+                        String decode = BrCipherMaker.getInstance().decode(cell);
                         String status = data.getStatus();
-                        String push_dx_time =  sdf2.format(data.getPushDxTime());
-                        StringBuilder sb = new StringBuilder();
-                        sb.append((StringUtils.isNotEmpty(custNum) ? custNum : "").concat(","));
-                        sb.append(cell.concat(","));
-                        sb.append(push_dx_time.concat(","));
-                        sb.append(status);
-                        sb.append("\r\n");
-                        fw.append(sb.toString());
+                        String pushDxTime = data.getPushDxTime().toInstant()
+                                .atZone(ZoneId.systemDefault()).toLocalDate().toString();
+                        String sb = (StringUtils.isNotEmpty(custNum) ? custNum : "").concat(",") +
+                                (StringUtils.isBlank(decode) ? cell : DigestUtils.md5DigestAsHex(decode.getBytes())) + "," +
+                                pushDxTime.concat(",") +
+                                status +
+                                "\r\n";
+                        fw.append(sb);
                         totalSize = totalSize + 1;
                     }
+                    phoneSaleExtendInfos.clear();
                 }
             }
-            phoneSaleExtendInfos.clear();
+            if (dataValidityPeriodPageList.size() < pageSize) {
+                break;
+            }
+            page++;
         }
         TransferFileTask updatetask = new TransferFileTask();
         updatetask.setId(transferFileTask.getId());
