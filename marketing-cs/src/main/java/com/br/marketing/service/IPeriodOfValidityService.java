@@ -374,4 +374,12 @@ public interface IPeriodOfValidityService {
      * @return Boolean
      */
     Result<Boolean> configValidDateDefault(MarketingSyncUser syncUser);
+
+    /**
+     * 生成定制化默认有效期范围
+     *
+     * @param syncUser 上传数据
+     * @return Boolean
+     */
+    Result<Boolean> customizeConfigValidDateDefault(MarketingSyncUser syncUser);
 }

@@ -876,6 +876,12 @@ public class MarketingCommonConfig {
     private Set<String> nonConfigValidDefaultApiCodes;
 
     /**
+     * 2024-07-05 16:04
+     * 生成默认有效期定制配置的apiCode集合
+     */
+    private Set<String> customizeConfigValidDefaultApiCodes;
+
+    /**
      * 推送dass意向登记判断配置{"labelNm":["A","B"]}
      */
     private HashMap<String,List<String>>  gradeOfcallToDass;

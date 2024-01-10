@@ -178,16 +178,16 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
 
     @Override
     public boolean isExpire(String dataDateStr, String validityDayStr, DateTimeFormatter dtf) {
-        if(StringUtils.isBlank(dataDateStr)){
+        if (StringUtils.isBlank(dataDateStr)) {
             throw new NullPointerException("dataDateStr为NULL");
         }
-        if(dtf == null){
+        if (dtf == null) {
             dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         }
         LocalDate dataDate = LocalDate.parse(dataDateStr, dtf);
         Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(validityDayStr);
         LocalDate startDate = LocalDate.now().minusDays(day);
-        return dataDate.compareTo(startDate)<0;
+        return dataDate.compareTo(startDate) < 0;
     }
 
     @Override
@@ -354,5 +354,26 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         return result;
     }
 
+    @Override
+    public Result<Boolean> customizeConfigValidDateDefault(MarketingSyncUser syncUser) {
+        Result<Boolean> result = new Result<>();
+        result.setCode(ResultCode.SUCCESS.getValue());
+        result.setDate(false);
+        this.configValidDateDefault(syncUser);
+        MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
+        example.createCriteria()
+                .andApiCodeEqualTo(syncUser.getApiCode())
+                .andUserTypeEqualTo(syncUser.getUserType())
+                .andAppletDateEqualTo(syncUser.getAppletDate())
+                .andValidTypeEqualTo(1)
+                .andIsDelEqualTo(1);
+        // 检查db中是否已经存在有效期记录
+        List<MarketingDataValidConfig> marketingDataValidConfigs = marketingDataValidConfigMapper.selectByExample(example);
+        // 插入子表
+        for(MarketingDataValidConfig  marketingDataValidConfig: marketingDataValidConfigs){
+            Long id = marketingDataValidConfig.getId();
+        }
+        return result;
+    }
 
 }
