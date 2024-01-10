@@ -9,7 +9,6 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
-import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.RuleRedisServiceImpl;
 import com.br.marketing.service.SyncConfigService;
@@ -51,15 +50,11 @@ public class TransferToFileByPPDOldServiceImpl implements ITransferToFileService
     private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-    @Autowired
-    private IPeriodOfValidityService periodOfValidityService;
 
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     final static String EXECUTE_TIME = " 11:00:00";
-
-    final static String VALIDITY_DATSTR = "T+33";
 
     final static String PPD_TRANSFER_FILE = "push_";
 
