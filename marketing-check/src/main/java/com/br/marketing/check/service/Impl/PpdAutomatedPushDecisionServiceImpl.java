@@ -4,29 +4,24 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.JobPushDecisionParameterBO;
 import com.br.marketing.bo.PeriodOfValidityBO;
-import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.check.service.AutomatedPushDecisionService;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.TransferActionFront;
-import com.br.marketing.entity.XieChengSmsCollidingDataLog;
 import com.br.marketing.enums.CustomerPushDecisionActionEnum;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.origin.MqFact;
-import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.strategy.PolicySoleHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,7 +42,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class PPDAutomatedPushDecisionServiceImpl implements AutomatedPushDecisionService {
+public class PpdAutomatedPushDecisionServiceImpl implements AutomatedPushDecisionService {
 
     @Resource
     private TableCreateServiceImpl tableCreateService;
@@ -72,7 +67,7 @@ public class PPDAutomatedPushDecisionServiceImpl implements AutomatedPushDecisio
     }
 
     @Override
-    public List<TransferActionFront> createActionFrontRows(JobPushDecisionParameterBO parameter, TransferActionFrontMapper mapper, String jobParameter) {
+    public List<TransferActionFront> createActionFrontRows(JobPushDecisionParameterBO parameter, TransferActionFrontMapper mapper, String jobPara) {
         List<TransferActionFront> resultList = new ArrayList<>();
         String extractTime = parameter.getTimeStr();
         if (StringUtils.isEmpty(extractTime)) {
@@ -104,7 +99,8 @@ public class PPDAutomatedPushDecisionServiceImpl implements AutomatedPushDecisio
     }
 
     @Override
-    public TransferActionFront actionData(TransferActionFront actionFront, JobPushDecisionParameterBO parameter, String jobParameter, MethodRetryHandlerService methodRetryHandlerService) {
+    public TransferActionFront actionData(TransferActionFront actionFront, JobPushDecisionParameterBO parameter, String jobParameter,
+                                          MethodRetryHandlerService methodRetryHandlerService) {
         String apiCode = parameter.getApiCode();
         String tcId = tableCreateService.getTcId(apiCode);
         String startDate = LocalDate.now().toString();
@@ -115,15 +111,17 @@ public class PPDAutomatedPushDecisionServiceImpl implements AutomatedPushDecisio
         stautsAndUserTypeMap.put("c", "804");
         Long indexId = null;
         while (true) {
-            List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getTransferSyncUserByPage(tcId, apiCode, startDate, endDate, indexId, "(if_lent is null  or  (if_lent !='N' and if_lent !='Y'))");
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getTransferSyncUserByPage(tcId, apiCode,
+                    startDate, endDate, indexId, "(if_lent is null  or  (if_lent !='N' and if_lent !='Y'))");
             if (marketingTransferSyncUserList.isEmpty()) {
                 break;
             }
             indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
             Set<String> custNumSets = marketingTransferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-            stautsAndUserTypeMap.forEach((status, userType) -> {
+            stautsAndUserTypeMap.forEach((String status, String userType) -> {
                 Map<String, SyncUserValidityPeriodsBO> periodBOMap =
-                        transferDataValidityPeriodService.getValidityPeriodsByCustNumAndUserType(custNumSets, userType, apiCode, LocalDate.now().minusDays(1));
+                        transferDataValidityPeriodService.getValidityPeriodsByCustNumAndUserType(custNumSets, userType, apiCode,
+                                LocalDate.now().minusDays(1));
                 //推送决策
                 pushPolicy(marketingTransferSyncUserList, status, periodBOMap);
             });
@@ -136,10 +134,11 @@ public class PPDAutomatedPushDecisionServiceImpl implements AutomatedPushDecisio
 
 
     //推送决策
-    private void pushPolicy(List<MarketingTransferSyncUser> marketingTransferSyncUserList, String status, Map<String, SyncUserValidityPeriodsBO> periodBOMap) {
+    private void pushPolicy(List<MarketingTransferSyncUser> marketingTransferSyncUserList, String status, Map<String,
+            SyncUserValidityPeriodsBO> periodBOMap) {
         List<PushMarketingUserDetailByRuleDTO> pushMarketingUserDetailByRuleDTOList = new ArrayList<>();
         String apiCode = marketingTransferSyncUserList.get(0).getApiCode();
-        marketingTransferSyncUserList.forEach(transferSyncUser -> {
+        marketingTransferSyncUserList.forEach((MarketingTransferSyncUser transferSyncUser) -> {
             SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = periodBOMap.get(transferSyncUser.getCustNum());
             //有效
             if (syncUserValidityPeriodsBO != null) {
@@ -147,9 +146,10 @@ public class PPDAutomatedPushDecisionServiceImpl implements AutomatedPushDecisio
                 Date beginDate = periodOfValidityBO.getBeginDate();
                 PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
                 pushMarketingUserDetailByRuleDTO.setCaseNumber(transferSyncUser.getCustNum());
-                pushMarketingUserDetailByRuleDTO.setBatchNumber(beginDate.getMonth()+1 + "_" + status + "_" + apiCode);
+                pushMarketingUserDetailByRuleDTO.setBatchNumber(beginDate.getMonth() + 1 + "_" + status + "_" + apiCode);
                 String cell = syncUserValidityPeriodsBO.getSyncUsers().get(0).getCell();
-                pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(ScoreThreeKeyEncryptEnum.md5.getValue(), BrCipherMaker.getInstance().decode(cell)));
+                String Md5Cell = pushRuleService.encrypt3k(ScoreThreeKeyEncryptEnum.md5.getValue(), BrCipherMaker.getInstance().decode(cell));
+                pushMarketingUserDetailByRuleDTO.setPhone(Md5Cell);
                 pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(cell));
                 pushMarketingUserDetailByRuleDTO.setInitId(transferSyncUser.getId());
                 pushMarketingUserDetailByRuleDTO.setVariables(new JSONObject());
