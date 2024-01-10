@@ -37,6 +37,14 @@ import java.util.Map;
 public class PushRuleFilterController {
 
     private static final Logger log = LoggerFactory.getLogger(PushRuleFilterController.class);
+    /**
+     * CODE_000000
+     */
+    private static final Integer CODE_000000 = new Integer(000000);
+    /**
+     * CODE_1
+     */
+    private static final Integer CODE_1 = new Integer(1);
 
     @Autowired
     RabbitMqProducter producter;
@@ -60,7 +68,7 @@ public class PushRuleFilterController {
     @LogAnnotation
     public ApiResult getCompanyAndModule(String apiCode) {
         Result<Map<String, Object>> companyAndModule = pushRuleService.getCompanyAndModule(apiCode);
-        return new ApiResult().fromResult(companyAndModule, 000000);
+        return new ApiResult().fromResult(companyAndModule, CODE_000000);
     }
 
     /**
@@ -73,7 +81,7 @@ public class PushRuleFilterController {
     @LogAnnotation
     public ApiResult getUserType(String apiCode) {
         Result<String> userType = pushRuleService.getUserType(apiCode);
-        return new ApiResult().fromResult(userType, 000000);
+        return new ApiResult().fromResult(userType, CODE_000000);
     }
 
 
@@ -114,7 +122,7 @@ public class PushRuleFilterController {
     @ApiOperation(value = "获取推送列表")
     @PostMapping("/getPushInfos")
     public ApiResult<List<PushInfoDetailVO>> getPushInfos(@RequestBody RequestPushInfoDTO dto) {
-        return new ApiResult<List<PushInfoDetailVO>>().fromResult(pushRuleService.getPushInfos(dto), 1);
+        return new ApiResult<List<PushInfoDetailVO>>().fromResult(pushRuleService.getPushInfos(dto), CODE_1);
     }
 
     /**
@@ -127,37 +135,37 @@ public class PushRuleFilterController {
     @PostMapping("/pushCustomer")
     public ApiResult pushCustomer(@RequestBody PushCustomerDTO dto) {
         dto.setUserDetail(ThreadContextInfo.getUser());
-        return new ApiResult().fromResult(ruleCenterService.pushCustomer(dto), 1);
+        return new ApiResult().fromResult(ruleCenterService.pushCustomer(dto), CODE_1);
     }
 
     @ApiOperation(value = "推送预览")
     @PostMapping("/pushPreview")
     public ApiResult<Integer> pushPreview(@RequestBody PushCustomerDTO dto) {
-        return new ApiResult<Integer>().fromResult(pushRuleService.pushPreview(dto), 1);
+        return new ApiResult<Integer>().fromResult(pushRuleService.pushPreview(dto), CODE_1);
     }
 
     @ApiOperation(value = "保存模板")
     @PostMapping("/saveCondition")
     public ApiResult<Long> saveCondition(@RequestBody ConditionSaveDTO dto) {
-        return new ApiResult<Long>().fromResult(pushRuleService.saveCondition(dto), 1);
+        return new ApiResult<Long>().fromResult(pushRuleService.saveCondition(dto), CODE_1);
     }
 
     @ApiOperation(value = "获取模板")
     @GetMapping("/getConditionByRule")
     public ApiResult<List<ConditionOfScoreVO>> getConditionByRule(String apiCode,String name) {
-        return new ApiResult<List<ConditionOfScoreVO>>().fromResult(pushRuleService.getConditionByRule(apiCode,name), 1);
+        return new ApiResult<List<ConditionOfScoreVO>>().fromResult(pushRuleService.getConditionByRule(apiCode,name), CODE_1);
     }
 
     @ApiOperation(value = "修改规则模板")
     @PostMapping("/optCondition")
     public ApiResult optCondition(@RequestBody OptConditionDTO dto) {
-        return new ApiResult().fromResult(pushRuleService.optCondition(dto), 1);
+        return new ApiResult().fromResult(pushRuleService.optCondition(dto), CODE_1);
     }
 
     @ApiOperation(value = "查询规则模板列表")
     @PostMapping("/getConditionPageData")
     public ApiResult<PageResultReturn<ScoreConditionDetailVO>> getConditionPageData(@RequestBody SearchConditionDTO dto) {
-        return new ApiResult<PageResultReturn<ScoreConditionDetailVO>>().fromResult(pushRuleService.getConditionPageData(dto), 1);
+        return new ApiResult<PageResultReturn<ScoreConditionDetailVO>>().fromResult(pushRuleService.getConditionPageData(dto), CODE_1);
     }
 
     @ApiOperation(value = "测试消费")
