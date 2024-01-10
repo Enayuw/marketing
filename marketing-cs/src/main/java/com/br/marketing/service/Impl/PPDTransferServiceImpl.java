@@ -138,8 +138,6 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
         // 任务状态标记为4
         Long frontId = yiXinTransferService.saveFrontData(StringUtils.join(apiCode, ","), yyyymmdd, 4);
         String tcId = tableCreateService.getTcId(apiCode[0]);
-        String ppdValidityDay = marketingCommonConfig.getPpdOldValidityDayStr() == null
-                ? "[T+33]" : marketingCommonConfig.getPpdOldValidityDayStr();
         int ppdOldPhoneValidityDay = marketingCommonConfig.getPpdOldPhoneValidityDay() != null
                 ? marketingCommonConfig.getPpdOldPhoneValidityDay() : 5;
         // 获取周期日期
@@ -248,11 +246,12 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
      * <p>
      * 2024年1月8日17点16分 有效期方法变更
      * <p>
-     * version 1.0
      *
      * @param builderList 有效期范围集合
      * @param tcId        cid
      * @param info        电销数据
+     * @return true 不存在
+     * @version 1.0
      */
     private boolean checkPeriodOfValidityAndIfLentIsY(List<PeriodOfValidityBO.Builder> builderList
             , String tcId
@@ -264,9 +263,9 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
                     .andTCidEqualTo(tcId)
                     .andApiCodeEqualTo(info.getApiCode())
                     .andCustNumEqualTo(info.getCustNum())
-                    .andIfLentEqualTo("Y")
-                    .andRequestDataIn(new ArrayList<>(getDatesBetween(builderList)));
-            return marketingTransferSyncUserMapper.countByExample(transferSyncUserExample) < 1;
+                    .andIfLentEqualTo("Y");
+            return marketingTransferSyncUserMapper.countByExampleSql(
+                    transferSyncUserExample, getDatesBetweenSql(builderList)) < 1;
         } catch (IllegalArgumentException e) {
             log.error(e.getMessage(), e);
             return false;
@@ -280,20 +279,20 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
      * @param builderList 有效期范围
      * @return 日期集合，格式：yyyy-mm-dd
      */
-    private Set<String> getDatesBetween(List<PeriodOfValidityBO.Builder> builderList) {
-        Set<String> dateSet = new HashSet<>();
-        for (PeriodOfValidityBO.Builder builder : builderList) {
-            PeriodOfValidityBO bo = builder.builder();
-            Calendar calendar = Calendar.getInstance();
-            Date beginDate = bo.getBeginDate();
-            calendar.setTime(beginDate);
-            Date time;
-            while ((time = calendar.getTime()).before(bo.getEnDate())) {
-                dateSet.add(time.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString());
-                calendar.add(Calendar.DATE, 1);
+    private String getDatesBetweenSql(List<PeriodOfValidityBO.Builder> builderList) {
+        int size = builderList.size();
+        StringBuilder sb = new StringBuilder(" and (");
+        for (int i = 0; i < size; i++) {
+            PeriodOfValidityBO bo = builderList.get(0).addDateString().builder();
+            String beginDateStr = bo.getBeginDateStr();
+            String enDateStr = bo.getEnDateStr();
+            sb.append("(request_data between '").append(beginDateStr).append("' and  '").append(enDateStr).append("')");
+            if (i != (size - 1)) {
+                sb.append(" or ");
             }
         }
-        return dateSet;
+        sb.append(")");
+        return sb.toString();
     }
 
     /**
