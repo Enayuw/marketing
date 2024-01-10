@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  */
 
 @Service
-public class PPDLodCollectDataImpl extends CommonMethodHandlerService {
+public class PpdLodCollectDataImpl extends CommonMethodHandlerService {
 
     @Resource
     private TableCreateServiceImpl tableCreateService;
@@ -60,12 +60,12 @@ public class PPDLodCollectDataImpl extends CommonMethodHandlerService {
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
         if (!transmitFacts.isEmpty() && transmitFacts.get(0) instanceof MarketingTransferSyncUser) {
-            PPDLodRuleNecessaryData ruleNecessaryData = new PPDLodRuleNecessaryData();
+            PpdLodRuleNecessaryData ruleNecessaryData = new PpdLodRuleNecessaryData();
             List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
             Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
                     transferDataValidityPeriodService.getValidityPeriodsByCustNum(set, context.getApiCode(), new Date());
-            ruleNecessaryData.setUserValidityPeriodsBOMap(validityPeriodsByCustNum);
+            ruleNecessaryData.setUserValidityPeriodsBoMap(validityPeriodsByCustNum);
             context.setRuleNecessaryData(ruleNecessaryData);
         }
     }
@@ -77,12 +77,12 @@ public class PPDLodCollectDataImpl extends CommonMethodHandlerService {
 
 
     @Data
-    public class PPDLodRuleNecessaryData extends RuleNecessaryData {
+    public class PpdLodRuleNecessaryData extends RuleNecessaryData {
 
         /**
          * 存在有效期的上传数据
          */
-        private Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBOMap;
+        private Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBoMap;
 
     }
 }

@@ -15,7 +15,7 @@ import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.PPDLodCollectDataImpl;
+import com.br.marketing.context.impl.PpdLodCollectDataImpl;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
@@ -64,10 +64,10 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
 
-        PPDLodCollectDataImpl.PPDLodRuleNecessaryData ruleNecessaryData =
-                (PPDLodCollectDataImpl.PPDLodRuleNecessaryData) context.getRuleNecessaryData();
-        Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBOMap = ruleNecessaryData.getUserValidityPeriodsBOMap();
-        MarketingSyncUser marketingSyncUser = userValidityPeriodsBOMap.get(transfer.getCustNum()).getSyncUsers().get(0);
+        PpdLodCollectDataImpl.PpdLodRuleNecessaryData ruleNecessaryData =
+                (PpdLodCollectDataImpl.PpdLodRuleNecessaryData) context.getRuleNecessaryData();
+        Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBoMap = ruleNecessaryData.getUserValidityPeriodsBoMap();
+        MarketingSyncUser marketingSyncUser = userValidityPeriodsBoMap.get(transfer.getCustNum()).getSyncUsers().get(0);
         batchRealTimeUserDataDTO.setDassImportDataDTO(packageDassImportData(transfer, marketingSyncUser));
         return batchRealTimeUserDataDTO;
     }
@@ -88,10 +88,10 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
                 return false;
             }
 
-            PPDLodCollectDataImpl.PPDLodRuleNecessaryData ruleNecessaryData =
-                    (PPDLodCollectDataImpl.PPDLodRuleNecessaryData) context.getRuleNecessaryData();
-            Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBOMap = ruleNecessaryData.getUserValidityPeriodsBOMap();
-            SyncUserValidityPeriodsBO userValidityPeriodsBO = userValidityPeriodsBOMap.get(transfer.getCustNum());
+            PpdLodCollectDataImpl.PpdLodRuleNecessaryData ruleNecessaryData =
+                    (PpdLodCollectDataImpl.PpdLodRuleNecessaryData) context.getRuleNecessaryData();
+            Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBoMap = ruleNecessaryData.getUserValidityPeriodsBoMap();
+            SyncUserValidityPeriodsBO userValidityPeriodsBO = userValidityPeriodsBoMap.get(transfer.getCustNum());
             // 为null时不在有效期
             if (userValidityPeriodsBO == null) {
                 return false;
@@ -103,7 +103,11 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
                 PeriodOfValidityBO bo = builders.get(0).addDateString().builder();
                 String beginDateStr = bo.getBeginDateStr();
                 String enDateStr = bo.getEnDateStr();
-                sb.append("(request_data between '").append(beginDateStr).append("' and  '").append(enDateStr).append("')");
+                sb.append("(request_data between '")
+                        .append(beginDateStr)
+                        .append("' and  '")
+                        .append(enDateStr)
+                        .append("')");
                 if (i != (size - 1)) {
                     sb.append(" or ");
                 }
@@ -125,7 +129,8 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
 
             Result<String> conditionRes = iScoreResultService.isFilterScoreByTransfer(context.getApiCode(), this.label());
             if (ResultCode.SUCCESS.getValue().equals(conditionRes.getCode())) {
-                Result<String> stringResult = iScoreResultService.filterScoreResByTransfer(context.getApiCode(), transfer.getCustNum(), conditionRes.getData());
+                Result<String> stringResult = iScoreResultService.filterScoreResByTransfer(context.getApiCode()
+                        , transfer.getCustNum(), conditionRes.getData());
                 if (!ResultCode.SUCCESS.getValue().equals(stringResult.getCode())) {
                     return false;
                 }

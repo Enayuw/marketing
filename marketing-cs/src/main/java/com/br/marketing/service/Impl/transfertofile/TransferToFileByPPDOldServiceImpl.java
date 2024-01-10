@@ -104,7 +104,8 @@ public class TransferToFileByPPDOldServiceImpl implements ITransferToFileService
         log.warn("拍拍贷老客转人工数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();//yyyyMMdd
-        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/")
+                .concat(recordDate).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
             writeDic.mkdirs();
@@ -128,7 +129,8 @@ public class TransferToFileByPPDOldServiceImpl implements ITransferToFileService
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    private void writePPDTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException, IllegalAccessException {
+    private void writePPDTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask)
+            throws IOException, IllegalAccessException {
         long start = System.currentTimeMillis();
         int page = 0;
         int pageSize = 2000;
@@ -147,8 +149,10 @@ public class TransferToFileByPPDOldServiceImpl implements ITransferToFileService
                     phoneSaleExtendInfoExample.createCriteria().andApiCodeEqualTo(apiCode)
                             .andPushDxTimeGreaterThanOrEqualTo(Date.from(startInstant))
                             .andPushDxTimeLessThanOrEqualTo(Date.from(endInstant));
-                    phoneSaleExtendInfoExample.setOrderByClause(" create_time desc,id desc limit ".concat(String.format("%s,%s", dxPage * pageSize, pageSize)));
-                    List<PhoneSaleExtendInfo> phoneSaleExtendInfos = phoneSaleExtendInfoMapper.selectByExample(phoneSaleExtendInfoExample);
+                    phoneSaleExtendInfoExample.setOrderByClause(" create_time desc,id desc limit "
+                            .concat(String.format("%s,%s", dxPage * pageSize, pageSize)));
+                    List<PhoneSaleExtendInfo> phoneSaleExtendInfos =
+                            phoneSaleExtendInfoMapper.selectByExample(phoneSaleExtendInfoExample);
                     if (CollectionUtils.isEmpty(phoneSaleExtendInfos)) {
                         mark = Boolean.FALSE;
                         continue;

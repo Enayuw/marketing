@@ -28,13 +28,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -216,28 +214,6 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
         }
         yiXinTransferService.updateFrontDataStatus(frontId, 2);
         return number;
-    }
-
-    /**
-     * 2023-02-15 17:17
-     * 获取案件编号对应的上传数据
-     */
-    private Map<String, MarketingSyncUser> getMarketingSyncUserMap(String apiCode, Set<String> set) {
-        try {
-            if (CollectionUtils.isEmpty(set)) {
-                return null;
-            }
-            List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserLastByCustNums(apiCode
-                    , new ArrayList<>(set));
-            if (CollectionUtils.isEmpty(syncUserList)) {
-                return null;
-            }
-            return syncUserList.parallelStream().collect(Collectors.toMap(MarketingSyncUser::getCustNum, Function.identity()
-                    , BinaryOperator.maxBy(Comparator.comparing(MarketingSyncUser::getCreateTime))));
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return null;
-        }
     }
 
     /**

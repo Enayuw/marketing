@@ -73,6 +73,7 @@ public interface IPeriodOfValidityService {
      * @throws IllegalArgumentException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2022/2/14 9:58
+     * @deprecated 方法已过时，需使用新版有效期
      */
     @Deprecated
     boolean isNotExpire(Date date, String validityDayStr, Date validityDate) throws IllegalArgumentException;
