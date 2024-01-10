@@ -575,7 +575,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         taskExtend.setExtendConfigInfo(JSON.toJSONString(taskExtendExtendFieldDTO));
         marketingTaskExtendMapper.insertSelective(taskExtend);
         //endregion
-        userTypeList.stream().forEach(t -> {
+        userTypeList.stream().forEach((String t) -> {
             MarketingTaskUserType marketingTaskUserType = new MarketingTaskUserType();
             marketingTaskUserType.setApiCode(apiCode);
             marketingTaskUserType.setBatchNumber(batchNumber);

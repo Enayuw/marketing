@@ -213,14 +213,16 @@
     select
       distinct user_type
     from b_marketing_task_user_type
-    where batch_number=#{batchNumber,jdbcType=VARCHAR};
+    where batch_number=#{batchNumber,jdbcType=VARCHAR}
+    order by user_type asc;
   </select>
 
   <select id="queryUserTypeByApiCodetikv_" parameterType="java.lang.String" resultType="java.lang.String" >
     select
       distinct user_type
     from b_marketing_task_user_type
-    where api_code=#{apiCode,jdbcType=VARCHAR};
+    where api_code=#{apiCode,jdbcType=VARCHAR}
+    order by user_type asc;
   </select>
 
 </mapper>

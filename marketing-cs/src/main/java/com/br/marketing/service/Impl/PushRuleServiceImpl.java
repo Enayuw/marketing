@@ -213,6 +213,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         dto = getCustomerBatchNumDTO(dto);
         PageHelper.startPage(dto.getCurrent(), dto.getSize()).setOrderBy(" scoreBeginTime desc,fileId desc ");
         List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchs(dto);
+        scoreDetailVos.stream().forEach((ScoreDetailVo t)->{
+            String batchNumber = t.getBatchNumber();
+            List<String> batchNumberList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumbertikv_(batchNumber);
+            String allUserType = batchNumberList.stream().collect(Collectors.joining(","));
+            t.setUserType(allUserType);
+        });
         return PageResultReturn.setPageResult(scoreDetailVos, dto.getCurrent(), dto.getSize());
     }
 
