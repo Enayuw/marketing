@@ -7,7 +7,7 @@ import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.common.util.MD5Utils;
 import com.br.marketing.bo.PeriodOfValidityBO;
-import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.DaasAndConversionData;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSoleDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
@@ -93,7 +93,8 @@ public class ZhongBangServiceImpl implements ZhongBangService {
 
 
     @Override
-    public void pushTransferToDaasRealTimeUserOneAndCustomer(String apiCode, ThreadPoolExecutor threadPool, String... dateTimeStr) {
+    public void pushTransferToDaasRealTimeUserOneAndCustomer(String apiCode, ThreadPoolExecutor threadPool
+            , String... dateTimeStr) {
         boolean bool = dateTimeStr.length > 1;
         int day = marketingCommonConfig.getZhongbangCellDistributeDay() - 1;
         String tcId = tableCreateService.getTcId(apiCode);
@@ -248,10 +249,11 @@ public class ZhongBangServiceImpl implements ZhongBangService {
      * 组装推送daas信息
      */
     private ConversionData packageConversionData(MarketingTransferSyncUser transferSyncUser
-            , SyncUserValidityPeriodBO bo) {
+            , SyncUserValidityPeriodsBO bo) {
         ConversionData conversionData = new ConversionData();
+        MarketingSyncUser marketingSyncUser = bo.getSyncUsers().get(0);
         conversionData.setDataId(transferSyncUser.getId().toString());
-        conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
+        conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
         conversionData.setCid(transferSyncUser.getCid());
         conversionData.setCaseNum(transferSyncUser.getCustNum());
         conversionData.setPartnerProcessDate(ObjectUtils.isEmpty(transferSyncUser.getCreateTime())
@@ -266,7 +268,8 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         conversionData.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
         conversionData.setSoleType(-1);
         // 有效期设置
-        PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
+        PeriodOfValidityBO.Builder builder = bo.getBuilders().get(0);
+        PeriodOfValidityBO periodOfValidityBO = builder.addDateString().addOfDayTimeStrString().builder();
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
         conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
         conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
@@ -341,14 +344,18 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             threadPool.execute(() -> {
                 try {
                     updatePoolSize(threadPool);
-                    Map<String, SyncUserValidityPeriodBO> validityPeriodMap =
-                            transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(
+                    Map<String, SyncUserValidityPeriodsBO> validityPeriodMap =
+                            transferDataValidityPeriodService.getValidityPeriodsByCustNum(
                                     custNumSet, apiCode, new Date());
                     if (CollectionUtils.isEmpty(validityPeriodMap)) {
                         return;
                     }
-                    Set<String> cellSet = validityPeriodMap.values().stream().map(
-                            m -> m.getSyncUser().getCell()).collect(Collectors.toSet());
+                    Set<String> cellSet = new HashSet<>();
+                    validityPeriodMap.values().forEach(vp -> {
+                        List<MarketingSyncUser> syncUsers = vp.getSyncUsers();
+                        Set<String> set = syncUsers.stream().map(MarketingSyncUser::getCell).collect(Collectors.toSet());
+                        cellSet.addAll(set);
+                    });
                     int groupNo = v.getIntValue(groupNoKey);
                     Set<String> newCellSet = phoneSaleExtendService.groupRule(apiCode, day, cellSet
                             , groupNo);
@@ -358,13 +365,13 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             Collectors.toMap(MarketingTransferSyncUser::getCustNum, Function.identity(), (v1, v2) -> v2));
                     List<DaasAndConversionData> list = new ArrayList<>();
                     for (MarketingTransferSyncUser transferSyncUser : dList) {
-                        SyncUserValidityPeriodBO bo = validityPeriodMap.get(transferSyncUser.getCustNum());
+                        SyncUserValidityPeriodsBO bo = validityPeriodMap.get(transferSyncUser.getCustNum());
                         // 有效期判断
                         if (bo == null) {
                             continue;
                         }
                         // 最新的上传数据
-                        MarketingSyncUser syncUser = bo.getSyncUser();
+                        MarketingSyncUser syncUser = bo.getSyncUsers().get(0);
                         String cell = syncUser.getCell();
                         if (!newCellSet.contains(cell)) {
                             continue;
@@ -392,7 +399,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
 
     private DaasAndConversionData buildDaasAndConversionData(MarketingTransferSyncUser transferSyncUser
             , MarketingSyncUser syncUser, String status, String dxUserType, int groupNo
-            , Map<String, MarketingTransferSyncUser> newTransferSyncUserMap, SyncUserValidityPeriodBO bo) {
+            , Map<String, MarketingTransferSyncUser> newTransferSyncUserMap, SyncUserValidityPeriodsBO bo) {
         DassSingleImportAdapSoleDTO soleDTO = new DassSingleImportAdapSoleDTO();
         // 电销本地推送记录
         PhoneSaleExtendInfo info = packagePhoneSaleExtendInfo(
