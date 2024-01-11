@@ -48,6 +48,8 @@ public class YilianTransferDataToCustomerFilter implements AssembleData<Conversi
         conversionData.setSoleField(SoleFieldEnum.CUST_NUM_SOLE.getValue());
         conversionData.setSoleType(-1);
         PeriodOfValidityBO periodOfValidityBO = syncUserValidityPeriodsBO.getBuilders().get(0).addDateString().addOfDayTimeStrString().builder();
+        conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
+        conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
         return conversionData;
     }
