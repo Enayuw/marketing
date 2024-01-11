@@ -61,7 +61,7 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
     private MarketingSyncUserMapper marketingSyncUserMapper;
 
 
-    private final static String TABLE_HEAD_TRANSFER = "applyDt,applyResult,custNum,loginTime,requestTime,taskId,userType";
+    private final static String TABLE_HEAD_TRANSFER = "custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId";
 
     final static String EXECUTE_TIME = "10:30:00";
 
@@ -211,15 +211,15 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
                             ? transferFilterData.getRequestTime().replace(":000","") : "";
                     String userType = StringUtils.isNotEmpty(transferFilterData.getUserType())
                             ? transferFilterData.getUserType() : "";
-                    //applyDt,applyResult,custNum,loginTime,requestTime,taskId,userType
+                    //custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId
                     StringBuilder sb = new StringBuilder();
-                    sb.append(applyDt.concat(","))
+                    sb.append(custNum.concat(","))
+                            .append(applyDt.concat(","))
                             .append(applyResult.concat(","))
-                            .append(custNum.concat(","))
                             .append(loginTime.concat(","))
                             .append(requestTime.concat(","))
-                            .append(taskId.concat(","))
-                            .append(userType)
+                            .append(userType.concat(","))
+                            .append(taskId)
                             .append("\r\n");
                     try {
                         fw.append(sb.toString());

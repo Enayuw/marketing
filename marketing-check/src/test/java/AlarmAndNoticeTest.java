@@ -437,7 +437,7 @@ public class AlarmAndNoticeTest {
 
     @Resource
     TransferToFileByQiFuServiceImpl transferToFileByQiFu;
-    private final static String QIFU_TABLE_HEAD_TRANSFER = "applyDt,applyResult,custNum,loginTime,requestTime,taskId,userType";
+    private final static String QIFU_TABLE_HEAD_TRANSFER = "custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId";
     @Test
     public void QiFuTransferFileTest() {
         TransferFileTask transferFileTask = new TransferFileTask();
