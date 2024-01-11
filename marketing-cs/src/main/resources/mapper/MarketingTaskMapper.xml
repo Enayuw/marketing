@@ -485,7 +485,7 @@
         shf.statistic_file_path as statisticFilePath,
         shf.id as fileId,
         DATE_FORMAT(shf.create_time,'%Y-%m-%d %H:%i:%s') as scoreBeginTime,
-        GROUP_CONCAT(msp.product_name order by msp.product_name)as productName,
+        GROUP_CONCAT(distinct msp.product_name order by msp.product_name)as productName,
         shf.actual_num as actualNum,
         GROUP_CONCAT(distinct mtut.user_type order by mtut.user_type)as userType
         from stra_his_file as shf
@@ -540,7 +540,7 @@
         shf.statistic_file_path as statisticFilePath,
         shf.id as fileId,
         DATE_FORMAT(shf.create_time,'%Y-%m-%d %H:%i:%s') as scoreBeginTime,
-        GROUP_CONCAT(msp.product_name order by msp.product_name)as productName,
+        GROUP_CONCAT(distinct msp.product_name order by msp.product_name)as productName,
         shf.actual_num as actualNum,
         GROUP_CONCAT(distinct mtut.user_type order by mtut.user_type)as userType
         from stra_his_file as shf
