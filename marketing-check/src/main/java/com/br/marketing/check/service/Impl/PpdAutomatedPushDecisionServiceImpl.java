@@ -143,10 +143,10 @@ public class PpdAutomatedPushDecisionServiceImpl implements AutomatedPushDecisio
             //有效
             if (syncUserValidityPeriodsBO != null) {
                 PeriodOfValidityBO periodOfValidityBO = syncUserValidityPeriodsBO.getBuilders().get(0).addDateString().builder();
-                Date beginDate = periodOfValidityBO.getBeginDate();
+                String beginDate = periodOfValidityBO.getBeginDateStr();
                 PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
                 pushMarketingUserDetailByRuleDTO.setCaseNumber(transferSyncUser.getCustNum());
-                pushMarketingUserDetailByRuleDTO.setBatchNumber(beginDate.getMonth() + 1 + "_" + status + "_" + apiCode);
+                pushMarketingUserDetailByRuleDTO.setBatchNumber(beginDate.substring(5,7) + "_" + status + "_" + apiCode);
                 String cell = syncUserValidityPeriodsBO.getSyncUsers().get(0).getCell();
                 String Md5Cell = pushRuleService.encrypt3k(ScoreThreeKeyEncryptEnum.md5.getValue(), BrCipherMaker.getInstance().decode(cell));
                 pushMarketingUserDetailByRuleDTO.setPhone(Md5Cell);
