@@ -25,8 +25,8 @@ import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.ZhongYuanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import org.apache.commons.lang3.RandomStringUtils;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -372,7 +372,7 @@ public class AlarmAndNoticeTest {
     @Test
     public void NewHaierTransferFileTest() {
         TransferFileTask transferFileTask = new TransferFileTask();
-            transferFileTask.setApiCode("7410931");
+        transferFileTask.setApiCode("7410931");
         String apiCode = "7410931";
         String myParam = "7410931#2023-12-28";
         String dd = isMyParam("7410931", myParam);
@@ -437,7 +437,7 @@ public class AlarmAndNoticeTest {
 
     @Resource
     TransferToFileByQiFuServiceImpl transferToFileByQiFu;
-    private final static String QIFU_TABLE_HEAD_TRANSFER = "custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId";
+    private final static String QIFU_TABLE_HEAD_TRANSFER = "applyDt,applyResult,custNum,loginTime,requestTime,taskId,userType";
     @Test
     public void QiFuTransferFileTest() {
         TransferFileTask transferFileTask = new TransferFileTask();

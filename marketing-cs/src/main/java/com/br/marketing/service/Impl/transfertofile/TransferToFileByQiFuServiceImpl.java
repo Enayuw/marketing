@@ -61,7 +61,7 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
     private MarketingSyncUserMapper marketingSyncUserMapper;
 
 
-    private final static String TABLE_HEAD_TRANSFER = "custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId";
+    private final static String TABLE_HEAD_TRANSFER = "applyDt,applyResult,custNum,loginTime,requestTime,taskId,userType";
 
     final static String EXECUTE_TIME = "10:30:00";
 
@@ -199,7 +199,6 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
                     if (ObjectUtil.isNotEmpty(marketingSyncUser)){
                         taskId = StringUtils.isNotEmpty(marketingSyncUser.getCusBatch()) ? marketingSyncUser.getCusBatch() : "";
                     }
-                    //applyDt,applyResult,custNum,loginTime,requestTime,taskId,userType
                     custNum = StringUtils.isNotEmpty(transferFilterData.getCustNum())
                             ? transferFilterData.getCustNum() : "";
                     String applyDt = StringUtils.isNotEmpty(transferFilterData.getApplyDt())
@@ -212,6 +211,7 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
                             ? transferFilterData.getRequestTime().replace(":000","") : "";
                     String userType = StringUtils.isNotEmpty(transferFilterData.getUserType())
                             ? transferFilterData.getUserType() : "";
+                    //applyDt,applyResult,custNum,loginTime,requestTime,taskId,userType
                     StringBuilder sb = new StringBuilder();
                     sb.append(applyDt.concat(","))
                             .append(applyResult.concat(","))
