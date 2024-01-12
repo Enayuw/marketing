@@ -59,4 +59,14 @@ public interface MarketingDataValidConfigMapper extends MarketingDataValidConfig
     List<MarketingDataValidConfig> getValidityDataByApiCode(@Param("apiCode") String apiCode ,@Param("appletDate") String appletDate);
     List<MarketingDataValidConfig> getValidityDataByAppletDate(@Param("apiCode") String apiCode ,@Param("appletDate") String appletDate);
 
+    /**
+     * 根据被修改的有效期id获取该user_type及api_code下全部有效期(T-N)的最小开始时间及最大结束时间
+     *
+     * @param id id
+     * @param offsetDay 偏移日
+     * @return {@link Map }<{@link String }, {@link String }>
+     * @author senyang.zheng
+     * @date 2024/01/12
+     */
+    Map<String, String> getValidPeriodRangeByApiCodeAndUserTypeAndOffsetDay(@Param("id") Long id, @Param("offsetDay") Integer offsetDay);
 }
