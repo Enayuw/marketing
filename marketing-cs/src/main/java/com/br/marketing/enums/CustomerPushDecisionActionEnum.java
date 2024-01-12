@@ -15,6 +15,8 @@ public enum CustomerPushDecisionActionEnum {
      */
     ZHONG_AN,
     ZHONG_AN2,
+
+    YILIAN,
     ;
 
     CustomerPushDecisionActionEnum() {
