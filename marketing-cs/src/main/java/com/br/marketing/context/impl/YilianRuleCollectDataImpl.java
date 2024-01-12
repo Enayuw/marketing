@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import cn.hutool.core.date.DateUtil;
 import org.springframework.stereotype.Service;
 
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
@@ -37,8 +38,9 @@ public class YilianRuleCollectDataImpl extends CommonMethodHandlerService {
         if (!transmitFacts.isEmpty() && transmitFacts.get(0) instanceof MarketingTransferSyncUser) {
             List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>)transmitFacts;
             Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            Date yesterday = DateUtil.yesterday();
             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
-                transferDataValidityPeriodService.getValidityPeriodsByCustNum(set, context.getApiCode(), new Date());
+                transferDataValidityPeriodService.getValidityPeriodsByCustNum(set, context.getApiCode(), yesterday);
             YilianRuleCollectDataImpl.YilianRuleNecessaryData yilianRuleNecessaryData = new YilianRuleCollectDataImpl.YilianRuleNecessaryData();
             yilianRuleNecessaryData.setCustomerMap(validityPeriodsByCustNum);
             context.setRuleNecessaryData(yilianRuleNecessaryData);
