@@ -213,7 +213,11 @@
     select
       distinct user_type
     from b_marketing_task_user_type
-    where batch_number=#{batchNumber,jdbcType=VARCHAR}
+    where batch_number in (
+      <foreach collection="batchNumber.split(',')" index="index" item="item" open="" close="" separator=",">
+        '${item}'
+      </foreach>
+    )
     order by user_type asc;
   </select>
 
