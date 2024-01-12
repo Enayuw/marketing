@@ -257,7 +257,7 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
      */
     private String getDatesBetweenSql(List<PeriodOfValidityBO.Builder> builderList) {
         int size = builderList.size();
-        StringBuilder sb = new StringBuilder(" and (");
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < size; i++) {
             PeriodOfValidityBO bo = builderList.get(0).addDateString().builder();
             String beginDateStr = bo.getBeginDateStr();
@@ -267,8 +267,10 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
                 sb.append(" or ");
             }
         }
-        sb.append(")");
-        return sb.toString();
+        if (sb.length() > 0) {
+            return " and (" + sb + ") ";
+        }
+        return " and 1!=1";
     }
 
     /**

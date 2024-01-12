@@ -135,6 +135,20 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
      * 2023/02/14 10:36
      * 获取分页数据
      *
+     * @param example  检索条件
+     * @param pageNum  页号
+     * @param pageSize 页大小
+     * @return PhoneSaleExtendInfo list
+     */
+    List<PhoneSaleExtendInfo> findListPageByExampleSqlStr(@Param("example") PhoneSaleExtendInfoExample example
+            , @Param("sqlWhereStr") String sqlWhereStr
+            , @Param("pageNum") int pageNum
+            , @Param("pageSize") int pageSize);
+
+    /**
+     * 2023/02/14 10:36
+     * 获取分页数据
+     *
      * @param example 检索条件
      * @return set CustNum
      */

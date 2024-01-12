@@ -98,7 +98,7 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
             }
             List<PeriodOfValidityBO.Builder> builders = userValidityPeriodsBO.getBuilders();
             int size = builders.size();
-            StringBuilder sb = new StringBuilder(" and (");
+            StringBuilder sb = new StringBuilder();
             for (int i = 0; i < size; i++) {
                 PeriodOfValidityBO bo = builders.get(0).addDateString().builder();
                 String beginDateStr = bo.getBeginDateStr();
@@ -112,7 +112,10 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
                     sb.append(" or ");
                 }
             }
-            sb.append(")");
+            int length = sb.length();
+            if (length < 1) {
+                sb.append("1!=1");
+            }
             String tcId = tableCreateService.getTcId(context.getApiCode());
             MarketingTransferSyncUserExample transferSyncUserExample = new MarketingTransferSyncUserExample();
             transferSyncUserExample.settCid(tcId);
@@ -122,7 +125,7 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
                     .andCustNumEqualTo(transfer.getCustNum())
                     .andIfLentEqualTo("Y");
             int countTransferSyncUser = marketingTransferSyncUserMapper.countByExampleSql(transferSyncUserExample
-                    , sb.toString());
+                    , " and (" + sb + ")");
             if (countTransferSyncUser > 0) {
                 return false;
             }
