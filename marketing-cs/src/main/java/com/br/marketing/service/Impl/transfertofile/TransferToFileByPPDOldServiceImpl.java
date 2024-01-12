@@ -139,8 +139,8 @@ public class TransferToFileByPPDOldServiceImpl implements ITransferToFileService
             List<MarketingDataValidConfig> dataValidityPeriodPageList =
                     transferDataValidityPeriodService.getDataValidityPeriodPageList(apiCode, new Date(), page, pageSize);
             for (MarketingDataValidConfig config : dataValidityPeriodPageList) {
-                String startDateStr = LocalDate.parse(config.getValidStartDate()).atStartOfDay(ZoneId.systemDefault()).toString();
-                String endDateStr = LocalDate.parse(config.getValidEndDate()).atStartOfDay().atZone(ZoneId.systemDefault()).toString();
+                String startDateStr = LocalDate.parse(config.getValidStartDate()).toString();
+                String endDateStr = LocalDate.parse(config.getValidEndDate()).toString();
                 whereStr.append("(push_dx_time>='")
                         .append(startDateStr)
                         .append(" 00:00:00")
