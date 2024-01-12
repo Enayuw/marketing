@@ -351,8 +351,8 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         return;
                     }
                     Set<String> cellSet = new HashSet<>();
-                    validityPeriodMap.values().forEach(vpm -> {
-                        List<MarketingSyncUser> syncUsers = vpm.getSyncUsers();
+                    validityPeriodMap.values().forEach(userValidityPeriodsBO -> {
+                        List<MarketingSyncUser> syncUsers = userValidityPeriodsBO.getSyncUsers();
                         Set<String> set = syncUsers.stream().map(MarketingSyncUser::getCell).collect(Collectors.toSet());
                         cellSet.addAll(set);
                     });
