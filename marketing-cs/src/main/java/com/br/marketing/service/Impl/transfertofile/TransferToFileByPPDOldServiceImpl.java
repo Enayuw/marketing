@@ -165,7 +165,7 @@ public class TransferToFileByPPDOldServiceImpl implements ITransferToFileService
         while (mark) {
             PhoneSaleExtendInfoExample phoneSaleExtendInfoExample = new PhoneSaleExtendInfoExample();
             phoneSaleExtendInfoExample.createCriteria().andApiCodeEqualTo(apiCode);
-            phoneSaleExtendInfoExample.setOrderByClause(" create_time desc,id desc limit ");
+            phoneSaleExtendInfoExample.setOrderByClause(" create_time desc,id desc ");
             List<PhoneSaleExtendInfo> phoneSaleExtendInfos =
                     phoneSaleExtendInfoMapper.findListPageByExampleSqlStr(phoneSaleExtendInfoExample
                             , " and (".concat(whereStr.toString()).concat(")"), dxPage, pageSize);
