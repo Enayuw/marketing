@@ -121,7 +121,7 @@ public class ConsumerApp {
         MarketingSyncUser o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8)
                 , new TypeReference<MarketingSyncUser>() {
                 }.getType());
-        consumerService.consumerRun(channel, message, periodOfValidityService::configValidDateDefault, o, null);
+        consumerService.consumerRun(channel, message, periodOfValidityService::customizeConfigValidDateDefault, o, null);
     }
 
     /**

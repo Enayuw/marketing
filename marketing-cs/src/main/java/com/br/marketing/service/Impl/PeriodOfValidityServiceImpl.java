@@ -4,6 +4,7 @@ import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.*;
+import com.br.marketing.mapper.MarketingCustomizeDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingDataValidConfigDefaultMapper;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
@@ -45,6 +46,9 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
 
     @Resource
     private MarketingDataValidConfigDefaultMapper marketingDataValidConfigDefaultMapper;
+
+    @Resource
+    private MarketingCustomizeDataValidConfigMapper marketingCustomizeDataValidConfigMapper;
 
 
     @Override
@@ -370,10 +374,41 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         // 检查db中是否已经存在有效期记录
         List<MarketingDataValidConfig> marketingDataValidConfigs = marketingDataValidConfigMapper.selectByExample(example);
         // 插入子表
-        for(MarketingDataValidConfig  marketingDataValidConfig: marketingDataValidConfigs){
-            Long id = marketingDataValidConfig.getId();
+        for (MarketingDataValidConfig marketingDataValidConfig : marketingDataValidConfigs) {
+            // 查询子表是否已经生成有效期
+            MarketingCustomizeDataValidConfigExample marketingCustomizeDataValidConfigExample =
+                    new MarketingCustomizeDataValidConfigExample();
+            marketingCustomizeDataValidConfigExample.createCriteria()
+                    .andApiCodeEqualTo(syncUser.getApiCode())
+                    .andUserTypeEqualTo(syncUser.getUserType())
+                    .andTaskIdEqualTo(syncUser.getCusBatch())
+                    .andAppletDateEqualTo(syncUser.getAppletDate())
+                    .andIsDelEqualTo(1);
+            int i = marketingCustomizeDataValidConfigMapper.countByExample(marketingCustomizeDataValidConfigExample);
+            if (i < 0) {
+                // 插入定制表
+                MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfig = getMarketingCustomizeDataValidConfig(syncUser, marketingDataValidConfig);
+                int j = marketingCustomizeDataValidConfigMapper.insertSelective(marketingCustomizeDataValidConfig);
+                if (j < 1) {
+                    log.error("生成默认定制有效期入库失败！apiCode:{},userType:{},taskId:{}"
+                            , syncUser.getApiCode(), syncUser.getUserType(), syncUser.getCusBatch());
+                }
+            }
         }
         return result;
+    }
+
+    private static MarketingCustomizeDataValidConfig getMarketingCustomizeDataValidConfig(MarketingSyncUser syncUser, MarketingDataValidConfig marketingDataValidConfig) {
+        Long dataValidConfigId = marketingDataValidConfig.getId();
+        MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfig = new MarketingCustomizeDataValidConfig();
+        marketingCustomizeDataValidConfig.setApiCode(syncUser.getApiCode());
+        marketingCustomizeDataValidConfig.setDataValidConfigId(dataValidConfigId);
+        marketingCustomizeDataValidConfig.setAppletDate(syncUser.getAppletDate());
+        marketingCustomizeDataValidConfig.setTaskId(syncUser.getCusBatch());
+        marketingCustomizeDataValidConfig.setValidStartDate(marketingCustomizeDataValidConfig.getValidStartDate());
+        marketingCustomizeDataValidConfig.setValidEndDate(marketingCustomizeDataValidConfig.getValidEndDate());
+        marketingCustomizeDataValidConfig.setUserType(marketingCustomizeDataValidConfig.getUserType());
+        return marketingCustomizeDataValidConfig;
     }
 
 }

@@ -1179,9 +1179,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                             || marketingSyncUser.getIsRepeat().equals(2)
                             || marketingSyncUser.getIsRepeat().equals(1));
                     if (isCreate) {
+                        // 定制有效期自动生成逻辑
                         if(marketingCommonConfig.getCustomizeConfigValidDefaultApiCodes().contains(apiCode)){
-                            // 入库成功后将apiCode、userType、appletDate为key，并且唯一
-                            String key = apiCode + marketingSyncUser.getUserType() + marketingSyncUser.getCusBatch();
+                            // 入库成功后将apiCode、userType、appletDate、cusBatch(taskId)为key，并且唯一
+                            String key = apiCode + marketingSyncUser.getUserType() +marketingSyncUser.getAppletDate()+ marketingSyncUser.getCusBatch();
                             // 缓存最新的原始数据
                             validDateCustomizeCache.put(key, marketingSyncUser);
                         }else {
