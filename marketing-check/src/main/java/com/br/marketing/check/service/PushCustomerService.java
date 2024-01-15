@@ -1,7 +1,12 @@
 package com.br.marketing.check.service;
 
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.Customer;
+import com.br.marketing.entity.ScorePushCustomerConfig;
+import com.br.marketing.entity.StraHisFile;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
+
+import java.util.List;
 
 /**
  * //				    _ooOoo_
@@ -31,6 +36,20 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
  **/
 public interface PushCustomerService {
 
-    void push(Customer customer,Long fileId);
+    void push(ScorePushCustomerConfig pushCustomerConfig,StraHisFile file);
+
+    /**
+     * 获取跑分回调配置
+     * @return
+     */
+    List<ScorePushCustomerConfig> getScorePushConfigs();
+
+    /**
+     * 判断该跑分配置是否回调
+     * @param pushCustomerConfig
+     * @return
+     */
+    Result<StraHisFile> isPush(ScorePushCustomerConfig pushCustomerConfig);
+
     void retry(Customer customer);
 }

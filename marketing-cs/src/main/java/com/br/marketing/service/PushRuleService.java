@@ -188,4 +188,6 @@ public interface PushRuleService {
     void mockDbOrRedisError(Integer mockType,String apiCode);
 
     Result<Boolean> cunsumerZhongBangLabelData(Long id);
+
+    Result<Integer> checkThreekEnc(List<Long> fileIds);
 }

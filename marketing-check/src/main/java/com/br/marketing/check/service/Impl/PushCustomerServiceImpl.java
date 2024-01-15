@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.util.DateUtils;
+import com.br.marketing.check.service.PushCallBackService;
 import com.br.marketing.check.service.PushCustomerService;
 import com.br.marketing.check.thread.PushDataThread;
 import com.br.marketing.check.utils.MomUtil;
@@ -23,6 +24,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.dto.zbank.ZbankLabelRatingReResultDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.CallBackPushStatusEnum;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
@@ -118,6 +120,9 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     @Resource
     PushCustomerDetailMapper pushCustomerDetailMapper;
 
+    @Resource
+    MarketingCustomerMapper marketingCustomerMapper;
+
     @Value("${api.zbank.api.appId:2a0f9f71_29e5_466c_95a7_8cab99d93880}")
     private String appId;
 
@@ -133,62 +138,27 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
-    private void addScoreFile(List<StraHisFile> straHisFileList, Long fileId
-            , String apiCode, Date createTime, ScorePushCustomerConfig pushCustomerConfig) {
-        if (fileId != null && fileId > 0) {
-            StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(fileId);
-            if (straHisFile == null) {
-                return;
-            }
-            if (!straHisFile.getApiCode().equals(apiCode)) {
-                return;
-            }
-            straHisFileList.add(straHisFile);
-        } else {
-            List<StraHisFile> fileByRule = straHisFileMapper.getFileByRule(createTime, pushCustomerConfig.getScoreRuleShortName());
-            if (fileByRule.size() > 0) {
-                StraHisFile straHisFile = fileByRule.get(0);
-                straHisFileList.add(straHisFile);
-            }
-        }
-    }
+    @Autowired
+    private Map<String, PushCallBackService> pushCallBackMap;
+
 
     @Override
-    public void push(Customer customer, Long fileId) {
+    public void push(ScorePushCustomerConfig pushCustomerConfig, StraHisFile straHisFile) {
 
         long start = System.currentTimeMillis();
 
         //region 获取回传配置信息
-        String apiCode = customer.getApiCode();
-        ScorePushCustomerConfig pushCustomerConfig = new ScorePushCustomerConfig();
-        ConditionOfScoreVO condition = new ConditionOfScoreVO();
+        String apiCode = straHisFile.getApiCode();
         Date createTime = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-        //获取回传配置
-        ScorePushCustomerConfigExample scorePushCustomerConfigExample = new ScorePushCustomerConfigExample();
-        scorePushCustomerConfigExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(Constants.DATA_VALID);
-        List<ScorePushCustomerConfig> scorePushCustomerConfigs = scorePushCustomerConfigMapper.selectByExample(scorePushCustomerConfigExample);
-        if (scorePushCustomerConfigs.size() <= 0) {
-            log.warn(String.format("该客户未配置回传参数配置,apiCode:%s", apiCode));
-            return;
-        }
-        pushCustomerConfig = scorePushCustomerConfigs.get(0);
 
         //跑分筛选条件配置
-        List<ConditionOfScoreVO> scoreCondtitions = scoreSearchConditionMapper.getScoreByConditionType(apiCode, 3);
+        List<ConditionOfScoreVO> scoreCondtitions = scoreSearchConditionMapper
+                .getScoreByConditionType(apiCode, 3, pushCustomerConfig.getScoreRuleShortName());
         if (scoreCondtitions.size() <= 0 || scoreCondtitions.size() > 1) {
             log.warn(String.format("该客户跑分筛选条件配置异常,apiCode:%s", apiCode));
             return;
         }
-        condition = scoreCondtitions.get(0);
-        //endregion
-
-        //region 获取需要回传给客户的跑分文件
-        List<StraHisFile> straHisFileList = new ArrayList<>();
-        addScoreFile(straHisFileList, fileId, apiCode, createTime, pushCustomerConfig);
-        if (straHisFileList.size() <= 0) {
-            log.warn(String.format("该客户当前无跑分记录,apiCode:%s", apiCode));
-            return;
-        }
+        ConditionOfScoreVO condition = scoreCondtitions.get(0);
         //endregion
 
         int dataBuildThread = marketingCommonConfig.getScoreDbAndRedisThreadNum() != null ? marketingCommonConfig.getScoreDbAndRedisThreadNum() : 10;
@@ -196,134 +166,146 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(2, 4, "job_scoreBackSort");
         ThreadPoolExecutor dataBuild = BrExecutors.getThreadPool(dataBuildThread, dataBuildThread, "job_dataBuild");
 
-        for (StraHisFile straHisFile : straHisFileList) {
-            Result<TransferActionFront> allowExecute =
-                    jobManagerByScorePushServiceImpl
-                            .isAllowExecute(apiCode, 11
-                                    , LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                                    , straHisFile);
-            if (!ResultCode.SUCCESS.getValue().equals(allowExecute.getCode())) {
-                continue;
-            }
-            Integer pointStatus = straHisFile.getPushStatus();
-            List<ScoreSortJsonVO> vos = getScoreSortField(pushCustomerConfig);
-            JSONObject conditionJb = JSON.parseObject(condition.getContent());
-            //region 数据捞取
-            AtomicInteger getRes = new AtomicInteger();
-            Boolean pause = Boolean.FALSE;
-            if (pointStatus == 0) {
-                if (vos.size() > 0) {
-                    List<Future<List<Future<Result<Integer>>>>> res = new ArrayList<>();
-                    for (ScoreSortJsonVO vo : vos) {
-                        Future<List<Future<Result<Integer>>>> resFuture = threadPool.submit(new Callable() {
-                            @Override
-                            public List<Future<Result<Integer>>> call() throws Exception {
-                                try {
-                                    List<Future<Result<Integer>>> futures = searchData(apiCode, straHisFile.getBatchNumber(), straHisFile.getId()
-                                            , conditionJb, vo, vo.getFirst(), dataBuild);
-                                    return futures;
-                                } catch (Exception ex) {
-                                    log.error(ex.getMessage(), ex);
-                                    return null;
+        Result<TransferActionFront> allowExecute =
+                jobManagerByScorePushServiceImpl
+                        .isAllowExecute(apiCode, 11
+                                , LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                                , straHisFile);
+        if (!ResultCode.SUCCESS.getValue().equals(allowExecute.getCode())) {
+            return;
+        }
+        List<ScoreSortJsonVO> vos = getScoreSortField(pushCustomerConfig);
+        JSONObject conditionJb = StringUtils.isNotBlank(condition.getContent()) ? JSON.parseObject(condition.getContent()) : null;
+        //region 数据捞取
+        AtomicInteger getRes = new AtomicInteger();
+        Boolean pause = Boolean.FALSE;
+        if (CallBackPushStatusEnum.STARTING.getValue().equals(straHisFile.getPushStatus())) {
+            if (vos.size() > 0) {
+                //region 写入数据库和写入redis顺序
+                List<Future<List<Future<Result<Integer>>>>> res = new ArrayList<>();
+                for (ScoreSortJsonVO vo : vos) {
+                    Future<List<Future<Result<Integer>>>> resFuture = threadPool.submit(new Callable() {
+                        @Override
+                        public List<Future<Result<Integer>>> call() throws Exception {
+                            try {
+                                List<Future<Result<Integer>>> futures = searchData(apiCode, straHisFile.getBatchNumber(), straHisFile.getId()
+                                        , conditionJb, vo, vo.getFirst(), dataBuild);
+                                return futures;
+                            } catch (Exception ex) {
+                                log.error(ex.getMessage(), ex);
+                                return null;
+                            }
+                        }
+                    });
+                    res.add(resFuture);
+                }
+                waitThreadPool(threadPool);
+                waitThreadPool(dataBuild);
+                //endregion
+                //region 核验更新顺序过程是否有错误
+                for (Future<List<Future<Result<Integer>>>> re : res) {
+                    try {
+                        if (re == null) {
+                            pause = Boolean.TRUE;
+                        } else {
+                            List<Future<Result<Integer>>> futures = re.get();
+                            for (Future<Result<Integer>> future : futures) {
+                                if (!ResultCode.SUCCESS.getValue().equals(future.get().getCode())) {
+                                    pause = Boolean.TRUE;
                                 }
                             }
-                        });
-                        res.add(resFuture);
-                    }
-                    waitThreadPool(threadPool);
-                    waitThreadPool(dataBuild);
-
-                    for (Future<List<Future<Result<Integer>>>> re : res) {
-                        try {
-                            if (re == null) {
-                                pause = Boolean.TRUE;
-                            } else {
-                                List<Future<Result<Integer>>> futures = re.get();
-                                for (Future<Result<Integer>> future : futures) {
-                                    if (!ResultCode.SUCCESS.getValue().equals(future.get().getCode())) {
-                                        pause = Boolean.TRUE;
-                                    }
-                                }
-                            }
-                        } catch (InterruptedException e) {
-                            log.error(e.getMessage(), e);
-                            Thread.currentThread().interrupt();
-                        } catch (ExecutionException e) {
-                            log.error(e.getMessage(), e);
-                            Thread.currentThread().interrupt();
                         }
-
+                    } catch (InterruptedException e) {
+                        log.error(e.getMessage(), e);
+                        Thread.currentThread().interrupt();
+                    } catch (ExecutionException e) {
+                        log.error(e.getMessage(), e);
+                        Thread.currentThread().interrupt();
                     }
 
-                } else {
-                    List<Future<Result<Integer>>> futures = searchData(apiCode, straHisFile.getBatchNumber()
-                            , straHisFile.getId(), conditionJb
-                            , null, true, dataBuild);
-                    waitThreadPool(dataBuild);
-                    for (Future<Result<Integer>> future : futures) {
-                        try {
-                            if (!ResultCode.SUCCESS.getValue().equals(future.get().getCode())) {
-                                pause = Boolean.TRUE;
-                            }
-                        } catch (InterruptedException e) {
-                            log.error(e.getMessage(), e);
-                            Thread.currentThread().interrupt();
-                        } catch (ExecutionException e) {
-                            log.error(e.getMessage(), e);
-                            Thread.currentThread().interrupt();
+                }
+                //endregion
+            } else {
+                List<Future<Result<Integer>>> futures = searchData(apiCode, straHisFile.getBatchNumber()
+                        , straHisFile.getId(), conditionJb
+                        , null, true, dataBuild);
+                waitThreadPool(dataBuild);
+                for (Future<Result<Integer>> future : futures) {
+                    try {
+                        if (!ResultCode.SUCCESS.getValue().equals(future.get().getCode())) {
+                            pause = Boolean.TRUE;
                         }
+                    } catch (InterruptedException e) {
+                        log.error(e.getMessage(), e);
+                        Thread.currentThread().interrupt();
+                    } catch (ExecutionException e) {
+                        log.error(e.getMessage(), e);
+                        Thread.currentThread().interrupt();
                     }
                 }
             }
-            //endregion
-            log.warn(String.format("数据捞取耗时：%d", System.currentTimeMillis() - start));
-            if (pause) {
-                pointStatus = 3;
-                straHisFile.setPushStatus(3);
-                straHisFileMapper.updateByPrimaryKeySelective(straHisFile);
+        }
+        //endregion
+        log.warn(String.format("数据捞取耗时：%d", System.currentTimeMillis() - start));
+        if (pause) {
+            updateFilePushStatus(straHisFile, CallBackPushStatusEnum.GETFAIL);
+        }
+        if (CallBackPushStatusEnum.GETFAIL.getValue().equals(straHisFile.getPushStatus())) {
+            sendAlarm(String.format("数据捞取过程有错误，暂停后续的推送动作！fileId:%d", straHisFile.getId()));
+            jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.FALSE);
+            return;
+        }
+        //region数据更新排序
+        if (CallBackPushStatusEnum.STARTING.getValue().equals(straHisFile.getPushStatus())
+                || CallBackPushStatusEnum.SORTFAIL.equals(straHisFile.getPushStatus())) {
+            AtomicInteger errorSort = new AtomicInteger();
+            if(vos.size()>1){
+                sortDb(straHisFile, vos, errorSort);
             }
-            if (pointStatus == 3) {
-                sendAlarm(String.format("数据捞取过程有错误，暂停后续的推送动作！fileId:%d", straHisFile.getId()));
+            if (errorSort.get() <= 0) {
+                updateFilePushStatus(straHisFile, CallBackPushStatusEnum.SORTOK);
+            } else {
+                updateFilePushStatus(straHisFile, CallBackPushStatusEnum.SORTFAIL);
+                sendAlarm(String.format("数据更新顺序过程有错误，暂停后续的推送动作！fileId:%d", straHisFile.getId()));
                 jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.FALSE);
                 return;
             }
-            //region数据更新排序
-            if (pointStatus == 0 || pointStatus == 4) {
-                AtomicInteger errorSort = new AtomicInteger();
-                sortDb(straHisFile, vos, errorSort);
-                if (errorSort.get() <= 0) {
-                    pointStatus = 0;
-                } else {
-                    straHisFile.setPushStatus(4);
-                    straHisFileMapper.updateByPrimaryKeySelective(straHisFile);
-                    sendAlarm(String.format("数据更新顺序过程有错误，暂停后续的推送动作！fileId:%d", straHisFile.getId()));
-                    jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.FALSE);
-                    return;
-                }
-            }
-            //endregion
-            log.warn(String.format("更新排序耗时：%d", System.currentTimeMillis() - start));
-            //region 数据推送
-            if (pointStatus == 0 || pointStatus == 2) {
+        }
+        //endregion
+        log.warn(String.format("更新排序耗时：%d", System.currentTimeMillis() - start));
+        //region 数据推送
+        Boolean push = Boolean.TRUE;
+        while (push) {
+            if (CallBackPushStatusEnum.SORTOK.getValue().equals(straHisFile.getPushStatus())
+                    || CallBackPushStatusEnum.CALLBACKFAIL.getValue().equals(straHisFile.getPushStatus())) {
                 AtomicInteger error = new AtomicInteger();
-                pushCustomer(customer, straHisFile, vos, error);
+                PushCallBackService pushCallBackService = pushCallBackMap.get(pushCustomerConfig.getPushMethod());
+                pushCallBackService.pushCustomer(straHisFile, vos, error);
                 if (error.get() > 0) {
                     straHisFile.setPushStatus(2);
+                    updateFilePushStatus(straHisFile, CallBackPushStatusEnum.CALLBACKFAIL);
                 } else {
-                    straHisFile.setPushStatus(1);
+                    updateFilePushStatus(straHisFile, CallBackPushStatusEnum.SUCCESS);
                 }
-                straHisFileMapper.updateByPrimaryKeySelective(straHisFile);
             }
             //endregion
             log.warn(String.format("数据推送耗时：%d", System.currentTimeMillis() - start));
             //region 修改状态
-            if (straHisFile.getPushStatus().equals(1)) {
+            if (CallBackPushStatusEnum.SUCCESS.getValue().equals(straHisFile.getPushStatus())) {
                 jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.TRUE);
             } else {
                 jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.FALSE);
             }
+
+            Result<TransferActionFront> allow = jobManagerByScorePushServiceImpl.isAllowExecute(apiCode, 11
+                    , LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                    , straHisFile);
+            if (!ResultCode.SUCCESS.getValue().equals(allow.getCode())) {
+                push = Boolean.FALSE;
+            }
             //endregion
         }
+
     }
 
     private void sendAlarm(String message) {
@@ -387,10 +369,18 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     }
 
 
-    private void pushCustomer(Customer customer, StraHisFile straHisFile, List<ScoreSortJsonVO> vos, AtomicInteger error) {
-        int pushThream = (customer.getPushThreadNum() == null
-                || Integer.valueOf(0).equals(customer.getPushThreadNum()))
-                ? 5 : customer.getPushThreadNum();
+    private void pushCustomer(StraHisFile straHisFile, List<ScoreSortJsonVO> vos, AtomicInteger error) {
+        MarketingCustomerExample customerExample = new MarketingCustomerExample();
+        customerExample.createCriteria().andApiCodeEqualTo(straHisFile.getApiCode()).andStatusEqualTo(Byte.valueOf("1"));
+        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
+        if (marketingCustomers.size() <= 0) {
+            log.warn(String.format("【%s】客户被删除!", straHisFile.getApiCode()));
+            return;
+        }
+        MarketingCustomer marketingCustomer = marketingCustomers.get(0);
+        int pushThream = (marketingCustomer.getPushThreadNum() == null
+                || Integer.valueOf(0).equals(marketingCustomer.getPushThreadNum()))
+                ? 5 : marketingCustomer.getPushThreadNum();
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_pushCustomer");
         Integer pageIndex = 0;
         Integer pageSize = marketingCommonConfig.getScoreTaskPageSizeByPushCustomer() == null
@@ -405,14 +395,14 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 taskAction = Boolean.FALSE;
                 continue;
             }
-            log.warn(String.format("分页：%d",start)+JSON.toJSONString(taskId));
+            log.warn(String.format("分页：%d", start) + JSON.toJSONString(taskId));
             pageIndex++;
             for (String s : taskId) {
                 Boolean dataAction = Boolean.TRUE;
                 Long minId = null;
                 while (dataAction) {
                     PushCustomerDetailExample pushCustomerDetailExample = new PushCustomerDetailExample();
-                    pushCustomerDetailExample.setOrderByClause(String.format(" id limit %d",dataPageSize));
+                    pushCustomerDetailExample.setOrderByClause(String.format(" id limit %d", dataPageSize));
                     PushCustomerDetailExample.Criteria criteria = pushCustomerDetailExample.createCriteria();
                     criteria.andFileIdEqualTo(straHisFile.getId()).andTaskIdEqualTo(s).andPushStatusIn(Arrays.asList(1, 3));
                     if (minId != null) {
@@ -436,7 +426,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                             request.put("TskId", s);
                             request.put("TxnDt", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
                             request.put("TxnTs", LocalTime.now().format(DateTimeFormatter.ofPattern("HHmmssSSS")));
-                            request.put("RqsSeqNo", customer.getApiCode()
+                            request.put("RqsSeqNo", marketingCustomer.getApiCode()
                                     + "_" + request.getString("TskId")
                                     + "_" + UUID.randomUUID().toString());
                             List<Long> detailIds = new ArrayList<>();
@@ -589,7 +579,9 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             , ThreadPoolExecutor executors) {
 
         JSONObject condtionQuery = new JSONObject();
-        condtionQuery.putAll(queryData);
+        if(queryData !=null){
+            condtionQuery.putAll(queryData);
+        }
         if (scoreSortJsonVO != null) {
             JSONObject sort = new JSONObject();
             sort.put("key", scoreSortJsonVO.getSourceKey());
@@ -601,7 +593,9 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         queryBaseBean.setApiCode(apiCode);
         queryBaseBean.setBatchNumbers(batchNumber);
         queryBaseBean.setFileIds(fileId.toString());
-        queryBaseBean.setJsonData(JSON.toJSONString(condtionQuery));
+        if(condtionQuery.keySet().size()>0){
+            queryBaseBean.setJsonData(JSON.toJSONString(condtionQuery));
+        }
         int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         String searchAfterStr = "";
         Integer pageSize = 2000;
@@ -630,14 +624,29 @@ public class PushCustomerServiceImpl implements PushCustomerService {
 
     class StoreData implements Callable<Result<Integer>> {
 
+        /**
+         * 获取到的跑分数据
+         */
         List<MarketingHistory> marketingHistories;
 
+        /**
+         * 排序字段配置信息
+         */
         ScoreSortJsonVO scoreSortJsonVO;
 
+        /**
+         * true-写入DB;false-写入redis
+         */
         Boolean first;
 
+        /**
+         * 文件id
+         */
         Long fileId;
 
+        /**
+         * 排序值
+         */
         Integer startIndex;
 
         public StoreData(List<MarketingHistory> marketingHistories
@@ -684,6 +693,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                             pushCustomerDetail.setUserType(marketingHistory.getUserType());
                             pushCustomerDetail.setUserType(marketingHistory.getUserType());
                             pushCustomerDetail.setCreateTime(new Date());
+                            pushCustomerDetail.setPushJson(marketingHistory.getReserveField());
                             dbEntitys.add(pushCustomerDetail);
                         }
                         if (dbEntitys.size() == 50 || (first && i == marketingHistories.size() - 1)) {
@@ -704,6 +714,80 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         }
     }
 
+
+    @Override
+    public List<ScorePushCustomerConfig> getScorePushConfigs() {
+        ScorePushCustomerConfigExample scorePushCustomerConfigExample = new ScorePushCustomerConfigExample();
+        scorePushCustomerConfigExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
+        List<ScorePushCustomerConfig> scorePushCustomerConfigs = scorePushCustomerConfigMapper.selectByExample(scorePushCustomerConfigExample);
+        return scorePushCustomerConfigs;
+    }
+
+    @Override
+    public Result<StraHisFile> isPush(ScorePushCustomerConfig pushCustomerConfig) {
+        try {
+            String lockValue = UUID.randomUUID().toString();
+            boolean taskLock = getTaskLock(pushCustomerConfig.getId(), lockValue);
+            if (!taskLock) {
+                return new Result().setCode(ResultCode.FAIL.getValue());
+            }
+            Date createTime = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+            // 一天只推送一次
+            if (new Integer(1).equals(pushCustomerConfig.getPushType())) {
+                List<StraHisFile> files = straHisFileMapper.getFileByRule(createTime
+                        , pushCustomerConfig.getScoreRuleShortName()
+                        , Arrays.asList(CallBackPushStatusEnum.TOBEEXECUTED.getValue()), 0);
+                // 判断是否有任务回调过
+                if (files.size() > 0) {
+                    StraHisFile straHisFile = files.get(0);
+                    if (new Integer(4).equals(straHisFile.getPushStatus())) {
+                        String content = String.format("客户【%s】，跑分文件【%s】在回调客户作业中执行更新排序错误，请介入"
+                                , straHisFile.getApiCode(), straHisFile.getBatchNumber());
+                        log.error(content);
+                    }
+                    removeTaskLock(pushCustomerConfig.getId(), lockValue);
+                    return new Result().setCode(ResultCode.FAIL.getValue());
+                }
+            }
+
+            List<StraHisFile> needFiles = straHisFileMapper.getFileByRule(createTime
+                    , pushCustomerConfig.getScoreRuleShortName()
+                    , Arrays.asList(CallBackPushStatusEnum.TOBEEXECUTED.getValue()), 1);
+
+            if (needFiles.size() <= 0) {
+                removeTaskLock(pushCustomerConfig.getId(), lockValue);
+                return new Result<>().setCode(ResultCode.FAIL.getValue());
+            }
+            StraHisFile straHisFile = needFiles.get(0);
+            updateFilePushStatus(straHisFile, CallBackPushStatusEnum.STARTING);
+            removeTaskLock(pushCustomerConfig.getId(), lockValue);
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(straHisFile);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+        return new Result<>().setCode(ResultCode.FAIL.getValue());
+    }
+
+    private void updateFilePushStatus(StraHisFile straHisFile, CallBackPushStatusEnum callBackPushStatusEnum) {
+        straHisFile.setPushStatus(callBackPushStatusEnum.getValue());
+        StraHisFile updateFile = new StraHisFile();
+        updateFile.setPushStatus(callBackPushStatusEnum.getValue());
+        updateFile.setId(straHisFile.getId());
+        straHisFileMapper.updateByPrimaryKeySelective(updateFile);
+    }
+
+    private boolean getTaskLock(Long id, String lockValue) {
+        String pushKey = RedisKeyConstant.SCORE_TO_CUSTOMER_CONFIG_KEY.concat(":").concat(id.toString());
+        return redisChgService.setnx(pushKey, lockValue, 10);
+    }
+
+    private void removeTaskLock(Long id, String lockValue) {
+        String pushKey = RedisKeyConstant.SCORE_TO_CUSTOMER_CONFIG_KEY.concat(":").concat(id.toString());
+        String s = redisChgService.get(pushKey);
+        if (lockValue.equals(s)) {
+            redisChgService.del(pushKey);
+        }
+    }
 
     @Override
     public void retry(Customer customer) {

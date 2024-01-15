@@ -139,4 +139,6 @@ public class RedisKeyConstant {
     public static final String TRANSFER_FILE_TASK_JOB_KEY = prefix.concat("transfer:file:task");
 
     public static final String SCORE_TO_CUSTOMER_SORT_KEY = prefix.concat("scoreSort");
+
+    public static final String SCORE_TO_CUSTOMER_CONFIG_KEY = prefix.concat("scorePushConfig");
 }
