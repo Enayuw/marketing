@@ -1259,19 +1259,17 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      * 根据上传数据cell+userType获取多组有效期范围 Tips：定制化有效期配置使用，有效期配置valid_start_date和valid_end_date字段都非空
      *
      * @param custNumSet     custNum集合
-     * @param taskId         taskId
      * @param apiCode        apiCode
      * @param requestDateObj 日期
      * @return {@link Map }<{@link String }, {@link SyncUserValidityPeriodsBO }>
      * @author senyang.zheng
-     * @date 2024/01/13
+     * @date 2024/01/15
      */
     @Override
     public Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNumAndTaskId(Set<String> custNumSet,
-                                                                                       String taskId,
                                                                                        String apiCode,
                                                                                        Object requestDateObj) {
-        if (CollectionUtils.isEmpty(custNumSet) || StringUtils.isEmpty(taskId) || StringUtils.isEmpty(apiCode)) {
+        if (CollectionUtils.isEmpty(custNumSet) || StringUtils.isEmpty(apiCode)) {
             return Collections.emptyMap();
         }
         Map<String, SyncUserValidityPeriodsBO> resultMap = new ConcurrentHashMap<>(2048);
@@ -1279,7 +1277,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         final String requestDateStr = switchDateStr(requestDateObj);
         //获取有效期配置不分页
         MarketingCustomizeDataValidConfigExample example = new MarketingCustomizeDataValidConfigExample();
-        example.createCriteria().andApiCodeEqualTo(apiCode).andTaskIdEqualTo(taskId).andValidStartDateLessThanOrEqualTo(requestDateStr)
+        example.createCriteria().andApiCodeEqualTo(apiCode).andValidStartDateLessThanOrEqualTo(requestDateStr)
             .andValidEndDateGreaterThanOrEqualTo(requestDateStr);
         List<MarketingCustomizeDataValidConfig> configList = customizeDataValidConfigMapper.selectByExample(example);
 
