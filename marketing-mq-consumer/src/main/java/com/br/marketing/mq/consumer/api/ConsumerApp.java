@@ -109,7 +109,7 @@ public class ConsumerApp {
         consumerService.consumerRun(channel, message, periodOfValidityService::configValidDateDefault, o, null);
     }
     /**
-     * 设置定制化默认有效期范围消费者
+     * 设置定制化默认有效期范围消费者(360)
      *
      * @param channel 通道
      * @param message 消息体
