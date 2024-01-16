@@ -802,13 +802,14 @@
         </foreach>
         <choose>
             <when test="configList != null and configList.size() > 0">
-                and (cus_batch, user_type) in
+                and (cus_batch, user_type, applet_date) in
                 <foreach collection="configList" item="item" open="(" close=")" separator=",">
-                    (#{item.taskId,jdbcType=VARCHAR}, #{item.userType,jdbcType=VARCHAR})
+                    (#{item.taskId,jdbcType=VARCHAR}, #{item.userType,jdbcType=VARCHAR}, #{item.appletDate,jdbcType=VARCHAR})
                 </foreach>
             </when>
             <otherwise>
                 and 1!=1
+
             </otherwise>
         </choose>
         and status=1

@@ -1296,9 +1296,9 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
                                                               List<MarketingCustomizeDataValidConfig> configList,
                                                               Map<String, SyncUserValidityPeriodsBO> resultMap) {
         Map<String, List<MarketingSyncUser>> custNumMap = syncUserList.stream().collect(Collectors.groupingBy(keyMapper));
-        Map<String, MarketingCustomizeDataValidConfig> configMap =
-            configList.stream().collect(Collectors.toMap(config -> config.getUserType() + config.getTaskId(), Function.identity(),
-                                                         BinaryOperator.maxBy(Comparator.comparing(c -> c.getUpdateTime() == null ? c.getCreateTime() : c.getUpdateTime()))));
+        Map<String, MarketingCustomizeDataValidConfig> configMap = configList.stream()
+                .collect(Collectors.toMap(config -> config.getUserType() + config.getAppletDate() + config.getTaskId(), Function.identity(),
+                    BinaryOperator.maxBy(Comparator.comparing(c -> c.getUpdateTime() == null ? c.getCreateTime() : c.getUpdateTime()))));
         custNumMap.forEach((key, value) -> resultMap.put(key, buildSyncUserCustomizeValidityPeriodsBO(value, configMap)));
     }
 
@@ -1306,7 +1306,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         Map<String, MarketingCustomizeDataValidConfig> configMap) {
         SyncUserValidityPeriodsBO validityPeriodsBO = new SyncUserValidityPeriodsBO();
         syncUsers.forEach(syncUser -> {
-            String configKey = syncUser.getUserType() + syncUser.getCusBatch();
+            String configKey = syncUser.getUserType() + syncUser.getAppletDate() + syncUser.getCusBatch();
             MarketingCustomizeDataValidConfig config = configMap.get(configKey);
             if (config != null) {
                 PeriodOfValidityBO.Builder builder = PeriodOfValidityBO.custom(
