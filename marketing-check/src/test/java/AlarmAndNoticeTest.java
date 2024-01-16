@@ -2,11 +2,9 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.client.zbank.ZbankClient;
-import com.br.marketing.check.job.TransferFileTaskJob;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.TransferActionFront;
@@ -25,6 +23,7 @@ import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.ZhongYuanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import org.apache.commons.lang3.RandomStringUtils;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
@@ -41,8 +40,6 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import java.io.*;
 import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.Month;
@@ -434,6 +431,40 @@ public class AlarmAndNoticeTest {
         }
     }
 
+    @Resource
+    TransferToFileByZhongBangTransferServiceImpl transferToFileByZhongBang;
+    private final static String ZHONGBNAG_TABLE_HEAD_TRANSFER = "custNum,cell,firstName,userType,ifRegister,registerTime,ifLogin," +
+            "loginTime,ifApply,applyDt,applyResult,applyTime,refuseTime,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount";
+    @Test
+    public void NewZhongBangTransferFileTest() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7410994");
+        String apiCode = "7410994";
+        String myParam = "7410994#2023-12-19";
+        String dd = isMyParam("7410994", myParam);
+        transferFileTask.setStartDate(dd);
+        String recordDate = transferFileTask.getStartDate();
+        boolean isParam = StringUtils.isNotBlank(dd);
+        String dateyyyymmddStr = isParam ? dd.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        transferFileTask.setFileName(String.format("transform_%s_%s.txt", apiCode, dateyyyymmddStr));
+        log.warn("众邦转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
+            fw.append(ZHONGBNAG_TABLE_HEAD_TRANSFER);
+            fw.append("\r\n");
+            transferToFileByZhongBang.writeZhongBangTransferToFile(fw,apiCode,transferFileTask, recordDate);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+    }
+
 
     @Resource
     TransferToFileByQiFuServiceImpl transferToFileByQiFu;
@@ -518,6 +549,7 @@ public class AlarmAndNoticeTest {
 
         return new LocalDate[]{firstDayOfMonth, lastDayOfMonth};
     }
+
 
 
 
