@@ -2,6 +2,7 @@ package com.br.marketing.check.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.check.service.PushCallBackService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
@@ -100,11 +101,14 @@ public class PushCallBackByPolicyServiceImpl implements PushCallBackService {
                         //人员信息
                         PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
                         dto1.setCaseNumber(detail.getCustNum());
-                        dto1.setPhone(pushRuleService.encrypt3k(threeEncrypt, detail.getCell()));
-                        JSONObject varObject = JSON.parseObject(detail.getPushJson());
-                        if (varObject == null) {
+                        dto1.setPhone(pushRuleService.encrypt3k(threeEncrypt, BrCipherMaker.getInstance().decode(detail.getCell())));
+                        JSONObject varObject = null;
+                        try{
+                            varObject = JSON.parseObject(detail.getPushJson());
+                        }catch (Exception ex){
                             varObject = new JSONObject();
                         }
+                        varObject.put("ordId",detail.getCustNum());
                         varObject.put("taskId", detail.getTaskId());
                         varObject.put("userType", detail.getUserType());
                         for (ScoreSortJsonVO vo : vos) {

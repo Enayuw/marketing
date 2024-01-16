@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.check.service.PushCallBackService;
 import com.br.marketing.check.service.PushCustomerService;
@@ -161,9 +162,14 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         ConditionOfScoreVO condition = scoreCondtitions.get(0);
         //endregion
 
-        int dataBuildThread = marketingCommonConfig.getScoreDbAndRedisThreadNum() != null ? marketingCommonConfig.getScoreDbAndRedisThreadNum() : 10;
+        //写入数据的线程数-写入db或者redis
+        int dataBuildThread = marketingCommonConfig.getScoreDbAndRedisThreadNum() != null
+                ? marketingCommonConfig.getScoreDbAndRedisThreadNum()
+                : 10;
 
+        //查询数据的线程池 按照不同顺序并发查询
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(2, 4, "job_scoreBackSort");
+        //写入数据的线程池-写入db或者redis
         ThreadPoolExecutor dataBuild = BrExecutors.getThreadPool(dataBuildThread, dataBuildThread, "job_dataBuild");
 
         Result<TransferActionFront> allowExecute =
@@ -174,9 +180,14 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         if (!ResultCode.SUCCESS.getValue().equals(allowExecute.getCode())) {
             return;
         }
+
+        // 获取排序配置
         List<ScoreSortJsonVO> vos = getScoreSortField(pushCustomerConfig);
+
+        // 获取筛选条件
         JSONObject conditionJb = StringUtils.isNotBlank(condition.getContent()) ? JSON.parseObject(condition.getContent()) : null;
-        //region 数据捞取
+
+        // region 数据捞取
         AtomicInteger getRes = new AtomicInteger();
         Boolean pause = Boolean.FALSE;
         if (CallBackPushStatusEnum.STARTING.getValue().equals(straHisFile.getPushStatus())) {
@@ -202,6 +213,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 waitThreadPool(threadPool);
                 waitThreadPool(dataBuild);
                 //endregion
+
                 //region 核验更新顺序过程是否有错误
                 for (Future<List<Future<Result<Integer>>>> re : res) {
                     try {
@@ -226,6 +238,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 }
                 //endregion
             } else {
+                //region 无排序字段
                 List<Future<Result<Integer>>> futures = searchData(apiCode, straHisFile.getBatchNumber()
                         , straHisFile.getId(), conditionJb
                         , null, true, dataBuild);
@@ -243,6 +256,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                         Thread.currentThread().interrupt();
                     }
                 }
+                //endregion
             }
         }
         //endregion
@@ -255,24 +269,33 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.FALSE);
             return;
         }
+
         //region数据更新排序
-        if (CallBackPushStatusEnum.STARTING.getValue().equals(straHisFile.getPushStatus())
-                || CallBackPushStatusEnum.SORTFAIL.getValue().equals(straHisFile.getPushStatus())) {
-            AtomicInteger errorSort = new AtomicInteger();
-            if(vos.size()>1){
-                sortDb(straHisFile, vos, errorSort);
+        Integer retrySort = 2;
+        while(retrySort!=0) {
+            if (CallBackPushStatusEnum.STARTING.getValue().equals(straHisFile.getPushStatus())
+                    || CallBackPushStatusEnum.SORTFAIL.getValue().equals(straHisFile.getPushStatus())) {
+                AtomicInteger errorSort = new AtomicInteger();
+                if (vos.size() > 1) {
+                    sortDb(straHisFile, vos, errorSort);
+                }
+                if (errorSort.get() <= 0) {
+                    updateFilePushStatus(straHisFile, CallBackPushStatusEnum.SORTOK);
+                    retrySort=0;
+                } else {
+                    retrySort--;
+                    updateFilePushStatus(straHisFile, CallBackPushStatusEnum.SORTFAIL);
+                    sendAlarm(String.format("数据更新顺序过程有错误，暂停后续的推送动作！fileId:%d", straHisFile.getId()));
+                    jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.FALSE);
+                }
             }
-            if (errorSort.get() <= 0) {
-                updateFilePushStatus(straHisFile, CallBackPushStatusEnum.SORTOK);
-            } else {
-                updateFilePushStatus(straHisFile, CallBackPushStatusEnum.SORTFAIL);
-                sendAlarm(String.format("数据更新顺序过程有错误，暂停后续的推送动作！fileId:%d", straHisFile.getId()));
-                jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.FALSE);
-                return;
-            }
+        }
+        if(CallBackPushStatusEnum.SORTFAIL.getValue().equals(straHisFile.getPushStatus())){
+            return;
         }
         //endregion
         log.warn(String.format("更新排序耗时：%d", System.currentTimeMillis() - start));
+
         //region 数据推送
         Boolean push = Boolean.TRUE;
         while (push) {
@@ -288,23 +311,25 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                     updateFilePushStatus(straHisFile, CallBackPushStatusEnum.SUCCESS);
                 }
             }
-            //endregion
+
             log.warn(String.format("数据推送耗时：%d", System.currentTimeMillis() - start));
-            //region 修改状态
+
+            // 修改状态
             if (CallBackPushStatusEnum.SUCCESS.getValue().equals(straHisFile.getPushStatus())) {
                 jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.TRUE);
             } else {
                 jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.FALSE);
             }
 
+            //判断是否允许重试
             Result<TransferActionFront> allow = jobManagerByScorePushServiceImpl.isAllowExecute(apiCode, 11
                     , LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                     , straHisFile);
             if (!ResultCode.SUCCESS.getValue().equals(allow.getCode())) {
                 push = Boolean.FALSE;
             }
-            //endregion
         }
+        //endregion
 
     }
 
@@ -579,7 +604,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             , ThreadPoolExecutor executors) {
 
         JSONObject condtionQuery = new JSONObject();
-        if(queryData !=null){
+        if (queryData != null) {
             condtionQuery.putAll(queryData);
         }
         if (scoreSortJsonVO != null) {
@@ -593,7 +618,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         queryBaseBean.setApiCode(apiCode);
         queryBaseBean.setBatchNumbers(batchNumber);
         queryBaseBean.setFileIds(fileId.toString());
-        if(condtionQuery.keySet().size()>0){
+        if (condtionQuery.keySet().size() > 0) {
             queryBaseBean.setJsonData(JSON.toJSONString(condtionQuery));
         }
         int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
@@ -688,12 +713,21 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                         if (first) {
                             pushCustomerDetail.setApiCode(marketingHistory.getApiCode());
                             pushCustomerDetail.setCustNum(marketingHistory.getCusNum());
-                            pushCustomerDetail.setCell(marketingHistory.getCell());
+                            pushCustomerDetail.setCell(BrCipherMaker.getInstance().encode(marketingHistory.getCell()));
                             pushCustomerDetail.setTaskId(marketingHistory.getTaskId());
                             pushCustomerDetail.setUserType(marketingHistory.getUserType());
-                            pushCustomerDetail.setUserType(marketingHistory.getUserType());
                             pushCustomerDetail.setCreateTime(new Date());
-                            pushCustomerDetail.setPushJson(marketingHistory.getReserveField());
+                            if (marketingHistory.getCondition().size()>0) {
+                                JSONObject varObject = new JSONObject();
+                                for (MarketingCondition marketingCondition : marketingHistory.getCondition()) {
+                                    if (org.apache.commons.lang3.StringUtils.isNotBlank(marketingCondition.getCode())) {
+                                        varObject.put(marketingCondition.getFieldKey(), marketingCondition.getDValue());
+                                    } else {
+                                        varObject.put(marketingCondition.getFieldKey(), marketingCondition.getStrValue());
+                                    }
+                                }
+                                pushCustomerDetail.setPushJson(JSON.toJSONString(varObject));
+                            }
                             dbEntitys.add(pushCustomerDetail);
                         }
                         if (dbEntitys.size() == 50 || (first && i == marketingHistories.size() - 1)) {
@@ -745,7 +779,13 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                                 , straHisFile.getApiCode(), straHisFile.getBatchNumber());
                         log.error(content);
                     }
+                    if (CallBackPushStatusEnum.GETFAIL.getValue().equals(straHisFile.getPushStatus())) {
+                        String content = String.format("客户【%s】，跑分文件【%s】在回调客户作业中执行捞取错误，请介入"
+                                , straHisFile.getApiCode(), straHisFile.getBatchNumber());
+                        log.error(content);
+                    }
                     removeTaskLock(pushCustomerConfig.getId(), lockValue);
+                    log.warn("");
                     return new Result().setCode(ResultCode.FAIL.getValue());
                 }
             }
@@ -759,6 +799,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 return new Result<>().setCode(ResultCode.FAIL.getValue());
             }
             StraHisFile straHisFile = needFiles.get(0);
+
             updateFilePushStatus(straHisFile, CallBackPushStatusEnum.STARTING);
             removeTaskLock(pushCustomerConfig.getId(), lockValue);
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(straHisFile);
