@@ -1256,15 +1256,6 @@ public class MarketingCommonConfig {
      */
     private String QiFuTransferExecuteTime;
 
-    /**
-     * 众邦转化数据提取apiCode集合
-     */
-    private List<String> ZhongBangApiCodes;
-
-    /**
-     * 众邦转化数据提取执行时间
-     */
-    private String ZhongBangExecuteTime;
 
 }
 
