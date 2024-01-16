@@ -63,7 +63,7 @@ public class PushCallBackByPolicyServiceImpl implements PushCallBackService {
             log.error(String.format("该推送不符合推送决策的限制条件 跑批id：【%s】,原因：【%s】", straHisFile.getId(), integerResult.getMessage()));
             return;
         }
-        Integer _3kEncrypt = integerResult.getData();
+        Integer threeEncrypt = integerResult.getData();
         MarketingCustomer marketingCustomer = marketingCustomers.get(0);
         int pushThream = (marketingCustomer.getPushThreadNum() == null
                 || Integer.valueOf(0).equals(marketingCustomer.getPushThreadNum()))
@@ -100,7 +100,7 @@ public class PushCallBackByPolicyServiceImpl implements PushCallBackService {
                         //人员信息
                         PushMarketingUserDetailDTO dto1 = new PushMarketingUserDetailDTO();
                         dto1.setCaseNumber(detail.getCustNum());
-                        dto1.setPhone(pushRuleService.encrypt3k(_3kEncrypt, detail.getCell()));
+                        dto1.setPhone(pushRuleService.encrypt3k(threeEncrypt, detail.getCell()));
                         JSONObject varObject = JSON.parseObject(detail.getPushJson());
                         if (varObject == null) {
                             varObject = new JSONObject();
@@ -144,6 +144,10 @@ public class PushCallBackByPolicyServiceImpl implements PushCallBackService {
             });
             pageIndex++;
         }
-        waitThreadPool(pushPool);
+        try {
+            waitThreadPool(pushPool);
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+        }
     }
 }

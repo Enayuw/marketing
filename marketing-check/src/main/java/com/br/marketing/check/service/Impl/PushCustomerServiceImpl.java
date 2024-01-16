@@ -257,7 +257,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         }
         //region数据更新排序
         if (CallBackPushStatusEnum.STARTING.getValue().equals(straHisFile.getPushStatus())
-                || CallBackPushStatusEnum.SORTFAIL.equals(straHisFile.getPushStatus())) {
+                || CallBackPushStatusEnum.SORTFAIL.getValue().equals(straHisFile.getPushStatus())) {
             AtomicInteger errorSort = new AtomicInteger();
             if(vos.size()>1){
                 sortDb(straHisFile, vos, errorSort);
@@ -727,20 +727,20 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     public Result<StraHisFile> isPush(ScorePushCustomerConfig pushCustomerConfig) {
         try {
             String lockValue = UUID.randomUUID().toString();
-            boolean taskLock = getTaskLock(pushCustomerConfig.getId(), lockValue);
+            boolean taskLock = hasTaskLock(pushCustomerConfig.getId(), lockValue);
             if (!taskLock) {
                 return new Result().setCode(ResultCode.FAIL.getValue());
             }
             Date createTime = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
             // 一天只推送一次
-            if (new Integer(1).equals(pushCustomerConfig.getPushType())) {
+            if (Integer.valueOf(1).equals(pushCustomerConfig.getPushType())) {
                 List<StraHisFile> files = straHisFileMapper.getFileByRule(createTime
                         , pushCustomerConfig.getScoreRuleShortName()
                         , Arrays.asList(CallBackPushStatusEnum.TOBEEXECUTED.getValue()), 0);
                 // 判断是否有任务回调过
                 if (files.size() > 0) {
                     StraHisFile straHisFile = files.get(0);
-                    if (new Integer(4).equals(straHisFile.getPushStatus())) {
+                    if (CallBackPushStatusEnum.SORTFAIL.getValue().equals(straHisFile.getPushStatus())) {
                         String content = String.format("客户【%s】，跑分文件【%s】在回调客户作业中执行更新排序错误，请介入"
                                 , straHisFile.getApiCode(), straHisFile.getBatchNumber());
                         log.error(content);
@@ -776,7 +776,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         straHisFileMapper.updateByPrimaryKeySelective(updateFile);
     }
 
-    private boolean getTaskLock(Long id, String lockValue) {
+    private boolean hasTaskLock(Long id, String lockValue) {
         String pushKey = RedisKeyConstant.SCORE_TO_CUSTOMER_CONFIG_KEY.concat(":").concat(id.toString());
         return redisChgService.setnx(pushKey, lockValue, 10);
     }

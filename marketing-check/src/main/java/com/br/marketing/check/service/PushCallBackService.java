@@ -26,7 +26,7 @@ public interface PushCallBackService {
         }
     }
 
-    default void waitThreadPool(ThreadPoolExecutor executor) {
+    default void waitThreadPool(ThreadPoolExecutor executor) throws InterruptedException {
         executor.shutdown();
         while (true) {
             if (executor.isTerminated()) {
@@ -35,6 +35,7 @@ public interface PushCallBackService {
             try {
                 Thread.sleep(6000);
             } catch (Exception e) {
+                throw e;
             }
         }
     }

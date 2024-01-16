@@ -160,6 +160,10 @@ public class PushCallBackByZhongAnServiceImpl implements PushCallBackService {
             }
 
         }
-        waitThreadPool(pushPool);
+        try {
+            waitThreadPool(pushPool);
+        }catch (Exception ex){
+            log.error(ex.getMessage(),ex);
+        }
     }
 }
