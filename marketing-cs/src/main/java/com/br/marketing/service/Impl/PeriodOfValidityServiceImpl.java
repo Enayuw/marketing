@@ -385,7 +385,7 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
                     .andAppletDateEqualTo(syncUser.getAppletDate())
                     .andIsDelEqualTo(1);
             int i = marketingCustomizeDataValidConfigMapper.countByExample(marketingCustomizeDataValidConfigExample);
-            if (i < 0) {
+            if (i == 0) {
                 // 插入定制表
                 MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfig = getMarketingCustomizeDataValidConfig(syncUser, marketingDataValidConfig);
                 int j = marketingCustomizeDataValidConfigMapper.insertSelective(marketingCustomizeDataValidConfig);
@@ -405,9 +405,11 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         marketingCustomizeDataValidConfig.setDataValidConfigId(dataValidConfigId);
         marketingCustomizeDataValidConfig.setAppletDate(syncUser.getAppletDate());
         marketingCustomizeDataValidConfig.setTaskId(syncUser.getCusBatch());
-        marketingCustomizeDataValidConfig.setValidStartDate(marketingCustomizeDataValidConfig.getValidStartDate());
-        marketingCustomizeDataValidConfig.setValidEndDate(marketingCustomizeDataValidConfig.getValidEndDate());
-        marketingCustomizeDataValidConfig.setUserType(marketingCustomizeDataValidConfig.getUserType());
+        marketingCustomizeDataValidConfig.setValidStartDate(marketingDataValidConfig.getValidStartDate());
+        marketingCustomizeDataValidConfig.setValidEndDate(marketingDataValidConfig.getValidEndDate());
+        marketingCustomizeDataValidConfig.setUserType(marketingDataValidConfig.getUserType());
+        marketingCustomizeDataValidConfig.setCreateTime(new Date());
+        marketingCustomizeDataValidConfig.setUpdateTime(new Date());
         return marketingCustomizeDataValidConfig;
     }
 

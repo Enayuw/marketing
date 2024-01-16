@@ -1318,12 +1318,8 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param apiCode
      */
     private void customizeConfigValidDateDefault(Map<String, MarketingSyncUser> validDateCustomizeCache, String apiCode) {
-        Set<String> apiCodes = marketingCommonConfig.getNonConfigValidDefaultApiCodes();
         try {
-            if (apiCodes != null && apiCodes.contains(apiCode)) {
-                return;
-            }
-            // 遍历缓存中需要设置默认有效期的apiCode与userType
+            // 遍历缓存中需要设置默认有效期的apiCode与userType+taskId
             validDateCustomizeCache.forEach((key1, value) -> {
                 LocalDateTime now = LocalDateTime.now();
                 LocalDateTime localDateTime = now.plusDays(1);
