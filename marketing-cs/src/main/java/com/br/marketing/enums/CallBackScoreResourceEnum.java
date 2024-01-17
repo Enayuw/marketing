@@ -11,7 +11,7 @@ public enum CallBackScoreResourceEnum {
     //推送客户每页获取的数量
     ,PushCustomerDataPageNumber("pushCustomerDataPageNumber",1000)
     //推送众安获取taskId分页配置
-    ,PushTaskPageByZhongAnNumber("pushTaskPageByZhongAnNumber",2000);
+    ,PushTaskPageByZhongBangNumber("pushTaskPageByZhongBangNumber",2000);
 
     CallBackScoreResourceEnum(String key,Integer value) {
         this.key = key;
