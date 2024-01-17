@@ -302,5 +302,6 @@
         update_time = #{updateTime,jdbcType=TIMESTAMP},
         is_del = #{isDel,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
+
   </update>
 </mapper>
