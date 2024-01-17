@@ -55,6 +55,11 @@ public interface PushCustomerService {
      */
     List<ScorePushCustomerConfig> getScorePushConfigs();
 
+
+    List<ScorePushCustomerConfig> getScorePushConfigs(Long fildId);
+
+    StraHisFile getFile(Long fildId);
+
     /**
      * 判断该跑分配置是否回调
      *

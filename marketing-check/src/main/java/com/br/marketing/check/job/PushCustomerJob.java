@@ -3,6 +3,7 @@ package com.br.marketing.check.job;
 import com.br.marketing.check.service.PushCustomerService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.entity.ScorePushCustomerConfig;
 import com.br.marketing.entity.StraHisFile;
@@ -40,22 +41,44 @@ public class PushCustomerJob extends AbstractSimpleElasticJob {
 
         log.warn("【api推送客户数据】调度开始");
         try {
-            List<ScorePushCustomerConfig> scorePushConfigs = pushCustomerService.getScorePushConfigs();
+            List<ScorePushCustomerConfig> scorePushConfigs = null;
+            String fileId = jobExecutionMultipleShardingContext.getJobParameter();
+            boolean handMark = StringUtils.isNotBlank(fileId);
+            if(handMark){
+                scorePushConfigs =pushCustomerService.getScorePushConfigs(Long.valueOf(fileId));
+            }else{
+                scorePushConfigs = pushCustomerService.getScorePushConfigs();
+            }
             for (ScorePushCustomerConfig scorePushConfig : scorePushConfigs) {
-                Result<StraHisFile> configRes = pushCustomerService.isPush(scorePushConfig);
-                if (ResultCode.SUCCESS.getValue().equals(configRes.getCode())) {
-
+                if(handMark){
+                    StraHisFile file = pushCustomerService.getFile(Long.valueOf(fileId));
                     Long start = System.currentTimeMillis();
-                    log.warn(String.format("【%s】开始执行回调，跑分任务id【%s】"
-                            , scorePushConfig.getScoreRuleShortName(), configRes.getData().getId()));
+                    log.warn(String.format("【%s】手动触发开始执行回调，跑分任务id【%s】"
+                            , scorePushConfig.getScoreRuleShortName(), file.getId()));
 
-                    pushCustomerService.push(scorePushConfig, configRes.getData());
+                    pushCustomerService.push(scorePushConfig, file);
 
                     Long end = System.currentTimeMillis();
-                    log.warn(String.format("【%s】回调结束，跑分任务id【%s】，耗时【%d】"
+                    log.warn(String.format("【%s】手动触发回调结束，跑分任务id【%s】，耗时【%d】"
                             , scorePushConfig.getScoreRuleShortName()
-                            , configRes.getData().getId(), (end - start)));
+                            , file.getId(), (end - start)));
+                }else{
+                    Result<StraHisFile> configRes = pushCustomerService.isPush(scorePushConfig);
+                    if (ResultCode.SUCCESS.getValue().equals(configRes.getCode())) {
+
+                        Long start = System.currentTimeMillis();
+                        log.warn(String.format("【%s】开始执行回调，跑分任务id【%s】"
+                                , scorePushConfig.getScoreRuleShortName(), configRes.getData().getId()));
+
+                        pushCustomerService.push(scorePushConfig, configRes.getData());
+
+                        Long end = System.currentTimeMillis();
+                        log.warn(String.format("【%s】回调结束，跑分任务id【%s】，耗时【%d】"
+                                , scorePushConfig.getScoreRuleShortName()
+                                , configRes.getData().getId(), (end - start)));
+                    }
                 }
+
             }
         } catch (Exception ex) {
             log.error("跑分推送客户报错" + ex.getMessage(), ex);

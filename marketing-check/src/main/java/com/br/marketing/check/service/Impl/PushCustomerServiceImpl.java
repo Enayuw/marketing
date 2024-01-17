@@ -126,6 +126,12 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     @Autowired
     private Map<String, PushCallBackService> pushCallBackMap;
 
+    @Resource
+    MarketingTaskMapper marketingTaskMapper;
+
+    @Resource
+    MarketingTaskExtendMapper marketingTaskExtendMapper;
+
 
     @Override
     public void push(ScorePushCustomerConfig pushCustomerConfig, StraHisFile straHisFile) {
@@ -293,6 +299,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         //region 数据推送
         Boolean push = Boolean.TRUE;
         Integer num = 1;
+        TransferActionFront actionFront = allowExecute.getData();
         while (push) {
             if (CallBackPushStatusEnum.SORTOK.getValue().equals(straHisFile.getPushStatus())
                     || CallBackPushStatusEnum.CALLBACKFAIL.getValue().equals(straHisFile.getPushStatus())) {
@@ -318,15 +325,16 @@ public class PushCustomerServiceImpl implements PushCustomerService {
 
             // 修改状态
             if (CallBackPushStatusEnum.SUCCESS.getValue().equals(straHisFile.getPushStatus())) {
-                jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.TRUE);
+                jobManagerByScorePushServiceImpl.updateJobStatus(actionFront, Boolean.TRUE);
             } else {
-                jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.FALSE);
+                jobManagerByScorePushServiceImpl.updateJobStatus(actionFront, Boolean.FALSE);
             }
 
             //判断是否允许重试
             Result<TransferActionFront> allow = jobManagerByScorePushServiceImpl.isAllowExecute(apiCode, 11
                     , LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                     , straHisFile);
+            actionFront = allow.getData();
             if (!ResultCode.SUCCESS.getValue().equals(allow.getCode())) {
                 push = Boolean.FALSE;
             }
@@ -777,13 +785,23 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         }
     }
 
-
     @Override
     public List<ScorePushCustomerConfig> getScorePushConfigs() {
         ScorePushCustomerConfigExample scorePushCustomerConfigExample = new ScorePushCustomerConfigExample();
         scorePushCustomerConfigExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
         List<ScorePushCustomerConfig> scorePushCustomerConfigs = scorePushCustomerConfigMapper.selectByExample(scorePushCustomerConfigExample);
         return scorePushCustomerConfigs;
+    }
+
+    @Override
+    public List<ScorePushCustomerConfig> getScorePushConfigs(Long fileId) {
+        List<ScorePushCustomerConfig> configByFileId = scorePushCustomerConfigMapper.getConfigByFileId(fileId);
+        return configByFileId;
+    }
+
+    @Override
+    public StraHisFile getFile(Long fildId) {
+        return straHisFileMapper.selectByPrimaryKey(fildId);
     }
 
     @Override
