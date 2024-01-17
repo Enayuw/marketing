@@ -66,7 +66,6 @@ public class PushCallBackByZhongBangServiceImpl implements PushCallBackService {
         }
         MarketingCustomer marketingCustomer = marketingCustomers.get(0);
         int pushThream = pushCustomerService.getPushCustomerResource(pushCustomerConfig, CallBackScoreResourceEnum.PushCustomerThreadNumber);
-        ;
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_pushCustomer");
         Integer pageIndex = 0;
         Integer pageSize = pushCustomerService.getPushCustomerResource(pushCustomerConfig, CallBackScoreResourceEnum.PushTaskPageByZhongBangNumber);
