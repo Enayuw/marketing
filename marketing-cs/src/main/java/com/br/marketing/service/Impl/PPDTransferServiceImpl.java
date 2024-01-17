@@ -30,7 +30,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
@@ -260,7 +263,7 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
         int size = builderList.size();
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < size; i++) {
-            PeriodOfValidityBO bo = builderList.get(0).addDateString().builder();
+            PeriodOfValidityBO bo = builderList.get(i).addDateString().builder();
             String beginDateStr = bo.getBeginDateStr();
             String enDateStr = bo.getEnDateStr();
             sb.append("(request_data between '").append(beginDateStr).append("' and  '").append(enDateStr).append("')");
