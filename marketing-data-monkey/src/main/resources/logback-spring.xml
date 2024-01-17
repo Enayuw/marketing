@@ -104,7 +104,7 @@
     <logger name="com.netflix.discovery.shared.resolver.aws.ConfigClusterResolver" level="ERROR"/>
     <logger name="com.br.bsf.ext.app.util" level="ERROR"/>
     <logger name="MOM_LOG" level="WARN" additivity="false">
-        <appender-ref ref="MOM_LOG" />
+        <appender-ref ref="ASYNC_MOM_LOG" />
     </logger>
     <springProfile name="dev">
         <root level="INFO">

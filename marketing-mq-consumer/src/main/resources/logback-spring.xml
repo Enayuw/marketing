@@ -121,7 +121,7 @@
         <appender-ref ref="PATCH_ASYNC_LOG" />
     </logger>
     <logger name="MOM_LOG" level="WARN" additivity="false">
-        <appender-ref ref="MOM_LOG" />
+        <appender-ref ref="ASYNC_MOM_LOG" />
     </logger>
 
     <springProfile name="pre">
