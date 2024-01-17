@@ -318,16 +318,24 @@ public class PushCustomerServiceImpl implements PushCustomerService {
 
     @Override
     public Integer getPushCustomerResource(ScorePushCustomerConfig pushCustomerConfig, CallBackScoreResourceEnum callBackScoreResourceEnum) {
+        Integer num = null;
         if (pushCustomerConfig != null
                 && StringUtils.isNotBlank(pushCustomerConfig.getResourceConfig())) {
             try {
                 JSONObject resourceConfig = JSON.parseObject(pushCustomerConfig.getResourceConfig());
-                return (Integer) resourceConfig.getOrDefault(callBackScoreResourceEnum.getKey(), callBackScoreResourceEnum.getValue());
+                num = (Integer) resourceConfig.getOrDefault(callBackScoreResourceEnum.getKey(), callBackScoreResourceEnum.getValue());
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
         }
-        return callBackScoreResourceEnum.getValue();
+        if(num == null){
+            num=callBackScoreResourceEnum.getValue();
+        }
+        log.warn(String.format("跑批回调获取资源配置：【%s】获取【%s】的数量是【%d】"
+                ,pushCustomerConfig.getScoreRuleShortName()
+                ,callBackScoreResourceEnum.getKey()
+                ,num));
+        return num;
     }
 
     private void sendAlarm(String message) {
