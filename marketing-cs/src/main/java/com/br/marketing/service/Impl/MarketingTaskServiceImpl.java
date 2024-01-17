@@ -42,6 +42,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * -------------------------------
@@ -361,15 +362,6 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
         Boolean isVer = new Integer(1).equals(vo.getIsOrNoScoreVer());
         String apiCode = vo.getApiCode();
-
-        if(null == userTypeList || userTypeList.size()<1){
-            //region 条件解析
-            Result<String> conditionRes = soleStrategyService.analysisCondition(vo.getConditionInfo());
-            // 查询符合跑分数据的场景
-            userTypeList = syncInfoMapper
-                    .queryUserTypeListWithDatetikv_(apiCode, null, null, conditionRes.getData());
-        }
-
         Result<List<String>> listResult = soleStrategyService.analysisConditions(vo.getConditionInfo());
         if (!ResultCode.SUCCESS.getValue().equals(listResult.getCode())) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(listResult.getMessage());
@@ -380,6 +372,11 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         Integer count = 0;
         Integer preMaxNum = vo.getDataLimit() != null && vo.getDataLimit() > 0 ? vo.getDataLimit() : 500;
         StringBuilder showStr = new StringBuilder();
+        // 是否需要根据ConditionInfos获取多条件下的场景
+        boolean userTypeFromConditionInfosFlag = false;
+        if(null == userTypeList || userTypeList.size()<1){
+            userTypeFromConditionInfosFlag = true;
+        }
         for (int i = 0; i < data.size(); i++) {
             if (isVer && preMaxNum <= 0) {
                 continue;
@@ -396,8 +393,16 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             if (i < data.size() - 1) {
                 showStr.append(",");
             }
+            if(userTypeFromConditionInfosFlag){
+                List<String> userTypeByList = new ArrayList<>();
+                // 查询符合跑分数据的场景
+                userTypeByList = syncInfoMapper
+                        .queryUserTypeListWithDatetikv_(apiCode, null, null, whereStr);
+                userTypeList.addAll(userTypeByList);
+            }
         }
-
+        // 去重
+        userTypeList = userTypeList.stream().distinct().collect(Collectors.toList());
         if (count <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("该apicode的统计记录失真，请更新该apicode所选的数据统计记录");
         }
