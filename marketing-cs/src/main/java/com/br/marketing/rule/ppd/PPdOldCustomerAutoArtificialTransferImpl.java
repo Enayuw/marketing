@@ -100,7 +100,7 @@ public class PPdOldCustomerAutoArtificialTransferImpl implements AssembleData<Ba
             int size = builders.size();
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < size; i++) {
-                PeriodOfValidityBO bo = builders.get(0).addDateString().builder();
+                PeriodOfValidityBO bo = builders.get(i).addDateString().builder();
                 String beginDateStr = bo.getBeginDateStr();
                 String enDateStr = bo.getEnDateStr();
                 sb.append("(request_data between '")
