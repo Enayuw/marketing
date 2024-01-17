@@ -80,7 +80,7 @@
     <dependency>
         <groupId>com.br.transfer</groupId>
         <artifactId>header-transfer-spring-boot-starter</artifactId>
-        <version>1.0.5</version>
+        <version>1.0.6</version>
         <!-- 排除ribbon依赖 -->
         <exclusions>
             <exclusion>
