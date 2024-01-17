@@ -143,7 +143,8 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
         Date startDate = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date endDate = Date.from(localDate.atTime(23, 59, 59, 999999999)
                 .atZone(ZoneId.systemDefault()).toInstant());
-        Date date = Date.from(now.atTime(LocalTime.now(ZoneId.systemDefault())).atZone(ZoneId.systemDefault()).toInstant());
+        //有效期判断-1天
+        LocalDate date = now.minusDays(1);
         int pageSize = 2000;
         List<String> statusList = Arrays.asList("a", "b");
         List<BatchRealTimeUserDataDTO> transferData;

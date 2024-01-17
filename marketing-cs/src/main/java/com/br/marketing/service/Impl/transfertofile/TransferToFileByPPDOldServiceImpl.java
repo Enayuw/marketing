@@ -178,7 +178,7 @@ public class TransferToFileByPPDOldServiceImpl implements ITransferToFileService
             Set<String> custNumSet = phoneSaleExtendInfos.stream().map(PhoneSaleExtendInfo::getCustNum)
                     .collect(Collectors.toSet());
             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
-                    transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSet, apiCode, new Date());
+                    transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSet, apiCode, LocalDate.now().minusDays(1));
             //判断是否再有效期内
             for (PhoneSaleExtendInfo data : phoneSaleExtendInfos) {
                 String custNum = data.getCustNum();

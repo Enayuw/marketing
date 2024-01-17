@@ -12,6 +12,7 @@ import lombok.Data;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +65,7 @@ public class PpdLodCollectDataImpl extends CommonMethodHandlerService {
             List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
             Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
-                    transferDataValidityPeriodService.getValidityPeriodsByCustNum(set, context.getApiCode(), new Date());
+                    transferDataValidityPeriodService.getValidityPeriodsByCustNum(set, context.getApiCode(), LocalDate.now().minusDays(1));
             ruleNecessaryData.setUserValidityPeriodsBoMap(validityPeriodsByCustNum);
             context.setRuleNecessaryData(ruleNecessaryData);
         }
