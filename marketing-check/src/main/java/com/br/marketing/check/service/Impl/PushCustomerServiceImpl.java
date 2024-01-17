@@ -263,14 +263,14 @@ public class PushCustomerServiceImpl implements PushCustomerService {
 
         //region数据更新排序
         Integer retrySort = 2;
-        Integer sortIndex =1;
+        Integer sortIndex = 1;
         while (retrySort != 0) {
-            log.warn(String.format("【%s】,跑分文件id【%s】更新排序第【%d】次"
-                    , pushCustomerConfig.getScoreRuleShortName()
-                    , straHisFile.getId()
-                    , sortIndex));
             if (CallBackPushStatusEnum.STARTING.getValue().equals(straHisFile.getPushStatus())
                     || CallBackPushStatusEnum.SORTFAIL.getValue().equals(straHisFile.getPushStatus())) {
+                log.warn(String.format("【%s】,跑分文件id【%s】更新排序第【%d】次"
+                        , pushCustomerConfig.getScoreRuleShortName()
+                        , straHisFile.getId()
+                        , sortIndex));
                 AtomicInteger errorSort = new AtomicInteger();
                 if (vos.size() > 1) {
                     sortDb(straHisFile, vos, errorSort, pushCustomerConfig);
@@ -284,6 +284,8 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                     sendAlarm(String.format("数据更新顺序过程有错误，暂停后续的推送动作！fileId:%d", straHisFile.getId()));
                     jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.FALSE);
                 }
+            }else{
+                retrySort = 0;
             }
             sortIndex++;
         }
@@ -316,6 +318,8 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 } else {
                     updateFilePushStatus(straHisFile, CallBackPushStatusEnum.SUCCESS);
                 }
+            } else {
+                push = Boolean.FALSE;
             }
 
             log.warn(String.format("【%s】,跑分文件id【%s】数据推送耗时：%d"
@@ -808,7 +812,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     public String hasFileLock(Long fileId) {
         String lockValue = UUID.randomUUID().toString();
         String pushKey = RedisKeyConstant.SCORE_TO_CUSTOMER_FILE_KEY.concat(":").concat(fileId.toString());
-        if(redisChgService.setnx(pushKey, lockValue,60*60*10)){
+        if (redisChgService.setnx(pushKey, lockValue, 60 * 60 * 10)) {
             return lockValue;
         }
         return null;
@@ -817,7 +821,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     @Override
     public void removeFileLock(Long fileId, String value) {
         String pushKey = RedisKeyConstant.SCORE_TO_CUSTOMER_FILE_KEY.concat(":").concat(fileId.toString());
-        if(value.equals(redisChgService.get(pushKey))){
+        if (value.equals(redisChgService.get(pushKey))) {
             redisChgService.del(pushKey);
         }
     }
@@ -899,7 +903,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     public void mockError(String type) {
         if (marketingCommonConfig.getMockCallBackError() != null
                 && marketingCommonConfig.getMockCallBackError().get(type) != null) {
-            if(marketingCommonConfig.getMockCallBackError().get(type)){
+            if (marketingCommonConfig.getMockCallBackError().get(type)) {
                 throw new RuntimeException("伪造错误");
             }
         }
