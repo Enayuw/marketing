@@ -800,8 +800,26 @@ public class PushCustomerServiceImpl implements PushCustomerService {
     }
 
     @Override
-    public StraHisFile getFile(Long fildId) {
-        return straHisFileMapper.selectByPrimaryKey(fildId);
+    public StraHisFile getFile(Long fileId) {
+        return straHisFileMapper.selectByPrimaryKey(fileId);
+    }
+
+    @Override
+    public String hasFileLock(Long fileId) {
+        String lockValue = UUID.randomUUID().toString();
+        String pushKey = RedisKeyConstant.SCORE_TO_CUSTOMER_FILE_KEY.concat(":").concat(fileId.toString());
+        if(redisChgService.setnx(pushKey, lockValue,60*60*10)){
+            return lockValue;
+        }
+        return null;
+    }
+
+    @Override
+    public void removeFileLock(Long fileId, String value) {
+        String pushKey = RedisKeyConstant.SCORE_TO_CUSTOMER_FILE_KEY.concat(":").concat(fileId.toString());
+        if(value.equals(redisChgService.get(pushKey))){
+            redisChgService.del(pushKey);
+        }
     }
 
     @Override

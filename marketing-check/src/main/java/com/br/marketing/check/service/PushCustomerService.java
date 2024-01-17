@@ -58,7 +58,11 @@ public interface PushCustomerService {
 
     List<ScorePushCustomerConfig> getScorePushConfigs(Long fildId);
 
-    StraHisFile getFile(Long fildId);
+    StraHisFile getFile(Long fileId);
+
+    String hasFileLock(Long fileId);
+
+    void removeFileLock(Long fileId,String value);
 
     /**
      * 判断该跑分配置是否回调

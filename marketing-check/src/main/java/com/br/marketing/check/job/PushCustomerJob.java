@@ -44,25 +44,31 @@ public class PushCustomerJob extends AbstractSimpleElasticJob {
             List<ScorePushCustomerConfig> scorePushConfigs = null;
             String fileId = jobExecutionMultipleShardingContext.getJobParameter();
             boolean handMark = StringUtils.isNotBlank(fileId);
-            if(handMark){
-                scorePushConfigs =pushCustomerService.getScorePushConfigs(Long.valueOf(fileId));
-            }else{
+            if (handMark) {
+                scorePushConfigs = pushCustomerService.getScorePushConfigs(Long.valueOf(fileId));
+            } else {
                 scorePushConfigs = pushCustomerService.getScorePushConfigs();
             }
             for (ScorePushCustomerConfig scorePushConfig : scorePushConfigs) {
-                if(handMark){
+                if (handMark) {
                     StraHisFile file = pushCustomerService.getFile(Long.valueOf(fileId));
-                    Long start = System.currentTimeMillis();
-                    log.warn(String.format("【%s】手动触发开始执行回调，跑分任务id【%s】"
-                            , scorePushConfig.getScoreRuleShortName(), file.getId()));
 
-                    pushCustomerService.push(scorePushConfig, file);
+                    String s = pushCustomerService.hasFileLock(file.getId());
+                    if (StringUtils.isNotBlank(s)) {
+                        Long start = System.currentTimeMillis();
+                        log.warn(String.format("【%s】手动触发开始执行回调，跑分任务id【%s】"
+                                , scorePushConfig.getScoreRuleShortName(), file.getId()));
 
-                    Long end = System.currentTimeMillis();
-                    log.warn(String.format("【%s】手动触发回调结束，跑分任务id【%s】，耗时【%d】"
-                            , scorePushConfig.getScoreRuleShortName()
-                            , file.getId(), (end - start)));
-                }else{
+                        pushCustomerService.push(scorePushConfig, file);
+
+                        pushCustomerService.removeFileLock(file.getId(), s);
+                        Long end = System.currentTimeMillis();
+                        log.warn(String.format("【%s】手动触发回调结束，跑分任务id【%s】，耗时【%d】"
+                                , scorePushConfig.getScoreRuleShortName()
+                                , file.getId(), (end - start)));
+                    }
+
+                } else {
                     Result<StraHisFile> configRes = pushCustomerService.isPush(scorePushConfig);
                     if (ResultCode.SUCCESS.getValue().equals(configRes.getCode())) {
 
