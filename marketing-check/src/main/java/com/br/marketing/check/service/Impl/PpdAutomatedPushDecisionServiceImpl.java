@@ -19,6 +19,7 @@ import com.br.marketing.origin.MqFact;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.strategy.PolicySoleHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +59,9 @@ public class PpdAutomatedPushDecisionServiceImpl implements AutomatedPushDecisio
 
     @Autowired
     private PolicySoleHandler policySoleHandler;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
 
     @Override
@@ -142,14 +146,18 @@ public class PpdAutomatedPushDecisionServiceImpl implements AutomatedPushDecisio
             SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = periodBOMap.get(transferSyncUser.getCustNum());
             //有效
             if (syncUserValidityPeriodsBO != null) {
+                HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();
+                Integer encType = ScoreThreeKeyEncryptEnum.md5.getValue();
+                if (pushCellEncPolicy != null && pushCellEncPolicy.get(apiCode) != null) {
+                    encType = pushCellEncPolicy.get(apiCode);
+                }
                 PeriodOfValidityBO periodOfValidityBO = syncUserValidityPeriodsBO.getBuilders().get(0).addDateString().builder();
                 String beginDate = periodOfValidityBO.getBeginDateStr();
                 PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
                 pushMarketingUserDetailByRuleDTO.setCaseNumber(transferSyncUser.getCustNum());
                 pushMarketingUserDetailByRuleDTO.setBatchNumber(beginDate.substring(5,7) + "_" + status + "_" + apiCode);
                 String cell = syncUserValidityPeriodsBO.getSyncUsers().get(0).getCell();
-                String Md5Cell = pushRuleService.encrypt3k(ScoreThreeKeyEncryptEnum.md5.getValue(), BrCipherMaker.getInstance().decode(cell));
-                pushMarketingUserDetailByRuleDTO.setPhone(Md5Cell);
+                pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(cell)));
                 pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(cell));
                 pushMarketingUserDetailByRuleDTO.setInitId(transferSyncUser.getId());
                 pushMarketingUserDetailByRuleDTO.setVariables(new JSONObject());
