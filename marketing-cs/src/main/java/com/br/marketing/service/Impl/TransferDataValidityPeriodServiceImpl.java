@@ -1251,9 +1251,18 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     private boolean isNotExistDataValidConfig(List<MarketingDataValidConfig> configList, String apiCode) {
         // 未配置任何有效期
         if (CollectionUtils.isEmpty(configList)) {
+            MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
+            example.createCriteria().andApiCodeEqualTo(apiCode).andValidTypeEqualTo(1).andIsDelEqualTo(1);
+            int i = marketingDataValidConfigMapper.countByExample(example);
+            if (i < 1) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
+                        , "未配置任何有效期，请配置对应的有效期规则;apiCode:" + apiCode
+                        , apiCode + AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getMessage()));
+                return true;
+            }
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
-                , apiCode + "未配置任何有效期，请配置对应的有效期规则"
-                , apiCode + AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getMessage()));
+                    , "数据不在有效期范围;apiCode:" + apiCode
+                    , apiCode + AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getMessage()));
             return true;
         }
         return false;
@@ -1264,15 +1273,25 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      * 场景是否存在有效期配置
      */
     private void userTypeExistDataValidConfigCheck(List<MarketingDataValidConfig> configList
-        , Set<String> userTypeSet, String apiCode, boolean isLast) {
+            , Set<String> userTypeSet, String apiCode, boolean isLast) {
         Set<String> configUserTypeSet = configList.stream().map(
-            MarketingDataValidConfig::getUserType).collect(Collectors.toSet());
+                MarketingDataValidConfig::getUserType).collect(Collectors.toSet());
         userTypeSet.removeAll(configUserTypeSet);
         // 未配置任何有效期
         if (isLast && userTypeSet.size() > 0) {
+            MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
+            example.createCriteria().andApiCodeEqualTo(apiCode).andValidTypeEqualTo(1).andIsDelEqualTo(1)
+                    .andUserTypeIn(new ArrayList<>(userTypeSet));
+            int i = marketingDataValidConfigMapper.countByExample(example);
+            if (i < 1) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
+                        , "未配置任何有效期，请配置对应的有效期规则;apiCode:" + apiCode + ";userType:" + userTypeSet
+                        , apiCode + AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getMessage()));
+                return;
+            }
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
-                , "场景未配置任何有效期，请配置对应的有效期规则;apiCode:" + apiCode + ";userType:" + userTypeSet
-                , apiCode + "存在场景未配置有效期规则"));
+                    , "数据不在有效期范围;apiCode:" + apiCode + ";userType:" + userTypeSet
+                    , apiCode + AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getMessage()));
         }
     }
 
