@@ -376,6 +376,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         boolean userTypeFromConditionInfosFlag = false;
         if(null == userTypeList || userTypeList.size()<1){
             userTypeFromConditionInfosFlag = true;
+            userTypeList = new ArrayList<>();
         }
         for (int i = 0; i < data.size(); i++) {
             if (isVer && preMaxNum <= 0) {
@@ -394,11 +395,13 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 showStr.append(",");
             }
             if(userTypeFromConditionInfosFlag){
-                List<String> userTypeByList = new ArrayList<>();
+                List<String> userTypeByList;
                 // 查询符合跑分数据的场景
                 userTypeByList = syncInfoMapper
                         .queryUserTypeListWithDatetikv_(apiCode, null, null, whereStr);
-                userTypeList.addAll(userTypeByList);
+                if(null != userTypeByList && userTypeByList.size() > 0){
+                    userTypeList.addAll(userTypeByList);
+                }
             }
         }
         // 去重
