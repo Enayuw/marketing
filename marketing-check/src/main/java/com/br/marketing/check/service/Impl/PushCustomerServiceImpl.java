@@ -1,7 +1,5 @@
 package com.br.marketing.check.service.Impl;
 
-import IceInternal.Ex;
-import cn.hutool.core.collection.ListUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -10,12 +8,10 @@ import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.check.service.PushCallBackService;
 import com.br.marketing.check.service.PushCustomerService;
-import com.br.marketing.check.thread.PushDataThread;
 import com.br.marketing.check.utils.MomUtil;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailDTO;
 import com.br.marketing.client.zbank.ZbankClient;
 import com.br.marketing.client.zbank.ZbankResponse;
 import com.br.marketing.common.commondto.Result;
@@ -26,6 +22,7 @@ import com.br.marketing.common.utils.*;
 import com.br.marketing.dto.zbank.ZbankLabelRatingReResultDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.CallBackPushStatusEnum;
+import com.br.marketing.enums.CallBackScoreResourceEnum;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
@@ -33,29 +30,18 @@ import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.es.util.UuidUtils;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IJobManagerService;
-import com.br.marketing.service.Impl.jobmanager.JobManagerServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.ConditionOfScoreVO;
-import com.br.marketing.vo.TaskExtendInfoVO;
-import com.br.marketing.vo.scorepushcustomer.HxResultVO;
 import com.br.marketing.vo.scorepushcustomer.ScoreSortJsonVO;
-import com.google.common.base.Joiner;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.lettuce.core.KeyValue;
-import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.lang.reflect.Array;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -63,9 +49,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * //				    _ooOoo_
@@ -163,9 +147,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         //endregion
 
         //写入数据的线程数-写入db或者redis
-        int dataBuildThread = marketingCommonConfig.getScoreDbAndRedisThreadNum() != null
-                ? marketingCommonConfig.getScoreDbAndRedisThreadNum()
-                : 10;
+        int dataBuildThread = getPushCustomerResource(pushCustomerConfig, CallBackScoreResourceEnum.WriteDbThreadNumber);
 
         //查询数据的线程池 按照不同顺序并发查询
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(2, 4, "job_scoreBackSort");
@@ -272,16 +254,16 @@ public class PushCustomerServiceImpl implements PushCustomerService {
 
         //region数据更新排序
         Integer retrySort = 2;
-        while(retrySort!=0) {
+        while (retrySort != 0) {
             if (CallBackPushStatusEnum.STARTING.getValue().equals(straHisFile.getPushStatus())
                     || CallBackPushStatusEnum.SORTFAIL.getValue().equals(straHisFile.getPushStatus())) {
                 AtomicInteger errorSort = new AtomicInteger();
                 if (vos.size() > 1) {
-                    sortDb(straHisFile, vos, errorSort);
+                    sortDb(straHisFile, vos, errorSort, pushCustomerConfig);
                 }
                 if (errorSort.get() <= 0) {
                     updateFilePushStatus(straHisFile, CallBackPushStatusEnum.SORTOK);
-                    retrySort=0;
+                    retrySort = 0;
                 } else {
                     retrySort--;
                     updateFilePushStatus(straHisFile, CallBackPushStatusEnum.SORTFAIL);
@@ -290,7 +272,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 }
             }
         }
-        if(CallBackPushStatusEnum.SORTFAIL.getValue().equals(straHisFile.getPushStatus())){
+        if (CallBackPushStatusEnum.SORTFAIL.getValue().equals(straHisFile.getPushStatus())) {
             return;
         }
         //endregion
@@ -303,7 +285,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                     || CallBackPushStatusEnum.CALLBACKFAIL.getValue().equals(straHisFile.getPushStatus())) {
                 AtomicInteger error = new AtomicInteger();
                 PushCallBackService pushCallBackService = pushCallBackMap.get(pushCustomerConfig.getPushMethod());
-                pushCallBackService.pushCustomer(straHisFile, vos, error);
+                pushCallBackService.pushCustomer(straHisFile, vos, error, pushCustomerConfig);
                 if (error.get() > 0) {
                     straHisFile.setPushStatus(2);
                     updateFilePushStatus(straHisFile, CallBackPushStatusEnum.CALLBACKFAIL);
@@ -333,14 +315,28 @@ public class PushCustomerServiceImpl implements PushCustomerService {
 
     }
 
+
+    @Override
+    public Integer getPushCustomerResource(ScorePushCustomerConfig pushCustomerConfig, CallBackScoreResourceEnum callBackScoreResourceEnum) {
+        if (pushCustomerConfig != null
+                && StringUtils.isNotBlank(pushCustomerConfig.getResourceConfig())) {
+            try {
+                JSONObject resourceConfig = JSON.parseObject(pushCustomerConfig.getResourceConfig());
+                return (Integer) resourceConfig.getOrDefault(callBackScoreResourceEnum.getKey(), callBackScoreResourceEnum.getValue());
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
+        }
+        return callBackScoreResourceEnum.getValue();
+    }
+
     private void sendAlarm(String message) {
         alarmApiClient.sendAlarm(message, "跑分推送客户", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
     }
 
-    private void sortDb(StraHisFile straHisFile, List<ScoreSortJsonVO> vos, AtomicInteger error) {
-        int pushThream = marketingCommonConfig.getScoreUpdateSortThreadNum() == null
-                ? 5 : marketingCommonConfig.getScoreUpdateSortThreadNum();
-        ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_updateSort");
+    private void sortDb(StraHisFile straHisFile, List<ScoreSortJsonVO> vos, AtomicInteger error, ScorePushCustomerConfig scorePushCustomerConfig) {
+        int sortThreadNum = getPushCustomerResource(scorePushCustomerConfig, CallBackScoreResourceEnum.UpdateSortThreadNumber);
+        ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(sortThreadNum, sortThreadNum, "job_updateSort");
         Boolean action = Boolean.TRUE;
         Long minId = null;
         while (action) {
@@ -717,7 +713,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                             pushCustomerDetail.setTaskId(marketingHistory.getTaskId());
                             pushCustomerDetail.setUserType(marketingHistory.getUserType());
                             pushCustomerDetail.setCreateTime(new Date());
-                            if (marketingHistory.getCondition().size()>0) {
+                            if (marketingHistory.getCondition().size() > 0) {
                                 JSONObject varObject = new JSONObject();
                                 for (MarketingCondition marketingCondition : marketingHistory.getCondition()) {
                                     if (org.apache.commons.lang3.StringUtils.isNotBlank(marketingCondition.getCode())) {

@@ -5,11 +5,13 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.check.service.PushCallBackService;
+import com.br.marketing.check.service.PushCustomerService;
 import com.br.marketing.client.zbank.ZbankClient;
 import com.br.marketing.client.zbank.ZbankResponse;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.zbank.ZbankLabelRatingReResultDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.CallBackScoreResourceEnum;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.PushCustomerDetailMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -50,8 +52,11 @@ public class PushCallBackByZhongBangServiceImpl implements PushCallBackService {
     @Autowired
     ZbankClient zbankClient;
 
+    @Autowired
+    PushCustomerService pushCustomerService;
+
     @Override
-    public void pushCustomer(StraHisFile straHisFile, List<ScoreSortJsonVO> vos, AtomicInteger error) {
+    public void pushCustomer(StraHisFile straHisFile, List<ScoreSortJsonVO> vos, AtomicInteger error, ScorePushCustomerConfig pushCustomerConfig) {
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andApiCodeEqualTo(straHisFile.getApiCode()).andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
@@ -60,15 +65,12 @@ public class PushCallBackByZhongBangServiceImpl implements PushCallBackService {
             return;
         }
         MarketingCustomer marketingCustomer = marketingCustomers.get(0);
-        int pushThream = (marketingCustomer.getPushThreadNum() == null
-                || Integer.valueOf(0).equals(marketingCustomer.getPushThreadNum()))
-                ? 5 : marketingCustomer.getPushThreadNum();
+        int pushThream = pushCustomerService.getPushCustomerResource(pushCustomerConfig, CallBackScoreResourceEnum.PushCustomerThreadNumber);
+        ;
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_pushCustomer");
         Integer pageIndex = 0;
-        Integer pageSize = marketingCommonConfig.getScoreTaskPageSizeByPushCustomer() == null
-                ? 2000 : marketingCommonConfig.getScoreTaskPageSizeByPushCustomer();
-        Integer dataPageSize = marketingCommonConfig.getScoreDataPageSizeByPushCustomer() == null
-                ? 1000 : marketingCommonConfig.getScoreDataPageSizeByPushCustomer();
+        Integer pageSize = pushCustomerService.getPushCustomerResource(pushCustomerConfig, CallBackScoreResourceEnum.PushTaskPageByZhongAnNumber);
+        Integer dataPageSize = pushCustomerService.getPushCustomerResource(pushCustomerConfig, CallBackScoreResourceEnum.PushCustomerDataPageNumber);
         Boolean taskAction = Boolean.TRUE;
         while (taskAction) {
             Integer start = pageIndex * pageSize;
@@ -162,8 +164,8 @@ public class PushCallBackByZhongBangServiceImpl implements PushCallBackService {
         }
         try {
             waitThreadPool(pushPool);
-        }catch (Exception ex){
-            log.error(ex.getMessage(),ex);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
         }
     }
 }

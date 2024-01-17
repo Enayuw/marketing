@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.check.service.PushCallBackService;
+import com.br.marketing.check.service.PushCustomerService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailDTO;
@@ -12,6 +13,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.CallBackScoreResourceEnum;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.PushCustomerDetailMapper;
 import com.br.marketing.service.PushRuleService;
@@ -48,30 +50,23 @@ public class PushCallBackByPolicyServiceImpl implements PushCallBackService {
     PushRuleService pushRuleService;
 
     @Autowired
+    PushCustomerService pushCustomerService;
+
+    @Autowired
     IntelligentCustomerServiceClient intelligentCustomerServiceClient;
 
     @Override
-    public void pushCustomer(StraHisFile straHisFile, List<ScoreSortJsonVO> vos, AtomicInteger error) {
-        MarketingCustomerExample customerExample = new MarketingCustomerExample();
-        customerExample.createCriteria().andApiCodeEqualTo(straHisFile.getApiCode()).andStatusEqualTo(Byte.valueOf("1"));
-        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
-        if (marketingCustomers.size() <= 0) {
-            log.warn(String.format("【%s】客户被删除!", straHisFile.getApiCode()));
-            return;
-        }
+    public void pushCustomer(StraHisFile straHisFile, List<ScoreSortJsonVO> vos, AtomicInteger error, ScorePushCustomerConfig pushCustomerConfig) {
+
         Result<Integer> integerResult = pushRuleService.checkThreekEnc(Arrays.asList(straHisFile.getId()));
         if (!ResultCode.SUCCESS.getValue().equals(integerResult.getCode())) {
             log.error(String.format("该推送不符合推送决策的限制条件 跑批id：【%s】,原因：【%s】", straHisFile.getId(), integerResult.getMessage()));
             return;
         }
         Integer threeEncrypt = integerResult.getData();
-        MarketingCustomer marketingCustomer = marketingCustomers.get(0);
-        int pushThream = (marketingCustomer.getPushThreadNum() == null
-                || Integer.valueOf(0).equals(marketingCustomer.getPushThreadNum()))
-                ? 5 : marketingCustomer.getPushThreadNum();
+        int pushThream = pushCustomerService.getPushCustomerResource(pushCustomerConfig, CallBackScoreResourceEnum.PushCustomerThreadNumber);
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_pushCustomer");
-        Integer dataPageSize = marketingCommonConfig.getScoreDataPageSizeByPushCustomer() == null
-                ? 1000 : marketingCommonConfig.getScoreDataPageSizeByPushCustomer();
+        Integer dataPageSize = pushCustomerService.getPushCustomerResource(pushCustomerConfig, CallBackScoreResourceEnum.PushCustomerDataPageNumber);
         Boolean dataAction = Boolean.TRUE;
         Long minId = null;
         String batchNumber = new SimpleDateFormat("yyyyMMdd").format(straHisFile.getCreateTime()).concat("_a_").concat(straHisFile.getApiCode());
@@ -103,13 +98,13 @@ public class PushCallBackByPolicyServiceImpl implements PushCallBackService {
                         dto1.setCaseNumber(detail.getCustNum());
                         dto1.setPhone(pushRuleService.encrypt3k(threeEncrypt, BrCipherMaker.getInstance().decode(detail.getCell())));
                         JSONObject varObject = null;
-                        try{
+                        try {
                             varObject = JSON.parseObject(detail.getPushJson());
-                        }catch (Exception ex){
-                            log.error(ex.getMessage(),ex);
+                        } catch (Exception ex) {
+                            log.error(ex.getMessage(), ex);
                             varObject = new JSONObject();
                         }
-                        varObject.put("ordId",detail.getCustNum());
+                        varObject.put("orderId", detail.getCustNum());
                         varObject.put("taskId", detail.getTaskId());
                         varObject.put("userType", detail.getUserType());
                         for (ScoreSortJsonVO vo : vos) {
@@ -124,7 +119,7 @@ public class PushCallBackByPolicyServiceImpl implements PushCallBackService {
                     pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
                     pushMarketingUserTaskInfoDTO.setBatchNumber(batchNumber);
                     pushMarketingUserTaskInfoDTO.setAccessNumber(straHisFile.getId().toString().concat("_")
-                            + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))+"_"+pageThread);
+                            + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + "_" + pageThread);
                     pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
                     //传输参数信息
                     PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
@@ -151,8 +146,8 @@ public class PushCallBackByPolicyServiceImpl implements PushCallBackService {
         }
         try {
             waitThreadPool(pushPool);
-        }catch (Exception ex){
-            log.error(ex.getMessage(),ex);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
         }
     }
 }

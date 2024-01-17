@@ -68,6 +68,11 @@ public class ScorePushCustomerConfig {
      */
     private String pushMethod;
 
+    /**
+     * 资源配置
+     */
+    private String resourceConfig;
+
     public Long getId() {
         return id;
     }
@@ -170,5 +175,13 @@ public class ScorePushCustomerConfig {
 
     public void setPushMethod(String pushMethod) {
         this.pushMethod = pushMethod == null ? null : pushMethod.trim();
+    }
+
+    public String getResourceConfig() {
+        return resourceConfig;
+    }
+
+    public void setResourceConfig(String resourceConfig) {
+        this.resourceConfig = resourceConfig == null ? null : resourceConfig.trim();
     }
 }

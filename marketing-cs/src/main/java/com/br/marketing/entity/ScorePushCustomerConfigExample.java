@@ -964,6 +964,76 @@ public class ScorePushCustomerConfigExample {
             addCriterion("push_method not between", value1, value2, "pushMethod");
             return (Criteria) this;
         }
+
+        public Criteria andResourceConfigIsNull() {
+            addCriterion("resource_config is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigIsNotNull() {
+            addCriterion("resource_config is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigEqualTo(String value) {
+            addCriterion("resource_config =", value, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigNotEqualTo(String value) {
+            addCriterion("resource_config <>", value, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigGreaterThan(String value) {
+            addCriterion("resource_config >", value, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigGreaterThanOrEqualTo(String value) {
+            addCriterion("resource_config >=", value, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigLessThan(String value) {
+            addCriterion("resource_config <", value, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigLessThanOrEqualTo(String value) {
+            addCriterion("resource_config <=", value, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigLike(String value) {
+            addCriterion("resource_config like", value, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigNotLike(String value) {
+            addCriterion("resource_config not like", value, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigIn(List<String> values) {
+            addCriterion("resource_config in", values, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigNotIn(List<String> values) {
+            addCriterion("resource_config not in", values, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigBetween(String value1, String value2) {
+            addCriterion("resource_config between", value1, value2, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigNotBetween(String value1, String value2) {
+            addCriterion("resource_config not between", value1, value2, "resourceConfig");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

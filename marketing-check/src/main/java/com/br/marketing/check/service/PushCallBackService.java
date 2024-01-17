@@ -1,6 +1,7 @@
 package com.br.marketing.check.service;
 
 import com.br.marketing.entity.PushCustomerDetail;
+import com.br.marketing.entity.ScorePushCustomerConfig;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.vo.scorepushcustomer.ScoreSortJsonVO;
 
@@ -9,7 +10,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public interface PushCallBackService {
-    void pushCustomer(StraHisFile straHisFile, List<ScoreSortJsonVO> vos, AtomicInteger error);
+    void pushCustomer(StraHisFile straHisFile, List<ScoreSortJsonVO> vos, AtomicInteger error, ScorePushCustomerConfig scorePushCustomerConfig);
 
     default String getScoreSortByDb(Integer dbNumber, PushCustomerDetail detail) {
         switch (dbNumber) {

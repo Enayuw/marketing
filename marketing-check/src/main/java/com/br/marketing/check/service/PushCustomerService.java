@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.entity.ScorePushCustomerConfig;
 import com.br.marketing.entity.StraHisFile;
+import com.br.marketing.enums.CallBackScoreResourceEnum;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 
 import java.util.List;
@@ -36,16 +37,27 @@ import java.util.List;
  **/
 public interface PushCustomerService {
 
-    void push(ScorePushCustomerConfig pushCustomerConfig,StraHisFile file);
+    void push(ScorePushCustomerConfig pushCustomerConfig, StraHisFile file);
+
+    /**
+     * 获取回调的配置资源
+     *
+     * @param pushCustomerConfig
+     * @param callBackScoreResourceEnum
+     * @return
+     */
+    Integer getPushCustomerResource(ScorePushCustomerConfig pushCustomerConfig, CallBackScoreResourceEnum callBackScoreResourceEnum);
 
     /**
      * 获取跑分回调配置
+     *
      * @return
      */
     List<ScorePushCustomerConfig> getScorePushConfigs();
 
     /**
      * 判断该跑分配置是否回调
+     *
      * @param pushCustomerConfig
      * @return
      */

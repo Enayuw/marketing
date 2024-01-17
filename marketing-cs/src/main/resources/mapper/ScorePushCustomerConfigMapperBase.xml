@@ -15,6 +15,7 @@
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="push_type" property="pushType" jdbcType="INTEGER" />
     <result column="push_method" property="pushMethod" jdbcType="VARCHAR" />
+    <result column="resource_config" property="resourceConfig" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -77,7 +78,7 @@
   <sql id="Base_Column_List" >
     id, api_code, score_rule_short_name, field_mapping, score_sort1_mapping, score_sort2_mapping, 
     score_sort3_mapping, score_sort4_mapping, is_del, create_time, update_time, push_type, 
-    push_method
+    push_method, resource_config
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ScorePushCustomerConfigExample" >
     select
@@ -116,13 +117,13 @@
     insert into b_score_push_customer_config (api_code, score_rule_short_name, field_mapping, 
       score_sort1_mapping, score_sort2_mapping, score_sort3_mapping, 
       score_sort4_mapping, is_del, create_time, 
-      update_time, push_type, push_method
-      )
+      update_time, push_type, push_method, 
+      resource_config)
     values (#{apiCode,jdbcType=VARCHAR}, #{scoreRuleShortName,jdbcType=VARCHAR}, #{fieldMapping,jdbcType=VARCHAR}, 
       #{scoreSort1Mapping,jdbcType=VARCHAR}, #{scoreSort2Mapping,jdbcType=VARCHAR}, #{scoreSort3Mapping,jdbcType=VARCHAR}, 
       #{scoreSort4Mapping,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{pushType,jdbcType=INTEGER}, #{pushMethod,jdbcType=VARCHAR}
-      )
+      #{updateTime,jdbcType=TIMESTAMP}, #{pushType,jdbcType=INTEGER}, #{pushMethod,jdbcType=VARCHAR}, 
+      #{resourceConfig,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.ScorePushCustomerConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -166,6 +167,9 @@
       <if test="pushMethod != null" >
         push_method,
       </if>
+      <if test="resourceConfig != null" >
+        resource_config,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -203,6 +207,9 @@
       </if>
       <if test="pushMethod != null" >
         #{pushMethod,jdbcType=VARCHAR},
+      </if>
+      <if test="resourceConfig != null" >
+        #{resourceConfig,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -254,6 +261,9 @@
       <if test="record.pushMethod != null" >
         push_method = #{record.pushMethod,jdbcType=VARCHAR},
       </if>
+      <if test="record.resourceConfig != null" >
+        resource_config = #{record.resourceConfig,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -273,7 +283,8 @@
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       push_type = #{record.pushType,jdbcType=INTEGER},
-      push_method = #{record.pushMethod,jdbcType=VARCHAR}
+      push_method = #{record.pushMethod,jdbcType=VARCHAR},
+      resource_config = #{record.resourceConfig,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -317,6 +328,9 @@
       <if test="pushMethod != null" >
         push_method = #{pushMethod,jdbcType=VARCHAR},
       </if>
+      <if test="resourceConfig != null" >
+        resource_config = #{resourceConfig,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -333,7 +347,8 @@
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       push_type = #{pushType,jdbcType=INTEGER},
-      push_method = #{pushMethod,jdbcType=VARCHAR}
+      push_method = #{pushMethod,jdbcType=VARCHAR},
+      resource_config = #{resourceConfig,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
