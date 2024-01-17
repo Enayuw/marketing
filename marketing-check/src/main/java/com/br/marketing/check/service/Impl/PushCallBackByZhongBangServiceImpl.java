@@ -69,7 +69,7 @@ public class PushCallBackByZhongBangServiceImpl implements PushCallBackService {
         ;
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(pushThream, pushThream, "job_pushCustomer");
         Integer pageIndex = 0;
-        Integer pageSize = pushCustomerService.getPushCustomerResource(pushCustomerConfig, CallBackScoreResourceEnum.PushTaskPageByZhongAnNumber);
+        Integer pageSize = pushCustomerService.getPushCustomerResource(pushCustomerConfig, CallBackScoreResourceEnum.PushTaskPageByZhongBangNumber);
         Integer dataPageSize = pushCustomerService.getPushCustomerResource(pushCustomerConfig, CallBackScoreResourceEnum.PushCustomerDataPageNumber);
         Boolean taskAction = Boolean.TRUE;
         while (taskAction) {
