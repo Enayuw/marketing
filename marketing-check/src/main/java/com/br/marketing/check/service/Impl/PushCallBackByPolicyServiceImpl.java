@@ -106,6 +106,7 @@ public class PushCallBackByPolicyServiceImpl implements PushCallBackService {
                         try{
                             varObject = JSON.parseObject(detail.getPushJson());
                         }catch (Exception ex){
+                            log.error(ex.getMessage(),ex);
                             varObject = new JSONObject();
                         }
                         varObject.put("ordId",detail.getCustNum());

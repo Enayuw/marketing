@@ -3668,8 +3668,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                     labelList.forEach(labels -> {
                         List<Long> ids = labels.stream().map(t -> t.getId()).collect(Collectors.toList());
                         JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("TskId", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_" + labels.get(0).getApiCode() + "_"
-                                + RandomStringUtils.randomNumeric(5) + System.currentTimeMillis());
+                        jsonObject.put("TskId", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                                + "_" + labels.get(0).getApiCode()
+                                + "_" + RandomStringUtils.randomNumeric(5)
+                                + System.currentTimeMillis());
                         jsonObject.put("PrimKey", labels.get(0).getId());
                         JSONArray cstIndoList = new JSONArray();
                         labels.forEach(label -> {

@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @Slf4j
-public class PushCallBackByZhongAnServiceImpl implements PushCallBackService {
+public class PushCallBackByZhongBangServiceImpl implements PushCallBackService {
 
     @Resource
     MarketingCustomerMapper marketingCustomerMapper;
