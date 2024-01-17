@@ -63,5 +63,7 @@ public interface PushCustomerService {
      */
     Result<StraHisFile> isPush(ScorePushCustomerConfig pushCustomerConfig);
 
+    void mockError(String type);
+
     void retry(Customer customer);
 }

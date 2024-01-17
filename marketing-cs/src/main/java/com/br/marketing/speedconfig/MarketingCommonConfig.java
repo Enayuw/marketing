@@ -1235,5 +1235,11 @@ public class MarketingCommonConfig {
      * 海尔转化数据提取执行时间
      */
     private String NewHaierTransferExecuteTime;
+
+    /**
+     * 模拟跑分回调异常 1-获取数据异常；2-更新排序异常；3-推送数据异常
+     * {"1":true,"2":true}
+     */
+    private HashMap<String,Boolean> mockCallBackError;
 }
 

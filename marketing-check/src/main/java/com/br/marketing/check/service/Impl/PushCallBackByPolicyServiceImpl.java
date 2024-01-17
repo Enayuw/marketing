@@ -125,13 +125,21 @@ public class PushCallBackByPolicyServiceImpl implements PushCallBackService {
                     PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
                     pushMarketingUserDTO.setApiCode(straHisFile.getApiCode());
                     pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
-                    Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
                     PushCustomerDetailExample example = new PushCustomerDetailExample();
                     example.createCriteria().andIdIn(detailIds);
                     PushCustomerDetail update = new PushCustomerDetail();
-                    if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                        update.setPushStatus(2);
-                    } else {
+                    //todo 伪造代码 上线前删除
+                    try {
+                        pushCustomerService.mockError("3");
+                        Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
+
+                        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                            update.setPushStatus(2);
+                        } else {
+                            update.setPushStatus(3);
+                            error.incrementAndGet();
+                        }
+                    }catch (Exception ex){
                         update.setPushStatus(3);
                         error.incrementAndGet();
                     }

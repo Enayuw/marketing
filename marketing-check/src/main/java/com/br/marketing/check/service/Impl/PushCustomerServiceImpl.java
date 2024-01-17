@@ -196,7 +196,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 waitThreadPool(dataBuild);
                 //endregion
 
-                //region 核验更新顺序过程是否有错误
+                //region 核验数据捞取过程是否有错误
                 for (Future<List<Future<Result<Integer>>>> re : res) {
                     try {
                         if (re == null) {
@@ -242,7 +242,10 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             }
         }
         //endregion
-        log.warn(String.format("数据捞取耗时：%d", System.currentTimeMillis() - start));
+        log.warn(String.format("【%s】,跑分文件id【%s】数据捞取耗时：%d"
+                , pushCustomerConfig.getScoreRuleShortName()
+                , straHisFile.getId()
+                , System.currentTimeMillis() - start));
         if (pause) {
             updateFilePushStatus(straHisFile, CallBackPushStatusEnum.GETFAIL);
         }
@@ -254,7 +257,12 @@ public class PushCustomerServiceImpl implements PushCustomerService {
 
         //region数据更新排序
         Integer retrySort = 2;
+        Integer sortIndex =1;
         while (retrySort != 0) {
+            log.warn(String.format("【%s】,跑分文件id【%s】更新排序第【%d】次"
+                    , pushCustomerConfig.getScoreRuleShortName()
+                    , straHisFile.getId()
+                    , sortIndex));
             if (CallBackPushStatusEnum.STARTING.getValue().equals(straHisFile.getPushStatus())
                     || CallBackPushStatusEnum.SORTFAIL.getValue().equals(straHisFile.getPushStatus())) {
                 AtomicInteger errorSort = new AtomicInteger();
@@ -271,18 +279,27 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                     jobManagerByScorePushServiceImpl.updateJobStatus(allowExecute.getData(), Boolean.FALSE);
                 }
             }
+            sortIndex++;
         }
         if (CallBackPushStatusEnum.SORTFAIL.getValue().equals(straHisFile.getPushStatus())) {
             return;
         }
         //endregion
-        log.warn(String.format("更新排序耗时：%d", System.currentTimeMillis() - start));
+        log.warn(String.format("【%s】,跑分文件id【%s】更新排序耗时：%d"
+                , pushCustomerConfig.getScoreRuleShortName()
+                , straHisFile.getId()
+                , System.currentTimeMillis() - start));
 
         //region 数据推送
         Boolean push = Boolean.TRUE;
+        Integer num = 1;
         while (push) {
             if (CallBackPushStatusEnum.SORTOK.getValue().equals(straHisFile.getPushStatus())
                     || CallBackPushStatusEnum.CALLBACKFAIL.getValue().equals(straHisFile.getPushStatus())) {
+                log.warn(String.format("【%s】,跑分文件id【%s】开始推送客户第【%d】次数"
+                        , pushCustomerConfig.getScoreRuleShortName()
+                        , straHisFile.getId()
+                        , num));
                 AtomicInteger error = new AtomicInteger();
                 PushCallBackService pushCallBackService = pushCallBackMap.get(pushCustomerConfig.getPushMethod());
                 pushCallBackService.pushCustomer(straHisFile, vos, error, pushCustomerConfig);
@@ -294,7 +311,10 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 }
             }
 
-            log.warn(String.format("数据推送耗时：%d", System.currentTimeMillis() - start));
+            log.warn(String.format("【%s】,跑分文件id【%s】数据推送耗时：%d"
+                    , pushCustomerConfig.getScoreRuleShortName()
+                    , straHisFile.getId()
+                    , System.currentTimeMillis() - start));
 
             // 修改状态
             if (CallBackPushStatusEnum.SUCCESS.getValue().equals(straHisFile.getPushStatus())) {
@@ -310,6 +330,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             if (!ResultCode.SUCCESS.getValue().equals(allow.getCode())) {
                 push = Boolean.FALSE;
             }
+            num++;
         }
         //endregion
 
@@ -328,13 +349,13 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 log.error(ex.getMessage(), ex);
             }
         }
-        if(num == null){
-            num=callBackScoreResourceEnum.getValue();
+        if (num == null) {
+            num = callBackScoreResourceEnum.getValue();
         }
         log.warn(String.format("跑批回调获取资源配置：【%s】获取【%s】的数量是【%d】"
-                ,pushCustomerConfig.getScoreRuleShortName()
-                ,callBackScoreResourceEnum.getKey()
-                ,num));
+                , pushCustomerConfig.getScoreRuleShortName()
+                , callBackScoreResourceEnum.getKey()
+                , num));
         return num;
     }
 
@@ -363,6 +384,8 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             minId = pushCustomerDetails.get(pushCustomerDetails.size() - 1).getId();
             pushPool.submit(() -> {
                 try {
+                    //todo 伪造代码 上线前删除
+                    mockError("2");
                     String[] scorIds = new String[pushCustomerDetails.size()];
                     HashMap<String, PushCustomerDetail> detalMap = new HashMap();
                     for (int i = 0; i < pushCustomerDetails.size(); i++) {
@@ -692,6 +715,8 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         @Override
         public Result<Integer> call() throws Exception {
             try {
+                //todo 伪造错误 上线前去掉
+                mockError("1");
                 if (marketingHistories.size() > 0) {
                     HashMap<String, String> sortMap = new HashMap<>();
                     ArrayList<PushCustomerDetail> dbEntitys = new ArrayList<>();
@@ -747,7 +772,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
-                return new Result().setCode(ResultCode.SUCCESS.getValue());
+                return new Result().setCode(ResultCode.FAIL.getValue());
             }
         }
     }
@@ -831,6 +856,16 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         String s = redisChgService.get(pushKey);
         if (lockValue.equals(s)) {
             redisChgService.del(pushKey);
+        }
+    }
+
+    @Override
+    public void mockError(String type) {
+        if (marketingCommonConfig.getMockCallBackError() != null
+                && marketingCommonConfig.getMockCallBackError().get(type) != null) {
+            if(marketingCommonConfig.getMockCallBackError().get(type)){
+                throw new RuntimeException("伪造错误");
+            }
         }
     }
 
