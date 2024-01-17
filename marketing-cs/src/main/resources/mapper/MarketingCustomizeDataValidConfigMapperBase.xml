@@ -303,9 +303,5 @@
         update_time = #{updateTime,jdbcType=TIMESTAMP},
         is_del = #{isDel,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
-
   </update>
-  <select id="test">
-    select * from test;
-  </select>
 </mapper>
