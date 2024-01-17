@@ -305,4 +305,7 @@
     where id = #{id,jdbcType=BIGINT}
 
   </update>
+  <select id="test">
+    select * from test;
+  </select>
 </mapper>
