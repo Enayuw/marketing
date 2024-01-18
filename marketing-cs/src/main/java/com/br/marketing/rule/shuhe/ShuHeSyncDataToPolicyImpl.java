@@ -5,7 +5,9 @@ import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +17,7 @@ import org.springframework.util.DigestUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 
 /**
  * D20231218数禾电销数据自动化转决策
@@ -27,14 +30,22 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
+    @Autowired
+    PushRuleService pushRuleService;
+
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+        HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();
+        Integer encType = ScoreThreeKeyEncryptEnum.md5.getValue();
+        if (pushCellEncPolicy != null && pushCellEncPolicy.get(context.getApiCode()) != null) {
+            encType = pushCellEncPolicy.get(context.getApiCode());
+        }
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
         pushMarketingUserDetailByRuleDTO.setInitId(syncUser.getId());
         pushMarketingUserDetailByRuleDTO.setCaseNumber(syncUser.getCustNum());
         // 手机号log解密  md5加密
-        String cell = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(syncUser.getCell()).getBytes());
+        String cell = pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(syncUser.getCell()));
         pushMarketingUserDetailByRuleDTO.setPhone(cell);
 
         String apiCode = syncUser.getApiCode();

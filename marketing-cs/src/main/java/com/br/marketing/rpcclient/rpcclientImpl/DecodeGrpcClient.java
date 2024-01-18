@@ -63,7 +63,7 @@ public class DecodeGrpcClient {
             }
         } catch (Exception e) {
             log.warn("type:{} Value:{}", type, param);
-            log.error("query result--{}", JSONObject.toJSONString(resultBean));
+            log.error("query result--{}", (resultBean!=null ? resultBean.toString():"结果为null"));
             log.error("获取解密数据失败----", e);
         }
         return result;
