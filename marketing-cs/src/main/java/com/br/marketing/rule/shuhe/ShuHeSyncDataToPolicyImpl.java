@@ -55,7 +55,8 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
         pushMarketingUserDetailByRuleDTO.setStrategyCode(strategyCode);
 
         JSONObject varDto = new JSONObject();
-        varDto.put("userType", syncUser.getUserType());
+        varDto.put("groupType", syncUser.getGroupType());
+        varDto.put("orderId",syncUser.getCustNum());
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
 
         log.warn("数禾上传数据推送决策,apicode={}", apiCode);
