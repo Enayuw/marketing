@@ -29,4 +29,7 @@ public class ScoreDetailVo {
 
     @ApiModelProperty(value = "模型名称")
     private String productName;
+
+    @ApiModelProperty(value = "场景")
+    private String userType;
 }
