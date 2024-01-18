@@ -1,14 +1,17 @@
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.CkeckApplication;
+import com.br.marketing.check.service.PushCustomerService;
 import com.br.marketing.client.zbank.ZbankClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.ScorePushCustomerConfig;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.entity.TransferFileTask;
+import com.br.marketing.enums.CallBackScoreResourceEnum;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PushCustomerDetailMapper;
@@ -552,5 +555,24 @@ public class AlarmAndNoticeTest {
     public void testTask(){
         List<String> taskId = pushCustomerDetailMapper.getTaskId(2490036L, 0, 2);
         System.out.println(taskId);
+    }
+
+    @Autowired
+    PushCustomerService pushCustomerService;
+
+    @Test
+    public void testGetRescourConfig(){
+        ScorePushCustomerConfig scorePushCustomerConfig = new ScorePushCustomerConfig();
+        Integer pushCustomerResource = pushCustomerService.getPushCustomerResource(scorePushCustomerConfig, CallBackScoreResourceEnum.PushCustomerDataPageNumber);
+        System.out.println("测试1"+pushCustomerResource);
+
+        ScorePushCustomerConfig scorePushCustomerConfig1 = null;
+        Integer pushCustomerResource1 = pushCustomerService.getPushCustomerResource(scorePushCustomerConfig1, CallBackScoreResourceEnum.PushCustomerDataPageNumber);
+        System.out.println("测试2"+pushCustomerResource1);
+
+        ScorePushCustomerConfig scorePushCustomerConfig3 = new ScorePushCustomerConfig();
+        scorePushCustomerConfig3.setResourceConfig("{\"pushCustomerDataPageNumber\":50}");
+        Integer pushCustomerResource3 = pushCustomerService.getPushCustomerResource(scorePushCustomerConfig3, CallBackScoreResourceEnum.PushCustomerDataPageNumber);
+        System.out.println("测试3"+pushCustomerResource3);
     }
 }

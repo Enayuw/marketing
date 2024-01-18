@@ -364,7 +364,6 @@ public class PushRuleServiceImpl implements PushRuleService {
     TransferFiledProcessImpl transferFiledProcess;
 
 
-
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<String> pushCustomer(PushCustomerDTO dto) {
@@ -466,7 +465,8 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     }
 
-    private Result<Integer> checkThreekEnc(List<Long> fileIds) {
+    @Override
+    public Result<Integer> checkThreekEnc(List<Long> fileIds) {
         StraHisFileExample straHisFileExample = new StraHisFileExample();
         straHisFileExample.createCriteria().andIdIn(fileIds);
         List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
@@ -2198,8 +2198,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                         if (vo != null) {
                             list.add(vo);
                         }
-                    }catch (BadSqlGrammarException sqlGrammarException){
-                        log.warn(String.format("apiCode表不存在：%s",ac),sqlGrammarException);
+                    } catch (BadSqlGrammarException sqlGrammarException) {
+                        log.warn(String.format("apiCode表不存在：%s", ac), sqlGrammarException);
                     }
                 }
             }
@@ -3628,7 +3628,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         if (new Integer(1).equals(mockType)) {
             if (mockError.get(apiCode) != null && mockError.get(apiCode)) {
-                throw new KnowException(apiCode+":DB异常");
+                throw new KnowException(apiCode + ":DB异常");
             } else if (mockError.get(apiCode) != null && !mockError.get(apiCode)) {
                 return;
             }
@@ -3638,7 +3638,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         if (new Integer(2).equals(mockType)) {
             if (mockError.get(apiCode) != null && mockError.get(apiCode)) {
-                throw new KnowException(apiCode+":redis异常");
+                throw new KnowException(apiCode + ":redis异常");
             } else if (mockError.get(apiCode) != null && !mockError.get(apiCode)) {
                 return;
             }
@@ -3650,7 +3650,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     /**
      * 众邦财富定制标签数据推送
-     *
      */
 
     @Override
@@ -3683,8 +3682,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                     labelList.forEach(labels -> {
                         List<Long> ids = labels.stream().map(t -> t.getId()).collect(Collectors.toList());
                         JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("TskId", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_" + labels.get(0).getApiCode()+"_"
-                                + RandomStringUtils.randomNumeric(5) + System.currentTimeMillis());
+                        jsonObject.put("TskId", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                                + "_" + labels.get(0).getApiCode()
+                                + "_" + RandomStringUtils.randomNumeric(5)
+                                + System.currentTimeMillis());
                         jsonObject.put("PrimKey", labels.get(0).getId());
                         JSONArray cstIndoList = new JSONArray();
                         labels.forEach(label -> {
@@ -3710,7 +3711,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                     log.error("众邦财富定制标签推送异常", ex);
                 }
             });
-        };
+        }
+        ;
         pool.shutdown();
         try {
             while (!pool.awaitTermination(5L, TimeUnit.SECONDS)) {
@@ -3730,8 +3732,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         localFile.setPushStatus("2");
         localFileMapper.updateByPrimaryKeySelective(localFile);
         //统计告警
-        if(!localFile.getPushNumber().equals(localFile.getActualNumber())){
-            sendAlarm(localFile.getActualNumber()-localFile.getPushNumber(),"众邦财富定制标签推送失败数量统计");
+        if (!localFile.getPushNumber().equals(localFile.getActualNumber())) {
+            sendAlarm(localFile.getActualNumber() - localFile.getPushNumber(), "众邦财富定制标签推送失败数量统计");
         }
         log.warn("众邦财富定制标签推送结束，耗时：{} ms", System.currentTimeMillis() - st1);
 
