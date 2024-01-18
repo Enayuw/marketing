@@ -128,9 +128,9 @@ public class PushCallBackByPolicyServiceImpl implements PushCallBackService {
                     PushCustomerDetailExample example = new PushCustomerDetailExample();
                     example.createCriteria().andIdIn(detailIds);
                     PushCustomerDetail update = new PushCustomerDetail();
-                    //todo 伪造代码 上线前删除
+
                     try {
-                        pushCustomerService.mockError("3");
+                        //pushCustomerService.mockError("3");
                         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
 
                         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {

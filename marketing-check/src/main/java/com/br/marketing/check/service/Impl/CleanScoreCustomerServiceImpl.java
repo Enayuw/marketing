@@ -44,7 +44,7 @@ public class CleanScoreCustomerServiceImpl {
             List<StraHisFile> fileByRule = straHisFileMapper.getFileByRule(createTime, ruleNumber
                     , Arrays.asList(CallBackPushStatusEnum.GETFAIL.getValue()
                             ,CallBackPushStatusEnum.SUCCESS.getValue()
-                    ,CallBackPushStatusEnum.SORTOK.getValue()
+                    ,CallBackPushStatusEnum.SORTFAIL.getValue()
                     ,CallBackPushStatusEnum.CALLBACKFAIL.getValue()),1);
             for (StraHisFile straHisFile : fileByRule) {
                 for (int i = 0; i < 4; i++) {

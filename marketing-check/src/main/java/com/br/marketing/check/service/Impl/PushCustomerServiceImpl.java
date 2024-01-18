@@ -202,6 +202,19 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 waitThreadPool(dataBuild);
                 //endregion
 
+                //region redis添加过期时间
+                for (ScoreSortJsonVO vo : vos) {
+                    if (!vo.getFirst()) {
+                        String key = RedisKeyConstant.SCORE_TO_CUSTOMER_SORT_KEY
+                                .concat(":").concat(straHisFile.toString())
+                                .concat(":").concat(vo.getDbNumber().toString());
+                        if (redisChgService.exists(key)) {
+                            redisChgService.expire(key,60*60*24*3);
+                        }
+                    }
+                }
+                //endregion
+
                 //region 核验数据捞取过程是否有错误
                 for (Future<List<Future<Result<Integer>>>> re : res) {
                     try {
@@ -396,8 +409,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             minId = pushCustomerDetails.get(pushCustomerDetails.size() - 1).getId();
             pushPool.submit(() -> {
                 try {
-                    //todo 伪造代码 上线前删除
-                    mockError("2");
+//                    mockError("2");
                     String[] scorIds = new String[pushCustomerDetails.size()];
                     HashMap<String, PushCustomerDetail> detalMap = new HashMap();
                     for (int i = 0; i < pushCustomerDetails.size(); i++) {
@@ -727,8 +739,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         @Override
         public Result<Integer> call() throws Exception {
             try {
-                //todo 伪造错误 上线前去掉
-                mockError("1");
+//                mockError("1");
                 if (marketingHistories.size() > 0) {
                     HashMap<String, String> sortMap = new HashMap<>();
                     ArrayList<PushCustomerDetail> dbEntitys = new ArrayList<>();

@@ -129,8 +129,7 @@ public class PushCallBackByZhongBangServiceImpl implements PushCallBackService {
                             PushCustomerDetail update = new PushCustomerDetail();
                             String rqsSeqNo = "";
                             try {
-                                //todo 伪造代码 上线前删除
-                                pushCustomerService.mockError("3");
+//                                pushCustomerService.mockError("3");
                                 rqsSeqNo = zbankClient.cMBrScoDaFeBack(reqJb, request.getString("RqsSeqNo"));
                                 ZbankResponse<ZbankLabelRatingReResultDTO> rqZbank = JSONObject.parseObject(rqsSeqNo
                                         , new TypeReference<ZbankResponse<ZbankLabelRatingReResultDTO>>() {
