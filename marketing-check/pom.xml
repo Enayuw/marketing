@@ -39,9 +39,15 @@
             <groupId>com.br.marketing</groupId>
         </dependency>
         <dependency>
+            <groupId>com.br.marketing</groupId>
             <artifactId>marketing-cs</artifactId>
             <version>1.0-SNAPSHOT</version>
-            <groupId>com.br.marketing</groupId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -60,12 +66,33 @@
             <artifactId>okhttp</artifactId>
             <version>3.14.9</version>
         </dependency>
-        <!-- exporter 监控 http://c.100credit.cn/pages/viewpage.action?pageId=38205220 -->
-       <!-- <dependency>
-            <groupId>com.br.cloud</groupId>
-            <artifactId>spring_boot_exporter</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>-->
+        <!-- 升级guava包 并解决包冲突 开始 -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>30.1-android</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+            <version>2.12.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-client</artifactId>
+            <version>2.12.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>2.12.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-test</artifactId>
+            <version>2.12.0</version>
+        </dependency>
+        <!-- 升级guava包 并解决包冲突 结束 -->
     </dependencies>
     <build>
         <resources>
