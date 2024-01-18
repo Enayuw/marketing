@@ -36,6 +36,9 @@ public class TransferFieldProcessByQiFuFactory implements TransferFieldProcessFa
             if(ResultCode.SUCCESS.getValue().equals(logResult.getCode())){
                 MarketingSyncUser userLastByCell = marketingSyncUserMapper
                         .getUserLastByCell(transferSyncUser.getApiCode(),logResult.getData());
+                if(userLastByCell == null){
+                    return;
+                }
                 transferSyncUser.setCustNum(userLastByCell.getCustNum());
                 String reserveField1 = transferSyncUser.getReserveField1();
                 if (StringUtils.isNotBlank(reserveField1)) {
