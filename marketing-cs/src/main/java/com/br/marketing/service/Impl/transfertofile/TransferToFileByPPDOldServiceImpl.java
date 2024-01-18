@@ -154,10 +154,9 @@ public class TransferToFileByPPDOldServiceImpl implements ITransferToFileService
             page++;
         }
         int length = whereStr.length();
-        if (length > 2) {
+        if (length > 0) {
             whereStr.replace(length - 3, length, "");
         } else {
-            whereStr.delete(0, length - 1);
             whereStr.append("1!=1");
         }
         boolean mark = Boolean.TRUE;
@@ -178,7 +177,8 @@ public class TransferToFileByPPDOldServiceImpl implements ITransferToFileService
             Set<String> custNumSet = phoneSaleExtendInfos.stream().map(PhoneSaleExtendInfo::getCustNum)
                     .collect(Collectors.toSet());
             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
-                    transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSet, apiCode, LocalDate.now().minusDays(1));
+                    transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSet, apiCode
+                            , LocalDate.now().minusDays(1));
             //判断是否再有效期内
             for (PhoneSaleExtendInfo data : phoneSaleExtendInfos) {
                 String custNum = data.getCustNum();
