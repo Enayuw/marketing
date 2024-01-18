@@ -18,6 +18,7 @@ import com.br.marketing.entity.CustomerInfoPushBatchExample;
 import com.br.marketing.mapper.CustomerInfoPushBatchMapper;
 import com.br.marketing.mapper.CustomerInfoPushLogMapper;
 import com.br.marketing.mapper.CustomerInfoPushMainMapper;
+import com.br.marketing.mapper.MarketingTaskUserTypeMapper;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.vo.PushInfoListVO;
 import com.br.marketing.vo.RulePushLogOfStatusVO;
@@ -27,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,6 +47,8 @@ public class PushInfoServiceImpl implements PushInfoService {
 
     @Autowired
     private CustomerInfoPushLogMapper customerInfoPushLogMapper;
+    @Resource
+    MarketingTaskUserTypeMapper marketingTaskUserTypeMapper;
 
     @Autowired
     private IntelligentCustomerServiceClient intelligentCustomerServiceClient;
@@ -83,7 +87,13 @@ public class PushInfoServiceImpl implements PushInfoService {
                 }
             }
             list.forEach(t -> {
-                t.setBatchNumbers(batchNumberOfMid.get(t.getId()));
+                String batchNumber = batchNumberOfMid.get(t.getId());
+                t.setBatchNumbers(batchNumber);
+                List<String> userTypeList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumbertikv_(batchNumber);
+                if(null != userTypeList){
+                    String userType = userTypeList.stream().collect(Collectors.joining(","));
+                    t.setUserType(userType);
+                }
                 List<Map> msgList = new ArrayList<>();
                 Map map = resultMap.get(t.getId().toString());
                 msgList.add(map);

@@ -1,7 +1,7 @@
 package com.br.marketing.service.Impl.zhongbang;
 
 import com.br.common.util.BrCipherMaker;
-import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.dassservice.input.transfer.DassAssembleTransferDataSoleDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
@@ -150,9 +150,10 @@ public class ZhongBangToDassFilterProcessServiceImpl implements ZhongBangToDassF
      */
     private List<MarketingSyncUser> getValidedList(String apiCode, List<MarketingTransferSyncUser> list) {
         Set<String> custNumSet = list.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-        Map<String, SyncUserValidityPeriodBO> map =
-                transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(custNumSet, apiCode, new Date());
-        List<MarketingSyncUser> validedList = map.values().stream().map(SyncUserValidityPeriodBO::getSyncUser).collect(Collectors.toList());
+        Map<String, SyncUserValidityPeriodsBO> map =
+                transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSet, apiCode, new Date());
+        List<MarketingSyncUser> validedList = new ArrayList<>();
+        map.values().forEach((l) -> validedList.addAll(l.getSyncUsers()));
         return validedList;
     }
 

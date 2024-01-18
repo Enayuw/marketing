@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
-import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.DaasAndConversionData;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSoleDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
@@ -63,25 +63,26 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
         CallRecordBO dto = (CallRecordBO) transmitFact;
         ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData ruleNecessaryData =
                 (ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData) context.getRuleNecessaryData();
-        Map<String, SyncUserValidityPeriodBO> syncUserPeriodMap = ruleNecessaryData.getCallRecordCustomerMap();
-        SyncUserValidityPeriodBO syncUserData = syncUserPeriodMap.get(dto.getCaseNum());
+        Map<String, SyncUserValidityPeriodsBO> syncUserPeriodMap = ruleNecessaryData.getCallRecordCustomerMap();
+        SyncUserValidityPeriodsBO userValidityPeriodsBO = syncUserPeriodMap.get(dto.getCaseNum());
         Map<String, MarketingTransferSyncUser> transferDataMap = ruleNecessaryData.getTransferMap();
         MarketingTransferSyncUser transferSyncUser = transferDataMap.get(dto.getCaseNum());
         DaasAndConversionData dataDTO = new DaasAndConversionData();
-        dataDTO.setConversionData(handleConversionData(dto, syncUserData));
-        dataDTO.setRealTimeUserDataSoleDTO(handleRealTimeUserData(dto, syncUserData, transferSyncUser));
+        dataDTO.setConversionData(handleConversionData(dto, userValidityPeriodsBO));
+        dataDTO.setRealTimeUserDataSoleDTO(handleRealTimeUserData(dto, userValidityPeriodsBO, transferSyncUser));
         return dataDTO;
     }
 
-    private RealTimeUserDataSoleDTO handleRealTimeUserData(CallRecordBO dto, SyncUserValidityPeriodBO syncUserData, MarketingTransferSyncUser transferSyncUser) {
+    private RealTimeUserDataSoleDTO handleRealTimeUserData(CallRecordBO dto, SyncUserValidityPeriodsBO userValidityPeriodsBO
+            , MarketingTransferSyncUser transferSyncUser) {
+        MarketingSyncUser marketingSyncUser = userValidityPeriodsBO.getSyncUsers().get(0);
 
         RealTimeUserDataSoleDTO realTimeUserDataSoleDTO = new RealTimeUserDataSoleDTO();
-
-        realTimeUserDataSoleDTO.setDassSingleImportAdapDTO(handlerDaasSingleData(syncUserData, transferSyncUser));
+        realTimeUserDataSoleDTO.setDassSingleImportAdapDTO(handlerDaasSingleData(marketingSyncUser, transferSyncUser));
 
         realTimeUserDataSoleDTO.setDistributeSourceTypeEnum(DistributeSourceTypeEnum.CALL_RECORD);
 
-        realTimeUserDataSoleDTO.setPhoneSaleExtendInfo(handlerPhoneSaleInfo(dto, syncUserData.getSyncUser()));
+        realTimeUserDataSoleDTO.setPhoneSaleExtendInfo(handlerPhoneSaleInfo(dto, marketingSyncUser));
 
         realTimeUserDataSoleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
         realTimeUserDataSoleDTO.setSoleType(1);
@@ -90,16 +91,16 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
 
     }
 
-    private DassSingleImportAdapSoleDTO handlerDaasSingleData(SyncUserValidityPeriodBO syncUserData, MarketingTransferSyncUser transferSyncUser) {
+    private DassSingleImportAdapSoleDTO handlerDaasSingleData(MarketingSyncUser syncUser
+            , MarketingTransferSyncUser transferSyncUser) {
         DassSingleImportAdapSoleDTO dassSingleImportAdapSoleDTO = new DassSingleImportAdapSoleDTO();
         DassSingleImportDataDTO dassSingleImportDataDTO = new DassSingleImportDataDTO();
-        MarketingSyncUser syncUser = syncUserData.getSyncUser();
         String reserveField1 = syncUser.getReserveField1();
         dassSingleImportDataDTO.setName("1");
         if (org.springframework.util.StringUtils.hasText(reserveField1)) {
             JSONObject jsonObject = JSON.parseObject(reserveField1);
             String firstName = jsonObject.getString("firstName");
-            if(StringUtils.isNotEmpty(firstName)) {
+            if (StringUtils.isNotEmpty(firstName)) {
                 dassSingleImportDataDTO.setName(firstName.replaceAll("\\*", ""));
             }
         }
@@ -115,8 +116,8 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
         dassSingleImportDataDTO.setUserType("1");
         if (transferSyncUser != null) {
             dassSingleImportDataDTO.setRegisterTime(replaceZero(transferSyncUser.getRegisterTime(),""));
-            dassSingleImportDataDTO.setLoginTime(replaceZero(transferSyncUser.getLoginTime(),""));
-            dassSingleImportDataDTO.setAuditTime(replaceZero(transferSyncUser.getAuditTime(),""));
+            dassSingleImportDataDTO.setLoginTime(replaceZero(transferSyncUser.getLoginTime(), ""));
+            dassSingleImportDataDTO.setAuditTime(replaceZero(transferSyncUser.getAuditTime(), ""));
             dassSingleImportDataDTO.setAuditAmount(transferSyncUser.getAuditAmount());
         }
         dassSingleImportDataDTO.setSource("33");
@@ -125,19 +126,21 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
 
     }
 
-    private ConversionData handleConversionData(CallRecordBO dto, SyncUserValidityPeriodBO bo) {
+    private ConversionData handleConversionData(CallRecordBO dto, SyncUserValidityPeriodsBO userValidityPeriodsBO) {
+        MarketingSyncUser marketingSyncUser = userValidityPeriodsBO.getSyncUsers().get(0);
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(dto.getId().toString());
         conversionData.setCid(dto.getCid().toString());
         conversionData.setCaseNum(dto.getCaseNum());
-        conversionData.setPartnerProcessDate(DateUtils.format(bo.getSyncUser().getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+        conversionData.setPartnerProcessDate(DateUtils.format(marketingSyncUser.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         conversionData.setInversionStatus("0");
-        conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
+        conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
         // 去重参数设置
         conversionData.setInitId(dto.getId());
         conversionData.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
         conversionData.setSoleType(-1);
-        PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
+        PeriodOfValidityBO periodOfValidityBO = userValidityPeriodsBO.getBuilders().get(0)
+                .addDateString().addOfDayTimeStrString().builder();
         conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
         conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
@@ -184,13 +187,13 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
             Boolean intentionA = Boolean.FALSE, intentionB = Boolean.FALSE;
             ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData ruleNecessaryData =
                     (ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData) context.getRuleNecessaryData();
-            Map<String, SyncUserValidityPeriodBO> syncUserPeriodMap = ruleNecessaryData.getCallRecordCustomerMap();
-            if(CollectionUtils.isEmpty(syncUserPeriodMap)){
+            Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBOMap = ruleNecessaryData.getCallRecordCustomerMap();
+            if (CollectionUtils.isEmpty(userValidityPeriodsBOMap)) {
                 return false;
             }
-            SyncUserValidityPeriodBO syncUserValidityPeriodBO = syncUserPeriodMap.get(bo.getCaseNum());
+            SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = userValidityPeriodsBOMap.get(bo.getCaseNum());
             //有效期判斷
-            if (syncUserValidityPeriodBO == null) {
+            if (syncUserValidityPeriodsBO == null) {
                 return false;
             }
             boolean ASwitch = marketingCommonConfig.getZhongbangStatusTypeMap().get("a").getBooleanValue("switch");
@@ -202,8 +205,11 @@ public class ZhongBangCallRecordToDaas implements AssembleData<DaasAndConversion
                 intentionB = "B".equals(intentionGrade);
             }
             if (intentionA || intentionB) {
+                String cell = syncUserValidityPeriodsBO.getSyncUsers().get(0).getCell();
                 //去重逻辑判断
-                return phoneSaleExtendService.groupRule(bo.getApiCode(), marketingCommonConfig.getZhongbangCellDistributeDay() - 1, syncUserValidityPeriodBO.getSyncUser().getCell(), 1);
+                return phoneSaleExtendService.groupRule(bo.getApiCode()
+                        , marketingCommonConfig.getZhongbangCellDistributeDay() - 1
+                        , cell, 1);
             }
         }
         return false;
