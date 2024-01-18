@@ -8,6 +8,7 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.ThreeKeyEncryptEnum;
+import com.br.marketing.enums.ThreeKeyTypeEnum;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
@@ -189,10 +190,14 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
             threadPool.submit(() -> {
                 for (MarketingTransferSyncUser transferFilterData : transferData) {
                     String custNum = transferFilterData.getCustNum();
+                    Result<String> cellRes = new Result<>();
                     String cell = "";
                     String taskId = "";
                     if (StringUtils.isNotEmpty(custNum)){
-                        cell = EncAndDecUtil.logTodigest(custNum, ThreeKeyEncryptEnum.md5);
+                        cellRes = EncAndDecUtil.digestToLog(custNum, ThreeKeyTypeEnum.CELL, ThreeKeyEncryptEnum.md5);
+                    }
+                    if (ResultCode.SUCCESS.getValue().equals(cellRes.getCode())) {
+                        cell = cellRes.getData();
                     }
                     //上传给，根据cell去关联上传数据的taskId
                     MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCellLast(apiCode, cell);
