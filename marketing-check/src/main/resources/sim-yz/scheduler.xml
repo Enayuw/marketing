@@ -584,7 +584,7 @@
                 cron="0 1/10 * * * ?"
                 description="自动化推送决策作业"
                 registry-center-ref="regCenter"
-                sharding-total-count="1"
+                sharding-total-count="9"
                 sharding-item-parameters="0=A"
                 monitor-execution="true"
                 failover="false"
