@@ -485,12 +485,14 @@
         shf.statistic_file_path as statisticFilePath,
         shf.id as fileId,
         DATE_FORMAT(shf.create_time,'%Y-%m-%d %H:%i:%s') as scoreBeginTime,
-        GROUP_CONCAT(msp.product_name order by msp.product_name)as productName,
-        shf.actual_num as actualNum
+        GROUP_CONCAT(distinct msp.product_name order by msp.product_name)as productName,
+        shf.actual_num as actualNum,
+        GROUP_CONCAT(distinct mtut.user_type order by mtut.user_type)as userType
         from stra_his_file as shf
         left join b_marketing_strategy_product as msp on shf.id = msp.file_id and msp.is_del=1
         left join b_marketing_task as mt on mt.api_code = shf.api_code and mt.batch_number = shf.batch_number
         left join b_marketing_task_extend as mte on mt.id = mte.task_id
+        left join b_marketing_task_user_type as mtut on mtut.batch_number = mt.batch_number and mtut.api_code = mt.api_code
         where mt.api_code = #{apiCode}
 
         <if test="productVersion !=null and productVersion !=''">
@@ -503,6 +505,13 @@
         <if test="scoreBeginTime !=null and scoreBeginTime !=''">
             <![CDATA[ and shf.create_time>= #{scoreBeginTime} ]]>
             <![CDATA[ and shf.create_time<= #{scoreEndTime} ]]>
+        </if>
+        <if test="userType !=null and userType !=''">
+             and mtut.user_type in(
+            <foreach collection="userType.split(',')" item="item" index="index" separator=",">
+                #{item}
+            </foreach>
+            )
         </if>
         and shf.score_status = 2
         and mt.status != 0
@@ -531,12 +540,14 @@
         shf.statistic_file_path as statisticFilePath,
         shf.id as fileId,
         DATE_FORMAT(shf.create_time,'%Y-%m-%d %H:%i:%s') as scoreBeginTime,
-        GROUP_CONCAT(msp.product_name order by msp.product_name)as productName,
-        shf.actual_num as actualNum
+        GROUP_CONCAT(distinct msp.product_name order by msp.product_name)as productName,
+        shf.actual_num as actualNum,
+        GROUP_CONCAT(distinct mtut.user_type order by mtut.user_type)as userType
         from stra_his_file as shf
         left join b_marketing_strategy_product as msp on shf.id = msp.file_id and msp.is_del=1
         left join b_marketing_task as mt on mt.api_code = shf.api_code and mt.batch_number = shf.batch_number
         left join b_marketing_task_extend as mte on mt.id = mte.task_id
+        left join b_marketing_task_user_type as mtut on mtut.batch_number = mt.batch_number and mtut.api_code = mt.api_code
         where mt.api_code = #{apiCode}
 
         <if test="productVersion !=null and productVersion !=''">
@@ -549,6 +560,13 @@
         <if test="scoreBeginTime !=null and scoreBeginTime !=''">
             <![CDATA[ and shf.create_time>= #{scoreBeginTime} ]]>
             <![CDATA[ and shf.create_time<= #{scoreEndTime} ]]>
+        </if>
+        <if test="userType !=null and userType !=''">
+            and mtut.user_type in(
+            <foreach collection="userType.split(',')" item="item" index="index" separator=",">
+                #{item}
+            </foreach>
+            )
         </if>
         and shf.score_status = 2
         and mt.status != 0
