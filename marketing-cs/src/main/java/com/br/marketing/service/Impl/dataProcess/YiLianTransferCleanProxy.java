@@ -38,9 +38,9 @@ public class YiLianTransferCleanProxy extends UploadDataProxy {
         List<TransferDataItemDTO> dataItems = new ArrayList<>();
         for (PullCustomerFileData data : customerFileDataList) {
             try {
-                assembleData(config, header, dataSplit, dataItems, data);
+                assembleData(header, dataSplit, dataItems, data);
             } catch (Exception e) {
-                log.error("亿联转化数据清洗，客户数据处理异常，数据表id：{}", data.getId());
+                log.error("亿联转化数据清洗，客户数据处理异常，数据表id：{}", data.getId(),e.getMessage());
             }
         }
 
@@ -61,7 +61,7 @@ public class YiLianTransferCleanProxy extends UploadDataProxy {
     }
 
 
-    private void assembleData(DataProcessingConfig config, List<String> header, String dataSplit, List<TransferDataItemDTO> dataItems,
+    private void assembleData(List<String> header, String dataSplit, List<TransferDataItemDTO> dataItems,
                               PullCustomerFileData data) {
         List<String> dataList = new ArrayList<>(Arrays.asList(data.getFileData().split(Pattern.quote(dataSplit), -1)));
         TransferDataItemDTO transferData = new TransferDataItemDTO();

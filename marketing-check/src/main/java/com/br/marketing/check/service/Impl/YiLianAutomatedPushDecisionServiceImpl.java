@@ -117,7 +117,7 @@ public class YiLianAutomatedPushDecisionServiceImpl implements AutomatedPushDeci
         //情况a处理
         while (true) {
             List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getTransferSyncUserByPage(tcId, apiCode,
-                    startDate, endDate, indexId, "apply_result =1 and audit_time =\"" + uploadDate + "\" and if_lent = 0");
+                    startDate, endDate, indexId, "apply_result =1 and substring(audit_time,1,10) =\"" + uploadDate + "\" and if_lent = 0");
             if (marketingTransferSyncUserList.isEmpty()) {
                 break;
             }
@@ -133,7 +133,7 @@ public class YiLianAutomatedPushDecisionServiceImpl implements AutomatedPushDeci
         indexId = null;
         while (true) {
             List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getTransferSyncUserByPage(tcId, apiCode,
-                    startDate, endDate, indexId, "if_login=1 and login_time =\"" + uploadDate + "\" and if_apply= 0");
+                    startDate, endDate, indexId, "if_login=1 and substring(login_time,1,10) =\"" + uploadDate + "\" and if_apply= 0");
             if (marketingTransferSyncUserList.isEmpty()) {
                 break;
             }
