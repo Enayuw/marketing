@@ -7,6 +7,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
+import cn.hutool.core.util.ObjectUtil;
+import com.google.api.client.util.Lists;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONObject;
@@ -74,7 +76,11 @@ public class UniversalTransferProcessOffsetDayResend extends ValidityPeriodResen
         JSONObject resendData = JSONObject.parseObject(record.getResendData());
         Integer offsetDay = resendData.getInteger("offsetDay");
         // 获取有效期范围
-        Map<String, String> validPeriodRange = marketingDataValidConfigMapper.getValidPeriodRangeByApiCodeAndUserTypeAndOffsetDay(record.getValidityPeriodId(),offsetDay);
+        Map<String, String> validPeriodRange = marketingDataValidConfigMapper.getValidPeriodRangeByApiCodeAndUserTypeAndOffsetDay(record.getValidityPeriodId(), offsetDay);
+        if (ObjectUtil.isEmpty(validPeriodRange)) {
+            log.error("转化数据(T-N有效)有效期变更重推失败，未存在有效的有效期，record:{}", record);
+            return Lists.newArrayList();
+        }
         // 开始结束时间范围外扩一天
         String dateStartStr = ValidityPeriodDataServiceImpl.getDateStr(validPeriodRange.get("validStartDate"), -1);
         String dateEndStr = ValidityPeriodDataServiceImpl.getDateStr(validPeriodRange.get("validEndDate"), 1);
