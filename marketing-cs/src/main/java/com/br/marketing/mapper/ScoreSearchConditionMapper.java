@@ -15,5 +15,6 @@ public interface ScoreSearchConditionMapper extends ScoreSearchConditionMapperBa
 
     List<ConditionOfScoreVO> getScoreByNameNumberList(@Param("ids") List<Long> ids, @Param("searchTxt") String searchTxt);
 
-    List<ConditionOfScoreVO> getScoreByConditionType(@Param("apiCode") String apiCode, @Param("conditionType") Integer conditionType);
+    List<ConditionOfScoreVO> getScoreByConditionType(@Param("apiCode") String apiCode
+            , @Param("conditionType") Integer conditionType,@Param("ruleLabel") String ruleLabel);
 }

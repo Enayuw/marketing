@@ -23,6 +23,18 @@
         <if test="ruleNumber!=null and ruleNumber!=''">
             and bsrc.rule_name_short =#{ruleNumber}
         </if>
-        and shf.push_status!=1 and shf.status =2 order by shf.create_time desc limit 1
+        <choose>
+            <when test="isOrNoStatus == 1">
+                and shf.push_status in
+            </when>
+            <when test="isOrNoStatus == 0">
+                and shf.push_status not in
+            </when>
+        </choose>
+        <foreach collection="pushStatusList" open="(" close=")" separator="," item="pushStatus">
+            #{pushStatus}
+        </foreach>
+         and shf.status =2 and btbp.monitor_type !=2 order by shf.create_time desc limit 1
     </select>
+
 </mapper>

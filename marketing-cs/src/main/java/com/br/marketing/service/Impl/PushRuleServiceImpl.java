@@ -121,6 +121,8 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     MarketingTaskMapper marketingTaskMapper;
+    @Resource
+    MarketingTaskUserTypeMapper marketingTaskUserTypeMapper;
 
     @Resource
     CustomerInfoPushMainMapper customerInfoPushMainMapper;
@@ -199,12 +201,24 @@ public class PushRuleServiceImpl implements PushRuleService {
         map.put("model", module);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(map).setMessage("查询成功");
     }
+    @Override
+    public Result<String> getUserType(String apiCode){
+        List<String> userTypeList = marketingTaskUserTypeMapper.queryUserTypeByApiCodetikv_(apiCode);
+        String userType = userTypeList.stream().collect(Collectors.joining(","));
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(userType).setMessage("查询成功");
+    }
 
     @Override
     public PageResultReturn getBatchInfos(CustomerBatchNumDTO dto) {
         dto = getCustomerBatchNumDTO(dto);
         PageHelper.startPage(dto.getCurrent(), dto.getSize()).setOrderBy(" scoreBeginTime desc,fileId desc ");
         List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchs(dto);
+        scoreDetailVos.stream().forEach((ScoreDetailVo t)->{
+            String batchNumber = t.getBatchNumber();
+            List<String> batchNumberList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumbertikv_(batchNumber);
+            String allUserType = batchNumberList.stream().collect(Collectors.joining(","));
+            t.setUserType(allUserType);
+        });
         return PageResultReturn.setPageResult(scoreDetailVos, dto.getCurrent(), dto.getSize());
     }
 
@@ -350,7 +364,6 @@ public class PushRuleServiceImpl implements PushRuleService {
     TransferFiledProcessImpl transferFiledProcess;
 
 
-
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<String> pushCustomer(PushCustomerDTO dto) {
@@ -452,7 +465,8 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     }
 
-    private Result<Integer> checkThreekEnc(List<Long> fileIds) {
+    @Override
+    public Result<Integer> checkThreekEnc(List<Long> fileIds) {
         StraHisFileExample straHisFileExample = new StraHisFileExample();
         straHisFileExample.createCriteria().andIdIn(fileIds);
         List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
@@ -2184,8 +2198,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                         if (vo != null) {
                             list.add(vo);
                         }
-                    }catch (BadSqlGrammarException sqlGrammarException){
-                        log.warn(String.format("apiCode表不存在：%s",ac),sqlGrammarException);
+                    } catch (BadSqlGrammarException sqlGrammarException) {
+                        log.warn(String.format("apiCode表不存在：%s", ac), sqlGrammarException);
                     }
                 }
             }
@@ -3614,7 +3628,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         if (new Integer(1).equals(mockType)) {
             if (mockError.get(apiCode) != null && mockError.get(apiCode)) {
-                throw new KnowException(apiCode+":DB异常");
+                throw new KnowException(apiCode + ":DB异常");
             } else if (mockError.get(apiCode) != null && !mockError.get(apiCode)) {
                 return;
             }
@@ -3624,7 +3638,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         if (new Integer(2).equals(mockType)) {
             if (mockError.get(apiCode) != null && mockError.get(apiCode)) {
-                throw new KnowException(apiCode+":redis异常");
+                throw new KnowException(apiCode + ":redis异常");
             } else if (mockError.get(apiCode) != null && !mockError.get(apiCode)) {
                 return;
             }
@@ -3636,7 +3650,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     /**
      * 众邦财富定制标签数据推送
-     *
      */
 
     @Override
@@ -3669,8 +3682,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                     labelList.forEach(labels -> {
                         List<Long> ids = labels.stream().map(t -> t.getId()).collect(Collectors.toList());
                         JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("TskId", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_" + labels.get(0).getApiCode()+"_"
-                                + RandomStringUtils.randomNumeric(5) + System.currentTimeMillis());
+                        jsonObject.put("TskId", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                                + "_" + labels.get(0).getApiCode()
+                                + "_" + RandomStringUtils.randomNumeric(5)
+                                + System.currentTimeMillis());
                         jsonObject.put("PrimKey", labels.get(0).getId());
                         JSONArray cstIndoList = new JSONArray();
                         labels.forEach(label -> {
@@ -3696,7 +3711,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                     log.error("众邦财富定制标签推送异常", ex);
                 }
             });
-        };
+        }
+        ;
         pool.shutdown();
         try {
             while (!pool.awaitTermination(5L, TimeUnit.SECONDS)) {
@@ -3716,8 +3732,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         localFile.setPushStatus("2");
         localFileMapper.updateByPrimaryKeySelective(localFile);
         //统计告警
-        if(!localFile.getPushNumber().equals(localFile.getActualNumber())){
-            sendAlarm(localFile.getActualNumber()-localFile.getPushNumber(),"众邦财富定制标签推送失败数量统计");
+        if (!localFile.getPushNumber().equals(localFile.getActualNumber())) {
+            sendAlarm(localFile.getActualNumber() - localFile.getPushNumber(), "众邦财富定制标签推送失败数量统计");
         }
         log.warn("众邦财富定制标签推送结束，耗时：{} ms", System.currentTimeMillis() - st1);
 

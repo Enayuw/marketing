@@ -59,13 +59,13 @@
         <!-- 要生成的表 tableName是数据库中的表名或视图名 domainObjectName是实体类名-->
         <!--        <table tableName="b_loan_task" domainObjectName="LoanTask" enableCountByExample="false" enableUpdateByExample="false"-->
         <!--               enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false">-->
-        <table tableName="b_push_customer_detail" domainObjectName="PushCustomerDetail" >
+        <table tableName="b_score_push_customer_config" domainObjectName="ScorePushCustomerConfig" >
 <!--            <property name="useActualColumnNames" value="false"/>-->
             <!-- 数据库表主键 自动返回主键值 -->
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
             <!--如果有超常字段 需要映射字段类型为VARCHAR-->
 
-            <columnOverride column="push_json" javaType="java.lang.String" jdbcType="VARCHAR" />
+            <columnOverride column="field_mapping" javaType="java.lang.String" jdbcType="VARCHAR" />
 <!--            <columnOverride column="content_show" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="result_content" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="error_content" javaType="java.lang.String" jdbcType="VARCHAR" />-->

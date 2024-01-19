@@ -522,10 +522,6 @@ public class MarketingCommonConfig {
      * 拍拍贷老客转人工数据提取执行时间
      */
     private String PPDOldTransferFileExecuteTime;
-    /**
-     * 拍拍贷有效期34；目前仅老客使用
-     */
-    private String ppdOldValidityDayStr;
 
     /**
      * 榕树转化数据生效截止时间
@@ -1246,6 +1242,12 @@ public class MarketingCommonConfig {
      */
     private String ZhongBangExecuteTime;
 
+
+    /**
+     * 模拟跑分回调异常 1-获取数据异常；2-更新排序异常；3-推送数据异常
+     * {"1":true,"2":true}
+     */
+    private HashMap<String,Boolean> mockCallBackError;
     /**
      * 奇富360转化数据提取apiCode集合
      */
