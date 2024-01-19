@@ -1,5 +1,15 @@
 package com.br.marketing.service.Impl.validityperiod;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.ValidityPeriodResendType;
 import com.br.marketing.common.utils.BrExecutors;
@@ -15,17 +25,12 @@ import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.Impl.ValidityPeriodDataServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.api.client.util.Lists;
 import com.google.common.collect.Sets;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import shaded.com.google.common.base.Splitter;
 
-import javax.annotation.Resource;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import cn.hutool.core.util.ObjectUtil;
+import lombok.extern.slf4j.Slf4j;
+import shaded.com.google.common.base.Splitter;
 
 /**
  * 转化数据执行通用规则定制重推流程
@@ -63,8 +68,8 @@ public class CustomizeTransferProcessResend implements ValidityPeriodResendStrat
     /**
      * 获取重推数据
      *
-     * @param record   有效期重新发送记录
-     * @param page     页码
+     * @param record 有效期重新发送记录
+     * @param page 页码
      * @param pageSize 页大小
      * @return {@link List }<{@link MarketingTransferInfo }>
      * @author guangchao.zhang
@@ -72,21 +77,26 @@ public class CustomizeTransferProcessResend implements ValidityPeriodResendStrat
      */
     @Override
     public List<MarketingTransferInfo> fetchData(ValidityPeriodResendRecord record, int page, int pageSize) {
-        //获取有效期范围
-        Map<String, String> validPeriodRange = marketingCustomizeDataValidConfigMapper.getCustomizeValidPeriodRangeByApiCodeAndUserType(record.getValidityPeriodId());
-        //开始结束时间范围外扩一天
+        // 获取有效期范围
+        Map<String, String> validPeriodRange =
+            marketingCustomizeDataValidConfigMapper.getCustomizeValidPeriodRangeByApiCodeAndUserType(record.getValidityPeriodId());
+        if (ObjectUtil.isEmpty(validPeriodRange)) {
+            log.error("360定制化有效期变更重推失败，未存在有效的有效期配置，record:{}", record);
+            return Lists.newArrayList();
+        }
+        // 开始结束时间范围外扩一天
         String dateStartStr = ValidityPeriodDataServiceImpl.getDateStr(validPeriodRange.get("validStartDate"), -1);
         String dateEndStr = ValidityPeriodDataServiceImpl.getDateStr(validPeriodRange.get("validEndDate"), 1);
 
         String apiCode = validPeriodRange.get("apiCode");
-        //根据时间范围获取全部转化基础数据
-        return marketingTransferInfoMapper.getMarketingTransferInfoIdByValidPeriodRange(apiCode, dateStartStr, dateEndStr,page,pageSize);
+        // 根据时间范围获取全部转化基础数据
+        return marketingTransferInfoMapper.getMarketingTransferInfoIdByValidPeriodRange(apiCode, dateStartStr, dateEndStr, page, pageSize);
     }
 
     /**
      * 处理重推逻辑
      *
-     * @param data   重推数据
+     * @param data 重推数据
      * @param record 重推记录
      * @author guangchao.zhang
      * @date 2024/01/12
@@ -94,13 +104,11 @@ public class CustomizeTransferProcessResend implements ValidityPeriodResendStrat
     @Override
     public void resend(List<MarketingTransferInfo> data, ValidityPeriodResendRecord record) {
         // 创建线程池
-        ThreadPoolExecutor pool =
-            BrExecutors.getThreadPool(marketingCommonConfig.getUniversalTransferProcessResendThreadNum(), marketingCommonConfig.getUniversalTransferProcessResendThreadNum());
-        data.stream()
-            .map(transferInfo -> buildMqFact(transferInfo, record))
-            .map(JSONObject::toJSONString)
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(marketingCommonConfig.getUniversalTransferProcessResendThreadNum(),
+            marketingCommonConfig.getUniversalTransferProcessResendThreadNum());
+        data.stream().map(transferInfo -> buildMqFact(transferInfo, record)).map(JSONObject::toJSONString)
             .forEach(mqFact -> pool.submit(() -> rabbitMqProducter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, mqFact)));
-        //关闭线程池
+        // 关闭线程池
         pool.shutdown();
         try {
             while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
@@ -115,7 +123,7 @@ public class CustomizeTransferProcessResend implements ValidityPeriodResendStrat
     /**
      * 构建消息体
      *
-     * @param info   信息
+     * @param info 信息
      * @param record 重推记录
      * @return {@link MqFact }
      * @author guangchao.zhang
