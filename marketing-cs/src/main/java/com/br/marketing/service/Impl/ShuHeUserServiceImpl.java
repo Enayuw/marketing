@@ -117,7 +117,6 @@ public class ShuHeUserServiceImpl {
                 dto = new MarketingPreUserDetailDTO();
                 if (taskCode != null && taskCode.getString("groupType") != null) {
                     reserveField1.put("groupTypeNew", taskCode.getString("groupType"));
-                    dto.setGroupType(taskCode.getString("groupType"));
                 }
                 String mobile = info.getString("mobile");
                 try {
@@ -127,6 +126,7 @@ public class ShuHeUserServiceImpl {
                     dto.setCell(mobile);
                     log.error(e.getMessage(), e);
                 }
+                dto.setGroupType(type);
                 dto.setCustNum(info.getString("orderId"));
                 varData = info.getJSONObject("varData");
                 varDataHandle(varData, dto, reserveField1);

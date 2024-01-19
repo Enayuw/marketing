@@ -1,7 +1,9 @@
 package com.br.marketing.rule.shuhe;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.common.util.StringUtils;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -55,8 +57,12 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
         pushMarketingUserDetailByRuleDTO.setStrategyCode(strategyCode);
 
         JSONObject varDto = new JSONObject();
-        varDto.put("groupType", syncUser.getGroupType());
-        varDto.put("orderId",syncUser.getCustNum());
+        JSONObject parseObject = JSON.parseObject(syncUser.getReserveField1());
+        String groupTypeNew = parseObject.getOrDefault("groupTypeNew", "").toString();
+        if (StringUtils.isNotBlank(groupTypeNew)) {
+            varDto.put("groupType", groupTypeNew);
+        }
+        varDto.put("orderId", syncUser.getCustNum());
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
 
         log.warn("数禾上传数据推送决策,apicode={}", apiCode);
