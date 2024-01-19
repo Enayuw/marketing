@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl.transfertofile;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
@@ -191,21 +192,13 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
                 for (MarketingTransferSyncUser transferFilterData : transferData) {
                     String custNum = transferFilterData.getCustNum();
                     Result<String> cellRes = new Result<>();
-                    String cell = "";
                     String taskId = "";
-                    if (StringUtils.isNotEmpty(custNum)){
-                        cellRes = EncAndDecUtil.digestToLog(custNum, ThreeKeyTypeEnum.CELL, ThreeKeyEncryptEnum.md5);
-                    }
-                    if (ResultCode.SUCCESS.getValue().equals(cellRes.getCode())) {
-                        cell = cellRes.getData();
-                    }
-                    //上传给，根据cell去关联上传数据的taskId
-                    MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCellLast(apiCode, cell);
+                    //上传给，根据custNum去关联上传数据的taskId,按照applet_time倒叙取第一条
+                    MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode, custNum);
                     if (ObjectUtil.isNotEmpty(marketingSyncUser)){
                         taskId = StringUtils.isNotEmpty(marketingSyncUser.getCusBatch()) ? marketingSyncUser.getCusBatch() : "";
                     }
-                    custNum = StringUtils.isNotEmpty(transferFilterData.getCustNum())
-                            ? transferFilterData.getCustNum() : "";
+                    custNum = StringUtils.isNotEmpty(custNum) ? custNum : "";
                     String applyDt = StringUtils.isNotEmpty(transferFilterData.getApplyDt())
                             ? transferFilterData.getApplyDt().replace(":000","") : "";
                     String applyResult = StringUtils.isNotEmpty(transferFilterData.getApplyResult())
