@@ -133,9 +133,11 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
         log.warn("奇富360转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         Result<String> result = new Result<>();
         String apiCode = transferFileTask.getApiCode();
+        String date = LocalDate.now().toString();
+        date = date.replace("-", "");
         String requestDate = StringUtils.isBlank(jobParameter) ? LocalDate.now().toString() : jobParameter;
         String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/")
-                .concat(transferFileTask.getStartDate()).concat("/");
+                .concat(date).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
             boolean mkdirs = writeDic.mkdirs();
