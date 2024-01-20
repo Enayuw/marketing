@@ -96,9 +96,7 @@ public class ShuHeUserServiceImpl {
     private MarketingPreUserDTO adapterMarketingPreUserDTO(JSONObject uploadDataDTO, JSONArray listInfo
             , CaseShuheUploadData shuheUploadData) {
         try {
-
-            JSONObject taskCode =
-                JSONObject.isValidObject(uploadDataDTO.getString("taskCode")) ? JSONObject.parseObject(uploadDataDTO.getString("taskCode")) : null;
+            JSONObject taskCode = JSONObject.parseObject(uploadDataDTO.getString("taskCode"));
             MarketingPreUserDTO userDTO = new MarketingPreUserDTO();
             userDTO.setTaskId(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)
                     .concat("_").concat(shuheUploadData.getApiCode()));
