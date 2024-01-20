@@ -95,6 +95,7 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
         if (LocalTime.now().isAfter(localTime) || isParam) {
             // 指定日期提取，生成指定日期的记录，不是当天的记录
             String dateyyyymmddStr = isParam ? myParam.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+            String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
             taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(dateyyyymmddStr)
                     .andFileTypeEqualTo(1);
@@ -109,7 +110,7 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
                 transferFileTask.setBatchNumber(batchNumber);
                 transferFileTask.setFileName(String.format("transform_qifu_%s.txt", dateyyyymmddStr));
                 transferFileTask.setTaskNumber(0);
-                transferFileTask.setStartDate(dateyyyymmddStr);
+                transferFileTask.setStartDate(date);
                 transferFileTask.setContextId(transferFileContextId);
                 transferFileTask.setCreateTime(new Date());
                 transferFileTask.setUpdateTime(new Date());
