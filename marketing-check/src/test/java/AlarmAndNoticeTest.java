@@ -440,15 +440,17 @@ public class AlarmAndNoticeTest {
         TransferFileTask transferFileTask = new TransferFileTask();
         transferFileTask.setApiCode("7491630");
         String apiCode = "7491630";
-        String myParam = "7491630#2024-01-01";
+        String myParam = "7491630#2024-01-20";
         String dd = isMyParam("7491630", myParam);
+        String date = LocalDate.now().toString();
+        date = date.replace("-", "");
         transferFileTask.setStartDate(dd);
         String recordDate = transferFileTask.getStartDate();
         boolean isParam = StringUtils.isNotBlank(dd);
         String dateyyyymmddStr = isParam ? dd.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         transferFileTask.setFileName(String.format("transform_qifu_%s.txt", dateyyyymmddStr));
         log.warn("奇富360转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
-        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(date).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
             writeDic.mkdirs();
