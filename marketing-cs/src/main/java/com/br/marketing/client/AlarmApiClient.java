@@ -131,6 +131,7 @@ public class AlarmApiClient implements ApplicationContextAware {
         try {
             result = AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATA_GOVERNANCE_PLATFORM_SEND_EMAIL.getCode(),
                     mailContent, mailTitle, Arrays.asList(mails), new ArrayList(), new ArrayList());
+            log.warn(result);
         } catch (Exception var5) {
             log.warn("mailTitle:[{}]mailContent:[{}]mails:[{}]--buildWarnMessageException", new Object[]{mailTitle, mailContent, mails, var5});
         }
