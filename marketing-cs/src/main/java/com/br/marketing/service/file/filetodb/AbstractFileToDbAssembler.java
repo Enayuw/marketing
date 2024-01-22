@@ -13,6 +13,12 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.Map;
 
+/**
+ * AbstractFileToDbAssembler
+ *
+ * @author xiang.li
+ * @date 2024/01/22
+ */
 @Service
 @Slf4j
 public abstract class AbstractFileToDbAssembler{
@@ -22,7 +28,9 @@ public abstract class AbstractFileToDbAssembler{
 
     public Result operateDateToDb(TxtToDbDTO toDbDTO) {
         try {
+            log.info("operateDateToDb start");
             String tempContent = chooseSqlTemp("");
+            log.info("tempContent: "+ tempContent);
             Map<String, Object> tempParamsMap = assembleTempParams("", toDbDTO);
             Map<String, String> placeHolders = (Map<String, String>) tempParamsMap.get("placeHolders");
             insertToDb(tempContent, placeHolders);
@@ -30,6 +38,7 @@ public abstract class AbstractFileToDbAssembler{
             JSONObject resMsg = new JSONObject();
             resMsg.put("successNum", tempParamsMap.get("successNum"));
             resMsg.put("errorNum", tempParamsMap.get("errorNum"));
+            log.info("operateDateToDb end");
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(JSON.toJSONString(resMsg));
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);

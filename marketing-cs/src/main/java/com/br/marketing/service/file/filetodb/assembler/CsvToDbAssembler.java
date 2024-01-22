@@ -15,6 +15,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * CsvToDbAssembler
+ *
+ * @author xiang.li
+ * @date 2024/01/22
+ */
 @Service
 @Slf4j
 public class CsvToDbAssembler extends AbstractFileToDbAssembler {

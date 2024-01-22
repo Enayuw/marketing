@@ -178,7 +178,7 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
                             sftpClient.rename(srcPath + fileName, srcPath + fileName+"_"+yyyyMMddHHmmss+ ".bak");
                             ArrayList<String> baseHeads = new ArrayList<String>();
 
-                            String fileType = fileDbConfig.getFileType();
+                            String fileType = String.valueOf(fileDbConfig.getFileType());
                             Function<TxtToDbDTO, Result> function = getFunByFileType(fileType);
                             sftpToDbByCommonService.actionTxtFile(context
                                     , localFile
@@ -202,10 +202,12 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
     }
 
     private Function<TxtToDbDTO, Result> getFunByFileType(String fileType){
+        log.info("fileType: " + fileType);
         if(StringUtils.isEmpty(fileType)){
             return iTxtToDbService::toDbByCommon;
         }
         String assemblerName = FileTypeToAssemblerEnum.getByFileType(fileType);
+        log.info("assemblerName: " + assemblerName);
         if(!StringUtils.isEmpty(assemblerName)){
             AbstractFileToDbAssembler csvToDbAssembler = (AbstractFileToDbAssembler) CkeckApplication.ac.getBean(assemblerName);
             return csvToDbAssembler::operateDateToDb;

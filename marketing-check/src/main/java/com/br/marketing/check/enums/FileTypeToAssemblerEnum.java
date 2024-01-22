@@ -4,6 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * FileTypeToAssemblerEnum
+ *
+ * @author xiang.li
+ * @date 2024/01/22
+ */
 @Getter
 @AllArgsConstructor
 public enum FileTypeToAssemblerEnum {
