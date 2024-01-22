@@ -1,5 +1,6 @@
 package com.br.marketing.check.job;
 
+import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.service.Impl.SftpToDbByCommonService;
 import com.br.marketing.check.utils.SftpToDbUtils;
@@ -7,16 +8,17 @@ import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.DataTypeEnum;
-import com.br.marketing.common.enums.SftpFileTypeEnum;
-import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.dto.TxtToDbDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.ITxtToDbService;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.service.file.filetodb.AbstractFileToDbAssembler;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.google.common.base.Function;
 import com.jcraft.jsch.JSchException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -145,7 +147,7 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
             String apiCode = syncConfig.getApiCode();
 
             for (String fileName : fileNames) {
-                if(fileName.endsWith(".txt")){
+                if(fileName.endsWith(".txt") || fileName.endsWith(".csv")){
                     log.warn(String.format("获取到%s的文件:%s",apiCode,fileName));
                     FileContext context = new FileContext();
                     context.setBaseFtpClient(sftpClient);
@@ -174,10 +176,13 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
                             sftpClient.rename(srcPath + successFile, srcPath + successFile+"_"+yyyyMMddHHmmss+".bak");
                             sftpClient.rename(srcPath + fileName, srcPath + fileName+"_"+yyyyMMddHHmmss+ ".bak");
                             ArrayList<String> baseHeads = new ArrayList<String>();
+
+                            String fileType = fileDbConfig.getFileType();
+                            Function<TxtToDbDTO, Result> function = getFunByFileType(fileType);
                             sftpToDbByCommonService.actionTxtFile(context
                                     , localFile
                                     , fileDbConfig
-                                    ,iTxtToDbService::toDbByCommon);
+                                    ,function);
                         } catch (Exception e) {
                             log.warn("rename file error ", e);
                             try {
@@ -193,5 +198,16 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
                 }
             }
         }
+    }
+
+    private Function<TxtToDbDTO, Result> getFunByFileType(String fileType){
+        if(StringUtils.isEmpty(fileType)){
+            return iTxtToDbService::toDbByCommon;
+        }
+        if("yilian_transfer_csv".equals(fileType)){
+            AbstractFileToDbAssembler csvToDbAssembler = (AbstractFileToDbAssembler) CkeckApplication.ac.getBean("csvToDbAssembler");
+            return csvToDbAssembler::operateDateToDb;
+        }
+        return iTxtToDbService::toDbByCommon;
     }
 }
