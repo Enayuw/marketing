@@ -55,8 +55,10 @@ public abstract class AbstractFileToDbAssembler{
             return;
         }
         String sqlContent = tempContent;
-        for (String key :placeHolders.keySet()) {
-            sqlContent = sqlContent.replace("#{"+key+"}", placeHolders.get(key));
+        for (Map.Entry<String, String> entry :placeHolders.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            sqlContent = sqlContent.replace("#{"+key+"}", value);
         }
         if(StringUtils.isNotBlank(sqlContent)) {
             localFileMapper.insertFileData(sqlContent);
