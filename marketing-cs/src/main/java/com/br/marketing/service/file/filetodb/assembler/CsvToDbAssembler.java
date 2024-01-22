@@ -72,10 +72,10 @@ public class CsvToDbAssembler extends AbstractFileToDbAssembler {
                     }
 
                     // 当前字段是必填字段, 校验value是否为空
-                    if (fieldMust.contains(field) && StringUtils.isBlank(value)) {
-                        errorMsg = String.format("%s不能为空;", field);
-                        errorBuilder.append(errorMsg);
-                    }
+//                    if (fieldMust.contains(field) && StringUtils.isBlank(value)) {
+//                        errorMsg = String.format("%s不能为空;", field);
+//                        errorBuilder.append(errorMsg);
+//                    }
                     fileDataBuilder.append(StringUtils.isBlank(value) ? "" : String.format("%s", value)).append(",");
                 }
 
