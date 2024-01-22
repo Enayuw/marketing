@@ -2,6 +2,7 @@ package com.br.marketing.check.job;
 
 import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.check.dto.FileContext;
+import com.br.marketing.check.enums.FileTypeToAssemblerEnum;
 import com.br.marketing.check.service.Impl.SftpToDbByCommonService;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.SftpClient;
@@ -204,8 +205,9 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
         if(StringUtils.isEmpty(fileType)){
             return iTxtToDbService::toDbByCommon;
         }
-        if("yilian_transfer_csv".equals(fileType)){
-            AbstractFileToDbAssembler csvToDbAssembler = (AbstractFileToDbAssembler) CkeckApplication.ac.getBean("csvToDbAssembler");
+        String assemblerName = FileTypeToAssemblerEnum.getByFileType(fileType);
+        if(!StringUtils.isEmpty(assemblerName)){
+            AbstractFileToDbAssembler csvToDbAssembler = (AbstractFileToDbAssembler) CkeckApplication.ac.getBean(assemblerName);
             return csvToDbAssembler::operateDateToDb;
         }
         return iTxtToDbService::toDbByCommon;
