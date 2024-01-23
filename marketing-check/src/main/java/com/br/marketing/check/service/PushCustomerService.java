@@ -1,7 +1,13 @@
 package com.br.marketing.check.service;
 
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.Customer;
+import com.br.marketing.entity.ScorePushCustomerConfig;
+import com.br.marketing.entity.StraHisFile;
+import com.br.marketing.enums.CallBackScoreResourceEnum;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
+
+import java.util.List;
 
 /**
  * //				    _ooOoo_
@@ -31,16 +37,42 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
  **/
 public interface PushCustomerService {
 
-    /**
-     * 推送
-     * @param customer 客户信息对象
-     * @param fileId 文件唯一字段
-     */
-    void push(Customer customer,Long fileId);
+    void push(ScorePushCustomerConfig pushCustomerConfig, StraHisFile file);
 
     /**
-     * 重试
-     * @param customer 客户信息对象
+     * 获取回调的配置资源
+     *
+     * @param pushCustomerConfig
+     * @param callBackScoreResourceEnum
+     * @return
      */
+    Integer getPushCustomerResource(ScorePushCustomerConfig pushCustomerConfig, CallBackScoreResourceEnum callBackScoreResourceEnum);
+
+    /**
+     * 获取跑分回调配置
+     *
+     * @return
+     */
+    List<ScorePushCustomerConfig> getScorePushConfigs();
+
+
+    List<ScorePushCustomerConfig> getScorePushConfigs(Long fildId);
+
+    StraHisFile getFile(Long fileId);
+
+    String hasFileLock(Long fileId);
+
+    void removeFileLock(Long fileId,String value);
+
+    /**
+     * 判断该跑分配置是否回调
+     *
+     * @param pushCustomerConfig
+     * @return
+     */
+    Result<StraHisFile> isPush(ScorePushCustomerConfig pushCustomerConfig);
+
+    void mockError(String type);
+
     void retry(Customer customer);
 }

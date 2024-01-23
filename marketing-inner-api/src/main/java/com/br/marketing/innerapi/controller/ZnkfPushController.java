@@ -1,6 +1,8 @@
 package com.br.marketing.innerapi.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
@@ -37,6 +39,7 @@ public class ZnkfPushController {
 
     @ApiOperation(value = "客服推送营销数据 回调接口")
     @PostMapping("/znkfPushCallBack")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public String znkfPushCallBack(@RequestBody CallRecordDTO dto) {
         try {
             return znkfPushService.znkfPushCallBack(dto);

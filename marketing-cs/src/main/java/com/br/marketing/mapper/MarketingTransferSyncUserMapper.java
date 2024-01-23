@@ -508,4 +508,11 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     int getCountByQiFuApplyDtEmply(@Param("tCid") String tCid, @Param("apiCode") String apiCode,
                                    @Param("periodRangeList") List<PeriodRange> periodRangeList, @Param("custNum") String custNum);
 
+    List<MarketingTransferSyncUser> getTransferSyncUserByPage(@Param("tCid") String tCid,
+                                                               @Param("apiCode") String apiCode,
+                                                               @Param("requestStartDate") String requestStartDate,
+                                                               @Param("requestEndDate") String requestEndDate,
+                                                               @Param("indexId") Long indexId,
+                                                               @Param("querySql") String querySql);
+
 }

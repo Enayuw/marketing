@@ -73,7 +73,9 @@ public interface IPeriodOfValidityService {
      * @throws IllegalArgumentException 有效期格式无法解析
      * @author Guo Zeqiang
      * @dateTime 2022/2/14 9:58
+     * @deprecated 方法已过时，需使用新版有效期
      */
+    @Deprecated
     boolean isNotExpire(Date date, String validityDayStr, Date validityDate) throws IllegalArgumentException;
 
     /**
@@ -374,4 +376,12 @@ public interface IPeriodOfValidityService {
      * @return Boolean
      */
     Result<Boolean> configValidDateDefault(MarketingSyncUser syncUser);
+
+    /**
+     * 生成定制化默认有效期范围
+     *
+     * @param syncUser 上传数据
+     * @return Boolean
+     */
+    Result<Boolean> customizeConfigValidDateDefault(MarketingSyncUser syncUser);
 }

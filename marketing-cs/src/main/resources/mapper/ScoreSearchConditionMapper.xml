@@ -63,7 +63,9 @@
         select a.`id`,a.`name`,a.`content`,a.`content_show`,a.`condition_number`
         from b_score_search_condition as a
                  join b_score_search_condition_mapping as b on a.id = b.condition_id
-        where a.condition_type = #{conditionType} and a.`status` = 1 and a.`is_del` = 1
-          and b.api_code=#{apiCode} and b.is_del=1
+        where a.condition_type = #{conditionType}
+          and a.`status` = 1 and a.`is_del` = 1
+          and b.api_code=#{apiCode}
+          and b.rule_label=#{ruleLabel} and b.is_del=1
     </select>
 </mapper>

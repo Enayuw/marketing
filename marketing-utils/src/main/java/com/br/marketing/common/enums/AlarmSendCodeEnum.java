@@ -32,7 +32,7 @@ public enum AlarmSendCodeEnum {
     //滴滴联合建模,阶梯推送
     EXCEPTION_SPEEDCOMMONCONFIG("62004", "marketingCommonConfigAlarm"),
     // 有效期配置异常,阶梯推送，一般
-    EXCEPTION_VALIDITY_PERIOD("62005", "未配置有效期规则"),
+    EXCEPTION_VALIDITY_PERIOD("62005", "有效期规则提示"),
     //pulsar消费requestId冲突
     REQUESTID_CONFLICT("62006", "requestIdConflict"),
     // 接口字段新增检查,阶梯推送，一般

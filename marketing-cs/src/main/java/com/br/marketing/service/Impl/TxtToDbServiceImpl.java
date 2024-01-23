@@ -158,7 +158,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
             HashMap<Integer, String> extSetField = dto.getExtSetField();
 
             String dbName = dto.getDbName().replace("apicode", dto.getApiCode());
-//        HashSet<String> fieldAll = dto.getFieldAll();
+            HashSet<String> fieldAll = dto.getFieldAll();
             HashMap<String, String> fieldAllHm = dto.getFieldAllHm();
             HashSet<String> fieldMust = dto.getFieldMust();
 
@@ -198,7 +198,10 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                 for (int i = 0; i < datas.size(); i++) {
                     String field = address.get(i);
                     String value = datas.get(i);
-
+                    //上传文件字段不在配置的（b_file_db_config）字段中，忽略掉
+                    if (!fieldAll.contains(field)) {
+                        continue;
+                    }
                     if (fieldMust.contains(field)) {
                         if (StringUtils.isNotBlank(value)) {
                             error = error.replace(String.format("%s不能为空;", field), "");

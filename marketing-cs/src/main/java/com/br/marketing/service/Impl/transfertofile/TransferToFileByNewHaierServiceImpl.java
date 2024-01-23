@@ -89,6 +89,7 @@ public class TransferToFileByNewHaierServiceImpl implements ITransferToFileServi
         if (LocalTime.now().isAfter(localTime) || isParam) {
             // 指定日期提取，生成指定日期的记录，不是当天的记录
             String dateyyyymmddStr = isParam ? myParam.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+            String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
             taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(dateyyyymmddStr)
                     .andFileTypeEqualTo(1);
@@ -103,7 +104,7 @@ public class TransferToFileByNewHaierServiceImpl implements ITransferToFileServi
                 transferFileTask.setBatchNumber(batchNumber);
                 transferFileTask.setFileName(String.format("%s_transform_%s.txt", apiCode, dateyyyymmddStr));
                 transferFileTask.setTaskNumber(0);
-                transferFileTask.setStartDate(dateyyyymmddStr);
+                transferFileTask.setStartDate(date);
                 transferFileTask.setContextId(transferFileContextId);
                 transferFileTask.setCreateTime(new Date());
                 transferFileTask.setUpdateTime(new Date());
@@ -122,11 +123,12 @@ public class TransferToFileByNewHaierServiceImpl implements ITransferToFileServi
         String requestDate = StringUtils.isBlank(jobParameter) ? LocalDate.now().toString() : jobParameter;
         Result<String> result = new Result<>();
         String apiCode = transferFileTask.getApiCode();
+        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         String descPath = syncConfigService.getPath()
                 .concat("transferToFile/")
                 .concat(apiCode)
                 .concat("/")
-                .concat(transferFileTask.getStartDate()).concat("/");
+                .concat(date).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
             boolean mkdirs = writeDic.mkdirs();
