@@ -193,13 +193,16 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
             marketingCustomizeDataValidConfig.setValidEndDate(expireDateTransfer);
             MarketingCustomizeDataValidConfigExample marketingCustomizeDataValidConfigExample = new MarketingCustomizeDataValidConfigExample();
             marketingCustomizeDataValidConfigExample.createCriteria().andTaskIdEqualTo(taskId);
-            int updateCount = marketingCustomizeDataValidConfigMapper.updateByExampleSelective(marketingCustomizeDataValidConfig, marketingCustomizeDataValidConfigExample);
+            int updateCount = marketingCustomizeDataValidConfigMapper.updateByExampleSelective(
+                    marketingCustomizeDataValidConfig,
+                    marketingCustomizeDataValidConfigExample);
             if(updateCount ==0){
                 log.error("有效期变更接口异常：有效期变更 定制表 taskId 未匹配到:联系运营确认，手动处理，jsonData:{}" ,jsonData);
                 return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
             }
 
-            List<MarketingCustomizeDataValidConfig> marketingCustomizeDataValidConfigs = marketingCustomizeDataValidConfigMapper.selectByExample(marketingCustomizeDataValidConfigExample);
+            List<MarketingCustomizeDataValidConfig> marketingCustomizeDataValidConfigs =
+                    marketingCustomizeDataValidConfigMapper.selectByExample(marketingCustomizeDataValidConfigExample);
             for(MarketingCustomizeDataValidConfig m : marketingCustomizeDataValidConfigs){
                 recordService.saveRecord(apiCode, m.getUserType(), m.getId());
             }

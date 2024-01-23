@@ -1196,7 +1196,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                         // 定制有效期自动生成逻辑
                         if(marketingCommonConfig.getCustomizeConfigValidDefaultApiCodes().contains(apiCode)){
                             // 入库成功后将apiCode、userType、appletDate、cusBatch(taskId)为key，并且唯一
-                            String key = apiCode + marketingSyncUser.getUserType() +marketingSyncUser.getAppletDate()+ marketingSyncUser.getCusBatch();
+                            String key = apiCode + marketingSyncUser.getUserType()
+                                    + marketingSyncUser.getAppletDate() +
+                                    marketingSyncUser.getCusBatch();
                             // 缓存最新的原始数据
                             validDateCustomizeCache.put(key, marketingSyncUser);
                         }else {
@@ -1257,7 +1259,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         // 去设置默认有效期
         if(marketingCommonConfig.getCustomizeConfigValidDefaultApiCodes().contains(apiCode)){
-            customizeConfigValidDateDefault(validDateCustomizeCache, apiCode);
+            customizeConfigValidDateDefault(validDateCustomizeCache);
         }else {
             configValidDateDefault(validDateCache, apiCode);
         }
@@ -1329,12 +1331,11 @@ public class PushRuleServiceImpl implements PushRuleService {
     /**
      * 定制版有效期生成
      * @param validDateCustomizeCache
-     * @param apiCode
      */
-    private void customizeConfigValidDateDefault(Map<String, MarketingSyncUser> validDateCustomizeCache, String apiCode) {
+    private void customizeConfigValidDateDefault(Map<String, MarketingSyncUser> validDateCustomizeCache) {
         try {
             // 遍历缓存中需要设置默认有效期的apiCode与userType+taskId
-            validDateCustomizeCache.forEach((key1, value) -> {
+            validDateCustomizeCache.forEach((String key1,MarketingSyncUser value) -> {
                 LocalDateTime now = LocalDateTime.now();
                 LocalDateTime localDateTime = now.plusDays(1);
                 ZonedDateTime zonedDateTime = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault());
@@ -1346,7 +1347,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             , ChronoUnit.MILLIS.between(now, zonedDateTime));
                 } catch (Exception e) {
                     lock = true;
-                    log.error("设置定制化默认有效期,上锁失败key:" + key + e.getMessage(), e);
+                    log.error("设置定制化默认有效期,上锁失败key:" + key , e);
                 }
                 if (lock) {
                     JSONObject jsonObject = new JSONObject();
@@ -1358,7 +1359,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     try {
                         producter.send(MQConstants.ROUTING_KEY_MARKETING_CUSTOMIZE_CONFIG_DEFAULT_VALID_DATE, jsonObject.toJSONString());
                     } catch (Exception e) {
-                        log.error("设置默认有效期,发送mq消息内容:" + jsonObject.toJSONString() + e.getMessage(), e);
+                        log.error("设置默认有效期,发送mq消息内容:" + jsonObject.toJSONString(), e);
                     }
                 }
             });

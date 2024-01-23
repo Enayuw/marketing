@@ -39,7 +39,8 @@ public class QiFuRuleCollectDataImpl  extends CommonMethodHandlerService{
         if (!transmitFacts.isEmpty() && transmitFacts.get(0) instanceof MarketingTransferSyncUser) {
             List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
             Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = transferDataValidityPeriodService.getValidityPeriodsByCustNumAndTaskId(set, context.getApiCode(), new Date());
+            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
+                    transferDataValidityPeriodService.getValidityPeriodsByCustNumAndTaskId(set, context.getApiCode(), new Date());
             QiFuRuleCollectDataImpl.QiFuRuleNecessaryData qiFuRuleNecessaryData = new QiFuRuleCollectDataImpl.QiFuRuleNecessaryData();
             qiFuRuleNecessaryData.setCustomerMap(validityPeriodsByCustNum);
             context.setRuleNecessaryData(qiFuRuleNecessaryData);

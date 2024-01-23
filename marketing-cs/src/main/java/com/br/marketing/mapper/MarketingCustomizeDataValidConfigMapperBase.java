@@ -21,9 +21,11 @@ public interface MarketingCustomizeDataValidConfigMapperBase {
 
     MarketingCustomizeDataValidConfig selectByPrimaryKey(Long id);
 
-    int updateByExampleSelective(@Param("record") MarketingCustomizeDataValidConfig record, @Param("example") MarketingCustomizeDataValidConfigExample example);
+    int updateByExampleSelective(@Param("record") MarketingCustomizeDataValidConfig record,
+                                 @Param("example") MarketingCustomizeDataValidConfigExample example);
 
-    int updateByExample(@Param("record") MarketingCustomizeDataValidConfig record, @Param("example") MarketingCustomizeDataValidConfigExample example);
+    int updateByExample(@Param("record") MarketingCustomizeDataValidConfig record,
+                        @Param("example") MarketingCustomizeDataValidConfigExample example);
 
     int updateByPrimaryKeySelective(MarketingCustomizeDataValidConfig record);
 
