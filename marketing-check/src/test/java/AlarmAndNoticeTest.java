@@ -432,6 +432,95 @@ public class AlarmAndNoticeTest {
     }
 
 
+    @Resource
+    TransferToFileByQiFuServiceImpl transferToFileByQiFu;
+    private final static String QIFU_TABLE_HEAD_TRANSFER = "custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId";
+    @Test
+    public void QiFuTransferFileTest() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7491630");
+        String apiCode = "7491630";
+        String myParam = "7491630#2024-01-20";
+        String dd = isMyParam("7491630", myParam);
+        String date = LocalDate.now().toString();
+        date = date.replace("-", "");
+        transferFileTask.setStartDate(dd);
+        String recordDate = transferFileTask.getStartDate();
+        boolean isParam = StringUtils.isNotBlank(dd);
+        String dateyyyymmddStr = isParam ? dd.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        transferFileTask.setFileName(String.format("transform_qifu_%s.txt", dateyyyymmddStr));
+        log.warn("奇富360转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(date).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
+            fw.append(QIFU_TABLE_HEAD_TRANSFER);
+            fw.append("\r\n");
+            transferToFileByQiFu.writeQifuTransferToFile(fw,apiCode,transferFileTask, recordDate);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+    }
+
+    public static void main(String[] args) {
+        String dateString = "2024-01-05";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate localDate = LocalDate.parse(dateString, formatter);
+        LocalDate now = LocalDate.now();
+        if (localDate.isEqual(now)) {
+            LocalDate[] dates = getFirstAndLastDayOfMonth(localDate);
+            System.err.println("First day of the month: " + dates[0]);
+            System.err.println("First day of the next month: " + dates[1]);
+        } else {
+            LocalDate[] dates = getStartAndEndDate(localDate);
+            System.err.println("First: " + dates[0]);
+            System.err.println("First: " + dates[1]);
+        }
+
+
+    }
+
+    public static LocalDate[] getFirstAndLastDayOfMonth(LocalDate date) {
+        LocalDate firstDayOfMonth;
+        LocalDate lastDayOfMonth;
+
+        if (date.getDayOfMonth() == 1) {
+            firstDayOfMonth = date.minusMonths(1);
+            lastDayOfMonth = date;
+        } else {
+            firstDayOfMonth = date.withDayOfMonth(1);
+            lastDayOfMonth = date.withDayOfMonth(date.lengthOfMonth());
+        }
+
+        return new LocalDate[]{firstDayOfMonth, lastDayOfMonth};
+    }
+
+    public static LocalDate[] getStartAndEndDate(LocalDate date) {
+        LocalDate firstDayOfMonth;
+        LocalDate lastDayOfMonth;
+
+        if (date.getDayOfMonth() == 1) {
+            firstDayOfMonth = date.minusMonths(1);
+            lastDayOfMonth = date;
+        } else {
+            firstDayOfMonth = date.withDayOfMonth(1);
+            lastDayOfMonth = date.withDayOfMonth(date.lengthOfMonth());
+            if (date.isBefore(lastDayOfMonth)) {
+                lastDayOfMonth = date;
+            }
+        }
+
+        return new LocalDate[]{firstDayOfMonth, lastDayOfMonth};
+    }
+
+
+
+
 
     public String isMyParam(String apiCode, String jobParameter) {
         if (jobParameter.contains(apiCode)) {

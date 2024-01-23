@@ -1254,5 +1254,16 @@ public class MarketingCommonConfig {
      * {"1":true,"2":true}
      */
     private HashMap<String,Boolean> mockCallBackError;
+    /**
+     * 奇富360转化数据提取apiCode集合
+     */
+    private List<String> QiFuTransferApiCodes;
+
+    /**
+     * 奇富360转化数据提取执行时间
+     */
+    private String QiFuTransferExecuteTime;
+
+
 }
 

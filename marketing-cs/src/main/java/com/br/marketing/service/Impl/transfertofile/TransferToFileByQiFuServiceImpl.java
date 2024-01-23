@@ -1,16 +1,13 @@
 package com.br.marketing.service.Impl.transfertofile;
 
-import com.alibaba.fastjson.JSON;
-import com.br.common.util.BrCipherMaker;
-import com.br.marketing.bo.SyncUserValidityPeriodsBO;
+import cn.hutool.core.util.ObjectUtil;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
-import com.br.marketing.enums.ThreeKeyEncryptEnum;
-import com.br.marketing.mapper.MarketingDataValidConfigMapper;
+import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
@@ -18,14 +15,11 @@ import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
 import com.br.marketing.service.Impl.RuleRedisServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.SyncConfigService;
-import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.util.EncAndDecUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
@@ -37,16 +31,15 @@ import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 /**
  * @Author 李广秀
- * @Date 2023/12/11 10:31
- * @Description:同程新系统转化数据提取
+ * @Date 2024/01/04 10:31
+ * @Description:奇富360转化数据提取
  */
 @Slf4j
 @Service
-public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileService {
+public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
 
     @Autowired
     SyncConfigService syncConfigService;
@@ -61,17 +54,14 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
     @Resource
-    private MarketingDataValidConfigMapper marketingDataValidConfigMapper;
-    @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
-    private TransferDataValidityPeriodService validityPeriodService;
+    private MarketingSyncUserMapper marketingSyncUserMapper;
 
 
-    private final static String TABLE_HEAD_TRANSFER = "custNum,cell,userType,applyDt,applyResult,auditTime," +
-            "ifLent,lentTime,lentAmount,effectiveTime,applyLoan";
+    private final static String TABLE_HEAD_TRANSFER = "custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId";
 
-    final static String EXECUTE_TIME = "08:00:00";
+    final static String EXECUTE_TIME = "10:30:00";
 
 
     final static DateTimeFormatter YYYYMMDDSHORTLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
@@ -98,8 +88,8 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
     @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam) {
         List<TransferFileTask> resultList = new ArrayList<>();
-        String extractTime = StringUtils.isBlank(marketingCommonConfig.getZhongBangTransferExecuteTime())
-                ? EXECUTE_TIME : marketingCommonConfig.getZhongBangTransferExecuteTime();
+        String extractTime = StringUtils.isBlank(marketingCommonConfig.getQiFuTransferExecuteTime())
+                ? EXECUTE_TIME : marketingCommonConfig.getQiFuTransferExecuteTime();
         LocalTime localTime = LocalTime.parse(extractTime);
         boolean isParam = StringUtils.isNotBlank(myParam);
         if (LocalTime.now().isAfter(localTime) || isParam) {
@@ -111,14 +101,14 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
                     .andFileTypeEqualTo(1);
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
             if (CollectionUtils.isEmpty(transferFileTasks)) {
-                log.warn("同程新系统转化数据提取-开始执行,apiCode ={}", apiCode);
+                log.warn("奇富360转化数据提取-开始执行,apiCode ={}", apiCode);
                 Long transferFileContextId = ruleRedisService.getTransferFileContextId();
                 String batchNumber = createBatchNumber(apiCode, transferFileContextId, dateyyyymmddStr);
                 TransferFileTask transferFileTask = new TransferFileTask();
                 transferFileTask.setApiCode(apiCode);
                 transferFileTask.setFileType(1);
                 transferFileTask.setBatchNumber(batchNumber);
-                transferFileTask.setFileName(String.format("tongcheng_zhuanhua_%s.txt", dateyyyymmddStr));
+                transferFileTask.setFileName(String.format("transform_qifu_%s.txt", dateyyyymmddStr));
                 transferFileTask.setTaskNumber(0);
                 transferFileTask.setStartDate(date);
                 transferFileTask.setContextId(transferFileContextId);
@@ -137,10 +127,11 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
 
     @Override
     public Result actionTransferToFile(TransferFileTask transferFileTask,String jobParameter) {
-        log.warn("同程新系统转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        log.warn("奇富360转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         Result<String> result = new Result<>();
         String apiCode = transferFileTask.getApiCode();
-        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String date = LocalDate.now().toString();
+        date = date.replace("-", "");
         String requestDate = StringUtils.isBlank(jobParameter) ? LocalDate.now().toString() : jobParameter;
         String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/")
                 .concat(date).concat("/");
@@ -157,7 +148,7 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
         try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
             fw.append(TABLE_HEAD_TRANSFER);
             fw.append("\r\n");
-            writeNewTongChengTransferToFile(fw, apiCode, transferFileTask, requestDate);
+            writeQifuTransferToFile(fw, apiCode, transferFileTask, requestDate);
         } catch (Exception ex) {
             log.error("写入文件错误！",ex);
             result.setCode(ResultCode.FAIL.getValue());
@@ -167,108 +158,65 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
         return result;
     }
 
-    public void writeNewTongChengTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
+    public void writeQifuTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
         Long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         Integer page = 0;
-        Boolean mark = Boolean.TRUE;
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
         LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
-        LocalDate startDate = localDate.minusDays(31);
-        LocalDate endDate = localDate;
-        LocalDate today = LocalDate.now();
-        String appletDate = localDate.minusDays(1).toString();
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50, 1);
-        List<MarketingDataValidConfig> validityDataByApiCode = marketingDataValidConfigMapper.getValidityDataByApiCode(apiCode, appletDate);
-        if (validityDataByApiCode.size() <= 0){
-            log.warn("列表可能为空");
-            mark = Boolean.FALSE;
-        }
-        Optional<MarketingDataValidConfig> minDateConfig = validityDataByApiCode.stream()
-                .min(Comparator.comparing(MarketingDataValidConfig::getValidStartDate));
-        if (minDateConfig.isPresent()) {
-            startDate = LocalDate.parse(minDateConfig.get().getValidStartDate(), YYYYMMDDSHORTLINE);
+        LocalDate now = LocalDate.now();
+        LocalDate[] dates;
+        if (localDate.isEqual(now)) {
+            dates = getFirstAndLastDayOfMonth(localDate);
         } else {
-            log.warn("列表为空，无法获取最小的startDate");
+            dates = getStartAndEndDate(localDate);
         }
-        Optional<MarketingDataValidConfig> maxDateConfig = validityDataByApiCode.stream()
-                .max(Comparator.comparing(MarketingDataValidConfig::getValidEndDate));
-        if (maxDateConfig.isPresent()) {
-            endDate = LocalDate.parse(maxDateConfig.get().getValidEndDate(), YYYYMMDDSHORTLINE);
-            if (endDate.isBefore(today) || endDate.isEqual(today)){
-                endDate = today.plusDays(1);
-            }
-        } else {
-            log.warn("列表为空，无法获取最大的ValidEndDate");
-        }
+        LocalDate startDate = dates[0];
+        LocalDate endDate = dates[1];
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
 
         MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
         Integer pageSize = dynamicParameterService.getPageSize(null);
-        while (mark) {
+        for (; ; ) {
             List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
                     .getTransferByStartAndEndDate(syncUser, startDate.toString(), endDate.toString(), null, page * pageSize, pageSize);
             if (CollectionUtils.isEmpty(transferData)) {
                 break;
             }
             page++;
-            Set<String> set = transferData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-            //判断转化数据是否在有效期内
-            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService
-                    .getValidityPeriodsByCustNum(set, apiCode, appletDate);
             threadPool.submit(() -> {
                 for (MarketingTransferSyncUser transferFilterData : transferData) {
                     String custNum = transferFilterData.getCustNum();
-                    String effectiveTime = "";
-                    String applyLoan = "";
-                    String cell = "";
-                    SyncUserValidityPeriodsBO boMap = validityPeriodsByCustNum.get(custNum);
-                    if (boMap == null) {
-                        log.warn("{}不满足案件编号“有效期内”条件", custNum);
-                        continue;
+                    Result<String> cellRes = new Result<>();
+                    String taskId = "";
+                    //上传给，根据custNum去关联上传数据的taskId,按照applet_time倒叙取第一条
+                    MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode, custNum);
+                    if (ObjectUtil.isNotEmpty(marketingSyncUser)){
+                        taskId = StringUtils.isNotEmpty(marketingSyncUser.getCusBatch()) ? marketingSyncUser.getCusBatch() : "";
                     }
-                    MarketingSyncUser marketingSyncUser = boMap.getSyncUsers().get(0);
-                    if (StringUtils.isNotEmpty(marketingSyncUser.getCell())){
-                        cell = EncAndDecUtil.logTodigest(marketingSyncUser.getCell(), ThreeKeyEncryptEnum.md5);
-                    }
-                    if (StringUtils.isNotEmpty(marketingSyncUser.getReserveField1())) {
-                        effectiveTime = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("effectiveTime");
-                        effectiveTime = StringUtils.isNotEmpty(effectiveTime) ? effectiveTime.replace(":000","") : "";
-                    }
-                    if (StringUtils.isNotEmpty(transferFilterData.getReserveField1())) {
-                        applyLoan = JSON.parseObject(transferFilterData.getReserveField1()).getString("applyLoan");
-                        applyLoan = StringUtils.isNotEmpty(applyLoan) ? applyLoan : "";
-                    }
-                    StringBuilder sb = new StringBuilder();
-                    custNum = StringUtils.isNotEmpty(transferFilterData.getCustNum())
-                            ? transferFilterData.getCustNum() : "";
-                    String userType = StringUtils.isNotEmpty(transferFilterData.getUserType())
-                            ? transferFilterData.getUserType() : "";
+                    custNum = StringUtils.isNotEmpty(custNum) ? custNum : "";
                     String applyDt = StringUtils.isNotEmpty(transferFilterData.getApplyDt())
                             ? transferFilterData.getApplyDt().replace(":000","") : "";
                     String applyResult = StringUtils.isNotEmpty(transferFilterData.getApplyResult())
                             ? transferFilterData.getApplyResult() : "";
-                    String auditTime = StringUtils.isNotEmpty(transferFilterData.getAuditTime())
-                            ? transferFilterData.getAuditTime().replace(":000","")  : "";
-                    String ifLent = StringUtils.isNotEmpty(transferFilterData.getIfLent())
-                            ? transferFilterData.getIfLent() : "";
-                    String lentTime = StringUtils.isNotEmpty(transferFilterData.getLentTime())
-                            ? transferFilterData.getLentTime().replace(":000","") : "";
-                    String lentAmount = StringUtils.isNotEmpty(transferFilterData.getLentAmount())
-                            ? transferFilterData.getLentAmount() : "";
+                    String loginTime = StringUtils.isNotEmpty(transferFilterData.getLoginTime())
+                            ? transferFilterData.getLoginTime().replace(":000","") : "";
+                    String requestTime = StringUtils.isNotEmpty(transferFilterData.getRequestTime())
+                            ? transferFilterData.getRequestTime().replace(":000","") : "";
+                    String userType = StringUtils.isNotEmpty(transferFilterData.getUserType())
+                            ? transferFilterData.getUserType() : "";
+                    //custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId
+                    StringBuilder sb = new StringBuilder();
                     sb.append(custNum.concat(","))
-                            .append(cell.concat(","))
-                            .append(userType.concat(","))
                             .append(applyDt.concat(","))
                             .append(applyResult.concat(","))
-                            .append(auditTime.concat(","))
-                            .append(ifLent.concat(","))
-                            .append(lentTime.concat(","))
-                            .append(lentAmount.concat(","))
-                            .append(effectiveTime.concat(","))
-                            .append(applyLoan)
+                            .append(loginTime.concat(","))
+                            .append(requestTime.concat(","))
+                            .append(userType.concat(","))
+                            .append(taskId)
                             .append("\r\n");
                     try {
                         fw.append(sb.toString());
@@ -287,15 +235,15 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
                 if (log.isInfoEnabled()) {
                     long taskCount = threadPool.getTaskCount();
                     long completedTaskCount = threadPool.getCompletedTaskCount();
-                    log.info("同程新系统转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
+                    log.info("奇富360转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
                             , taskCount, completedTaskCount, taskCount - completedTaskCount);
                 }
             }
             saveUpdateTask(transferFileTask, totalSize.intValue());
-            log.warn("同程新系统转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
+            log.warn("奇富360转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
                     , apiCode, System.currentTimeMillis() - start, totalSize.intValue());
         } catch (InterruptedException e) {
-            log.error("同程新系统转化数据提取-本地文件生成失败！" , e);
+            log.error("奇富360转化数据提取-本地文件生成失败！" , e);
             threadPool.shutdownNow();
             Thread.currentThread().interrupt();
             transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
@@ -318,4 +266,39 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
     private String createBatchNumber(String apiCode, Long contextId, String dateStr) {
         return apiCode.concat("_").concat(dateStr).concat("_").concat(contextId.toString());
     }
+
+
+    public static LocalDate[] getFirstAndLastDayOfMonth(LocalDate date) {
+        LocalDate firstDayOfMonth;
+        LocalDate lastDayOfMonth;
+
+        if (date.getDayOfMonth() == 1) {
+            firstDayOfMonth = date.minusMonths(1);
+            lastDayOfMonth = date;
+        } else {
+            firstDayOfMonth = date.withDayOfMonth(1);
+            lastDayOfMonth = date.withDayOfMonth(date.lengthOfMonth());
+        }
+
+        return new LocalDate[]{firstDayOfMonth, lastDayOfMonth};
+    }
+
+    public static LocalDate[] getStartAndEndDate(LocalDate date) {
+        LocalDate firstDayOfMonth;
+        LocalDate lastDayOfMonth;
+
+        if (date.getDayOfMonth() == 1) {
+            firstDayOfMonth = date.minusMonths(1);
+            lastDayOfMonth = date;
+        } else {
+            firstDayOfMonth = date.withDayOfMonth(1);
+            lastDayOfMonth = date.withDayOfMonth(date.lengthOfMonth());
+            if (date.isBefore(lastDayOfMonth)) {
+                lastDayOfMonth = date;
+            }
+        }
+
+        return new LocalDate[]{firstDayOfMonth, lastDayOfMonth};
+    }
+
 }
