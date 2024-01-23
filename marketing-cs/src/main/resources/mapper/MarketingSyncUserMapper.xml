@@ -792,6 +792,29 @@
         and status=1
         and is_repeat in (1,2)
     </select>
+
+    <select id="getSyncUserByCustNumAndTaskIdsList" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where cust_num in
+        <foreach collection="custNumSet" item="custNum" open="(" separator="," close=")">
+            '${custNum}'
+        </foreach>
+        <choose>
+            <when test="configList != null and configList.size() > 0">
+                and (cus_batch, user_type, applet_date) in
+                <foreach collection="configList" item="item" open="(" close=")" separator=",">
+                    (#{item.taskId,jdbcType=VARCHAR}, #{item.userType,jdbcType=VARCHAR}, #{item.appletDate,jdbcType=VARCHAR})
+                </foreach>
+            </when>
+            <otherwise>
+                and 1!=1
+
+            </otherwise>
+        </choose>
+        and status=1
+        and is_repeat in (1,2)
+    </select>
     <select id="getUserLastByCell" resultType="com.br.marketing.entity.MarketingSyncUser">
         select *
         from b_marketing_sync_${apiCode}

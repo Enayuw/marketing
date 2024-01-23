@@ -18,7 +18,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.ValidityPeriodResendRecord;
 import com.br.marketing.enums.ValidityPeriodResendEnum;
-import com.br.marketing.mapper.MarketingDataValidConfigMapper;
+import com.br.marketing.mapper.MarketingCustomizeDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
@@ -33,18 +33,18 @@ import lombok.extern.slf4j.Slf4j;
 import shaded.com.google.common.base.Splitter;
 
 /**
- * 转化数据执行通用规则重推流程
+ * 转化数据执行通用规则定制重推流程
  *
- * @author senyang.zheng
- * @date 2023/11/13
+ * @author guangchao.zhang
+ * @date 2024/01/12
  */
 @Slf4j
 @Service
-@ValidityPeriodResendType(resendType = ValidityPeriodResendEnum.UNIVERSAL_TRANSFER_PROCESS_RESEND)
-public class UniversalTransferProcessResend implements ValidityPeriodResendStrategy<MarketingTransferInfo> {
+@ValidityPeriodResendType(resendType = ValidityPeriodResendEnum.CUSTOMIZE_TRANSFER_PROCESS_RESEND)
+public class CustomizeTransferProcessResend implements ValidityPeriodResendStrategy<MarketingTransferInfo> {
 
     @Resource
-    private MarketingDataValidConfigMapper marketingDataValidConfigMapper;
+    private MarketingCustomizeDataValidConfigMapper marketingCustomizeDataValidConfigMapper;
     @Resource
     private MarketingTransferInfoMapper marketingTransferInfoMapper;
     @Resource
@@ -57,8 +57,8 @@ public class UniversalTransferProcessResend implements ValidityPeriodResendStrat
      *
      * @param params params
      * @return {@link JSONObject }
-     * @author senyang.zheng
-     * @date 2023/11/13
+     * @author guangchao.zhang
+     * @date 2024/01/12
      */
     @Override
     public JSONObject buildResendData(Map<String, Object> params) {
@@ -72,15 +72,16 @@ public class UniversalTransferProcessResend implements ValidityPeriodResendStrat
      * @param page 页码
      * @param pageSize 页大小
      * @return {@link List }<{@link MarketingTransferInfo }>
-     * @author senyang.zheng
+     * @author guangchao.zhang
      * @date 2023/11/20
      */
     @Override
     public List<MarketingTransferInfo> fetchData(ValidityPeriodResendRecord record, int page, int pageSize) {
         // 获取有效期范围
-        Map<String, String> validPeriodRange = marketingDataValidConfigMapper.getValidPeriodRangeByApiCodeAndUserType(record.getValidityPeriodId());
+        Map<String, String> validPeriodRange =
+            marketingCustomizeDataValidConfigMapper.getCustomizeValidPeriodRangeByApiCodeAndUserType(record.getValidityPeriodId());
         if (ObjectUtil.isEmpty(validPeriodRange)) {
-            log.error("通用转化数据重推有效期变更重推失败，未存在有效的有效期，record:{}", record);
+            log.error("360定制化有效期变更重推失败，未存在有效的有效期配置，record:{}", record);
             return Lists.newArrayList();
         }
         // 开始结束时间范围外扩一天
@@ -97,8 +98,8 @@ public class UniversalTransferProcessResend implements ValidityPeriodResendStrat
      *
      * @param data 重推数据
      * @param record 重推记录
-     * @author senyang.zheng
-     * @date 2023/11/13
+     * @author guangchao.zhang
+     * @date 2024/01/12
      */
     @Override
     public void resend(List<MarketingTransferInfo> data, ValidityPeriodResendRecord record) {
@@ -113,7 +114,7 @@ public class UniversalTransferProcessResend implements ValidityPeriodResendStrat
             while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
                 log.warn("UniversalTransferProcessResend 等待线程池结束");
             }
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             pool.shutdownNow();
             log.error("UniversalTransferProcessResend 线程池关闭异常,直接关闭线程池", e);
         }
@@ -125,8 +126,8 @@ public class UniversalTransferProcessResend implements ValidityPeriodResendStrat
      * @param info 信息
      * @param record 重推记录
      * @return {@link MqFact }
-     * @author senyang.zheng
-     * @date 2023/11/13
+     * @author guangchao.zhang
+     * @date 2024/01/12
      */
     protected static MqFact buildMqFact(MarketingTransferInfo info, ValidityPeriodResendRecord record) {
         MqFact mqFact = new MqFact();
