@@ -1093,6 +1093,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         tableCreateService.createMarketingSyncUserTable(marketingSyncInfo.getApiCode());
         ArrayList<Callable<Result<MarketingPreUserErrorDetailVO>>> list = new ArrayList<>();
         Map<String, MarketingSyncUser> validDateCache = new ConcurrentHashMap<>(16);
+        Map<String, MarketingSyncUser> validDateCustomizeCache = new ConcurrentHashMap<>(16);
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
             //此处会处理三种场景的数据
@@ -1192,10 +1193,18 @@ public class PushRuleServiceImpl implements PushRuleService {
                             || marketingSyncUser.getIsRepeat().equals(2)
                             || marketingSyncUser.getIsRepeat().equals(1));
                     if (isCreate) {
-                        // 入库成功后将apiCode、userType、appletDate为key，并且唯一
-                        String key = apiCode + marketingSyncUser.getUserType() + marketingSyncUser.getAppletDate();
-                        // 缓存最新的原始数据
-                        validDateCache.put(key, marketingSyncUser);
+                        // 定制有效期自动生成逻辑
+                        if(marketingCommonConfig.getCustomizeConfigValidDefaultApiCodes().contains(apiCode)){
+                            // 入库成功后将apiCode、userType、appletDate、cusBatch(taskId)为key，并且唯一
+                            String key = apiCode + marketingSyncUser.getUserType() +marketingSyncUser.getAppletDate()+ marketingSyncUser.getCusBatch();
+                            // 缓存最新的原始数据
+                            validDateCustomizeCache.put(key, marketingSyncUser);
+                        }else {
+                            // 入库成功后将apiCode、userType、appletDate为key，并且唯一
+                            String key = apiCode + marketingSyncUser.getUserType() + marketingSyncUser.getAppletDate();
+                            // 缓存最新的原始数据
+                            validDateCache.put(key, marketingSyncUser);
+                        }
                     }
                 } catch (Exception ex) {
                     if (ex.getMessage().contains("IDX_taskId_custNum")) {
@@ -1247,7 +1256,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         // 去设置默认有效期
-        configValidDateDefault(validDateCache, apiCode);
+        if(marketingCommonConfig.getCustomizeConfigValidDefaultApiCodes().contains(apiCode)){
+            customizeConfigValidDateDefault(validDateCustomizeCache, apiCode);
+        }else {
+            configValidDateDefault(validDateCache, apiCode);
+        }
+
         MarketingSyncInfo updateSyncInfo = new MarketingSyncInfo();
         updateSyncInfo.setId(marketingSyncInfo.getId());
         updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_running);
@@ -1312,6 +1326,46 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
+    /**
+     * 定制版有效期生成
+     * @param validDateCustomizeCache
+     * @param apiCode
+     */
+    private void customizeConfigValidDateDefault(Map<String, MarketingSyncUser> validDateCustomizeCache, String apiCode) {
+        try {
+            // 遍历缓存中需要设置默认有效期的apiCode与userType+taskId
+            validDateCustomizeCache.forEach((key1, value) -> {
+                LocalDateTime now = LocalDateTime.now();
+                LocalDateTime localDateTime = now.plusDays(1);
+                ZonedDateTime zonedDateTime = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault());
+                String key = RedisKeyConstant.prefix.concat("customizeValid:lock:") + key1;
+                boolean lock;
+                try {
+                    // 将主键保存到锁的key中
+                    lock = redisChgService.lock(key, String.valueOf(value.getId())
+                            , ChronoUnit.MILLIS.between(now, zonedDateTime));
+                } catch (Exception e) {
+                    lock = true;
+                    log.error("设置定制化默认有效期,上锁失败key:" + key + e.getMessage(), e);
+                }
+                if (lock) {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("apiCode", value.getApiCode());
+                    jsonObject.put("userType", value.getUserType());
+                    jsonObject.put("cusBatch", value.getCusBatch());
+                    jsonObject.put("appletDate", StringUtils.isBlank(value.getAppletDate())
+                            ? LocalDate.now().toString() : value.getAppletDate());
+                    try {
+                        producter.send(MQConstants.ROUTING_KEY_MARKETING_CUSTOMIZE_CONFIG_DEFAULT_VALID_DATE, jsonObject.toJSONString());
+                    } catch (Exception e) {
+                        log.error("设置默认有效期,发送mq消息内容:" + jsonObject.toJSONString() + e.getMessage(), e);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
     /**
      * 2023-07-05 15:52
      * 配置默认有效期

@@ -112,6 +112,21 @@ public class ConsumerApp {
                 }.getType());
         consumerService.consumerRun(channel, message, periodOfValidityService::configValidDateDefault, o, null);
     }
+    /**
+     * 设置定制化默认有效期范围消费者(360)
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_CUSTOMIZE_CONFIG_DEFAULT_VALID_DATE, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_CUSTOMIZE_CONFIG_DEFAULT_VALID_DATE)}, containerFactory = "fiveDataContainerFactory")
+    public void consumersCustomizeConfigDefaultValidDate(Channel channel, Message message) {
+        MarketingSyncUser o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8)
+                , new TypeReference<MarketingSyncUser>() {
+                }.getType());
+        consumerService.consumerRun(channel, message, periodOfValidityService::customizeConfigValidDateDefault, o, null);
+    }
 
     /**
      * 消费 中邮清洗数据
