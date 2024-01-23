@@ -5,6 +5,7 @@ import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.entity.MarketingDataValidConfig;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
@@ -13,7 +14,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * @author GuangChao.Zhang
@@ -267,4 +267,19 @@ public interface TransferDataValidityPeriodService {
     Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNumAndTaskId(Set<String> custNumSet,
                                                                                 String apiCode,
                                                                                 Object requestDateObj);
+
+    /**
+     * 获取有效期的有效期配置,重叠时间段会合并,分页
+     *
+     * @param apiCode        客户编号
+     * @param requestDateObj 请求时间
+     * @param page           页号
+     * @param pageSize       页大小
+     * @return 有效期的有效期配置
+     * @author Guo Zeqiang
+     * @version 1.0
+     * @dateTime 2024-01-09 15:30
+     */
+    List<MarketingDataValidConfig> getDataValidityPeriodPageList(
+            String apiCode, Object requestDateObj, int page, int pageSize);
 }

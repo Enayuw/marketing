@@ -206,6 +206,9 @@ public interface MarketingSyncUserMapper {
     List<MarketingSyncUser> getCellLastByCustNums(@Param("apiCode") String apiCode
         , @Param("custNums") Set<String> custNumSet);
 
+    MarketingSyncUser getUserLastByCell(@Param("apiCode") String apiCode
+            , @Param("cell") String cell);
+
 
     List<MarketingSyncUser> getCellByAppletDateAndUserType(@Param("apiCode") String apiCode, @Param("appletDate") String executeDate, @Param("minId") Long minId, @Param("userType") String userType);
 

@@ -43,6 +43,9 @@ public class PushInfoListVO {
     @ApiModelProperty(value = "推送结果返回")
     private List<Map> returnMessages;
 
+    @ApiModelProperty(value = "场景")
+    private String userType;
+
     public String getmStatusDesc() {
         if (mStatus.equals(1)) {
             return "执行中";
@@ -153,5 +156,13 @@ public class PushInfoListVO {
 
     public void setReturnMessages(List<Map> returnMessages) {
         this.returnMessages = returnMessages;
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType;
     }
 }

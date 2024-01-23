@@ -287,6 +287,29 @@
         where t2.id = t1.id
     </select>
 
+    <select id="findListPageByExampleSqlStr" resultType="com.br.marketing.entity.PhoneSaleExtendInfo"
+            parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample">
+        select
+        <if test="example.distinct">
+            distinct
+        </if>
+        t1.*
+        from b_phone_sale_extend_info t1
+        , (select id
+        from b_phone_sale_extend_info
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause_Custom"/>
+        </if>
+        <if test="sqlWhereStr != null and sqlWhereStr != ''">
+            ${sqlWhereStr}
+        </if>
+        <if test="example.orderByClause != null">
+            order by ${example.orderByClause}
+        </if>
+        limit ${(pageNum - 1) * pageSize}, #{pageSize}) as t2
+        where t2.id = t1.id
+    </select>
+
     <select id="getCustNumSettikv_" resultType="java.lang.String"
             parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample">
         select

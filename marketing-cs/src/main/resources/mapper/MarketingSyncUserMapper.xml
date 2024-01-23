@@ -815,4 +815,10 @@
         and status=1
         and is_repeat in (1,2)
     </select>
+    <select id="getUserLastByCell" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where `cell` = #{cell} and `status` =1
+        order by applet_time desc limit 1
+    </select>
 </mapper>
