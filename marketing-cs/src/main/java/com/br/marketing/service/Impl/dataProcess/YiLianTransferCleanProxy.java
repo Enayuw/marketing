@@ -40,7 +40,7 @@ public class YiLianTransferCleanProxy extends UploadDataProxy {
             try {
                 assembleData(header, dataSplit, dataItems, data);
             } catch (Exception e) {
-                log.error("亿联转化数据清洗，客户数据处理异常，数据表id：{}", data.getId(),e.getMessage());
+                log.error("亿联转化数据清洗，客户数据处理异常，数据表id：{}", data.getId(), e.getMessage());
             }
         }
 
@@ -74,14 +74,8 @@ public class YiLianTransferCleanProxy extends UploadDataProxy {
         }
         transferData.setCustNum(dataList.get(header.indexOf("br_uid")).trim());
         // loginTime
-        if (StringUtils.isNotEmpty(dataList.get(header.indexOf("login_time")))) {
-            try {
-                transferData.setLoginTime(dataList.get(header.indexOf("login_time")).trim().substring(0, 10));
-            } catch (Exception e) {
-                log.error("亿联转化数据清洗,文件login_time字段时间格式异常，数据表id={}", data.getId(), e.getMessage());
-                transferData.setLoginTime(dataList.get(header.indexOf("login_time")));
-            }
-        }
+
+        transferData.setLoginTime(dataList.get(header.indexOf("login_time")).trim());
         // ifApply
         transferData.setIfApply(dataList.get(header.indexOf("apply_is")).trim());
         // ifLent
@@ -95,14 +89,7 @@ public class YiLianTransferCleanProxy extends UploadDataProxy {
         transferData.setIfLogin(dataList.get(header.indexOf("login_result")).trim());
         transferData.setApplyResult(dataList.get(header.indexOf("apply_result")).trim());
         transferData.setAuditAmount(dataList.get(header.indexOf("apply_amt")).trim());
-        if (StringUtils.isNotEmpty(dataList.get(header.indexOf("apply_time")))) {
-            try {
-                transferData.setAuditTime(dataList.get(header.indexOf("apply_time")).trim().substring(0, 10));
-            } catch (Exception e) {
-                log.error("亿联转化数据清洗,文件apply_time字段时间格式异常，数据表id={}", data.getId(), e.getMessage());
-                transferData.setAuditTime(dataList.get(header.indexOf("apply_time")));
-            }
-        }
+        transferData.setAuditTime(dataList.get(header.indexOf("apply_time")).trim());
         // userType
         transferData.setUserType("1");
         // reserveField1
