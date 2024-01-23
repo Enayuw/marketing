@@ -143,7 +143,7 @@ public class BrokerGrpcClient {
                 //此处提供测试验证，开发人员、测试人员通过这块看ELK/消费端对应索引是否有日志判断验证整个流程是否正常
                 //可通过yaml中增加环境变量MOM_TEST=true来触发此处打印日志仅用来验证用，注意header包引入后如果DLF=off则此处的info日志才可触发，如果预发验证无问题，上线此处可去掉
 //                momLog.warn("[test verify mom log result]{}message:{}code:{}", result.getResult(),result.getMessage(),result.getCode());
-                log.warn("[test verify mom log result]{}message:{}code:{}", result.getResult(),result.getMessage(),result.getCode());
+//                log.warn("[test verify mom log result]{}message:{}code:{}", result.getResult(),result.getMessage(),result.getCode());
                 if (!"0".equals(result.getCode())) {
                     //建议返回码非0的时候配置响应的阶梯告警
                     String msgLog = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_COMMON.getCode()
