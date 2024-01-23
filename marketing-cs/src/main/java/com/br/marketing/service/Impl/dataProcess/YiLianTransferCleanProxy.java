@@ -77,33 +77,43 @@ public class YiLianTransferCleanProxy extends UploadDataProxy {
 
         transferData.setLoginTime(dataList.get(header.indexOf("login_time")).trim());
         // ifApply
-        transferData.setIfApply(dataList.get(header.indexOf("apply_is")).trim());
+        transferData.setIfApply(stringEscape(dataList.get(header.indexOf("apply_is")).trim()));
         // ifLent
-        transferData.setIfLent(dataList.get(header.indexOf("cash_is")).trim());
+        transferData.setIfLent(stringEscape(dataList.get(header.indexOf("cash_is")).trim()));
         // lentTime
         transferData.setLentTime(dataList.get(header.indexOf("cash_time")).trim());
         // lentAmount
         transferData.setLentAmount(dataList.get(header.indexOf("cash_amt")).trim());
-        transferData.setIfRegister(dataList.get(header.indexOf("register_result")).trim());
+        transferData.setIfRegister(stringEscape(dataList.get(header.indexOf("register_result")).trim()));
         transferData.setRegisterTime(dataList.get(header.indexOf("register_time")).trim());
-        transferData.setIfLogin(dataList.get(header.indexOf("login_result")).trim());
-        transferData.setApplyResult(dataList.get(header.indexOf("apply_result")).trim());
+        transferData.setIfLogin(stringEscape(dataList.get(header.indexOf("login_result")).trim()));
+        transferData.setApplyResult(stringEscape(dataList.get(header.indexOf("apply_result")).trim()));
         transferData.setAuditAmount(dataList.get(header.indexOf("apply_amt")).trim());
         transferData.setAuditTime(dataList.get(header.indexOf("apply_time")).trim());
         // userType
         transferData.setUserType("1");
         // reserveField1
-        reserveField1.put("idcardScanningResult", dataList.get(header.indexOf("idcard_scanning_result")).trim());
+        reserveField1.put("idcardScanningResult", stringEscape(dataList.get(header.indexOf("idcard_scanning_result")).trim()));
         reserveField1.put("idcardScanningTime", dataList.get(header.indexOf("idcard_scanning_time")).trim());
-        reserveField1.put("faceRecognizationResultCredit", dataList.get(header.indexOf("face_recognization_result_credit")).trim());
+        reserveField1.put("faceRecognizationResultCredit", stringEscape(dataList.get(header.indexOf("face_recognization_result_credit")).trim()));
         reserveField1.put("faceRecognizationTimeCredit", dataList.get(header.indexOf("face_recognization_time_credit")).trim());
-        reserveField1.put("faceRecognizationResultDraw", dataList.get(header.indexOf("face_recognization_result_draw")).trim());
+        reserveField1.put("faceRecognizationResultDraw", stringEscape(dataList.get(header.indexOf("face_recognization_result_draw")).trim()));
         reserveField1.put("faceRecognizationTimeDraw", dataList.get(header.indexOf("face_recognization_time_draw")).trim());
-        reserveField1.put("cashResult", dataList.get(header.indexOf("cash_result")).trim());
+        reserveField1.put("cashResult", stringEscape(dataList.get(header.indexOf("cash_result")).trim()));
         reserveField1.put("dataDt", dataList.get(header.indexOf("data_dt")).trim());
         reserveField1.put("etlunifyTime", dataList.get(header.indexOf("etlunify_time")).trim());
 
         transferData.setReserveField1(reserveField1.toJSONString());
         dataItems.add(transferData);
+    }
+
+    private String stringEscape(String value) {
+        if("是".equals(value) || "成功".equals(value)){
+            return "1";
+        }else if("否".equals(value) || "失败".equals(value)){
+            return "0";
+        }else{
+            return value;
+        }
     }
 }
