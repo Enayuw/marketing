@@ -96,6 +96,7 @@ public class ShuHeUserServiceImpl {
     private MarketingPreUserDTO adapterMarketingPreUserDTO(JSONObject uploadDataDTO, JSONArray listInfo
             , CaseShuheUploadData shuheUploadData) {
         try {
+            JSONObject taskCode = JSONObject.parseObject(uploadDataDTO.getString("taskCode"));
             MarketingPreUserDTO userDTO = new MarketingPreUserDTO();
             userDTO.setTaskId(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)
                     .concat("_").concat(shuheUploadData.getApiCode()));
@@ -112,6 +113,9 @@ public class ShuHeUserServiceImpl {
                 JSONObject info = listInfo.getJSONObject(i);
                 reserveField1 = new HashMap<>(32);
                 dto = new MarketingPreUserDetailDTO();
+                if (taskCode != null && taskCode.getString("groupType") != null) {
+                    reserveField1.put("groupTypeNew", taskCode.getString("groupType"));
+                }
                 String mobile = info.getString("mobile");
                 try {
                     dto.setCell(org.apache.commons.lang3.StringUtils.isNotBlank(mobile)
