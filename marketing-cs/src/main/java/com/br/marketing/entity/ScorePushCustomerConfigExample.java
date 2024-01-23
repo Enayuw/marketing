@@ -235,6 +235,76 @@ public class ScorePushCustomerConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andScoreRuleShortNameIsNull() {
+            addCriterion("score_rule_short_name is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreRuleShortNameIsNotNull() {
+            addCriterion("score_rule_short_name is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreRuleShortNameEqualTo(String value) {
+            addCriterion("score_rule_short_name =", value, "scoreRuleShortName");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreRuleShortNameNotEqualTo(String value) {
+            addCriterion("score_rule_short_name <>", value, "scoreRuleShortName");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreRuleShortNameGreaterThan(String value) {
+            addCriterion("score_rule_short_name >", value, "scoreRuleShortName");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreRuleShortNameGreaterThanOrEqualTo(String value) {
+            addCriterion("score_rule_short_name >=", value, "scoreRuleShortName");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreRuleShortNameLessThan(String value) {
+            addCriterion("score_rule_short_name <", value, "scoreRuleShortName");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreRuleShortNameLessThanOrEqualTo(String value) {
+            addCriterion("score_rule_short_name <=", value, "scoreRuleShortName");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreRuleShortNameLike(String value) {
+            addCriterion("score_rule_short_name like", value, "scoreRuleShortName");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreRuleShortNameNotLike(String value) {
+            addCriterion("score_rule_short_name not like", value, "scoreRuleShortName");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreRuleShortNameIn(List<String> values) {
+            addCriterion("score_rule_short_name in", values, "scoreRuleShortName");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreRuleShortNameNotIn(List<String> values) {
+            addCriterion("score_rule_short_name not in", values, "scoreRuleShortName");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreRuleShortNameBetween(String value1, String value2) {
+            addCriterion("score_rule_short_name between", value1, value2, "scoreRuleShortName");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreRuleShortNameNotBetween(String value1, String value2) {
+            addCriterion("score_rule_short_name not between", value1, value2, "scoreRuleShortName");
+            return (Criteria) this;
+        }
+
         public Criteria andFieldMappingIsNull() {
             addCriterion("field_mapping is null");
             return (Criteria) this;
@@ -762,6 +832,206 @@ public class ScorePushCustomerConfigExample {
 
         public Criteria andUpdateTimeNotBetween(Date value1, Date value2) {
             addCriterion("update_time not between", value1, value2, "updateTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeIsNull() {
+            addCriterion("push_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeIsNotNull() {
+            addCriterion("push_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeEqualTo(Integer value) {
+            addCriterion("push_type =", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeNotEqualTo(Integer value) {
+            addCriterion("push_type <>", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeGreaterThan(Integer value) {
+            addCriterion("push_type >", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("push_type >=", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeLessThan(Integer value) {
+            addCriterion("push_type <", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("push_type <=", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeIn(List<Integer> values) {
+            addCriterion("push_type in", values, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeNotIn(List<Integer> values) {
+            addCriterion("push_type not in", values, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeBetween(Integer value1, Integer value2) {
+            addCriterion("push_type between", value1, value2, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("push_type not between", value1, value2, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushMethodIsNull() {
+            addCriterion("push_method is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushMethodIsNotNull() {
+            addCriterion("push_method is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushMethodEqualTo(String value) {
+            addCriterion("push_method =", value, "pushMethod");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushMethodNotEqualTo(String value) {
+            addCriterion("push_method <>", value, "pushMethod");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushMethodGreaterThan(String value) {
+            addCriterion("push_method >", value, "pushMethod");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushMethodGreaterThanOrEqualTo(String value) {
+            addCriterion("push_method >=", value, "pushMethod");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushMethodLessThan(String value) {
+            addCriterion("push_method <", value, "pushMethod");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushMethodLessThanOrEqualTo(String value) {
+            addCriterion("push_method <=", value, "pushMethod");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushMethodLike(String value) {
+            addCriterion("push_method like", value, "pushMethod");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushMethodNotLike(String value) {
+            addCriterion("push_method not like", value, "pushMethod");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushMethodIn(List<String> values) {
+            addCriterion("push_method in", values, "pushMethod");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushMethodNotIn(List<String> values) {
+            addCriterion("push_method not in", values, "pushMethod");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushMethodBetween(String value1, String value2) {
+            addCriterion("push_method between", value1, value2, "pushMethod");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushMethodNotBetween(String value1, String value2) {
+            addCriterion("push_method not between", value1, value2, "pushMethod");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigIsNull() {
+            addCriterion("resource_config is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigIsNotNull() {
+            addCriterion("resource_config is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigEqualTo(String value) {
+            addCriterion("resource_config =", value, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigNotEqualTo(String value) {
+            addCriterion("resource_config <>", value, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigGreaterThan(String value) {
+            addCriterion("resource_config >", value, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigGreaterThanOrEqualTo(String value) {
+            addCriterion("resource_config >=", value, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigLessThan(String value) {
+            addCriterion("resource_config <", value, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigLessThanOrEqualTo(String value) {
+            addCriterion("resource_config <=", value, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigLike(String value) {
+            addCriterion("resource_config like", value, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigNotLike(String value) {
+            addCriterion("resource_config not like", value, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigIn(List<String> values) {
+            addCriterion("resource_config in", values, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigNotIn(List<String> values) {
+            addCriterion("resource_config not in", values, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigBetween(String value1, String value2) {
+            addCriterion("resource_config between", value1, value2, "resourceConfig");
+            return (Criteria) this;
+        }
+
+        public Criteria andResourceConfigNotBetween(String value1, String value2) {
+            addCriterion("resource_config not between", value1, value2, "resourceConfig");
             return (Criteria) this;
         }
     }

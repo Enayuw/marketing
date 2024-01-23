@@ -56,7 +56,7 @@ public interface MarketingTaskService {
 
     Result<Long> buildScoreTaskOfAuto(CustomerScoreRuleVO vo);
 
-    Result<Long> buildScoreTaskOfSelect(CustomerScoreRuleVO vo);
+    Result<Long> buildScoreTaskOfSelect(CustomerScoreRuleVO vo, List<String> userTypeList);
 
     Result<List<Long>> saveTaskSelect(@Valid TaskSelectSaveDTO dto);
 

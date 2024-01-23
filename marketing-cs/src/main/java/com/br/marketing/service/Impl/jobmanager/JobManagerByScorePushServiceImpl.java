@@ -80,6 +80,7 @@ public class JobManagerByScorePushServiceImpl implements IJobManagerService {
 
     private Result<TransferActionFront> isDataAllowExe(String apiCode, Integer actionType, String actionDate, Object... taskArgs) {
         StraHisFile file = (StraHisFile) taskArgs[0];
+
         TransferActionFrontExample frontExample = new TransferActionFrontExample();
         frontExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
@@ -87,11 +88,17 @@ public class JobManagerByScorePushServiceImpl implements IJobManagerService {
                 .andRemarkLike(file.getId().toString().concat("-%"))
                 .andIsDelEqualTo(Constants.DATA_VALID);
         List<TransferActionFront> transferActionFronts = transferActionFrontMapper.selectByExample(frontExample);
+
         if (transferActionFronts.size() > 0) {
             TransferActionFront actionFront = transferActionFronts.get(0);
-            if (Integer.valueOf(2).equals(actionFront.getStatus()) || Integer.valueOf(4).equals(actionFront.getStatus())) {
+
+            // 任务结束或者重试失败
+            if (JobStatusEnum.FINISH.getValue().equals(actionFront.getStatus())
+                    || JobStatusEnum.RETRY_FAIL.getValue().equals(actionFront.getStatus())) {
                 return new Result<>().setCode(ResultCode.FAIL.getValue());
             }
+
+            //region 任务重试 更新重试次数
             String remark = actionFront.getRemark();
             String[] split = remark.split("-");
             if (split.length < 2) {
@@ -104,8 +111,12 @@ public class JobManagerByScorePushServiceImpl implements IJobManagerService {
             updateEntity.setRemark(file.getId().toString().concat("-").concat(num.toString()));
             actionFront.setRemark(file.getId().toString().concat("-").concat(num.toString()));
             transferActionFrontMapper.updateByPrimaryKeySelective(updateEntity);
+            //endregion
+
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(actionFront);
         } else {
+
+            // 任务执行记录
             TransferActionFront actionFront = new TransferActionFront();
             actionFront.setApiCode(apiCode);
             actionFront.setStatus(1);
