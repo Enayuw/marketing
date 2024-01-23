@@ -1,6 +1,8 @@
 package com.br.marketing.service.file.filetodb.assembler;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.dto.TxtToDbDTO;
 import com.br.marketing.service.file.filetodb.AbstractFileToDbAssembler;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +36,7 @@ public class CsvToDbAssembler extends AbstractFileToDbAssembler {
     }
 
     @Override
-    public Map<String, Object> assembleTempParams(String tempType, TxtToDbDTO toDbDTO) {
+    public Result<Map<String, Object>> assembleTempParams(String tempType, TxtToDbDTO toDbDTO) {
         Map<String, Object> resultMap = new HashMap<>();
         try {
             HashMap<Integer, String> fieldIndexMap = toDbDTO.getAddress();
@@ -114,9 +116,10 @@ public class CsvToDbAssembler extends AbstractFileToDbAssembler {
             resultMap.put("placeHolders", placeHolders);
             resultMap.put("successNum", successNum);
             resultMap.put("errorNum", errorNum);
-        }catch (Exception ex){
-            log.error(ex.getMessage(),ex);
+        }catch (Exception e){
+            log.error(e.getMessage(), e);
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(e.getMessage());
         }
-        return resultMap;
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultMap);
     }
 }
