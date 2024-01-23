@@ -1,5 +1,6 @@
 package com.br.marketing.service.file.filetodb.assembler;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.dto.TxtToDbDTO;
 import com.br.marketing.service.file.filetodb.AbstractFileToDbAssembler;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +60,7 @@ public class CsvToDbAssembler extends AbstractFileToDbAssembler {
                 // region 列数不一致,直接赋值跳出
                 if (dataLineList.size() != fieldIndexMap.size()) {
                     String lineValue = String.format(valueFormat,
-                            toDbDTO.getApiCode(), toDbDTO.getLocalId(), "2", String.format("行号：%d;报错信息：%s", line, "表头和该行数据不一致"),
+                            toDbDTO.getApiCode(), toDbDTO.getLocalId(), "", "2", String.format("行号：%d;报错信息：%s", line, "表头和该行数据不一致"),
                             currentDate, currentTime);
                     insertValues.append(lineValue).append(",");
                     errorNum++;

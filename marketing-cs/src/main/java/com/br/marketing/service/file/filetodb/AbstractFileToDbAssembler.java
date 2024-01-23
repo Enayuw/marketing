@@ -28,17 +28,20 @@ public abstract class AbstractFileToDbAssembler{
 
     public Result operateDateToDb(TxtToDbDTO toDbDTO) {
         try {
-            log.info("operateDateToDb start");
+            log.info("toDbDTO: "+ JSONObject.toJSONString(toDbDTO));
             String tempContent = chooseSqlTemp("");
             log.info("tempContent: "+ tempContent);
+
             Map<String, Object> tempParamsMap = assembleTempParams("", toDbDTO);
+            log.info("tempParamsMap: "+ JSONObject.toJSONString(tempParamsMap));
+
             Map<String, String> placeHolders = (Map<String, String>) tempParamsMap.get("placeHolders");
             insertToDb(tempContent, placeHolders);
 
             JSONObject resMsg = new JSONObject();
             resMsg.put("successNum", tempParamsMap.get("successNum"));
             resMsg.put("errorNum", tempParamsMap.get("errorNum"));
-            log.info("operateDateToDb end");
+            log.info("operateDateToDb end: "+ JSONObject.toJSONString(resMsg));
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(JSON.toJSONString(resMsg));
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);
