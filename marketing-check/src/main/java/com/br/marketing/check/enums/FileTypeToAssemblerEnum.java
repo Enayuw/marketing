@@ -14,14 +14,16 @@ import org.apache.commons.lang3.StringUtils;
 @AllArgsConstructor
 public enum FileTypeToAssemblerEnum {
 
-    YILIAN_TRANSFER_CSV("yilian_transfer_csv", "csvToDbAssembler"),
+    TRANSFER_CSV_COMMON("transfer_csv_common", "csvToDbAssembler", "1"),
     ;
 
     private String fileType;
 
     private String assemblerName;
 
-    public static String getByFileType(String fileType){
+    private String pushStatusMark;
+
+    public static String getAssemblerByFileType(String fileType){
         if(StringUtils.isEmpty(fileType)){
             return "";
         }
@@ -31,5 +33,17 @@ public enum FileTypeToAssemblerEnum {
             }
         }
         return "";
+    }
+
+    public static String getPushStatusMarkByFileType(String fileType){
+        if(StringUtils.isEmpty(fileType)){
+            return "0";
+        }
+        for (FileTypeToAssemblerEnum e: FileTypeToAssemblerEnum.values()) {
+            if (e.getFileType().equals(fileType)) {
+                return e.getPushStatusMark();
+            }
+        }
+        return "0";
     }
 }

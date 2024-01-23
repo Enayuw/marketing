@@ -170,6 +170,12 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
                         localFile.setStatus("1");
                         localFile.setCreateTime(new Date());
                         localFile.setFileType(fileDbConfig.getFileType());
+                        // 只有指定的fileType，pushStatus才置为0
+                        String fileType = String.valueOf(fileDbConfig.getFileType());
+                        String pushStatusMark = FileTypeToAssemblerEnum.getPushStatusMarkByFileType(fileType);
+                        if("1".equals(pushStatusMark)){
+                            localFile.setPushStatus("0");
+                        }
                         localFileMapper.insertSelective(localFile);
 
                         try {
@@ -178,7 +184,6 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
                             sftpClient.rename(srcPath + fileName, srcPath + fileName+"_"+yyyyMMddHHmmss+ ".bak");
                             ArrayList<String> baseHeads = new ArrayList<String>();
 
-                            String fileType = String.valueOf(fileDbConfig.getFileType());
                             Function<TxtToDbDTO, Result> function = getFunByFileType(fileType);
                             sftpToDbByCommonService.actionTxtFile(context
                                     , localFile
@@ -206,7 +211,7 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
         if(StringUtils.isEmpty(fileType)){
             return iTxtToDbService::toDbByCommon;
         }
-        String assemblerName = FileTypeToAssemblerEnum.getByFileType(fileType);
+        String assemblerName = FileTypeToAssemblerEnum.getAssemblerByFileType(fileType);
         log.info("assemblerName: " + assemblerName);
         if(!StringUtils.isEmpty(assemblerName)){
             AbstractFileToDbAssembler csvToDbAssembler = (AbstractFileToDbAssembler) CkeckApplication.ac.getBean(assemblerName);
