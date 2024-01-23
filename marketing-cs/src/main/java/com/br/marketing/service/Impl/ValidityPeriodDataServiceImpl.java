@@ -5,7 +5,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.MarketingCustomizeDataValidConfig;
+import com.br.marketing.entity.MarketingCustomizeDataValidConfigExample;
 import com.br.marketing.entity.MarketingDataValidConfig;
+import com.br.marketing.mapper.MarketingCustomizeDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
@@ -60,6 +63,9 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
 
     @Resource
     private ValidityPeriodResendRecordService recordService;
+
+    @Resource
+    private MarketingCustomizeDataValidConfigMapper marketingCustomizeDataValidConfigMapper;
 
 
 
@@ -180,32 +186,25 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
                 return new ApiNoDataResult().setCode(TASK_ID_ERROR.getErrorCode())
                         .setMessage(TASK_ID_ERROR.getErrorMsg());
             }
-            List<String> cusBatchByAppletDate = marketingSyncInfoMapper.getCusBatchByAppletDate(appletDate, apiCode);
-            if (cusBatchByAppletDate.size() > 1) {
-                log.error("有效期变更接口异常：{}:包含多个cus_batch:{}，联系运营确认，手动处理，jsonData:{}", appletDate, cusBatchByAppletDate,jsonData);
+
+            // 更新task_id 对应有效期
+            MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfig = new MarketingCustomizeDataValidConfig();
+            marketingCustomizeDataValidConfig.setValidStartDate(effectiveDateTransfer);
+            marketingCustomizeDataValidConfig.setValidEndDate(expireDateTransfer);
+            MarketingCustomizeDataValidConfigExample marketingCustomizeDataValidConfigExample = new MarketingCustomizeDataValidConfigExample();
+            marketingCustomizeDataValidConfigExample.createCriteria().andTaskIdEqualTo(taskId);
+            int updateCount = marketingCustomizeDataValidConfigMapper.updateByExampleSelective(
+                    marketingCustomizeDataValidConfig,
+                    marketingCustomizeDataValidConfigExample);
+            if(updateCount ==0){
+                log.error("有效期变更接口异常：有效期变更 定制表 taskId 未匹配到:联系运营确认，手动处理，jsonData:{}" ,jsonData);
                 return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
             }
-            // 根据appletDate 查询有效期配置表
-            List<MarketingDataValidConfig> validityDataByAppletDate = marketingDataValidConfigMapper.getValidityDataByAppletDate(apiCode, appletDate);
-            for (int i = 0; i < validityDataByAppletDate.size(); i++) {
-                MarketingDataValidConfig marketingDataValidConfig = validityDataByAppletDate.get(i);
-                String validStartDate = marketingDataValidConfig.getValidStartDate();
-                String validEndDate = marketingDataValidConfig.getValidEndDate();
-                // 判断开始时间和结束时间是否有变化 有变化则更改 没有变化返回成功报警通知
-                if (effectiveDateTransfer.equals(validStartDate) && expireDateTransfer.equals(validEndDate)) {
-                    log.error("有效期变更接口传入有效期参数与历史有效期时间相同，未重新推送数据 ：{},场景：{}，jsonData:{}", appletDate,marketingDataValidConfig.getUserType(), jsonData);
-                } else {
-                    // 更新有效期配置表
-                    MarketingDataValidConfig newData = new MarketingDataValidConfig();
-                    newData.setId(marketingDataValidConfig.getId());
-                    newData.setValidStartDate(effectiveDateTransfer);
-                    newData.setValidEndDate(expireDateTransfer);
-                    int n = marketingDataValidConfigMapper.updateByPrimaryKeySelective(newData);
-                    if (n > 0) {
-                        // 新增记录表
-                        recordService.saveRecord(apiCode, marketingDataValidConfig.getUserType(), newData.getId());
-                    }
-                }
+
+            List<MarketingCustomizeDataValidConfig> marketingCustomizeDataValidConfigs =
+                    marketingCustomizeDataValidConfigMapper.selectByExample(marketingCustomizeDataValidConfigExample);
+            for(MarketingCustomizeDataValidConfig m : marketingCustomizeDataValidConfigs){
+                recordService.saveRecord(apiCode, m.getUserType(), m.getId());
             }
         }catch (Exception e){
             log.error("有效期并更接口异常,{}",e);

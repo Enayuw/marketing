@@ -22,6 +22,9 @@ public enum ValidityPeriodResendEnum {
      * 转化数据(T-N有效)执行通用规则重推流程
      */
     UNIVERSAL_TRANSFER_PROCESS_OFFSET_DAY_RESEND(2),
+
+    CUSTOMIZE_TRANSFER_PROCESS_RESEND(3),
+
     ;
 
     private final Integer code;

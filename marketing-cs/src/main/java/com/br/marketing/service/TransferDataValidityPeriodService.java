@@ -5,6 +5,7 @@ import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.entity.MarketingDataValidConfig;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
@@ -13,7 +14,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * @author GuangChao.Zhang
@@ -252,4 +252,34 @@ public interface TransferDataValidityPeriodService {
                                                                                String userType,
                                                                                String apiCode,
                                                                                Object requestDateObj);
+
+
+    /**
+     * 根据上传数据custNum获取多组有效期范围,根据taskId获取有效上传数据 Tips：定制化有效期配置使用，有效期配置valid_start_date和valid_end_date字段都非空
+     *
+     * @param custNumSet     custNum集合
+     * @param apiCode        apiCode
+     * @param requestDateObj 日期
+     * @return {@link Map }<{@link String }, {@link SyncUserValidityPeriodsBO }>
+     * @author senyang.zheng
+     * @date 2024/01/15
+     */
+    Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNumAndTaskId(Set<String> custNumSet,
+                                                                                String apiCode,
+                                                                                Object requestDateObj);
+
+    /**
+     * 获取有效期的有效期配置,重叠时间段会合并,分页
+     *
+     * @param apiCode        客户编号
+     * @param requestDateObj 请求时间
+     * @param page           页号
+     * @param pageSize       页大小
+     * @return 有效期的有效期配置
+     * @author Guo Zeqiang
+     * @version 1.0
+     * @dateTime 2024-01-09 15:30
+     */
+    List<MarketingDataValidConfig> getDataValidityPeriodPageList(
+            String apiCode, Object requestDateObj, int page, int pageSize);
 }

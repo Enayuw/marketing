@@ -13,5 +13,6 @@ public interface StraHisFileMapper extends StraHisFileMapperBase {
 
     List<TaskExtendInfoVO> getExtendInfosByFileIds(@Param("fileIds") List<Long> fileIds);
 
-    List<StraHisFile> getFileByRule(@Param("time") Date time, @Param("ruleNumber") String ruleNumber);
+    List<StraHisFile> getFileByRule(@Param("time") Date time, @Param("ruleNumber") String ruleNumber
+            ,@Param("pushStatusList") List<Integer> pushStatusList, @Param("isOrNoStatus")Integer isOrNoStatus);
 }
