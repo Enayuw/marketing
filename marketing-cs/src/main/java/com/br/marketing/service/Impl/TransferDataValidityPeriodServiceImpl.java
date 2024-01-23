@@ -1148,7 +1148,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     private SyncUserValidityPeriodsBO buildSyncUserValidityPeriodsBO(List<MarketingSyncUser> syncUsers,
                                                                      Map<String, MarketingDataValidConfig> configMap) {
         SyncUserValidityPeriodsBO validityPeriodsBO = new SyncUserValidityPeriodsBO();
-        syncUsers.forEach(syncUser -> {
+        syncUsers.forEach( (MarketingSyncUser syncUser) -> {
             String configKey = syncUser.getUserType() + syncUser.getAppletDate();
             MarketingDataValidConfig config = configMap.get(configKey);
             if (config != null) {

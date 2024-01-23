@@ -114,7 +114,7 @@ public class CustomizeTransferProcessResend implements ValidityPeriodResendStrat
             while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
                 log.warn("UniversalTransferProcessResend 等待线程池结束");
             }
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             pool.shutdownNow();
             log.error("UniversalTransferProcessResend 线程池关闭异常,直接关闭线程池", e);
         }

@@ -387,7 +387,8 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
             int i = marketingCustomizeDataValidConfigMapper.countByExample(marketingCustomizeDataValidConfigExample);
             if (i == 0) {
                 // 插入定制表
-                MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfig = getMarketingCustomizeDataValidConfig(syncUser, marketingDataValidConfig);
+                MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfig =
+                        getMarketingCustomizeDataValidConfig(syncUser, marketingDataValidConfig);
                 int j = marketingCustomizeDataValidConfigMapper.insertSelective(marketingCustomizeDataValidConfig);
                 if (j < 1) {
                     log.error("生成默认定制有效期入库失败！apiCode:{},userType:{},taskId:{}"
@@ -398,7 +399,8 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         return result;
     }
 
-    private static MarketingCustomizeDataValidConfig getMarketingCustomizeDataValidConfig(MarketingSyncUser syncUser, MarketingDataValidConfig marketingDataValidConfig) {
+    private static MarketingCustomizeDataValidConfig getMarketingCustomizeDataValidConfig(MarketingSyncUser syncUser,
+                                                                                          MarketingDataValidConfig marketingDataValidConfig) {
         Long dataValidConfigId = marketingDataValidConfig.getId();
         MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfig = new MarketingCustomizeDataValidConfig();
         marketingCustomizeDataValidConfig.setApiCode(syncUser.getApiCode());
