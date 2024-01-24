@@ -47,6 +47,10 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
             , @Param("sDate") String sDate, @Param("eTimeStr") String eTimeStr
             , @Param("whereStr") String whereStr);
 
+    List<String> queryUserTypeListWithDatetikv_(@Param("apiCode") String apiCode
+            , @Param("sDate") String sDate, @Param("eTimeStr") String eTimeStr
+            , @Param("whereStr") String whereStr);
+
     Integer countByRuleScoreWithDate(@Param("apiCode") String apiCode
             , @Param("whereStr") String whereStr);
 
@@ -246,5 +250,8 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
     List<MarketingSyncUser> getSmyDataByGroupType(@Param("apiCode") String apiCode,@Param("groupType") String groupType);
 
     int getUnresolvedCount(@Param("apiCode") String apiCode, @Param("startDate") String startDate,@Param("endDate") String endDate);
+
+    String getAppletDateByCusBatch(@Param("cusBatch") String cusBatch,@Param("apiCode") String apiCode);
+    List<String> getCusBatchByAppletDate(@Param("appletDate") String appletDate,@Param("apiCode") String apiCode);
 
 }

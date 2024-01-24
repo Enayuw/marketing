@@ -50,6 +50,12 @@ public class ZbankClient {
     private String serviceIdLabelRating;
 
     /**
+     * 众邦财富评分回传接口
+     */
+    @Value("${api.zbank.api.serviceId.CMBrScoDaFeBack:CMBrScoDaFeBack}")
+    private String CMBrScoDaFeBack;
+
+    /**
      * 渠道唯一标识（由众邦银行提供）
      */
     @Value("${api.zbank.file.channelId:2023042701}")
@@ -84,6 +90,18 @@ public class ZbankClient {
      */
     public String labelRatingRe(Object obj, String requestId) throws Exception {
         return apiCall(obj, serviceIdLabelRating, requestId);
+    }
+
+    /**
+     * 众邦信贷评分回传接口
+     * @param obj
+     * @param requestId
+     * @return
+     * @throws Exception
+     */
+    public String cMBrScoDaFeBack(Object obj, String requestId) throws Exception {
+//        return "{\"msg\":\"服务调用异常:106100400008,请查证！\",\"result\":{},\"code\":\"106100720036\"}";
+        return apiCall(obj, CMBrScoDaFeBack, requestId);
     }
 
     /**

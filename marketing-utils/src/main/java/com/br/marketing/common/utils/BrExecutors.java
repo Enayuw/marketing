@@ -35,6 +35,12 @@ public class BrExecutors {
                 , new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
+    public static ThreadPoolExecutor getThreadPool(int initNum, int maxNum,String poolName) {
+        return new ThreadPoolExecutor(initNum, maxNum, 60L, TimeUnit.SECONDS,
+                new ArrayBlockingQueue(200), new ThreadFactoryBuilder().setNameFormat(poolName).build()
+                , new ThreadPoolExecutor.CallerRunsPolicy());
+    }
+
     static {
         other = new ThreadPoolExecutor(50, 50, 60L, TimeUnit.SECONDS
                 , new ArrayBlockingQueue('썐'), new ThreadFactoryBuilder().setNameFormat("br-statistic-other-pool-%d").build()

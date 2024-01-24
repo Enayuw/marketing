@@ -26,7 +26,7 @@
 
     <job:simple id="ZhongAnPushRosterLockingDataJob"
                 class="com.br.marketing.monkey.job.ZhongAnPushRosterLockingDataJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/10 18-23 * * ?"
                 description="名单锁定推送众安"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -71,7 +71,7 @@
     />
     <job:simple id="DidiCallingRecordJob"
                 class="com.br.marketing.monkey.job.didi.DidiCallingRecordJob"
-                cron="0 0 9 29 9 ? 2050-2050"
+                cron="0 5/5 9-23 * * ?"
                 description="滴滴通话明细推送定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

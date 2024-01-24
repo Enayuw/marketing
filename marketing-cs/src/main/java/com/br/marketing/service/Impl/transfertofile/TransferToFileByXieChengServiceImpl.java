@@ -58,7 +58,7 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
 
     final static String EXECUTE_TIME = " 09:00:00";
 
-    final static String ZK_EXECUTE_TIME = " 00:00:00";
+    final static String ZK_EXECUTE_TIME = " 09:00:00";
 
     final static String XIECHENG_TRANSFER_FILE = "_zhuanhua_";
 
@@ -262,8 +262,8 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
 
     private void writeZk(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException {
         Long start = System.currentTimeMillis();
-        String sDateStr = LocalDate.parse(transferFileTask.getStartDate(), ymdShort).minusDays(1L).format(ymd).concat(" 00:00:00");
-        String eDateStr = LocalDate.parse(transferFileTask.getStartDate(), ymdShort).format(ymd).concat(" 00:00:00");
+        String sDateStr = LocalDate.parse(transferFileTask.getStartDate(), ymdShort).minusDays(1L).format(ymd).concat(" 06:00:00");
+        String eDateStr = LocalDate.parse(transferFileTask.getStartDate(), ymdShort).format(ymd).concat(" 09:00:00");
         Date sDate = DateHelper.parseDate(sDateStr);
         Date eDate = DateHelper.parseDate(eDateStr);
         Long minId = null;

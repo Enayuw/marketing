@@ -126,9 +126,21 @@ public class RedisKeyConstant {
      */
     public static final String CUSTOMER_TRANSFER_FIELD_KEY = prefix.concat("customer:transfer:field");
 
+    /**
+     * 2023-12-22 15:21
+     * 定制化客户传输，字段缓存key
+     */
+    public static final String CUSTOMER_FIELD_KEY = prefix.concat("customer:field:");
+
 
     /**
      * 转化数据提取任务锁
      */
     public static final String TRANSFER_FILE_TASK_JOB_KEY = prefix.concat("transfer:file:task");
+
+    public static final String SCORE_TO_CUSTOMER_SORT_KEY = prefix.concat("scoreSort");
+
+    public static final String SCORE_TO_CUSTOMER_CONFIG_KEY = prefix.concat("scorePushConfig");
+
+    public static final String SCORE_TO_CUSTOMER_FILE_KEY = prefix.concat("scoreCallFileId");
 }

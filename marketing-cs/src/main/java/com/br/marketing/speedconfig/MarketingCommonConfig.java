@@ -313,6 +313,16 @@ public class MarketingCommonConfig {
     private String tongChengTransferExecuteTime;
 
     /**
+     * 同程转化数据提取apicode集合
+     */
+    private List<String> NewTongChengTransferFileApiCodes;
+
+    /**
+     * 同程转化数据提取执行时间
+     */
+    private String NewTongChengTransferExecuteTime;
+
+    /**
      * 携程数据推送线程数
      */
     private Integer xiechengDataSendThread;
@@ -512,10 +522,6 @@ public class MarketingCommonConfig {
      * 拍拍贷老客转人工数据提取执行时间
      */
     private String PPDOldTransferFileExecuteTime;
-    /**
-     * 拍拍贷有效期34；目前仅老客使用
-     */
-    private String ppdOldValidityDayStr;
 
     /**
      * 榕树转化数据生效截止时间
@@ -866,6 +872,12 @@ public class MarketingCommonConfig {
     private Set<String> nonConfigValidDefaultApiCodes;
 
     /**
+     * 2024-07-05 16:04
+     * 生成默认有效期定制配置的apiCode集合
+     */
+    private Set<String> customizeConfigValidDefaultApiCodes;
+
+    /**
      * 推送dass意向登记判断配置{"labelNm":["A","B"]}
      */
     private HashMap<String,List<String>>  gradeOfcallToDass;
@@ -1134,6 +1146,123 @@ public class MarketingCommonConfig {
      * 携程推送短信退订apiCode
      */
     private List<String> xieChengSmsQuitApiCodes;
+
+
+    /**
+     * 跑分结果推送重试次数
+     */
+    private Integer scorePushRetryNum;
+
+    /**
+     * 跑分入库线程数量
+     */
+    private Integer scoreDbAndRedisThreadNum;
+
+    /**
+     * 跑分更新顺序线程数量
+     */
+    private Integer scoreUpdateSortThreadNum;
+
+    /**
+     * 数禾电销apiCode
+     */
+    private List<String> shuheDxApiCodes;
+
+
+
+
+
+    /**
+     * 有效期变更apiCode
+     */
+    private List<String> validityPeriodApiCodeList;
+
+    /**
+     * 有效期变更接口开关
+     */
+    private Boolean changeValidityPeriodIndex;
+
+
+    /**
+     * 跑分回调获取taskId分页
+     */
+    private Integer scoreTaskPageSizeByPushCustomer;
+
+    /**
+     * 跑分回调获取数据分页
+     */
+    private Integer scoreDataPageSizeByPushCustomer;
+
+    /**
+     * 数禾上传数据推决策，策略编号设置
+     */
+    private Map<String, String> shuheToJueCeStrategy;
+
+
+    /**
+     * 海尔撞库线程池数量配置
+     */
+    private Integer haierCollidingDataThreadNum;
+    /**
+     * 海尔撞库单次查询数量配置
+     */
+    private Integer haierCollidingDataPageSize;
+
+    /**
+     * 海尔撞库配置
+     */
+    private Map<String, String> haierCollidingDataConfig;
+
+    /**
+     * 海尔接口公钥
+     */
+    private String haierApiPublicKey;
+
+    /**
+     * 海尔撞库接口mock配置
+     */
+    private HashMap<String, Object> haierCollidingDataMock;
+
+    /**
+     * 海尔撞库上传清洗apiCode配置
+     */
+    private List<String> haierCollidingDataSyncApiCode;
+
+    /**
+     * 海尔转化数据提取apiCode集合
+     */
+    private List<String> NewHaierTransferApiCodes;
+
+    /**
+     * 海尔转化数据提取执行时间
+     */
+    private String NewHaierTransferExecuteTime;
+
+    /**
+     * 众邦转化数据提取apiCode集合
+     */
+    private List<String> ZhongBangApiCodes;
+
+    /**
+     * 众邦转化数据提取执行时间
+     */
+    private String ZhongBangExecuteTime;
+
+
+    /**
+     * 模拟跑分回调异常 1-获取数据异常；2-更新排序异常；3-推送数据异常
+     * {"1":true,"2":true}
+     */
+    private HashMap<String,Boolean> mockCallBackError;
+    /**
+     * 奇富360转化数据提取apiCode集合
+     */
+    private List<String> QiFuTransferApiCodes;
+
+    /**
+     * 奇富360转化数据提取执行时间
+     */
+    private String QiFuTransferExecuteTime;
 
 
 }

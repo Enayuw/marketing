@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.PushCustomerDetailMapper" >
+    <insert id="insertBatch" parameterType="list">
+        insert into b_push_customer_detail
+            (score_id, file_id, api_code,
+            cust_num, user_type, cell,
+            task_id, request_id, push_json,
+            score_sort1, score_sort2, score_sort3,
+            score_sort4,create_time)
+        values
+            <foreach collection="dtos" item="dto" separator=",">
+                (#{dto.scoreId},#{dto.fileId},#{dto.apiCode}
+                ,#{dto.custNum},#{dto.userType},#{dto.cell}
+                ,#{dto.taskId},#{dto.requestId}
+                <choose>
+                    <when test="dto.pushJson!=null">
+                        ,#{dto.pushJson}
+                    </when>
+                    <otherwise>
+                        ,null
+                    </otherwise>
+                </choose>
+                <choose>
+                    <when test="dto.scoreSort1!=null and dto.scoreSort1>0">
+                        ,#{dto.scoreSort1}
+                    </when>
+                    <otherwise>
+                        ,null
+                    </otherwise>
+                </choose>
+                <choose>
+                    <when test="dto.scoreSort2!=null and dto.scoreSort2>0">
+                        ,#{dto.scoreSort2}
+                    </when>
+                    <otherwise>
+                        ,null
+                    </otherwise>
+                </choose>
+                <choose>
+                <when test="dto.scoreSort3!=null and dto.scoreSort3>0">
+                    ,#{dto.scoreSort3}
+                </when>
+                <otherwise>
+                    ,null
+                </otherwise>
+                </choose>
+                <choose>
+                    <when test="dto.scoreSort4!=null and dto.scoreSort4>0">
+                        ,#{dto.scoreSort4}
+                    </when>
+                    <otherwise>
+                        ,null
+                    </otherwise>
+                </choose>
+                ,#{dto.createTime})
+            </foreach>
+    </insert>
+
+    <select id="getTaskId" resultType="java.lang.String">
+        select task_id
+        from (select task_id
+              from b_push_customer_detail
+              where file_id = #{fileId}
+              group by task_id) as t
+        order by task_id limit #{pageIndex}, #{pageSize}
+    </select>
+</mapper>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ScorePushCustomerConfigMapper" >
+    <select id="getConfigByFileId" resultType="com.br.marketing.entity.ScorePushCustomerConfig">
+        select bspcc.*
+         from stra_his_file shf
+         left join b_marketing_task btbp on shf.batch_number = btbp.batch_number
+         left join b_marketing_task_extend bmte on btbp.id = bmte.task_id
+         left join b_score_rule_config bsrc on bsrc.id = bmte.rule_id
+         left join b_score_push_customer_config bspcc on bsrc.rule_name_short = bspcc.score_rule_short_name
+        where shf.status =2 and shf.id =#{fileId} and shf.push_status !=1
+          and btbp.monitor_type !=2
+    </select>
+</mapper>

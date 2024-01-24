@@ -149,6 +149,11 @@ api:
         url: ${api.haier.baseUlr}app/marketControl/custData/receive
         info:
           url: ${api.haier.custData.receive.url}/info
+    colliding:
+      rsaPublicKey: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALoYi1Qao3YMzmVednL8EyIJ1J8Ep0lTPWDzT7urNhxFYlWl5chkrfE4zoS/PfvM/h/HqyC1A1nIXa1VuaAnCdUCAwEAAQ==
+      rsaPrivateKey: MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAuhiLVBqjdgzOZV52cvwTIgnUnwSnSVM9YPNPu6s2HEViVaXlyGSt8TjOhL89+8z+H8erILUDWchdrVW5oCcJ1QIDAQABAkEAkYQLvrIty2tsINvipzrxAxbIyadr3+xU/HCFkmvoneVVhhYAEDUjgGNQy64m/YImo1uv9ebZgS84xlynfS7cwQIhAOawBvOs9YNzWe8pMuGwCNfOIJtsy/lfUWkSepl7dCGZAiEAzoPxinBzrGMpFwM7nqXmRz3ooDcJ16xkJIEDFJWlR50CIGzbuAwZHCoRrujK2jXh6epcXMq7Rm3A6xvYGn5+4UhRAiEAgTV0bpWlCfqQvuE68CwERBar8XH+Kn6luWEuuDZYztECH1uMWhpL+NCndzwYahI8Ag9XVyXDf2jbnViG1ivkymw=
+      url: https://gw-p2.haiercash.com/gw/api/baffle/v1/validate/access
+      isProxy: false
   zhongAn:
     baseUrl: https://finance-gateway-test.diandian.com.cn
     api: ${api.zhongAn.baseUrl}/fcpGateway
@@ -222,15 +227,16 @@ api:
     appId: "bairong"
     isProxy: false
   zbank: #众邦财富
-    isPorxy: true
+    isPorxy: false
     api:
-      baseUrl: "https://iopf.z-bank.com"
-      serverPubKey: "04FA9C039AFC14D3F75A3290BB5A698F93316D508D419B73A237F7FCA048A92CE20F3C1B3BE4517E370563DAE64E474840EB2E11FCC011B506D3D1CBEE956BA774"
-      appId: "26cd2e1f_f116_4947_94d9_c68194400186"
-      appSecretKey: "5c995d09-b371-48aa-af63-5e79909e6908"
-      priKey: "3B82FE82D970F247C391358D360DA50486FE2266D5919028BD26A3AC4940E845"
+      baseUrl: "https://iodev-uat.z-bank.com"
+      serverPubKey: "049191E0402CE98C8F31564880AC47AC888DACB24B127407D351AD83725CDB4529713E585CBB14C14E4EBBE97828D64B1F2DC101E113F227B6E6ACD9A378311DC3"
+      appId: "2a0f9f71_29e5_466c_95a7_8cab99d93880"
+      appSecretKey: "65ed7e3b-bcff-4f5b-a029-185a538e3ee8"
+      priKey: "1DF4C616DE52063F5BB9525121160DF2F0607122A5FE69EB382D57020B27EA6A"
       serviceId:
         labelRating: "CMBrLabelRatingRe"
+        CMBrScoDaFeBack: "CMBrScoDaFeBack"
     file:
       baseUrl: "https://iodev-uat.z-bank.com"
       channelId: "2023042701"

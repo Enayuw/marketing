@@ -80,6 +80,27 @@
         order by create_time desc,id desc limit #{limitStart},2000;
     </select>
 
+    <select id="getTransferByStartAndEndDate" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select t2.* from b_marketing_transfer_sync_${transferSyncUser.tCid} t2,(select id from
+        b_marketing_transfer_sync_${transferSyncUser.tCid}
+        where
+            <if test="transferSyncUser.apiCode != null and transferSyncUser.apiCode.trim() neq ''">
+                api_code=#{transferSyncUser.apiCode}
+            </if>
+            <![CDATA[ and request_data >= #{startDate}  and  request_data <= #{endDate} ]]>
+        order by
+        <choose>
+            <when test="orderByClause != null and orderByClause.trim() neq ''">
+                ${orderByClause}
+            </when>
+            <otherwise>
+                id
+            </otherwise>
+        </choose>
+        limit ${rowCount},${offset}
+        ) as t1 where t1.id = t2.id
+    </select>
+
     <select id="getTransferData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select * from
             b_marketing_transfer_sync_${cid}
@@ -939,5 +960,23 @@
         </foreach>
         and (apply_dt is not null and apply_dt != '')
         and cust_num = #{custNum}
+    </select>
+
+    <select id="getTransferSyncUserByPage" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tCid}
+        <where>
+            <if test="apiCode != null">
+                AND api_code =#{apiCode}
+            </if>
+            <if test="indexId != null and indexId!=''">
+                and id > #{indexId}
+            </if>
+            <if test="requestStartDate != null and requestStartDate!='' and requestEndDate !=null and requestEndDate !=''">
+                and <![CDATA[ request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
+            </if>
+            and ${querySql}
+            order by id asc limit 2000;
+        </where>
     </select>
 </mapper>
