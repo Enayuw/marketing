@@ -15,10 +15,7 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.enums.CustomerPushDecisionActionEnum;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
-import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.mapper.TransferActionFrontMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.PushRuleService;
@@ -66,7 +63,7 @@ public class YiLianAutomatedPushDecisionServiceImpl implements AutomatedPushDeci
     private LocalFileMapper localFileMapper;
 
     @Resource
-    private MarketingSyncInfoMapper marketingSyncInfoMapper;
+    private MarketingTransferInfoMapper marketingTransferInfoMapper;
 
     @Override
     public CustomerPushDecisionActionEnum customerAction() {
@@ -79,10 +76,11 @@ public class YiLianAutomatedPushDecisionServiceImpl implements AutomatedPushDeci
         String apiCode = parameter.getApiCode();
         LocalFileExample example = new LocalFileExample();
         //TODO 查询待推送文件
-        example.createCriteria().andFileTypeEqualTo("1")
+        example.createCriteria().andFileTypeEqualTo("transfer_csv_common")
                 .andCreateTimeGreaterThan(DateHelper.getNowDayStartTime()).andPushStatusEqualTo("2").andApiCodeEqualTo(apiCode);
         List<LocalFile> localFiles = localFileMapper.selectByExample(example);
-        int unresolvedCount = marketingSyncInfoMapper.getUnresolvedCount(apiCode, LocalDate.now().toString(), LocalDate.now().plusDays(1).toString());
+        int unresolvedCount = marketingTransferInfoMapper.getTransferUnresolvedCount(apiCode, LocalDate.now().toString(),
+                LocalDate.now().plusDays(1).toString());
         //清洗未完成，不处理
         if (CollectionUtils.isEmpty(localFiles) || unresolvedCount != 0) {
             return resultList;
