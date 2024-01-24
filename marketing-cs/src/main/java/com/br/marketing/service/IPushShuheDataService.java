@@ -21,7 +21,8 @@ public interface IPushShuheDataService {
      * @param jsonData 业务数据
      * @return ResponseShuheDTO
      * @author Guo Zeqiang
-     * @deprecated 已过时，不在使用，新版参考{@link IPushShuheDataService#saveShuheTransferDataTwoVersion(java.lang.String, java.lang.String)}
+     * @deprecated 不在使用，
+     * 新版参考{@link IPushShuheDataService#saveShuheTransferDataTwoVersion(java.lang.String, java.lang.String)}
      */
     @Deprecated
     ResponseCustomDTO saveShuheTransferData(String apiCode, String jsonData);
