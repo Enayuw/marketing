@@ -142,6 +142,7 @@ public class PushCallBackByPolicyServiceImpl implements PushCallBackService {
                     }catch (Exception ex){
                         update.setPushStatus(3);
                         error.incrementAndGet();
+                        log.error("推送决策接口异常",ex);
                     }
                     pushCustomerDetailMapper.updateByExampleSelective(update, example);
                     //endregion

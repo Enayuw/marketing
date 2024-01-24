@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.bo.CellValidityPeriodBO;
+import com.br.marketing.entity.MarketingCustomizeDataValidConfig;
 import com.br.marketing.entity.MarketingDataValidConfig;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -289,4 +290,18 @@ public interface MarketingSyncUserMapper {
     List<MarketingSyncUser> getSyncUserByCellAndAppletDateList(@Param("apiCode") String apiCode,
                                                                @Param("configList") List<MarketingDataValidConfig> configList,
                                                                @Param("cellSet") Set<String> cellSet);
+
+    /**
+     * 根据案件编号+定制化 有效期配置获取上传数据
+     *
+     * @param apiCode api代码
+     * @param configList 有效期配置
+     * @param custNumSet custNum集合
+     * @return {@link List }<{@link MarketingSyncUser }>
+     * @author senyang.zheng
+     * @date 2024/01/13
+     */
+    List<MarketingSyncUser> getSyncUserByCustNumAndTaskIdsList(@Param("apiCode") String apiCode,
+                                                               @Param("configList") List<MarketingCustomizeDataValidConfig> configList,
+                                                               @Param("custNumSet") Set<String> custNumSet);
 }

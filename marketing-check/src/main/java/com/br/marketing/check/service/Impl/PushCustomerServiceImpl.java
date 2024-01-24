@@ -912,11 +912,9 @@ public class PushCustomerServiceImpl implements PushCustomerService {
 
     @Override
     public void mockError(String type) {
-        if (marketingCommonConfig.getMockCallBackError() != null
-                && marketingCommonConfig.getMockCallBackError().get(type) != null) {
-            if (marketingCommonConfig.getMockCallBackError().get(type)) {
-                throw new RuntimeException("伪造错误");
-            }
+        if (marketingCommonConfig.getMockCallBackError() != null && marketingCommonConfig.getMockCallBackError().get(type) != null
+            && marketingCommonConfig.getMockCallBackError().get(type)) {
+            throw new RuntimeException("伪造错误");
         }
     }
 

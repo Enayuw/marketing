@@ -520,6 +520,12 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             exceptionSave(shuheUploadData, response2ShuheDTO, e);
             return response2ShuheDTO;
         }
+        if (marketingCommonConfig.getShuheDxApiCodes().contains(apiCode) && !JSONObject.isValidObject(uploadDataDTO.getString("taskCode"))) {
+            response2ShuheDTO.failed(",taskCode非JSON结构");
+            log.error("数禾上传数据定制化接口taskCode非JSON结构,taskCode:{}",uploadDataDTO.getString("taskCode"));
+            exceptionSave(shuheUploadData, response2ShuheDTO, null);
+            return response2ShuheDTO;
+        }
         final JSONArray listInfo = uploadDataDTO.getJSONArray("listInfo");
         if (requiredCheck(listInfo, response2ShuheDTO)) {
             exceptionSave(shuheUploadData, response2ShuheDTO, null);
