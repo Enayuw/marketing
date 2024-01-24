@@ -92,11 +92,13 @@ public class MarketingCommonConfig {
 
     /**
      * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
+     * eg：{"促首登":"T","促申完":"T-15","促首借":"T+31","促复借":"T+0"}
      */
     private Map<String, String> shuHeTransferExtractDayMap;
 
     /**
      * 数禾转化数据提取apiCode集合
+     * eg:{"3710004":["促申完","促首登"],"3710023":["促首借"],"3710043":["促复借"],"3710051":["重申"],"3710071":["促首登"]}
      */
     private HashMap<String, List<String>> shuHeTransferExtractApiCodes;
 
@@ -112,6 +114,7 @@ public class MarketingCommonConfig {
 
     /**
      * 数禾有效期, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
+     * eg：{"促首登":"T","促申完":"T-15","促首借":"T+31","促复借":"T+0"}
      */
     private Map<String, String> shuHePeriodOfValidityDayMap;
 
