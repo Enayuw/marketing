@@ -12,6 +12,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -94,13 +96,13 @@ public class YiLianTransferCleanProxy extends UploadDataProxy {
         transferData.setUserType("1");
         // reserveField1
         reserveField1.put("idcardScanningResult", stringEscape(dataList.get(header.indexOf("idcard_scanning_result")).trim()));
-        reserveField1.put("idcardScanningTime", dataList.get(header.indexOf("idcard_scanning_time")).trim());
+        reserveField1.put("idcardScanningTime", timeFormatStr(dataList.get(header.indexOf("idcard_scanning_time")).trim()));
         reserveField1.put("faceRecognizationResultCredit", stringEscape(dataList.get(header.indexOf("face_recognization_result_credit")).trim()));
-        reserveField1.put("faceRecognizationTimeCredit", dataList.get(header.indexOf("face_recognization_time_credit")).trim());
+        reserveField1.put("faceRecognizationTimeCredit", timeFormatStr(dataList.get(header.indexOf("face_recognization_time_credit")).trim()));
         reserveField1.put("faceRecognizationResultDraw", stringEscape(dataList.get(header.indexOf("face_recognization_result_draw")).trim()));
-        reserveField1.put("faceRecognizationTimeDraw", dataList.get(header.indexOf("face_recognization_time_draw")).trim());
+        reserveField1.put("faceRecognizationTimeDraw", timeFormatStr(dataList.get(header.indexOf("face_recognization_time_draw")).trim()));
         reserveField1.put("cashResult", stringEscape(dataList.get(header.indexOf("cash_result")).trim()));
-        reserveField1.put("dataDt", dataList.get(header.indexOf("data_dt")).trim());
+        reserveField1.put("dataDt", timeFormatStr(dataList.get(header.indexOf("data_dt")).trim()));
         reserveField1.put("etlunifyTime", dataList.get(header.indexOf("etlunify_time")).trim());
 
         transferData.setReserveField1(reserveField1.toJSONString());
@@ -108,12 +110,29 @@ public class YiLianTransferCleanProxy extends UploadDataProxy {
     }
 
     private String stringEscape(String value) {
-        if("是".equals(value) || "成功".equals(value)){
+        if ("是".equals(value) || "成功".equals(value)) {
             return "1";
-        }else if("否".equals(value) || "失败".equals(value)){
+        } else if ("否".equals(value) || "失败".equals(value)) {
             return "0";
-        }else{
+        } else {
             return value;
         }
+    }
+
+    private String timeFormatStr(String time){
+        if (StringUtils.isEmpty(time)) {
+            return "";
+        }
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2}$|^\\d{4}/\\d{1,2}/\\d{1,2}$", time)) {
+            String s = time.replaceAll("/", "-");
+            try {
+                return df.format(df.parse(s));
+            } catch (ParseException e) {
+                log.error("亿联转化清洗时间格式转换异常",e.getMessage());
+            }
+        }
+        return time;
+
     }
 }
