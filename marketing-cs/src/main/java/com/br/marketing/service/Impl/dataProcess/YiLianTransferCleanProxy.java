@@ -125,7 +125,7 @@ public class YiLianTransferCleanProxy extends UploadDataProxy {
         }
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
         if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2}$|^\\d{4}/\\d{1,2}/\\d{1,2}$", time)) {
-            String s = time.replaceAll("/", "-");
+            String s = time.replace("/", "-");
             try {
                 return df.format(df.parse(s));
             } catch (ParseException e) {

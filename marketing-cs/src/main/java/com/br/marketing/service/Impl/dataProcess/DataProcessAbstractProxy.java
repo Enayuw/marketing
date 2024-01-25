@@ -57,6 +57,7 @@ public abstract class DataProcessAbstractProxy {
 
         // 任务结束：push_status置为2,有失败的，置为3
         if (errorMark.get() > 0) {
+            log.error("清洗通用流程调用上传或转化接口失败，失败量级={}",errorMark.get());
             localFile.setPushStatus("3");
         } else {
             localFile.setPushStatus("2");
