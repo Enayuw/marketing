@@ -114,6 +114,7 @@ api:
   tongchengAgentMkt:
     baseUrl: https://mns.qa.lylend.com
     address: ${api.tongchengAgentMkt.baseUrl}/api/cep/agent/mkt/baiRong
+    secretKey: JhcwsW4ArsdJ8kjcXQnW734ydF7brpMZywg3T9MXRNAwqTcSW3UasDTFAUheAV24
     isProxy: false
 innerSftp:
   uploadpath: /UploadFiles/marketing/

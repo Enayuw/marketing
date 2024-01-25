@@ -143,15 +143,11 @@ public class TstController {
 
     @GetMapping("/testTongChengAgentMkt")
     public String testTongChengAgentMkt(){
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("requestId","3710126"+System.currentTimeMillis()+ RandomUtil.getCode(5));
-        jsonObject.put("secretKey","JhcwsW4ArsdJ8kjcXQnW734ydF7brpMZywg3T9MXRNAwqTcSW3UasDTFAUheAV24");
         List<Map<String,String>> dataList = new ArrayList<>();
         Map<String,String> map  = new HashMap<>();
         map.put("mobileMd5","21ea88b0c91d2283964e8fbf13499ef3");
         dataList.add(map);
-        jsonObject.put("dataList",dataList);
-        Result result = tongChengAgentMktClient.pushToTongChengAgentMkt(jsonObject, null);
+        Result result = tongChengAgentMktClient.pushToTongChengAgentMkt(dataList, "7492639",null);
         log.warn("Result:{}",result);
         return "testTongChengAgentMkt";
     }
