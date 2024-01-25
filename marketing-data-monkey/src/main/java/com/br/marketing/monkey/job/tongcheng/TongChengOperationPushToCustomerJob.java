@@ -38,7 +38,7 @@ public class TongChengOperationPushToCustomerJob extends AbstractSimpleElasticJo
         marketingCommonConfig.getTongChengGroupOperationApiCodes().forEach((String apiCode) -> {
             LocalFileExample example = new LocalFileExample();
             //查询待推送文件 查询条件b_local_file：status=2 且 push_status=空
-            example.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.TONGCHENG_UNDO_PUSHTOCUSTOMER.getValue())
+            example.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.TONGCHENG_OPERATION_PUSHTOCUSTOMER.getValue())
                     .andStatusEqualTo("2").andPushStatusIsNull().andApiCodeEqualTo(apiCode);
             List<LocalFile> localFiles = localFileMapper.selectByExample(example);
             if (CollectionUtils.isEmpty(localFiles)) {
