@@ -197,6 +197,10 @@ api:
     brPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3QDuQlynuboCyAinT3gFxO/+FePOAT2HWVTKHsQqFje78BVdXVvAMo7DmL7zDmEnfzDgqhNLCuAjf03/Oe52pTKgOaFPjCBFJG2/islxV6TRYvyy4vBRhh0IE0BQEvk4pM9bB7WIN1vBu8ECbEwylxkO3RB/aSb90Wxmc0J05c4/9W6yfLgxl2JilT69jG7jprcws83fTtHDztXxFcKZyWwFH0MWZXjFC9tTqZJk46iAUHwDX/9uA42yXpWY0VAO2CEeNl6cRl1njpV0dQ948yDdJYLmnMMvnp9yb4WwuthOn9OK86rN004ZSsR+HIxWYzj76BppdmeN0tZOOpT47QIDAQAB"
     appId: "bairong"
     isProxy: true
+  tongchengAgentMkt:
+    baseUrl: https://mns.qa.lylend.com
+    address: ${api.tongchengAgentMkt.baseUrl}/api/cep/agent/mkt/baiRong
+    isProxy: true
 spring:
   rabbitmq:
     addresses: delivery-rabbitmq-cluster-01.brapp.com:5672

@@ -151,6 +151,10 @@ api:
     brPrivateKey: ""
     brPublicKey: ""
     isProxy: true
+  tongchengAgentMkt:
+    baseUrl: https://mns.lylend.com
+    address: ${api.tongchengAgentMkt.baseUrl}/api/cep/agent/mkt/baiRong
+    isProxy: true
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置
