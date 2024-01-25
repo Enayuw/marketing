@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingCustomizeDataValidConfigMapper" >
+
+    <select id="getCustomizeValidPeriodRangeByApiCodeAndUserType" resultType="java.util.Map">
+        SELECT api_code              as apiCode,
+               min(valid_start_date) as validStartDate,
+               max(valid_end_date)   as validEndDate
+        FROM b_marketing_customize_data_valid_config
+        WHERE is_del = 1
+          AND DATE_FORMAT(NOW(),'%Y-%m-%d') between valid_start_date and valid_end_date
+          AND (api_code,task_id) IN (SELECT
+                                             api_code,task_id
+                                        FROM b_marketing_customize_data_valid_config
+                                        WHERE id = #{id});
+    </select>
+</mapper>

@@ -2,7 +2,6 @@ package com.br.marketing.service.Impl.transfertofile;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.MD5Utils;
 import com.br.marketing.common.commondto.Result;
@@ -26,7 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
@@ -101,8 +99,9 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
             // 指定日期提取，生成指定日期的记录，不是当天的记录
             String dateyyyymmddStr = isParam ? myParam.replace("-", "")
                     : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+            String localDateStr = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
-            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(dateyyyymmddStr)
+            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(localDateStr)
                     .andFileTypeEqualTo(1);
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
             if (CollectionUtils.isEmpty(transferFileTasks)) {
@@ -115,7 +114,7 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
                 transferFileTask.setBatchNumber(batchNumber);
                 transferFileTask.setFileName(String.format("%s_zhuanhua_%s.txt", apiCode, dateyyyymmddStr));
                 transferFileTask.setTaskNumber(0);
-                transferFileTask.setStartDate(dateyyyymmddStr);
+                transferFileTask.setStartDate(localDateStr);
                 transferFileTask.setContextId(transferFileContextId);
                 transferFileTask.setCreateTime(new Date());
                 transferFileTask.setUpdateTime(new Date());

@@ -58,6 +58,21 @@ public class ScorePushCustomerConfig {
      */
     private Date updateTime;
 
+    /**
+     * 推送类型 1-一天仅推送1次;2-多文件推送多次
+     */
+    private Integer pushType;
+
+    /**
+     * 推送方法
+     */
+    private String pushMethod;
+
+    /**
+     * 资源配置
+     */
+    private String resourceConfig;
+
     public Long getId() {
         return id;
     }
@@ -144,5 +159,29 @@ public class ScorePushCustomerConfig {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Integer getPushType() {
+        return pushType;
+    }
+
+    public void setPushType(Integer pushType) {
+        this.pushType = pushType;
+    }
+
+    public String getPushMethod() {
+        return pushMethod;
+    }
+
+    public void setPushMethod(String pushMethod) {
+        this.pushMethod = pushMethod == null ? null : pushMethod.trim();
+    }
+
+    public String getResourceConfig() {
+        return resourceConfig;
+    }
+
+    public void setResourceConfig(String resourceConfig) {
+        this.resourceConfig = resourceConfig == null ? null : resourceConfig.trim();
     }
 }
