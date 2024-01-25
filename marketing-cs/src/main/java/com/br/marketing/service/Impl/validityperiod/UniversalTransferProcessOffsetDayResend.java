@@ -76,7 +76,8 @@ public class UniversalTransferProcessOffsetDayResend extends ValidityPeriodResen
         JSONObject resendData = JSONObject.parseObject(record.getResendData());
         Integer offsetDay = resendData.getInteger("offsetDay");
         // 获取有效期范围
-        Map<String, String> validPeriodRange = marketingDataValidConfigMapper.getValidPeriodRangeByApiCodeAndUserTypeAndOffsetDay(record.getValidityPeriodId(), offsetDay);
+        Map<String, String> validPeriodRange = marketingDataValidConfigMapper.
+            getValidPeriodRangeByApiCodeAndUserTypeAndOffsetDay(record.getValidityPeriodId(), offsetDay);
         if (ObjectUtil.isEmpty(validPeriodRange)) {
             log.error("转化数据(T-N有效)有效期变更重推失败，未存在有效的有效期，record:{}", record);
             return Lists.newArrayList();
