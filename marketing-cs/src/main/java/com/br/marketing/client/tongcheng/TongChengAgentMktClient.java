@@ -9,6 +9,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.Impl.MockConfigServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +17,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @Description TongChengAgentMktClient
@@ -28,6 +31,8 @@ import java.util.HashMap;
 public class TongChengAgentMktClient {
     @Value("${api.tongchengAgentMkt.address:0}")
     String reachUrl;
+    @Value("${api.tongchengAgentMkt.secretKey:0}")
+    String secretKey;
     @Value("${api.tongchengAgentMkt.isProxy:0}")
     Boolean isProxy;
 
@@ -44,9 +49,13 @@ public class TongChengAgentMktClient {
      * 同程待运营名单推送客户接口
      */
     @RetryMethod(retryNowNum = 3)
-    public Result pushToTongChengAgentMkt(JSONObject jsonObject
+    public Result pushToTongChengAgentMkt(List<Map<String,String>>  dataList,String apiCode
             , Integer retry) {
         HashMap<String, String> resMap = new HashMap<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("requestId",apiCode+System.currentTimeMillis()+ RandomUtil.getCode(5));
+        jsonObject.put("secretKey",secretKey);
+        jsonObject.put("dataList",dataList);
         // 获取挡板开关
         HashMap<String, Object> mock = marketingCommonConfig.getTongChengUndoMock();
         if (mock.get("switch") == Boolean.TRUE) {
