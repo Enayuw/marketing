@@ -1796,6 +1796,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (data == null) {
             return null;
         }
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
         String res = "";
         try {
             if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$", data)) {
@@ -1810,9 +1811,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}$", data)) {
                 String s = data.replaceAll("/", "-");
                 res = LocalDateTime.parse(s.concat(":00:00:000"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS"));
-            } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2}$|^\\d{4}/\\d{2}/\\d{2}$", data)) {
+            } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2}$|^\\d{4}/\\d{1,2}/\\d{1,2}$", data)) {
                 String s = data.replaceAll("/", "-");
-                res = LocalDateTime.parse(s.concat(" 00:00:00:000"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS"));
+                res = df.format(df.parse(s.concat(" 00:00:00:000")));
             } else {
                 res = data;
             }

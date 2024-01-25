@@ -505,4 +505,6 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                @Param("indexId") Long indexId,
                                                                @Param("querySql") String querySql);
 
+
+
 }
