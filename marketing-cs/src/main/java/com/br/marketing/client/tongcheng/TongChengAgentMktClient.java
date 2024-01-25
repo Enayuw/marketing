@@ -57,7 +57,7 @@ public class TongChengAgentMktClient {
         jsonObject.put("secretKey",secretKey);
         jsonObject.put("dataList",dataList);
         // 获取挡板开关
-        HashMap<String, Object> mock = marketingCommonConfig.getTongChengUndoMock();
+        HashMap<String, Object> mock = marketingCommonConfig.getTongChengAgentMock();
         if (mock.get("switch") == Boolean.TRUE) {
             JSONObject mockJson = new JSONObject();
             mockJson.put("code", mock.get("code"));
@@ -72,8 +72,8 @@ public class TongChengAgentMktClient {
 
         // 1.httpcode不为200，需要重试
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.error("调用同程【待运营】名单接口异常-请求参数taskId:{};返回:{}", JSON.toJSONString(jsonObject.get("taskId")), JSON.toJSONString(resMap));
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            log.error("调用同程【待运营】名单接口异常-请求参数taskId:{};返回:{}", JSON.toJSONString(jsonObject));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
 
         String content = resMap.get("content");
@@ -87,7 +87,7 @@ public class TongChengAgentMktClient {
 
         if (code == 1002 || code == 1003 || code == 1004) {
             log.error("调用同程【待运营】名单接口，返回code非0。立即重试，最多重试三次");
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(content);
         }
 
         log.error("调用同程【待运营】名单接口，返回code非0且非重试code。不会重试");
