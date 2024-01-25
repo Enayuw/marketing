@@ -1267,6 +1267,14 @@ public class MarketingCommonConfig {
      */
     private String QiFuTransferExecuteTime;
 
+    /**
+     * 2024/1/24 15:52
+     * 数禾数据场景与apiCode映射信息
+     * key userType；value apiCodeSet
+     * eg：{"促复借":["3710051","7410785"]}
+     */
+    private Map<String, List<String>> shuHeUserTypeAndApiCodeMappingMap = new HashMap<>();
+
 
 }
 
