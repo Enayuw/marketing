@@ -84,6 +84,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByNewTongChengServiceImpl transferToFileByNewTongChengService;
 
+    /**
+     * 同城集团
+     */
+    @Resource
+    private TransferToFileByTongChengGroupServiceImpl transferToFileByTongChengGroupService;
+
     @Resource
     private SyncLogMapper loanSyncLogMapper;
     /**
@@ -277,6 +283,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByTongChengService, marketingCommonConfig.getTongChengTransferFileApiCodes())
                 // 同程新系统转化数据提取
                 .addBind(transferToFileByNewTongChengService, marketingCommonConfig.getNewTongChengTransferFileApiCodes())
+                // 同程集团转化数据提取
+                .addBind(transferToFileByTongChengGroupService, marketingCommonConfig.getTongChengGroupTransferFileApiCodes())
                 // 小赢转化数据提取
                 .addBind(xiaoYingRealTimeService, marketingCommonConfig.getXiaoYingTransferExtractApiCodes())
                 // 众安异业撞库、转化数据提取
