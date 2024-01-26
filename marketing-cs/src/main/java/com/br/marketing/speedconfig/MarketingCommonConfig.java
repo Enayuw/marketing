@@ -1272,12 +1272,12 @@ public class MarketingCommonConfig {
     private String QiFuTransferExecuteTime;
 
     /**
-     * 同程不运营名单推送客户接口apiCode集合
+     * 同程集团运营名单推送客户接口apiCode集合
      */
     private List<String> TongChengGroupOperationApiCodes;
 
     /**
-     * 同程不运营名单推送客户接口线程数
+     * 同程集团运营名单推送客户接口线程数
      */
     private Integer tongChengGroupOperationThreadNum;
 

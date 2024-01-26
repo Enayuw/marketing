@@ -53,6 +53,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
         localFile.setPushStartTime(new Date());
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5);
         Long minId = null;
+        String apiCode = localFile.getApiCode();
         Boolean isContiue = Boolean.TRUE;
         while (isContiue) {
             if (marketingCommonConfig.getTongChengGroupOperationThreadNum() != null) {
@@ -67,7 +68,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
             }
 
             minId = tongchengAgentList.get(tongchengAgentList.size() - 1).getId();
-            pool.submit(() -> buildDataAndPush(tongchengAgentList));
+            pool.submit(() -> buildDataAndPush(tongchengAgentList, apiCode));
         }
         pool.shutdown();
 
@@ -98,7 +99,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
         }
     }
 
-    private void buildDataAndPush(List<TongchengAgent> tongchengAgents) {
+    private void buildDataAndPush(List<TongchengAgent> tongchengAgents, String apiCode) {
         try {
             Map<String, List<TongchengAgent>> listMap = tongchengAgents.stream().collect(Collectors.groupingBy(t -> t.getRequestId()));
             List<String> requestIds = listMap.keySet().stream().collect(Collectors.toList());
@@ -122,7 +123,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                 jsonObject.put("requestId ", requestId);
                 jsonObject.put("dataList", jsonArray);
                 log.warn("同程集团运营名单推送客户，单次推送条数：{}，taskId：{}", jsonArray.size(), requestId);
-                Result result = tongChengAgentMktClient.pushToTongChengAgentMkt(jsonObject, null);
+                Result result = tongChengAgentMktClient.pushToTongChengAgentMkt(jsonObject, apiCode,null);
 
                 // 更新数据表状态
                 List<Long> ids = dataList.stream().map(t -> t.getId()).collect(Collectors.toList());
