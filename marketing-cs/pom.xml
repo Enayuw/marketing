@@ -243,6 +243,12 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/src/main/resources/sdk/zbank/bcprov-jdk15on-1.62.jar</systemPath>
         </dependency>
+        <!--微服务探针公共包-->
+        <dependency>
+            <groupId>com.br.health</groupId>
+            <artifactId>health-endpoint-starter</artifactId>
+            <version>1.0.0</version>
+        </dependency>
 
     </dependencies>
     <build>
