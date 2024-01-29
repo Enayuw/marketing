@@ -1,6 +1,5 @@
 package com.br.marketing.check.service.Impl;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.JobPushDecisionParameterBO;
@@ -17,7 +16,7 @@ import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.rpcclient.RpcClientProxy;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.strategy.MethodRetryHandlerService;
@@ -232,7 +231,7 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
     }
 
     private String decodePhone(String cell) {
-        if (DecodeClient.isMd5(cell)) {
+        if (DecodeGrpcClient.isMd5(cell)) {
             //cell md5
             return RpcClientProxy.decode(cell, "cell", "md5", "");
         } else if (cell.length() == 64) {

@@ -51,7 +51,7 @@ import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -116,8 +116,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         errorCodeHm.put("1006", "参数过长");
     }
 
-    @Resource
-    XieChengSmsCollidingDataLogVtMapper xieChengSmsCollidingDataLogVtMapper;
 
     @Resource
     MarketingTaskMapper marketingTaskMapper;
@@ -134,9 +132,6 @@ public class PushRuleServiceImpl implements PushRuleService {
     CustomerInfoPushLogMapper customerInfoPushLogMapper;
 
     @Resource
-    MarketingStrategyProductMapper marketingStrategyProductMapper;
-
-    @Resource
     MarketingUserMapper marketingUserMapper;
 
     @Resource
@@ -147,9 +142,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     PhoneSaleMapper phoneSaleMapper;
-
-    @Autowired
-    DecodeClient decodeClient;
 
     @Resource
     private ZhongyouFileDataMapper zhongyouFileDataMapper;
@@ -179,10 +171,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     private AlarmApiClient alarmClient;
-    @Value("${otherConfig.alarm.secretKey:00}")
-    private String secretKey;
-    @Value("${otherConfig.alarm.appName:00}")
-    private String appName;
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
@@ -2091,7 +2079,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 content = StringUtils.isBlank(user.getName()) ? "" : user.getName();
                 break;
         }
-        if (DecodeClient.isMd5(content)) {
+        if (DecodeGrpcClient.isMd5(content)) {
             //cell md5
             content = RpcClientProxy.decode(content, type, "md5", "");
             if (StringUtils.isBlank(content) && "cell".equals(type)) {

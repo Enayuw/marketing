@@ -1,7 +1,11 @@
-package com.br.marketing.common.utils.net;
+package com.br.marketing.client.net;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.common.utils.net.CallUtils;
+import com.br.marketing.common.utils.net.InterfaceLog;
+import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
+import com.br.marketing.rpcclient.rpcclientImpl.BrokerGrpcClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
@@ -24,10 +28,10 @@ public class ApiCaller {
         this.httpHeaders = new HttpHeaders();
     }
 
-    public ApiCaller(RestTemplate restTemplate, MomCommonUtil momCommonUtil, ThreadPoolExecutor threadPoolExecutor) {
+    public ApiCaller(RestTemplate restTemplate, BrokerGrpcClient momGrpcClient, ThreadPoolExecutor threadPoolExecutor) {
         this.restTemplate = restTemplate;
         this.httpHeaders = new HttpHeaders();
-        this.momCommonUtil = momCommonUtil;
+        this.momGrpcClient = momGrpcClient;
         this.logDbPool = threadPoolExecutor;
     }
 
@@ -40,7 +44,7 @@ public class ApiCaller {
 
     private RestTemplate restTemplate;
 
-    private MomCommonUtil momCommonUtil;
+    private BrokerGrpcClient momGrpcClient;
 
     private String url;
 
@@ -104,9 +108,14 @@ public class ApiCaller {
         return exchange.getBody();
     }
 
+    /**
+     * 弃用
+     * @return com.br.marketing.common.utils.net.ThirdApiResultTransfer ThirdApiResultTransfer对象
+     * @deprecated 后面尽量不要使用
+     */
     @Deprecated
     public ThirdApiResultTransfer postTransferStr() {
-        if (momCommonUtil != null) {
+        if (momGrpcClient != null) {
             if (StringUtils.isBlank(interfaceLog.getApiCode())) {
                 throw new RuntimeException("记录接口日志 apiCode不能为空");
             }
@@ -122,13 +131,13 @@ public class ApiCaller {
         ThirdApiResultTransfer transfer = new ThirdApiResultTransfer();
         ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(url, postHttpEntity, String.class);
         Long l = System.currentTimeMillis() - start;
-        if (momCommonUtil != null) {
+        if (momGrpcClient != null) {
             try {
                 interfaceLog.setCostTime(l);
                 interfaceLog.setResponseStr(stringResponseEntity.getBody());
                 interfaceLog.setCode(String.valueOf(stringResponseEntity.getStatusCodeValue()));
                 logDbPool.submit(() -> {
-                    momCommonUtil.sendMQ(interfaceLog);
+                    momGrpcClient.sendInterfaceLog(interfaceLog);
                 });
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);

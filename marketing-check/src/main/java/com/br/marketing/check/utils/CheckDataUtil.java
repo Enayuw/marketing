@@ -2,12 +2,12 @@ package com.br.marketing.check.utils;
 
 import com.br.common.encryption.BrCipherMaker;
 import com.br.common.validator.DateUtils;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.rpcclient.RpcClientProxy;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -80,7 +80,7 @@ public class CheckDataUtil {
      * @throws IOException
      */
     public static boolean checkData(String head, String row, String apiCdoe,
-                                    Writer errorfw, StringBuilder sb,  DecodeClient decodeClient) throws IOException {
+                                    Writer errorfw, StringBuilder sb,  DecodeGrpcClient decodeClient) throws IOException {
         boolean flag = true;
         String[] rows = row.split(",");
         String[] columns = head.split(",");
@@ -202,7 +202,7 @@ public class CheckDataUtil {
      * @param decodeClient 解密客户端
      * @return 校验结果
      */
-    public static Map<String, String> checkColumn(String data, String column, MerchantParam merchantParam, DecodeClient decodeClient) {
+    public static Map<String, String> checkColumn(String data, String column, MerchantParam merchantParam, DecodeGrpcClient decodeClient) {
         //log.info("column:{},data:{}",column,data);
         Map<String, String> map = new HashMap<>();
         String result = "";

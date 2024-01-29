@@ -251,7 +251,20 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     int getUnresolvedCount(@Param("apiCode") String apiCode, @Param("startDate") String startDate,@Param("endDate") String endDate);
 
+    /**
+     * 查询
+     * @param cusBatch cusBatch
+     * @param apiCode apiCode
+     * @return java.lang.String 查询 applet_date 结果
+     */
     String getAppletDateByCusBatch(@Param("cusBatch") String cusBatch,@Param("apiCode") String apiCode);
+
+    /**
+     * 查询
+     * @param appletDate appletDate
+     * @param apiCode apiCode
+     * @return java.util.List<java.lang.String> 查询到的cus_batch集合
+     */
     List<String> getCusBatchByAppletDate(@Param("appletDate") String appletDate,@Param("apiCode") String apiCode);
 
 }

@@ -2,7 +2,6 @@ package com.br.marketing.rule.juzi;
 
 import com.alibaba.fastjson.JSON;
 import com.br.common.util.DateUtils;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -12,7 +11,6 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -33,9 +31,6 @@ import java.time.format.DateTimeParseException;
 public class JuZiCustomerTransferAImpl implements AssembleData<ConversionData> {
 
     protected final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
-
-    @Autowired
-    DecodeClient decodeClient;
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {

@@ -45,7 +45,7 @@ public class StatisticsEmailController {
         StringBuilder content = new StringBuilder();
         content.append("<h3><b>数据统计内容：</b></h3>")
                 .append(data);
-        alarmApiClient.send(title,content.toString(),receivers);
+        alarmApiClient.sendMails(title,content.toString(),receivers);
         return new ApiResult<Boolean>().success(true);
     }
 }

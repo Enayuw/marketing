@@ -1,6 +1,5 @@
 package com.br.marketing.check.job;
 
-import IceInternal.Ex;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.IYiXinTransferService;

@@ -39,6 +39,8 @@ public enum AlarmSendCodeEnum {
     EXCEPTION_NEW_FIELD_CHECK("62006", "接口字段新增检查"),
     // 一般通知,阶梯推送，一般
     EXCEPTION_USUAL_NOTICE("62007", "通知"),
+    //数据治理平台调用marketing-inner-api邮件发送接口使用
+    DATA_GOVERNANCE_PLATFORM_SEND_EMAIL("70000", "数据治理平台邮件发送")
     ;
 
     /**

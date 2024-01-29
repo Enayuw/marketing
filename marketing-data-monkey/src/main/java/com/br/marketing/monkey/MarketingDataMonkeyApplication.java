@@ -4,10 +4,8 @@ import com.br.cloud.boot.EnablePrometheusEndpoint;
 import com.br.cloud.counter.EnableBrCounter;
 import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
-import com.br.cloud.threadpool.EnablePrometheusIceThreadPool;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
-import com.br.monitor.grpc.EnvUtil;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
@@ -30,7 +28,6 @@ import org.springframework.context.annotation.ImportResource;
 @EnableHystrixPrometheus
 @EnablePrometheusTiming
 @EnableBrCounter(namespace = "marketing_data_monkey")
-@EnablePrometheusIceThreadPool
 @Slf4j
 public class MarketingDataMonkeyApplication {
     public static ConfigurableApplicationContext ac;
@@ -48,10 +45,8 @@ public class MarketingDataMonkeyApplication {
      */
     public static void stop() {
         try {
-            if ("GRPC".equals(EnvUtil.getProperties("GRPC_MODE"))) {
-                Thread.sleep(4500L);
-                BrGrpcUtils.shutDown();
-            }
+            Thread.sleep(4500L);
+            BrGrpcUtils.shutDown();
         } catch (Exception e) {
             log.error("GRPC服务关闭异常", e);
         }
