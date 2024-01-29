@@ -21,6 +21,7 @@ import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -104,36 +105,35 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
             Map<String, List<TongchengAgent>> listMap = tongchengAgents.stream().collect(Collectors.groupingBy(t -> t.getRequestId()));
             List<String> requestIds = listMap.keySet().stream().collect(Collectors.toList());
             log.warn("同程集团运营名单推送客户，单批次requestId：{},size：{}", Joiner.on(",").join(requestIds), requestIds.size());
+            List<Map<String,String>>  dataLists = null;
+            List<Long> ids = null;
 
             for (Map.Entry<String, List<TongchengAgent>> entry : listMap.entrySet()) {
-                String requestId = entry.getKey();
                 List<TongchengAgent> dataList = entry.getValue();
+                ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
 
-                // 组装数据调接口
-                JSONArray jsonArray = new JSONArray();
                 dataList.forEach(tongchengAgent -> {
-                    JSONObject jsonObject = new JSONObject();
-                    String mobile = tongchengAgent.getMobileMd5();
-
-                    jsonObject.put("mobileMd5", mobile);
-                    jsonArray.add(jsonObject);
+                    String mobileMd5 = tongchengAgent.getMobileMd5();
+                    if (!map.containsValue(mobileMd5)) {
+                        map.put("mobileMd5", mobileMd5);
+                    } else {
+                        log.warn("该值已经存在于内存中，无需重复添加!");
+                    }
                 });
+                ids = dataList.stream().map(t -> t.getId()).collect(Collectors.toList());
+                dataLists.add(map);
 
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("requestId ", requestId);
-                jsonObject.put("dataList", jsonArray);
-                log.warn("同程集团运营名单推送客户，单次推送条数：{}，taskId：{}", jsonArray.size(), requestId);
-                Result result = tongChengAgentMktClient.pushToTongChengAgentMkt(jsonObject, apiCode,null);
+            }
 
-                // 更新数据表状态
-                List<Long> ids = dataList.stream().map(t -> t.getId()).collect(Collectors.toList());
-                if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                    //更新成功
-                    updateStatus(ids, 2);
-                } else {
-                    //更新失败
-                    updateStatus(ids, 3);
-                }
+            log.warn("同程集团运营名单推送客户，推送条数：{}，requestId：{}", dataLists.size(), requestIds);
+            Result result = tongChengAgentMktClient.pushToTongChengAgentMkt(dataLists, apiCode,null);
+            // 更新数据表状态
+            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                //更新成功
+                updateStatus(ids, 2);
+            } else {
+                //更新失败
+                updateStatus(ids, 3);
             }
         } catch (Exception ex) {
             log.error("同程集团运营名单推送客户接口子线程异常", ex);
