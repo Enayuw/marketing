@@ -423,6 +423,6 @@
       id > #{minId} and
     </if>
     status = 1 and push_status = 0
-    order by id asc limit 2000;
+    order by id asc limit #{num};
   </select>
 </mapper>

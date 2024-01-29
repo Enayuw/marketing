@@ -34,25 +34,22 @@ public class TongChengOperationPushToCustomerJob extends AbstractSimpleElasticJo
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
+
+        log.warn("同程集团迁移可营销名单JOB调度开始");
         marketingCommonConfig.getTongChengGroupOperationApiCodes().forEach((String apiCode) -> {
             TongChengAgentExample example = new TongChengAgentExample();
             //查询待推数据 查询条件b_tongcheng_agent_mtk_data：status=1 且 push_status=0
             example.createCriteria().andStatusEqualTo(1).andPushStatusEqualTo(0).andApiCodeEqualTo(apiCode);
             List<TongChengAgent> tongChengAgents = tongChengAgentMapper.selectByExample(example);
             if (CollectionUtils.isEmpty(tongChengAgents)) {
+                log.warn("同程集团运营名单推送客户量级为空！");
                 return;
             }
-
             try {
                 Long st1 = System.currentTimeMillis();
                 service.process(apiCode);
                 log.warn("同程集团运营名单推送客户JOB，耗时：{} ms",  System.currentTimeMillis() - st1);
             } catch (Exception e) {
-                //推送异常更新状态,更新为失败status=3
-                TongChengAgent tongChengAgent1 = new TongChengAgent();
-                tongChengAgent1.setPushStatus(3);
-                tongChengAgent1.setDataMessage(e.getMessage());
-                tongChengAgentMapper.updateByPrimaryKeySelective(tongChengAgent1);
                 log.error("同程集团运营名单推送客户JOB异常", e);
             }
 

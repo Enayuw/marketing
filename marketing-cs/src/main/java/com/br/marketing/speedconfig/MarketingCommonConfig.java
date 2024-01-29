@@ -1281,5 +1281,10 @@ public class MarketingCommonConfig {
      */
     private Integer tongChengGroupOperationThreadNum;
 
+    /**
+     * 同程集团运营名单推送客户接口单批次捞数量
+     */
+    private Integer tongChengGroupOperationNum;
+
 }
 
