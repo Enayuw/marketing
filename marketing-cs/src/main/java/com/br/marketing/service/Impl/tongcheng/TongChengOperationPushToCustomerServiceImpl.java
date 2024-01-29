@@ -100,6 +100,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
         try {
             List<Map<String,String>> dataLists = null;
             List<Long> ids = null;
+            ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
             for (TongChengAgent data : tongchengAgents) {
                 String mobileMd5 = data.getMobileMd5();
                 // 查询是否已推送
@@ -110,10 +111,9 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                 }
                 newData.setPushStatus(1);
                 tongChengAgentMapper.updateByPrimaryKeySelective(newData);
-                ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
                 map.put("mobileMd5", mobileMd5);
-                dataLists.add(map);
             }
+            dataLists.add(map);
             Result result = tongChengAgentMktClient.pushToTongChengAgentMkt(dataLists, apiCode,null);
             // 更新数据表状态
             ids = tongchengAgents.stream().map(t -> t.getId()).collect(Collectors.toList());
