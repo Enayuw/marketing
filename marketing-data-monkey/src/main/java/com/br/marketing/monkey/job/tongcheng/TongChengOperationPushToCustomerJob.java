@@ -1,9 +1,8 @@
 package com.br.marketing.monkey.job.tongcheng;
 
-import com.br.marketing.common.enums.SftpFileTypeEnum;
-import com.br.marketing.entity.LocalFile;
-import com.br.marketing.entity.LocalFileExample;
-import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.entity.TongChengAgent;
+import com.br.marketing.entity.TongChengAgentExample;
+import com.br.marketing.mapper.TongChengAgentMapper;
 import com.br.marketing.service.Impl.tongcheng.TongChengOperationPushToCustomerService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -25,7 +24,7 @@ import java.util.List;
 @Slf4j
 public class TongChengOperationPushToCustomerJob extends AbstractSimpleElasticJob {
     @Resource
-    private LocalFileMapper localFileMapper;
+    private TongChengAgentMapper tongChengAgentMapper;
 
     @Autowired
     TongChengOperationPushToCustomerService service;
@@ -36,28 +35,27 @@ public class TongChengOperationPushToCustomerJob extends AbstractSimpleElasticJo
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         marketingCommonConfig.getTongChengGroupOperationApiCodes().forEach((String apiCode) -> {
-            LocalFileExample example = new LocalFileExample();
-            //查询待推送文件 查询条件b_local_file：status=2 且 push_status=空
-            example.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.TONGCHENG_OPERATION_PUSHTOCUSTOMER.getValue())
-                    .andStatusEqualTo("2").andPushStatusIsNull().andApiCodeEqualTo(apiCode);
-            List<LocalFile> localFiles = localFileMapper.selectByExample(example);
-            if (CollectionUtils.isEmpty(localFiles)) {
+            TongChengAgentExample example = new TongChengAgentExample();
+            //查询待推数据 查询条件b_tongcheng_agent_mtk_data：status=1 且 push_status=0
+            example.createCriteria().andStatusEqualTo(1).andPushStatusEqualTo(0).andApiCodeEqualTo(apiCode);
+            List<TongChengAgent> tongChengAgents = tongChengAgentMapper.selectByExample(example);
+            if (CollectionUtils.isEmpty(tongChengAgents)) {
                 return;
             }
-            for (LocalFile localFile : localFiles) {
-                try {
-                    Long st1 = System.currentTimeMillis();
-                    service.process(localFile);
-                    log.warn("同程集团运营名单推送客户JOB，localFIleId：{}，耗时：{} ms", localFile.getId(), System.currentTimeMillis() - st1);
-                } catch (Exception e) {
-                    //推送异常更新状态,更新为失败status=3
-                    LocalFile localFileFail = new LocalFile();
-                    localFileFail.setPushStatus("3");
-                    localFileFail.setId(localFile.getId());
-                    localFileMapper.updateByPrimaryKeySelective(localFileFail);
-                    log.error("同程集团运营名单推送客户JOB异常，localFIleId：{}", localFile.getId(), e);
-                }
+
+            try {
+                Long st1 = System.currentTimeMillis();
+                service.process(apiCode);
+                log.warn("同程集团运营名单推送客户JOB，耗时：{} ms",  System.currentTimeMillis() - st1);
+            } catch (Exception e) {
+                //推送异常更新状态,更新为失败status=3
+                TongChengAgent tongChengAgent1 = new TongChengAgent();
+                tongChengAgent1.setPushStatus(3);
+                tongChengAgent1.setDataMessage(e.getMessage());
+                tongChengAgentMapper.updateByPrimaryKeySelective(tongChengAgent1);
+                log.error("同程集团运营名单推送客户JOB异常", e);
             }
+
         });
     }
 }

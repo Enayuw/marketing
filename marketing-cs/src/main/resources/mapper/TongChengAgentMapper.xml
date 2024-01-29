@@ -84,7 +84,7 @@
   <sql id="Blob_Column_List" >
     extend
   </sql>
-  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.TongchengAgentExample" >
+  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.TongChengAgentExample" >
     select
     <if test="distinct" >
       distinct
@@ -100,7 +100,7 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TongchengAgentExample" >
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TongChengAgentExample" >
     select
     <if test="distinct" >
       distinct
@@ -122,19 +122,17 @@
     from b_tongcheng_agent_mtk_data
     where id = #{id,jdbcType=BIGINT}
   </select>
-  <select id="selectByMobileMd5" resultMap="ResultMapWithBLOBs" parameterType="java.lang.String" >
+  <select id="selectByMobileMd5" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Integer" >
     select
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
+    count(1)
     from b_tongcheng_agent_mtk_data
-    where mobile_md5 = #{mobileMd5}
+    where mobile_md5 = #{mobileMd5} and push_status in (1,2,3)
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
     delete from b_tongcheng_agent_mtk_data
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.TongchengAgentExample" >
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.TongChengAgentExample" >
     delete from b_tongcheng_agent_mtk_data
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
@@ -243,7 +241,7 @@
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.TongchengAgentExample" resultType="java.lang.Integer" >
+  <select id="countByExample" parameterType="com.br.marketing.entity.TongChengAgentExample" resultType="java.lang.Integer" >
     select count(*) from b_tongcheng_agent_mtk_data
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
@@ -424,7 +422,7 @@
     <if test="minId != null and minId >0">
       id > #{minId} and
     </if>
-    local_id = #{localId}  and status = 1 and push_status = 0
+    status = 1 and push_status = 0
     order by id asc limit 2000;
   </select>
 </mapper>

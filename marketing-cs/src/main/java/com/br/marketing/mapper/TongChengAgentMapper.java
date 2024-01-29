@@ -22,7 +22,7 @@ public interface TongChengAgentMapper {
 
     TongChengAgent selectByPrimaryKey(Long id);
 
-    TongChengAgent selectByMobileMd5(String mobileMd5);
+    int selectByMobileMd5(String mobileMd5);
 
     int updateByExampleSelective(@Param("record") TongChengAgent record, @Param("example") TongChengAgentExample example);
 
@@ -36,6 +36,6 @@ public interface TongChengAgentMapper {
 
     int updateByPrimaryKey(TongChengAgent record);
 
-    List<TongChengAgent> tongChengGroupOperationDataPage(@Param("localId") Long localId, @Param("minId") Long minId);
+    List<TongChengAgent> tongChengGroupOperationDataPage(@Param("minId") Long minId);
 
 }
