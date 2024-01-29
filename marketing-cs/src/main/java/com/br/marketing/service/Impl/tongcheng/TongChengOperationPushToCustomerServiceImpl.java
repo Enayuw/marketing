@@ -20,8 +20,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @Description 同程集团迁移可营销名单推送客户实现类
  * @author guangxiu.li
+ * @Description 同程集团迁移可营销名单推送客户实现类
  * @dateTime 2024/01/25 16:13
  */
 @Service
@@ -48,32 +48,35 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
         int num = marketingCommonConfig.getTongChengGroupOperationNum();
         Boolean isContiue = Boolean.TRUE;
         while (isContiue) {
-            if (marketingCommonConfig.getTongChengGroupOperationThreadNum() != null) {
-                pool.setCorePoolSize(marketingCommonConfig.getTongChengGroupOperationThreadNum());
-                pool.setMaximumPoolSize(marketingCommonConfig.getTongChengGroupOperationThreadNum());
-            }
-            List<TongChengAgent> tongchengAgentList = tongChengAgentMapper.tongChengGroupOperationDataPage(minId, num);
-            if (tongchengAgentList.size() <= 0) {
-                isContiue = Boolean.FALSE;
-                continue;
-            }
-            int numBatches = (tongchengAgentList.size() + BATCH_SIZE - 1) / BATCH_SIZE;
             try {
+                if (marketingCommonConfig.getTongChengGroupOperationThreadNum() != null) {
+                    pool.setCorePoolSize(marketingCommonConfig.getTongChengGroupOperationThreadNum());
+                    pool.setMaximumPoolSize(marketingCommonConfig.getTongChengGroupOperationThreadNum());
+                }
+                List<TongChengAgent> tongchengAgentList = tongChengAgentMapper.tongChengGroupOperationDataPage(minId, num);
+                minId = tongchengAgentList.get(tongchengAgentList.size() - 1).getId();
+                if (tongchengAgentList.size() <= 0) {
+                    isContiue = Boolean.FALSE;
+                    continue;
+                }
+                int numBatches = (tongchengAgentList.size() + BATCH_SIZE - 1) / BATCH_SIZE;
                 for (int i = 0; i < numBatches; i++) {
                     int startIndex = i * BATCH_SIZE;
                     int endIndex = Math.min(startIndex + BATCH_SIZE, tongchengAgentList.size());
                     List<TongChengAgent> batch = tongchengAgentList.subList(startIndex, endIndex);
                     pool.submit(() -> buildDataAndPush(batch, apiCode));
-                    minId = tongchengAgentList.get(tongchengAgentList.size() - 1).getId();
                 }
-            } finally {
-                pool.shutdown();
+            } catch (Exception e) {
+                log.error("同程集团运营名单捞取异常！", e);
             }
         }
+
         try {
+            pool.shutdown();
             while (!pool.awaitTermination(5L, TimeUnit.SECONDS)) {
             }
         } catch (Exception ex) {
+            pool.shutdownNow();
             log.error(ex.getMessage(), ex);
         }
     }
@@ -81,7 +84,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
 
     private void buildDataAndPush(List<TongChengAgent> tongchengAgents, String apiCode) {
         try {
-            List<Map<String,String>> dataLists = null;
+            List<Map<String, String>> dataLists = null;
             List<Long> ids = null;
             for (TongChengAgent data : tongchengAgents) {
                 ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
@@ -100,9 +103,10 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                 TongChengAgentExample tongChengAgentExample = new TongChengAgentExample();
                 tongChengAgentExample.createCriteria()
                         .andApiCodeEqualTo(apiCode)
+                        .andCreateDateEqualTo(createDate)
                         .andMobileMd5EqualTo(mobileMd5)
-                        .andPushStatusIn(Arrays.asList(1,2,3))
-                        .andCreateDateEqualTo(createDate);
+                        .andStatusEqualTo(1)
+                        .andPushStatusIn(Arrays.asList(1,2,3));
                 if (tongChengAgentMapper.countByExample(tongChengAgentExample) == 0) {
                     tongChengAgent.setPushStatus(1);
                     map.put("mobileMd5", mobileMd5);
@@ -118,10 +122,10 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                 // 解锁
                 redisChgService.unlock(key, value);
             }
-            if (dataLists.isEmpty()){
+            if (dataLists.isEmpty()) {
                 return;
             }
-            Result result = tongChengAgentMktClient.pushToTongChengAgentMkt(dataLists, apiCode,null);
+            Result result = tongChengAgentMktClient.pushToTongChengAgentMkt(dataLists, apiCode, null);
             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 //更新成功
                 updateStatus(ids, 2, result.getMessage());
