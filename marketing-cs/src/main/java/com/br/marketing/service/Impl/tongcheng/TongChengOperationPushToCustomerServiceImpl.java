@@ -9,6 +9,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.TongChengAgentMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,18 +55,15 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                     pool.setMaximumPoolSize(marketingCommonConfig.getTongChengGroupOperationThreadNum());
                 }
                 List<TongChengAgent> tongchengAgentList = tongChengAgentMapper.tongChengGroupOperationDataPage(minId, num);
-                minId = tongchengAgentList.get(tongchengAgentList.size() - 1).getId();
                 if (tongchengAgentList.size() <= 0) {
                     isContiue = Boolean.FALSE;
                     continue;
                 }
-                int numBatches = (tongchengAgentList.size() + BATCH_SIZE - 1) / BATCH_SIZE;
-                for (int i = 0; i < numBatches; i++) {
-                    int startIndex = i * BATCH_SIZE;
-                    int endIndex = Math.min(startIndex + BATCH_SIZE, tongchengAgentList.size());
-                    List<TongChengAgent> batch = tongchengAgentList.subList(startIndex, endIndex);
-                    pool.submit(() -> buildDataAndPush(batch, apiCode));
-                }
+                minId = tongchengAgentList.get(tongchengAgentList.size() - 1).getId();
+                List<List<TongChengAgent>> partition = Lists.partition(tongchengAgentList, BATCH_SIZE);
+                partition.forEach(p -> {
+                    pool.submit(() -> buildDataAndPush(p, apiCode));
+                });
             } catch (Exception e) {
                 log.error("同程集团运营名单捞取异常！", e);
             }
@@ -87,7 +85,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
             List<Map<String, String>> dataLists = null;
             List<Long> ids = null;
             for (TongChengAgent data : tongchengAgents) {
-                ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
+                Map<String, String> map = new HashMap<>();
                 String mobileMd5 = data.getMobileMd5();
                 Integer createDate = data.getCreateDate();
                 // 获取redis 锁
