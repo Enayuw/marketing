@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class TongchengAgentExample {
+public class TongChengAgentExample {
     protected String orderByClause;
 
     protected boolean distinct;
 
     protected List<Criteria> oredCriteria;
 
-    public TongchengAgentExample() {
+    public TongChengAgentExample() {
         oredCriteria = new ArrayList<Criteria>();
     }
 

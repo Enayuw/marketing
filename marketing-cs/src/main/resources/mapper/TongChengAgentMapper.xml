@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.TongchengAgentMapper" >
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.TongchengAgent" >
+<mapper namespace="com.br.marketing.mapper.TongChengAgentMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.TongChengAgent" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="local_id" property="localId" jdbcType="BIGINT" />
@@ -16,7 +16,7 @@
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
-  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.TongchengAgent" extends="BaseResultMap" >
+  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.TongChengAgent" extends="BaseResultMap" >
     <result column="extend" property="extend" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
@@ -122,6 +122,14 @@
     from b_tongcheng_agent_mtk_data
     where id = #{id,jdbcType=BIGINT}
   </select>
+  <select id="selectByMobileMd5" resultMap="ResultMapWithBLOBs" parameterType="java.lang.String" >
+    select
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from b_tongcheng_agent_mtk_data
+    where mobile_md5 = #{mobileMd5}
+  </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
     delete from b_tongcheng_agent_mtk_data
     where id = #{id,jdbcType=BIGINT}
@@ -132,7 +140,7 @@
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.br.marketing.entity.TongchengAgent" >
+  <insert id="insert" parameterType="com.br.marketing.entity.TongChengAgent" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
@@ -147,7 +155,7 @@
       #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
       #{extend,jdbcType=LONGVARCHAR})
   </insert>
-  <insert id="insertSelective" parameterType="com.br.marketing.entity.TongchengAgent" >
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.TongChengAgent" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
@@ -330,7 +338,7 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.TongchengAgent" >
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.TongChengAgent" >
     update b_tongcheng_agent_mtk_data
     <set >
       <if test="apiCode != null" >
@@ -375,7 +383,7 @@
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.TongchengAgent" >
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.TongChengAgent" >
     update b_tongcheng_agent_mtk_data
     set api_code = #{apiCode,jdbcType=VARCHAR},
       local_id = #{localId,jdbcType=BIGINT},
@@ -392,7 +400,7 @@
       extend = #{extend,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.TongchengAgent" >
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.TongChengAgent" >
     update b_tongcheng_agent_mtk_data
     set api_code = #{apiCode,jdbcType=VARCHAR},
       local_id = #{localId,jdbcType=BIGINT},
@@ -409,14 +417,14 @@
     where id = #{id,jdbcType=BIGINT}
   </update>
 
-  <select id="tongChengGroupOperationDataPage" resultType="com.br.marketing.entity.TongchengAgent">
+  <select id="tongChengGroupOperationDataPage" resultType="com.br.marketing.entity.TongChengAgent">
     select * from
     b_tongcheng_agent_mtk_data
     where
     <if test="minId != null and minId >0">
       id > #{minId} and
     </if>
-    local_id = #{localId}  and status =1 and push_status =1
+    local_id = #{localId}  and status = 1 and push_status = 0
     order by id asc limit 2000;
   </select>
 </mapper>

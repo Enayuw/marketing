@@ -2,7 +2,7 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-public class TongchengAgent {
+public class TongChengAgent {
     /**
      * 
      */

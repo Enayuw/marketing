@@ -1,7 +1,5 @@
 package com.br.marketing.service.Impl.tongcheng;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.tongcheng.TongChengAgentMktClient;
 import com.br.marketing.common.commondto.Result;
@@ -10,17 +8,14 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.mapper.TongchengAgentMapper;
+import com.br.marketing.mapper.TongChengAgentMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -41,7 +36,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
     MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    TongchengAgentMapper tongChengAgent;
+    TongChengAgentMapper tongChengAgentMapper;
 
     @Resource
     private AlarmApiClient alarmClient;
@@ -62,14 +57,15 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                 pool.setMaximumPoolSize(marketingCommonConfig.getTongChengGroupOperationThreadNum());
             }
 
-            List<TongchengAgent> tongchengAgentList = tongChengAgent.tongChengGroupOperationDataPage(localFile.getId(), minId);
+            List<TongChengAgent> tongchengAgentList = tongChengAgentMapper.tongChengGroupOperationDataPage(localFile.getId(), minId);
             if (tongchengAgentList.size() <= 0) {
                 isContiue = Boolean.FALSE;
                 continue;
             }
 
             minId = tongchengAgentList.get(tongchengAgentList.size() - 1).getId();
-            pool.submit(() -> buildDataAndPush(tongchengAgentList, apiCode));
+            List<TongChengAgent> list= Collections.synchronizedList(tongchengAgentList);
+            pool.submit(() -> buildDataAndPush(list, apiCode));
         }
         pool.shutdown();
 
@@ -86,9 +82,9 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
 
     private void updateFileStatusAndSendAlarm(LocalFile localFile) {
         //更新文件表推送数据量
-        TongchengAgentExample tongchengAgentExample = new TongchengAgentExample();
+        TongChengAgentExample tongchengAgentExample = new TongChengAgentExample();
         tongchengAgentExample.createCriteria().andLocalIdEqualTo(localFile.getId()).andPushStatusEqualTo(2).andStatusEqualTo(1);
-        int num = tongChengAgent.countByExample(tongchengAgentExample);
+        int num = tongChengAgentMapper.countByExample(tongchengAgentExample);
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(num);
         //更新状态推送成功
@@ -100,34 +96,27 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
         }
     }
 
-    private void buildDataAndPush(List<TongchengAgent> tongchengAgents, String apiCode) {
+    private void buildDataAndPush(List<TongChengAgent> tongchengAgents, String apiCode) {
         try {
-            Map<String, List<TongchengAgent>> listMap = tongchengAgents.stream().collect(Collectors.groupingBy(t -> t.getRequestId()));
-            List<String> requestIds = listMap.keySet().stream().collect(Collectors.toList());
-            log.warn("同程集团运营名单推送客户，单批次requestId：{},size：{}", Joiner.on(",").join(requestIds), requestIds.size());
-            List<Map<String,String>>  dataLists = null;
+            List<Map<String,String>> dataLists = null;
             List<Long> ids = null;
-
-            for (Map.Entry<String, List<TongchengAgent>> entry : listMap.entrySet()) {
-                List<TongchengAgent> dataList = entry.getValue();
+            for (TongChengAgent data : tongchengAgents) {
+                String mobileMd5 = data.getMobileMd5();
+                // 查询是否已推送
+                TongChengAgent newData = tongChengAgentMapper.selectByMobileMd5(mobileMd5);
+                int pushStatus = newData.getPushStatus();
+                if (pushStatus == 3){
+                    continue;
+                }
+                newData.setPushStatus(1);
+                tongChengAgentMapper.updateByPrimaryKeySelective(newData);
                 ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
-
-                dataList.forEach(tongchengAgent -> {
-                    String mobileMd5 = tongchengAgent.getMobileMd5();
-                    if (!map.containsValue(mobileMd5)) {
-                        map.put("mobileMd5", mobileMd5);
-                    } else {
-                        log.warn("该值已经存在于内存中，无需重复添加!");
-                    }
-                });
-                ids = dataList.stream().map(t -> t.getId()).collect(Collectors.toList());
+                map.put("mobileMd5", mobileMd5);
                 dataLists.add(map);
-
             }
-
-            log.warn("同程集团运营名单推送客户，推送条数：{}，requestId：{}", dataLists.size(), requestIds);
             Result result = tongChengAgentMktClient.pushToTongChengAgentMkt(dataLists, apiCode,null);
             // 更新数据表状态
+            ids = tongchengAgents.stream().map(t -> t.getId()).collect(Collectors.toList());
             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 //更新成功
                 updateStatus(ids, 2);
@@ -142,11 +131,14 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
 
     private void updateStatus(List<Long> ids, int status) {
         if (ids.size() > 0) {
-            TongchengAgentExample updateExample = new TongchengAgentExample();
+            TongChengAgentExample updateExample = new TongChengAgentExample();
             updateExample.createCriteria().andIdIn(ids);
-            TongchengAgent record = new TongchengAgent();
+            TongChengAgent record = new TongChengAgent();
             record.setPushStatus(status);
-            tongChengAgent.updateByExampleSelective(record, updateExample);
+            if (status == 3){
+                record.setDataMessage("重复推送");
+            }
+            tongChengAgentMapper.updateByExampleSelective(record, updateExample);
         }
     }
 
