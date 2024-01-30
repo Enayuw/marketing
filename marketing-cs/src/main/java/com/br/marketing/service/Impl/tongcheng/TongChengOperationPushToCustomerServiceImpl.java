@@ -110,7 +110,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                     dataLists.add(map);
                     ids.add(data.getId());
                 } else {
-                    tongChengAgent.setStatus(2);
+                    tongChengAgent.setStatus(3);
                     tongChengAgent.setDataMessage("数据重复未推送");
                 }
                 // 处理返回结果
