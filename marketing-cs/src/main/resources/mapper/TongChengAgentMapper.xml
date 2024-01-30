@@ -429,7 +429,7 @@
     select * from
     b_tongcheng_agent_mtk_data
     where
-    api_code = #{apiCode} and create_date = #{today} and
+    api_code = #{apiCode} and
     <if test="minId != null and minId >0">
       id > #{minId} and
     </if>

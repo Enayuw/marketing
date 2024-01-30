@@ -43,7 +43,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
     private static final int BATCH_SIZE = 2000;
 
     @Override
-    public void process(String apiCode, Integer today) {
+    public void process(String apiCode) {
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5);
         Long minId = null;
         int num = marketingCommonConfig.getTongChengGroupOperationNum();
@@ -54,7 +54,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                     pool.setCorePoolSize(marketingCommonConfig.getTongChengGroupOperationThreadNum());
                     pool.setMaximumPoolSize(marketingCommonConfig.getTongChengGroupOperationThreadNum());
                 }
-                List<TongChengAgent> tongchengAgentList = tongChengAgentMapper.tongChengGroupOperationDataPage(minId, apiCode, today, num);
+                List<TongChengAgent> tongchengAgentList = tongChengAgentMapper.tongChengGroupOperationDataPage(minId, apiCode, num);
                 if (tongchengAgentList.size() <= 0) {
                     isContiue = Boolean.FALSE;
                     continue;
