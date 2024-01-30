@@ -21,6 +21,7 @@ import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -184,6 +185,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
         List<MarketingCustomer> marketingCustomers = customerMapper.selectByExample(customerExample);
         for (MarketingCustomer marketingCustomer : marketingCustomers) {
             String redisKey = RedisKeyConstant.TRANSFER_FILE_TASK_JOB_KEY.concat(":").concat(marketingCustomer.getApiCode());
+            String value = RandomStringUtils.randomAlphabetic(16) + UUID.randomUUID();
             Boolean action = iCompatibleService.isAction(marketingCustomer.getExtendConfigInfo(), context.getJobName());
             if (!action) {
                 continue;
@@ -198,7 +200,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                     }
                     Result<List<TransferFileTask>> listResult = new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Lists.newArrayList());
                     try {
-                        boolean lock = redisChgService.lock(redisKey, UUID.randomUUID().toString(),
+                        boolean lock = redisChgService.lock(redisKey, value,
                                 marketingCommonConfig.getTransferFileTaskJobLockExpireTime());
                         if (lock) {
                             listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(), myParam);
@@ -206,7 +208,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                     } catch (Exception e) {
                         log.error("该apiCode:{}执行数据提取任务获取锁:{}异常", marketingCustomer.getApiCode(), redisKey);
                     } finally {
-                        redisChgService.unlock(redisKey, UUID.randomUUID().toString());
+                        redisChgService.unlock(redisKey, value);
                     }
                     if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
                         List<TransferFileTask> data = listResult.getData();
