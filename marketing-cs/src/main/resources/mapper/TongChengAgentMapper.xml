@@ -433,7 +433,7 @@
     <if test="minId != null and minId >0">
       id > #{minId} and
     </if>
-    is_del = 1 and push_status = 0
+    is_delete = 0 and push_status = 0
     order by id asc limit #{num};
   </select>
   <select id="selectByMobileMd5" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Integer" >
@@ -441,6 +441,6 @@
       count(1)
     from b_tongcheng_agent_mtk_data
     where
-      is_del = 1 and mobile_md5 = #{mobileMd5} and push_status in (1,2,3)
+      is_delete = 0 and mobile_md5 = #{mobileMd5} and push_status in (1,2,3)
   </select>
 </mapper>
