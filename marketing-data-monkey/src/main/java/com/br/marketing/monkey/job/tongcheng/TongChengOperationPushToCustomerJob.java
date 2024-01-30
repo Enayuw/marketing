@@ -45,8 +45,8 @@ public class TongChengOperationPushToCustomerJob extends AbstractSimpleElasticJo
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
             String formatted = now.format(formatter);
             Integer today = Integer.parseInt(formatted);
-            //查询待推数据 查询条件b_tongcheng_agent_mtk_data：status=1 且 push_status=0
-            example.createCriteria().andApiCodeEqualTo(apiCode).andCreateDateEqualTo(today).andIsDelEqualTo(1).andStatusEqualTo(0).andPushStatusEqualTo(0);
+            //查询待推数据 查询条件b_tongcheng_agent_mtk_data：is_delete=0 、 status=1 、 push_status=0
+            example.createCriteria().andApiCodeEqualTo(apiCode).andCreateDateEqualTo(today).andIsDeleteEqualTo(0).andStatusEqualTo(1).andPushStatusEqualTo(0);
             List<TongChengAgent> tongChengAgents = tongChengAgentMapper.selectByExample(example);
             if (CollectionUtils.isEmpty(tongChengAgents)) {
                 log.warn("同程集团运营名单推送客户量级为空！");

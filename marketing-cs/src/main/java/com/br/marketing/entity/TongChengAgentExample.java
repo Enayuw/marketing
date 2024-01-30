@@ -765,63 +765,63 @@ public class TongChengAgentExample {
             return (Criteria) this;
         }
 
-        public Criteria andIsDelIsNull() {
-            addCriterion("is_del is null");
+        public Criteria andIsDeleteIsNull() {
+            addCriterion("is_delete is null");
             return (Criteria) this;
         }
 
-        public Criteria andIsDelIsNotNull() {
-            addCriterion("is_del is not null");
+        public Criteria andIsDeleteIsNotNull() {
+            addCriterion("is_delete is not null");
             return (Criteria) this;
         }
 
-        public Criteria andIsDelEqualTo(Integer value) {
-            addCriterion("is_del =", value, "isDel");
+        public Criteria andIsDeleteEqualTo(Integer value) {
+            addCriterion("is_delete =", value, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andIsDelNotEqualTo(Integer value) {
-            addCriterion("is_del <>", value, "isDel");
+        public Criteria andIsDeleteNotEqualTo(Integer value) {
+            addCriterion("is_delete <>", value, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andIsDelGreaterThan(Integer value) {
-            addCriterion("is_del >", value, "isDel");
+        public Criteria andIsDeleteGreaterThan(Integer value) {
+            addCriterion("is_delete >", value, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andIsDelGreaterThanOrEqualTo(Integer value) {
-            addCriterion("is_del >=", value, "isDel");
+        public Criteria andIsDeleteGreaterThanOrEqualTo(Integer value) {
+            addCriterion("is_delete >=", value, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andIsDelLessThan(Integer value) {
-            addCriterion("is_del <", value, "isDel");
+        public Criteria andIsDeleteLessThan(Integer value) {
+            addCriterion("is_delete <", value, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andIsDelLessThanOrEqualTo(Integer value) {
-            addCriterion("is_del <=", value, "isDel");
+        public Criteria andIsDeleteLessThanOrEqualTo(Integer value) {
+            addCriterion("is_delete <=", value, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andIsDelIn(List<Integer> values) {
-            addCriterion("is_del in", values, "isDel");
+        public Criteria andIsDeleteIn(List<Integer> values) {
+            addCriterion("is_delete in", values, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andIsDelNotIn(List<Integer> values) {
-            addCriterion("is_del not in", values, "isDel");
+        public Criteria andIsDeleteNotIn(List<Integer> values) {
+            addCriterion("is_delete not in", values, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andIsDelBetween(Integer value1, Integer value2) {
-            addCriterion("is_del between", value1, value2, "isDel");
+        public Criteria andIsDeleteBetween(Integer value1, Integer value2) {
+            addCriterion("is_delete between", value1, value2, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andIsDelNotBetween(Integer value1, Integer value2) {
-            addCriterion("is_del not between", value1, value2, "isDel");
+        public Criteria andIsDeleteNotBetween(Integer value1, Integer value2) {
+            addCriterion("is_delete not between", value1, value2, "isDelete");
             return (Criteria) this;
         }
 

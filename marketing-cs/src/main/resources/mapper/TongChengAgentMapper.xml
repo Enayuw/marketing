@@ -12,7 +12,7 @@
     <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
-    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
     <result column="create_date" property="createDate" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -80,7 +80,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_code, local_id, `type`, request_id, mobile_md5, reason, push_status, `status`,
-    data_message, is_del, create_date, create_time, update_time
+    data_message, is_delete, create_date, create_time, update_time
   </sql>
   <sql id="Blob_Column_List" >
     extend
@@ -140,12 +140,12 @@
     insert into b_tongcheng_agent_mtk_data (api_code, local_id, `type`,
     request_id, mobile_md5, reason,
     push_status, `status`, data_message,
-    is_del, create_date, create_time,
+    is_delete, create_date, create_time,
     update_time, extend)
     values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR},
     #{requestId,jdbcType=VARCHAR}, #{mobileMd5,jdbcType=VARCHAR}, #{reason,jdbcType=VARCHAR},
     #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR},
-    #{isDel,jdbcType=INTEGER}, #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
+    #{isDelete,jdbcType=INTEGER}, #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
     #{updateTime,jdbcType=TIMESTAMP}, #{extend,jdbcType=LONGVARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.TongChengAgent" >
@@ -181,8 +181,8 @@
       <if test="dataMessage != null" >
         data_message,
       </if>
-      <if test="isDel != null" >
-        is_del,
+      <if test="isDelete != null" >
+        is_delete,
       </if>
       <if test="createDate != null" >
         create_date,
@@ -225,8 +225,8 @@
       <if test="dataMessage != null" >
         #{dataMessage,jdbcType=VARCHAR},
       </if>
-      <if test="isDel != null" >
-        #{isDel,jdbcType=INTEGER},
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=INTEGER},
       </if>
       <if test="createDate != null" >
         #{createDate,jdbcType=INTEGER},
@@ -281,8 +281,8 @@
       <if test="record.dataMessage != null" >
         data_message = #{record.dataMessage,jdbcType=VARCHAR},
       </if>
-      <if test="record.isDel != null" >
-        is_del = #{record.isDel,jdbcType=INTEGER},
+      <if test="record.isDelete != null" >
+        is_delete = #{record.isDelete,jdbcType=INTEGER},
       </if>
       <if test="record.createDate != null" >
         create_date = #{record.createDate,jdbcType=INTEGER},
@@ -313,7 +313,7 @@
     push_status = #{record.pushStatus,jdbcType=INTEGER},
     `status` = #{record.status,jdbcType=INTEGER},
     data_message = #{record.dataMessage,jdbcType=VARCHAR},
-    is_del = #{record.isDel,jdbcType=INTEGER},
+    is_delete = #{record.isDelete,jdbcType=INTEGER},
     create_date = #{record.createDate,jdbcType=INTEGER},
     create_time = #{record.createTime,jdbcType=TIMESTAMP},
     update_time = #{record.updateTime,jdbcType=TIMESTAMP},
@@ -334,7 +334,7 @@
     push_status = #{record.pushStatus,jdbcType=INTEGER},
     `status` = #{record.status,jdbcType=INTEGER},
     data_message = #{record.dataMessage,jdbcType=VARCHAR},
-    is_del = #{record.isDel,jdbcType=INTEGER},
+    is_delete = #{record.isDelete,jdbcType=INTEGER},
     create_date = #{record.createDate,jdbcType=INTEGER},
     create_time = #{record.createTime,jdbcType=TIMESTAMP},
     update_time = #{record.updateTime,jdbcType=TIMESTAMP}
@@ -372,8 +372,8 @@
       <if test="dataMessage != null" >
         data_message = #{dataMessage,jdbcType=VARCHAR},
       </if>
-      <if test="isDel != null" >
-        is_del = #{isDel,jdbcType=INTEGER},
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=INTEGER},
       </if>
       <if test="createDate != null" >
         create_date = #{createDate,jdbcType=INTEGER},
@@ -401,7 +401,7 @@
         push_status = #{pushStatus,jdbcType=INTEGER},
         `status` = #{status,jdbcType=INTEGER},
         data_message = #{dataMessage,jdbcType=VARCHAR},
-        is_del = #{isDel,jdbcType=INTEGER},
+        is_delete = #{isDelete,jdbcType=INTEGER},
         create_date = #{createDate,jdbcType=INTEGER},
         create_time = #{createTime,jdbcType=TIMESTAMP},
         update_time = #{updateTime,jdbcType=TIMESTAMP},
@@ -419,7 +419,7 @@
         push_status = #{pushStatus,jdbcType=INTEGER},
         `status` = #{status,jdbcType=INTEGER},
         data_message = #{dataMessage,jdbcType=VARCHAR},
-        is_del = #{isDel,jdbcType=INTEGER},
+        is_delete = #{isDelete,jdbcType=INTEGER},
         create_date = #{createDate,jdbcType=INTEGER},
         create_time = #{createTime,jdbcType=TIMESTAMP},
         update_time = #{updateTime,jdbcType=TIMESTAMP}

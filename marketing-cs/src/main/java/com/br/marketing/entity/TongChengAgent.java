@@ -39,12 +39,12 @@ public class TongChengAgent {
     private String reason;
 
     /**
-     * 状态 0-未推送；1-推送中，2-推送完成，3-推送异常
+     * 0- 待推送, 1-推送中，2推送成功，3-推送失败。（推送客户状态）（默认0）
      */
     private Integer pushStatus;
 
     /**
-     * 状态 1-数据重复
+     * 1-正常数据 2- 重复数据 ，（3,4,5,6后续扩展）（默认1）
      */
     private Integer status;
 
@@ -54,9 +54,9 @@ public class TongChengAgent {
     private String dataMessage;
 
     /**
-     * 1-正常，9-删除（是否删除）
+     * 0-正常(未删除状态) ，1-删除状态 (默认0)
      */
-    private Integer isDel;
+    private Integer isDelete;
 
     /**
      * 日期
@@ -158,12 +158,12 @@ public class TongChengAgent {
         this.dataMessage = dataMessage == null ? null : dataMessage.trim();
     }
 
-    public Integer getIsDel() {
-        return isDel;
+    public Integer getIsDelete() {
+        return isDelete;
     }
 
-    public void setIsDel(Integer isDel) {
-        this.isDel = isDel;
+    public void setIsDelete(Integer isDelete) {
+        this.isDelete = isDelete;
     }
 
     public Integer getCreateDate() {

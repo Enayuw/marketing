@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -103,7 +102,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                         .andApiCodeEqualTo(apiCode)
                         .andCreateDateEqualTo(createDate)
                         .andMobileMd5EqualTo(mobileMd5)
-                        .andIsDelEqualTo(1)
+                        .andIsDeleteEqualTo(0)
                         .andPushStatusIn(Arrays.asList(1,2,3));
                 if (tongChengAgentMapper.countByExample(tongChengAgentExample) == 0) {
                     tongChengAgent.setPushStatus(1);
@@ -111,7 +110,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                     dataLists.add(map);
                     ids.add(data.getId());
                 } else {
-                    tongChengAgent.setStatus(1);
+                    tongChengAgent.setStatus(2);
                     tongChengAgent.setDataMessage("数据重复未推送");
                 }
                 // 处理返回结果
