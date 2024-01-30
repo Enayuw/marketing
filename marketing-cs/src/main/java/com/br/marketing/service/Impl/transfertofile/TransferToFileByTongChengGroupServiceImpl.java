@@ -44,21 +44,21 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class TransferToFileByTongChengGroupServiceImpl  implements ITransferToFileService {
+public class TransferToFileByTongChengGroupServiceImpl implements ITransferToFileService {
 
     /**
      * 同程集团对同程金融转化数据提取 文件头
      */
     private final static String TABLE_HEAD_TRANSFER = "requestTime,custNum,userType,registerTime,applyDt,applyResult," +
-            "auditTime,ifLent,lentTime,lentAmount,applyLoan,applyLoanTime,isBlack,blackTime,loginChannel,loantResult,cell";
-    /**
-     * 时间格式 yyyyMMdd
-     */
-    final DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
+            "auditTime,ifLent,lentTime,lentAmount,applyLoan,applyLoanTime,isBlack,blackTime,loginChannel,loanResult,cell";
     /**
      * 时间格式 yyyy-MM-dd
      */
     final DateTimeFormatter YYYYMMDDLINEDF = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
+    /**
+     * 时间格式 yyyy-MM-dd HH:mm:ss
+     */
+    final DateTimeFormatter YYYYMMDDLINEDCTF = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT);
     /**
      * 执行时间
      */
@@ -82,11 +82,11 @@ public class TransferToFileByTongChengGroupServiceImpl  implements ITransferToFi
 
     /**
      * 获取对应apicode的参数
-     * 比如自定义参数为 7410785#20220711,true;7412003#123 此时的apicode是7410785，返回的为20220711,true
+     * 比如自定义参数为 7410785#2022-07-11,true;7412003#123 此时的apicode是7410785，返回的为20220711,true
      *
-     * @param apiCode
-     * @param jobParameter
-     * @return
+     * @param apiCode apiCode
+     * @param jobParameter job中的参数
+     * @return java.lang.String 处理后的参数
      */
     @Override
     public String isMyParam(String apiCode, String jobParameter) {
@@ -108,10 +108,10 @@ public class TransferToFileByTongChengGroupServiceImpl  implements ITransferToFi
         String extractTime = StringUtils.isBlank(marketingCommonConfig.getTongChengGroupTransferExecuteTime())
                 ? EXECUTE_TIME : marketingCommonConfig.getTongChengGroupTransferExecuteTime();
         LocalTime localTime = LocalTime.parse(extractTime);
-        boolean isParam = org.apache.commons.lang3.StringUtils.isNotBlank(myParam);
+        boolean isParam = StringUtils.isNotBlank(myParam);
         // 指定日期提取时不限制时间
         if (LocalTime.now().isAfter(localTime) || isParam) {
-            // 指定日期提取，生成指定日期的记录，不是当天的记录
+            // 当天的记录
             String dateyyyymmddStr = isParam ? myParam.replace("-", "")
                     : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             String localDateStr = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
@@ -145,7 +145,7 @@ public class TransferToFileByTongChengGroupServiceImpl  implements ITransferToFi
 
     @Override
     public Result actionTransferToFile(TransferFileTask transferFileTask, String jobParameter) {
-        String requestDate = org.apache.commons.lang3.StringUtils.isBlank(jobParameter)
+        String requestDate = StringUtils.isBlank(jobParameter)
                 ? LocalDate.now().toString() : jobParameter;
         Result<String> result = new Result<>();
         String apiCode = transferFileTask.getApiCode();
@@ -174,6 +174,13 @@ public class TransferToFileByTongChengGroupServiceImpl  implements ITransferToFi
         return result;
     }
 
+    /**
+     * 给文件中写具体的提取数据
+     * @param fw 写对象
+     * @param apiCode apiCode
+     * @param transferFileTask 转化数据对象
+     * @param requestDate 当前时间或者job中的时间
+     */
     private void writeTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask
             , String requestDate) {
         long start = System.currentTimeMillis();
@@ -181,16 +188,20 @@ public class TransferToFileByTongChengGroupServiceImpl  implements ITransferToFi
         int page = 0;
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
+        LocalDate dateT = LocalDate.parse(requestDate, YYYYMMDDLINEDF);
+        // 周期数据范围开始时间
+        LocalDate startDate = dateT.minusDays(31);
+        // 周期数据范围结束时间
+        LocalDate endDate = dateT.minusDays(1L);
+        String requestDataMinusOne = endDate.format(YYYYMMDDLINEDF);
         MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
-        String requestDataMinusOne = LocalDate.parse(requestDate, YYYYMMDDSHORTDF).minusDays(1L).format(YYYYMMDDLINEDF);
-        syncUser.setRequestData(requestDataMinusOne);
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
         Integer pageSize = dynamicParameterService.getPageSize("TongChengGroupGet");
         for (; ; ) {
             List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
-                    .findTransferByApiCodeAndCreateTimePage(syncUser, null, null, null, page * pageSize, pageSize);
+                    .getTransferByStartAndEndDate(syncUser, startDate.toString(), endDate.toString(), null, page * pageSize, pageSize);
             if (CollectionUtils.isEmpty(transferData)) {
                 break;
             }
@@ -209,9 +220,11 @@ public class TransferToFileByTongChengGroupServiceImpl  implements ITransferToFi
                         continue;
                     }
                     MarketingSyncUser marketingSyncUser = boMap.getSyncUsers().get(0);
-                    String cell = "";
-                    if (StringUtils.isNotEmpty(marketingSyncUser.getCell())){
-                        cell = EncAndDecUtil.logTodigest(marketingSyncUser.getCell(), ThreeKeyEncryptEnum.md5);
+                    String cell = marketingSyncUser.getCell();
+                    if (StringUtils.isNotBlank(cell)){
+                        cell = EncAndDecUtil.logTodigest(cell, ThreeKeyEncryptEnum.md5);
+                    }else{
+                        cell = "";
                     }
                     String reserveField1 = transferFilterData.getReserveField1();
                     String applyLoan = null;
@@ -220,7 +233,7 @@ public class TransferToFileByTongChengGroupServiceImpl  implements ITransferToFi
                     String blackTime = null;
                     String loginChannel = null;
                     String loanResult = null;
-                    if (org.apache.commons.lang3.StringUtils.isNotBlank(reserveField1)) {
+                    if (StringUtils.isNotBlank(reserveField1)) {
                         JSONObject jsonObject = JSON.parseObject(reserveField1);
                         applyLoan = jsonObject.getString("applyLoan");
                         applyLoanTime = jsonObject.getString("applyLoanTime");
@@ -230,30 +243,36 @@ public class TransferToFileByTongChengGroupServiceImpl  implements ITransferToFi
                         loanResult = jsonObject.getString("loanResult");
                     }
                     StringBuilder sb = new StringBuilder();
-                    sb.append(removeMillisecond(emptyDefault(transferFilterData.getRequestTime()))).append(",")
-                            .append(emptyDefault(transferFilterData.getCustNum())).append(",")
-                            .append(emptyDefault(transferFilterData.getUserType())).append(",")
-                    // registerTime注册时间 直接透传需要处理么？TODO
-                            .append(removeMillisecond(emptyDefault(transferFilterData.getRegisterTime()))).append(",")
-                            .append(removeMillisecond(emptyDefault(transferFilterData.getApplyDt()))).append(",")
-                            .append(emptyDefault(transferFilterData.getApplyResult())).append(",")
-                            .append(removeMillisecond(emptyDefault(transferFilterData.getAuditTime()))).append(",")
-                            .append(emptyDefault(transferFilterData.getIfLent())).append(",")
-                            .append(removeMillisecond(emptyDefault(transferFilterData.getLentTime()))).append(",")
-                            .append(emptyDefault(transferFilterData.getLentAmount())).append(",")
-                            .append(emptyDefault(applyLoan)).append(",")
-                            .append(removeMillisecond(emptyDefault(applyLoanTime))).append(",")
-                            .append(emptyDefault(isBlack)).append(",")
-                            .append(emptyDefault(blackTime)).append(",")
-                            .append(emptyDefault(loginChannel)).append(",")
-                            .append(emptyDefault(loanResult)).append(",")
-                            .append(cell);
-                    sb.append("\r\n");
+                    String requestTime = transferFilterData.getRequestTime();
+                    if(StringUtils.isNotBlank(requestTime)){
+                        requestTime = LocalDate.parse(requestTime, YYYYMMDDLINEDCTF).format(YYYYMMDDLINEDF);
+                    }else{
+                        requestTime = "";
+                    }
                     try {
+                        sb.append(removeMillisecond(requestTime)).append(",")
+                                .append(emptyDefault(transferFilterData.getCustNum())).append(",")
+                                .append(emptyDefault(transferFilterData.getUserType())).append(",")
+                                .append(removeMillisecond(emptyDefault(transferFilterData.getRegisterTime()))).append(",")
+                                .append(removeMillisecond(emptyDefault(transferFilterData.getApplyDt()))).append(",")
+                                .append(emptyDefault(transferFilterData.getApplyResult())).append(",")
+                                .append(removeMillisecond(emptyDefault(transferFilterData.getAuditTime()))).append(",")
+                                .append(emptyDefault(transferFilterData.getIfLent())).append(",")
+                                .append(removeMillisecond(emptyDefault(transferFilterData.getLentTime()))).append(",")
+                                .append(emptyDefault(transferFilterData.getLentAmount())).append(",")
+                                .append(emptyDefault(applyLoan)).append(",")
+                                .append(removeMillisecond(emptyDefault(applyLoanTime))).append(",")
+                                .append(emptyDefault(isBlack)).append(",")
+                                .append(emptyDefault(blackTime)).append(",")
+                                .append(emptyDefault(loginChannel)).append(",")
+                                .append(emptyDefault(loanResult)).append(",")
+                                .append(cell);
+                        sb.append("\r\n");
                         fw.append(sb.toString());
+                        fw.flush();
                         totalSize.incrementAndGet();
                     } catch (IOException e) {
-                        log.error(e.getMessage(), e);
+                        log.error("[{}]同程集团转化数据[{}]提取程序异常", apiCode, custNum, e);
                     }
                 }
             });
@@ -278,6 +297,11 @@ public class TransferToFileByTongChengGroupServiceImpl  implements ITransferToFi
         }
     }
 
+    /**
+     * 更新 b_transfer_file_task 转化文件任务表
+     * @param transferFileTask 原对象
+     * @param totalSize 任务上传数据量
+     */
     private void saveUpdateTask(TransferFileTask transferFileTask, int totalSize) {
         TransferFileTask task = new TransferFileTask();
         task.setId(transferFileTask.getId());
@@ -298,9 +322,14 @@ public class TransferToFileByTongChengGroupServiceImpl  implements ITransferToFi
      * 值为null时，赋值''
      */
     private String emptyDefault(String value) {
-        return StringUtils.isNotEmpty(value) ? value : "";
+        return StringUtils.isNotBlank(value) ? value : "";
     }
 
+    /**
+     * 处理掉时间格式【yyyy-MM-dd HH:mm:ss[:SSS]】最后的 【:000】
+     * @param timeStr 待处理的时间格式
+     * @return java.lang.String 处理后的时间
+     */
     private String removeMillisecond(String timeStr) {
         return timeStr.replace(":000", "");
     }
