@@ -4,12 +4,12 @@ import java.util.Date;
 
 public class TongChengAgent {
     /**
-     * 
+     *
      */
     private Long id;
 
     /**
-     * 
+     *
      */
     private String apiCode;
 
@@ -39,12 +39,12 @@ public class TongChengAgent {
     private String reason;
 
     /**
-     * 状态 0-未推送；1-推送中，2-推送成功，3-推送异常
+     * 状态 0-未推送；1-推送中，2-推送完成，3-推送异常
      */
     private Integer pushStatus;
 
     /**
-     * 状态 1-非删除状态 2-删除状态
+     * 状态 1-数据重复
      */
     private Integer status;
 
@@ -52,6 +52,11 @@ public class TongChengAgent {
      * 描述-推送异常会记录异常信息
      */
     private String dataMessage;
+
+    /**
+     * 1-正常，9-删除（是否删除）
+     */
+    private Integer isDel;
 
     /**
      * 日期
@@ -151,6 +156,14 @@ public class TongChengAgent {
 
     public void setDataMessage(String dataMessage) {
         this.dataMessage = dataMessage == null ? null : dataMessage.trim();
+    }
+
+    public Integer getIsDel() {
+        return isDel;
+    }
+
+    public void setIsDel(Integer isDel) {
+        this.isDel = isDel;
     }
 
     public Integer getCreateDate() {

@@ -13,10 +13,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
  * 同程集团迁移可营销名单JOB
+ *
  * @author guangxiu.li
  * @dateTime 2024/01/25 16:13
  */
@@ -38,8 +41,12 @@ public class TongChengOperationPushToCustomerJob extends AbstractSimpleElasticJo
         log.warn("同程集团迁移可营销名单JOB调度开始");
         marketingCommonConfig.getTongChengGroupOperationApiCodes().forEach((String apiCode) -> {
             TongChengAgentExample example = new TongChengAgentExample();
+            LocalDate now = LocalDate.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+            String formatted = now.format(formatter);
+            Integer today = Integer.parseInt(formatted);
             //查询待推数据 查询条件b_tongcheng_agent_mtk_data：status=1 且 push_status=0
-            example.createCriteria().andStatusEqualTo(1).andPushStatusEqualTo(0).andApiCodeEqualTo(apiCode);
+            example.createCriteria().andApiCodeEqualTo(apiCode).andCreateDateEqualTo(today).andIsDelEqualTo(1).andPushStatusEqualTo(0);
             List<TongChengAgent> tongChengAgents = tongChengAgentMapper.selectByExample(example);
             if (CollectionUtils.isEmpty(tongChengAgents)) {
                 log.warn("同程集团运营名单推送客户量级为空！");
@@ -47,8 +54,8 @@ public class TongChengOperationPushToCustomerJob extends AbstractSimpleElasticJo
             }
             try {
                 Long st1 = System.currentTimeMillis();
-                service.process(apiCode);
-                log.warn("同程集团运营名单推送客户JOB，耗时：{} ms",  System.currentTimeMillis() - st1);
+                service.process(apiCode, today);
+                log.warn("同程集团运营名单推送客户JOB，耗时：{} ms", System.currentTimeMillis() - st1);
             } catch (Exception e) {
                 log.error("同程集团运营名单推送客户JOB异常", e);
             }

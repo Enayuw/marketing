@@ -43,7 +43,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
     private static final int BATCH_SIZE = 2000;
 
     @Override
-    public void process(String apiCode) {
+    public void process(String apiCode, Integer today) {
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5);
         Long minId = null;
         int num = marketingCommonConfig.getTongChengGroupOperationNum();
@@ -54,7 +54,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                     pool.setCorePoolSize(marketingCommonConfig.getTongChengGroupOperationThreadNum());
                     pool.setMaximumPoolSize(marketingCommonConfig.getTongChengGroupOperationThreadNum());
                 }
-                List<TongChengAgent> tongchengAgentList = tongChengAgentMapper.tongChengGroupOperationDataPage(minId, num);
+                List<TongChengAgent> tongchengAgentList = tongChengAgentMapper.tongChengGroupOperationDataPage(minId, apiCode, today, num);
                 if (tongchengAgentList.size() <= 0) {
                     isContiue = Boolean.FALSE;
                     continue;
@@ -103,7 +103,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                         .andApiCodeEqualTo(apiCode)
                         .andCreateDateEqualTo(createDate)
                         .andMobileMd5EqualTo(mobileMd5)
-                        .andStatusEqualTo(1)
+                        .andIsDelEqualTo(1)
                         .andPushStatusIn(Arrays.asList(1,2,3));
                 if (tongChengAgentMapper.countByExample(tongChengAgentExample) == 0) {
                     tongChengAgent.setPushStatus(1);
@@ -111,7 +111,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                     dataLists.add(map);
                     ids.add(data.getId());
                 } else {
-                    tongChengAgent.setStatus(3);
+                    tongChengAgent.setStatus(1);
                     tongChengAgent.setDataMessage("数据重复未推送");
                 }
                 // 处理返回结果

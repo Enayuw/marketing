@@ -12,6 +12,7 @@
     <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_date" property="createDate" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -78,8 +79,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, local_id, `type`, request_id, mobile_md5, reason, push_status, `status`, 
-    data_message, create_date, create_time, update_time
+    id, api_code, local_id, `type`, request_id, mobile_md5, reason, push_status, `status`,
+    data_message, is_del, create_date, create_time, update_time
   </sql>
   <sql id="Blob_Column_List" >
     extend
@@ -115,18 +116,12 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     ,
     <include refid="Blob_Column_List" />
     from b_tongcheng_agent_mtk_data
     where id = #{id,jdbcType=BIGINT}
-  </select>
-  <select id="selectByMobileMd5" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Integer" >
-    select
-    count(1)
-    from b_tongcheng_agent_mtk_data
-    where mobile_md5 = #{mobileMd5} and push_status in (1,2,3)
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
     delete from b_tongcheng_agent_mtk_data
@@ -142,16 +137,16 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_tongcheng_agent_mtk_data (api_code, local_id, `type`, 
-      request_id, mobile_md5, reason, 
-      push_status, `status`, data_message, 
-      create_date, create_time, update_time, 
-      extend)
-    values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR}, 
-      #{requestId,jdbcType=VARCHAR}, #{mobileMd5,jdbcType=VARCHAR}, #{reason,jdbcType=VARCHAR}, 
-      #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, 
-      #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{extend,jdbcType=LONGVARCHAR})
+    insert into b_tongcheng_agent_mtk_data (api_code, local_id, `type`,
+    request_id, mobile_md5, reason,
+    push_status, `status`, data_message,
+    is_del, create_date, create_time,
+    update_time, extend)
+    values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR},
+    #{requestId,jdbcType=VARCHAR}, #{mobileMd5,jdbcType=VARCHAR}, #{reason,jdbcType=VARCHAR},
+    #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR},
+    #{isDel,jdbcType=INTEGER}, #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}, #{extend,jdbcType=LONGVARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.TongChengAgent" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -185,6 +180,9 @@
       </if>
       <if test="dataMessage != null" >
         data_message,
+      </if>
+      <if test="isDel != null" >
+        is_del,
       </if>
       <if test="createDate != null" >
         create_date,
@@ -226,6 +224,9 @@
       </if>
       <if test="dataMessage != null" >
         #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null" >
+        #{isDel,jdbcType=INTEGER},
       </if>
       <if test="createDate != null" >
         #{createDate,jdbcType=INTEGER},
@@ -280,6 +281,9 @@
       <if test="record.dataMessage != null" >
         data_message = #{record.dataMessage,jdbcType=VARCHAR},
       </if>
+      <if test="record.isDel != null" >
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
       <if test="record.createDate != null" >
         create_date = #{record.createDate,jdbcType=INTEGER},
       </if>
@@ -300,19 +304,20 @@
   <update id="updateByExampleWithBLOBs" parameterType="map" >
     update b_tongcheng_agent_mtk_data
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      local_id = #{record.localId,jdbcType=BIGINT},
-      `type` = #{record.type,jdbcType=VARCHAR},
-      request_id = #{record.requestId,jdbcType=VARCHAR},
-      mobile_md5 = #{record.mobileMd5,jdbcType=VARCHAR},
-      reason = #{record.reason,jdbcType=VARCHAR},
-      push_status = #{record.pushStatus,jdbcType=INTEGER},
-      `status` = #{record.status,jdbcType=INTEGER},
-      data_message = #{record.dataMessage,jdbcType=VARCHAR},
-      create_date = #{record.createDate,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      extend = #{record.extend,jdbcType=LONGVARCHAR}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    local_id = #{record.localId,jdbcType=BIGINT},
+    `type` = #{record.type,jdbcType=VARCHAR},
+    request_id = #{record.requestId,jdbcType=VARCHAR},
+    mobile_md5 = #{record.mobileMd5,jdbcType=VARCHAR},
+    reason = #{record.reason,jdbcType=VARCHAR},
+    push_status = #{record.pushStatus,jdbcType=INTEGER},
+    `status` = #{record.status,jdbcType=INTEGER},
+    data_message = #{record.dataMessage,jdbcType=VARCHAR},
+    is_del = #{record.isDel,jdbcType=INTEGER},
+    create_date = #{record.createDate,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    extend = #{record.extend,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -320,18 +325,19 @@
   <update id="updateByExample" parameterType="map" >
     update b_tongcheng_agent_mtk_data
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      local_id = #{record.localId,jdbcType=BIGINT},
-      `type` = #{record.type,jdbcType=VARCHAR},
-      request_id = #{record.requestId,jdbcType=VARCHAR},
-      mobile_md5 = #{record.mobileMd5,jdbcType=VARCHAR},
-      reason = #{record.reason,jdbcType=VARCHAR},
-      push_status = #{record.pushStatus,jdbcType=INTEGER},
-      `status` = #{record.status,jdbcType=INTEGER},
-      data_message = #{record.dataMessage,jdbcType=VARCHAR},
-      create_date = #{record.createDate,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    local_id = #{record.localId,jdbcType=BIGINT},
+    `type` = #{record.type,jdbcType=VARCHAR},
+    request_id = #{record.requestId,jdbcType=VARCHAR},
+    mobile_md5 = #{record.mobileMd5,jdbcType=VARCHAR},
+    reason = #{record.reason,jdbcType=VARCHAR},
+    push_status = #{record.pushStatus,jdbcType=INTEGER},
+    `status` = #{record.status,jdbcType=INTEGER},
+    data_message = #{record.dataMessage,jdbcType=VARCHAR},
+    is_del = #{record.isDel,jdbcType=INTEGER},
+    create_date = #{record.createDate,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -366,6 +372,9 @@
       <if test="dataMessage != null" >
         data_message = #{dataMessage,jdbcType=VARCHAR},
       </if>
+      <if test="isDel != null" >
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
       <if test="createDate != null" >
         create_date = #{createDate,jdbcType=INTEGER},
       </if>
@@ -384,45 +393,54 @@
   <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.TongChengAgent" >
     update b_tongcheng_agent_mtk_data
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      local_id = #{localId,jdbcType=BIGINT},
-      `type` = #{type,jdbcType=VARCHAR},
-      request_id = #{requestId,jdbcType=VARCHAR},
-      mobile_md5 = #{mobileMd5,jdbcType=VARCHAR},
-      reason = #{reason,jdbcType=VARCHAR},
-      push_status = #{pushStatus,jdbcType=INTEGER},
-      `status` = #{status,jdbcType=INTEGER},
-      data_message = #{dataMessage,jdbcType=VARCHAR},
-      create_date = #{createDate,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      extend = #{extend,jdbcType=LONGVARCHAR}
+        local_id = #{localId,jdbcType=BIGINT},
+        `type` = #{type,jdbcType=VARCHAR},
+        request_id = #{requestId,jdbcType=VARCHAR},
+        mobile_md5 = #{mobileMd5,jdbcType=VARCHAR},
+        reason = #{reason,jdbcType=VARCHAR},
+        push_status = #{pushStatus,jdbcType=INTEGER},
+        `status` = #{status,jdbcType=INTEGER},
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+        is_del = #{isDel,jdbcType=INTEGER},
+        create_date = #{createDate,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        extend = #{extend,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.TongChengAgent" >
     update b_tongcheng_agent_mtk_data
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      local_id = #{localId,jdbcType=BIGINT},
-      `type` = #{type,jdbcType=VARCHAR},
-      request_id = #{requestId,jdbcType=VARCHAR},
-      mobile_md5 = #{mobileMd5,jdbcType=VARCHAR},
-      reason = #{reason,jdbcType=VARCHAR},
-      push_status = #{pushStatus,jdbcType=INTEGER},
-      `status` = #{status,jdbcType=INTEGER},
-      data_message = #{dataMessage,jdbcType=VARCHAR},
-      create_date = #{createDate,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        local_id = #{localId,jdbcType=BIGINT},
+        `type` = #{type,jdbcType=VARCHAR},
+        request_id = #{requestId,jdbcType=VARCHAR},
+        mobile_md5 = #{mobileMd5,jdbcType=VARCHAR},
+        reason = #{reason,jdbcType=VARCHAR},
+        push_status = #{pushStatus,jdbcType=INTEGER},
+        `status` = #{status,jdbcType=INTEGER},
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+        is_del = #{isDel,jdbcType=INTEGER},
+        create_date = #{createDate,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
-
   <select id="tongChengGroupOperationDataPage" resultType="com.br.marketing.entity.TongChengAgent">
     select * from
     b_tongcheng_agent_mtk_data
     where
+    api_code = #{apiCode} and create_date = #{today} and
     <if test="minId != null and minId >0">
       id > #{minId} and
     </if>
-    status = 1 and push_status = 0
+    is_del = 1 and push_status = 0
     order by id asc limit #{num};
+  </select>
+  <select id="selectByMobileMd5" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Integer" >
+    select
+      count(1)
+    from b_tongcheng_agent_mtk_data
+    where
+      is_del = 1 and mobile_md5 = #{mobileMd5} and push_status in (1,2,3)
   </select>
 </mapper>

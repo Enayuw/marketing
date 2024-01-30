@@ -36,6 +36,6 @@ public interface TongChengAgentMapper {
 
     int updateByPrimaryKey(TongChengAgent record);
 
-    List<TongChengAgent> tongChengGroupOperationDataPage(@Param("minId") Long minId, @Param("num") int num);
+    List<TongChengAgent> tongChengGroupOperationDataPage(@Param("minId") Long minId, @Param("apiCode") String apiCode, @Param("today") int today, @Param("num") int num);
 
 }
