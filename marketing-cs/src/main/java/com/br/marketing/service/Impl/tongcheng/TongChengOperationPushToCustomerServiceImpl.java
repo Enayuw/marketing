@@ -81,8 +81,8 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
 
     private void buildDataAndPush(List<TongChengAgent> tongchengAgents, String apiCode) {
         try {
-            List<Map<String, String>> dataLists = null;
-            List<Long> ids = null;
+            List<Map<String, String>> dataLists = new ArrayList<>();
+            List<Long> ids = new ArrayList<>();
             for (TongChengAgent data : tongchengAgents) {
                 Map<String, String> map = new HashMap<>();
                 String mobileMd5 = data.getMobileMd5();
