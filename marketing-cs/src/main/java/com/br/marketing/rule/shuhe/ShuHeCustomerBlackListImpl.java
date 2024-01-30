@@ -17,10 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.HashMap;
 
 /**
@@ -53,9 +51,7 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
                 (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
-        final IUserType iUserType = shuHeContext.getIUserType();
-        final Date creatTime = shuHeContext.getCreatTime();
-        final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
+        CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
         BlackDetailDTO blackDetailDTO = new BlackDetailDTO();
         blackDetailDTO.setDataId(String.valueOf(transfer.getId()));
         blackDetailDTO.setExpireDate(endTime);

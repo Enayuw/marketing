@@ -26,19 +26,19 @@ public abstract class IUserType {
     protected final String Y = "Y";
     protected final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
     protected final DateTimeFormatter dateTime2Formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    List<String> apiCodes = new ArrayList<>(Collections.singletonList("7410785"));
+    protected List<String> apiCodes = new ArrayList<>(Collections.singletonList("7410785"));
 
     public IUserType setUserType(String userType) {
         this.userType = userType;
         return this;
     }
 
-    IUserType(List<String> apiCodes) {
-        this.apiCodes = apiCodes;
-    }
-
     IUserType(String... api2Codes) {
         Collections.addAll(apiCodes, api2Codes);
+    }
+
+    public void setApiCodes(List<String> apiCodes) {
+        this.apiCodes.addAll(apiCodes);
     }
 
     /**

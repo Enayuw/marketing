@@ -124,7 +124,6 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
                 <includes>
-                    <include>**/*.ObjectPrxHelperBase</include>
                     <include>*.json</include>
                     <include>mapper/**</include>
                     <include>**/*.yml</include>
