@@ -8,11 +8,9 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.TransferFileTask;
-import com.br.marketing.entity.TransferFileTaskExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.ThreeKeyEncryptEnum;
+import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
@@ -77,6 +75,8 @@ public class TransferToFileByTongChengGroupServiceImpl implements ITransferToFil
     DynamicParameterServiceImpl dynamicParameterService;
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+    @Resource
+    private MarketingDataValidConfigMapper marketingDataValidConfigMapper;
     @Resource
     private TransferDataValidityPeriodService validityPeriodService;
 
@@ -189,19 +189,30 @@ public class TransferToFileByTongChengGroupServiceImpl implements ITransferToFil
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
         LocalDate dateT = LocalDate.parse(requestDate, YYYYMMDDLINEDF);
-        // 周期数据范围开始时间
-        LocalDate startDate = dateT.minusDays(31);
-        // 周期数据范围结束时间
-        LocalDate endDate = dateT.minusDays(1L);
-        String requestDataMinusOne = endDate.format(YYYYMMDDLINEDF);
+        String requestDataMinusOne = dateT.minusDays(1L).format(YYYYMMDDLINEDF);
         MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
         Integer pageSize = dynamicParameterService.getPageSize("TongChengGroupGet");
+
+        MarketingDataValidConfig configList = marketingDataValidConfigMapper
+                .queryStartDateEndDatetikv_(apiCode, requestDataMinusOne, null);
+        // 周期数据范围开始时间
+        String startDate = configList.getValidStartDate();
+        // 周期数据范围结束时间
+        String endDate = configList.getValidEndDate();
+        if(StringUtils.isNotBlank(endDate)){
+            boolean after = LocalDate.now().isAfter(LocalDate.parse(endDate, YYYYMMDDLINEDF));
+            if(!after){
+                endDate = requestDataMinusOne;
+            }
+        }else{
+            endDate = requestDataMinusOne;
+        }
         for (; ; ) {
             List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
-                    .getTransferByStartAndEndDate(syncUser, startDate.toString(), endDate.toString(), null, page * pageSize, pageSize);
+                    .getTransferByStartAndEndDate(syncUser, startDate, endDate, null, page * pageSize, pageSize);
             if (CollectionUtils.isEmpty(transferData)) {
                 break;
             }

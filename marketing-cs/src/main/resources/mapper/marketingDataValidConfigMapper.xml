@@ -50,6 +50,24 @@
         order by applet_date, update_time, create_time
     </select>
 
+    <select id="queryStartDateEndDatetikv_" resultType="com.br.marketing.entity.MarketingDataValidConfig">
+        select MIN(valid_start_date) as validStartDate, MAX(valid_end_date) as validEndDate
+        from b_marketing_data_valid_config
+        where api_code = '${apiCode}'
+        <!--  is_del 1-有效；9-无效     -->
+        and is_del = 1
+        <!--  valid_type 1-有效期范围配置；2-有效期T+N配置；3-有效期T+N配置与场景（userType）     -->
+        and valid_type = 1
+        <if test="userTypeSet != null and userTypeSet.size() > 0">
+            and user_type in
+            <foreach collection="userTypeSet" item="userType" separator="," open="(" close=")">
+                '${userType}'
+            </foreach>
+        </if>
+        and <![CDATA[ valid_start_date <= '${dateStr}' ]]>
+        and <![CDATA[ valid_end_date >= '${dateStr}']]>;
+    </select>
+
     <select id="getValidPeriodRangeByApiCodeAndUserType" resultType="java.util.Map">
         SELECT api_code              as apiCode,
                min(valid_start_date) as validStartDate,

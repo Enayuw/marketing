@@ -55,6 +55,18 @@ public interface MarketingDataValidConfigMapper extends MarketingDataValidConfig
             , @Param("page") Integer page
             , @Param("pageSize") Integer pageSize);
 
+    /**
+     * 查询 b_marketing_data_valid_config 表中 MIN(valid_start_date), MAX(valid_end_date)
+     * @param apiCode apiCode
+     * @param dateStr 提取数据的时间
+     * @param userTypeSet 场景
+     * @return com.br.marketing.entity.MarketingDataValidConfig 查询到的结果对象
+     */
+    MarketingDataValidConfig queryStartDateEndDatetikv_(@Param("apiCode") String apiCode
+            , @Param("dateStr") String dateStr
+            , @Param("userTypeSet") Set<String> userTypeSet);
+
+
     @Select("select min(valid_start_date) as validStartDate,max(valid_end_date) as validEndDate from b_marketing_data_valid_config " +
             "where api_code = #{apiCode} and is_del = 1 and DATE_FORMAT(NOW(),'%Y-%m-%d') between valid_start_date and valid_end_date")
     MarketingDataValidConfig getMarketingTransferDataWithValidityPeriod(@Param("apiCode") String apiCode);
