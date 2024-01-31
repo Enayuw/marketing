@@ -374,7 +374,7 @@
     <if test="minId != null and minId >0">
       id > #{minId} and
     </if>
-    is_delete = 0 and push_status = 0
+    is_delete = 0 and push_status = 0 and status = 1
     order by id asc limit #{num};
   </select>
 
