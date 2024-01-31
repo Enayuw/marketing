@@ -9,10 +9,16 @@ import java.util.Date;
 import java.util.Map;
 
 /**
+ * 未知场景
+ *
  * @author Guo Zeqiang
  * @dateTime 2022/2/11 14:09
  */
 public class UnknownUserType extends IUserType {
+    public UnknownUserType(String... api2Codes) {
+        super(api2Codes);
+    }
+
     @Override
     void getCaseUser(Map<String, String> dataItem, CaseShuheUser caseUser) {
     }

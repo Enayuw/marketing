@@ -6,6 +6,7 @@ import com.br.common.log.AlertLog;
 import com.br.grpc.mom.broker_layer_api.BrokerLayerGrpc;
 import com.br.grpc.mom.broker_layer_api.ResponseBean;
 import com.br.grpc.mom.broker_layer_api.SendRequest;
+import com.br.marketing.common.utils.net.InterfaceLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.RequestLog;
@@ -121,6 +122,29 @@ public class BrokerGrpcClient {
         paramJson.put("appName", push_appName);
         paramJson.put("appSecretKey", push_appSecretKey);
         String param = JSON.toJSONString(requestLog);
+        paramJson.put("swiftNum", UUID.randomUUID());
+        requestData.put("content", param);
+        paramJson.put("requestData", requestData);
+        //log.warn("MQ入参--{}",paramJson);
+        try {
+            sendFuture(paramJson.toString());
+            log.info("pushLog mom request return : future");
+        } catch (Exception e) {
+            log.error("日志信息写入消息队列异常", e);
+        }
+    }
+
+    /**
+     * 推送调用下游接口日志
+     * @param interfaceLog
+     */
+    public static void sendInterfaceLog(InterfaceLog interfaceLog) {
+        JSONObject paramJson = new JSONObject();
+        JSONObject requestData = new JSONObject();
+        requestData.put("destinationName", push_destinationName);
+        paramJson.put("appName", push_appName);
+        paramJson.put("appSecretKey", push_appSecretKey);
+        String param = JSON.toJSONString(interfaceLog);
         paramJson.put("swiftNum", UUID.randomUUID());
         requestData.put("content", param);
         paramJson.put("requestData", requestData);

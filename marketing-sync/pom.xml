@@ -84,7 +84,6 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
                 <includes>
-                    <include>**/*.ObjectPrxHelperBase</include>
                     <include>mapper/**</include>
                     <include>**/*.yml</include>
                     <include>**/*.xml</include>

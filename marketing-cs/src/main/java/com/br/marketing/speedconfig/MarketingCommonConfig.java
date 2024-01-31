@@ -92,11 +92,13 @@ public class MarketingCommonConfig {
 
     /**
      * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
+     * eg：{"促首登":"T","促申完":"T-15","促首借":"T+31","促复借":"T+0"}
      */
     private Map<String, String> shuHeTransferExtractDayMap;
 
     /**
      * 数禾转化数据提取apiCode集合
+     * eg:{"3710004":["促申完","促首登"],"3710023":["促首借"],"3710043":["促复借"],"3710051":["重申"],"3710071":["促首登"]}
      */
     private HashMap<String, List<String>> shuHeTransferExtractApiCodes;
 
@@ -112,6 +114,7 @@ public class MarketingCommonConfig {
 
     /**
      * 数禾有效期, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
+     * eg：{"促首登":"T","促申完":"T-15","促首借":"T+31","促复借":"T+0"}
      */
     private Map<String, String> shuHePeriodOfValidityDayMap;
 
@@ -872,6 +875,12 @@ public class MarketingCommonConfig {
     private Set<String> nonConfigValidDefaultApiCodes;
 
     /**
+     * 2024-07-05 16:04
+     * 生成默认有效期定制配置的apiCode集合
+     */
+    private Set<String> customizeConfigValidDefaultApiCodes;
+
+    /**
      * 推送dass意向登记判断配置{"labelNm":["A","B"]}
      */
     private HashMap<String,List<String>>  gradeOfcallToDass;
@@ -1248,5 +1257,24 @@ public class MarketingCommonConfig {
      * {"1":true,"2":true}
      */
     private HashMap<String,Boolean> mockCallBackError;
+    /**
+     * 奇富360转化数据提取apiCode集合
+     */
+    private List<String> QiFuTransferApiCodes;
+
+    /**
+     * 奇富360转化数据提取执行时间
+     */
+    private String QiFuTransferExecuteTime;
+
+    /**
+     * 2024/1/24 15:52
+     * 数禾数据场景与apiCode映射信息
+     * key userType；value apiCodeSet
+     * eg：{"促复借":["3710051","7410785"]}
+     */
+    private Map<String, List<String>> shuHeUserTypeAndApiCodeMappingMap = new HashMap<>();
+
+
 }
 

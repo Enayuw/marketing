@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.br.common.encryption.Md5Utils;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.adapter.transfer.TransferSyncAdapter;
 import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
@@ -34,7 +33,6 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -96,6 +94,7 @@ public class ShuHeUserServiceImpl {
     private MarketingPreUserDTO adapterMarketingPreUserDTO(JSONObject uploadDataDTO, JSONArray listInfo
             , CaseShuheUploadData shuheUploadData) {
         try {
+            JSONObject taskCode = JSONObject.parseObject(uploadDataDTO.getString("taskCode"));
             MarketingPreUserDTO userDTO = new MarketingPreUserDTO();
             userDTO.setTaskId(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)
                     .concat("_").concat(shuheUploadData.getApiCode()));
@@ -112,6 +111,9 @@ public class ShuHeUserServiceImpl {
                 JSONObject info = listInfo.getJSONObject(i);
                 reserveField1 = new HashMap<>(32);
                 dto = new MarketingPreUserDetailDTO();
+                if (taskCode != null && taskCode.getString("groupType") != null) {
+                    reserveField1.put("groupTypeNew", taskCode.getString("groupType"));
+                }
                 String mobile = info.getString("mobile");
                 try {
                     dto.setCell(org.apache.commons.lang3.StringUtils.isNotBlank(mobile)
@@ -265,7 +267,6 @@ public class ShuHeUserServiceImpl {
         // 4、客户转化数据适配标准转化数据
         MarketingTransferSyncUser transferSyncUser = new TransferSyncAdapter(
                 (CaseShuheUserAdaptee) caseShuheUser).transferSyncUserRequest(taskId, jsonDTO);
-        SecureRandom random = new SecureRandom();
         caseShuheUser.setReserveField2(requestId);
         transferSyncUser.setRequestId(requestId);
         // 5、数据落前置库

@@ -12,4 +12,13 @@
         order by create_time,id
         LIMIT ${page * pageSize}, ${pageSize}
     </select>
+
+
+    <select id="getTransferUnresolvedCount" resultType="java.lang.Integer">
+        select count(id)
+        from b_marketing_transfer_info
+        where api_code = #{apiCode}
+           <![CDATA[ AND create_time >= #{startDate} and create_time < #{endDate} ]]>
+          and status = 1
+    </select>
 </mapper>

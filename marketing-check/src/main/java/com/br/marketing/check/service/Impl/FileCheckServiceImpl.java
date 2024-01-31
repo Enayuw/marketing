@@ -2,17 +2,19 @@ package com.br.marketing.check.service.Impl;
 
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.enums.ErrorFileTypeEnum;
+import com.br.marketing.check.service.FileCheckService;
 import com.br.marketing.check.thread.ValidatorSmallFileThread;
 import com.br.marketing.check.thread.ValidatorThread;
 import com.br.marketing.check.utils.SftpToDbUtils;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.common.utils.*;
-import com.br.marketing.check.service.FileCheckService;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.entity.LoadResult;
 import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.mapper.LoadResultMapper;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.service.EmailService;
 import com.br.marketing.service.Impl.StrategyCs;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +37,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class FileCheckServiceImpl implements FileCheckService {
 
     @Resource
-    DecodeClient decodeClient;
+    DecodeGrpcClient decodeClient;
     @Resource
     StrategyCs strategyCs;
     @Resource

@@ -1,12 +1,9 @@
 package com.br.marketing.service.Impl;
 
-import java.util.Date;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.validator.CellUtils;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
@@ -18,12 +15,12 @@ import com.br.marketing.dto.TxtToDbDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rpcclient.RpcClientProxy;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.service.IDxService;
 import com.br.marketing.service.ITxtToDbService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.utils.Sets;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -74,7 +71,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
     MarketingCommonConfig marketingCommonConfig;
 
     @Autowired
-    DecodeClient decodeClient;
+    DecodeGrpcClient decodeClient;
 
     @Autowired
     IDxService iDxService;
@@ -1061,7 +1058,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                             error = error.replace("name不能为空;", "");
                             String s = datas.get(i);
                             phoneSale.setNameAes(s);
-                            if (DecodeClient.isMd5(s)) {
+                            if (DecodeGrpcClient.isMd5(s)) {
                                 String content = RpcClientProxy.decode(s, "name", "md5", "");
                                 phoneSale.setName(StringUtils.isNotBlank(content) ? content : "1");
                             }
@@ -1208,6 +1205,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
                             jo.put(s, datas.get(i));
                         }
                         break;
+                    default:
                 }
                 if (jo != null) {
                     phoneSale.setExtend(jo.toJSONString());
@@ -1263,7 +1261,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
         }
 
         String res = "";
-        if (DecodeClient.isMd5(phone)) {
+        if (DecodeGrpcClient.isMd5(phone)) {
             //cell md5
             res = RpcClientProxy.decode(phone, "cell", "md5", "");
         } else {
@@ -1312,7 +1310,7 @@ public class TxtToDbServiceImpl implements ITxtToDbService {
             return name;
         }
         String res = "";
-        if (DecodeClient.isMd5(name)) {
+        if (DecodeGrpcClient.isMd5(name)) {
             //cell md5
             res = RpcClientProxy.decode(name, "name", "md5", "");
         } else if (name.length() == 64) {

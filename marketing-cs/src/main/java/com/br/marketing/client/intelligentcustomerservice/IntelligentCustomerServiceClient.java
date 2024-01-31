@@ -1,23 +1,20 @@
 package com.br.marketing.client.intelligentcustomerservice;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.counter.BrCounter;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
 import com.br.marketing.client.intelligentcustomerservice.output.PolicyResultByTaskIdsDTO;
+import com.br.marketing.client.net.ApiCaller;
 import com.br.marketing.client.net.ApiCallerUtil;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import com.br.marketing.entity.CustomerInfoPushLog;
 import com.br.marketing.mapper.CustomerInfoPushLogMapper;
 import com.br.marketing.mapper.InterfaceLogMapper;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +28,6 @@ import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.Properties;
 
 @Service
 public class IntelligentCustomerServiceClient {

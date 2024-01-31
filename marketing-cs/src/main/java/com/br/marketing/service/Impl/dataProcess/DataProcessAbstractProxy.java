@@ -19,6 +19,7 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @Description 文件数据处理通用抽象类
@@ -50,11 +51,17 @@ public abstract class DataProcessAbstractProxy {
         localFile.setPushStatus("1");
         localFileMapper.updateByPrimaryKeySelective(localFile);
 
+        AtomicInteger errorMark = new AtomicInteger(0);
         // 数据处理
-        dataProcessLoop(config, localFileId);
+        dataProcessLoop(config, localFileId,errorMark);
 
-        // 任务结束：push_status置为2
-        localFile.setPushStatus("2");
+        // 任务结束：push_status置为2,有失败的，置为3
+        if (errorMark.get() > 0) {
+            log.error("清洗通用流程调用上传或转化接口失败，失败量级={}",errorMark.get());
+            localFile.setPushStatus("3");
+        } else {
+            localFile.setPushStatus("2");
+        }
         localFileMapper.updateByPrimaryKeySelective(localFile);
     }
 
@@ -63,7 +70,7 @@ public abstract class DataProcessAbstractProxy {
      * @param config
      * @param localFileId
      */
-    private void dataProcessLoop(DataProcessingConfig config, Long localFileId) {
+    private void dataProcessLoop(DataProcessingConfig config, Long localFileId,AtomicInteger errorMark) {
         // 获取线程数配置
         Integer threadNum = getThreadNum(config);
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(threadNum, threadNum);
@@ -82,7 +89,7 @@ public abstract class DataProcessAbstractProxy {
             pullCustomerFileDataExample.clear();
             buildExample(localFileId, id, pullCustomerFileDataExample);
 
-            pool.submit(() -> result(customerFileDataList, config));
+            pool.submit(() -> result(customerFileDataList, config,errorMark));
         }
 
         pool.shutdown();
@@ -99,10 +106,10 @@ public abstract class DataProcessAbstractProxy {
      * @param customerFileDataList
      * @param config
      */
-    private void result(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config) {
+    private void result(List<PullCustomerFileData> customerFileDataList, DataProcessingConfig config,AtomicInteger errorMark) {
         try {
             Object assembleData = assembleData(customerFileDataList, config);
-            Object result = call(assembleData, config);
+            Object result = call(assembleData, config,errorMark);
             assembleResult(result);
         } catch (Exception e) {
             log.error("数据处理任务异常,配置表id:{},apiCode:{}", config.getId(), config.getApiCode(), e.getMessage(), e);
@@ -133,7 +140,7 @@ public abstract class DataProcessAbstractProxy {
      * @param config
      * @return
      */
-    abstract Object call(Object data, DataProcessingConfig config);
+    abstract Object call(Object data, DataProcessingConfig config ,AtomicInteger errorMark);
 
     /**
      * 结果处理（子类可重写）

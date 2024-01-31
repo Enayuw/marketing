@@ -1,20 +1,17 @@
 package com.br.marketing.task.thread;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.counter.BrCounter;
 import com.br.common.encryption.BrCipherMaker;
 import com.br.common.util.StringUtils;
 import com.br.marketing.client.ProFieldsClient;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.StrategyClient;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
-import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.task.Scheduler;
 import com.br.marketing.task.utils.HxUtil;
@@ -187,45 +184,6 @@ public class CoreScoreThread implements Callable<String> {
         redisChgService.expire(key, 60 * 60 * 24 * 10);
     }
 
-    /**
-     * 添加风险策略需要校验的数据产品列表
-     *
-     * @param typeNoList
-     */
-    private void addSTRBPro(List<String> typeNoList) {
-        String strategy = StrategyClient.getStrategy(apiCode, strategyId);
-        JSONObject jsonObject = JSONObject.parseObject(strategy);
-        if (jsonObject != null && !jsonObject.isEmpty()) {
-            if (StringUtils.isNotEmpty(jsonObject.getString("canUse")) && "0".equals(jsonObject.getString("canUse"))
-                    && StringUtils.isNotEmpty(jsonObject.getString("status")) && "1".equals(jsonObject.getString("status"))) {
-                JSONObject ruleTypeJson = jsonObject.getJSONObject("ruleType");
-                if (StringUtils.isNotEmpty(ruleTypeJson.getString("status")) && "1".equals(ruleTypeJson.getString("status"))) {
-                    JSONArray jsonArray = ruleTypeJson.getJSONArray("ruleTypeList");
-                    for (int i = 0; i < jsonArray.size(); i++) {
-                        JSONObject ruleType = jsonArray.getJSONObject(i);
-                        String typeNo = ruleType.getString("ruleType");
-                        typeNoList.add(typeNo);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * {"dataProdList":[{"code":"TotalLoan","version":"V1.0"}]}
-     *
-     * @param typeNoList
-     */
-    private void addDTBPro(List<String> typeNoList) {
-        JSONArray dataProdList1 = JSONArray.parseArray(strategyStr);
-        for (int j = 0; j < dataProdList1.size(); j++) {
-            JSONObject jsonObject = dataProdList1.getJSONObject(j);
-            if (jsonObject != null && jsonObject.containsKey("code")) {
-                String code = jsonObject.getString("code");
-                typeNoList.add(code);
-            }
-        }
-    }
 
     /**
      * 生成结果文件

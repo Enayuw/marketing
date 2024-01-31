@@ -1,11 +1,6 @@
 package com.br.marketing.service.Impl;
 
-import IceInternal.Ex;
-import com.alibaba.fastjson.JSON;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.auth.AuthShowProductor;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
@@ -15,20 +10,16 @@ import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.TransferSyncReportService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.vo.MarketingSyncReportNumVO;
 import com.br.marketing.vo.TransferSyncReportNumVO;
 import com.br.marketing.vo.TransferSyncReportVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
-import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;

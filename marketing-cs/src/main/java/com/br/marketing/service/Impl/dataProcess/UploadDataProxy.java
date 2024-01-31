@@ -2,12 +2,15 @@ package com.br.marketing.service.Impl.dataProcess;
 
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.client.marketingapi.input.UploadDataUrlDTO;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.PullCustomerFileData;
 import com.br.marketing.entity.dataProcess.DataProcessingConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @Description 接口数据代理类
@@ -25,14 +28,17 @@ public abstract class UploadDataProxy extends DataProcessAbstractProxy {
     }
 
     @Override
-    Object call(Object data, DataProcessingConfig config) {
+    Object call(Object data, DataProcessingConfig config , AtomicInteger errorMark) {
         if (data instanceof UploadDataDTO) {
             UploadDataDTO uploadDataDTO = (UploadDataDTO) data;
             UploadDataUrlDTO uploadDataUrlDTO = new UploadDataUrlDTO();
             uploadDataUrlDTO.setUrl(config.getUrl());
             uploadDataUrlDTO.setUploadDataDTO(uploadDataDTO);
-
-            return marketingApiService.callUploadDataByUrlRetry(uploadDataUrlDTO, null);
+            Result result =marketingApiService.callUploadDataByUrlRetry(uploadDataUrlDTO, null);
+            if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                errorMark.getAndIncrement();
+            }
+            return result;
         }
 
         return null;

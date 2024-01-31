@@ -51,7 +51,7 @@ import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -116,8 +116,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         errorCodeHm.put("1006", "参数过长");
     }
 
-    @Resource
-    XieChengSmsCollidingDataLogVtMapper xieChengSmsCollidingDataLogVtMapper;
 
     @Resource
     MarketingTaskMapper marketingTaskMapper;
@@ -134,9 +132,6 @@ public class PushRuleServiceImpl implements PushRuleService {
     CustomerInfoPushLogMapper customerInfoPushLogMapper;
 
     @Resource
-    MarketingStrategyProductMapper marketingStrategyProductMapper;
-
-    @Resource
     MarketingUserMapper marketingUserMapper;
 
     @Resource
@@ -147,9 +142,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     PhoneSaleMapper phoneSaleMapper;
-
-    @Autowired
-    DecodeClient decodeClient;
 
     @Resource
     private ZhongyouFileDataMapper zhongyouFileDataMapper;
@@ -179,10 +171,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     private AlarmApiClient alarmClient;
-    @Value("${otherConfig.alarm.secretKey:00}")
-    private String secretKey;
-    @Value("${otherConfig.alarm.appName:00}")
-    private String appName;
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
@@ -1093,6 +1081,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         tableCreateService.createMarketingSyncUserTable(marketingSyncInfo.getApiCode());
         ArrayList<Callable<Result<MarketingPreUserErrorDetailVO>>> list = new ArrayList<>();
         Map<String, MarketingSyncUser> validDateCache = new ConcurrentHashMap<>(16);
+        Map<String, MarketingSyncUser> validDateCustomizeCache = new ConcurrentHashMap<>(16);
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
             //此处会处理三种场景的数据
@@ -1192,10 +1181,20 @@ public class PushRuleServiceImpl implements PushRuleService {
                             || marketingSyncUser.getIsRepeat().equals(2)
                             || marketingSyncUser.getIsRepeat().equals(1));
                     if (isCreate) {
-                        // 入库成功后将apiCode、userType、appletDate为key，并且唯一
-                        String key = apiCode + marketingSyncUser.getUserType() + marketingSyncUser.getAppletDate();
-                        // 缓存最新的原始数据
-                        validDateCache.put(key, marketingSyncUser);
+                        // 定制有效期自动生成逻辑
+                        if(marketingCommonConfig.getCustomizeConfigValidDefaultApiCodes().contains(apiCode)){
+                            // 入库成功后将apiCode、userType、appletDate、cusBatch(taskId)为key，并且唯一
+                            String key = apiCode + marketingSyncUser.getUserType()
+                                    + marketingSyncUser.getAppletDate() +
+                                    marketingSyncUser.getCusBatch();
+                            // 缓存最新的原始数据
+                            validDateCustomizeCache.put(key, marketingSyncUser);
+                        }else {
+                            // 入库成功后将apiCode、userType、appletDate为key，并且唯一
+                            String key = apiCode + marketingSyncUser.getUserType() + marketingSyncUser.getAppletDate();
+                            // 缓存最新的原始数据
+                            validDateCache.put(key, marketingSyncUser);
+                        }
                     }
                 } catch (Exception ex) {
                     if (ex.getMessage().contains("IDX_taskId_custNum")) {
@@ -1247,7 +1246,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         // 去设置默认有效期
-        configValidDateDefault(validDateCache, apiCode);
+        if(marketingCommonConfig.getCustomizeConfigValidDefaultApiCodes().contains(apiCode)){
+            customizeConfigValidDateDefault(validDateCustomizeCache);
+        }else {
+            configValidDateDefault(validDateCache, apiCode);
+        }
+
         MarketingSyncInfo updateSyncInfo = new MarketingSyncInfo();
         updateSyncInfo.setId(marketingSyncInfo.getId());
         updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_running);
@@ -1312,6 +1316,45 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
+    /**
+     * 定制版有效期生成
+     * @param validDateCustomizeCache
+     */
+    private void customizeConfigValidDateDefault(Map<String, MarketingSyncUser> validDateCustomizeCache) {
+        try {
+            // 遍历缓存中需要设置默认有效期的apiCode与userType+taskId
+            validDateCustomizeCache.forEach((String key1,MarketingSyncUser value) -> {
+                LocalDateTime now = LocalDateTime.now();
+                LocalDateTime localDateTime = now.plusDays(1);
+                ZonedDateTime zonedDateTime = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault());
+                String key = RedisKeyConstant.prefix.concat("customizeValid:lock:") + key1;
+                boolean lock;
+                try {
+                    // 将主键保存到锁的key中
+                    lock = redisChgService.lock(key, String.valueOf(value.getId())
+                            , ChronoUnit.MILLIS.between(now, zonedDateTime));
+                } catch (Exception e) {
+                    lock = true;
+                    log.error("设置定制化默认有效期,上锁失败key:" + key , e);
+                }
+                if (lock) {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("apiCode", value.getApiCode());
+                    jsonObject.put("userType", value.getUserType());
+                    jsonObject.put("cusBatch", value.getCusBatch());
+                    jsonObject.put("appletDate", StringUtils.isBlank(value.getAppletDate())
+                            ? LocalDate.now().toString() : value.getAppletDate());
+                    try {
+                        producter.send(MQConstants.ROUTING_KEY_MARKETING_CUSTOMIZE_CONFIG_DEFAULT_VALID_DATE, jsonObject.toJSONString());
+                    } catch (Exception e) {
+                        log.error("设置默认有效期,发送mq消息内容:" + jsonObject.toJSONString(), e);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
     /**
      * 2023-07-05 15:52
      * 配置默认有效期
@@ -1741,6 +1784,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (data == null) {
             return null;
         }
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
         String res = "";
         try {
             if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$", data)) {
@@ -1755,9 +1799,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2} \\d{2}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}$", data)) {
                 String s = data.replaceAll("/", "-");
                 res = LocalDateTime.parse(s.concat(":00:00:000"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS"));
-            } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2}$|^\\d{4}/\\d{2}/\\d{2}$", data)) {
+            } else if (Pattern.matches("^\\d{4}-\\d{2}-\\d{2}$|^\\d{4}/\\d{1,2}/\\d{1,2}$", data)) {
                 String s = data.replaceAll("/", "-");
-                res = LocalDateTime.parse(s.concat(" 00:00:00:000"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS"));
+                res = df.format(df.parse(s.concat(" 00:00:00:000")));
             } else {
                 res = data;
             }
@@ -2035,7 +2079,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 content = StringUtils.isBlank(user.getName()) ? "" : user.getName();
                 break;
         }
-        if (DecodeClient.isMd5(content)) {
+        if (DecodeGrpcClient.isMd5(content)) {
             //cell md5
             content = RpcClientProxy.decode(content, type, "md5", "");
             if (StringUtils.isBlank(content) && "cell".equals(type)) {
