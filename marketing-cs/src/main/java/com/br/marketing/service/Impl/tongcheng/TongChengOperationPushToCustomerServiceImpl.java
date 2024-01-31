@@ -39,7 +39,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
     @Autowired
     TongChengAgentMktClient tongChengAgentMktClient;
 
-    private static final int BATCH_SIZE = 2000;
+    private static final int BATCH_SIZE = 10;
 
     @Override
     public void process(String apiCode) {
@@ -120,6 +120,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                 redisChgService.unlock(key, value);
             }
             if (dataLists.isEmpty()) {
+                log.warn("同程本批次可推送数据为0！");
                 return;
             }
             Result result = tongChengAgentMktClient.pushToTongChengAgentMkt(dataLists, apiCode, null);
@@ -132,7 +133,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
             }
 
         } catch (Exception ex) {
-            log.error("同程集团运营名单推送客户接口子线程异常", ex);
+            log.error(String.format("同程集团运营名单推送客户接口子线程异常", ex.getMessage()), ex);
         }
     }
 
