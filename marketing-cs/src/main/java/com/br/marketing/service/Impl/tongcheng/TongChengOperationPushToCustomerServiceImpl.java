@@ -39,7 +39,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
     @Autowired
     TongChengAgentMktClient tongChengAgentMktClient;
 
-    private static final int BATCH_SIZE = 10;
+    private static final int BATCH_SIZE = 2000;
 
     @Override
     public void process(String apiCode) {
