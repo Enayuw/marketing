@@ -1,7 +1,5 @@
 package com.br.marketing.monkey.job.tongcheng;
 
-import com.br.marketing.entity.TongChengAgentExample;
-import com.br.marketing.mapper.TongChengAgentMapper;
 import com.br.marketing.service.Impl.tongcheng.TongChengOperationPushToCustomerService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -11,8 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 /**
  * 同程集团迁移可营销名单JOB
@@ -23,8 +19,7 @@ import java.time.format.DateTimeFormatter;
 @Component
 @Slf4j
 public class TongChengOperationPushToCustomerJob extends AbstractSimpleElasticJob {
-    @Resource
-    private TongChengAgentMapper tongChengAgentMapper;
+
 
     @Autowired
     TongChengOperationPushToCustomerService service;

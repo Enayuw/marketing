@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl.tongcheng;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.tongcheng.TongChengAgentMktClient;
 import com.br.marketing.common.commondto.Result;

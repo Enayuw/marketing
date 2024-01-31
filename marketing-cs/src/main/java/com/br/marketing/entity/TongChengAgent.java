@@ -44,7 +44,7 @@ public class TongChengAgent {
     private Integer pushStatus;
 
     /**
-     * 1-正常数据 2- 重复数据 ，（3,4,5,6后续扩展）（默认1）
+     * 1-正常数据 2-异常数据（列数缺失或者该行缺少必填项）3- 重复数据 ，（4,5,6后续扩展）（默认1）
      */
     private Integer status;
 
@@ -52,6 +52,11 @@ public class TongChengAgent {
      * 描述-推送异常会记录异常信息
      */
     private String dataMessage;
+
+    /**
+     * 扩展字段
+     */
+    private String extend;
 
     /**
      * 0-正常(未删除状态) ，1-删除状态 (默认0)
@@ -72,11 +77,6 @@ public class TongChengAgent {
      * 修改时间
      */
     private Date updateTime;
-
-    /**
-     * 扩展字段
-     */
-    private String extend;
 
     public Long getId() {
         return id;
@@ -158,6 +158,14 @@ public class TongChengAgent {
         this.dataMessage = dataMessage == null ? null : dataMessage.trim();
     }
 
+    public String getExtend() {
+        return extend;
+    }
+
+    public void setExtend(String extend) {
+        this.extend = extend == null ? null : extend.trim();
+    }
+
     public Integer getIsDelete() {
         return isDelete;
     }
@@ -188,13 +196,5 @@ public class TongChengAgent {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public String getExtend() {
-        return extend;
-    }
-
-    public void setExtend(String extend) {
-        this.extend = extend == null ? null : extend.trim();
     }
 }

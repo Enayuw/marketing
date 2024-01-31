@@ -16,23 +16,15 @@ public interface TongChengAgentMapper {
 
     int insertSelective(TongChengAgent record);
 
-    List<TongChengAgent> selectByExampleWithBLOBs(TongChengAgentExample example);
-
     List<TongChengAgent> selectByExample(TongChengAgentExample example);
 
     TongChengAgent selectByPrimaryKey(Long id);
 
-    int selectByMobileMd5(String mobileMd5);
-
     int updateByExampleSelective(@Param("record") TongChengAgent record, @Param("example") TongChengAgentExample example);
-
-    int updateByExampleWithBLOBs(@Param("record") TongChengAgent record, @Param("example") TongChengAgentExample example);
 
     int updateByExample(@Param("record") TongChengAgent record, @Param("example") TongChengAgentExample example);
 
     int updateByPrimaryKeySelective(TongChengAgent record);
-
-    int updateByPrimaryKeyWithBLOBs(TongChengAgent record);
 
     int updateByPrimaryKey(TongChengAgent record);
 
