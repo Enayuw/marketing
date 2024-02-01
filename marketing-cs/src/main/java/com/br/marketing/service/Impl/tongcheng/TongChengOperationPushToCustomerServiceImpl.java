@@ -73,6 +73,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
         } catch (Exception ex) {
             pool.shutdownNow();
             log.error(ex.getMessage(), ex);
+            Thread.currentThread().interrupt();
         }
     }
 
