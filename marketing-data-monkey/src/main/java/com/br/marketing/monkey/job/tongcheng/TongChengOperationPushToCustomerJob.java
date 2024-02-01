@@ -37,7 +37,7 @@ public class TongChengOperationPushToCustomerJob extends AbstractSimpleElasticJo
                 service.process(apiCode);
                 log.warn("同程集团运营名单推送客户JOB，耗时：{} ms", System.currentTimeMillis() - st1);
             } catch (Exception e) {
-                log.error("同程集团运营名单推送客户JOB异常", e.getMessage(), e);
+                log.error("同程集团运营名单推送客户JOB异常", e);
             }
 
         });

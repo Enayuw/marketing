@@ -78,57 +78,52 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
 
 
     private void buildDataAndPush(List<TongChengAgent> tongchengAgents, String apiCode) {
+        List<Map<String, String>> dataLists = new ArrayList<>();
+        List<Long> ids = new ArrayList<>();
+        ThreadPoolExecutor thread = BrExecutors.getThreadPool(50, 50);
+        List<Callable<TongChengAgent>> callableList = new ArrayList<>();
         try {
-            List<Map<String, String>> dataLists = new ArrayList<>();
-            List<Long> ids = new ArrayList<>();
-            ThreadPoolExecutor thread = BrExecutors.getThreadPool(50, 50);
-            List<Callable<TongChengAgent>> callableList = new ArrayList<>();
-            try {
-                for (TongChengAgent data : tongchengAgents) {
-                    callableList.add(() -> processAgent(data, apiCode));
-                }
-                List<Future<TongChengAgent>> futures = thread.invokeAll(callableList);
-                futures.forEach((Future<TongChengAgent> t) -> {
-                    try {
-                        TongChengAgent agent = t.get();
-                        if (agent.getPushStatus() == 1){
-                            HashMap<String, String> map = new HashMap<>();
-                            map.put("mobileMd5",agent.getMobileMd5());
-                            dataLists.add(map);
-                            ids.add(agent.getId());
-                        }
-
-                    } catch (InterruptedException | ExecutionException e) {
-                        log.error("同城集团运营名单数据拼接异常！", e.getMessage(), e);
+            for (TongChengAgent data : tongchengAgents) {
+                callableList.add(() -> processAgent(data, apiCode));
+            }
+            List<Future<TongChengAgent>> futures = thread.invokeAll(callableList);
+            futures.forEach((Future<TongChengAgent> t) -> {
+                try {
+                    TongChengAgent agent = t.get();
+                    if (agent.getPushStatus() == 1){
+                        HashMap<String, String> map = new HashMap<>();
+                        map.put("mobileMd5",agent.getMobileMd5());
+                        dataLists.add(map);
+                        ids.add(agent.getId());
                     }
-                });
-            } catch (InterruptedException e) {
-                log.error("同程集团运营名单数据组装线程异常！", e.getMessage(), e);
-            }
-            try {
-                thread.shutdown();
-                while (!thread.awaitTermination(5L, TimeUnit.SECONDS)) {
-                    log.warn("线程终止");
-                }
-            } catch (InterruptedException ex) {
-                thread.shutdownNow();
-                log.error(ex.getMessage(), ex);
-            }
-            if (dataLists.isEmpty()) {
-                log.warn("同程本批次可推送数据为0！");
-                return;
-            }
-            Result result = tongChengAgentMktClient.pushToTongChengAgentMkt(dataLists, apiCode, null);
-            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                //更新成功
-                updateStatus(ids, 2, result.getMessage());
-            } else {
-                //更新失败
-                updateStatus(ids, 3, result.getMessage());
-            }
 
-        } catch (Exception ex) {
-            log.error("同程集团运营名单推送客户接口子线程异常", ex.getMessage(), ex);
+                } catch (InterruptedException | ExecutionException e) {
+                    log.error("同城集团运营名单数据拼接异常！" , e);
+                }
+            });
+        } catch (InterruptedException e) {
+            log.error("同程集团运营名单数据组装线程异常！" , e);
+        }
+        try {
+            thread.shutdown();
+            while (!thread.awaitTermination(5L, TimeUnit.SECONDS)) {
+                log.warn("线程终止");
+            }
+        } catch (InterruptedException ex) {
+            thread.shutdownNow();
+            log.error("同程集团运营名单数据组装线程关闭异常！",ex);
+        }
+        if (dataLists.isEmpty()) {
+            log.warn("同程本批次可推送数据为0！");
+            return;
+        }
+        Result result = tongChengAgentMktClient.pushToTongChengAgentMkt(dataLists, apiCode, null);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            //更新成功
+            updateStatus(ids, 2, result.getMessage());
+        } else {
+            //更新失败
+            updateStatus(ids, 3, result.getMessage());
         }
 
     }
