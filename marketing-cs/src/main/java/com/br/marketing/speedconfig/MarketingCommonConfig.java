@@ -319,6 +319,7 @@ public class MarketingCommonConfig {
      * 同程转化数据提取apicode集合
      */
     private List<String> NewTongChengTransferFileApiCodes;
+
     /**
      * 同程转化数据提取执行时间
      */
@@ -1276,6 +1277,20 @@ public class MarketingCommonConfig {
      */
     private String QiFuTransferExecuteTime;
 
+    /**
+     * 同程集团运营名单推送客户接口apiCode集合
+     */
+    private List<String> TongChengGroupOperationApiCodes;
+
+    /**
+     * 同程集团运营名单推送客户接口线程数
+     */
+    private Integer tongChengGroupOperationThreadNum;
+
+    /**
+     * 同程集团运营名单推送客户接口单批次捞数量
+     */
+    private Integer tongChengGroupOperationNum;
     /**
      * 2024/1/24 15:52
      * 数禾数据场景与apiCode映射信息
