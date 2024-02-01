@@ -2,6 +2,7 @@ import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.entity.MarketingCustomerExample;
 import com.br.marketing.entity.TransferFileTask;
@@ -21,6 +22,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,13 +64,17 @@ public class TongChengGroupTest {
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"))
                 .andApiCodeIn(apiCodeList);
         List<MarketingCustomer> marketingCustomers = customerMapper.selectByExample(customerExample);
+        String myParam = null;
+        String jobParameter = null;
+        jobParameter = "7492639#2024-01-31";
+        myParam = transferToFileByTongChengGroupService.isMyParam("7492639", jobParameter);
         for (MarketingCustomer marketingCustomer : marketingCustomers) {
             Result<List<TransferFileTask>> listResult = new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Lists.newArrayList());
-            listResult = transferToFileByTongChengGroupService.buildTransferTask(marketingCustomer.getApiCode(), "");
+            listResult = transferToFileByTongChengGroupService.buildTransferTask(marketingCustomer.getApiCode(), myParam);
             if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
                 List<TransferFileTask> data = listResult.getData();
                 for (TransferFileTask datum : data) {
-                    Result result = transferToFileByTongChengGroupService.actionTransferToFile(datum, "");
+                    Result result = transferToFileByTongChengGroupService.actionTransferToFile(datum, myParam);
                     if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                         log.warn("断点");
 //                        Result res = sftpInnerService.pushInnerSftp(datum);
