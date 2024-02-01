@@ -57,7 +57,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                 }
                 minId = tongchengAgentList.get(tongchengAgentList.size() - 1).getId();
                 List<List<TongChengAgent>> partition = Lists.partition(tongchengAgentList, BATCH_SIZE);
-                partition.forEach(p -> {
+                partition.forEach((List<TongChengAgent> p) -> {
                     pool.submit(() -> buildDataAndPush(p, apiCode));
                 });
             } catch (Exception e) {
@@ -68,6 +68,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
         try {
             pool.shutdown();
             while (!pool.awaitTermination(5L, TimeUnit.SECONDS)) {
+                log.warn("线程终止");
             }
         } catch (Exception ex) {
             pool.shutdownNow();
@@ -87,7 +88,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                     callableList.add(() -> processAgent(data, apiCode));
                 }
                 List<Future<TongChengAgent>> futures = thread.invokeAll(callableList);
-                futures.forEach(t->{
+                futures.forEach((Future<TongChengAgent> t) -> {
                     try {
                         TongChengAgent agent = t.get();
                         if (agent.getPushStatus() == 1){
@@ -97,18 +98,19 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                             ids.add(agent.getId());
                         }
 
-                    } catch (Exception e) {
+                    } catch (InterruptedException | ExecutionException e) {
                         log.error("同城集团运营名单数据拼接异常！", e.getMessage(), e);
                     }
                 });
-            } catch (Exception e) {
+            } catch (InterruptedException e) {
                 log.error("同程集团运营名单数据组装线程异常！", e.getMessage(), e);
             }
             try {
                 thread.shutdown();
                 while (!thread.awaitTermination(5L, TimeUnit.SECONDS)) {
+                    log.warn("线程终止");
                 }
-            } catch (Exception ex) {
+            } catch (InterruptedException ex) {
                 thread.shutdownNow();
                 log.error(ex.getMessage(), ex);
             }
@@ -126,7 +128,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
             }
 
         } catch (Exception ex) {
-            log.error(String.format("同程集团运营名单推送客户接口子线程异常", ex.getMessage()), ex);
+            log.error("同程集团运营名单推送客户接口子线程异常", ex.getMessage(), ex);
         }
 
     }
@@ -136,7 +138,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
             String mobileMd5 = data.getMobileMd5();
             Integer createDate = data.getCreateDate();
             // 获取redis 锁
-            String key = RedisKeyConstant.pushTongChengLock.concat(":")
+            String key = RedisKeyConstant.PUSH_TONG_CHENG_LOCK.concat(":")
                     .concat(apiCode)
                     .concat(mobileMd5);
             String value = UUID.randomUUID().toString();

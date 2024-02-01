@@ -81,7 +81,7 @@ public class RedisKeyConstant {
     /**
      * 同程集团迁移可营销名单推客户缓存锁  key
      */
-    public static final String pushTongChengLock = prefix.concat("tongcheng:pushTongChengLock");
+    public static final String PUSH_TONG_CHENG_LOCK = prefix.concat("tongcheng:pushTongChengLock");
 
     /**
      * 携程拨打数据推送缓存锁  key
