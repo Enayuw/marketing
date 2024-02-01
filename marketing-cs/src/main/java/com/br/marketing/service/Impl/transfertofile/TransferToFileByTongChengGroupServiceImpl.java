@@ -304,6 +304,12 @@ public class TransferToFileByTongChengGroupServiceImpl implements ITransferToFil
         } catch (InterruptedException e) {
             log.error("apiCode[{}]同程集团转化数据提取-本地文件生成失败-", apiCode, e);
             threadPool.shutdownNow();
+            Thread.currentThread().interrupt();
+            transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
+        } catch (Exception e){
+            log.error("apiCode[{}]同程集团转化数据提取-异常-", apiCode, e);
+            threadPool.shutdownNow();
+            Thread.currentThread().interrupt();
             transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
         }
     }
