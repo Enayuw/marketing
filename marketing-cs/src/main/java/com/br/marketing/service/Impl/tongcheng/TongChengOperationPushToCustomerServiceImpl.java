@@ -97,10 +97,8 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                             ids.add(agent.getId());
                         }
 
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
+                    } catch (Exception e) {
+                        log.error("同城集团运营名单数据拼接异常！", e.getMessage(), e);
                     }
                 });
             } catch (Exception e) {
