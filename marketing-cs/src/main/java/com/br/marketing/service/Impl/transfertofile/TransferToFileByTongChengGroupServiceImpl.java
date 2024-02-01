@@ -198,120 +198,123 @@ public class TransferToFileByTongChengGroupServiceImpl implements ITransferToFil
 
         MarketingDataValidConfig configList = marketingDataValidConfigMapper
                 .queryStartDateEndDatetikv_(apiCode, requestDataMinusOne, null);
-        // 周期数据范围开始时间
-        String startDate = configList.getValidStartDate();
-        // 周期数据范围结束时间
-        String endDate = configList.getValidEndDate();
-        if(StringUtils.isNotBlank(endDate)){
-            boolean after = LocalDate.now().isAfter(LocalDate.parse(endDate, YYYYMMDDLINEDF));
-            if(!after){
+        if(null != configList ){
+            // 周期数据范围开始时间
+            String startDate = configList.getValidStartDate();
+            // 周期数据范围结束时间
+            String endDate = configList.getValidEndDate();
+            if(StringUtils.isNotBlank(endDate)){
+                boolean after = LocalDate.now().isAfter(LocalDate.parse(endDate, YYYYMMDDLINEDF));
+                if(!after){
+                    endDate = requestDataMinusOne;
+                }
+            }else{
                 endDate = requestDataMinusOne;
             }
-        }else{
-            endDate = requestDataMinusOne;
-        }
-        for (; ; ) {
-            List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
-                    .getTransferByStartAndEndDate(syncUser, startDate, endDate, null, page * pageSize, pageSize);
-            if (CollectionUtils.isEmpty(transferData)) {
-                break;
+            for (; ; ) {
+                List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
+                        .getTransferByStartAndEndDate(syncUser, startDate, endDate, null, page * pageSize, pageSize);
+                if (CollectionUtils.isEmpty(transferData)) {
+                    break;
+                }
+                page++;
+                Set<String> custNumSet = transferData.parallelStream()
+                        .map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+                //判断转化数据是否在有效期内
+                Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService
+                        .getValidityPeriodsByCustNum(custNumSet, apiCode, requestDataMinusOne);
+                threadPool.submit(() -> {
+                    for (MarketingTransferSyncUser transferFilterData : transferData) {
+                        String custNum = transferFilterData.getCustNum();
+                        SyncUserValidityPeriodsBO boMap = validityPeriodsByCustNum.get(custNum);
+                        if (boMap == null) {
+                            log.warn("apiCode[{}]custNum[{}]不满足同程集团案件编号“有效期内”条件", apiCode, custNum);
+                            continue;
+                        }
+                        MarketingSyncUser marketingSyncUser = boMap.getSyncUsers().get(0);
+                        String cell = marketingSyncUser.getCell();
+                        if (StringUtils.isNotBlank(cell)){
+                            cell = EncAndDecUtil.logTodigest(cell, ThreeKeyEncryptEnum.md5);
+                        }else{
+                            cell = "";
+                        }
+                        String reserveField1 = transferFilterData.getReserveField1();
+                        String applyLoan = null;
+                        String applyLoanTime = null;
+                        String isBlack = null;
+                        String blackTime = null;
+                        String loginChannel = null;
+                        String loanResult = null;
+                        if (StringUtils.isNotBlank(reserveField1)) {
+                            JSONObject jsonObject = JSON.parseObject(reserveField1);
+                            applyLoan = jsonObject.getString("applyLoan");
+                            applyLoanTime = jsonObject.getString("applyLoanTime");
+                            isBlack = jsonObject.getString("isBlack");
+                            blackTime = jsonObject.getString("blackTime");
+                            loginChannel = jsonObject.getString("loginChannel");
+                            loanResult = jsonObject.getString("loanResult");
+                        }
+                        StringBuilder sb = new StringBuilder();
+                        String requestTime = transferFilterData.getRequestTime();
+                        if(StringUtils.isNotBlank(requestTime)){
+                            requestTime = LocalDate.parse(requestTime, YYYYMMDDLINEDCTF).format(YYYYMMDDLINEDF);
+                        }else{
+                            requestTime = "";
+                        }
+                        try {
+                            sb.append(removeMillisecond(requestTime)).append(",")
+                                    .append(emptyDefault(transferFilterData.getCustNum())).append(",")
+                                    .append(emptyDefault(transferFilterData.getUserType())).append(",")
+                                    .append(removeMillisecond(emptyDefault(transferFilterData.getRegisterTime()))).append(",")
+                                    .append(removeMillisecond(emptyDefault(transferFilterData.getApplyDt()))).append(",")
+                                    .append(emptyDefault(transferFilterData.getApplyResult())).append(",")
+                                    .append(removeMillisecond(emptyDefault(transferFilterData.getAuditTime()))).append(",")
+                                    .append(emptyDefault(transferFilterData.getIfLent())).append(",")
+                                    .append(removeMillisecond(emptyDefault(transferFilterData.getLentTime()))).append(",")
+                                    .append(emptyDefault(transferFilterData.getLentAmount())).append(",")
+                                    .append(emptyDefault(applyLoan)).append(",")
+                                    .append(removeMillisecond(emptyDefault(applyLoanTime))).append(",")
+                                    .append(emptyDefault(isBlack)).append(",")
+                                    .append(emptyDefault(blackTime)).append(",")
+                                    .append(emptyDefault(loginChannel)).append(",")
+                                    .append(emptyDefault(loanResult)).append(",")
+                                    .append(cell);
+                            sb.append("\r\n");
+                            fw.append(sb.toString());
+                            fw.flush();
+                            totalSize.incrementAndGet();
+                        } catch (IOException e) {
+                            log.error("[{}]同程集团转化数据[{}]提取程序异常", apiCode, custNum, e);
+                        }
+                    }
+                });
             }
-            page++;
-            Set<String> custNumSet = transferData.parallelStream()
-                    .map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-            //判断转化数据是否在有效期内
-            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService
-                    .getValidityPeriodsByCustNum(custNumSet, apiCode, requestDataMinusOne);
-            threadPool.submit(() -> {
-                for (MarketingTransferSyncUser transferFilterData : transferData) {
-                    String custNum = transferFilterData.getCustNum();
-                    SyncUserValidityPeriodsBO boMap = validityPeriodsByCustNum.get(custNum);
-                    if (boMap == null) {
-                        log.warn("apiCode[{}]custNum[{}]不满足同程集团案件编号“有效期内”条件", apiCode, custNum);
-                        continue;
-                    }
-                    MarketingSyncUser marketingSyncUser = boMap.getSyncUsers().get(0);
-                    String cell = marketingSyncUser.getCell();
-                    if (StringUtils.isNotBlank(cell)){
-                        cell = EncAndDecUtil.logTodigest(cell, ThreeKeyEncryptEnum.md5);
-                    }else{
-                        cell = "";
-                    }
-                    String reserveField1 = transferFilterData.getReserveField1();
-                    String applyLoan = null;
-                    String applyLoanTime = null;
-                    String isBlack = null;
-                    String blackTime = null;
-                    String loginChannel = null;
-                    String loanResult = null;
-                    if (StringUtils.isNotBlank(reserveField1)) {
-                        JSONObject jsonObject = JSON.parseObject(reserveField1);
-                        applyLoan = jsonObject.getString("applyLoan");
-                        applyLoanTime = jsonObject.getString("applyLoanTime");
-                        isBlack = jsonObject.getString("isBlack");
-                        blackTime = jsonObject.getString("blackTime");
-                        loginChannel = jsonObject.getString("loginChannel");
-                        loanResult = jsonObject.getString("loanResult");
-                    }
-                    StringBuilder sb = new StringBuilder();
-                    String requestTime = transferFilterData.getRequestTime();
-                    if(StringUtils.isNotBlank(requestTime)){
-                        requestTime = LocalDate.parse(requestTime, YYYYMMDDLINEDCTF).format(YYYYMMDDLINEDF);
-                    }else{
-                        requestTime = "";
-                    }
-                    try {
-                        sb.append(removeMillisecond(requestTime)).append(",")
-                                .append(emptyDefault(transferFilterData.getCustNum())).append(",")
-                                .append(emptyDefault(transferFilterData.getUserType())).append(",")
-                                .append(removeMillisecond(emptyDefault(transferFilterData.getRegisterTime()))).append(",")
-                                .append(removeMillisecond(emptyDefault(transferFilterData.getApplyDt()))).append(",")
-                                .append(emptyDefault(transferFilterData.getApplyResult())).append(",")
-                                .append(removeMillisecond(emptyDefault(transferFilterData.getAuditTime()))).append(",")
-                                .append(emptyDefault(transferFilterData.getIfLent())).append(",")
-                                .append(removeMillisecond(emptyDefault(transferFilterData.getLentTime()))).append(",")
-                                .append(emptyDefault(transferFilterData.getLentAmount())).append(",")
-                                .append(emptyDefault(applyLoan)).append(",")
-                                .append(removeMillisecond(emptyDefault(applyLoanTime))).append(",")
-                                .append(emptyDefault(isBlack)).append(",")
-                                .append(emptyDefault(blackTime)).append(",")
-                                .append(emptyDefault(loginChannel)).append(",")
-                                .append(emptyDefault(loanResult)).append(",")
-                                .append(cell);
-                        sb.append("\r\n");
-                        fw.append(sb.toString());
-                        fw.flush();
-                        totalSize.incrementAndGet();
-                    } catch (IOException e) {
-                        log.error("[{}]同程集团转化数据[{}]提取程序异常", apiCode, custNum, e);
+            threadPool.shutdown();
+            try {
+                while (!threadPool.awaitTermination(timeout, TimeUnit.SECONDS)) {
+                    if (log.isInfoEnabled()) {
+                        long taskCount = threadPool.getTaskCount();
+                        long completedTaskCount = threadPool.getCompletedTaskCount();
+                        log.info("同程集团转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
+                                , taskCount, completedTaskCount, taskCount - completedTaskCount);
                     }
                 }
-            });
-        }
-        threadPool.shutdown();
-        try {
-            while (!threadPool.awaitTermination(timeout, TimeUnit.SECONDS)) {
-                if (log.isInfoEnabled()) {
-                    long taskCount = threadPool.getTaskCount();
-                    long completedTaskCount = threadPool.getCompletedTaskCount();
-                    log.info("同程集团转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
-                            , taskCount, completedTaskCount, taskCount - completedTaskCount);
-                }
+                saveUpdateTask(transferFileTask, totalSize.intValue());
+                log.warn("同程集团转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode
+                        , System.currentTimeMillis() - start, totalSize);
+            } catch (InterruptedException e) {
+                log.error("apiCode[{}]同程集团转化数据提取-本地文件生成失败-", apiCode, e);
+                threadPool.shutdownNow();
+                Thread.currentThread().interrupt();
+                transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
+            } catch (Exception e){
+                log.error("apiCode[{}]同程集团转化数据提取-异常-", apiCode, e);
+                threadPool.shutdownNow();
+                Thread.currentThread().interrupt();
+                transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
             }
-            saveUpdateTask(transferFileTask, totalSize.intValue());
-            log.warn("同程集团转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode
-                    , System.currentTimeMillis() - start, totalSize);
-        } catch (InterruptedException e) {
-            log.error("apiCode[{}]同程集团转化数据提取-本地文件生成失败-", apiCode, e);
-            threadPool.shutdownNow();
-            Thread.currentThread().interrupt();
-            transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
-        } catch (Exception e){
-            log.error("apiCode[{}]同程集团转化数据提取-异常-", apiCode, e);
-            threadPool.shutdownNow();
-            Thread.currentThread().interrupt();
-            transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
         }
+
     }
 
     /**
