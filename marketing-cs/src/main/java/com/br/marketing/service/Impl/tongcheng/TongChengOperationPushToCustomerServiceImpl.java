@@ -97,12 +97,16 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                         ids.add(agent.getId());
                     }
 
-                } catch (InterruptedException | ExecutionException e) {
+                } catch (InterruptedException e) {
+                    log.error("同城集团运营名单数据拼接异常！" , e);
+                    Thread.currentThread().interrupt();
+                } catch (ExecutionException e){
                     log.error("同城集团运营名单数据拼接异常！" , e);
                 }
             });
         } catch (InterruptedException e) {
             log.error("同程集团运营名单数据组装线程异常！" , e);
+            Thread.currentThread().interrupt();
         }
         try {
             thread.shutdown();
@@ -112,6 +116,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
         } catch (InterruptedException ex) {
             thread.shutdownNow();
             log.error("同程集团运营名单数据组装线程关闭异常！",ex);
+            Thread.currentThread().interrupt();
         }
         if (dataLists.isEmpty()) {
             log.warn("同程本批次可推送数据为0！");
