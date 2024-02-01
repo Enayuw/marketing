@@ -18,6 +18,10 @@ public enum ValidityPeriodResendEnum {
      * 重推执行通用转化数据规则处理流程
      */
     UNIVERSAL_TRANSFER_PROCESS_RESEND(1),
+    /**
+     * 转化数据(T-N有效)执行通用规则重推流程
+     */
+    UNIVERSAL_TRANSFER_PROCESS_OFFSET_DAY_RESEND(2),
 
     CUSTOMIZE_TRANSFER_PROCESS_RESEND(3),
 

@@ -3,13 +3,13 @@ package com.br.marketing.check.thread;
 import com.br.marketing.check.CkeckApplication;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.utils.CheckDataUtil;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingUser;
 import com.br.marketing.mapper.MarketingDirtyUserMapper;
 import com.br.marketing.mapper.MarketingUserMapper;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.Writer;
@@ -26,7 +26,7 @@ public class ValidatorSmallFileThread implements Callable<String> {
     private String row;
     private String apiCode;
     private Writer errorfw;
-    private DecodeClient decodeClient;
+    private DecodeGrpcClient decodeClient;
     private String head;
     private MarketingUserMapper marketingUserMapper;
     private MarketingDirtyUserMapper marketingDirtyUserMapper;
@@ -42,7 +42,7 @@ public class ValidatorSmallFileThread implements Callable<String> {
         this.apiCode=context.getTask().getApiCode();
         this.errorfw=errorfw;
         this.checkBlackList="1".equals(param.get("checkBlackList"))?true:false;
-        this.decodeClient=CkeckApplication.ac.getBean(DecodeClient.class);
+        this.decodeClient=CkeckApplication.ac.getBean(DecodeGrpcClient.class);
         this.marketingUserMapper = CkeckApplication.ac.getBean(MarketingUserMapper.class);
         this.marketingDirtyUserMapper = CkeckApplication.ac.getBean(MarketingDirtyUserMapper.class);;
         this.batchNumber=context.getTask().getBatchNumber();

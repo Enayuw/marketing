@@ -1,6 +1,5 @@
 package com.br.marketing.thread;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
@@ -9,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * halo清洗数据

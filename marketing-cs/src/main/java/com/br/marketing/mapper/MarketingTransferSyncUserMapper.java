@@ -55,6 +55,16 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     List<MarketingTransferSyncUser> getTransferByRequestData(@Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
 
+    /**
+     * 查询
+     * @param transferSyncUser transferSyncUser
+     * @param startDate startDate
+     * @param endDate endDate
+     * @param orderByClause orderByClause
+     * @param rowCount rowCount
+     * @param offset offset
+     * @return java.util.List<com.br.marketing.entity.MarketingTransferSyncUser> 查询到的MarketingTransferSyncUser集合
+     */
     List<MarketingTransferSyncUser> getTransferByStartAndEndDate(@Param("transferSyncUser") MarketingTransferSyncUser transferSyncUser,
                                                                  @Param("startDate") String startDate,
                                                                  @Param("endDate") String endDate,
@@ -504,5 +514,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                @Param("requestEndDate") String requestEndDate,
                                                                @Param("indexId") Long indexId,
                                                                @Param("querySql") String querySql);
+
+
 
 }

@@ -45,7 +45,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.ValidityPeriodDataService;
@@ -877,9 +877,13 @@ public class PushDataServiceImpl implements PushDataService {
                 while (!collidingExecutor.awaitTermination(10L, TimeUnit.SECONDS)) {
                     log.warn("海尔撞库线程池等待释放");
                 }
+            } catch (InterruptedException e) {
+                collidingExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+                log.error("海尔撞库线程池等待释放线程池关闭异常,直接关闭-InterruptedException-", e);
             } catch (Exception e) {
                 collidingExecutor.shutdownNow();
-                log.error("海尔撞库线程池等待释放线程池关闭异常,直接关闭", e);
+                log.error("海尔撞库线程池等待释放线程池关闭异常,直接关闭-Exception-", e);
             }
         }
     }
@@ -918,7 +922,7 @@ public class PushDataServiceImpl implements PushDataService {
 
     private Integer saveHaierCollingDataLog(Integer sendDate, List<HaierCollidingData> haierCollidingDataList) {
         List<HaierCollidingDataLog> haierCollidingDataLogs = haierCollidingDataList.stream()
-            .map(data -> {
+            .map((HaierCollidingData data) -> {
                     HaierCollidingDataLog haierCollidingDataLog = new HaierCollidingDataLog();
                     haierCollidingDataLog.setCollidingDataId(data.getId());
                     haierCollidingDataLog.setApiCode(data.getApiCode());
@@ -1282,7 +1286,7 @@ public class PushDataServiceImpl implements PushDataService {
                     SmsQuitReq smsQuitReq = new SmsQuitReq(pushList.getCipherMobile(), pushList.getBlackListType(),pushList.getApiCode());
                     //兼容Md5手机号
                     String phone = smsQuitReq.getCipherMobile();
-                    if (DecodeClient.isMd5(phone)) {
+                    if (DecodeGrpcClient.isMd5(phone)) {
                         smsQuitReq.setCipherMobile(Sha256Util.getSHA256Encrypt(RpcClientProxy.decode(phone, "cell", "md5", "")));
                     }
                     Result result = xieChengService.sendSmsQuitData(smsQuitReq);

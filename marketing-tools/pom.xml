@@ -41,6 +41,11 @@
         <groupId>com.br.marketing</groupId>
     </dependency>
     <dependency>
+        <artifactId>marketing-cs</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <groupId>com.br.marketing</groupId>
+    </dependency>
+    <dependency>
         <groupId>com.br.common</groupId>
         <artifactId>br-common</artifactId>
         <version>1.0.6-SNAPSHOT</version>

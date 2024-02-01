@@ -1,50 +1,31 @@
 package com.br.marketing.check.job;
 
-import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.client.marketingapi.input.UploadDataDTO;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.service.PushInfoService;
-import com.google.common.collect.Lists;
-
-import java.time.LocalDate;
-import java.util.Date;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.check.CkeckApplication;
-import com.br.marketing.check.dto.FileContext;
-import com.br.marketing.check.enums.ErrorFileTypeEnum;
 import com.br.marketing.check.service.IFileToMarketingRuleService;
-import com.br.marketing.check.service.Impl.DeleteService;
-import com.br.marketing.check.service.Impl.FileCheckServiceImpl;
-import com.br.marketing.check.service.Impl.SftpToDbService;
 import com.br.marketing.check.utils.SftpToDbUtils;
+import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.SftpClient;
+import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DataTypeEnum;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.*;
-import com.br.marketing.service.IApiToDbService;
+import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.MarketingDataFileConfigMapper;
+import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.IFileActionService;
-import com.br.marketing.service.Impl.ValidDataAlarmServiceImpl;
+import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.vo.FileToMarketingDataFieldVO;
 import com.br.marketing.vo.FileToMarketingFieldVO;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
-import com.jcraft.jsch.JSchException;
-import com.sun.org.apache.xpath.internal.operations.Bool;
-import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
@@ -54,9 +35,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**

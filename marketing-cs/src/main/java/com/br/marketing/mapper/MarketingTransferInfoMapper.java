@@ -48,4 +48,8 @@ public interface MarketingTransferInfoMapper extends MarketingTransferInfoMapper
                                                                              @Param("validEndDate") String validEndDate,
                                                                              @Param("page") int page,
                                                                              @Param("pageSize") int pageSize);
+
+
+    int getTransferUnresolvedCount(@Param("apiCode") String apiCode, @Param("startDate") String startDate,@Param("endDate") String endDate);
+
 }

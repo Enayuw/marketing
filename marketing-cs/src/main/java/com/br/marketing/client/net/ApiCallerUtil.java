@@ -1,7 +1,6 @@
 package com.br.marketing.client.net;
 
 import com.alibaba.fastjson.JSON;
-import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.common.utils.net.CallUtils;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import com.br.marketing.entity.InterfaceLog;
