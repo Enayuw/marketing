@@ -159,7 +159,7 @@
 
     <job:simple id="TongChengOperationPushToCustomerJob"
                 class="com.br.marketing.monkey.job.tongcheng.TongChengOperationPushToCustomerJob"
-                cron="0 */10 * ? * *"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="同程集团运营名单推送客户JOB，每10分钟执行一次"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
