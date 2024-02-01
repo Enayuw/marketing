@@ -1278,6 +1278,13 @@ public class MarketingCommonConfig {
     private String QiFuTransferExecuteTime;
 
     /**
+     * 同程待运营名单推送客户接口挡板开关 true:开启挡板。false:关闭挡板
+     * tongChengAgentMock={"switch":false,"httpcode":"200","code":"1001"}
+     */
+    private HashMap<String, Object> tongChengAgentMock;
+
+
+    /**
      * 同程集团运营名单推送客户接口apiCode集合
      */
     private List<String> TongChengGroupOperationApiCodes;
