@@ -166,7 +166,7 @@ public class TransferToFileByTongChengGroupServiceImpl implements ITransferToFil
             fw.append("\r\n");
             writeTransferToFile(fw, apiCode, transferFileTask, requestDate);
         } catch (Exception ex) {
-            log.error(ex.getMessage());
+            log.error("apiCode[{}]同程集团转化数据写入文件异常-", apiCode, ex);
             result.setCode(ResultCode.FAIL.getValue());
             result.setMessage(ex.getMessage());
         }
@@ -302,7 +302,7 @@ public class TransferToFileByTongChengGroupServiceImpl implements ITransferToFil
             log.warn("同程集团转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode
                     , System.currentTimeMillis() - start, totalSize);
         } catch (InterruptedException e) {
-            log.error("同程集团转化数据提取-本地文件生成失败！" + e.getMessage(), e);
+            log.error("apiCode[{}]同程集团转化数据提取-本地文件生成失败-", apiCode, e);
             threadPool.shutdownNow();
             transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
         }
