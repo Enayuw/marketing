@@ -212,7 +212,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                             listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(), myParam);
                         }
                     } catch (Exception e) {
-                        log.error("该apiCode:{}执行数据提取任务获取锁:{}异常", marketingCustomer.getApiCode(), redisKey);
+                        log.error("该apiCode:{}执行数据提取任务获取锁:{}异常", marketingCustomer.getApiCode(), redisKey, e);
                     } finally {
                         redisChgService.unlock(redisKey, value);
                     }
