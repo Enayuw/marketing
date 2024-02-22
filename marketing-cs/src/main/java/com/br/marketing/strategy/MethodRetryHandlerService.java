@@ -396,7 +396,9 @@ public class MethodRetryHandlerService {
     @RetryMethod(isOrNoDbRetry = true)
     public Result<TransferRobotOutboundVO<TransferRobotDataVO>> callCustomerTransfer(TransferRobotOutboundDTO robotOutboundDTO, Integer retry) {
         TransferRobotOutboundVO<TransferRobotDataVO> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
-        if (!"9999".equals(transferRobotOutboundVO.getCode()) && getAllSuccessful(transferRobotOutboundVO)) {
+        //重复请求900031，认为成功
+        if ((!"9999".equals(transferRobotOutboundVO.getCode()) && getAllSuccessful(transferRobotOutboundVO)) ||
+                "900031".equals(transferRobotOutboundVO.getCode())) {
             List<ConversionData> conversionData = robotOutboundDTO.getJsonData().getConversionData();
             Set<String> set = conversionData.stream().map(ConversionData::getDataId).collect(Collectors.toSet());
             saveBizLog(String.join(",", set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), robotOutboundDTO.getTransferInfoId());
@@ -425,7 +427,9 @@ public class MethodRetryHandlerService {
         transferRobotOutboundDTO.setApiCode(robotOutboundDTO.getApiCode());
         transferRobotOutboundDTO.setJsonData(new TransferJsonDataDTO(robotOutboundDTO.getData(), robotOutboundDTO.getLast()));
         TransferRobotOutboundVO<TransferRobotDataVO> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(transferRobotOutboundDTO);
-        if (!"9999".equals(transferRobotOutboundVO.getCode()) && getAllSuccessful(transferRobotOutboundVO)) {
+        //重复请求900031，认为成功
+        if ((!"9999".equals(transferRobotOutboundVO.getCode()) && getAllSuccessful(transferRobotOutboundVO)) ||
+                "900031".equals(transferRobotOutboundVO.getCode())) {
             Set<Long> set = robotOutboundDTO.getDetailLogList().stream().map(DataDistributeDetailLog::getSourceId).collect(toSet());
             saveBizLog(Joiner.on(",").join(set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), robotOutboundDTO.getTransferInfoId());
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(transferRobotOutboundVO);
@@ -437,7 +441,9 @@ public class MethodRetryHandlerService {
 
     public Result<TransferRobotOutboundVO<TransferRobotDataVO>> xieChengSmsCallCustomerTransfer(TransferRobotOutboundDTO robotOutboundDTO, Integer retry) {
         TransferRobotOutboundVO<TransferRobotDataVO> transferRobotOutboundVO = robotaiApiServiceClient.pushRobotai(robotOutboundDTO);
-        if (!"9999".equals(transferRobotOutboundVO.getCode()) && getAllSuccessful(transferRobotOutboundVO)) {
+        //重复请求900031，认为成功
+        if ((!"9999".equals(transferRobotOutboundVO.getCode()) && getAllSuccessful(transferRobotOutboundVO)) ||
+                "900031".equals(transferRobotOutboundVO.getCode())) {
             List<ConversionData> conversionData = robotOutboundDTO.getJsonData().getConversionData();
             Set<String> set = conversionData.stream().map(ConversionData::getDataId).collect(Collectors.toSet());
             DataCompare dataCompare = new DataCompare(String.join(",", set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), null);

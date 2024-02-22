@@ -44,7 +44,6 @@ import com.br.marketing.util.ShuHeAESencUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -93,51 +92,15 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
     private AlarmApiClient alarmClient;
-    @Value("${otherConfig.alarm.secretKey:00}")
-    private String secretKey;
-    @Value("${otherConfig.alarm.appName:00}")
-    private String appName;
+
 
     private static final ThreadPoolExecutor BR_EXECUTORS = BrExecutors.getThreadPool(1, 2);
     private final String title = "数禾转化数据定制化清洗入库";
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final DateTimeFormatter yyMMddHH = DateTimeFormatter.ofPattern("yyMMdd");
-//    private static final Set<String> FIELD_SET = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     @Autowired
     ShuHeUserServiceImpl shuHeUserService;
-
-//    static {
-//        // D20220824数禾定制版上传接口改造一期 初始化字段 2022-9-1 16:49:53
-//        FIELD_SET.addAll(Arrays.asList(
-//                "listInfo"
-//                , "templateCode"
-//                , "extraInfo"
-//                , "templateName"
-//                , "outboundFrequency"
-//                , "operatingCycle"
-//                , "mobile"
-//                , "orderId"
-//                , "bizId"
-//                , "varData"
-//                , "bizType"
-//                , "name"
-//                , "identificationNo"
-//                , "clc_usr_adt_tim_rcn_lon"
-//                , "clc_usr_adt_lmt_fst_all"
-//                , "clc_usr_adt_lmt_lv0"
-//                , "clc_usr_hvy_max_3_avl_lmt"
-//                , "clc_usr_lst_app_sta_tim"
-//                , "clc_usr_lst_non_dcp_trs_tim"
-//                , "clc_usr_new_adt_rat_btr"
-//                , "clc_usr_new_adt_rat_csh"
-//                , "clc_usr_new_adt_rat_hgl"
-//                , "off_usr_last_adjlmt_add_lmt"
-//                , "off_usr_lsh_out_day_flg"
-//                , "off_usr_lst_adj_lmt_tim_micro_all"
-//                , "off_usr_lst_ord_tim_all"
-//        ));
-//    }
 
 
     @Override

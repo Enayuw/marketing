@@ -3,7 +3,6 @@ package com.br.marketing.service;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.ResponseCustomDTO;
 
 /**
@@ -22,7 +21,10 @@ public interface IPushShuheDataService {
      * @param jsonData 业务数据
      * @return ResponseShuheDTO
      * @author Guo Zeqiang
+     * @deprecated 不在使用，
+     * 新版参考{@link IPushShuheDataService#saveShuheTransferDataTwoVersion(java.lang.String, java.lang.String)}
      */
+    @Deprecated
     ResponseCustomDTO saveShuheTransferData(String apiCode, String jsonData);
 
     ResponseCustomDTO saveShuheTransferDataTwoVersion(String apiCode, String jsonData);

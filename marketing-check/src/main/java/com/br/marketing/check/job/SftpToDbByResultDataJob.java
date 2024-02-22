@@ -1,18 +1,19 @@
 package com.br.marketing.check.job;
 
 import com.br.marketing.check.dto.FileContext;
-import com.br.marketing.check.service.Impl.*;
+import com.br.marketing.check.service.Impl.SftpToDbByCommonService;
+import com.br.marketing.check.service.Impl.SftpToDbByDXService;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.SftpClient;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.*;
+import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.MarketingCustomerMapper;
+import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.ITxtToDbService;
-import com.br.marketing.service.Impl.ValidDataAlarmServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -20,12 +21,10 @@ import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.jcraft.jsch.JSchException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -71,20 +70,6 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
     private String sftpUsername;
     @Value("${otherConfig.warning.sftpPwd:00}")
     private String sftpPwd;
-    @Resource
-    SftpToDbService sftpToDbService;
-    @Resource
-    MarketingTaskMapper marketingTaskMapper;
-    @Resource
-    MarketingTaskExtendMapper marketingTaskExtendMapper;
-    @Resource
-    MarketingUserMapper marketingUserMapper;
-    @Resource
-    ValidDataAlarmServiceImpl validDataAlarmService;
-    @Resource
-    FileCheckServiceImpl fileCheckService;
-    @Resource
-    DeleteService deleteService;
     @Autowired
     IApiToDbService iApiToDbService;
     @Resource

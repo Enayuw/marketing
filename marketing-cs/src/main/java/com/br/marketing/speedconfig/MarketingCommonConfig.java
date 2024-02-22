@@ -92,11 +92,13 @@ public class MarketingCommonConfig {
 
     /**
      * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
+     * eg：{"促首登":"T","促申完":"T-15","促首借":"T+31","促复借":"T+0"}
      */
     private Map<String, String> shuHeTransferExtractDayMap;
 
     /**
      * 数禾转化数据提取apiCode集合
+     * eg:{"3710004":["促申完","促首登"],"3710023":["促首借"],"3710043":["促复借"],"3710051":["重申"],"3710071":["促首登"]}
      */
     private HashMap<String, List<String>> shuHeTransferExtractApiCodes;
 
@@ -112,6 +114,7 @@ public class MarketingCommonConfig {
 
     /**
      * 数禾有效期, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
+     * eg：{"促首登":"T","促申完":"T-15","促首借":"T+31","促复借":"T+0"}
      */
     private Map<String, String> shuHePeriodOfValidityDayMap;
 
@@ -321,6 +324,16 @@ public class MarketingCommonConfig {
      * 同程转化数据提取执行时间
      */
     private String NewTongChengTransferExecuteTime;
+    /**
+     * 同程集团转化数据提取apiCode集合
+     */
+    private List<String> TongChengGroupTransferFileApiCodes;
+    /**
+     * 同程转化数据提取执行时间
+     */
+    private String TongChengGroupTransferExecuteTime;
+
+
 
     /**
      * 携程数据推送线程数
@@ -1263,6 +1276,35 @@ public class MarketingCommonConfig {
      * 奇富360转化数据提取执行时间
      */
     private String QiFuTransferExecuteTime;
+
+    /**
+     * 同程待运营名单推送客户接口挡板开关 true:开启挡板。false:关闭挡板
+     * tongChengAgentMock={"switch":false,"httpcode":"200","code":"1001"}
+     */
+    private HashMap<String, Object> tongChengAgentMock;
+
+
+    /**
+     * 同程集团运营名单推送客户接口apiCode集合
+     */
+    private List<String> TongChengGroupOperationApiCodes;
+
+    /**
+     * 同程集团运营名单推送客户接口线程数
+     */
+    private Integer tongChengGroupOperationThreadNum;
+
+    /**
+     * 同程集团运营名单推送客户接口单批次捞数量
+     */
+    private Integer tongChengGroupOperationNum;
+    /**
+     * 2024/1/24 15:52
+     * 数禾数据场景与apiCode映射信息
+     * key userType；value apiCodeSet
+     * eg：{"促复借":["3710051","7410785"]}
+     */
+    private Map<String, List<String>> shuHeUserTypeAndApiCodeMappingMap = new HashMap<>();
 
 
 }

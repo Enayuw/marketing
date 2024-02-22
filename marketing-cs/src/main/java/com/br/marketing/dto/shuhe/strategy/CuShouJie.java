@@ -23,6 +23,7 @@ public class CuShouJie extends IUserType {
     public CuShouJie(String... api2Codes) {
         super(api2Codes);
         super.apiCodes.add("3710023");
+        super.apiCodes.add("3710128");
     }
 
     @Override

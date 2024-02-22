@@ -121,6 +121,10 @@
                     <artifactId>bsf-ext</artifactId>
                 </exclusion>
                 <exclusion>
+                    <groupId>com.br.ice.service</groupId>
+                    <artifactId>alarm-rely-new</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-core</artifactId>
                 </exclusion>

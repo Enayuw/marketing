@@ -9,7 +9,7 @@ import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.enums.ThreeKeyEncryptEnum;
 import com.br.marketing.enums.ThreeKeyTypeEnum;
 import com.br.marketing.rpcclient.RpcClientProxy;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import org.springframework.util.DigestUtils;
 
 public class EncAndDecUtil {
@@ -26,7 +26,7 @@ public class EncAndDecUtil {
         if (StringUtils.isBlank(content) || dataType == null) {
             throw new NullPointerException("content或者dataType为null");
         }
-        if (DecodeClient.isMd5(content)) {
+        if (DecodeGrpcClient.isMd5(content)) {
             return digestToLog(content, dataType, ThreeKeyEncryptEnum.md5);
         } else if (64 == content.length()) {
             return digestToLog(content, dataType, ThreeKeyEncryptEnum.sha256);
