@@ -10,7 +10,6 @@ import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.enums.DiDiAllowMarketingEnum;
 import com.br.marketing.mapper.DidiDataMapper;
 import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.monkeydata.entity.didi.DiDiAllowCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import com.br.marketing.service.IJobManagerService;
@@ -24,7 +23,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
@@ -43,9 +41,6 @@ public class DidiAllowJob extends AbstractSimpleElasticJob {
     @Resource
     DidiDataMapper didiDataMapper;
 
-    @Resource
-    MarketingDataValidConfigMapper dataValidConfigMapper;
-
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
@@ -57,7 +52,6 @@ public class DidiAllowJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         LocalDate now = LocalDate.now();
         String actionDay = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        Date from = Date.from(now.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
         String apiCode = StringUtils.isNotBlank(jobParameter) ? jobParameter :"3710083";
         List<LocalFile> localFiles = localFileMapper.getLocalFileByPushNoOrError(apiCode,SftpFileTypeEnum.DD.getValue());
