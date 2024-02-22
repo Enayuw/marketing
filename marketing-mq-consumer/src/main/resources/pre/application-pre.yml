@@ -3,7 +3,7 @@ datasource:
     names: shardingmarketing,marketingTikiv,marketingTiFlash
     defaultSource: shardingmarketing
     shardingmarketing:
-      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false
+      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&useConfigs=maxPerformance
       username: u_pd_marketing
       password: M6teKbFVl1odfOCkC1JA
       type: com.alibaba.druid.pool.DruidDataSource
