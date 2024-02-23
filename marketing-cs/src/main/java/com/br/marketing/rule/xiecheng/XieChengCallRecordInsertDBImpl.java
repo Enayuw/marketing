@@ -9,6 +9,9 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * 通话明细推送携程(3710058/3710078)
  *
@@ -18,6 +21,8 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengDataDTO> {
+
+    private List<Integer> callStatusFail = Arrays.asList(13,15);
 
     @Override
     public XieChengDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -34,7 +39,14 @@ public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengData
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
-        return transmitFact instanceof CallRecordBO;
+        if(transmitFact instanceof CallRecordBO){
+            CallRecordBO callRecordBO = (CallRecordBO) transmitFact;
+            if(callStatusFail.contains(callRecordBO.getCaseStatus())){
+                return false;
+            }
+            return true;
+        }
+        return false;
     }
 
     @Override
