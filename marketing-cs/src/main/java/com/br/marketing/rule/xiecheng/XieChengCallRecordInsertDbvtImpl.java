@@ -43,6 +43,9 @@ public class XieChengCallRecordInsertDbvtImpl implements AssembleData<XieChengDa
     @Resource
     private XieChengJudgeConvTypeService xieChengJudgeConvTypeService;
 
+    private List<Integer> callStatusFail = Arrays.asList(13,15);
+
+
     @Override
     public XieChengDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         CallRecordBO bo = (CallRecordBO) transmitFact;
@@ -109,6 +112,9 @@ public class XieChengCallRecordInsertDbvtImpl implements AssembleData<XieChengDa
         Integer isDelay = mqFact.getIsDelay();
         if (transmitFact instanceof CallRecordBO) {
             CallRecordBO bo = (CallRecordBO) transmitFact;
+            if(callStatusFail.contains(bo.getCaseStatus())){
+                return false;
+            }
             // 是延迟队列且没有106：剔除
             if (isDelay != null && isDelay == 1) {
                 List<XieChengJudgeConvTypeValue> xieChengJudgeConvType = xieChengJudgeConvTypeService.getJudgeConvType(context.getApiCode(),
