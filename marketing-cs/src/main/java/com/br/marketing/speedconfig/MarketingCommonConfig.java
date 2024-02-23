@@ -324,6 +324,16 @@ public class MarketingCommonConfig {
      * 同程转化数据提取执行时间
      */
     private String NewTongChengTransferExecuteTime;
+    /**
+     * 同程集团转化数据提取apiCode集合
+     */
+    private List<String> TongChengGroupTransferFileApiCodes;
+    /**
+     * 同程转化数据提取执行时间
+     */
+    private String TongChengGroupTransferExecuteTime;
+
+
 
     /**
      * 携程数据推送线程数
@@ -1267,6 +1277,27 @@ public class MarketingCommonConfig {
      */
     private String QiFuTransferExecuteTime;
 
+    /**
+     * 同程待运营名单推送客户接口挡板开关 true:开启挡板。false:关闭挡板
+     * tongChengAgentMock={"switch":false,"httpcode":"200","code":"1001"}
+     */
+    private HashMap<String, Object> tongChengAgentMock;
+
+
+    /**
+     * 同程集团运营名单推送客户接口apiCode集合
+     */
+    private List<String> TongChengGroupOperationApiCodes;
+
+    /**
+     * 同程集团运营名单推送客户接口线程数
+     */
+    private Integer tongChengGroupOperationThreadNum;
+
+    /**
+     * 同程集团运营名单推送客户接口单批次捞数量
+     */
+    private Integer tongChengGroupOperationNum;
     /**
      * 2024/1/24 15:52
      * 数禾数据场景与apiCode映射信息
