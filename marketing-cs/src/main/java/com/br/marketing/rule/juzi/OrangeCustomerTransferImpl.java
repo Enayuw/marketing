@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -26,6 +27,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * D20230302桔子自动化过滤-3710075（营销→外呼）
@@ -88,7 +92,17 @@ public class OrangeCustomerTransferImpl implements AssembleData<ConversionData> 
                 }
                 // audit_amount-lent_amount＜1000 条件判断，满足则继续
                 if (a.subtract(l).doubleValue() < NUMBER) {
-                    MarketingSyncUser syncUser = transferDataValidityPeriodService.getNewValidityPeriodData(transfer, null);
+                    Set<String> set = new HashSet<>();
+                    set.add(transfer.getCustNum());
+                    //判断转化数据是否在有效期内
+                    Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = transferDataValidityPeriodService
+                            .getValidityPeriodsByCustNum(set, transfer.getApiCode(), transfer.getRequestData());
+                    SyncUserValidityPeriodsBO boMap = validityPeriodsByCustNum.get(transfer.getCustNum());
+                    if (boMap == null) {
+                        log.warn("{}不满足案件编号“有效期内”条件", transfer.getCustNum());
+                        return false;
+                    }
+                    MarketingSyncUser syncUser = boMap.getSyncUsers().get(0);
                     // 验证有效期
                     if (syncUser != null) {
                         OrangeCollectDataImpl.OrangeRuleNecessaryData data = (OrangeCollectDataImpl.OrangeRuleNecessaryData

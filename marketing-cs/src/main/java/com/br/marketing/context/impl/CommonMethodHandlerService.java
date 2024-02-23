@@ -1,6 +1,7 @@
 package com.br.marketing.context.impl;
 
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.context.AbstractRuleCollectDataService;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
@@ -14,10 +15,7 @@ import com.br.marketing.service.TransferDataValidityPeriodService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -86,6 +84,17 @@ public class CommonMethodHandlerService implements AbstractRuleCollectDataServic
     public Map<String, SyncUserValidityPeriodBO> customerSyncUserValidityPeriod(
             List<MarketingTransferSyncUser> transferSyncUserList, String apiCode) {
         return transferDataValidityPeriodService.getSyncUserValidityPeriodMap(transferSyncUserList, apiCode);
+    }
+
+    /**
+     * 2024-02-22 12:59
+     * 新版获取有效期内的原始数据（上传数据）
+     */
+    public Map<String, SyncUserValidityPeriodsBO> newCustomerSyncUserValidityPeriod(
+            List<MarketingTransferSyncUser> transferSyncUserList, String apiCode) {
+        Set<String> set = transferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        final Date date = new Date();
+        return transferDataValidityPeriodService.getValidityPeriodsByCustNum(set, apiCode, date);
     }
 
     public Map<String, List<PhoneSaleExtendHaluo>> getPhoneSaleExtendInfos(List<String> custNums, String apiCode, String startDate, String endDate) {
