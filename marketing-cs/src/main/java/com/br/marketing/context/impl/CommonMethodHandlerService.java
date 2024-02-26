@@ -80,6 +80,7 @@ public class CommonMethodHandlerService implements AbstractRuleCollectDataServic
     /**
      * 2023-03-23 12:59
      * 有效期内的原始数据（上传数据）
+     * 已过时，废弃
      */
     public Map<String, SyncUserValidityPeriodBO> customerSyncUserValidityPeriod(
             List<MarketingTransferSyncUser> transferSyncUserList, String apiCode) {

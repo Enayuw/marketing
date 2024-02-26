@@ -2,12 +2,15 @@ package com.br.marketing.rule.niwodai;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.NiwodaiRuleCollectDataImpl;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.rule.AssembleData;
@@ -23,6 +26,7 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -61,9 +65,11 @@ public class NiWoDaiPolicyTransferImpl implements AssembleData<PushMarketingUser
         pushMarketingUserDetailByRuleDTO.setCaseNumber(transfer.getCustNum());
         NiwodaiRuleCollectDataImpl.NiwodaiRuleNecessaryData data =
                 (NiwodaiRuleCollectDataImpl.NiwodaiRuleNecessaryData) context.getRuleNecessaryData();
-        SyncUserValidityPeriodBO bo = data.getSyncUserValidityPeriodMap().get(transfer.getCustNum());
-        pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell())));
-        pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
+        Map<String, SyncUserValidityPeriodsBO> syncUserValidityPeriodMap = data.getSyncUserValidityPeriodMap();
+        SyncUserValidityPeriodsBO bo = syncUserValidityPeriodMap.get(transfer.getCustNum());
+        MarketingSyncUser marketingSyncUser = bo.getSyncUsers().get(0);
+        pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(marketingSyncUser.getCell())));
+        pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
         JSONObject varDto = new JSONObject();
         varDto.put("userType", transfer.getUserType());
         varDto.put("status", status);
