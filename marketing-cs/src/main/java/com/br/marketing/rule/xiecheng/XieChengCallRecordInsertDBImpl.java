@@ -22,7 +22,7 @@ import java.util.List;
 @Slf4j
 public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengDataDTO> {
 
-    private List<Integer> callStatusFail = Arrays.asList(13,15);
+    private List<Integer> callStatusFail = Arrays.asList(13, 15);
 
     @Override
     public XieChengDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -39,9 +39,9 @@ public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengData
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
-        if(transmitFact instanceof CallRecordBO){
+        if (transmitFact instanceof CallRecordBO) {
             CallRecordBO callRecordBO = (CallRecordBO) transmitFact;
-            if(callStatusFail.contains(callRecordBO.getCaseStatus())){
+            if (callRecordBO.getDetail() != null && callStatusFail.contains(callRecordBO.getDetail().getCallStatus())) {
                 return false;
             }
             return true;
