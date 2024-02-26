@@ -3,7 +3,7 @@ package com.br.marketing.util;
 import java.util.Random;
 
 public class RandomUtil {
-    private static final String CHARACTERS = "abcdefghijklmnopqrstuvwxyz123456789"; // 随机数的字符集
+    private static final String CHARACTERS = "abcdefghijklmnopqrstuvwxyz123456789";
     private static final Random RANDOM = new Random();
 
     /**
