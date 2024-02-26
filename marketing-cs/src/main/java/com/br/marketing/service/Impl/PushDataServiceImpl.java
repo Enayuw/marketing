@@ -1951,7 +1951,7 @@ public class PushDataServiceImpl implements PushDataService {
                     if (xieChengSmsCollidingDataLogRe.getStatus() == 2) {
                         XieChengSmsCollidingData xieChengSmsCollidingDataNew = new XieChengSmsCollidingData();
                         xieChengSmsCollidingDataNew.setNextPushTime(xieChengSmsCollidingDataLogRe.getUpdateTime());
-
+                        xieChengSmsCollidingDataNew.setPushStatus(2);
                         XieChengSmsCollidingDataExample xieChengSmsCollidingDataExample = new XieChengSmsCollidingDataExample();
                         List<String> sha256List = new ArrayList<>();
                         sha256List.add(xieChengSmsCollidingDataLogRe.getSha256CodeList());
@@ -1969,7 +1969,7 @@ public class PushDataServiceImpl implements PushDataService {
                 JSONObject resultJson = JSONObject.parseObject(postResult.getMessage());
                 // 请求正常
                 if (postResult.getCode().equals(ResultCode.SUCCESS.getValue())) {
-                    // 更新 next_push_time
+                    // 更新 next_push_time ,push_status = 2
                     xieChengSmsCollidingDataMapper.updateBatch(collect);
                     JSONArray returnDataList = resultJson.getJSONArray("data");
                     List<XieChengSmsCollidingDataLog> xieChengSmsCollidingDataLogList = new ArrayList<>();
@@ -2001,7 +2001,7 @@ public class PushDataServiceImpl implements PushDataService {
 //                    xieChengSmsCollidingDataLogMapper.updateBatch(xieChengSmsCollidingDataLogList);
 
                 } else {
-                    // 异常请求 只更新日志表状态3  不更新 next_push_time
+                    // 异常请求 更新日志表状态3 更新数据data 表 push_status =3 不更新 next_push_time
                     String msg = resultJson.getString("msg");
                     List<XieChengSmsCollidingDataLog> xieChengSmsCollidingDataLogList = new ArrayList<>();
                     for (int i = 0; i < collect.size(); i++) {
@@ -2015,6 +2015,8 @@ public class PushDataServiceImpl implements PushDataService {
                         xieChengSmsCollidingDataLogList.add(xieChengSmsCollidingDataLog);
                     }
                     xieChengSmsCollidingDataLogMapper.updateBatch(xieChengSmsCollidingDataLogList);
+                    // 更新 push_status =3 , retry_count + 1
+                    xieChengSmsCollidingDataMapper.updateBatchPushStatus(collect);
                 }
             }
         } catch (Exception e) {

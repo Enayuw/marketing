@@ -7,7 +7,7 @@
         select
         *
         from b_xiecheng_sms_colliding_data
-        where  status =1  and local_id = #{localId}
+        where  status =1  and local_id = #{localId} and push_status =1
         <choose>
             <when test="endTime != null and endTime!=''">
                 <![CDATA[   and next_push_time <= #{endTime}  ]]>
@@ -22,11 +22,18 @@
         order by id asc limit 15000;
     </select>
     <update id="updateBatch">
-        update b_xiecheng_sms_colliding_data set next_push_time = now() where sha256_code_list in
+        update b_xiecheng_sms_colliding_data set next_push_time = now(),push_status  =2 where sha256_code_list in
         <foreach collection="list" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+        and status = 1
     </update>
-
+    <update id="updateBatchPushStatus">
+        update b_xiecheng_sms_colliding_data  set push_status  =3,retry_count = retry_count+1 where sha256_code_list in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        and status = 1
+    </update>
 
 </mapper>

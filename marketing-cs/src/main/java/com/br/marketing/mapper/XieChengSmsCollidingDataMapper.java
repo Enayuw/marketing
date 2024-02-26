@@ -20,4 +20,10 @@ public interface XieChengSmsCollidingDataMapper extends XieChengSmsCollidingData
      */
     void updateBatch(@Param("list") List<String> list);
 
+    /**
+     * 批量更新异常状态
+     * @param list
+     */
+    void updateBatchPushStatus(@Param("list") List<String> list);
+
 }
