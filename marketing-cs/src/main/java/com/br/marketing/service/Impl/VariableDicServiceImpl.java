@@ -7,6 +7,7 @@ import com.br.marketing.entity.MarketingDataValidConfigDefault;
 import com.br.marketing.entity.VariableDic;
 import com.br.marketing.entity.VariableDicExample;
 import com.br.marketing.entity.auth.MarketingUserDetail;
+import com.br.marketing.mapper.MarketingDataValidConfigDefaultMapperBase;
 import com.br.marketing.mapper.MarketingValidityChangeMapper;
 import com.br.marketing.mapper.ValidityPeriodResendRecordMapperBase;
 import com.br.marketing.mapper.VariableDicMapper;
@@ -45,7 +46,7 @@ public class VariableDicServiceImpl implements VariableDicService {
     private MarketingValidityChangeMapper validityChangeMapper;
 
     @Resource
-    private ValidityPeriodResendRecordMapperBase validityPeriodResendRecordMapperBase;
+    private MarketingDataValidConfigDefaultMapperBase validConfigDefaultMapperBase;
 
     @Override
     public List<VariableDicSelectVO> findListByCidAndApiCode(String cid, String apiCode) {
@@ -142,7 +143,15 @@ public class VariableDicServiceImpl implements VariableDicService {
                 validityChangeMapper.updateMarketingDataValidConfigDefault(validConfigDefault);
                 entityOptService.writeOptLog(dataValidConfigDefault.getId(), validConfigDefault, dataValidConfigDefault);
             } else {
-                log.warn("该apiCode={} , userType={}维度不存在代运营默认有效期配置", apiCode, userType);
+                MarketingDataValidConfigDefault configDefault = new MarketingDataValidConfigDefault();
+                configDefault.setApiCode(apiCode);
+                configDefault.setUserType(userType);
+                configDefault.setValidDaysDefault(Integer.valueOf(vo.getValidDaysDefault()));
+                configDefault.setCreateTime(data.getCreateTime());
+                configDefault.setUpdateTime(new Date());
+                configDefault.setIsDel(1);
+                validConfigDefaultMapperBase.insertSelective(configDefault);
+                entityOptService.writeOptLog(configDefault.getId(), configDefault, null);
             }
 
         }
