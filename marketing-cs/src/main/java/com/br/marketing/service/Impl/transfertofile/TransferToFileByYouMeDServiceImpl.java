@@ -4,46 +4,39 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
-import com.br.marketing.bo.PeriodOfValidityBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
-import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.RuleRedisServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.util.PeriodOfValidityHelper;
 import com.br.marketing.vo.TransferOfCnIdVO;
 import com.br.marketing.vo.TransferOfRdRFVO;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.DigestUtils;
-import sun.security.util.AuthResources_es;
 
 import javax.annotation.Resource;
 import java.io.*;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -66,14 +59,10 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
     @Autowired
     TableCreateServiceImpl tableCreateService;
 
-    @Resource
-    MarketingSyncUserMapper syncUserMapper;
-    @Autowired
-    private IPeriodOfValidityService periodOfValidityService;
+
+    final DateTimeFormatter YYYYMMDDLINEDF = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
 
     final static String EXECUTE_TIME = "10:00:00";
-
-    final static String VALIDITY_DATSTR = "[T+33]";
 
     final static DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -82,6 +71,9 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
 
     @Autowired
     TransferDataValidityPeriodService transferDataValidityPeriodService;
+
+    @Resource
+    private MarketingDataValidConfigMapper marketingDataValidConfigMapper;
 
 
     @Override
@@ -150,34 +142,21 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    private void writeYMDTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException, IllegalAccessException {
+    private void writeYMDTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException, ParseException {
         Long start = System.currentTimeMillis();
         //endDate-上传数据的有效结束时间，beginDate-上传数据的有效开始时间
         LocalDate yDate = LocalDate.now().minusDays(1L);
-        Date _uploadEndDate = Date.from(yDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-        Result<Date> _uploadBeginDateRes = transferDataValidityPeriodService.getValidityBeginOfTn(apiCode, _uploadEndDate);
-        if (!ResultCode.SUCCESS.getValue().equals(_uploadBeginDateRes.getCode())) {
-            throw new RuntimeException(_uploadBeginDateRes.getMessage());
-        }
-        Date _uploadBeginDate = _uploadBeginDateRes.getData();
-        String _uploadBeginDateStr = new SimpleDateFormat("yyyy-MM-dd").format(_uploadBeginDate);
-        String _uploadEndDateStr = new SimpleDateFormat("yyyy-MM-dd").format(_uploadEndDate);
-
-        Date _transferEndDate = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        String requestDataMinusOne = yDate.format(YYYYMMDDLINEDF);
+        MarketingDataValidConfig configList = marketingDataValidConfigMapper
+                .queryStartDateEndDatetikv_(apiCode, requestDataMinusOne, null);
         LocalDate startDate = LocalDate.now();
-        Result<Date> _transferEndDateRes = transferDataValidityPeriodService.getValidityBeginOfTn(apiCode, _transferEndDate);
-        if (!ResultCode.SUCCESS.getValue().equals(_transferEndDateRes.getCode())) {
-            throw new RuntimeException(_transferEndDateRes.getMessage());
-        }
-        Date _transferBeginDate = _transferEndDateRes.getData();
-        String _transferBeginDateStr = new SimpleDateFormat("yyyy-MM-dd").format(_transferBeginDate);
-        String _transferEndDateStr = new SimpleDateFormat("yyyy-MM-dd").format(_transferEndDate);
+        String transferBeginDateStr =  configList.getValidStartDate();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = formatter.parse(transferBeginDateStr);
         String tcId = tableCreateService.getTcId(apiCode);
-        int pageSize = 2000;
 
         Boolean dateMark = Boolean.TRUE;
         AtomicInteger totalSize = new AtomicInteger();
-//        CopyOnWriteArraySet custNumSet = new CopyOnWriteArraySet();
         HashSet custNumSet = new HashSet<>();
         Integer datePage = 0;
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(5, 5, 10L, TimeUnit.SECONDS
@@ -186,7 +165,7 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         while (dateMark) {
             Date nowDate = Date.from(startDate.minusDays(datePage).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
             String nowDateStr = new SimpleDateFormat("yyyy-MM-dd").format(nowDate);
-            if(nowDate.compareTo(_transferBeginDate)<0){
+            if(nowDate.compareTo(date)<0){
                 dateMark = Boolean.FALSE;
                 continue;
             }
@@ -228,7 +207,7 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                 }
                 threadPoolExecutor.submit(() -> {
                     try {
-                        fieldAction(custNums,totalSize, _transferBeginDateStr, _uploadBeginDateStr, _uploadEndDateStr, apiCode, tcId, fw);
+                        fieldAction(transferSyncUsers, custNums, totalSize, transferBeginDateStr, apiCode, tcId, fw);
                     } catch (Exception ex) {
                         log.error(ex.getMessage(), ex);
                     }
@@ -263,32 +242,31 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         log.warn("你我贷转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
 
-    void fieldAction(List<String> custNums,AtomicInteger totalSize, String transferBegin, String uploadBegin, String uploadEnd, String apiCode, String tcid, Writer fw) {
-//        List<String> custNums = users.stream().map(t -> t.getCustNum()).collect(Collectors.toList());
-//        custNums.removeAll(custNumSet);
-//        if (custNums.size() <= 0) {
-//            return;
-//        }
+    void fieldAction(List<TransferOfCnIdVO> transferSyncUsers, List<String> custNums,AtomicInteger totalSize, String transferBegin,String apiCode, String tcid, Writer fw) {
         Integer num = 0;
-        List<MarketingSyncUser> userList = syncUserMapper.getNewSyncUserByCustNumtikv_(apiCode, custNums, uploadBegin, uploadEnd);
-        Map<String, MarketingSyncUser> userMap = userList.stream().collect(Collectors.toMap(MarketingSyncUser::getCustNum
-                , Function.identity(), BinaryOperator.maxBy(Comparator.comparing(MarketingSyncUser::getAppletTime))));
+        LocalDate yDate = LocalDate.now().minusDays(1L);
+        String requestDataMinusOne = yDate.format(YYYYMMDDLINEDF);
+        Set<String> custNumSet = transferSyncUsers.stream().map(TransferOfCnIdVO::getCustNum).collect(Collectors.toSet());
+        Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = transferDataValidityPeriodService
+                .getValidityPeriodsByCustNum(custNumSet, apiCode, requestDataMinusOne);
         List<TransferOfRdRFVO> transferOfRdRFs = transferSyncUserMapper.getTransferOfRdRFs(transferBegin, custNums, tcid, apiCode);
         Map<String, List<TransferOfRdRFVO>> collect = transferOfRdRFs.stream()
                 .sorted(Comparator.comparing(TransferOfRdRFVO::getRequestTime))
                 .collect(Collectors.groupingBy(TransferOfRdRFVO::getCustNum));
         for (String custNum : collect.keySet()) {
+            SyncUserValidityPeriodsBO boMap = validityPeriodsByCustNum.get(custNum);
+            if (boMap == null) {
+                log.warn("apiCode[{}]custNum[{}]不满足你我贷案件编号“有效期内”条件", apiCode, custNum);
+                continue;
+            }
+            MarketingSyncUser syncUser = boMap.getSyncUsers().get(0);
             List<TransferOfRdRFVO> transferOfRdRFVOS = collect.get(custNum);
             if (transferOfRdRFVOS.size() <= 0) {
                 continue;
             }
-            MarketingSyncUser syncUser = userMap.get(custNum);
             if (syncUser == null) {
                 continue;
             }
-//            if (!custNumSet.add(custNum)) {
-//                continue;
-//            }
             String _Ahave = "";
             String _Bhave = "";
             String _Chave = "";
@@ -350,19 +328,19 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
 
                     //region 时间字段赋值，登录时间取最新的a=1的日期-1,其它日期取最早一条的key=1的日期-1
                     if ("1".equals(a)) {
-                        _Atime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
+                        _Atime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1L).format(df);
                     }
                     if (StringUtils.isBlank(_Btime) && "1".equals(b)) {
-                        _Btime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
+                        _Btime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1L).format(df);
                     }
                     if (StringUtils.isBlank(_Ctime) && "1".equals(c)) {
-                        _Ctime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
+                        _Ctime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1L).format(df);
                     }
                     if (StringUtils.isBlank(_Dtime) && "1".equals(d)) {
-                        _Dtime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
+                        _Dtime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1L).format(df);
                     }
                     if (StringUtils.isBlank(_Ftime) && "1".equals(f)) {
-                        _Ftime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1l).format(df);
+                        _Ftime = LocalDate.parse(transferOfRdRFVO.getRequestData(), df).minusDays(1L).format(df);
                     }
                     //endregion
 
