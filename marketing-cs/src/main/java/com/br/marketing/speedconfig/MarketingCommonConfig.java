@@ -495,6 +495,21 @@ public class MarketingCommonConfig {
     private Integer xieChengSmsCollidingThread;
 
     /**
+     * 携程短信撞库线程数重试
+     */
+    private Integer xieChengSmsCollidingRetryThread;
+
+    /**
+     * 携程短信撞库报警量级
+     */
+    private Integer xieChengSmsCollidingRetryWarnCount;
+
+    /**
+     * 携程短信撞库报警量级
+     */
+    private List<String> xieChengSmsCollidingRetryWarnAllTime;
+
+    /**
      * 携程短信撞库线程数Version2
      */
     private Integer xieChengSmsCollidingThreadVt;

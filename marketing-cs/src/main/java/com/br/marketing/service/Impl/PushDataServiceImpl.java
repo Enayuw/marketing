@@ -52,6 +52,7 @@ import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.thread.HaierCollidingDataThread;
+import com.br.marketing.util.TimeUtils;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
@@ -1373,6 +1374,67 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     @Override
+    public void retryPushXieChengSmsCollidingToDbData(Long localId){
+        try {
+            XieChengSmsCollidingDataExample x = new  XieChengSmsCollidingDataExample();
+            x.createCriteria().andStatusEqualTo(1).andRetryCountIn(Arrays.asList(1,2,3));
+            int countedByExample = xieChengSmsCollidingDataMapper.countByExample(x);
+            if(countedByExample==marketingCommonConfig.getXieChengSmsCollidingRetryWarnCount()){
+                // 发送钉钉告警
+                return;
+            }
+            // 创建线程池
+            ThreadPoolExecutor xieChengSmsCollidingRetryThread =
+                    BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingRetryThread(), marketingCommonConfig.getXieChengSmsCollidingRetryThread());
+
+            // 根据id匹配 进行数据查询 每批次查询 20000
+            Long minId = null;
+            AtomicInteger failNum = new AtomicInteger(0);
+            while (true) {
+                List<XieChengSmsCollidingData> xieChengSmsCollidingDataRetryList =
+                        xieChengSmsCollidingDataMapper.selectByRetryCount( minId);
+                if (xieChengSmsCollidingDataRetryList.size() == 0  &&(
+                        TimeUtils.timeCompare(
+                                marketingCommonConfig.getXieChengSmsCollidingRetryWarnAllTime().get(0),
+                                marketingCommonConfig.getXieChengSmsCollidingRetryWarnAllTime().get(1)
+                        )
+                                ||
+                        TimeUtils.timeCompare(
+                            marketingCommonConfig.getXieChengSmsCollidingRetryWarnAllTime().get(2),
+                            marketingCommonConfig.getXieChengSmsCollidingRetryWarnAllTime().get(3))
+                        )
+                ) {
+                    xieChengSmsCollidingDataRetryList =
+                            xieChengSmsCollidingDataMapper.selectByRetryCountThree( minId);
+                }
+                if (xieChengSmsCollidingDataRetryList.size() == 0){
+                    break;
+                }
+                // 更新minId 为当前集合最大的id
+                minId = xieChengSmsCollidingDataRetryList.get(xieChengSmsCollidingDataRetryList.size() - 1).getId();
+                // 将查询出来的明细数据进行分组，每组50个数据
+                List<List<XieChengSmsCollidingData>> xieChengSmsCollidingDataPartitions =
+                        Lists.partition(xieChengSmsCollidingDataRetryList, XIECHENGSMSCOLLIDINGPARTATIONNUM);
+                for (List<XieChengSmsCollidingData> xieChengSmsCollidingDataListRetryPartition : xieChengSmsCollidingDataPartitions) {
+                    xieChengSmsCollidingRetryThread.submit(() ->
+                            pushXieChengSmsCollidingData(xieChengSmsCollidingDataListRetryPartition, failNum, localId));
+                }
+            }
+
+            xieChengSmsCollidingRetryThread.shutdown();
+            try {
+                while (!xieChengSmsCollidingRetryThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                }
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
+
+            xieChengSendAlarm(failNum, "携程短信撞库接口重试推送异常，请检查");
+        } catch (Exception e) {
+            log.error("携程短信撞库接口重试推送异常:{}", e);
+        }
+    }
+    @Override
     public void  pushXieChengSmsCollidingToDbData(String data) {
         try {
             JSONObject jsonObject = JSONObject.parseObject(data);
@@ -1951,7 +2013,6 @@ public class PushDataServiceImpl implements PushDataService {
                     if (xieChengSmsCollidingDataLogRe.getStatus() == 2) {
                         XieChengSmsCollidingData xieChengSmsCollidingDataNew = new XieChengSmsCollidingData();
                         xieChengSmsCollidingDataNew.setNextPushTime(xieChengSmsCollidingDataLogRe.getUpdateTime());
-                        xieChengSmsCollidingDataNew.setPushStatus(2);
                         XieChengSmsCollidingDataExample xieChengSmsCollidingDataExample = new XieChengSmsCollidingDataExample();
                         List<String> sha256List = new ArrayList<>();
                         sha256List.add(xieChengSmsCollidingDataLogRe.getSha256CodeList());
@@ -1969,10 +2030,9 @@ public class PushDataServiceImpl implements PushDataService {
                 JSONObject resultJson = JSONObject.parseObject(postResult.getMessage());
                 // 请求正常
                 if (postResult.getCode().equals(ResultCode.SUCCESS.getValue())) {
-                    // 更新 next_push_time ,push_status = 2
+                    // 更新 next_push_time
                     xieChengSmsCollidingDataMapper.updateBatch(collect);
                     JSONArray returnDataList = resultJson.getJSONArray("data");
-                    List<XieChengSmsCollidingDataLog> xieChengSmsCollidingDataLogList = new ArrayList<>();
                     for (int i = 0; i < returnDataList.size(); i++) {
                         JSONObject returnData = returnDataList.getJSONObject(i);
                         String sha256Code = returnData.getString("sha256Code");
@@ -1996,9 +2056,7 @@ public class PushDataServiceImpl implements PushDataService {
                                 .andStatusEqualTo(1)
                                 .andSha256CodeListEqualTo(sha256Code);
                         xieChengSmsCollidingDataLogMapper.updateByExampleSelective(xieChengSmsCollidingDataLog,xe);
-//                        xieChengSmsCollidingDataLogList.add(xieChengSmsCollidingDataLog);
                     }
-//                    xieChengSmsCollidingDataLogMapper.updateBatch(xieChengSmsCollidingDataLogList);
 
                 } else {
                     // 异常请求 更新日志表状态3 更新数据data 表 push_status =3 不更新 next_push_time
@@ -2015,8 +2073,8 @@ public class PushDataServiceImpl implements PushDataService {
                         xieChengSmsCollidingDataLogList.add(xieChengSmsCollidingDataLog);
                     }
                     xieChengSmsCollidingDataLogMapper.updateBatch(xieChengSmsCollidingDataLogList);
-                    // 更新 push_status =3 , retry_count + 1
-                    xieChengSmsCollidingDataMapper.updateBatchPushStatus(collect);
+                    // 更新 retry_count + 1
+                    xieChengSmsCollidingDataMapper.updateBatchRetryCount(collect);
                 }
             }
         } catch (Exception e) {
