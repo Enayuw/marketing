@@ -129,6 +129,31 @@
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
         </dependency>
+        <!-- elasticJob start -->
+        <dependency>
+            <groupId>com.dangdang</groupId>
+            <artifactId>br-elastic-job-core</artifactId>
+            <version>${elastic-job.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dangdang</groupId>
+            <artifactId>br-elastic-job-spring</artifactId>
+            <version>${elastic-job.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>spring-context</artifactId>
+                    <groupId>org.springframework</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- elasticJob end -->
         <dependency>
             <groupId>com.br.arch.geo</groupId>
             <artifactId>puslar-product-client</artifactId>
