@@ -4,12 +4,17 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.XieChengDataDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.XieChengData;
+import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -23,6 +28,9 @@ import java.util.List;
 public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengDataDTO> {
 
     private List<Integer> callStatusFail = Arrays.asList(13, 15);
+
+    @Resource
+    private XieChengDataMapper xieChengDataMapper;
 
     @Override
     public XieChengDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -42,6 +50,7 @@ public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengData
         if (transmitFact instanceof CallRecordBO) {
             CallRecordBO callRecordBO = (CallRecordBO) transmitFact;
             if (callRecordBO.getDetail() != null && callStatusFail.contains(callRecordBO.getDetail().getCallStatus())) {
+                keepRecord(callRecordBO, String.format("CallStatus状态是：%d", callRecordBO.getDetail().getCallStatus()));
                 return false;
             }
             return true;
@@ -64,4 +73,21 @@ public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengData
         return null;
     }
 
+
+    private void keepRecord(CallRecordBO bo, String errorMsg) {
+        XieChengData xieChengData = new XieChengData();
+        xieChengData.setApiCode(bo.getApiCode());
+        xieChengData.setActionType("IVR");
+        xieChengData.setSha256Tel(bo.getCaseNum());
+
+        xieChengData.setCreateTime(new Date());
+        xieChengData.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
+        xieChengData.setLocalId(bo.getId());
+        xieChengData.setPushStatus(1);
+        xieChengData.setType("1");
+
+        xieChengData.setDataMessage(errorMsg);
+        xieChengData.setStatus(2);
+        xieChengDataMapper.insertSelective(xieChengData);
+    }
 }
