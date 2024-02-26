@@ -1,6 +1,7 @@
 package com.br.marketing.rule.ppd;
 
 import com.br.common.util.DateUtils;
+import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -56,6 +57,16 @@ public class PPDCustomerTransferImpl implements AssembleData<ConversionData> {
         conversionData.setCid(transfer.getCid());
         conversionData.setCaseNum(transfer.getCustNum());
         conversionData.setInversionStatus("0");
+
+        // expireDate add 2024.02.27
+        PpdLodCollectDataImpl.PpdLodRuleNecessaryData ruleNecessaryData =
+                (PpdLodCollectDataImpl.PpdLodRuleNecessaryData) context.getRuleNecessaryData();
+        Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBoMap = ruleNecessaryData.getUserValidityPeriodsBoMap();
+        SyncUserValidityPeriodsBO userValidityPeriodsBO = userValidityPeriodsBoMap.get(transfer.getCustNum());
+        PeriodOfValidityBO.Builder builder = userValidityPeriodsBO.getBuilders().get(0);
+        String enDateStr = builder.builder().getEnDateStr();
+        conversionData.setExpireDate(enDateStr);
+
         if (!StringUtils.isEmpty(transfer.getCreateTime())){
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         }
@@ -81,7 +92,8 @@ public class PPDCustomerTransferImpl implements AssembleData<ConversionData> {
 
         boolean b = ppdCustomerType.get("transform").contains(context.getApiCode())
                 && Arrays.asList("-1","1").contains(transfer.getIfTransform());
-        return (a1 && a2) || b;    }
+        return (a1 && a2) || b;
+    }
 
     @Override
     public String label() {
