@@ -1,8 +1,11 @@
 package com.br.marketing.rule.ppd;
 
 import com.br.common.util.DateUtils;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.context.RuleDataCollectionEnum;
+import com.br.marketing.context.impl.PpdLodCollectDataImpl;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -14,6 +17,7 @@ import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * code is far away from bug with the animal protecting
@@ -62,11 +66,22 @@ public class PPDCustomerTransferImpl implements AssembleData<ConversionData> {
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         HashMap<String, List<String>> ppdCustomerType = marketingCommonConfig.getPpdCustomerType();
-        boolean a = ppdCustomerType.get("lend").contains(context.getApiCode()) && "Y".equals(transfer.getIfLent());
+        boolean a1 = ppdCustomerType.get("lend").contains(context.getApiCode())
+                && ("Y".equals(transfer.getIfLent())||"N".equals(transfer.getIfLent()));
+
+        boolean a2 = false;
+        PpdLodCollectDataImpl.PpdLodRuleNecessaryData ruleNecessaryData =
+                (PpdLodCollectDataImpl.PpdLodRuleNecessaryData) context.getRuleNecessaryData();
+        Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBoMap = ruleNecessaryData.getUserValidityPeriodsBoMap();
+        SyncUserValidityPeriodsBO userValidityPeriodsBO = userValidityPeriodsBoMap.get(transfer.getCustNum());
+        // 为null时不在有效期
+        if (userValidityPeriodsBO != null) {
+            a2 = true;
+        }
+
         boolean b = ppdCustomerType.get("transform").contains(context.getApiCode())
                 && Arrays.asList("-1","1").contains(transfer.getIfTransform());
-        return a || b;
-    }
+        return (a1 && a2) || b;    }
 
     @Override
     public String label() {
@@ -80,6 +95,6 @@ public class PPDCustomerTransferImpl implements AssembleData<ConversionData> {
 
     @Override
     public Integer ruleDataCollection() {
-        return null;
+        return RuleDataCollectionEnum.PPD_LOD_DATA_COLLECTION.getCode();
     }
 }
