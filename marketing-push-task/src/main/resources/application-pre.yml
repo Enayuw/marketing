@@ -3,7 +3,7 @@ datasource:
     names: shardingmarketing,marketingTikiv,marketingTiFlash
     defaultSource: shardingmarketing
     shardingmarketing:
-      url: jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: u_pd_marketing
       password: f9daIYUIAXQkeyVbDoOI
       type: com.alibaba.druid.pool.DruidDataSource
@@ -26,7 +26,7 @@ datasource:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: u_pd_marketing
       password: f9daIYUIAXQkeyVbDoOI
       initialSize: 5 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
@@ -54,7 +54,7 @@ datasource:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: u_pd_marketing
       password: f9daIYUIAXQkeyVbDoOI
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
