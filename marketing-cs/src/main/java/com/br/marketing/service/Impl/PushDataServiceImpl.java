@@ -2013,6 +2013,7 @@ public class PushDataServiceImpl implements PushDataService {
                     if (xieChengSmsCollidingDataLogRe.getStatus() == 2) {
                         XieChengSmsCollidingData xieChengSmsCollidingDataNew = new XieChengSmsCollidingData();
                         xieChengSmsCollidingDataNew.setNextPushTime(xieChengSmsCollidingDataLogRe.getUpdateTime());
+
                         XieChengSmsCollidingDataExample xieChengSmsCollidingDataExample = new XieChengSmsCollidingDataExample();
                         List<String> sha256List = new ArrayList<>();
                         sha256List.add(xieChengSmsCollidingDataLogRe.getSha256CodeList());
