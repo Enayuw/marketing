@@ -63,6 +63,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.DiDiAllowReqDTO;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -668,6 +669,16 @@ public class MethodRetryHandlerService {
     public Result callPolicyData(PolicyRetryByRuleDTO dto, Integer retry) {
         List<Long> ids = dto.getIds();
         PushMarketingUserDTO pushMarketingUserDTO = dto.getPushMarketingUserDTO();
+        //重试
+        try {
+            if (ObjectUtils.equals(retry,1)) {
+                JSONObject jsonObject = (JSONObject) dto.getPushMarketingUserDTO().getJsonData();
+                PushMarketingUserTaskInfoDTO taskInfoDTO = JSONObject.toJavaObject(jsonObject, PushMarketingUserTaskInfoDTO.class);
+                pushMarketingUserDTO.setJsonData(taskInfoDTO);
+            }
+        } catch (Exception e) {
+            log.error("决策重试接口类型转化失败", e.getMessage());
+        }
         Long infoId = dto.getInfoId();
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -691,6 +702,16 @@ public class MethodRetryHandlerService {
     public Result callPolicyDataYiXinToJueCe(PolicyRetryByRuleDTO dto, Integer retry) {
         List<Long> ids = dto.getIds();
         PushMarketingUserDTO pushMarketingUserDTO = dto.getPushMarketingUserDTO();
+        //重试
+        try {
+            if (ObjectUtils.equals(retry,1)) {
+                JSONObject jsonObject = (JSONObject) dto.getPushMarketingUserDTO().getJsonData();
+                PushMarketingUserTaskInfoDTO taskInfoDTO = JSONObject.toJavaObject(jsonObject, PushMarketingUserTaskInfoDTO.class);
+                pushMarketingUserDTO.setJsonData(taskInfoDTO);
+            }
+        } catch (Exception e) {
+            log.error("决策重试接口类型转化失败", e.getMessage());
+        }
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             DataCompare dataCompare = new DataCompare(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(), null);
