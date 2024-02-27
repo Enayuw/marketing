@@ -59,8 +59,13 @@ public class TestSre {
             RequestLog requestLog = new RequestLog();
             requestLog.setRequestTime(new Date());
             requestLog.setApiCode("111111");
-            requestLog.setRequestStr("{\"proxy_source\":\"1\",\"name\":\"C11TBlBcVFUΒ4FDlBSUwlXAA5cU1AOUgUECV0CUVcEBwc\",\"strategy_id\":\"DTA_BR0002113\",\"id\":\"CwxRVgJRBlhdBQEIV1xUAΒ7QUNDARWVFUKW1QHAgBeAAI\",\"cell\":\"Ww9SDgZdAwMCDAJTVgQFBQAOWgQCAwgCVF8DΒ4UlACUQQ\",\"custom_request\":\"Md5\"}");
-            requestLog.setResponseStr("{\"code\":\"00\",\"swift_number\":\"3030994_20240117143038_37761B55A19\",\"DataStrategy\":{\"strategy_version\":\"1.1\",\"product_type\":\"100081\",\"strategy_id\":\"DTA_BR0002113\",\"product_name\":\"预置_借贷意向验证\",\"scene\":\"lend\"},\"Flag\":{\"applyloanstr\":\"1\",\"datastrategy\":\"1\"}}");
+            requestLog.setRequestStr("{\"proxy_source\":\"1\",\"name\":\"C11TBlBcVFUΒ4FDlBSUwlXAA5cU1AOUgUECV0CUVcEBwc\"" +
+                    ",\"strategy_id\":\"DTA_BR0002113\",\"id\":\"CwxRVgJRBlhdBQEIV1xUAΒ7QUNDARWVFUKW1QHAgBeAAI\"," +
+                    "\"cell\":\"Ww9SDgZdAwMCDAJTVgQFBQAOWgQCAwgCVF8DΒ4UlACUQQ\",\"custom_request\":\"Md5\"}");
+            requestLog.setResponseStr("{\"code\":\"00\",\"swift_number\":\"3030994_20240117143038_37761B55A19\"," +
+                    "\"DataStrategy\":{\"strategy_version\":\"1.1\",\"product_type\":\"100081\"," +
+                    "\"strategy_id\":\"DTA_BR0002113\",\"product_name\":\"预置_借贷意向验证\",\"scene\":\"lend\"}," +
+                    "\"Flag\":{\"applyloanstr\":\"1\",\"datastrategy\":\"1\"}}");
             requestLog.setResponseTime(new Date());
             requestLog.setCostTime(10);
             requestLog.setSwiftNumber("111111_20240117_2222");
