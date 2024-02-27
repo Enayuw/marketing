@@ -34,7 +34,7 @@ public class BrokerGrpcClient {
     private static Logger momLog = LoggerFactory.getLogger("MOM_LOG");
     //自定义配置callback异常处理线程池，线程池和线程池参数仅供参考，请根据自己的业务使用，各业务人员可根据自己业务程度选择队列满了之后的操作行为：
     private static ThreadPoolExecutor callBackExecutor = BrExecutors.getThreadPool(
-            Runtime.getRuntime().availableProcessors(), 40, "mom-call-back-executor", 1000);
+            2, 4, "mom-call-back-executor", 1000);
 
 
     private static String upload_producerKey;
