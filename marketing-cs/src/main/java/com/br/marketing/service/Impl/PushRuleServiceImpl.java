@@ -47,6 +47,7 @@ import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.mapper.*;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
+import com.br.marketing.origin.CaffeineCache;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
@@ -57,6 +58,8 @@ import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessIm
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.vo.*;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
@@ -1019,13 +1022,43 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     private void sendUploadMq(String apiCode, String syncInfoId) {
+        Cache<Object, Object> cache = Caffeine.newBuilder()
+                //初始数量
+                .initialCapacity(10)
+                //最大条数
+                .maximumSize(10)
+                //expireAfterWrite和expireAfterAccess同时存在时，以expireAfterWrite为准
+                //最后一次写操作后经过指定时间过期
+                .expireAfterWrite(1, TimeUnit.SECONDS)
+                //最后一次读或写操作后经过指定时间过期
+                .expireAfterAccess(1, TimeUnit.SECONDS)
+                //监听缓存被移除
+                .removalListener((key, val, removalCause) -> { })
+                //记录命中
+                .recordStats()
+                .build();
+
+        cache.put("1","张三");
+        //张三
+        System.out.println(cache.getIfPresent("1"));
+        //存储的是默认值
+        System.out.println(cache.get("2",o -> "默认值"));
+
         try {
             long l3 = System.currentTimeMillis();
-            if (marketingCommonConfig.getShuheApiCode().contains(apiCode)) {
-                producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, syncInfoId);
-            } else {
+
+            // 根据apicode获取路由键
+            CustomerRoutingKeyConfig routingKeyConfig = CaffeineCache.getRountingKey(apiCode);
+            if (null == routingKeyConfig) {
                 producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId);
+            } else {
+                producter.send(routingKeyConfig.getRoutingkey(), syncInfoId);
             }
+//            if (marketingCommonConfig.getShuheApiCode().contains(apiCode)) {
+//                producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, syncInfoId);
+//            } else {
+//                producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId);
+//            }
             if (log.isInfoEnabled()) {
                 log.info("MQ推送耗时:{}", (System.currentTimeMillis() - l3));
             }
