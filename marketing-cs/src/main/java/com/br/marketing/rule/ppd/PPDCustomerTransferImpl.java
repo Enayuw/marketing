@@ -65,11 +65,18 @@ public class PPDCustomerTransferImpl implements AssembleData<ConversionData> {
         Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBoMap = ruleNecessaryData.getUserValidityPeriodsBoMap();
         SyncUserValidityPeriodsBO userValidityPeriodsBO = userValidityPeriodsBoMap.get(transfer.getCustNum());
         PeriodOfValidityBO.Builder builder = userValidityPeriodsBO.getBuilders().get(0);
-        String enDateStr = builder.addDateString().addOfDayTimeStrString().builder().getEndOfDayTimeStr();
-        conversionData.setExpireDate(enDateStr);
+        PeriodOfValidityBO periodOfValidityBO = builder.addDateString().addOfDayTimeStrString().builder();
 
+        String enDateStr = periodOfValidityBO.getEndOfDayTimeStr();
+        conversionData.setExpireDate(enDateStr);
+        
+        //
+        conversionData.setInitId(transfer.getId());
         conversionData.setSoleField(SoleFieldEnum.CUST_NUM_SOLE.getValue());
         conversionData.setSoleType(-1);
+        conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
+        conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
+        
 
         if (!StringUtils.isEmpty(transfer.getCreateTime())){
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
