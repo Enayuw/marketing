@@ -4,6 +4,7 @@ import com.br.common.util.DateUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.PpdLodCollectDataImpl;
@@ -67,6 +68,9 @@ public class PPDCustomerTransferImpl implements AssembleData<ConversionData> {
         String enDateStr = builder.addDateString().addOfDayTimeStrString().builder().getEndOfDayTimeStr();
         conversionData.setExpireDate(enDateStr);
 
+        conversionData.setSoleField(SoleFieldEnum.CUST_NUM_SOLE.getValue());
+        conversionData.setSoleType(-1);
+
         if (!StringUtils.isEmpty(transfer.getCreateTime())){
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         }
@@ -102,7 +106,7 @@ public class PPDCustomerTransferImpl implements AssembleData<ConversionData> {
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE_STATUS.getCode();
     }
 
     @Override
