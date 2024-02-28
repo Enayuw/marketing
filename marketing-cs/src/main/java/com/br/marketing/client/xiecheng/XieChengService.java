@@ -295,7 +295,7 @@ public class XieChengService {
         }
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.error("携程短信撞库接口httpcode非200异常");
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("{'msg':'httpCode非200'}");
         }
         String content = resMap.get("content");
         JSONObject resultJson = JSONObject.parseObject(content);
@@ -357,8 +357,14 @@ public class XieChengService {
 
     private HashMap<String,String> getTestMap(List<String> sha256CodeList){
         JSONObject map = new JSONObject();
-        map.put("code",0);
-        map.put("msg","success");
+        if(marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(2)){
+            map.put("code",9999);
+            map.put("msg","测试挡板非0异常");
+        }else {
+            map.put("code",0);
+            map.put("msg","success");
+        }
+
         JSONArray jsonArray = new JSONArray();
         for(int i=0;i<sha256CodeList.size();i++){
             JSONObject dataMap = new JSONObject();

@@ -10,8 +10,8 @@ public interface XieChengSmsCollidingDataMapper extends XieChengSmsCollidingData
 
 
     List<XieChengSmsCollidingData> selectByLocalId(@Param("localId") Long localId, @Param("minId") Long minId,@Param("endTime") String endTime);
-    List<XieChengSmsCollidingData> selectByRetryCount( @Param("minId") Long minId);
-    List<XieChengSmsCollidingData> selectByRetryCountThree( @Param("minId") Long minId);
+    List<XieChengSmsCollidingData> selectByRetryCount(@Param("localId") Long localId, @Param("minId") Long minId);
+    List<XieChengSmsCollidingData> selectByRetryCountThree(@Param("localId") Long localId, @Param("minId") Long minId);
 
 
 

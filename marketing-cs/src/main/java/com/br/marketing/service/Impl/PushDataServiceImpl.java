@@ -1379,20 +1379,21 @@ public class PushDataServiceImpl implements PushDataService {
             XieChengSmsCollidingDataExample x = new  XieChengSmsCollidingDataExample();
             x.createCriteria().andStatusEqualTo(1).andRetryCountIn(Arrays.asList(1,2,3));
             int countedByExample = xieChengSmsCollidingDataMapper.countByExample(x);
-            if(countedByExample==marketingCommonConfig.getXieChengSmsCollidingRetryWarnCount()){
+            if(countedByExample>=marketingCommonConfig.getXieChengSmsCollidingRetryWarnCount()){
                 // 发送钉钉告警
                 return;
             }
             // 创建线程池
             ThreadPoolExecutor xieChengSmsCollidingRetryThread =
-                    BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingRetryThread(), marketingCommonConfig.getXieChengSmsCollidingRetryThread());
+                    BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingRetryThread(),
+                            marketingCommonConfig.getXieChengSmsCollidingRetryThread());
 
             // 根据id匹配 进行数据查询 每批次查询 20000
             Long minId = null;
             AtomicInteger failNum = new AtomicInteger(0);
             while (true) {
                 List<XieChengSmsCollidingData> xieChengSmsCollidingDataRetryList =
-                        xieChengSmsCollidingDataMapper.selectByRetryCount( minId);
+                        xieChengSmsCollidingDataMapper.selectByRetryCount(localId, minId);
                 if (xieChengSmsCollidingDataRetryList.size() == 0  &&(
                         TimeUtils.timeCompare(
                                 marketingCommonConfig.getXieChengSmsCollidingRetryWarnAllTime().get(0),
@@ -1405,7 +1406,7 @@ public class PushDataServiceImpl implements PushDataService {
                         )
                 ) {
                     xieChengSmsCollidingDataRetryList =
-                            xieChengSmsCollidingDataMapper.selectByRetryCountThree( minId);
+                            xieChengSmsCollidingDataMapper.selectByRetryCountThree(localId, minId);
                 }
                 if (xieChengSmsCollidingDataRetryList.size() == 0){
                     break;
@@ -1424,14 +1425,17 @@ public class PushDataServiceImpl implements PushDataService {
             xieChengSmsCollidingRetryThread.shutdown();
             try {
                 while (!xieChengSmsCollidingRetryThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                    log.info("携程撞库线程池关闭");
                 }
-            } catch (Exception ex) {
-                log.error(ex.getMessage(), ex);
+            } catch (InterruptedException ex) {
+                xieChengSmsCollidingRetryThread.shutdownNow();
+                log.error("日志保存线程池结束异常！",ex);
+                Thread.currentThread().interrupt();
             }
 
             xieChengSendAlarm(failNum, "携程短信撞库接口重试推送异常，请检查");
         } catch (Exception e) {
-            log.error("携程短信撞库接口重试推送异常:{}", e);
+            log.error("携程短信撞库接口重试推送异常:{}", e.getMessage());
         }
     }
     @Override
@@ -1468,9 +1472,12 @@ public class PushDataServiceImpl implements PushDataService {
             xieChengSmsCollidingThread.shutdown();
             try {
                 while (!xieChengSmsCollidingThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                    log.info("携程撞库线程池关闭");
                 }
-            } catch (Exception ex) {
-                log.error(ex.getMessage(), ex);
+            } catch (InterruptedException ex) {
+                xieChengSmsCollidingThread.shutdownNow();
+                log.error("日志保存线程池结束异常！",ex);
+                Thread.currentThread().interrupt();
             }
 
             xieChengSendAlarm(failNum, "携程短信撞库接口推送异常，请检查");
