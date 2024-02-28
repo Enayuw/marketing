@@ -55,7 +55,6 @@ public class TestSre {
             MerchantParam merchantParam = UserCenterGrpcClient.getMerchantParam("7410785");
             log.warn("用户中心grpc-:[{}]", JSON.toJSONString(merchantParam));
 
-            // 本服务不能使用grpc发送MOM，会有curator版本冲突，解决办法升级 guava和curator 版本
         }
         return "success";
     }
