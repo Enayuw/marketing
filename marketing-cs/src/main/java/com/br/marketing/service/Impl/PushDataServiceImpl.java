@@ -1375,68 +1375,64 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Override
     public void retryPushXieChengSmsCollidingToDbData(Long localId){
-        try {
-            XieChengSmsCollidingDataExample x = new  XieChengSmsCollidingDataExample();
-            x.createCriteria().andStatusEqualTo(1).andRetryCountIn(Arrays.asList(1,2,3));
-            int countedByExample = xieChengSmsCollidingDataMapper.countByExample(x);
-            if(countedByExample>=marketingCommonConfig.getXieChengSmsCollidingRetryWarnCount()){
-                // 发送钉钉告警
-                return;
-            }
-            // 创建线程池
-            ThreadPoolExecutor xieChengSmsCollidingRetryThread =
-                    BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingRetryThread(),
-                            marketingCommonConfig.getXieChengSmsCollidingRetryThread());
-
-            // 根据id匹配 进行数据查询 每批次查询 20000
-            Long minId = null;
-            AtomicInteger failNum = new AtomicInteger(0);
-            while (true) {
-                List<XieChengSmsCollidingData> xieChengSmsCollidingDataRetryList =
-                        xieChengSmsCollidingDataMapper.selectByRetryCount(localId, minId);
-                if (xieChengSmsCollidingDataRetryList.size() == 0  &&(
-                        TimeUtils.timeCompare(
-                                marketingCommonConfig.getXieChengSmsCollidingRetryWarnAllTime().get(0),
-                                marketingCommonConfig.getXieChengSmsCollidingRetryWarnAllTime().get(1)
-                        )
-                                ||
-                        TimeUtils.timeCompare(
-                            marketingCommonConfig.getXieChengSmsCollidingRetryWarnAllTime().get(2),
-                            marketingCommonConfig.getXieChengSmsCollidingRetryWarnAllTime().get(3))
-                        )
-                ) {
-                    xieChengSmsCollidingDataRetryList =
-                            xieChengSmsCollidingDataMapper.selectByRetryCountThree(localId, minId);
-                }
-                if (xieChengSmsCollidingDataRetryList.size() == 0){
-                    break;
-                }
-                // 更新minId 为当前集合最大的id
-                minId = xieChengSmsCollidingDataRetryList.get(xieChengSmsCollidingDataRetryList.size() - 1).getId();
-                // 将查询出来的明细数据进行分组，每组50个数据
-                List<List<XieChengSmsCollidingData>> xieChengSmsCollidingDataPartitions =
-                        Lists.partition(xieChengSmsCollidingDataRetryList, XIECHENGSMSCOLLIDINGPARTATIONNUM);
-                for (List<XieChengSmsCollidingData> xieChengSmsCollidingDataListRetryPartition : xieChengSmsCollidingDataPartitions) {
-                    xieChengSmsCollidingRetryThread.submit(() ->
-                            pushXieChengSmsCollidingData(xieChengSmsCollidingDataListRetryPartition, failNum, localId));
-                }
-            }
-
-            xieChengSmsCollidingRetryThread.shutdown();
-            try {
-                while (!xieChengSmsCollidingRetryThread.awaitTermination(10L, TimeUnit.SECONDS)) {
-                    log.info("携程撞库线程池关闭");
-                }
-            } catch (InterruptedException ex) {
-                xieChengSmsCollidingRetryThread.shutdownNow();
-                log.error("日志保存线程池结束异常！",ex);
-                Thread.currentThread().interrupt();
-            }
-
-            xieChengSendAlarm(failNum, "携程短信撞库接口重试推送异常，请检查");
-        } catch (Exception e) {
-            log.error("携程短信撞库接口重试推送异常:{}", e.getMessage());
+        XieChengSmsCollidingDataExample x = new  XieChengSmsCollidingDataExample();
+        x.createCriteria().andStatusEqualTo(1).andRetryCountIn(Arrays.asList(1,2,3));
+        int countedByExample = xieChengSmsCollidingDataMapper.countByExample(x);
+        if(countedByExample>=marketingCommonConfig.getXieChengSmsCollidingRetryWarnCount()){
+            // 发送钉钉告警
+            return;
         }
+        // 创建线程池
+        ThreadPoolExecutor xieChengSmsCollidingRetryThread =
+                BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingRetryThread(),
+                        marketingCommonConfig.getXieChengSmsCollidingRetryThread());
+
+        // 根据id匹配 进行数据查询 每批次查询 20000
+        Long minId = null;
+        AtomicInteger failNum = new AtomicInteger(0);
+        while (true) {
+            List<XieChengSmsCollidingData> xieChengSmsCollidingDataRetryList =
+                    xieChengSmsCollidingDataMapper.selectByRetryCount(localId, minId);
+            if (xieChengSmsCollidingDataRetryList.size() == 0  &&(
+                    TimeUtils.timeCompare(
+                            marketingCommonConfig.getXieChengSmsCollidingRetryWarnAllTime().get(0),
+                            marketingCommonConfig.getXieChengSmsCollidingRetryWarnAllTime().get(1)
+                    )
+                            ||
+                    TimeUtils.timeCompare(
+                        marketingCommonConfig.getXieChengSmsCollidingRetryWarnAllTime().get(2),
+                        marketingCommonConfig.getXieChengSmsCollidingRetryWarnAllTime().get(3))
+                    )
+            ) {
+                xieChengSmsCollidingDataRetryList =
+                        xieChengSmsCollidingDataMapper.selectByRetryCountThree(localId, minId);
+            }
+            if (xieChengSmsCollidingDataRetryList.size() == 0){
+                break;
+            }
+            // 更新minId 为当前集合最大的id
+            minId = xieChengSmsCollidingDataRetryList.get(xieChengSmsCollidingDataRetryList.size() - 1).getId();
+            // 将查询出来的明细数据进行分组，每组50个数据
+            List<List<XieChengSmsCollidingData>> xieChengSmsCollidingDataPartitions =
+                    Lists.partition(xieChengSmsCollidingDataRetryList, XIECHENGSMSCOLLIDINGPARTATIONNUM);
+            for (List<XieChengSmsCollidingData> xieChengSmsCollidingDataListRetryPartition : xieChengSmsCollidingDataPartitions) {
+                xieChengSmsCollidingRetryThread.submit(() ->
+                        pushXieChengSmsCollidingData(xieChengSmsCollidingDataListRetryPartition, failNum, localId));
+            }
+        }
+
+        xieChengSmsCollidingRetryThread.shutdown();
+        try {
+            while (!xieChengSmsCollidingRetryThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("携程撞库线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            xieChengSmsCollidingRetryThread.shutdownNow();
+            log.error("日志保存线程池结束异常！",ex);
+            Thread.currentThread().interrupt();
+        }
+
+        xieChengSendAlarm(failNum, "携程短信撞库接口重试推送异常，请检查");
     }
     @Override
     public void  pushXieChengSmsCollidingToDbData(String data) {
