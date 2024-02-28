@@ -510,6 +510,11 @@ public class MarketingCommonConfig {
     private List<String> xieChengSmsCollidingRetryWarnAllTime;
 
     /**
+     * 携程短信撞库挡板及异常 [true,true]
+     */
+    private List<Boolean> xieChengSmsCollidingRetrySwitch;
+
+    /**
      * 携程短信撞库线程数Version2
      */
     private Integer xieChengSmsCollidingThreadVt;

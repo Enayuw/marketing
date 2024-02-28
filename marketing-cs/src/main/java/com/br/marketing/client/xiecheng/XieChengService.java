@@ -286,9 +286,13 @@ public class XieChengService {
         retMap.put("channel", smsCollidingChannel);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingKey, smsCollidingIv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingSingKey));
-//        HashMap<String, String> resMap = getTestMap(sha256CodeList);
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy,
-                MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
+        HashMap<String, String> resMap = new HashMap<>();
+        if(marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(0)){
+         resMap = getTestMap(sha256CodeList);
+        }else {
+          resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy,
+                    MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
+        }
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.error("携程短信撞库接口httpcode非200异常");
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
@@ -372,7 +376,12 @@ public class XieChengService {
         }
         map.put("data",jsonArray);
         HashMap<String, String> resMap = new HashMap<>();
-        resMap.put("httpcode","200");
+        if(marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(1)){
+            resMap.put("httpcode","201");
+        }else {
+            resMap.put("httpcode","200");
+        }
+
         resMap.put("content",map.toString());
         return resMap;
 
