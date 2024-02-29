@@ -901,9 +901,9 @@ public class MethodRetryHandlerService {
                 // 判断是否有效
                 Map<String, SyncUserValidityPeriodsBO> validityPeriodsBOMap = transferDataValidityPeriodService
                         .getValidityPeriodsByCustNum(Collections.singleton(custNum), apiCode, null);
-                SyncUserValidityPeriodsBO bo;
-                List<MarketingSyncUser> syncUsers;
-                if ((bo = validityPeriodsBOMap.get(custNum)) != null && (syncUsers = bo.getSyncUsers()).size() > 0) {
+                SyncUserValidityPeriodsBO bo = validityPeriodsBOMap.get(custNum);
+                if (bo != null) {
+                    List<MarketingSyncUser> syncUsers = bo.getSyncUsers();
                     updateDidiCallRecord.setCell(syncUsers.get(0).getCell());
                     // 调接口推送
                     DiDiReqVO diDiReqVO = new DiDiReqVO();

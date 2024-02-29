@@ -123,7 +123,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
                     transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSet, apiCode, null);
             // 1. 获取有效期内的最新的数据
             List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists = new ArrayList<>();
-            juZiRuleDataList.forEach(jz -> {
+            juZiRuleDataList.forEach((MarketingTransferSyncUser jz) -> {
                 SyncUserValidityPeriodsBO userValidityPeriodsBO = validityPeriodsByCustNum.get(jz.getCustNum());
                 if (userValidityPeriodsBO != null) {
                     MarketingSyncUser marketingSyncUser = userValidityPeriodsBO.getSyncUsers().get(0);
@@ -143,7 +143,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
 
             // 3. 情况b 和 c 要做剔除 < 1000
             if ("b".equals(status) || "c".equals(status)) {
-                marketingTransferSyncUserCellSet.removeIf(m -> {
+                marketingTransferSyncUserCellSet.removeIf((MarketingTransferSyncUserCell m) -> {
                             List<MarketingTransferSyncUser> transferSyncUserList =
                                     marketingTransferSyncUserMapper.getValidityPeriodData(tcid, apiCode, m.getCustNum());
                             Set<String> numSet = transferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
