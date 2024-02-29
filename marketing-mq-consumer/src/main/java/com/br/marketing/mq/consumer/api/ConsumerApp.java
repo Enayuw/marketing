@@ -54,7 +54,7 @@ public class ConsumerApp {
 
 
     /**
-     * 消费 营销平台数据导入异步处理
+     * 消费 原始上传数据消费端（大队列）
      *
      * @param channel 通道
      * @param message 消息体
@@ -62,6 +62,34 @@ public class ConsumerApp {
     @RabbitListener(queues = MQConstants.MARKETING_PRE_USER_RECEIVE, containerFactory = "fiveDataContainerFactory")
     public void consumerPreUser(Channel channel, Message message) {
         log.warn("MARKETING_PRE_USER_RECEIVE：获取消息成功");
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        consumerService.consumerRun(channel, message, pushRuleService::insertMarketingPreUserSync, o, null);
+    }
+
+    /**
+     * 消费 原始上传数据消费端（小队列）
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(queues = MQConstants.MARKETING_PREUSER_RECEIVE_SMALL, containerFactory = "fiveDataContainerFactory")
+    public void consumerPreUserSmall(Channel channel, Message message) {
+        log.warn("MARKETING_PREUSER_RECEIVE_SMALL：获取消息成功");
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        consumerService.consumerRun(channel, message, pushRuleService::insertMarketingPreUserSync, o, null);
+    }
+
+    /**
+     * 消费 原始上传数据消费端（应急队列）
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(queues = MQConstants.MARKETING_PREUSER_RECEIVE_EMERGENCY, containerFactory = "fiveDataContainerFactory")
+    public void consumerPreUserEmergency(Channel channel, Message message) {
+        log.warn("MARKETING_PREUSER_RECEIVE_EMERGENCY：获取消息成功");
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         consumerService.consumerRun(channel, message, pushRuleService::insertMarketingPreUserSync, o, null);

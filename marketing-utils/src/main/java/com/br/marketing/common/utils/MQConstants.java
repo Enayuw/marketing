@@ -104,7 +104,7 @@ public class MQConstants {
     public static final String ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE = "Marketing.PreUser.ShuHeReceive";
     public static final String ROUTING_KEY_MARKETING_TRANSFER_RECEIVE = "Marketing.Transfer.Receive";
     public static final String ROUTING_KEY_MARKETING_PREUSER_RECEIVE_SMALL = "Marketing.PreUser.Receive.Small";
-        public static final String ROUTING_KEY_MARKETING_PREUSER_RECEIVE_EMERGENCY = "Marketing.PreUser.Receive.Emergency";
+    public static final String ROUTING_KEY_MARKETING_PREUSER_RECEIVE_EMERGENCY = "Marketing.PreUser.Receive.Emergency";
     public static final String ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_SMALL = "Marketing.Transfer.Receive.Small";
     public static final String ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_EMERGENCY = "Marketing.Transfer.Receive.Emergency";
 
