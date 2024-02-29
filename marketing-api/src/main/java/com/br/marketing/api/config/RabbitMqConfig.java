@@ -68,6 +68,45 @@ public class RabbitMqConfig {
     }
 
     /**
+     * 绑定——营销平台接受预处理人员队列
+     *
+     * @return
+     */
+    @Bean
+    public Binding preUserSmallBinding() {
+        return BindingBuilder.bind(preUserQueueSmall()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PREUSER_RECEIVE_SMALL);
+    }
+    /**
+     * marketing 营销平台接受预处理人员队列
+     *
+     * @return
+     */
+    @Bean(name = MQConstants.MARKETING_PREUSER_RECEIVE_SMALL)
+    public Queue preUserQueueSmall() {
+        return new Queue(MQConstants.MARKETING_PREUSER_RECEIVE_SMALL, true);
+    }
+
+    /**
+     * 绑定——营销平台接受预处理人员队列
+     *
+     * @return
+     */
+    @Bean
+    public Binding preUserEmergencyBinding() {
+        return BindingBuilder.bind(preUserQueueEmergency()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PREUSER_RECEIVE_EMERGENCY);
+    }
+    /**
+     * marketing 营销平台接受预处理人员队列
+     *
+     * @return
+     */
+    @Bean(name = MQConstants.MARKETING_PREUSER_RECEIVE_EMERGENCY)
+    public Queue preUserQueueEmergency() {
+        return new Queue(MQConstants.MARKETING_PREUSER_RECEIVE_EMERGENCY, true);
+    }
+
+
+    /**
      * marketing 跑批人员入队列
      *
      * @return
