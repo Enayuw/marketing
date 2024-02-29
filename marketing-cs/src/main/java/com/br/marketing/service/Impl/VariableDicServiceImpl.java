@@ -7,10 +7,7 @@ import com.br.marketing.entity.MarketingDataValidConfigDefault;
 import com.br.marketing.entity.VariableDic;
 import com.br.marketing.entity.VariableDicExample;
 import com.br.marketing.entity.auth.MarketingUserDetail;
-import com.br.marketing.mapper.MarketingDataValidConfigDefaultMapperBase;
-import com.br.marketing.mapper.MarketingValidityChangeMapper;
-import com.br.marketing.mapper.ValidityPeriodResendRecordMapperBase;
-import com.br.marketing.mapper.VariableDicMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.VariableDicService;
 import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.VariableDicListVO;
@@ -46,7 +43,7 @@ public class VariableDicServiceImpl implements VariableDicService {
     private MarketingValidityChangeMapper validityChangeMapper;
 
     @Resource
-    private MarketingDataValidConfigDefaultMapperBase validConfigDefaultMapperBase;
+    private MarketingDataValidConfigDefaultMapper validConfigDefaultMapper;
 
     @Override
     public List<VariableDicSelectVO> findListByCidAndApiCode(String cid, String apiCode) {
@@ -150,7 +147,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                 configDefault.setCreateTime(data.getCreateTime());
                 configDefault.setUpdateTime(new Date());
                 configDefault.setIsDel(1);
-                validConfigDefaultMapperBase.insertSelective(configDefault);
+                validConfigDefaultMapper.insertSelective(configDefault);
                 entityOptService.writeOptLog(configDefault.getId(), configDefault, null);
             }
 
