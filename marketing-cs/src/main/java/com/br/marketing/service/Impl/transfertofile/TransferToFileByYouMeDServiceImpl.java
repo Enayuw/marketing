@@ -242,7 +242,8 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
         log.warn("你我贷转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
 
-    void fieldAction(List<TransferOfCnIdVO> transferSyncUsers, List<String> custNums,AtomicInteger totalSize, String transferBegin,String apiCode, String tcid, Writer fw) {
+    void fieldAction(List<TransferOfCnIdVO> transferSyncUsers, List<String> custNums,
+                     AtomicInteger totalSize, String transferBegin,String apiCode, String tcid, Writer fw) {
         Integer num = 0;
         LocalDate yDate = LocalDate.now().minusDays(1L);
         String requestDataMinusOne = yDate.format(YYYYMMDDLINEDF);
