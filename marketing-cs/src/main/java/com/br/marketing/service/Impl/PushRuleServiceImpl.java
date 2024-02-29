@@ -58,8 +58,6 @@ import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessIm
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.vo.*;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
@@ -1024,19 +1022,17 @@ public class PushRuleServiceImpl implements PushRuleService {
     private void sendUploadMq(String apiCode, String syncInfoId) {
         try {
             long l3 = System.currentTimeMillis();
-
             // 根据apicode获取路由键
             CustomerRoutingKeyConfig routingKeyConfig = CaffeineCache.getRountingKey(apiCode);
             if (null == routingKeyConfig) {
                 producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId);
             } else {
-                producter.send(routingKeyConfig.getRoutingkey(), syncInfoId);
+                if (routingKeyConfig.getType() == 1) {
+                    producter.send(routingKeyConfig.getRoutingkey(), syncInfoId);
+                }else {
+                    producter.send(routingKeyConfig.getRoutingkey(), syncInfoId, routingKeyConfig.getPriority());
+                }
             }
-//            if (marketingCommonConfig.getShuheApiCode().contains(apiCode)) {
-//                producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, syncInfoId);
-//            } else {
-//                producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId);
-//            }
             if (log.isInfoEnabled()) {
                 log.info("MQ推送耗时:{}", (System.currentTimeMillis() - l3));
             }

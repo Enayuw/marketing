@@ -83,7 +83,9 @@ public class RabbitMqConfig {
      */
     @Bean(name = MQConstants.MARKETING_PREUSER_RECEIVE_SMALL)
     public Queue preUserQueueSmall() {
-        return new Queue(MQConstants.MARKETING_PREUSER_RECEIVE_SMALL, true);
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-max-priority", 10); // 设置队列的最大优先级为10
+        return new Queue(MQConstants.MARKETING_PREUSER_RECEIVE_SMALL, true, false, false, args);
     }
 
     /**
@@ -102,7 +104,9 @@ public class RabbitMqConfig {
      */
     @Bean(name = MQConstants.MARKETING_PREUSER_RECEIVE_EMERGENCY)
     public Queue preUserQueueEmergency() {
-        return new Queue(MQConstants.MARKETING_PREUSER_RECEIVE_EMERGENCY, true);
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-max-priority", 10); // 设置队列的最大优先级为10
+        return new Queue(MQConstants.MARKETING_PREUSER_RECEIVE_EMERGENCY, true, false, false, args);
     }
 
 
