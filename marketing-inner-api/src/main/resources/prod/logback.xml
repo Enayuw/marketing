@@ -48,11 +48,6 @@
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <pattern>${ENCODER_PATTERN}</pattern>
         </encoder>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>ERROR</level>
-            <onMatch>DENY</onMatch>
-            <onMismatch>ACCEPT</onMismatch>
-        </filter>
     </appender>
     <!--如果日志为异步打印注意在logback添加上-->
     <appender name="ASYNC_MOM_LOG" class="com.br.transfer.log.appender.LogbackAsyncAppender">
