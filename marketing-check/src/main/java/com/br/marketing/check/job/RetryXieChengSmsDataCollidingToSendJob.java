@@ -51,8 +51,8 @@ public class RetryXieChengSmsDataCollidingToSendJob extends AbstractSimpleElasti
             // 发送钉钉告警
             DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
             markdown.setTitle("携程撞库异常量级过大通知");
-            markdown.setText("携程撞库异常量级超过" + countedByExample+"超过阈值："
-                    +marketingCommonConfig.getXieChengSmsCollidingRetryWarnCount()+"重试任务以暂停，请联系运营人员处理"
+            markdown.setText("携程撞库异常量级超过" + countedByExample+"条，超过设置的阈值："
+                    +marketingCommonConfig.getXieChengSmsCollidingRetryWarnCount()+"条，重试任务以暂停，请联系运营人员处理"
             );
             DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
             dingDingMarkdownMessage.setMarkdown(markdown);
