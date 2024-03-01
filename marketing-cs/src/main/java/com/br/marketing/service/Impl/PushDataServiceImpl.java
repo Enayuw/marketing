@@ -53,6 +53,8 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.thread.HaierCollidingDataThread;
 import com.br.marketing.util.TimeUtils;
+import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
+import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
@@ -146,6 +148,8 @@ public class PushDataServiceImpl implements PushDataService {
     @Qualifier("xieChengThreadPool")
     ThreadPoolExecutor xieChengThreadPool;
 
+    @Resource
+    private DingDingRobotHookService dingDingRobotHookService;
 
     @Resource
     private AlarmApiClient alarmClient;
@@ -1380,6 +1384,15 @@ public class PushDataServiceImpl implements PushDataService {
         int countedByExample = xieChengSmsCollidingDataMapper.countByExample(x);
         if(countedByExample>=marketingCommonConfig.getXieChengSmsCollidingRetryWarnCount()){
             // 发送钉钉告警
+            DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
+            markdown.setTitle("携程撞库异常量级过大通知");
+            markdown.setText("携程撞库异常量级超过" + countedByExample+"超过阈值："
+                            +marketingCommonConfig.getXieChengSmsCollidingRetryWarnCount()+"重试任务以暂停，请联系运营人员处理"
+             );
+            DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
+            dingDingMarkdownMessage.setMarkdown(markdown);
+            dingDingRobotHookService.sendMessageGroup(marketingCommonConfig.getXieChengGroupAccessToken() ,
+                    marketingCommonConfig.getXieChengGroupSecret(), dingDingMarkdownMessage, true);
             return;
         }
         // 创建线程池

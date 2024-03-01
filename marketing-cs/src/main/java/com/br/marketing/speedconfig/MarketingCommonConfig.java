@@ -1326,6 +1326,16 @@ public class MarketingCommonConfig {
      */
     private Map<String, List<String>> shuHeUserTypeAndApiCodeMappingMap = new HashMap<>();
 
+    /**
+    * 携程撞库异常量级钉钉通知accessToken
+     */
+    private String xieChengGroupAccessToken;
+
+    /**
+     * 携程撞库异常量级钉钉通知Secret
+     */
+    private String xieChengGroupSecret;
+
 
 }
 
