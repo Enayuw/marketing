@@ -1379,22 +1379,6 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Override
     public void retryPushXieChengSmsCollidingToDbData(Long localId){
-        XieChengSmsCollidingDataExample x = new  XieChengSmsCollidingDataExample();
-        x.createCriteria().andStatusEqualTo(1).andRetryCountIn(Arrays.asList(1,2,3));
-        int countedByExample = xieChengSmsCollidingDataMapper.countByExample(x);
-        if(countedByExample>=marketingCommonConfig.getXieChengSmsCollidingRetryWarnCount()){
-            // 发送钉钉告警
-            DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
-            markdown.setTitle("携程撞库异常量级过大通知");
-            markdown.setText("携程撞库异常量级超过" + countedByExample+"超过阈值："
-                            +marketingCommonConfig.getXieChengSmsCollidingRetryWarnCount()+"重试任务以暂停，请联系运营人员处理"
-             );
-            DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
-            dingDingMarkdownMessage.setMarkdown(markdown);
-            dingDingRobotHookService.sendMessageGroup(marketingCommonConfig.getXieChengGroupAccessToken() ,
-                    marketingCommonConfig.getXieChengGroupSecret(), dingDingMarkdownMessage, true);
-            return;
-        }
         // 创建线程池
         ThreadPoolExecutor xieChengSmsCollidingRetryThread =
                 BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingRetryThread(),
