@@ -1012,32 +1012,41 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         //region 写入上传明细MQ
         if (!dbException) {
-            sendUploadMq(apiCode, syncInfoId);
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, "原始上传");
         }
         //endregion
 
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 
-    private void sendUploadMq(String apiCode, String syncInfoId) {
+
+    /**
+     * 根据配置表发送到对应MQ
+     * 配置表：b_marketing_customer_routingKey_mapping
+     * @param apiCode
+     * @param defaultRoutingKey 默认路由键
+     * @param infoId 原始数据表id
+     * @param type 队列类型
+     */
+    private void sendToMqByConfig(String apiCode, String defaultRoutingKey, String infoId, String type) {
         try {
             long l3 = System.currentTimeMillis();
             // 根据apicode获取路由键
             CustomerRoutingKeyConfig routingKeyConfig = CaffeineCache.getRountingKey(apiCode);
             if (null == routingKeyConfig) {
-                producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId);
+                producter.send(defaultRoutingKey, infoId);
             } else {
                 if (routingKeyConfig.getType() == 1) {
-                    producter.send(routingKeyConfig.getRoutingkey(), syncInfoId);
-                }else {
-                    producter.send(routingKeyConfig.getRoutingkey(), syncInfoId, routingKeyConfig.getPriority());
+                    producter.send(routingKeyConfig.getRoutingkey(), infoId);
+                } else {
+                    producter.send(routingKeyConfig.getRoutingkey(), infoId, routingKeyConfig.getPriority());
                 }
             }
             if (log.isInfoEnabled()) {
-                log.info("MQ推送耗时:{}", (System.currentTimeMillis() - l3));
+                log.info("推送" + type + "队列耗时:{}", (System.currentTimeMillis() - l3));
             }
         } catch (Exception ex) {
-            log.error(String.format("推送MQ失败syncInfoId【%s】", syncInfoId));
+            log.error(String.format("推送" + type + "队列失败,数据id：{}", infoId));
         }
     }
 
@@ -1470,7 +1479,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         //region 写入上传明细MQ
         if (!dbException) {
-            sendUploadMq(apiCode, syncInfoId);
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, "原始上传");
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
@@ -1575,7 +1584,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         if (!dbException) {
-            producter.send("Marketing.Transfer.Receive", transferInfoId);
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, "原始转化");
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
@@ -1628,7 +1637,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         if (!dbException) {
-            producter.send("Marketing.Transfer.Receive", transferInfoId);
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, "原始转化");
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
