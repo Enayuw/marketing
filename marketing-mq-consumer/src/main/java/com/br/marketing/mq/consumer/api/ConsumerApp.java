@@ -112,13 +112,41 @@ public class ConsumerApp {
     }
 
     /**
-     * 消费 转化数据导入异步处理
+     * 消费 原始转化数据消费端（大队列）
      *
      * @param channel 通道
      * @param message 消息体
      */
     @RabbitListener(queues = MQConstants.MARKETING_TRANSFER_RECEIVE, containerFactory = "fiveDataContainerFactory")
     public void consumerTransferUser(Channel channel, Message message) {
+        log.warn("MARKETING_TRANSFER_RECEIVE：获取消息成功");
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        consumerService.consumerRun(channel, message, pushRuleService::consumerTransferData, o, null);
+    }
+
+    /**
+     * 消费 原始转化数据消费端（小队列）
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(queues = MQConstants.MARKETING_TRANSFER_RECEIVE_SMALL, containerFactory = "fiveDataContainerFactory")
+    public void consumerTransferUserSmall(Channel channel, Message message) {
+        log.warn("MARKETING_TRANSFER_RECEIVE：获取消息成功");
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        consumerService.consumerRun(channel, message, pushRuleService::consumerTransferData, o, null);
+    }
+
+    /**
+     * 消费 原始转化数据消费端（应急队列）
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(queues = MQConstants.MARKETING_TRANSFER_RECEIVE_EMERGENCY, containerFactory = "fiveDataContainerFactory")
+    public void consumerTransferUserEmergency(Channel channel, Message message) {
         log.warn("MARKETING_TRANSFER_RECEIVE：获取消息成功");
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());

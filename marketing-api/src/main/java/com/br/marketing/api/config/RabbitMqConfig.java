@@ -48,7 +48,7 @@ public class RabbitMqConfig {
     }
 
     /**
-     * marketing 营销平台接受预处理人员队列
+     * marketing 原始上传数据大队列
      *
      * @return
      */
@@ -58,7 +58,7 @@ public class RabbitMqConfig {
     }
 
     /**
-     * 绑定——营销平台接受预处理人员队列
+     * 绑定原始上传数据大队列
      *
      * @return
      */
@@ -68,16 +68,7 @@ public class RabbitMqConfig {
     }
 
     /**
-     * 绑定——营销平台接受预处理人员队列
-     *
-     * @return
-     */
-    @Bean
-    public Binding preUserSmallBinding() {
-        return BindingBuilder.bind(preUserQueueSmall()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PREUSER_RECEIVE_SMALL);
-    }
-    /**
-     * marketing 营销平台接受预处理人员队列
+     * marketing 原始上传数据小队列
      *
      * @return
      */
@@ -89,16 +80,17 @@ public class RabbitMqConfig {
     }
 
     /**
-     * 绑定——营销平台接受预处理人员队列
+     * 绑定原始上传数据小队列
      *
      * @return
      */
     @Bean
-    public Binding preUserEmergencyBinding() {
-        return BindingBuilder.bind(preUserQueueEmergency()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PREUSER_RECEIVE_EMERGENCY);
+    public Binding preUserSmallBinding() {
+        return BindingBuilder.bind(preUserQueueSmall()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PREUSER_RECEIVE_SMALL);
     }
+
     /**
-     * marketing 营销平台接受预处理人员队列
+     * marketing 原始上传数据应急队列
      *
      * @return
      */
@@ -109,6 +101,15 @@ public class RabbitMqConfig {
         return new Queue(MQConstants.MARKETING_PREUSER_RECEIVE_EMERGENCY, true, false, false, args);
     }
 
+    /**
+     * 绑定原始上传数据应急队列
+     *
+     * @return
+     */
+    @Bean
+    public Binding preUserEmergencyBinding() {
+        return BindingBuilder.bind(preUserQueueEmergency()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PREUSER_RECEIVE_EMERGENCY);
+    }
 
     /**
      * marketing 跑批人员入队列
@@ -131,7 +132,7 @@ public class RabbitMqConfig {
     }
 
     /**
-     * marketing 转化数据队列
+     * marketing 原始转化数据大队列
      *
      * @return
      */
@@ -141,13 +142,53 @@ public class RabbitMqConfig {
     }
 
     /**
-     * 绑定——转化数据队列
+     * 绑定原始转化数据大队列
      *
      * @return
      */
     @Bean
     public Binding transferBinding() {
         return BindingBuilder.bind(transferQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE);
+    }
+
+    /**
+     * marketing 原始转化数据小队列
+     *
+     * @return
+     */
+    @Bean(name = MQConstants.MARKETING_TRANSFER_RECEIVE_SMALL)
+    public Queue transferQueueSmall() {
+        return new Queue(MQConstants.MARKETING_TRANSFER_RECEIVE_SMALL, true);
+    }
+
+    /**
+     * 绑定原始转化数据小队列
+     *
+     * @return
+     */
+    @Bean
+    public Binding transferSmallBinding() {
+        return BindingBuilder.bind(transferQueueSmall()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_SMALL);
+    }
+
+    /**
+     * marketing 原始转化数据应急队列
+     *
+     * @return
+     */
+    @Bean(name = MQConstants.MARKETING_TRANSFER_RECEIVE_EMERGENCY)
+    public Queue transferQueueEmergency() {
+        return new Queue(MQConstants.MARKETING_TRANSFER_RECEIVE_EMERGENCY, true);
+    }
+
+    /**
+     * 绑定原始转化数据应急队列
+     *
+     * @return
+     */
+    @Bean
+    public Binding transferEmergencyBinding() {
+        return BindingBuilder.bind(transferQueueEmergency()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_EMERGENCY);
     }
 
     /**
