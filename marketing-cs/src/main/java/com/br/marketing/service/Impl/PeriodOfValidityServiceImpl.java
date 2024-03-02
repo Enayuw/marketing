@@ -13,6 +13,7 @@ import com.br.marketing.util.PeriodOfValidityHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
@@ -304,6 +305,7 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> configValidDateDefault(MarketingSyncUser syncUser) {
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
@@ -364,6 +366,15 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
                         , defaultMap.getOrDefault("defaultConfig", dataValidConfigDefault));
                 String newDateStr = LocalDate.parse(appletDate).plusDays(defaultConfig.getValidDaysDefault()).toString();
                 newDataValidConfig.setValidEndDate(newDateStr);
+                // 添加默认配置
+                MarketingDataValidConfigDefault newConfigDefault = new MarketingDataValidConfigDefault();
+                newConfigDefault.setApiCode(syncUser.getApiCode());
+                newConfigDefault.setValidDaysDefault(defaultConfig.getValidDaysDefault());
+                newConfigDefault.setUserType(syncUser.getUserType());
+                newConfigDefault.setIsDel(1);
+                newConfigDefault.setCreateTime(new Date());
+                newConfigDefault.setUpdateTime(newConfigDefault.getCreateTime());
+                marketingDataValidConfigDefaultMapper.insertSelective(newConfigDefault);
             }
         } else {
             String newDateStr = LocalDate.parse(appletDate).plusDays(days).toString();
