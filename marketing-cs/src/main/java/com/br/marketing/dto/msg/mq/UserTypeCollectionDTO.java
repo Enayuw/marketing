@@ -28,13 +28,13 @@ public class UserTypeCollectionDTO implements Serializable {
      * 2024-02-28 13:42
      * 数据状态
      */
-    private int status;
+    private Integer status;
 
 
     public UserTypeCollectionDTO() {
     }
 
-    public UserTypeCollectionDTO(String userType, String taskId, int status) {
+    public UserTypeCollectionDTO(String userType, String taskId, Integer status) {
         this.userType = userType;
         this.taskId = taskId;
         this.status = status;
@@ -61,11 +61,11 @@ public class UserTypeCollectionDTO implements Serializable {
         this.taskId = taskId;
     }
 
-    public int getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(int status) {
+    public void setStatus(Integer status) {
         this.status = status;
     }
 

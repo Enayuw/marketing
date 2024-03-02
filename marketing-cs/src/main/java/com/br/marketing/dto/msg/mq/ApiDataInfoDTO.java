@@ -52,7 +52,7 @@ public class ApiDataInfoDTO<T> implements Serializable {
      * 2024-02-28 13:34
      * 数据源
      */
-    private MsgSourceEnum msgSource;
+    private Integer msgSource;
 
 
     public ApiDataInfoDTO() {
@@ -74,6 +74,16 @@ public class ApiDataInfoDTO<T> implements Serializable {
         this.rawDataSaveDateStr = rawDataSaveDateStr;
         this.requestId = requestId;
         this.argList = argList;
+    }
+
+    public ApiDataInfoDTO(String cid, String apiCode, String rawDataSaveTimeStr, String rawDataSaveDateStr, String requestId, List<T> argList, Integer msgSource) {
+        this.cid = cid;
+        this.apiCode = apiCode;
+        this.rawDataSaveTimeStr = rawDataSaveTimeStr;
+        this.rawDataSaveDateStr = rawDataSaveDateStr;
+        this.requestId = requestId;
+        this.argList = argList;
+        this.msgSource = msgSource;
     }
 
     public String getCid() {
@@ -124,21 +134,21 @@ public class ApiDataInfoDTO<T> implements Serializable {
         this.argList = argList;
     }
 
-    public MsgSourceEnum getMsgSource() {
+    public Integer getMsgSource() {
         return msgSource;
     }
 
-    private void setMsgSource(MsgSourceEnum msgSource) {
+    public void setMsgSource(Integer msgSource) {
         this.msgSource = msgSource;
     }
 
     public ApiDataInfoDTO<T> addUploadMsgSource() {
-        this.setMsgSource(MsgSourceEnum.UPLOAD);
+        this.setMsgSource(MsgSourceEnum.UPLOAD.getValue());
         return this;
     }
 
     public ApiDataInfoDTO<T> addTransferMsgSource() {
-        this.setMsgSource(MsgSourceEnum.TRANSFER);
+        this.setMsgSource(MsgSourceEnum.TRANSFER.getValue());
         return this;
     }
 
@@ -171,10 +181,23 @@ public class ApiDataInfoDTO<T> implements Serializable {
          */
         TRANSFER(2);
 
-        private int value;
+        private Integer value;
 
-        MsgSourceEnum(int value) {
+        MsgSourceEnum(Integer value) {
             this.value = value;
+        }
+
+        MsgSourceEnum() {
+        }
+
+        public static MsgSourceEnum valueof(Integer value) {
+            MsgSourceEnum[] values = MsgSourceEnum.values();
+            for (MsgSourceEnum msgSourceEnum : values) {
+                if (msgSourceEnum.value.equals(value)) {
+                    return msgSourceEnum;
+                }
+            }
+            throw new IllegalArgumentException("MsgSourceEnum未知的消息来源值：" + value);
         }
 
         public int getValue() {
