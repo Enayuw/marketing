@@ -167,7 +167,7 @@ public class ConsumerApp {
      */
     @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_STANDARD_API_USERTYPE_COLLECTION
             , durable = "true")
-            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
             , key = MQConstants.ROUTING_KEY_MARKETING_STANDARD_API_USERTYPE_COLLECTION)}
             , containerFactory = "concurrentContainerFactory")
     public void standardApiUsertypeCollection(Channel channel, Message message) {
@@ -183,9 +183,9 @@ public class ConsumerApp {
      */
     @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE
             , durable = "true")
-            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_DEAD_NAME, durable = "true")
             , key = MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE)}
-            , containerFactory = "concurrentContainerFactory")
+            , containerFactory = "primaryContainerFactory")
     public void delaySendUserTypeMessage(Channel channel, Message message) {
         consumerService.consumerRun(channel, message, variableDicService::delaySendUserTypeMessage
                 , new String(message.getBody(), StandardCharsets.UTF_8), null);
