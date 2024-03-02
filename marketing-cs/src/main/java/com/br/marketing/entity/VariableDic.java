@@ -49,7 +49,7 @@ public class VariableDic {
     private Date updateTime;
 
     /**
-     * 字段值来源；1-手动添加；2-上传接口；3-转化接口
+     * 字段值来源；0-手动添加；1-上传接口；2-转化接口
      */
     private Integer fieldValueSource;
 
