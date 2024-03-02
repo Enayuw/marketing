@@ -7,11 +7,8 @@ import com.br.marketing.common.constants.PulsarSubscription;
 import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.service.IPeriodOfValidityService;
-import com.br.marketing.service.IPushShuheDataService;
+import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.ConsumerService;
-import com.br.marketing.service.PushDataService;
-import com.br.marketing.service.PushRuleService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +48,9 @@ public class ConsumerApp {
 
     @Autowired
     PushDataService pushDataService;
+
+    @Resource
+    private VariableDicService variableDicService;
 
 
     /**
@@ -154,17 +154,48 @@ public class ConsumerApp {
             , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
             , key = MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)}, containerFactory = "concurrentContainerFactory")
     public void xieChengToDb(Channel channel, Message message) {
-        String mes  = new String(message.getBody(), StandardCharsets.UTF_8);
+        String mes = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
         consumerService.consumerRun(channel, message, pushDataService::pushXieChengToDbData, mes, null);
     }
 
+    /**
+     * 场景收集队列消费端
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_STANDARD_API_USERTYPE_COLLECTION
+            , durable = "true")
+            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_STANDARD_API_USERTYPE_COLLECTION)}
+            , containerFactory = "concurrentContainerFactory")
+    public void standardApiUsertypeCollection(Channel channel, Message message) {
+        consumerService.consumerRun(channel, message, variableDicService::batchAddUserTypeVariableDicTry
+                , new String(message.getBody(), StandardCharsets.UTF_8), null);
+    }
+
+    /**
+     * 延迟发送场景消息队列
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE
+            , durable = "true")
+            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE)}
+            , containerFactory = "concurrentContainerFactory")
+    public void delaySendUserTypeMessage(Channel channel, Message message) {
+        consumerService.consumerRun(channel, message, variableDicService::delaySendUserTypeMessage
+                , new String(message.getBody(), StandardCharsets.UTF_8), null);
+    }
 
 
     @PostConstruct
-    void init(){
+    void init() {
         // 标准上传数据pulsar消费端
-        consumerService.consumerPulsar(PulsarSubscription.upLoadSubscription,pushRuleService::consumerSyncInfo,2, PulsarTopic.upLoadTopic);
+        consumerService.consumerPulsar(PulsarSubscription.upLoadSubscription, pushRuleService::consumerSyncInfo, 2, PulsarTopic.upLoadTopic);
 
         // 数禾上传数据pulsar消费端
         consumerService.consumerPulsar(PulsarSubscription.upLoadShSubscription, pushShuheDataService::consumerShUpload, 2, PulsarTopic.upLoadShTopic);

@@ -1,28 +1,54 @@
 package com.br.marketing.service.Impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
+import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.entity.MarketingDataValidConfigDefault;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.VariableDic;
 import com.br.marketing.entity.VariableDicExample;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.MarketingValidityChangeMapper;
-import com.br.marketing.mapper.ValidityPeriodResendRecordMapperBase;
 import com.br.marketing.mapper.VariableDicMapper;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.VariableDicService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.VariableDicListVO;
 import com.br.marketing.vo.VariableDicSelectVO;
+import com.br.marketing.webhook.dingding.msgtype.At;
+import com.br.marketing.webhook.dingding.msgtype.DingDingTextMessage;
+import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -45,7 +71,25 @@ public class VariableDicServiceImpl implements VariableDicService {
     private MarketingValidityChangeMapper validityChangeMapper;
 
     @Resource
-    private ValidityPeriodResendRecordMapperBase validityPeriodResendRecordMapperBase;
+    private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private RedisChgService redisChgService;
+
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
+
+    @Resource
+    private IPeriodOfValidityService periodOfValidityService;
+
+    @Resource
+    private DingDingRobotHookService dingDingRobotHookService;
+
+    @Resource
+    private RabbitMqProducter producter;
+
+    private final static Lock LOCK = new ReentrantLock(true);
+
 
     @Override
     public List<VariableDicSelectVO> findListByCidAndApiCode(String cid, String apiCode) {
@@ -159,9 +203,9 @@ public class VariableDicServiceImpl implements VariableDicService {
                 String apiCode = vo.getApiCode();
                 List<VariableDicSelectVO> userTypeList = findListByCidAndApiCode(cid, apiCode);
                 Map map = new HashMap();
-                map.put("cid",cid);
-                map.put("apiCode",apiCode);
-                map.put("userTypeList",userTypeList);
+                map.put("cid", cid);
+                map.put("apiCode", apiCode);
+                map.put("userTypeList", userTypeList);
                 list.add(map);
             }
         }
@@ -169,5 +213,233 @@ public class VariableDicServiceImpl implements VariableDicService {
         return list;
     }
 
+    @Override
+    public Result<Boolean> batchAddUserTypeVariableDicTry(String msgStr) {
+        Result<Boolean> result = new Result<>();
+        result.setCode(ResultCode.SUCCESS.getValue());
+        LOCK.lock();
+        try {
+            ApiDataInfoDTO<UserTypeCollectionDTO> apiDataInfoDTO = JSONArray.parseObject(msgStr
+                    , new TypeReference<ApiDataInfoDTO<UserTypeCollectionDTO>>() {
+                    }.getType());
+            String apiCode = apiDataInfoDTO.getApiCode();
+            String cId = StringUtils.hasText(apiDataInfoDTO.getCid()) ? apiDataInfoDTO.getCid()
+                    : tableCreateService.getCId(apiCode);
+            String key = RedisKeyConstant.USERTYPE_DICT.concat(cId).concat(":").concat(apiCode);
+            String fieldName = "userType";
+            for (UserTypeCollectionDTO collectionDTO : apiDataInfoDTO.getArgList()) {
+                String userType = collectionDTO.getUserType();
+                LocalDateTime localDateTime = LocalDateTime.now();
+                String redisKey = key.concat(":").concat(userType);
+                // 添加缓存
+                boolean exists = true;
+                boolean isError = false;
+                try {
+                    exists = redisChgService.lock(redisKey, apiDataInfoDTO.getRawDataSaveDateStr()
+                            , ChronoUnit.SECONDS.between(localDateTime, localDateTime.toLocalDate().plusDays(1)
+                                    .atStartOfDay().atZone(ZoneId.systemDefault())));
+                } catch (Exception e) {
+                    isError = true;
+                    log.error(e.getMessage(), e);
+                }
+                if (exists) {
+                    // 缓存不存在，检查db中是否存在
+                    VariableDicExample variableDicExample = new VariableDicExample();
+                    variableDicExample.createCriteria().andCidEqualTo(cId).andApiCodeEqualTo(apiCode)
+                            .andFieldNameEqualTo(fieldName).andFieldValueEqualTo(userType);
+                    if (isError) {
+                        variableDicExample.setOrderByClause("id for update");
+                    }
+                    int count = variableDicMapper.countByExample(variableDicExample);
+                    if (count < 1) {
+                        LocalDateTime parseTime = LocalDateTime.parse(apiDataInfoDTO.getRawDataSaveDateStr()
+                                , DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                        // db中不存在，添加记录
+                        VariableDic variableDic = new VariableDic();
+                        variableDic.setFieldName(fieldName);
+                        variableDic.setFieldValue(userType);
+                        variableDic.setFieldDesc("");
+                        variableDic.setIsDel(1);
+                        variableDic.setCreateTime(Date.from(parseTime.atZone(ZoneId.systemDefault()).toInstant()));
+                        variableDic.setUpdateTime(variableDic.getCreateTime());
+                        variableDic.setCid(cId);
+                        variableDic.setApiCode(apiCode);
+                        variableDic.setFieldValueSource(apiDataInfoDTO.getMsgSource().getValue());
+                        int i = variableDicMapper.insertSelective(variableDic);
+                        if (i > 0) {
+                            sendUserTypeAddDingDingMgs(localDateTime, apiCode, userType);
+                        } else {
+                            log.warn("自动化场景维护入库失败,cid:{},apiCode:{},userType:{},上传时间:{},数据来源:{}"
+                                    , cId, apiCode, userType, apiDataInfoDTO.getRawDataSaveDateStr()
+                                    , apiDataInfoDTO.getMsgSource());
+                        }
+                    }
+                }
+                // 生成有效期
+                createValidDateConfig(apiDataInfoDTO.getMsgSource(), apiDataInfoDTO.getRawDataSaveTimeStr()
+                        , collectionDTO, apiCode, userType);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            result.setCode(ResultCode.FAIL.getValue());
+        } finally {
+            LOCK.unlock();
+        }
+        return result;
+    }
 
+    /**
+     * 2024-03-02 14:02
+     * 新增场景告警
+     *
+     * @param localDateTime 新增场景的时间
+     * @param apiCode       客户编号
+     * @param userType      场景
+     */
+    private void sendUserTypeAddDingDingMgs(LocalDateTime localDateTime, String apiCode, String userType) {
+        try {
+            Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+            Map<String, Object> map = webHookInfo.get("batchAddUserTypeVariableDicTry_sendUserTypeAddDingDingMgs");
+            if (CollectionUtils.isEmpty(map)) {
+                return;
+            }
+            // 添加新增场景通知信息
+            LocalTime startParse = LocalTime.parse(map.getOrDefault("startTime", "10:00").toString());
+            LocalTime endParse = LocalTime.parse(map.getOrDefault("endTime", "18:00").toString());
+            LocalTime localTime = localDateTime.toLocalTime();
+            boolean isRealTimeSend = (localTime.isAfter(startParse) && localTime.isBefore(endParse))
+                    || localTime.equals(startParse) || localTime.equals(endParse);
+            if (isRealTimeSend) {
+                DingDingTextMessage dingDingTextMessage = new DingDingTextMessage();
+                DingDingTextMessage.Text text = new DingDingTextMessage.Text();
+                text.setContent("apiCode  userType\n".concat(apiCode).concat("  ").concat(userType).concat("\n"));
+                dingDingTextMessage.setText(text);
+                JSONArray ats = (JSONArray) map.get("at");
+                if (ats != null) {
+                    At at = new At();
+                    at.setAtMobiles(ats.toJavaList(String.class));
+                    dingDingTextMessage.setAt(at);
+                }
+                log.warn(dingDingTextMessage.toString());
+                // 发送实时消息
+                dingDingRobotHookService.sendMessageGroup(map.get("token").toString(), map.get("secret").toString()
+                        , dingDingTextMessage);
+            } else {
+                // T+1日延时发送消息
+                String key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:").concat(localDateTime.toLocalDate()
+                        .format(DateTimeFormatter.BASIC_ISO_DATE));
+                Boolean exists = redisChgService.exists(key);
+                if (!exists) {
+                    // 不存在添加延迟队列
+                    producter.sendByExpiration(MQConstants.ROUTING_KEY_MARKETING_STANDARD_API_USERTYPE_COLLECTION,
+                            key, String.valueOf(ChronoUnit.SECONDS.between(localDateTime
+                                    , localDateTime.toLocalDate().plusDays(1).atTime(startParse)
+                                            .atZone(ZoneId.systemDefault()))));
+                }
+                // 缓存批量结果
+                redisChgService.saddMember(key, apiCode.concat("  ").concat(userType));
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 2024-03-02 16:17
+     * 创建有效期
+     *
+     * @param msgSourceEnum 消息源
+     * @param dateTimeStr   数据接收时间
+     * @param apiCode       客户编号
+     * @param userType      场景
+     */
+    private void createValidDateConfig(ApiDataInfoDTO.MsgSourceEnum msgSourceEnum, String dateTimeStr
+            , UserTypeCollectionDTO collectionDTO, String apiCode, String userType) {
+        if (msgSourceEnum == ApiDataInfoDTO.MsgSourceEnum.UPLOAD
+                && collectionDTO.getStatus() == 1) {
+            LocalDateTime parseTime = LocalDateTime.parse(dateTimeStr
+                    , DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            MarketingSyncUser marketingSyncUser = new MarketingSyncUser();
+            marketingSyncUser.setUserType(userType);
+            marketingSyncUser.setApiCode(apiCode);
+            marketingSyncUser.setAppletDate(parseTime.toLocalDate().toString());
+            // 添加有效期范围
+            if (marketingCommonConfig.getCustomizeConfigValidDefaultApiCodes().contains(apiCode)) {
+                marketingSyncUser.setCusBatch(collectionDTO.getTaskId());
+                // 定制生成有效期
+                configValidDateDefault(marketingSyncUser
+                        , syncUser -> apiCode.concat(":").concat(userType).concat(":").concat(syncUser.getCusBatch())
+                        , syncUser -> periodOfValidityService.customizeConfigValidDateDefault(syncUser));
+            } else {
+                // 通用生成有效期
+                configValidDateDefault(marketingSyncUser
+                        , syncUser -> apiCode.concat(":").concat(userType)
+                        , syncUser -> periodOfValidityService.configValidDateDefault(syncUser));
+            }
+        }
+    }
+
+    /**
+     * 2024-02-29 15:52
+     * 配置默认有效期
+     *
+     * @param syncUser 上传数据
+     */
+    private void configValidDateDefault(MarketingSyncUser syncUser
+            , Function<MarketingSyncUser, String> functionRedisKey, Function<MarketingSyncUser, Result<Boolean>> function) {
+        try {
+            // 遍历缓存中需要设置默认有效期的apiCode与userType
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime localDateTime = now.plusDays(1);
+            ZonedDateTime zonedDateTime = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault());
+            String key = RedisKeyConstant.prefix.concat("valid:lock:") + functionRedisKey.apply(syncUser);
+            boolean lock;
+            try {
+                // 将主键保存到锁的key中
+                lock = redisChgService.lock(key, syncUser.getUserType(), ChronoUnit.MILLIS.between(now, zonedDateTime));
+            } catch (Exception e) {
+                lock = true;
+                log.error("设置默认有效期,上锁失败key:" + key + e.getMessage(), e);
+            }
+            if (lock) {
+                function.apply(syncUser);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Result<Boolean> delaySendUserTypeMessage(String redisKey) {
+        Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+        Map<String, Object> map = webHookInfo.get("batchAddUserTypeVariableDicTry_sendUserTypeAddDingDingMgs");
+        Result<Boolean> result = new Result<>();
+        result.setCode(ResultCode.SUCCESS.getValue());
+        if (CollectionUtils.isEmpty(map)) {
+            return result;
+        }
+        Set<String> userTypeSet = redisChgService.smembers(redisKey);
+        if (CollectionUtils.isEmpty(userTypeSet)) {
+            return result;
+        }
+        DingDingTextMessage dingDingTextMessage = new DingDingTextMessage();
+        DingDingTextMessage.Text text = new DingDingTextMessage.Text();
+        dingDingTextMessage.setText(text);
+        JSONArray ats = (JSONArray) map.get("at");
+        if (ats != null) {
+            At at = new At();
+            at.setAtMobiles(ats.toJavaList(String.class));
+            dingDingTextMessage.setAt(at);
+        }
+        String content = "apiCode  userType\n";
+        for (String mgs : userTypeSet) {
+            content = content.concat(mgs).concat("\n");
+        }
+        text.setContent(content);
+        log.warn(dingDingTextMessage.toString());
+        // 发送实时消息
+        dingDingRobotHookService.sendMessageGroup(map.get("token").toString(), map.get("secret").toString()
+                , dingDingTextMessage);
+        return result;
+    }
 }

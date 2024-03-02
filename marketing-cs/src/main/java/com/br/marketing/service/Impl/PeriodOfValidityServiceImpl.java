@@ -22,11 +22,11 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * 实现具体有效期的计算
@@ -342,8 +342,29 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         Integer days;
         // 根据配置表计算默认的有效期范围,未在生成配置表中的默认为准永久有效，
         if (configDefaults.size() < 1 || (days = configDefaults.get(0).getValidDaysDefault()) == null) {
-            // 设置准永久有效，该值可根据数据库中可接受的数据范围设定
-            newDataValidConfig.setValidEndDate("9999-12-31");
+            MarketingDataValidConfigDefaultExample exampleDefaultConfig = new MarketingDataValidConfigDefaultExample();
+            exampleDefaultConfig.createCriteria().andApiCodeIn(Arrays.asList("defaultConfig", syncUser.getApiCode()))
+                    .andUserTypeEqualTo("defaultConfig").andIsDelEqualTo(9);
+            exampleDefaultConfig.setOrderByClause("api_code");
+            List<MarketingDataValidConfigDefault> defaults = marketingDataValidConfigDefaultMapper.selectByExample(
+                    exampleDefaultConfig);
+            if (defaults.size() < 1) {
+                // 设置准永久有效，该值可根据数据库中可接受的数据范围设定
+                newDataValidConfig.setValidEndDate("9999-12-31");
+            } else {
+                // 1.可配置初始有效期配置，apiCode与userType的默认值都为defaultConfig；
+                // 2.可自定义apiCode，但userType的默认值都为defaultConfig
+                // 3.配置均为失效状态
+                Map<String, MarketingDataValidConfigDefault> defaultMap = defaults.stream().collect(
+                        Collectors.toMap(MarketingDataValidConfigDefault::getApiCode, Function.identity()
+                                , BinaryOperator.maxBy(Comparator.comparing(MarketingDataValidConfigDefault::getCreateTime))));
+                MarketingDataValidConfigDefault dataValidConfigDefault = new MarketingDataValidConfigDefault();
+                dataValidConfigDefault.setValidDaysDefault(30);
+                MarketingDataValidConfigDefault defaultConfig = defaultMap.getOrDefault(syncUser.getApiCode()
+                        , defaultMap.getOrDefault("defaultConfig", dataValidConfigDefault));
+                String newDateStr = LocalDate.parse(appletDate).plusDays(defaultConfig.getValidDaysDefault()).toString();
+                newDataValidConfig.setValidEndDate(newDateStr);
+            }
         } else {
             String newDateStr = LocalDate.parse(appletDate).plusDays(days).toString();
             newDataValidConfig.setValidEndDate(newDateStr);
