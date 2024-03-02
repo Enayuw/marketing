@@ -176,15 +176,15 @@ public class ConsumerApp {
     }
 
     /**
-     * 延迟发送场景消息队列
+     * 发送场景消息死信队列
      *
      * @param channel 通道
      * @param message 消息体
      */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE
             , durable = "true")
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_DEAD_NAME, durable = "true")
-            , key = MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE)}
+            , key = MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE)}
             , containerFactory = "primaryContainerFactory")
     public void delaySendUserTypeMessage(Channel channel, Message message) {
         consumerService.consumerRun(channel, message, variableDicService::delaySendUserTypeMessage
