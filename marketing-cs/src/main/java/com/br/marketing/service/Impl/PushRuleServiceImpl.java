@@ -39,6 +39,8 @@ import com.br.marketing.commonentity.StatusConstants;
 import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
+import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
+import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.es.bean.MarketingCondition;
@@ -90,12 +92,12 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -1080,8 +1082,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         long l = System.currentTimeMillis();
         tableCreateService.createMarketingSyncUserTable(marketingSyncInfo.getApiCode());
         ArrayList<Callable<Result<MarketingPreUserErrorDetailVO>>> list = new ArrayList<>();
-        Map<String, MarketingSyncUser> validDateCache = new ConcurrentHashMap<>(16);
-        Map<String, MarketingSyncUser> validDateCustomizeCache = new ConcurrentHashMap<>(16);
+        Map<String, UserTypeCollectionDTO> localUserTypeCache = new ConcurrentHashMap<>(16);
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
             //此处会处理三种场景的数据
@@ -1132,9 +1133,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 encodeMapping(marketingPreUserDetailDTO, "id", finalIsCheck);
                 encodeMapping(marketingPreUserDetailDTO, "name", finalIsCheck);
                 Date nowData = new Date();
-                String date = DateUtils.format(nowData, "yyyy-MM-dd HH:mm:ss");
                 String appletDate = DateUtils.format(marketingSyncInfo.getCreateTime(), "yyyy-MM-dd");
-                String appletTime = DateUtils.format(marketingSyncInfo.getCreateTime(), "yyyy-MM-dd HH:mm:ss");
                 MarketingSyncUser marketingSyncUser = new MarketingSyncUser();
                 marketingSyncUser.setApiCode(apiCode);
                 marketingSyncUser.setCusBatch(marketingSyncInfo.getCusBatch());
@@ -1156,7 +1155,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 marketingSyncUser.setUserType(finalReserveField.getUserType());
                 try {
                     Long st1 = System.currentTimeMillis();
-                    Long et1 = null;
+                    Long et1;
                     Long et2 = null;
                     marketingSyncUserMapper.insertMarketingSyncUser(marketingSyncUser);
                     try {
@@ -1175,25 +1174,17 @@ public class PushRuleServiceImpl implements PushRuleService {
                         log.info(String.format("去重数据：%d,数据入库和去重时间耗时：%d，数据去重时间：%d"
                                 , marketingSyncUser.getId(), et1, et2));
                     }
-                    boolean isCreate = marketingSyncUser.getId() != null
-                            && marketingSyncUser.getStatus().equals(MonitorTypeEnum.STATUS_1.getTypeCode())
-                            && (marketingSyncUser.getIsRepeat() == null
-                            || marketingSyncUser.getIsRepeat().equals(2)
-                            || marketingSyncUser.getIsRepeat().equals(1));
+                    boolean isCreate = marketingSyncUser.getId() != null && (marketingSyncUser.getIsRepeat() == null
+                            || marketingSyncUser.getIsRepeat().equals(2) || marketingSyncUser.getIsRepeat().equals(1));
                     if (isCreate) {
-                        // 定制有效期自动生成逻辑
-                        if(marketingCommonConfig.getCustomizeConfigValidDefaultApiCodes().contains(apiCode)){
-                            // 入库成功后将apiCode、userType、appletDate、cusBatch(taskId)为key，并且唯一
-                            String key = apiCode + marketingSyncUser.getUserType()
-                                    + marketingSyncUser.getAppletDate() +
-                                    marketingSyncUser.getCusBatch();
-                            // 缓存最新的原始数据
-                            validDateCustomizeCache.put(key, marketingSyncUser);
-                        }else {
-                            // 入库成功后将apiCode、userType、appletDate为key，并且唯一
-                            String key = apiCode + marketingSyncUser.getUserType() + marketingSyncUser.getAppletDate();
-                            // 缓存最新的原始数据
-                            validDateCache.put(key, marketingSyncUser);
+                        // 入库成功后将userType、cusBatch(taskId)、status为key，并且唯一
+                        String key = marketingSyncUser.getUserType() + marketingSyncUser.getCusBatch()
+                                + marketingSyncUser.getStatus();
+                        // 缓存场景数据
+                        if (!localUserTypeCache.containsKey(key)) {
+                            localUserTypeCache.put(key, new UserTypeCollectionDTO(marketingSyncUser.getUserType()
+                                    , marketingSyncUser.getCusBatch(), marketingSyncUser.getStatus())
+                            );
                         }
                     }
                 } catch (Exception ex) {
@@ -1245,13 +1236,16 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
             }
         }
-        // 去设置默认有效期
-        if(marketingCommonConfig.getCustomizeConfigValidDefaultApiCodes().contains(apiCode)){
-            customizeConfigValidDateDefault(validDateCustomizeCache);
-        }else {
-            configValidDateDefault(validDateCache, apiCode);
-        }
-
+        // 发送场景收集队列
+        sendUserTypeCollectionMsg(localUserTypeCache, apiCode, (localUserTypeCacheMap) -> {
+            ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
+            dataInfoDTO.setApiCode(apiCode);
+            dataInfoDTO.setRawDataSaveTimeStr(marketingSyncInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
+            dataInfoDTO.setArgList(collections);
+            return dataInfoDTO.addUploadMsgSource();
+        });
         MarketingSyncInfo updateSyncInfo = new MarketingSyncInfo();
         updateSyncInfo.setId(marketingSyncInfo.getId());
         updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_running);
@@ -1316,85 +1310,30 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
+
     /**
-     * 定制版有效期生成
-     * @param validDateCustomizeCache
+     * 2024-02-29 10:12
+     * 上传数据发送场景消息到收集队列
      */
-    private void customizeConfigValidDateDefault(Map<String, MarketingSyncUser> validDateCustomizeCache) {
-        try {
-            // 遍历缓存中需要设置默认有效期的apiCode与userType+taskId
-            validDateCustomizeCache.forEach((String key1,MarketingSyncUser value) -> {
-                LocalDateTime now = LocalDateTime.now();
-                LocalDateTime localDateTime = now.plusDays(1);
-                ZonedDateTime zonedDateTime = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault());
-                String key = RedisKeyConstant.prefix.concat("customizeValid:lock:") + key1;
-                boolean lock;
-                try {
-                    // 将主键保存到锁的key中
-                    lock = redisChgService.lock(key, String.valueOf(value.getId())
-                            , ChronoUnit.MILLIS.between(now, zonedDateTime));
-                } catch (Exception e) {
-                    lock = true;
-                    log.error("设置定制化默认有效期,上锁失败key:" + key , e);
-                }
-                if (lock) {
-                    JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("apiCode", value.getApiCode());
-                    jsonObject.put("userType", value.getUserType());
-                    jsonObject.put("cusBatch", value.getCusBatch());
-                    jsonObject.put("appletDate", StringUtils.isBlank(value.getAppletDate())
-                            ? LocalDate.now().toString() : value.getAppletDate());
-                    try {
-                        producter.send(MQConstants.ROUTING_KEY_MARKETING_CUSTOMIZE_CONFIG_DEFAULT_VALID_DATE, jsonObject.toJSONString());
-                    } catch (Exception e) {
-                        log.error("设置默认有效期,发送mq消息内容:" + jsonObject.toJSONString(), e);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
-    }
-    /**
-     * 2023-07-05 15:52
-     * 配置默认有效期
-     */
-    private void configValidDateDefault(Map<String, MarketingSyncUser> validDateCache, String apiCode) {
+    private void sendUserTypeCollectionMsg(Map<String, UserTypeCollectionDTO> localUserTypeCache, String apiCode
+            , Function<Map<String, UserTypeCollectionDTO>, ApiDataInfoDTO<UserTypeCollectionDTO>> function) {
         Set<String> apiCodes = marketingCommonConfig.getNonConfigValidDefaultApiCodes();
+        if ((apiCodes != null && apiCodes.contains(apiCode)) || localUserTypeCache.size() == 0) {
+            localUserTypeCache.clear();
+            return;
+        }
+        String msg = "";
         try {
-            if (apiCodes != null && apiCodes.contains(apiCode)) {
-                return;
-            }
-            // 遍历缓存中需要设置默认有效期的apiCode与userType
-            validDateCache.forEach((key1, value) -> {
-                LocalDateTime now = LocalDateTime.now();
-                LocalDateTime localDateTime = now.plusDays(1);
-                ZonedDateTime zonedDateTime = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault());
-                String key = RedisKeyConstant.prefix.concat("valid:lock:") + key1;
-                boolean lock;
-                try {
-                    // 将主键保存到锁的key中
-                    lock = redisChgService.lock(key, String.valueOf(value.getId())
-                            , ChronoUnit.MILLIS.between(now, zonedDateTime));
-                } catch (Exception e) {
-                    lock = true;
-                    log.error("设置默认有效期,上锁失败key:" + key + e.getMessage(), e);
-                }
-                if (lock) {
-                    JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("apiCode", value.getApiCode());
-                    jsonObject.put("userType", value.getUserType());
-                    jsonObject.put("appletDate", StringUtils.isBlank(value.getAppletDate())
-                            ? LocalDate.now().toString() : value.getAppletDate());
-                    try {
-                        producter.send(MQConstants.ROUTING_KEY_MARKETING_CONFIG_DEFAULT_VALID_DATE, jsonObject.toJSONString());
-                    } catch (Exception e) {
-                        log.error("设置默认有效期,发送mq消息内容:" + jsonObject.toJSONString() + e.getMessage(), e);
-                    }
-                }
-            });
+            msg = JSONArray.toJSONString(function.apply(localUserTypeCache));
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_STANDARD_API_USERTYPE_COLLECTION
+                    , msg);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error("推送场景信息到队列失败,发送队列"
+                    + MQConstants.MARKETING_STANDARD_API_USERTYPE_COLLECTION + ",消息内容:" + msg
+                    + "\n" + e.getMessage(), e);
+        } finally {
+            // 辅助gc
+            localUserTypeCache.clear();
         }
     }
 
@@ -1655,6 +1594,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         String tcid = cid.replaceFirst("-", "");
         tableCreateService.createMarketingTransferUserTable(tcid);
         ArrayList<Callable<Result<MarketingPreUserErrorDetailVO>>> list = new ArrayList<>();
+        Map<String, UserTypeCollectionDTO> localUserTypeCache = new ConcurrentHashMap<>(16);
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             TransferDataItemDTO transferDataItemDTO = dto.getDataItems().get(i);
             list.add(() -> {
@@ -1705,6 +1645,14 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 try {
                     marketingTransferSyncUserMapper.insertSelective(transferSyncUser);
+                    if (transferSyncUser.getId() != null) {
+                        // 入库成功后将userType为key，并且唯一
+                        String key = transferSyncUser.getUserType();
+                        // 缓存场景数据
+                        if (!localUserTypeCache.containsKey(key)) {
+                            localUserTypeCache.put(key, new UserTypeCollectionDTO(transferSyncUser.getUserType()));
+                        }
+                    }
                     //转化请求监控统
                     //是否影响性能待观察
                     try {
@@ -1748,6 +1696,17 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
             }
         }
+        // 发送场景收集队列
+        sendUserTypeCollectionMsg(localUserTypeCache, transferInfo.getApiCode(), (localUserTypeCacheMap) -> {
+            ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
+            List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
+            dataInfoDTO.setArgList(collections);
+            dataInfoDTO.setCid(cid);
+            dataInfoDTO.setApiCode(transferInfo.getApiCode());
+            dataInfoDTO.setRawDataSaveTimeStr(transferInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            return dataInfoDTO.addTransferMsgSource();
+        });
         MarketingTransferInfo updateSyncInfo = new MarketingTransferInfo();
         updateSyncInfo.setId(id);
         updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_running);
