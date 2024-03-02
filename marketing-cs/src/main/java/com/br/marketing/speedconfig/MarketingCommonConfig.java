@@ -10,6 +10,7 @@ import lombok.Data;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Configuration
 @SpeedFile(filename = "marketingcommon.properties", topic = "marketing")
@@ -1305,6 +1306,16 @@ public class MarketingCommonConfig {
      * eg：{"促复借":["3710051","7410785"]}
      */
     private Map<String, List<String>> shuHeUserTypeAndApiCodeMappingMap = new HashMap<>();
+
+
+    /**
+     * 2024-03-01 15:12
+     * 钉钉告警机器人WebHook信息token与secret(密钥);
+     * startTime：允许告警的开始时间，endTime：允许告警的结束时间，闭区间，格式: hh:mm:dd;
+     * at：需要@的人
+     * {"业务名称_函数名":{"token":"token","secret":"secret","startTime":"startTime","endTime":"endTime","at":["cell"]}}
+     */
+    private Map<String, JSONObject> dingDingWebHookInfo = new ConcurrentHashMap<>();
 
 
 }
