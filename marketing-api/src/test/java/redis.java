@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.util.AESAlgorithmUtil;
 import com.br.marketing.api.MarketingApiApplication;
+import com.br.marketing.origin.CaffeineCache;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
@@ -22,6 +23,7 @@ import com.br.marketing.vo.CustGroupTempVO;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyObject;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,10 +46,31 @@ import java.util.concurrent.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = MarketingApiApplication.class)
+@Slf4j
 public class redis {
 
     @Autowired
     RabbitMqProducter producter;
+
+    @Test
+    public void testPriority() throws InterruptedException {
+        CaffeineCache.getRountingKey("3710058");
+        TimeUnit.SECONDS.sleep(20);
+        CaffeineCache.getRountingKey("3710058");
+//        int a = 0;
+//        for (int i = 0; i <20;i++) {
+//            producter.send("Marketing.PreUser.Receive.Small",String.valueOf(i),i);
+//        }
+//        String type = "原始上传";
+//        String infoId = "88888444";
+//        log.error("推送" + type + "队列失败,数据id：{}", infoId);
+//        for (int i = 0; i <30;i++) {
+//            producter.send("Marketing.PreUser.Receive.Emergency",String.valueOf(i),i);
+//        }
+//        for (int i = 0; i <30;i++) {
+//            producter.send("Marketing.PreUser.Receive",String.valueOf(i),i);
+//        }
+    }
 
     @Test
     public void pushMQ(){
