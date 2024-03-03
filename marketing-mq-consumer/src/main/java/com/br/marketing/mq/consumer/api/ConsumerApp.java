@@ -6,7 +6,6 @@ import com.br.marketing.api.customer.service.CustomerTransferDataService;
 import com.br.marketing.common.constants.PulsarSubscription;
 import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.ConsumerService;
 import com.rabbitmq.client.Channel;
@@ -95,37 +94,6 @@ public class ConsumerApp {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         consumerService.consumerRun(channel, message, pushRuleService::consumerTransferData, o, null);
-    }
-
-    /**
-     * 设置默认有效期范围消费者
-     *
-     * @param channel 通道
-     * @param message 消息体
-     */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_CONFIG_DEFAULT_VALID_DATE, durable = "true")
-            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
-            , key = MQConstants.ROUTING_KEY_MARKETING_CONFIG_DEFAULT_VALID_DATE)}, containerFactory = "fiveDataContainerFactory")
-    public void consumerConfigDefaultValidDate(Channel channel, Message message) {
-        MarketingSyncUser o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8)
-                , new TypeReference<MarketingSyncUser>() {
-                }.getType());
-        consumerService.consumerRun(channel, message, periodOfValidityService::configValidDateDefault, o, null);
-    }
-    /**
-     * 设置定制化默认有效期范围消费者(360)
-     *
-     * @param channel 通道
-     * @param message 消息体
-     */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_CUSTOMIZE_CONFIG_DEFAULT_VALID_DATE, durable = "true")
-            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
-            , key = MQConstants.ROUTING_KEY_MARKETING_CUSTOMIZE_CONFIG_DEFAULT_VALID_DATE)}, containerFactory = "fiveDataContainerFactory")
-    public void consumersCustomizeConfigDefaultValidDate(Channel channel, Message message) {
-        MarketingSyncUser o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8)
-                , new TypeReference<MarketingSyncUser>() {
-                }.getType());
-        consumerService.consumerRun(channel, message, periodOfValidityService::customizeConfigValidDateDefault, o, null);
     }
 
     /**
