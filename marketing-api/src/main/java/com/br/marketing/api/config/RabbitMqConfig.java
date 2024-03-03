@@ -158,7 +158,9 @@ public class RabbitMqConfig {
      */
     @Bean(name = MQConstants.MARKETING_TRANSFER_RECEIVE_SMALL)
     public Queue transferQueueSmall() {
-        return new Queue(MQConstants.MARKETING_TRANSFER_RECEIVE_SMALL, true);
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-max-priority", 10); // 设置队列的最大优先级为10
+        return new Queue(MQConstants.MARKETING_TRANSFER_RECEIVE_SMALL, true, false, false, args);
     }
 
     /**
@@ -178,7 +180,9 @@ public class RabbitMqConfig {
      */
     @Bean(name = MQConstants.MARKETING_TRANSFER_RECEIVE_EMERGENCY)
     public Queue transferQueueEmergency() {
-        return new Queue(MQConstants.MARKETING_TRANSFER_RECEIVE_EMERGENCY, true);
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-max-priority", 10); // 设置队列的最大优先级为10
+        return new Queue(MQConstants.MARKETING_TRANSFER_RECEIVE_EMERGENCY, true, false, false, args);
     }
 
     /**
