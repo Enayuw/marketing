@@ -1036,6 +1036,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (null == routingKeyConfig) {
                 producter.send(defaultRoutingKey, infoId);
             } else {
+                // 大队列不支持优先级
                 if (routingKeyConfig.getType() == 1) {
                     producter.send(routingKeyConfig.getRoutingkey(), infoId);
                 } else {
@@ -1046,7 +1047,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 log.info("推送" + type + "队列耗时:{}", (System.currentTimeMillis() - l3));
             }
         } catch (Exception ex) {
-            log.error(String.format("推送" + type + "队列失败,数据id：{}", infoId));
+            log.error("推送" + type + "队列失败,数据id：{}", infoId);
         }
     }
 
