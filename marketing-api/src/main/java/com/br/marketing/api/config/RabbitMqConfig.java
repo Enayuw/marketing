@@ -75,7 +75,8 @@ public class RabbitMqConfig {
     @Bean(name = MQConstants.MARKETING_PREUSER_RECEIVE_SMALL)
     public Queue preUserQueueSmall() {
         Map<String, Object> args = new HashMap<>();
-        args.put("x-max-priority", 10); // 设置队列的最大优先级为10
+        // 设置队列的最大优先级为10
+        args.put("x-max-priority", 10);
         return new Queue(MQConstants.MARKETING_PREUSER_RECEIVE_SMALL, true, false, false, args);
     }
 
@@ -97,7 +98,8 @@ public class RabbitMqConfig {
     @Bean(name = MQConstants.MARKETING_PREUSER_RECEIVE_EMERGENCY)
     public Queue preUserQueueEmergency() {
         Map<String, Object> args = new HashMap<>();
-        args.put("x-max-priority", 10); // 设置队列的最大优先级为10
+        // 设置队列的最大优先级为10
+        args.put("x-max-priority", 10);
         return new Queue(MQConstants.MARKETING_PREUSER_RECEIVE_EMERGENCY, true, false, false, args);
     }
 
@@ -159,7 +161,8 @@ public class RabbitMqConfig {
     @Bean(name = MQConstants.MARKETING_TRANSFER_RECEIVE_SMALL)
     public Queue transferQueueSmall() {
         Map<String, Object> args = new HashMap<>();
-        args.put("x-max-priority", 10); // 设置队列的最大优先级为10
+        // 设置队列的最大优先级为10
+        args.put("x-max-priority", 10);
         return new Queue(MQConstants.MARKETING_TRANSFER_RECEIVE_SMALL, true, false, false, args);
     }
 
@@ -181,7 +184,8 @@ public class RabbitMqConfig {
     @Bean(name = MQConstants.MARKETING_TRANSFER_RECEIVE_EMERGENCY)
     public Queue transferQueueEmergency() {
         Map<String, Object> args = new HashMap<>();
-        args.put("x-max-priority", 10); // 设置队列的最大优先级为10
+        // 设置队列的最大优先级为10
+        args.put("x-max-priority", 10);
         return new Queue(MQConstants.MARKETING_TRANSFER_RECEIVE_EMERGENCY, true, false, false, args);
     }
 
