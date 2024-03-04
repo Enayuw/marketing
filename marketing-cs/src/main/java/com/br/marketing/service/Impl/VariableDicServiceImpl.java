@@ -89,7 +89,7 @@ public class VariableDicServiceImpl implements VariableDicService {
     @Resource
     private RabbitMqProducter producter;
 
-    private final static Lock LOCK = new ReentrantLock(true);
+    private final static Lock LOCK = new ReentrantLock();
 
 
     @Override
@@ -272,6 +272,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                         variableDic.setFieldValueSource(apiDataInfoDTO.getMsgSource());
                         int i = variableDicMapper.insertSelective(variableDic);
                         if (i > 0) {
+                            // 发送告警通知
                             sendUserTypeAddDingDingMgs(localDateTime, apiCode, userType);
                         } else {
                             log.warn("自动化场景维护入库失败,cid:{},apiCode:{},userType:{},上传时间:{},数据来源:{}"
