@@ -22,7 +22,7 @@ public class CaffeineCache {
     @Resource
     private CustomerRoutingKeyConfigMapper configMapper;
 
-    private static LoadingCache<String, CustomerRoutingKeyConfig> routingKeyCache = null;
+    private LoadingCache<String, CustomerRoutingKeyConfig> routingKeyCache = null;
 
     @PostConstruct
     private void init() {
@@ -33,7 +33,7 @@ public class CaffeineCache {
     }
 
 
-    public static CustomerRoutingKeyConfig getRountingKey(String apiCode){
+    public CustomerRoutingKeyConfig getRountingKey(String apiCode) {
         return routingKeyCache.get(apiCode);
     }
 }

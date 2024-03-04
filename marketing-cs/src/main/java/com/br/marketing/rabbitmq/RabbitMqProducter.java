@@ -6,6 +6,7 @@ import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.origin.MqFact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,8 +67,7 @@ public class RabbitMqProducter {
      */
     public void send(String routeKey,String message, Integer priority){
         CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(),message);
-        rabbitTemplate.convertAndSend(exchange,routeKey,message,arg0 -> {
-//            arg0.getMessageProperties().setContentType(MessageProperties.CONTENT_TYPE_JSON);
+        rabbitTemplate.convertAndSend(exchange,routeKey,message,(Message arg0) -> {
             arg0.getMessageProperties().setContentEncoding("UTF-8");
             arg0.getMessageProperties().setPriority(priority);
             return arg0;

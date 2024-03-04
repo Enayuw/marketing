@@ -117,6 +117,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         errorCodeHm.put("1006", "参数过长");
     }
 
+    @Resource
+    CaffeineCache caffeineCache;
 
     @Resource
     MarketingTaskMapper marketingTaskMapper;
@@ -1032,7 +1034,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         try {
             long l3 = System.currentTimeMillis();
             // 根据apicode获取路由键
-            CustomerRoutingKeyConfig routingKeyConfig = CaffeineCache.getRountingKey(apiCode);
+            CustomerRoutingKeyConfig routingKeyConfig = caffeineCache.getRountingKey(apiCode);
             if (null == routingKeyConfig) {
                 producter.send(defaultRoutingKey, infoId);
             } else {
