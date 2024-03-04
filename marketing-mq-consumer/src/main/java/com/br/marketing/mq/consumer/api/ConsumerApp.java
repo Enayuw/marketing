@@ -6,8 +6,11 @@ import com.br.marketing.api.customer.service.CustomerTransferDataService;
 import com.br.marketing.common.constants.PulsarSubscription;
 import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.service.*;
+import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.Impl.ConsumerService;
+import com.br.marketing.service.PushDataService;
+import com.br.marketing.service.PushRuleService;
+import com.br.marketing.service.VariableDicService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +40,6 @@ public class ConsumerApp {
     @Autowired
     PushRuleService pushRuleService;
 
-    @Resource
-    private IPeriodOfValidityService periodOfValidityService;
     @Autowired
     IPushShuheDataService pushShuheDataService;
 
