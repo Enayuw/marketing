@@ -1,21 +1,22 @@
 package com.br.marketing.util;
 
+import java.util.Random;
+
 public class RandomUtil {
+    private static final String CHARACTERS = "abcdefghijklmnopqrstuvwxyz123456789";
+    private static final Random RANDOM = new Random();
+
     /**
      * 随机生成由数字、字母组成的N位验证码
      *
      * @return 返回一个字符串
      */
     public static String getCode(int n) {
-        char arr[] = new char[n];
-        int i = 0;
-        while (i < n) {
-            char ch = (char) (int) (Math.random() * 124);
-            if (ch >= 'a' && ch <= 'z' || ch >= '0' && ch <= '9') {
-                arr[i++] = ch;
-            }
+        StringBuilder sb = new StringBuilder(n);
+        for (int i = 0; i < n; i++) {
+            int index = RANDOM.nextInt(CHARACTERS.length());
+            sb.append(CHARACTERS.charAt(index));
         }
-        //将数组转为字符串
-        return new String(arr);
+        return sb.toString();
     }
 }
