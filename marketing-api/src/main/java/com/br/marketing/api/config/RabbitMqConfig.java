@@ -49,8 +49,7 @@ public class RabbitMqConfig {
 
     /**
      * marketing 原始上传数据大队列
-     *
-     * @return
+     * @return Queue
      */
     @Bean(name = MQConstants.MARKETING_PRE_USER_RECEIVE)
     public Queue preUserQueue() {
@@ -59,8 +58,7 @@ public class RabbitMqConfig {
 
     /**
      * 绑定原始上传数据大队列
-     *
-     * @return
+     * @return Binding
      */
     @Bean
     public Binding preUserBinding() {
@@ -69,8 +67,7 @@ public class RabbitMqConfig {
 
     /**
      * marketing 原始上传数据小队列
-     *
-     * @return
+     * @return Queue
      */
     @Bean(name = MQConstants.MARKETING_PREUSER_RECEIVE_SMALL)
     public Queue preUserQueueSmall() {
@@ -82,8 +79,7 @@ public class RabbitMqConfig {
 
     /**
      * 绑定原始上传数据小队列
-     *
-     * @return
+     * @return Binding
      */
     @Bean
     public Binding preUserSmallBinding() {
@@ -92,8 +88,7 @@ public class RabbitMqConfig {
 
     /**
      * marketing 原始上传数据应急队列
-     *
-     * @return
+     * @return Queue
      */
     @Bean(name = MQConstants.MARKETING_PREUSER_RECEIVE_EMERGENCY)
     public Queue preUserQueueEmergency() {
@@ -105,8 +100,7 @@ public class RabbitMqConfig {
 
     /**
      * 绑定原始上传数据应急队列
-     *
-     * @return
+     * @return Binding
      */
     @Bean
     public Binding preUserEmergencyBinding() {
@@ -135,8 +129,7 @@ public class RabbitMqConfig {
 
     /**
      * marketing 原始转化数据大队列
-     *
-     * @return
+     * @return Queue
      */
     @Bean(name = MQConstants.MARKETING_TRANSFER_RECEIVE)
     public Queue transferQueue() {
@@ -145,8 +138,7 @@ public class RabbitMqConfig {
 
     /**
      * 绑定原始转化数据大队列
-     *
-     * @return
+     * @return Binding
      */
     @Bean
     public Binding transferBinding() {
@@ -155,8 +147,7 @@ public class RabbitMqConfig {
 
     /**
      * marketing 原始转化数据小队列
-     *
-     * @return
+     * @return Queue
      */
     @Bean(name = MQConstants.MARKETING_TRANSFER_RECEIVE_SMALL)
     public Queue transferQueueSmall() {
@@ -168,8 +159,7 @@ public class RabbitMqConfig {
 
     /**
      * 绑定原始转化数据小队列
-     *
-     * @return
+     * @return Binding
      */
     @Bean
     public Binding transferSmallBinding() {
@@ -178,8 +168,7 @@ public class RabbitMqConfig {
 
     /**
      * marketing 原始转化数据应急队列
-     *
-     * @return
+     * @return Queue
      */
     @Bean(name = MQConstants.MARKETING_TRANSFER_RECEIVE_EMERGENCY)
     public Queue transferQueueEmergency() {
@@ -191,8 +180,7 @@ public class RabbitMqConfig {
 
     /**
      * 绑定原始转化数据应急队列
-     *
-     * @return
+     * @return Binding
      */
     @Bean
     public Binding transferEmergencyBinding() {
