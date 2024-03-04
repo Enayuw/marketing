@@ -314,8 +314,8 @@ public class VariableDicServiceImpl implements VariableDicService {
             LocalTime startParse = LocalTime.parse(map.getOrDefault("startTime", "10:00").toString());
             LocalTime endParse = LocalTime.parse(map.getOrDefault("endTime", "18:00").toString());
             LocalTime localTime = localDateTime.toLocalTime();
-            boolean isRealTimeSend = (localTime.isAfter(startParse) && localTime.isBefore(endParse))
-                    || localTime.equals(startParse) || localTime.equals(endParse);
+            boolean isRealTimeSend = (localTime.isAfter(startParse) || localTime.equals(startParse))
+                    && (localTime.isBefore(endParse) || localTime.equals(endParse));
             if (isRealTimeSend) {
                 DingDingTextMessage dingDingTextMessage = new DingDingTextMessage();
                 DingDingTextMessage.Text text = new DingDingTextMessage.Text();
@@ -339,9 +339,10 @@ public class VariableDicServiceImpl implements VariableDicService {
                 if (!exists) {
                     // 不存在添加延迟队列
                     producter.sendByExpiration(MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE,
-                            key, String.valueOf(ChronoUnit.MILLIS.between(localDateTime
-                                    , localDateTime.toLocalDate().plusDays(1).atTime(startParse)
-                                            .atZone(ZoneId.systemDefault()))));
+                            key, String.valueOf(ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate()
+                                    .plusDays((LocalTime.MIN.isBefore(localTime) || LocalTime.MIN.equals(localTime))
+                                            && startParse.isAfter(localTime) ? 0 : 1).atTime(startParse)
+                                    .atZone(ZoneId.systemDefault()))));
                 }
                 // 缓存批量结果
                 redisChgService.saddMember(key, apiCode.concat("  ").concat(userType));
