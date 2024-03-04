@@ -346,6 +346,10 @@ public class VariableDicServiceImpl implements VariableDicService {
                 }
                 // 缓存批量结果
                 redisChgService.saddMember(key, apiCode.concat("  ").concat(userType));
+                if (!exists) {
+                    // 设置过期时间
+                    redisChgService.expire(key, 3600 * 48);
+                }
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
