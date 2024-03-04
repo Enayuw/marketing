@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.JobPushDecisionParameterBO;
 import com.br.marketing.enums.CustomerPushDecisionActionEnum;
+import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.speed.client.common.annotations.SpeedFile;
 import lombok.Data;
 import org.springframework.context.annotation.Configuration;
@@ -1310,6 +1311,7 @@ public class MarketingCommonConfig {
 
     /**
      * 2024-03-01 15:12
+     * 业务名称_函数名 参考{@link DingDingAlarmFunctionEnum}
      * 钉钉告警机器人WebHook信息token与secret(密钥);
      * startTime：允许告警的开始时间，endTime：允许告警的结束时间，闭区间，格式: hh:mm:dd;
      * at：需要@的人

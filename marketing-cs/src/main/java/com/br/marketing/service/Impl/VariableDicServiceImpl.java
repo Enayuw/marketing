@@ -18,6 +18,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.VariableDic;
 import com.br.marketing.entity.VariableDicExample;
 import com.br.marketing.entity.auth.MarketingUserDetail;
+import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.mapper.MarketingValidityChangeMapper;
 import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
@@ -303,7 +304,8 @@ public class VariableDicServiceImpl implements VariableDicService {
     private void sendUserTypeAddDingDingMgs(LocalDateTime localDateTime, String apiCode, String userType) {
         try {
             Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
-            Map<String, Object> map = webHookInfo.get("batchAddUserTypeVariableDicTry_sendUserTypeAddDingDingMgs");
+            Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.USERTYPE_ADD_SENDUSERTYPEADDDINGDINGMGS
+                    .toString());
             if (CollectionUtils.isEmpty(map)) {
                 return;
             }
@@ -415,7 +417,8 @@ public class VariableDicServiceImpl implements VariableDicService {
     @Override
     public Result<Boolean> delaySendUserTypeMessage(String redisKey) {
         Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
-        Map<String, Object> map = webHookInfo.get("batchAddUserTypeVariableDicTry_sendUserTypeAddDingDingMgs");
+        Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.USERTYPE_ADD_SENDUSERTYPEADDDINGDINGMGS
+                .toString());
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(false);
