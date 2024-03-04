@@ -4,6 +4,8 @@ import cn.hutool.core.thread.ThreadUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.xiecheng.intput.AdReqDTO;
 import com.br.marketing.common.annoation.RetryMethod;
@@ -160,6 +162,7 @@ public class XieChengService {
 
 
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result pushXieChengData(AdReqDTO xieChengData) {
 
         /**
@@ -235,6 +238,7 @@ public class XieChengService {
      * desc：携程短信退订接口
      */
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result sendSmsQuitData(SmsQuitReq smsQuitReq) {
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         Map<String,String> config = marketingCommonConfig.getXieChengSmsQuitConfig().get(smsQuitReq.getApiCode());
@@ -273,6 +277,7 @@ public class XieChengService {
      * @return
      */
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result pushXieChengSmsCollidingData(List<String> sha256CodeList) {
         /**
          * data 组装
@@ -312,6 +317,7 @@ public class XieChengService {
      * @return
      */
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<String> pushXieChengSmsCollidingDataVt(List<String> sha256CodeList) {
         /*
           data 组装

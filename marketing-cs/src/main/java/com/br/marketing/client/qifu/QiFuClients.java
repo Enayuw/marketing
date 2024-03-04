@@ -2,6 +2,8 @@ package com.br.marketing.client.qifu;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.qifu.enums.CodeEnum;
 import com.br.marketing.common.commondto.Result;
@@ -79,6 +81,7 @@ public class QiFuClients {
      * @param saveReachDeleteRecordReq 触达删除记录
      * @return 接口响应信息 {@link ResponseData}、加密信息{@link ResultDataObj}及业务信息 {@link SaveReachDeleteRecordResp}
      */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<ResponseData<SaveReachDeleteRecordResp>> sendSaveReachDeleteRecordData(
             SaveReachDeleteRecordReq saveReachDeleteRecordReq) {
         Result<ResponseData<SaveReachDeleteRecordResp>> resultResp = new Result<>();

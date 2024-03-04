@@ -814,10 +814,10 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         @Override
         public Result<Integer> call() {
-            Result<Integer> result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO, mainId,
+            Result<Integer> result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, mainId,
                     accessNumber, size);
             if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
-                result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO, mainId,
+                result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, mainId,
                         accessNumber, size);
             }
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {

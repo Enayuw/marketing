@@ -45,7 +45,6 @@ public class CustomerStrategyController {
 
 
     @GetMapping("distributeList")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public JSONObject distributeList(String apiCode, String strategyCategory, String distributeType, String strategyType) {
         String enumName = ClusterEnum.CLUSTER_PROD_C.getName();
         String url = STRATEGY_DISTRIBUTION_LIST;
@@ -59,7 +58,6 @@ public class CustomerStrategyController {
 
     //productChineseName、productName、secondTypeName、spreadStatus、version、versions
     @GetMapping("createView")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Map<String, Object>> createView() {
         String result = restTemplate.getForObject(productUrl, String.class);
         String productType = restTemplate.getForObject(productTypeUrl, String.class);

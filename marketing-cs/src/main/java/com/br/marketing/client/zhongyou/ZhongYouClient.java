@@ -1,6 +1,8 @@
 package com.br.marketing.client.zhongyou;
 
 import com.alibaba.fastjson.JSON;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -93,6 +95,7 @@ public class ZhongYouClient {
      * @param fileId 文件id
      * @return
      */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public HashMap<String, String> sendByCodeWithLog(Object param, String url, Boolean isProxy, Boolean isStream,Long fileId) {
         InterfaceLog interfaceLog = new InterfaceLog();
         interfaceLog.setRequestId(UUID.randomUUID().toString());
