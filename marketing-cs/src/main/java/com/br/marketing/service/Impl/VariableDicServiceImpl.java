@@ -234,6 +234,10 @@ public class VariableDicServiceImpl implements VariableDicService {
             String apiCode = apiDataInfoDTO.getApiCode();
             String cId = StringUtils.hasText(apiDataInfoDTO.getCid()) ? apiDataInfoDTO.getCid()
                     : tableCreateService.getCId(apiCode);
+            if (StringUtils.isEmpty(apiCode) || StringUtils.isEmpty(cId)) {
+                log.warn("未获取到cid，消息内容：{}", msgStr);
+                return result;
+            }
             String key = RedisKeyConstant.USERTYPE_DICT.concat(cId).concat(":").concat(apiCode);
             String fieldName = "userType";
             for (UserTypeCollectionDTO collectionDTO : apiDataInfoDTO.getArgList()) {
