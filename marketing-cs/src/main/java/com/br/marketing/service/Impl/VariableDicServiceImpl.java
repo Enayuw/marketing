@@ -9,7 +9,6 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
@@ -332,15 +331,15 @@ public class VariableDicServiceImpl implements VariableDicService {
                 long ttl;
                 if (localTime.isBefore(startParse) || localTime.equals(startParse)) {
                     // T日定时发送消息
-                    key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:today:").concat(localDateTime
-                            .format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_TIME_FORMAT)));
+                    key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:today:").concat(localDateTime.toLocalDate()
+                            .format(DateTimeFormatter.BASIC_ISO_DATE));
                     ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate().atTime(startParse)
                             .atZone(ZoneId.systemDefault()));
                     priority = 9;
                 } else {
                     // T+1日延时定时发送消息
-                    key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:tomorrow:").concat(localDateTime
-                            .format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_TIME_FORMAT)));
+                    key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:tomorrow:").concat(localDateTime.toLocalDate()
+                            .format(DateTimeFormatter.BASIC_ISO_DATE));
                     ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate().plusDays(1)
                             .atTime(endParse).atZone(ZoneId.systemDefault()));
                     priority = 3;
@@ -382,7 +381,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                 int day = (LocalTime.MIN.isBefore(localTime) || LocalTime.MIN.equals(localTime)) && startParse
                         .isAfter(localTime) ? 0 : 1;
                 String key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:" + day + ":").concat(
-                        localDateTime.format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_TIME_FORMAT)));
+                        localDateTime.toLocalDate().format(DateTimeFormatter.BASIC_ISO_DATE));
                 Boolean exists = redisChgService.exists(key);
                 if (!exists) {
                     // 不存在添加延迟队列
