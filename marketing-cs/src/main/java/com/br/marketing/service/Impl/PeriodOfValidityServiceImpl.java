@@ -318,11 +318,27 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
                 .andAppletDateEqualTo(appletDate)
                 .andValidTypeEqualTo(1)
                 .andIsDelEqualTo(1);
+        if (syncUser.getStatus() != null && MonitorTypeEnum.STATUS_2.getTypeCode() == syncUser.getStatus()) {
+            example.setOrderByClause(" id for update");
+        }
         // 检查db中是否已经存在有效期记录
         int count = marketingDataValidConfigMapper.countByExample(example);
         if (count > 0) {
             return result;
         }
+        MarketingDataValidConfigDefaultExample exampleConfig = new MarketingDataValidConfigDefaultExample();
+        exampleConfig.createCriteria()
+                .andApiCodeEqualTo(syncUser.getApiCode())
+                .andUserTypeEqualTo(syncUser.getUserType())
+                .andIsDelEqualTo(1);
+        if (syncUser.getStatus() != null && MonitorTypeEnum.STATUS_2.getTypeCode() == syncUser.getStatus()) {
+            exampleConfig.setOrderByClause("create_time DESC limit 1 for update");
+        } else {
+            exampleConfig.setOrderByClause("create_time DESC limit 1");
+        }
+        // 查询默认有效期生成配置表
+        List<MarketingDataValidConfigDefault> configDefaults = marketingDataValidConfigDefaultMapper
+                .selectValidDaysByExample(exampleConfig);
         MarketingDataValidConfig newDataValidConfig = new MarketingDataValidConfig();
         newDataValidConfig.setApiCode(syncUser.getApiCode());
         newDataValidConfig.setUserType(syncUser.getUserType());
@@ -332,21 +348,12 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         newDataValidConfig.setCreateTime(new Date());
         newDataValidConfig.setUpdateTime(newDataValidConfig.getCreateTime());
         newDataValidConfig.setValidStartDate(appletDate);
-        MarketingDataValidConfigDefaultExample exampleConfig = new MarketingDataValidConfigDefaultExample();
-        exampleConfig.createCriteria()
-                .andApiCodeEqualTo(syncUser.getApiCode())
-                .andUserTypeEqualTo(syncUser.getUserType())
-                .andIsDelEqualTo(1);
-        exampleConfig.setOrderByClause("create_time DESC limit 1");
-        // 查询默认有效期生成配置表
-        List<MarketingDataValidConfigDefault> configDefaults = marketingDataValidConfigDefaultMapper.selectValidDaysByExample(
-                exampleConfig);
         Integer days;
-        // 根据配置表计算默认的有效期范围,未在生成配置表中的默认为准永久有效，
+        // 根据配置表计算默认的有效期范围,使用默认有效期配置中默认的配置项defaultConfig
         if (configDefaults.size() < 1 || (days = configDefaults.get(0).getValidDaysDefault()) == null) {
             MarketingDataValidConfigDefaultExample exampleDefaultConfig = new MarketingDataValidConfigDefaultExample();
             exampleDefaultConfig.createCriteria().andApiCodeIn(Arrays.asList("defaultConfig", syncUser.getApiCode()))
-                    .andUserTypeEqualTo("defaultConfig").andIsDelEqualTo(9);
+                    .andUserTypeEqualTo("defaultConfig").andIsDelEqualTo(1);
             exampleDefaultConfig.setOrderByClause("api_code");
             List<MarketingDataValidConfigDefault> defaults = marketingDataValidConfigDefaultMapper.selectByExample(
                     exampleDefaultConfig);
@@ -356,7 +363,6 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
             } else {
                 // 1.可配置初始有效期配置，apiCode与userType的默认值都为defaultConfig；
                 // 2.可自定义apiCode，但userType的默认值都为defaultConfig
-                // 3.配置均为失效状态
                 Map<String, MarketingDataValidConfigDefault> defaultMap = defaults.stream().collect(
                         Collectors.toMap(MarketingDataValidConfigDefault::getApiCode, Function.identity()
                                 , BinaryOperator.maxBy(Comparator.comparing(MarketingDataValidConfigDefault::getCreateTime))));
