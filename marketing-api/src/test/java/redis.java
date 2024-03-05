@@ -57,8 +57,9 @@ public class redis {
 
     @Test
     public void testPriority() throws InterruptedException {
-        caffeineCache.getRountingKey("3710058");
-        caffeineCache.getRountingKey("3710078");
+        CustomerRoutingKeyConfig routingKeyConfig = caffeineCache.getRountingKey("3710058,6");
+        CustomerRoutingKeyConfig routingKeyConfig2 = caffeineCache.getRountingKey("3710058,1");
+        CustomerRoutingKeyConfig routingKeyConfig1 = caffeineCache.getRountingKey("3710078,1");
         for (int i = 0; i <20;i++) {
             producter.send("Marketing.PreUser.Receive.Small",String.valueOf(i),i);
         }
