@@ -9,6 +9,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
@@ -330,14 +331,14 @@ public class VariableDicServiceImpl implements VariableDicService {
                 long ttl;
                 if (localTime.isBefore(startParse) || localTime.equals(startParse)) {
                     // T日定时发送消息
-                    key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:today:").concat(localDateTime.toLocalDate()
-                            .format(DateTimeFormatter.BASIC_ISO_DATE));
+                    key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:today:").concat(localDateTime
+                            .format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_TIME_FORMAT)));
                     ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate().atTime(startParse)
                             .atZone(ZoneId.systemDefault()));
                 } else {
                     // T+1日延时定时发送消息
-                    key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:tomorrow:").concat(localDateTime.toLocalDate()
-                            .format(DateTimeFormatter.BASIC_ISO_DATE));
+                    key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:tomorrow:").concat(localDateTime
+                            .format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_TIME_FORMAT)));
                     ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate().plusDays(1)
                             .atTime(endParse).atZone(ZoneId.systemDefault()));
                 }
@@ -378,7 +379,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                 int day = (LocalTime.MIN.isBefore(localTime) || LocalTime.MIN.equals(localTime)) && startParse
                         .isAfter(localTime) ? 0 : 1;
                 String key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:" + day + ":").concat(
-                        localDateTime.toLocalDate().format(DateTimeFormatter.BASIC_ISO_DATE));
+                        localDateTime.format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_TIME_FORMAT)));
                 Boolean exists = redisChgService.exists(key);
                 if (!exists) {
                     // 不存在添加延迟队列
@@ -401,6 +402,9 @@ public class VariableDicServiceImpl implements VariableDicService {
     /**
      * 2024-03-02 16:17
      * 创建有效期
+     * <p>
+     * <p>
+     * 2024-03-05 14:55 经过与测试同学、需求同学确认，转化和上传数据都要生成默认的有效期配置
      *
      * @param msgSource   消息源
      * @param dateTimeStr 数据接收时间
@@ -409,29 +413,31 @@ public class VariableDicServiceImpl implements VariableDicService {
      */
     private void createValidDateConfig(int msgSource, String dateTimeStr, UserTypeCollectionDTO collectionDTO
             , String apiCode, String userType) {
-        if (msgSource == ApiDataInfoDTO.MsgSourceEnum.UPLOAD.getValue() && collectionDTO.getStatus() == 1) {
-            Set<String> apiCodes = marketingCommonConfig.getNonConfigValidDefaultApiCodes();
-            if ((apiCodes != null && apiCodes.contains(apiCode))) {
-                return;
-            }
-            LocalDateTime parseTime = LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            MarketingSyncUser marketingSyncUser = new MarketingSyncUser();
-            marketingSyncUser.setUserType(userType);
-            marketingSyncUser.setApiCode(apiCode);
-            marketingSyncUser.setAppletDate(parseTime.toLocalDate().toString());
-            // 添加有效期范围
-            if (marketingCommonConfig.getCustomizeConfigValidDefaultApiCodes().contains(apiCode)) {
-                marketingSyncUser.setCusBatch(collectionDTO.getTaskId());
-                // 定制生成有效期
-                configValidDateDefault(marketingSyncUser
-                        , syncUser -> apiCode.concat(":").concat(userType).concat(":").concat(syncUser.getCusBatch())
-                        , syncUser -> periodOfValidityService.customizeConfigValidDateDefault(syncUser));
-            } else {
-                // 通用生成有效期
-                configValidDateDefault(marketingSyncUser
-                        , syncUser -> apiCode.concat(":").concat(userType)
-                        , syncUser -> periodOfValidityService.configValidDateDefault(syncUser));
-            }
+        if (msgSource == ApiDataInfoDTO.MsgSourceEnum.UPLOAD.getValue()
+                && collectionDTO.getStatus() == MonitorTypeEnum.STATUS_2.getTypeCode()) {
+            return;
+        }
+        Set<String> apiCodes = marketingCommonConfig.getNonConfigValidDefaultApiCodes();
+        if ((apiCodes != null && apiCodes.contains(apiCode))) {
+            return;
+        }
+        LocalDateTime parseTime = LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        MarketingSyncUser marketingSyncUser = new MarketingSyncUser();
+        marketingSyncUser.setUserType(userType);
+        marketingSyncUser.setApiCode(apiCode);
+        marketingSyncUser.setAppletDate(parseTime.toLocalDate().toString());
+        // 添加有效期范围
+        if (marketingCommonConfig.getCustomizeConfigValidDefaultApiCodes().contains(apiCode)) {
+            marketingSyncUser.setCusBatch(collectionDTO.getTaskId());
+            // 定制生成有效期
+            configValidDateDefault(marketingSyncUser
+                    , syncUser -> apiCode.concat(":").concat(userType).concat(":").concat(syncUser.getCusBatch())
+                    , syncUser -> periodOfValidityService.customizeConfigValidDateDefault(syncUser));
+        } else {
+            // 通用生成有效期
+            configValidDateDefault(marketingSyncUser
+                    , syncUser -> apiCode.concat(":").concat(userType)
+                    , syncUser -> periodOfValidityService.configValidDateDefault(syncUser));
         }
     }
 
