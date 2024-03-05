@@ -1317,11 +1317,6 @@ public class PushRuleServiceImpl implements PushRuleService {
      */
     private void sendUserTypeCollectionMsg(Map<String, UserTypeCollectionDTO> localUserTypeCache, String apiCode
             , Function<Map<String, UserTypeCollectionDTO>, ApiDataInfoDTO<UserTypeCollectionDTO>> function) {
-        Set<String> apiCodes = marketingCommonConfig.getNonConfigValidDefaultApiCodes();
-        if ((apiCodes != null && apiCodes.contains(apiCode)) || localUserTypeCache.size() == 0) {
-            localUserTypeCache.clear();
-            return;
-        }
         String msg = "";
         try {
             msg = JSONArray.toJSONString(function.apply(localUserTypeCache));
