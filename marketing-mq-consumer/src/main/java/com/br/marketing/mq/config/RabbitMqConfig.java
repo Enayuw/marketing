@@ -58,6 +58,7 @@ public class RabbitMqConfig {
         args.put("x-dead-letter-exchange", MQConstants.MARKETINGEXCHANGER_DEAD_NAME);
         // x-dead-letter-routing-key  这里声明当前队列的死信路由key
         args.put("x-dead-letter-routing-key", MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE);
+        args.put("x-max-priority", 10);
         return QueueBuilder.durable(MQConstants.MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE).withArguments(args).build();
     }
 

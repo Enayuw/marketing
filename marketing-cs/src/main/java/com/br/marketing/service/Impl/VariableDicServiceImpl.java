@@ -326,6 +326,7 @@ public class VariableDicServiceImpl implements VariableDicService {
             LocalTime endParse = LocalTime.parse(map.getOrDefault("endTime", "10:00").toString());
             LocalTime localTime = localDateTime.toLocalTime();
             // 当开始startTime在endTime之后时表示定时发送
+            int priority;
             if (endParse.isBefore(startParse)) {
                 String key;
                 long ttl;
@@ -335,18 +336,20 @@ public class VariableDicServiceImpl implements VariableDicService {
                             .format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_TIME_FORMAT)));
                     ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate().atTime(startParse)
                             .atZone(ZoneId.systemDefault()));
+                    priority = 10;
                 } else {
                     // T+1日延时定时发送消息
                     key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:tomorrow:").concat(localDateTime
                             .format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_TIME_FORMAT)));
                     ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate().plusDays(1)
                             .atTime(endParse).atZone(ZoneId.systemDefault()));
+                    priority = 0;
                 }
                 Boolean exists = redisChgService.exists(key);
                 if (!exists) {
                     // 不存在添加延迟队列
                     producter.sendByExpiration(MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE, key
-                            , String.valueOf(ttl));
+                            , String.valueOf(ttl), priority);
                 }
                 // 缓存批量结果
                 redisChgService.saddMember(key, apiCode.concat("  ").concat(userType));
@@ -385,7 +388,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                     // 不存在添加延迟队列
                     producter.sendByExpiration(MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE,
                             key, String.valueOf(ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate()
-                                    .plusDays(day).atTime(startParse).atZone(ZoneId.systemDefault()))));
+                                    .plusDays(day).atTime(startParse).atZone(ZoneId.systemDefault()))), day == 0 ? 1 : 0);
                 }
                 // 缓存批量结果
                 redisChgService.saddMember(key, apiCode.concat("  ").concat(userType));
