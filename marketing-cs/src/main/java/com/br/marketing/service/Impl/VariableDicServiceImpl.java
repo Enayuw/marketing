@@ -374,16 +374,16 @@ public class VariableDicServiceImpl implements VariableDicService {
                         , dingDingTextMessage);
             } else {
                 // T+1日延时定时发送消息
-                String key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:").concat(localDateTime.toLocalDate()
-                        .format(DateTimeFormatter.BASIC_ISO_DATE));
+                int day = (LocalTime.MIN.isBefore(localTime) || LocalTime.MIN.equals(localTime)) && startParse
+                        .isAfter(localTime) ? 0 : 1;
+                String key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:" + day + ":").concat(
+                        localDateTime.toLocalDate().format(DateTimeFormatter.BASIC_ISO_DATE));
                 Boolean exists = redisChgService.exists(key);
                 if (!exists) {
                     // 不存在添加延迟队列
                     producter.sendByExpiration(MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE,
                             key, String.valueOf(ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate()
-                                    .plusDays((LocalTime.MIN.isBefore(localTime) || LocalTime.MIN.equals(localTime))
-                                            && startParse.isAfter(localTime) ? 0 : 1).atTime(startParse)
-                                    .atZone(ZoneId.systemDefault()))));
+                                    .plusDays(day).atTime(startParse).atZone(ZoneId.systemDefault()))));
                 }
                 // 缓存批量结果
                 redisChgService.saddMember(key, apiCode.concat("  ").concat(userType));
