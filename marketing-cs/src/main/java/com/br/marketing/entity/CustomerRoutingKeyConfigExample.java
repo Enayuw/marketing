@@ -165,73 +165,73 @@ public class CustomerRoutingKeyConfigExample {
             return (Criteria) this;
         }
 
-        public Criteria andRoutingkeyIsNull() {
-            addCriterion("routingKey is null");
+        public Criteria andRoutingKeyIsNull() {
+            addCriterion("routing_key is null");
             return (Criteria) this;
         }
 
-        public Criteria andRoutingkeyIsNotNull() {
-            addCriterion("routingKey is not null");
+        public Criteria andRoutingKeyIsNotNull() {
+            addCriterion("routing_key is not null");
             return (Criteria) this;
         }
 
-        public Criteria andRoutingkeyEqualTo(String value) {
-            addCriterion("routingKey =", value, "routingkey");
+        public Criteria andRoutingKeyEqualTo(String value) {
+            addCriterion("routing_key =", value, "routingKey");
             return (Criteria) this;
         }
 
-        public Criteria andRoutingkeyNotEqualTo(String value) {
-            addCriterion("routingKey <>", value, "routingkey");
+        public Criteria andRoutingKeyNotEqualTo(String value) {
+            addCriterion("routing_key <>", value, "routingKey");
             return (Criteria) this;
         }
 
-        public Criteria andRoutingkeyGreaterThan(String value) {
-            addCriterion("routingKey >", value, "routingkey");
+        public Criteria andRoutingKeyGreaterThan(String value) {
+            addCriterion("routing_key >", value, "routingKey");
             return (Criteria) this;
         }
 
-        public Criteria andRoutingkeyGreaterThanOrEqualTo(String value) {
-            addCriterion("routingKey >=", value, "routingkey");
+        public Criteria andRoutingKeyGreaterThanOrEqualTo(String value) {
+            addCriterion("routing_key >=", value, "routingKey");
             return (Criteria) this;
         }
 
-        public Criteria andRoutingkeyLessThan(String value) {
-            addCriterion("routingKey <", value, "routingkey");
+        public Criteria andRoutingKeyLessThan(String value) {
+            addCriterion("routing_key <", value, "routingKey");
             return (Criteria) this;
         }
 
-        public Criteria andRoutingkeyLessThanOrEqualTo(String value) {
-            addCriterion("routingKey <=", value, "routingkey");
+        public Criteria andRoutingKeyLessThanOrEqualTo(String value) {
+            addCriterion("routing_key <=", value, "routingKey");
             return (Criteria) this;
         }
 
-        public Criteria andRoutingkeyLike(String value) {
-            addCriterion("routingKey like", value, "routingkey");
+        public Criteria andRoutingKeyLike(String value) {
+            addCriterion("routing_key like", value, "routingKey");
             return (Criteria) this;
         }
 
-        public Criteria andRoutingkeyNotLike(String value) {
-            addCriterion("routingKey not like", value, "routingkey");
+        public Criteria andRoutingKeyNotLike(String value) {
+            addCriterion("routing_key not like", value, "routingKey");
             return (Criteria) this;
         }
 
-        public Criteria andRoutingkeyIn(List<String> values) {
-            addCriterion("routingKey in", values, "routingkey");
+        public Criteria andRoutingKeyIn(List<String> values) {
+            addCriterion("routing_key in", values, "routingKey");
             return (Criteria) this;
         }
 
-        public Criteria andRoutingkeyNotIn(List<String> values) {
-            addCriterion("routingKey not in", values, "routingkey");
+        public Criteria andRoutingKeyNotIn(List<String> values) {
+            addCriterion("routing_key not in", values, "routingKey");
             return (Criteria) this;
         }
 
-        public Criteria andRoutingkeyBetween(String value1, String value2) {
-            addCriterion("routingKey between", value1, value2, "routingkey");
+        public Criteria andRoutingKeyBetween(String value1, String value2) {
+            addCriterion("routing_key between", value1, value2, "routingKey");
             return (Criteria) this;
         }
 
-        public Criteria andRoutingkeyNotBetween(String value1, String value2) {
-            addCriterion("routingKey not between", value1, value2, "routingkey");
+        public Criteria andRoutingKeyNotBetween(String value1, String value2) {
+            addCriterion("routing_key not between", value1, value2, "routingKey");
             return (Criteria) this;
         }
 
@@ -305,63 +305,123 @@ public class CustomerRoutingKeyConfigExample {
             return (Criteria) this;
         }
 
-        public Criteria andTypeIsNull() {
-            addCriterion("`type` is null");
+        public Criteria andBizTypeIsNull() {
+            addCriterion("biz_type is null");
             return (Criteria) this;
         }
 
-        public Criteria andTypeIsNotNull() {
-            addCriterion("`type` is not null");
+        public Criteria andBizTypeIsNotNull() {
+            addCriterion("biz_type is not null");
             return (Criteria) this;
         }
 
-        public Criteria andTypeEqualTo(Integer value) {
-            addCriterion("`type` =", value, "type");
+        public Criteria andBizTypeEqualTo(Integer value) {
+            addCriterion("biz_type =", value, "bizType");
             return (Criteria) this;
         }
 
-        public Criteria andTypeNotEqualTo(Integer value) {
-            addCriterion("`type` <>", value, "type");
+        public Criteria andBizTypeNotEqualTo(Integer value) {
+            addCriterion("biz_type <>", value, "bizType");
             return (Criteria) this;
         }
 
-        public Criteria andTypeGreaterThan(Integer value) {
-            addCriterion("`type` >", value, "type");
+        public Criteria andBizTypeGreaterThan(Integer value) {
+            addCriterion("biz_type >", value, "bizType");
             return (Criteria) this;
         }
 
-        public Criteria andTypeGreaterThanOrEqualTo(Integer value) {
-            addCriterion("`type` >=", value, "type");
+        public Criteria andBizTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("biz_type >=", value, "bizType");
             return (Criteria) this;
         }
 
-        public Criteria andTypeLessThan(Integer value) {
-            addCriterion("`type` <", value, "type");
+        public Criteria andBizTypeLessThan(Integer value) {
+            addCriterion("biz_type <", value, "bizType");
             return (Criteria) this;
         }
 
-        public Criteria andTypeLessThanOrEqualTo(Integer value) {
-            addCriterion("`type` <=", value, "type");
+        public Criteria andBizTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("biz_type <=", value, "bizType");
             return (Criteria) this;
         }
 
-        public Criteria andTypeIn(List<Integer> values) {
-            addCriterion("`type` in", values, "type");
+        public Criteria andBizTypeIn(List<Integer> values) {
+            addCriterion("biz_type in", values, "bizType");
             return (Criteria) this;
         }
 
-        public Criteria andTypeNotIn(List<Integer> values) {
-            addCriterion("`type` not in", values, "type");
+        public Criteria andBizTypeNotIn(List<Integer> values) {
+            addCriterion("biz_type not in", values, "bizType");
             return (Criteria) this;
         }
 
-        public Criteria andTypeBetween(Integer value1, Integer value2) {
-            addCriterion("`type` between", value1, value2, "type");
+        public Criteria andBizTypeBetween(Integer value1, Integer value2) {
+            addCriterion("biz_type between", value1, value2, "bizType");
             return (Criteria) this;
         }
 
-        public Criteria andTypeNotBetween(Integer value1, Integer value2) {
-            addCriterion("`type` not between", value1, value2, "type");
+        public Criteria andBizTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("biz_type not between", value1, value2, "bizType");
+            return (Criteria) this;
+        }
+
+        public Criteria andQueueTypeIsNull() {
+            addCriterion("queue_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andQueueTypeIsNotNull() {
+            addCriterion("queue_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andQueueTypeEqualTo(Integer value) {
+            addCriterion("queue_type =", value, "queueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andQueueTypeNotEqualTo(Integer value) {
+            addCriterion("queue_type <>", value, "queueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andQueueTypeGreaterThan(Integer value) {
+            addCriterion("queue_type >", value, "queueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andQueueTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("queue_type >=", value, "queueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andQueueTypeLessThan(Integer value) {
+            addCriterion("queue_type <", value, "queueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andQueueTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("queue_type <=", value, "queueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andQueueTypeIn(List<Integer> values) {
+            addCriterion("queue_type in", values, "queueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andQueueTypeNotIn(List<Integer> values) {
+            addCriterion("queue_type not in", values, "queueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andQueueTypeBetween(Integer value1, Integer value2) {
+            addCriterion("queue_type between", value1, value2, "queueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andQueueTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("queue_type not between", value1, value2, "queueType");
             return (Criteria) this;
         }
 

@@ -40,6 +40,7 @@ import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.CustomerQueueEnum;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
@@ -1014,7 +1015,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         //region 写入上传明细MQ
         if (!dbException) {
-            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, "原始上传");
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
         }
         //endregion
 
@@ -1028,28 +1029,29 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param apiCode
      * @param defaultRoutingKey 默认路由键
      * @param infoId 原始数据表id
-     * @param type 队列类型
+     * @param queueEnum 队列类型
      */
-    private void sendToMqByConfig(String apiCode, String defaultRoutingKey, String infoId, String type) {
+    private void sendToMqByConfig(String apiCode, String defaultRoutingKey, String infoId, CustomerQueueEnum queueEnum) {
         try {
             long l3 = System.currentTimeMillis();
-            // 根据apicode获取路由键
-            CustomerRoutingKeyConfig routingKeyConfig = caffeineCache.getRountingKey(apiCode);
+            // 根据apicode和bizType获取路由键
+            String apiCodeJointBizType = apiCode + "," + queueEnum.getValue();
+            CustomerRoutingKeyConfig routingKeyConfig = caffeineCache.getRountingKey(apiCodeJointBizType);
             if (null == routingKeyConfig) {
                 producter.send(defaultRoutingKey, infoId);
             } else {
                 // 大队列不支持优先级
-                if (routingKeyConfig.getType() == 1) {
-                    producter.send(routingKeyConfig.getRoutingkey(), infoId);
+                if (routingKeyConfig.getQueueType() == 1) {
+                    producter.send(routingKeyConfig.getRoutingKey(), infoId);
                 } else {
-                    producter.send(routingKeyConfig.getRoutingkey(), infoId, routingKeyConfig.getPriority());
+                    producter.send(routingKeyConfig.getRoutingKey(), infoId, routingKeyConfig.getPriority());
                 }
             }
             if (log.isInfoEnabled()) {
-                log.info("推送" + type + "队列耗时:{}", (System.currentTimeMillis() - l3));
+                log.info("推送" + queueEnum.getDesc() + "队列耗时:{}", (System.currentTimeMillis() - l3));
             }
         } catch (Exception ex) {
-            log.error("推送" + type + "队列失败,数据id：{}", infoId);
+            log.error("推送" + queueEnum.getDesc() + "队列失败,数据id：{}", infoId);
         }
     }
 
@@ -1482,7 +1484,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         //region 写入上传明细MQ
         if (!dbException) {
-            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, "原始上传");
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
@@ -1587,7 +1589,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         if (!dbException) {
-            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, "原始转化");
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
@@ -1640,7 +1642,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         if (!dbException) {
-            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, "原始转化");
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }

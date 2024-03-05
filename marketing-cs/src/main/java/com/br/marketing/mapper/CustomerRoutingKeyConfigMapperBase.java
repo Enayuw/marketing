@@ -17,15 +17,21 @@ public interface CustomerRoutingKeyConfigMapperBase {
 
     int insertSelective(CustomerRoutingKeyConfig record);
 
+    List<CustomerRoutingKeyConfig> selectByExampleWithBLOBs(CustomerRoutingKeyConfigExample example);
+
     List<CustomerRoutingKeyConfig> selectByExample(CustomerRoutingKeyConfigExample example);
 
     CustomerRoutingKeyConfig selectByPrimaryKey(Integer id);
 
     int updateByExampleSelective(@Param("record") CustomerRoutingKeyConfig record, @Param("example") CustomerRoutingKeyConfigExample example);
 
+    int updateByExampleWithBLOBs(@Param("record") CustomerRoutingKeyConfig record, @Param("example") CustomerRoutingKeyConfigExample example);
+
     int updateByExample(@Param("record") CustomerRoutingKeyConfig record, @Param("example") CustomerRoutingKeyConfigExample example);
 
     int updateByPrimaryKeySelective(CustomerRoutingKeyConfig record);
+
+    int updateByPrimaryKeyWithBLOBs(CustomerRoutingKeyConfig record);
 
     int updateByPrimaryKey(CustomerRoutingKeyConfig record);
 }

@@ -3,11 +3,15 @@
 <mapper namespace="com.br.marketing.mapper.CustomerRoutingKeyConfigMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.CustomerRoutingKeyConfig" >
     <id column="id" property="id" jdbcType="INTEGER" />
-    <result column="routingKey" property="routingkey" jdbcType="VARCHAR" />
+    <result column="routing_key" property="routingKey" jdbcType="VARCHAR" />
     <result column="queue_name" property="queueName" jdbcType="VARCHAR" />
-    <result column="type" property="type" jdbcType="INTEGER" />
+    <result column="biz_type" property="bizType" jdbcType="INTEGER" />
+    <result column="queue_type" property="queueType" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.CustomerRoutingKeyConfig" extends="BaseResultMap" >
+    <result column="extend_field" property="extendField" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -68,8 +72,27 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, routingKey, queue_name, `type`, create_time, update_time
+    id, routing_key, queue_name, biz_type, queue_type, create_time, update_time
   </sql>
+  <sql id="Blob_Column_List" >
+    extend_field
+  </sql>
+  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.CustomerRoutingKeyConfigExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from b_marketing_customer_routingKey_config
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CustomerRoutingKeyConfigExample" >
     select
     <if test="distinct" >
@@ -84,9 +107,11 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
-    select 
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Integer" >
+    select
     <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
     from b_marketing_customer_routingKey_config
     where id = #{id,jdbcType=INTEGER}
   </select>
@@ -104,10 +129,12 @@
     <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_customer_routingKey_config (routingKey, queue_name, `type`, 
-      create_time, update_time)
-    values (#{routingkey,jdbcType=VARCHAR}, #{queueName,jdbcType=VARCHAR}, #{type,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_marketing_customer_routingKey_config (routing_key, queue_name, biz_type,
+    queue_type, create_time, update_time,
+    extend_field)
+    values (#{routingKey,jdbcType=VARCHAR}, #{queueName,jdbcType=VARCHAR}, #{bizType,jdbcType=INTEGER},
+    #{queueType,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
+    #{extendField,jdbcType=LONGVARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CustomerRoutingKeyConfig" >
     <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER" >
@@ -115,14 +142,17 @@
     </selectKey>
     insert into b_marketing_customer_routingKey_config
     <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="routingkey != null" >
-        routingKey,
+      <if test="routingKey != null" >
+        routing_key,
       </if>
       <if test="queueName != null" >
         queue_name,
       </if>
-      <if test="type != null" >
-        `type`,
+      <if test="bizType != null" >
+        biz_type,
+      </if>
+      <if test="queueType != null" >
+        queue_type,
       </if>
       <if test="createTime != null" >
         create_time,
@@ -130,22 +160,31 @@
       <if test="updateTime != null" >
         update_time,
       </if>
+      <if test="extendField != null" >
+        extend_field,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="routingkey != null" >
-        #{routingkey,jdbcType=VARCHAR},
+      <if test="routingKey != null" >
+        #{routingKey,jdbcType=VARCHAR},
       </if>
       <if test="queueName != null" >
         #{queueName,jdbcType=VARCHAR},
       </if>
-      <if test="type != null" >
-        #{type,jdbcType=INTEGER},
+      <if test="bizType != null" >
+        #{bizType,jdbcType=INTEGER},
+      </if>
+      <if test="queueType != null" >
+        #{queueType,jdbcType=INTEGER},
       </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="extendField != null" >
+        #{extendField,jdbcType=LONGVARCHAR},
       </if>
     </trim>
   </insert>
@@ -161,14 +200,17 @@
       <if test="record.id != null" >
         id = #{record.id,jdbcType=INTEGER},
       </if>
-      <if test="record.routingkey != null" >
-        routingKey = #{record.routingkey,jdbcType=VARCHAR},
+      <if test="record.routingKey != null" >
+        routing_key = #{record.routingKey,jdbcType=VARCHAR},
       </if>
       <if test="record.queueName != null" >
         queue_name = #{record.queueName,jdbcType=VARCHAR},
       </if>
-      <if test="record.type != null" >
-        `type` = #{record.type,jdbcType=INTEGER},
+      <if test="record.bizType != null" >
+        biz_type = #{record.bizType,jdbcType=INTEGER},
+      </if>
+      <if test="record.queueType != null" >
+        queue_type = #{record.queueType,jdbcType=INTEGER},
       </if>
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -176,7 +218,24 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.extendField != null" >
+        extend_field = #{record.extendField,jdbcType=LONGVARCHAR},
+      </if>
     </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExampleWithBLOBs" parameterType="map" >
+    update b_marketing_customer_routingKey_config
+    set id = #{record.id,jdbcType=INTEGER},
+    routing_key = #{record.routingKey,jdbcType=VARCHAR},
+    queue_name = #{record.queueName,jdbcType=VARCHAR},
+    biz_type = #{record.bizType,jdbcType=INTEGER},
+    queue_type = #{record.queueType,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    extend_field = #{record.extendField,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -184,11 +243,12 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_customer_routingKey_config
     set id = #{record.id,jdbcType=INTEGER},
-      routingKey = #{record.routingkey,jdbcType=VARCHAR},
-      queue_name = #{record.queueName,jdbcType=VARCHAR},
-      `type` = #{record.type,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    routing_key = #{record.routingKey,jdbcType=VARCHAR},
+    queue_name = #{record.queueName,jdbcType=VARCHAR},
+    biz_type = #{record.bizType,jdbcType=INTEGER},
+    queue_type = #{record.queueType,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -196,14 +256,17 @@
   <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.CustomerRoutingKeyConfig" >
     update b_marketing_customer_routingKey_config
     <set >
-      <if test="routingkey != null" >
-        routingKey = #{routingkey,jdbcType=VARCHAR},
+      <if test="routingKey != null" >
+        routing_key = #{routingKey,jdbcType=VARCHAR},
       </if>
       <if test="queueName != null" >
         queue_name = #{queueName,jdbcType=VARCHAR},
       </if>
-      <if test="type != null" >
-        `type` = #{type,jdbcType=INTEGER},
+      <if test="bizType != null" >
+        biz_type = #{bizType,jdbcType=INTEGER},
+      </if>
+      <if test="queueType != null" >
+        queue_type = #{queueType,jdbcType=INTEGER},
       </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -211,16 +274,31 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="extendField != null" >
+        extend_field = #{extendField,jdbcType=LONGVARCHAR},
+      </if>
     </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.CustomerRoutingKeyConfig" >
+    update b_marketing_customer_routingKey_config
+    set routing_key = #{routingKey,jdbcType=VARCHAR},
+        queue_name = #{queueName,jdbcType=VARCHAR},
+        biz_type = #{bizType,jdbcType=INTEGER},
+        queue_type = #{queueType,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        extend_field = #{extendField,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=INTEGER}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CustomerRoutingKeyConfig" >
     update b_marketing_customer_routingKey_config
-    set routingKey = #{routingkey,jdbcType=VARCHAR},
-      queue_name = #{queueName,jdbcType=VARCHAR},
-      `type` = #{type,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    set routing_key = #{routingKey,jdbcType=VARCHAR},
+        queue_name = #{queueName,jdbcType=VARCHAR},
+        biz_type = #{bizType,jdbcType=INTEGER},
+        queue_type = #{queueType,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=INTEGER}
   </update>
 </mapper>
