@@ -336,14 +336,14 @@ public class VariableDicServiceImpl implements VariableDicService {
                             .format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_TIME_FORMAT)));
                     ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate().atTime(startParse)
                             .atZone(ZoneId.systemDefault()));
-                    priority = 10;
+                    priority = 9;
                 } else {
                     // T+1日延时定时发送消息
                     key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:tomorrow:").concat(localDateTime
                             .format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_TIME_FORMAT)));
                     ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate().plusDays(1)
                             .atTime(endParse).atZone(ZoneId.systemDefault()));
-                    priority = 0;
+                    priority = 3;
                 }
                 Boolean exists = redisChgService.exists(key);
                 if (!exists) {
@@ -388,7 +388,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                     // 不存在添加延迟队列
                     producter.sendByExpiration(MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE,
                             key, String.valueOf(ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate()
-                                    .plusDays(day).atTime(startParse).atZone(ZoneId.systemDefault()))), day == 0 ? 1 : 0);
+                                    .plusDays(day).atTime(startParse).atZone(ZoneId.systemDefault()))), day == 0 ? 10 : 3);
                 }
                 // 缓存批量结果
                 redisChgService.saddMember(key, apiCode.concat("  ").concat(userType));
