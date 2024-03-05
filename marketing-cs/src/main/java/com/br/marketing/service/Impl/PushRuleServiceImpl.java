@@ -1174,7 +1174,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                         log.info(String.format("去重数据：%d,数据入库和去重时间耗时：%d，数据去重时间：%d"
                                 , marketingSyncUser.getId(), et1, et2));
                     }
-                    boolean isCreate = marketingSyncUser.getId() != null && (marketingSyncUser.getIsRepeat() == null
+                    boolean isCreate = (apiCode.startsWith("3") || apiCode.startsWith("4"))
+                            && marketingSyncUser.getId() != null && (marketingSyncUser.getIsRepeat() == null
                             || marketingSyncUser.getIsRepeat().equals(2) || marketingSyncUser.getIsRepeat().equals(1));
                     if (isCreate) {
                         // 入库成功后将userType、cusBatch(taskId)、status为key，并且唯一
@@ -1640,7 +1641,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 try {
                     marketingTransferSyncUserMapper.insertSelective(transferSyncUser);
-                    if (transferSyncUser.getId() != null) {
+                    if ((transferInfo.getApiCode().startsWith("3") || transferInfo.getApiCode().startsWith("4"))
+                            && transferSyncUser.getId() != null) {
                         // 入库成功后将userType为key，并且唯一
                         String key = transferSyncUser.getUserType();
                         // 缓存场景数据
