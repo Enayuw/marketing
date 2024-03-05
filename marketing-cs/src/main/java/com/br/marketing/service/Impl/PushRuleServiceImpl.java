@@ -1237,7 +1237,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         // 发送场景收集队列
-        sendUserTypeCollectionMsg(localUserTypeCache, apiCode, (localUserTypeCacheMap) -> {
+        sendUserTypeCollectionMsg(localUserTypeCache, (localUserTypeCacheMap) -> {
             ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
             dataInfoDTO.setApiCode(apiCode);
             dataInfoDTO.setRawDataSaveTimeStr(marketingSyncInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
@@ -1315,7 +1315,7 @@ public class PushRuleServiceImpl implements PushRuleService {
      * 2024-02-29 10:12
      * 上传数据发送场景消息到收集队列
      */
-    private void sendUserTypeCollectionMsg(Map<String, UserTypeCollectionDTO> localUserTypeCache, String apiCode
+    private void sendUserTypeCollectionMsg(Map<String, UserTypeCollectionDTO> localUserTypeCache
             , Function<Map<String, UserTypeCollectionDTO>, ApiDataInfoDTO<UserTypeCollectionDTO>> function) {
         String msg = "";
         try {
@@ -1692,7 +1692,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         // 发送场景收集队列
-        sendUserTypeCollectionMsg(localUserTypeCache, transferInfo.getApiCode(), (localUserTypeCacheMap) -> {
+        sendUserTypeCollectionMsg(localUserTypeCache, (localUserTypeCacheMap) -> {
             ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
             List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
             dataInfoDTO.setArgList(collections);
