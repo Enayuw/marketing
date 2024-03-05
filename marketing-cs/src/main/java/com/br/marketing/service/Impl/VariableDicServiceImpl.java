@@ -13,10 +13,7 @@ import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
 import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
-import com.br.marketing.entity.MarketingDataValidConfigDefault;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.VariableDic;
-import com.br.marketing.entity.VariableDicExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.mapper.MarketingValidityChangeMapper;
@@ -33,8 +30,12 @@ import com.br.marketing.webhook.dingding.msgtype.DingDingTextMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -43,7 +44,6 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -88,6 +88,9 @@ public class VariableDicServiceImpl implements VariableDicService {
 
     @Resource
     private RabbitMqProducter producter;
+
+    @Resource
+    private PlatformTransactionManager transactionManager;
 
     private final static Lock LOCK = new ReentrantLock();
 
@@ -236,13 +239,12 @@ public class VariableDicServiceImpl implements VariableDicService {
                 String userType = collectionDTO.getUserType();
                 LocalDateTime localDateTime = LocalDateTime.now();
                 String redisKey = key.concat(":").concat(userType);
-                // 添加缓存
                 boolean exists = true;
                 boolean isError = false;
                 try {
-                    exists = redisChgService.lock(redisKey, apiDataInfoDTO.getRawDataSaveDateStr()
-                            , ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate().plusDays(1)
-                                    .atStartOfDay().atZone(ZoneId.systemDefault())));
+                    // 添加缓存
+                    exists = redisChgService.lock(redisKey, apiDataInfoDTO.getRawDataSaveDateStr(), RandomUtils.nextLong(
+                            3600 * 24 * 3 * 1000L, 3600 * 24 * 7 * 1000L));
                 } catch (Exception e) {
                     isError = true;
                     log.error(e.getMessage(), e);
@@ -255,30 +257,37 @@ public class VariableDicServiceImpl implements VariableDicService {
                     if (isError) {
                         variableDicExample.setOrderByClause("id for update");
                     }
-                    int count = variableDicMapper.countByExample(variableDicExample);
-                    if (count < 1) {
-                        LocalDateTime parseTime = LocalDateTime.parse(apiDataInfoDTO.getRawDataSaveTimeStr()
-                                , DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                        // db中不存在，添加记录
-                        VariableDic variableDic = new VariableDic();
-                        variableDic.setFieldName(fieldName);
-                        variableDic.setFieldValue(userType);
-                        variableDic.setFieldDesc("");
-                        variableDic.setIsDel(1);
-                        variableDic.setCreateTime(Date.from(parseTime.atZone(ZoneId.systemDefault()).toInstant()));
-                        variableDic.setUpdateTime(variableDic.getCreateTime());
-                        variableDic.setCid(cId);
-                        variableDic.setApiCode(apiCode);
-                        variableDic.setFieldValueSource(apiDataInfoDTO.getMsgSource());
-                        int i = variableDicMapper.insertSelective(variableDic);
-                        if (i > 0) {
-                            // 发送告警通知
-                            sendUserTypeAddDingDingMgs(localDateTime, apiCode, userType);
-                        } else {
-                            log.warn("自动化场景维护入库失败,cid:{},apiCode:{},userType:{},上传时间:{},数据来源:{}"
-                                    , cId, apiCode, userType, apiDataInfoDTO.getRawDataSaveTimeStr()
-                                    , apiDataInfoDTO.getMsgSource());
+                    TransactionStatus transaction = transactionManager.getTransaction(new DefaultTransactionDefinition());
+                    try {
+                        int count = variableDicMapper.countByExample(variableDicExample);
+                        if (count < 1) {
+                            LocalDateTime parseTime = LocalDateTime.parse(apiDataInfoDTO.getRawDataSaveTimeStr()
+                                    , DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                            // db中不存在，添加记录
+                            VariableDic variableDic = new VariableDic();
+                            variableDic.setFieldName(fieldName);
+                            variableDic.setFieldValue(userType);
+                            variableDic.setFieldDesc("");
+                            variableDic.setIsDel(1);
+                            variableDic.setCreateTime(Date.from(parseTime.atZone(ZoneId.systemDefault()).toInstant()));
+                            variableDic.setUpdateTime(variableDic.getCreateTime());
+                            variableDic.setCid(cId);
+                            variableDic.setApiCode(apiCode);
+                            variableDic.setFieldValueSource(apiDataInfoDTO.getMsgSource());
+                            int i = variableDicMapper.insertSelective(variableDic);
+                            if (i > 0) {
+                                // 发送告警通知
+                                sendUserTypeAddDingDingMgs(localDateTime, apiCode, userType);
+                            } else {
+                                log.warn("自动化场景维护入库失败,cid:{},apiCode:{},userType:{},上传时间:{},数据来源:{}"
+                                        , cId, apiCode, userType, apiDataInfoDTO.getRawDataSaveTimeStr()
+                                        , apiDataInfoDTO.getMsgSource());
+                            }
                         }
+                        transactionManager.commit(transaction);
+                    } catch (Exception e) {
+                        transactionManager.rollback(transaction);
+                        log.error(e.getMessage(), e);
                     }
                 }
                 // 生成有效期
@@ -311,9 +320,41 @@ public class VariableDicServiceImpl implements VariableDicService {
                 return;
             }
             // 添加新增场景通知信息
-            LocalTime startParse = LocalTime.parse(map.getOrDefault("startTime", "10:00").toString());
-            LocalTime endParse = LocalTime.parse(map.getOrDefault("endTime", "18:00").toString());
+            LocalTime startParse = LocalTime.parse(map.getOrDefault("startTime", "18:00").toString());
+            LocalTime endParse = LocalTime.parse(map.getOrDefault("endTime", "10:00").toString());
             LocalTime localTime = localDateTime.toLocalTime();
+            // 当开始startTime在endTime之后时表示定时发送
+            if (endParse.isBefore(startParse)) {
+                String key;
+                long ttl;
+                if (localTime.isBefore(startParse) || localTime.equals(startParse)) {
+                    // T日定时发送消息
+                    key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:today:").concat(localDateTime.toLocalDate()
+                            .format(DateTimeFormatter.BASIC_ISO_DATE));
+                    ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate().atTime(startParse)
+                            .atZone(ZoneId.systemDefault()));
+                } else {
+                    // T+1日延时定时发送消息
+                    key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:tomorrow:").concat(localDateTime.toLocalDate()
+                            .format(DateTimeFormatter.BASIC_ISO_DATE));
+                    ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate().plusDays(1)
+                            .atTime(endParse).atZone(ZoneId.systemDefault()));
+                }
+                Boolean exists = redisChgService.exists(key);
+                if (!exists) {
+                    // 不存在添加延迟队列
+                    producter.sendByExpiration(MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE, key
+                            , String.valueOf(ttl));
+                }
+                // 缓存批量结果
+                redisChgService.saddMember(key, apiCode.concat("  ").concat(userType));
+                if (!exists) {
+                    // 设置过期时间
+                    redisChgService.expire(key, 3600 * 25);
+                }
+                return;
+            }
+            // 当开始startTime在endTime之前时表示在startTime与endTime闭区间内实时发送，区间外定时发送
             boolean isRealTimeSend = (localTime.isAfter(startParse) || localTime.equals(startParse))
                     && (localTime.isBefore(endParse) || localTime.equals(endParse));
             if (isRealTimeSend) {
@@ -332,7 +373,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                 dingDingRobotHookService.sendMessageGroup(map.get("token").toString(), map.get("secret").toString()
                         , dingDingTextMessage);
             } else {
-                // T+1日延时发送消息
+                // T+1日延时定时发送消息
                 String key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:").concat(localDateTime.toLocalDate()
                         .format(DateTimeFormatter.BASIC_ISO_DATE));
                 Boolean exists = redisChgService.exists(key);
@@ -348,7 +389,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                 redisChgService.saddMember(key, apiCode.concat("  ").concat(userType));
                 if (!exists) {
                     // 设置过期时间
-                    redisChgService.expire(key, 3600 * 48);
+                    redisChgService.expire(key, 3600 * 25);
                 }
             }
         } catch (Exception e) {
@@ -365,11 +406,14 @@ public class VariableDicServiceImpl implements VariableDicService {
      * @param apiCode     客户编号
      * @param userType    场景
      */
-    private void createValidDateConfig(int msgSource, String dateTimeStr
-            , UserTypeCollectionDTO collectionDTO, String apiCode, String userType) {
+    private void createValidDateConfig(int msgSource, String dateTimeStr, UserTypeCollectionDTO collectionDTO
+            , String apiCode, String userType) {
         if (msgSource == ApiDataInfoDTO.MsgSourceEnum.UPLOAD.getValue() && collectionDTO.getStatus() == 1) {
-            LocalDateTime parseTime = LocalDateTime.parse(dateTimeStr
-                    , DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            Set<String> apiCodes = marketingCommonConfig.getNonConfigValidDefaultApiCodes();
+            if ((apiCodes != null && apiCodes.contains(apiCode))) {
+                return;
+            }
+            LocalDateTime parseTime = LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
             MarketingSyncUser marketingSyncUser = new MarketingSyncUser();
             marketingSyncUser.setUserType(userType);
             marketingSyncUser.setApiCode(apiCode);
@@ -400,16 +444,16 @@ public class VariableDicServiceImpl implements VariableDicService {
             , Function<MarketingSyncUser, String> functionRedisKey, Function<MarketingSyncUser, Result<Boolean>> function) {
         try {
             // 遍历缓存中需要设置默认有效期的apiCode与userType
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime localDateTime = now.plusDays(1);
-            ZonedDateTime zonedDateTime = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault());
             String key = RedisKeyConstant.prefix.concat("valid:lock:") + functionRedisKey.apply(syncUser);
             boolean lock;
             try {
                 // 将主键保存到锁的key中
-                lock = redisChgService.lock(key, syncUser.getUserType(), ChronoUnit.MILLIS.between(now, zonedDateTime));
+                lock = redisChgService.lock(key, syncUser.getUserType(), RandomUtils.nextLong(3600 * 24 * 3 * 1000L
+                        , 3600 * 24 * 7 * 1000L));
+                syncUser.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
             } catch (Exception e) {
                 lock = true;
+                syncUser.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
                 log.error("设置默认有效期,上锁失败key:" + key + e.getMessage(), e);
             }
             if (lock) {
