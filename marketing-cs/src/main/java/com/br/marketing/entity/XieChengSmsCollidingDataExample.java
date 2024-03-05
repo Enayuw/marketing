@@ -296,72 +296,72 @@ public class XieChengSmsCollidingDataExample {
         }
 
         public Criteria andTypeIsNull() {
-            addCriterion("type is null");
+            addCriterion("`type` is null");
             return (Criteria) this;
         }
 
         public Criteria andTypeIsNotNull() {
-            addCriterion("type is not null");
+            addCriterion("`type` is not null");
             return (Criteria) this;
         }
 
         public Criteria andTypeEqualTo(String value) {
-            addCriterion("type =", value, "type");
+            addCriterion("`type` =", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeNotEqualTo(String value) {
-            addCriterion("type <>", value, "type");
+            addCriterion("`type` <>", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeGreaterThan(String value) {
-            addCriterion("type >", value, "type");
+            addCriterion("`type` >", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeGreaterThanOrEqualTo(String value) {
-            addCriterion("type >=", value, "type");
+            addCriterion("`type` >=", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeLessThan(String value) {
-            addCriterion("type <", value, "type");
+            addCriterion("`type` <", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeLessThanOrEqualTo(String value) {
-            addCriterion("type <=", value, "type");
+            addCriterion("`type` <=", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeLike(String value) {
-            addCriterion("type like", value, "type");
+            addCriterion("`type` like", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeNotLike(String value) {
-            addCriterion("type not like", value, "type");
+            addCriterion("`type` not like", value, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeIn(List<String> values) {
-            addCriterion("type in", values, "type");
+            addCriterion("`type` in", values, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeNotIn(List<String> values) {
-            addCriterion("type not in", values, "type");
+            addCriterion("`type` not in", values, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeBetween(String value1, String value2) {
-            addCriterion("type between", value1, value2, "type");
+            addCriterion("`type` between", value1, value2, "type");
             return (Criteria) this;
         }
 
         public Criteria andTypeNotBetween(String value1, String value2) {
-            addCriterion("type not between", value1, value2, "type");
+            addCriterion("`type` not between", value1, value2, "type");
             return (Criteria) this;
         }
 
@@ -556,62 +556,62 @@ public class XieChengSmsCollidingDataExample {
         }
 
         public Criteria andStatusIsNull() {
-            addCriterion("status is null");
+            addCriterion("`status` is null");
             return (Criteria) this;
         }
 
         public Criteria andStatusIsNotNull() {
-            addCriterion("status is not null");
+            addCriterion("`status` is not null");
             return (Criteria) this;
         }
 
         public Criteria andStatusEqualTo(Integer value) {
-            addCriterion("status =", value, "status");
+            addCriterion("`status` =", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotEqualTo(Integer value) {
-            addCriterion("status <>", value, "status");
+            addCriterion("`status` <>", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusGreaterThan(Integer value) {
-            addCriterion("status >", value, "status");
+            addCriterion("`status` >", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusGreaterThanOrEqualTo(Integer value) {
-            addCriterion("status >=", value, "status");
+            addCriterion("`status` >=", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLessThan(Integer value) {
-            addCriterion("status <", value, "status");
+            addCriterion("`status` <", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLessThanOrEqualTo(Integer value) {
-            addCriterion("status <=", value, "status");
+            addCriterion("`status` <=", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusIn(List<Integer> values) {
-            addCriterion("status in", values, "status");
+            addCriterion("`status` in", values, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotIn(List<Integer> values) {
-            addCriterion("status not in", values, "status");
+            addCriterion("`status` not in", values, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusBetween(Integer value1, Integer value2) {
-            addCriterion("status between", value1, value2, "status");
+            addCriterion("`status` between", value1, value2, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotBetween(Integer value1, Integer value2) {
-            addCriterion("status not between", value1, value2, "status");
+            addCriterion("`status` not between", value1, value2, "status");
             return (Criteria) this;
         }
 
@@ -802,6 +802,186 @@ public class XieChengSmsCollidingDataExample {
 
         public Criteria andUpdateTimeNotBetween(Date value1, Date value2) {
             addCriterion("update_time not between", value1, value2, "updateTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateIsNull() {
+            addCriterion("create_date is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateIsNotNull() {
+            addCriterion("create_date is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateEqualTo(Integer value) {
+            addCriterion("create_date =", value, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateNotEqualTo(Integer value) {
+            addCriterion("create_date <>", value, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateGreaterThan(Integer value) {
+            addCriterion("create_date >", value, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateGreaterThanOrEqualTo(Integer value) {
+            addCriterion("create_date >=", value, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateLessThan(Integer value) {
+            addCriterion("create_date <", value, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateLessThanOrEqualTo(Integer value) {
+            addCriterion("create_date <=", value, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateIn(List<Integer> values) {
+            addCriterion("create_date in", values, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateNotIn(List<Integer> values) {
+            addCriterion("create_date not in", values, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateBetween(Integer value1, Integer value2) {
+            addCriterion("create_date between", value1, value2, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateNotBetween(Integer value1, Integer value2) {
+            addCriterion("create_date not between", value1, value2, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleDateIsNull() {
+            addCriterion("cycle_date is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleDateIsNotNull() {
+            addCriterion("cycle_date is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleDateEqualTo(Integer value) {
+            addCriterion("cycle_date =", value, "cycleDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleDateNotEqualTo(Integer value) {
+            addCriterion("cycle_date <>", value, "cycleDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleDateGreaterThan(Integer value) {
+            addCriterion("cycle_date >", value, "cycleDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleDateGreaterThanOrEqualTo(Integer value) {
+            addCriterion("cycle_date >=", value, "cycleDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleDateLessThan(Integer value) {
+            addCriterion("cycle_date <", value, "cycleDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleDateLessThanOrEqualTo(Integer value) {
+            addCriterion("cycle_date <=", value, "cycleDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleDateIn(List<Integer> values) {
+            addCriterion("cycle_date in", values, "cycleDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleDateNotIn(List<Integer> values) {
+            addCriterion("cycle_date not in", values, "cycleDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleDateBetween(Integer value1, Integer value2) {
+            addCriterion("cycle_date between", value1, value2, "cycleDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCycleDateNotBetween(Integer value1, Integer value2) {
+            addCriterion("cycle_date not between", value1, value2, "cycleDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryCountIsNull() {
+            addCriterion("retry_count is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryCountIsNotNull() {
+            addCriterion("retry_count is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryCountEqualTo(Integer value) {
+            addCriterion("retry_count =", value, "retryCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryCountNotEqualTo(Integer value) {
+            addCriterion("retry_count <>", value, "retryCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryCountGreaterThan(Integer value) {
+            addCriterion("retry_count >", value, "retryCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryCountGreaterThanOrEqualTo(Integer value) {
+            addCriterion("retry_count >=", value, "retryCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryCountLessThan(Integer value) {
+            addCriterion("retry_count <", value, "retryCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryCountLessThanOrEqualTo(Integer value) {
+            addCriterion("retry_count <=", value, "retryCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryCountIn(List<Integer> values) {
+            addCriterion("retry_count in", values, "retryCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryCountNotIn(List<Integer> values) {
+            addCriterion("retry_count not in", values, "retryCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryCountBetween(Integer value1, Integer value2) {
+            addCriterion("retry_count between", value1, value2, "retryCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryCountNotBetween(Integer value1, Integer value2) {
+            addCriterion("retry_count not between", value1, value2, "retryCount");
             return (Criteria) this;
         }
     }

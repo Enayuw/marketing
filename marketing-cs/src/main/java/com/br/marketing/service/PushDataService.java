@@ -84,4 +84,10 @@ public interface PushDataService {
      * @date 2023/12/23
      */
     void pushHaierCollidingData(Long localId);
+
+    /**
+     * 推送携程短信撞库数据重试
+     * @return
+     */
+    void retryPushXieChengSmsCollidingToDbData(Long localId);
 }
