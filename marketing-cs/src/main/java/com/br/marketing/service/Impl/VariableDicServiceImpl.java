@@ -44,6 +44,7 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -444,12 +445,14 @@ public class VariableDicServiceImpl implements VariableDicService {
             , Function<MarketingSyncUser, String> functionRedisKey, Function<MarketingSyncUser, Result<Boolean>> function) {
         try {
             // 遍历缓存中需要设置默认有效期的apiCode与userType
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime localDateTime = now.plusDays(1);
+            ZonedDateTime zonedDateTime = localDateTime.toLocalDate().atStartOfDay().atZone(ZoneId.systemDefault());
             String key = RedisKeyConstant.prefix.concat("valid:lock:") + functionRedisKey.apply(syncUser);
             boolean lock;
             try {
                 // 将主键保存到锁的key中
-                lock = redisChgService.lock(key, syncUser.getUserType(), RandomUtils.nextLong(3600 * 24 * 3 * 1000L
-                        , 3600 * 24 * 7 * 1000L));
+                lock = redisChgService.lock(key, syncUser.getUserType(), ChronoUnit.MILLIS.between(now, zonedDateTime));
                 syncUser.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
             } catch (Exception e) {
                 lock = true;
