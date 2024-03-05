@@ -133,7 +133,7 @@ public class ConsumerApp {
      */
     @RabbitListener(queues = MQConstants.MARKETING_TRANSFER_RECEIVE_SMALL, containerFactory = "fiveDataContainerFactory")
     public void consumerTransferUserSmall(Channel channel, Message message) {
-        log.warn("MARKETING_TRANSFER_RECEIVE：获取消息成功");
+        log.warn("MARKETING_TRANSFER_RECEIVE_SMALL：获取消息成功");
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         consumerService.consumerRun(channel, message, pushRuleService::consumerTransferData, o, null);
@@ -147,7 +147,7 @@ public class ConsumerApp {
      */
     @RabbitListener(queues = MQConstants.MARKETING_TRANSFER_RECEIVE_EMERGENCY, containerFactory = "fiveDataContainerFactory")
     public void consumerTransferUserEmergency(Channel channel, Message message) {
-        log.warn("MARKETING_TRANSFER_RECEIVE：获取消息成功");
+        log.warn("MARKETING_TRANSFER_RECEIVE_EMERGENCY：获取消息成功");
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         consumerService.consumerRun(channel, message, pushRuleService::consumerTransferData, o, null);
