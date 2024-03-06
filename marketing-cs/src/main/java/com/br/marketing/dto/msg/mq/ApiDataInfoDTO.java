@@ -152,6 +152,14 @@ public class ApiDataInfoDTO<T> implements Serializable {
         return this;
     }
 
+    public boolean isUploadMsgSource() {
+        return this.getMsgSource() == MsgSourceEnum.UPLOAD.getValue();
+    }
+
+    public boolean isTransferMsgSource() {
+        return this.getMsgSource() == MsgSourceEnum.TRANSFER.getValue();
+    }
+
     @Override
     public String toString() {
         return "ApiDataInfoDTO{" +
@@ -169,7 +177,7 @@ public class ApiDataInfoDTO<T> implements Serializable {
      * 2024-02-28 15:07
      * 消息来源枚举
      */
-    public enum MsgSourceEnum {
+    private enum MsgSourceEnum {
         /**
          * 2024-02-28 15:08
          * 上传

@@ -33,9 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -91,7 +89,7 @@ public class VariableDicServiceImpl implements VariableDicService {
     private RabbitMqProducter producter;
 
     @Resource
-    private PlatformTransactionManager transactionManager;
+    private TransactionTemplate transactionTemplate;
 
     private final static Lock LOCK = new ReentrantLock();
 
@@ -262,8 +260,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                     if (isError) {
                         variableDicExample.setOrderByClause("id for update");
                     }
-                    TransactionStatus transaction = transactionManager.getTransaction(new DefaultTransactionDefinition());
-                    try {
+                    transactionTemplate.execute(status -> {
                         int count = variableDicMapper.countByExample(variableDicExample);
                         if (count < 1) {
                             LocalDateTime parseTime = LocalDateTime.parse(apiDataInfoDTO.getRawDataSaveTimeStr()
@@ -288,16 +285,14 @@ public class VariableDicServiceImpl implements VariableDicService {
                                         , cId, apiCode, userType, apiDataInfoDTO.getRawDataSaveTimeStr()
                                         , apiDataInfoDTO.getMsgSource());
                             }
+                            return variableDic;
                         }
-                        transactionManager.commit(transaction);
-                    } catch (Exception e) {
-                        transactionManager.rollback(transaction);
-                        log.error(e.getMessage(), e);
-                    }
+                        return null;
+                    });
                 }
                 // 生成有效期
-                createValidDateConfig(apiDataInfoDTO.getMsgSource(), apiDataInfoDTO.getRawDataSaveTimeStr()
-                        , collectionDTO, apiCode, userType);
+                createValidDateConfig(apiDataInfoDTO, apiDataInfoDTO.getRawDataSaveTimeStr(), collectionDTO, apiCode
+                        , userType);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -329,7 +324,7 @@ public class VariableDicServiceImpl implements VariableDicService {
             LocalTime endParse = LocalTime.parse(map.getOrDefault("endTime", "10:00").toString());
             LocalTime localTime = localDateTime.toLocalTime();
             // 当开始startTime在endTime之后时表示定时发送
-            int priority;
+            int priority = 0;
             if (endParse.isBefore(startParse)) {
                 String key;
                 long ttl;
@@ -339,14 +334,12 @@ public class VariableDicServiceImpl implements VariableDicService {
                             .format(DateTimeFormatter.BASIC_ISO_DATE));
                     ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate().atTime(startParse)
                             .atZone(ZoneId.systemDefault()));
-                    priority = 9;
                 } else {
                     // T+1日延时定时发送消息
                     key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:tomorrow:").concat(localDateTime.toLocalDate()
                             .format(DateTimeFormatter.BASIC_ISO_DATE));
                     ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate().plusDays(1)
                             .atTime(endParse).atZone(ZoneId.systemDefault()));
-                    priority = 3;
                 }
                 Boolean exists = redisChgService.exists(key);
                 if (!exists) {
@@ -391,7 +384,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                     // 不存在添加延迟队列
                     producter.sendByExpiration(MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE,
                             key, String.valueOf(ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate()
-                                    .plusDays(day).atTime(startParse).atZone(ZoneId.systemDefault()))), day == 0 ? 10 : 3);
+                                    .plusDays(day).atTime(startParse).atZone(ZoneId.systemDefault()))), priority);
                 }
                 // 缓存批量结果
                 redisChgService.saddMember(key, apiCode.concat("  ").concat(userType));
@@ -412,15 +405,14 @@ public class VariableDicServiceImpl implements VariableDicService {
      * <p>
      * 2024-03-05 14:55 经过与测试同学、需求同学确认，转化和上传数据都要生成默认的有效期配置
      *
-     * @param msgSource   消息源
-     * @param dateTimeStr 数据接收时间
-     * @param apiCode     客户编号
-     * @param userType    场景
+     * @param apiDataInfoDTO 消息源
+     * @param dateTimeStr    数据接收时间
+     * @param apiCode        客户编号
+     * @param userType       场景
      */
-    private void createValidDateConfig(int msgSource, String dateTimeStr, UserTypeCollectionDTO collectionDTO
-            , String apiCode, String userType) {
-        if (msgSource == ApiDataInfoDTO.MsgSourceEnum.UPLOAD.getValue()
-                && collectionDTO.getStatus() == MonitorTypeEnum.STATUS_2.getTypeCode()) {
+    private void createValidDateConfig(ApiDataInfoDTO<UserTypeCollectionDTO> apiDataInfoDTO, String dateTimeStr
+            , UserTypeCollectionDTO collectionDTO, String apiCode, String userType) {
+        if (apiDataInfoDTO.isUploadMsgSource() && collectionDTO.getStatus() == MonitorTypeEnum.STATUS_2.getTypeCode()) {
             return;
         }
         Set<String> apiCodes = marketingCommonConfig.getNonConfigValidDefaultApiCodes();
