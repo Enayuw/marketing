@@ -233,7 +233,7 @@ public class VariableDicServiceImpl implements VariableDicService {
             String cId = StringUtils.hasText(apiDataInfoDTO.getCid()) ? apiDataInfoDTO.getCid()
                     : tableCreateService.getCId(apiCode);
             if (StringUtils.isEmpty(apiCode) || StringUtils.isEmpty(cId)) {
-                log.warn("未获取到cid，消息内容：{}", msgStr);
+                log.error("未获取到cid，消息内容：{}", msgStr);
                 return result;
             }
             String key = RedisKeyConstant.USERTYPE_DICT.concat(cId).concat(":").concat(apiCode);
@@ -281,7 +281,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                                 // 发送告警通知
                                 sendUserTypeAddDingDingMgs(localDateTime, apiCode, userType);
                             } else {
-                                log.warn("自动化场景维护入库失败,cid:{},apiCode:{},userType:{},上传时间:{},数据来源:{}"
+                                log.error("自动化场景维护入库失败,cid:{},apiCode:{},userType:{},上传时间:{},数据来源:{}"
                                         , cId, apiCode, userType, apiDataInfoDTO.getRawDataSaveTimeStr()
                                         , apiDataInfoDTO.getMsgSource());
                             }
