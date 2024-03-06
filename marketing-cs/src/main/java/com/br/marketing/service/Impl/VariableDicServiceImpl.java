@@ -359,20 +359,8 @@ public class VariableDicServiceImpl implements VariableDicService {
             boolean isRealTimeSend = (localTime.isAfter(startParse) || localTime.equals(startParse))
                     && (localTime.isBefore(endParse) || localTime.equals(endParse));
             if (isRealTimeSend) {
-                DingDingTextMessage dingDingTextMessage = new DingDingTextMessage();
-                DingDingTextMessage.Text text = new DingDingTextMessage.Text();
-                text.setContent("apiCode  userType\n".concat(apiCode).concat("  ").concat(userType).concat("\n"));
-                dingDingTextMessage.setText(text);
-                JSONArray ats = (JSONArray) map.get("at");
-                if (ats != null) {
-                    At at = new At();
-                    at.setAtMobiles(ats.toJavaList(String.class));
-                    dingDingTextMessage.setAt(at);
-                }
-                log.warn(dingDingTextMessage.toString());
-                // 发送实时消息
-                dingDingRobotHookService.sendMessageGroup(map.get("token").toString(), map.get("secret").toString()
-                        , dingDingTextMessage);
+                String content = ("apiCode  userType\n".concat(apiCode).concat("  ").concat(userType).concat("\n"));
+                sendDingDingTextMessage(content, map);
             } else {
                 // T+1日延时定时发送消息
                 int day = (LocalTime.MIN.isBefore(localTime) || LocalTime.MIN.equals(localTime)) && startParse
@@ -488,26 +476,45 @@ public class VariableDicServiceImpl implements VariableDicService {
         if (CollectionUtils.isEmpty(userTypeSet)) {
             return result;
         }
+        String contentHeld = "apiCode  userType\n";
+        String content = "";
+        int count = 0;
+        for (String mgs : userTypeSet) {
+            count++;
+            content = content.concat(mgs).concat("\n");
+            if (count >= 100) {
+                count = 0;
+                sendDingDingTextMessage(contentHeld + content, map);
+            }
+        }
+        if (count > 0) {
+            sendDingDingTextMessage(contentHeld + content, map);
+        }
+        // 清理
+        redisChgService.delBigSet(redisKey, 500);
+        return result;
+    }
+
+
+    /**
+     * 2024-03-05 17:47
+     * 发送钉钉文本消息
+     */
+    private void sendDingDingTextMessage(String content, Map<String, Object> sendMgsInfoMap) {
         DingDingTextMessage dingDingTextMessage = new DingDingTextMessage();
         DingDingTextMessage.Text text = new DingDingTextMessage.Text();
         dingDingTextMessage.setText(text);
-        JSONArray ats = (JSONArray) map.get("at");
+        JSONArray ats = (JSONArray) sendMgsInfoMap.get("at");
         if (ats != null) {
             At at = new At();
             at.setAtMobiles(ats.toJavaList(String.class));
             dingDingTextMessage.setAt(at);
         }
-        String content = "apiCode  userType\n";
-        for (String mgs : userTypeSet) {
-            content = content.concat(mgs).concat("\n");
-        }
         text.setContent(content);
         log.warn(dingDingTextMessage.toString());
         // 发送实时消息
-        dingDingRobotHookService.sendMessageGroup(map.get("token").toString(), map.get("secret").toString()
+        dingDingRobotHookService.sendMessageGroup(sendMgsInfoMap.get("token").toString()
+                , sendMgsInfoMap.get("secret").toString()
                 , dingDingTextMessage);
-        // 清理
-        redisChgService.delBigSet(redisKey, 50);
-        return result;
     }
 }
