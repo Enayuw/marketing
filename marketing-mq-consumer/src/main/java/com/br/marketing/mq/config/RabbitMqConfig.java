@@ -179,6 +179,20 @@ public class RabbitMqConfig {
         return factory;
     }
 
+    @Bean(name = "consumerTenPrefetchTwoFactory")
+    public SimpleRabbitListenerContainerFactory consumerTenFactory(
+            SimpleRabbitListenerContainerFactoryConfigurer configurer, ConnectionFactory connectionFactory) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        //设置线程数
+        factory.setConcurrentConsumers(2);
+        //最大线程数
+        factory.setMaxConcurrentConsumers(10);
+        factory.setPrefetchCount(2);
+        factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+        configurer.configure(factory, connectionFactory);
+        return factory;
+    }
+
     /**
      * 配置
      *
