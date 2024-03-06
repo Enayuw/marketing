@@ -256,7 +256,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                     // 缓存不存在，检查db中是否存在
                     VariableDicExample variableDicExample = new VariableDicExample();
                     variableDicExample.createCriteria().andCidEqualTo(cId).andApiCodeEqualTo(apiCode)
-                            .andFieldNameEqualTo(fieldName).andFieldValueEqualTo(userType);
+                            .andFieldNameEqualTo(fieldName).andFieldValueEqualTo(userType).andIsDelEqualTo(1);
                     if (isError) {
                         variableDicExample.setOrderByClause("id for update");
                     }
