@@ -2,15 +2,12 @@ package com.br.marketing.service.Impl.transfertofile;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.TransferFileTask;
-import com.br.marketing.entity.TransferFileTaskExample;
-import com.br.marketing.entity.ZhonganMarketingBan;
+import com.br.marketing.entity.*;
 import com.br.marketing.es.util.BrCipherMaker;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
@@ -31,11 +28,10 @@ import javax.annotation.Resource;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @Author songjuanjnuan
@@ -62,6 +58,11 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
 
     final static String ZHONGAN_FILE = "_zhonganzhuanhua_";
 
+    /**
+     * 时间格式 yyyy-MM-dd
+     */
+    final DateTimeFormatter YYYYMMDDLINEDF = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
+
     final static DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
 
     // 众安转化数据提取时间
@@ -73,22 +74,21 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
-    public static final String ZHUANHUA_COLUMU_NAME = "custNum,cell,userType,createTime,bizType,eventTime,eventType,amountStatus,highApplyStatus";
+    public static final String ZHUANHUA_COLUMU_NAME = "custNum,cell,userType,createTime,bizType,eventTime,eventType,amountStatus,highApplyStatus,auditAmountGroup,lentAmountGroup";
 
     @Resource
     TransferDataValidityPeriodService validityPeriodService;
 
     @Override
     public String isMyParam(String apiCode, String jobParameter) {
-//        if(StringUtils.isNotEmpty(jobParameter)){
-//            String[] split = jobParameter.split(";");
-//            for(String s : split){
-//                String paramApiCode = s.split("#")[0];
-//                if(apiCode.equals(paramApiCode)  && marketingCommonConfig.getJiuFuTransferApiCodes().contains(paramApiCode)){
-//                    return s.split("#")[1];
-//                }
-//            }
-//        }
+        if (jobParameter.contains(apiCode)) {
+            String[] split = jobParameter.split(";");
+            for (String s : split) {
+                if (s.contains(apiCode)) {
+                    return s.split("#")[1];
+                }
+            }
+        }
         return "";
     }
 
@@ -98,7 +98,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         // 异业撞库
         buildTransferTaskByYiYe(apiCode, resultList);
         // 转化数据提取
-        buildTransferTaskByZhuanHua(apiCode, resultList);
+        buildTransferTaskByZhuanHua(apiCode, myParam);
 
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultList);
     }
@@ -109,7 +109,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         if (1 == transferFileTask.getFileType()) {
             return actionTransferToFileByYiYe(transferFileTask);
         } else if (2 == transferFileTask.getFileType()) {
-            return actionTransferToFileByZhuanHua(transferFileTask);
+            return actionTransferToFileByZhuanHua(transferFileTask, jobParameter);
         }
 
         log.error("未找到对应的actionTransferToFile方法,请检查fileType");
@@ -149,17 +149,22 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         }
     }
 
-    private void buildTransferTaskByZhuanHua(String apiCode, List<TransferFileTask> resultList) {
-        Date now = new Date();
+    private void buildTransferTaskByZhuanHua(String apiCode, String myParam) {
+        List<TransferFileTask> resultList = new ArrayList<>();
         //可配置
         String execute = StringUtils.isBlank(marketingCommonConfig.getZhongAnFileExecTime()) ? EXECUTE_TIME_ZHUANHUA :
                 marketingCommonConfig.getZhongAnFileExecTime();
-        Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, " " + execute);
-        if (now.after(executeTime)) {
-            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        LocalTime localTime = LocalTime.parse(execute);
+        boolean isParam = StringUtils.isNotBlank(myParam);
+        // 指定日期提取时不限制时间
+        if (LocalTime.now().isAfter(localTime) || isParam) {
+            // 当天的记录
+            String dateyyyymmddStr = isParam ? myParam.replace("-", "")
+                    : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+            String localDateStr = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
             // fileType 1:异业撞库；2：转化数据提取
-            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(2);
+            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(localDateStr).andFileTypeEqualTo(2);
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
             if (CollectionUtils.isEmpty(transferFileTasks)) {
                 log.warn("众安转化数据提取-开始执行,apiCode ={}", apiCode);
@@ -169,9 +174,9 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
                 transferFileTask.setApiCode(apiCode);
                 transferFileTask.setFileType(2);
                 transferFileTask.setBatchNumber(batchNumber);
-                transferFileTask.setFileName("");
+                transferFileTask.setFileName(String.format("zhongandai_zhuanhua_%s.txt", dateyyyymmddStr));
                 transferFileTask.setTaskNumber(0);
-                transferFileTask.setStartDate(yyyyMMdd);
+                transferFileTask.setStartDate(localDateStr);
                 transferFileTask.setContextId(transferFileContextId);
                 transferFileTask.setCreateTime(new Date());
                 transferFileTask.setUpdateTime(new Date());
@@ -210,8 +215,10 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    private Result actionTransferToFileByZhuanHua(TransferFileTask transferFileTask) {
+    private Result actionTransferToFileByZhuanHua(TransferFileTask transferFileTask, String jobParameter) {
         log.warn("众安转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String requestDate = StringUtils.isBlank(jobParameter)
+                ? LocalDate.now().toString() : jobParameter;
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();
         String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
@@ -223,19 +230,14 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
             }
         }
 
-        StringBuilder fileName = new StringBuilder();
-        // 定义
-        String transferFile = "zhongandai_zhuanhua_";
-        fileName.append(transferFile).append(recordDate).append(".txt");
-        String fileAllPath = descPath.concat(fileName.toString());
-        transferFileTask.setFileName(fileName.toString());
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
         transferFileTask.setFilePath(descPath);
         File file = new File(fileAllPath);
         try (Writer fw = new BufferedWriter(new OutputStreamWriter(
                 new FileOutputStream(file), StandardCharsets.UTF_8))) {
             fw.append(ZHUANHUA_COLUMU_NAME);
             fw.append("\r\n");
-            writeZhongAnTransferToFileZhuanHua(fw, apiCode, transferFileTask);
+            writeZhongAnTransferToFileZhuanHua(fw, apiCode, transferFileTask, requestDate);
         } catch (Exception ex) {
             log.error(ex.getMessage());
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
@@ -285,18 +287,18 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         log.warn("众安异业撞库数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
 
-    private void writeZhongAnTransferToFileZhuanHua(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException {
+    private void writeZhongAnTransferToFileZhuanHua(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
         long start = System.currentTimeMillis();
         int page = 0;
         int offset = 2000;
         boolean mark = Boolean.TRUE;
         int totalSize = 0;
         String tcId = tableCreateService.getTcId(apiCode);
+        LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDLINEDF);
         while (mark) {
             // 获取前一天的日期
-            LocalDate date = LocalDate.now().minusDays(1);
-            String yesterday = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            List<MarketingTransferSyncUser> list = marketingTransferSyncUserMapper.getTransferDataByRequestDataAndApiCode(tcId, apiCode, yesterday,
+            LocalDate yesterday = localDate.minusDays(1);
+            List<MarketingTransferSyncUser> list = marketingTransferSyncUserMapper.getTransferDataByRequestDataAndApiCode(tcId, apiCode, yesterday.toString(),
                     page * offset);
             if (CollectionUtils.isEmpty(list)) {
                 mark = Boolean.FALSE;
@@ -305,14 +307,17 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
             page++;
             // 过滤有效期内数据
             List<MarketingTransferSyncUser> periodList = new ArrayList<>(offset);
-            Map<String, SyncUserValidityPeriodBO> map = validityPeriodService.getValidityPeriodUserTypeBatchFirstVersion(list, apiCode,
-                    yesterday);
+            Set<String> set = list.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            //判断转化数据是否在有效期内
+            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService
+                    .getValidityPeriodsByCustNum(set, apiCode, yesterday);
+
 
             for (MarketingTransferSyncUser transferSyncUser : list) {
                 String custNum = transferSyncUser.getCustNum();
                 String userType = transferSyncUser.getUserType();
 
-                SyncUserValidityPeriodBO boMap = map.get(custNum + userType);
+                SyncUserValidityPeriodsBO boMap = validityPeriodsByCustNum.get(custNum + userType);
                 if (boMap == null) {
                     log.warn("{}:{}不满足案件编号“有效期内”条件", custNum, userType);
                     continue;
@@ -334,6 +339,8 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
 
                     Object amountStatus = reserveFieldJson.get("amountStatus");
                     Object highApplyStatus = reserveFieldJson.get("highApplyStatus");
+                    Object auditAmountGroup = reserveFieldJson.get("auditAmountGroup");
+                    Object lentAmountGroup = reserveFieldJson.get("lentAmountGroup");
 
                     String sb = deleteNull(custNum) +
                             deleteNull(cell) +
@@ -343,7 +350,9 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
                             deleteNull(eventTime) +
                             deleteNull(eventType) +
                             deleteNull(amountStatus) +
-                            (highApplyStatus != null ? highApplyStatus.toString() : "") +
+                            deleteNull(highApplyStatus) +
+                            deleteNull(auditAmountGroup) +
+                            (lentAmountGroup != null ? lentAmountGroup.toString() : "") +
                             "\r\n";
 
                     fw.append(sb);
@@ -384,6 +393,10 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String concat = apiCode.concat("_").concat(yyyyMMdd).concat("_").concat(contextId.toString());
         return concat;
+    }
+
+    private String newCreateBatchNumber(String apiCode, Long contextId, String dateStr) {
+        return apiCode.concat("_").concat(dateStr).concat("_").concat(contextId.toString());
     }
 
     /**
