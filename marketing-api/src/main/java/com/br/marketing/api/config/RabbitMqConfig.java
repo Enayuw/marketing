@@ -143,6 +143,25 @@ public class RabbitMqConfig {
                 MQConstants.ROUTING_KEY_MARKETING_STANDARD_API_USERTYPE_COLLECTION);
     }
 
+    /**
+     * 标准接口接收数据量级碎片队列
+     */
+    @Bean(name = MQConstants.MARKETING_STANDARD_API_DATA_COUNT_FRAGMENTS)
+    public Queue dataCountFragmentsQueue() {
+        return QueueBuilder.durable(MQConstants.MARKETING_STANDARD_API_DATA_COUNT_FRAGMENTS).build();
+    }
+
+    /**
+     * 标准接口接收数据量级碎片队列绑定普通交换机
+     */
+    @Bean
+    public Binding dataCountFragmentsQueueBindingGateExchange(
+            @Qualifier(MQConstants.MARKETING_STANDARD_API_DATA_COUNT_FRAGMENTS) Queue delayQueue
+            , @Qualifier(MQConstants.MARKETINGEXCHANGER_NAME) TopicExchange gateExchange) {
+        return BindingBuilder.bind(delayQueue).to(gateExchange).with(
+                MQConstants.ROUTING_KEY_MARKETING_STANDARD_API_DATA_COUNT_FRAGMENTS);
+    }
+
     @Bean
     public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
         return new RabbitAdmin(connectionFactory);

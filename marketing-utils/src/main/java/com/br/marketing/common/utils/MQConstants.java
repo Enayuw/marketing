@@ -87,6 +87,8 @@ public class MQConstants {
     public static final String MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE = "marketing_send_usertype_message_delay_queue";
     // 发送场景消息死信队列
     public static final String MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE = "marketing_send_usertype_message_dead_queue";
+    // 标准接口接收数据量级碎片队列
+    public static final String MARKETING_STANDARD_API_DATA_COUNT_FRAGMENTS = "marketing_standard_api_data_count_fragments";
 
 
     /**
@@ -161,4 +163,6 @@ public class MQConstants {
     public static final String ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE = "marketing.send.usertype.message.delay.queue";
     // 发送场景消息死信路由键
     public static final String ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE = "marketing.send.usertype.message.dead.queue";
+    // 标准接口接收数据量级碎片队列路由键
+    public static final String ROUTING_KEY_MARKETING_STANDARD_API_DATA_COUNT_FRAGMENTS = "marketing.standard.api.data.count.fragments";
 }
