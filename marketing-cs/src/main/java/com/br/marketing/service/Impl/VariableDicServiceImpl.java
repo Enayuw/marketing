@@ -330,14 +330,14 @@ public class VariableDicServiceImpl implements VariableDicService {
                 long ttl;
                 if (localTime.isBefore(startParse) || localTime.equals(startParse)) {
                     // T日定时发送消息
-                    key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:today:").concat(localDateTime.toLocalDate()
-                            .format(DateTimeFormatter.BASIC_ISO_DATE));
+                    key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:today:").concat(startParse.toString())
+                            .concat(":").concat(localDateTime.toLocalDate().format(DateTimeFormatter.BASIC_ISO_DATE));
                     ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate().atTime(startParse)
                             .atZone(ZoneId.systemDefault()));
                 } else {
                     // T+1日延时定时发送消息
-                    key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:tomorrow:").concat(localDateTime.toLocalDate()
-                            .format(DateTimeFormatter.BASIC_ISO_DATE));
+                    key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:tomorrow:").concat(endParse.toString())
+                            .concat(":").concat(localDateTime.toLocalDate().format(DateTimeFormatter.BASIC_ISO_DATE));
                     ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate().plusDays(1)
                             .atTime(endParse).atZone(ZoneId.systemDefault()));
                 }
@@ -377,8 +377,8 @@ public class VariableDicServiceImpl implements VariableDicService {
                 // T+1日延时定时发送消息
                 int day = (LocalTime.MIN.isBefore(localTime) || LocalTime.MIN.equals(localTime)) && startParse
                         .isAfter(localTime) ? 0 : 1;
-                String key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:" + day + ":").concat(
-                        localDateTime.toLocalDate().format(DateTimeFormatter.BASIC_ISO_DATE));
+                String key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:" + day + ":").concat(startParse.toString())
+                        .concat(":").concat(localDateTime.toLocalDate().format(DateTimeFormatter.BASIC_ISO_DATE));
                 Boolean exists = redisChgService.exists(key);
                 if (!exists) {
                     // 不存在添加延迟队列
