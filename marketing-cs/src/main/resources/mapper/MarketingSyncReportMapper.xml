@@ -357,22 +357,22 @@
       group by user_type
   </select>
 
-  <select id="getAppletDatetikv_" resultType="java.lang.String">
+  <select id="getAppletDatetiflash_" resultType="java.lang.String">
     select applet_date
     from b_marketing_sync_${apiCode}
     where user_type = #{userType}
-    and  <![CDATA[ create_time >= #{startDate} and create_time < #{endDate} ]]>
+    and  <![CDATA[ create_time >= #{startDate} and create_time < #{endDate} and applet_date >= #{appletDateStart}]]>
     group by applet_date order by applet_date asc
   </select>
 
-  <select id="uploadSyncMinAppletTime" resultType="java.lang.String">
+  <select id="uploadSyncMinAppletTimetiflash_" resultType="java.lang.String">
     select DATE_FORMAT(min(create_time),"%Y-%m-%d %H:%i:%s") from b_marketing_sync_${apiCode}
     where
     applet_date = #{uploadDate,jdbcType=VARCHAR} and
     (user_type = #{userType,jdbcType=VARCHAR} or group_type = #{userType,jdbcType=VARCHAR})
   </select>
 
-  <select id="uploadSyncMaxAppletTime" resultType="java.lang.String">
+  <select id="uploadSyncMaxAppletTimetiflash_" resultType="java.lang.String">
     select DATE_FORMAT(max(create_time),"%Y-%m-%d %H:%i:%s") from b_marketing_sync_${apiCode}
     where
     applet_date = #{uploadDate,jdbcType=VARCHAR} and
