@@ -72,10 +72,6 @@ public class MQConstants {
 
     public static final String MARKETING_OFFLINETASK_FILE_CALLBACK_ERRORDELAY = "Marketing_OffLineTask_File_CallBack_ErrorDelay";
 
-    // 设置默认有效日期队列
-    public static final String MARKETING_CONFIG_DEFAULT_VALID_DATE = "marketing_config_default_valid_date";
-    public static final String MARKETING_CUSTOMIZE_CONFIG_DEFAULT_VALID_DATE = "marketing_customize_config_default_valid_date";
-
     //中邮数据清洗 队列
     public static final String MARKETING_ZHONGYOU_DATA_CLEAN = "Marketing_Zhongyou_Data_Clean";
 
@@ -84,6 +80,13 @@ public class MQConstants {
     public static final String MARKETING_TEST_QUEUE_ONE = "Marketing_Test_Queue_One";
 
     public static final String MARKETING_TEST_QUEUE_Two = "Marketing_Test_Queue_Two";
+
+    // 标准接口接收场景字典收集队列
+    public static final String MARKETING_STANDARD_API_USERTYPE_COLLECTION = "marketing_standard_api_usertype_collection";
+    // 发送场景消息延迟队列
+    public static final String MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE = "marketing_send_usertype_message_delay_queue";
+    // 发送场景消息死信队列
+    public static final String MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE = "marketing_send_usertype_message_dead_queue";
 
 
     /**
@@ -142,10 +145,6 @@ public class MQConstants {
 
     public static final String ROUTING_KEY_OFFLINETASK_FILE_CALLBACK_ERRORDELAY = "Marketing.OffLineTask.File.CallBack.ErrorDelay";
 
-    // 设置默认有效日期队列路由key
-    public static final String ROUTING_KEY_MARKETING_CONFIG_DEFAULT_VALID_DATE = "marketing.config.default.valid.date";
-    public static final String ROUTING_KEY_MARKETING_CUSTOMIZE_CONFIG_DEFAULT_VALID_DATE = "marketing.customize.config.default.valid.date";
-
     //中邮数据清洗队列路由key
     public static final String ROUTING_KEY_MARKETING_ZHONGYOU_DATA_CLEAN = "Marketing.Zhongyou.Data.Clean";
 
@@ -155,4 +154,11 @@ public class MQConstants {
     public static final String ROUTING_KEY_MARKETING_TEST_QUEUE_ONE = "Marketing.Test.Queue.One";
 
     public static final String ROUTING_KEY_MARKETING_TEST_QUEUE_Two = "Marketing.Test.Queue.Two";
+
+    // 标准接口接收场景字典收集路由键
+    public static final String ROUTING_KEY_MARKETING_STANDARD_API_USERTYPE_COLLECTION = "marketing.standard.api.usertype.collection";
+    // 发送场景消息延迟路由键
+    public static final String ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE = "marketing.send.usertype.message.delay.queue";
+    // 发送场景消息死信路由键
+    public static final String ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE = "marketing.send.usertype.message.dead.queue";
 }
