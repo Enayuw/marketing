@@ -45,12 +45,6 @@
             <artifactId>commons-pool2</artifactId>
             <version>2.0</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.squareup.okio/okio -->
-        <!--        <dependency>-->
-        <!--            <groupId>com.squareup.okio</groupId>-->
-        <!--            <artifactId>okio</artifactId>-->
-        <!--            <version>1.9.0</version>-->
-        <!--        </dependency>-->
 
         <!-- 消息队列 -->
         <dependency>
@@ -76,9 +70,15 @@
             <version>${lombok.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.br.marketing</groupId>
             <artifactId>marketing-cs</artifactId>
             <version>1.0-SNAPSHOT</version>
-            <groupId>com.br.marketing</groupId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
         <dependency>
@@ -91,12 +91,6 @@
             <artifactId>groovy-all</artifactId>
             <version>2.4.10</version>
         </dependency>
-        <!-- exporter 监控 http://c.100credit.cn/pages/viewpage.action?pageId=38205220 -->
-<!--        <dependency>
-            <groupId>com.br.cloud</groupId>
-            <artifactId>spring_boot_exporter</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>-->
     </dependencies>
 
     <profiles>

@@ -497,6 +497,26 @@ public class MarketingCommonConfig {
     private Integer xieChengSmsCollidingThread;
 
     /**
+     * 携程短信撞库线程数重试
+     */
+    private Integer xieChengSmsCollidingRetryThread;
+
+    /**
+     * 携程短信撞库报警量级
+     */
+    private Integer xieChengSmsCollidingRetryWarnCount;
+
+    /**
+     * 携程短信撞库报警量级
+     */
+    private List<String> xieChengSmsCollidingRetryWarnAllTime;
+
+    /**
+     * 携程短信撞库挡板及异常 [true,true]
+     */
+    private List<Boolean> xieChengSmsCollidingRetrySwitch;
+
+    /**
      * 携程短信撞库线程数Version2
      */
     private Integer xieChengSmsCollidingThreadVt;
@@ -1307,6 +1327,16 @@ public class MarketingCommonConfig {
      * eg：{"促复借":["3710051","7410785"]}
      */
     private Map<String, List<String>> shuHeUserTypeAndApiCodeMappingMap = new HashMap<>();
+
+    /**
+    * 携程撞库异常量级钉钉通知accessToken
+     */
+    private String xieChengGroupAccessToken;
+
+    /**
+     * 携程撞库异常量级钉钉通知Secret
+     */
+    private String xieChengGroupSecret;
 
 
     /**

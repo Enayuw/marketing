@@ -40,6 +40,11 @@ public class BrExecutors {
                 new ArrayBlockingQueue(200), new ThreadFactoryBuilder().setNameFormat(poolName).build()
                 , new ThreadPoolExecutor.CallerRunsPolicy());
     }
+    public static ThreadPoolExecutor getThreadPool(int initNum, int maxNum,String poolName, int queueNum) {
+        return new ThreadPoolExecutor(initNum, maxNum, 60L, TimeUnit.SECONDS,
+                new ArrayBlockingQueue(queueNum), new ThreadFactoryBuilder().setNameFormat(poolName).build()
+                , new ThreadPoolExecutor.CallerRunsPolicy());
+    }
 
     static {
         other = new ThreadPoolExecutor(50, 50, 60L, TimeUnit.SECONDS
