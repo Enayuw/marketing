@@ -300,7 +300,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                         , userType);
             }
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error(e.getMessage() + "\n" + msgStr, e);
             result.setCode(ResultCode.FAIL.getValue());
         } finally {
             LOCK.unlock();
@@ -387,7 +387,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                 }
             }
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error(e.getMessage() + "\napiCode:" + apiCode + ";userType:" + userType, e);
         }
     }
 
@@ -465,18 +465,22 @@ public class VariableDicServiceImpl implements VariableDicService {
                 function.apply(syncUser);
             }
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error(e.getMessage() + "\nApiCode:" + syncUser.getApiCode() + ";UserType:"
+                    + syncUser.getUserType() + ";TaskId:" + syncUser.getCusBatch(), e);
         }
     }
 
     @Override
     public Result<Boolean> delaySendUserTypeMessage(String redisKey) {
-        Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
-        Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.USERTYPE_ADD_SENDUSERTYPEADDDINGDINGMGS
-                .toString());
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(false);
+        if (StringUtils.hasText(redisKey)) {
+            return result;
+        }
+        Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+        Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.USERTYPE_ADD_SENDUSERTYPEADDDINGDINGMGS
+                .toString());
         if (CollectionUtils.isEmpty(map)) {
             return result;
         }
