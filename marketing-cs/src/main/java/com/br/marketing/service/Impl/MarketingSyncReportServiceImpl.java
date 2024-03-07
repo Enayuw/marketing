@@ -97,7 +97,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             //1.获取所有客户
             customers.add(customerMapper.getCustomerByApiCode(apiCodes));
         } else {
-            customers = customerMapper.getAllCustomer();
+            customers = customerMapper.getAllCustomerByResentlySyncInfo();
         }
         Map<String, Set<String>> userTypeMap = getUserTypeMap();
         CountDownLatch countDownLatch = new CountDownLatch(customers.size());
