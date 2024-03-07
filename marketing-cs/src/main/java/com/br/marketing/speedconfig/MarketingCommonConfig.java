@@ -1336,6 +1336,45 @@ public class MarketingCommonConfig {
      */
     private String xieChengGroupSecret;
 
+    /**
+     * 得物撞库开关
+     * true 开启撞库  false  暂停撞库
+     */
+    private Boolean deWuCollidingSwitch;
 
+    /**
+     * 得物撞库线程池数
+     */
+    private Integer deWuCollidingThread;
+
+    /**
+     * 得物撞库数据上传线程池数
+     */
+    private Integer deWuCollidingDataUploadSyncThread;
+
+    /**
+     * 得物撞库apiCode
+     */
+    private String deWuCollidingAiCode;
+
+    /**
+     * 得物停止撞库量级
+     */
+    private Integer deWuCollidingStopCount;
+
+    /**
+     * 得物撞库limit 数量降级的量级
+     */
+    private Integer deWuCollidingStopThresholdCount;
+
+    /**
+     *  得物撞库url地址
+     */
+
+    private String deWuCollidingUrl;
+    /**
+     * 得物撞库appId
+     */
+    private String deWuAppId;
 }
 

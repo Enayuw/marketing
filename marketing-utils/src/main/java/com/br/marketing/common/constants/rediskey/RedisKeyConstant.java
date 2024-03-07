@@ -147,4 +147,9 @@ public class RedisKeyConstant {
     public static final String SCORE_TO_CUSTOMER_CONFIG_KEY = prefix.concat("scorePushConfig");
 
     public static final String SCORE_TO_CUSTOMER_FILE_KEY = prefix.concat("scoreCallFileId");
+
+    /**
+     * 得物撞库所
+     */
+    public static final String pushDewuCollidingDataLock = prefix.concat("dewu:pushDewuCollidingDataLock");
 }

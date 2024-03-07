@@ -1,0 +1,287 @@
+package com.br.marketing.service.Impl;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.dewu.DewuClient;
+import com.br.marketing.client.marketingapi.input.UploadDataDTO;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.dto.MarketingPreUserDTO;
+import com.br.marketing.dto.MarketingPreUserDetailDTO;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.DewuCollidingDataLogMapper;
+import com.br.marketing.mapper.DewuCollidingDataMapper;
+import com.br.marketing.mapper.DewuCollidingDataUploadSyncMapper;
+import com.br.marketing.service.DewuCollidingDataService;
+import com.br.marketing.service.PushInfoService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.vo.HaierCollidingDataToSyncVO;
+import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+@Service
+@Slf4j
+public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private DewuCollidingDataLogMapper dewuCollidingDataLogMapper;
+
+    @Resource
+    private DewuCollidingDataMapper dewuCollidingDataMapper;
+
+    @Resource
+    private DewuCollidingDataUploadSyncMapper dewuCollidingDataUploadSyncMapper;
+
+    @Resource
+    private RedisChgService redisChgService;
+
+    @Resource
+    private DewuClient dewuClient;
+
+    @Resource
+    private PushInfoService pushInfoService;
+
+    @Override
+    public void collidingDataProcess(LocalFile localFile) {
+        // 创建撞库线程池
+        ThreadPoolExecutor deWuCollidingThread =
+                BrExecutors.getThreadPool(marketingCommonConfig.getDeWuCollidingThread(), marketingCommonConfig.getDeWuCollidingThread());
+
+        while (marketingCommonConfig.getDeWuCollidingSwitch()) {
+            deWuCollidingThread.setCorePoolSize(marketingCommonConfig.getDeWuCollidingThread());
+            deWuCollidingThread.setMaximumPoolSize(marketingCommonConfig.getDeWuCollidingThread());
+
+            // 查询撞库结果返回  status = 1  的量级
+            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            DewuCollidingDataUploadSyncExample dcuse = new DewuCollidingDataUploadSyncExample();
+            dcuse.createCriteria().andCreateDateEqualTo(Integer.valueOf(yyyyMMdd)).andIsDeletedEqualTo(0);
+            int todayUploadCount = dewuCollidingDataUploadSyncMapper.countByExample(dcuse);
+            // 大于撞得量级 停止撞库
+            if (todayUploadCount >= marketingCommonConfig.getDeWuCollidingStopCount()) {
+                break;
+            }
+            List<DewuCollidingData> dewuCollidingDataList = getDewuCollidingDataList(localFile, todayUploadCount);
+            if (dewuCollidingDataList.size() == 0) {
+                break;
+            }
+            List<List<DewuCollidingData>> dewuCollidingDataListPartition = Lists.partition(dewuCollidingDataList, 200);
+            dewuCollidingDataListPartition.forEach(p -> {
+                List<Long> ids = p.stream().map(DewuCollidingData::getId).collect(Collectors.toList());
+                dewuCollidingDataMapper.updateBatchById(ids, 1);
+                deWuCollidingThread.execute(() -> pushDewuCollidingData(p, localFile));
+            });
+            if (todayUploadCount >= marketingCommonConfig.getDeWuCollidingStopThresholdCount()) {
+                break;
+            }
+        }
+        deWuCollidingThread.shutdown();
+        try {
+            while (!deWuCollidingThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("得物撞库线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            deWuCollidingThread.shutdownNow();
+            log.error("得物撞库线程池关闭异常！", ex);
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    @Override
+    public void collidingDataUploadSyncProcess() {
+        ThreadPoolExecutor deWuCollidingDataUploadSyncThread =
+                BrExecutors.getThreadPool(marketingCommonConfig.getDeWuCollidingDataUploadSyncThread(), marketingCommonConfig.getDeWuCollidingDataUploadSyncThread());
+
+        while (true) {
+            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            DewuCollidingDataUploadSyncExample dcuse = new DewuCollidingDataUploadSyncExample();
+            dcuse.createCriteria().andCreateDateEqualTo(Integer.valueOf(yyyyMMdd)).andIsDeletedEqualTo(0)
+                    .andPushStatusEqualTo(0);
+            dcuse.setOrderByClause("id asc limit 2000");
+            List<DewuCollidingDataUploadSync> dewuCollidingDataUploadSyncList = dewuCollidingDataUploadSyncMapper.selectByExample(dcuse);
+            if (dewuCollidingDataUploadSyncList.size() == 0) {
+                break;
+            }
+            deWuCollidingDataUploadSyncThread.execute(() -> pushCollidingDataUploadSync(dewuCollidingDataUploadSyncList));
+        }
+        deWuCollidingDataUploadSyncThread.shutdown();
+        try {
+            while (!deWuCollidingDataUploadSyncThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("得物推送上传api接口线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            deWuCollidingDataUploadSyncThread.shutdownNow();
+            log.error("得物推送上传api接口线程池关闭！异常", ex);
+            Thread.currentThread().interrupt();
+        }
+
+    }
+
+    private void pushCollidingDataUploadSync(List<DewuCollidingDataUploadSync> dewuCollidingDataUploadSyncList) {
+        Integer sendDate = Integer.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+        MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
+        marketingPreUserDTO.setTaskId(marketingCommonConfig.getDeWuCollidingAiCode() + "_" + sendDate);
+        marketingPreUserDTO.setRequestId(marketingPreUserDTO.getTaskId().concat("_").concat(UUID.randomUUID().toString()));
+        List<MarketingPreUserDetailDTO> dataItems = buildMarketingPreUserDetails(dewuCollidingDataUploadSyncList);
+        marketingPreUserDTO.setDataItems(dataItems);
+        UploadDataDTO uploadDataDTO = new UploadDataDTO();
+        uploadDataDTO.setApiCode(marketingCommonConfig.getDeWuCollidingAiCode());
+        uploadDataDTO.setJsonData(JSONObject.toJSONString(marketingPreUserDTO));
+        Result result = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+        List<Long> ids = dewuCollidingDataUploadSyncList.stream().map(DewuCollidingDataUploadSync::getId).collect(Collectors.toList());
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            dewuCollidingDataUploadSyncMapper.updateBatchById(ids, 2);
+        } else {
+            dewuCollidingDataUploadSyncMapper.updateBatchById(ids, 3);
+        }
+    }
+
+    private static List<MarketingPreUserDetailDTO> buildMarketingPreUserDetails(List<DewuCollidingDataUploadSync> dewuCollidingDataUploadSyncList) {
+        List<MarketingPreUserDetailDTO> dataItems = Lists.newArrayList();
+        for (DewuCollidingDataUploadSync data : dewuCollidingDataUploadSyncList) {
+            MarketingPreUserDetailDTO dto = new MarketingPreUserDetailDTO();
+            dto.setCell(data.getMobile());
+            dto.setCustNum(data.getUserId());
+            JSONObject reserveField1 = new JSONObject();
+            reserveField1.put("userType", 1);
+            dto.setReserveField1(reserveField1.toJSONString());
+            dataItems.add(dto);
+        }
+        return dataItems;
+    }
+
+    private List<DewuCollidingData> getDewuCollidingDataList(LocalFile localFile, int todayUploadCount) {
+        // 创建limit 量级
+        int limitCount = 10000;
+        // 判断是否接近停止撞库量级
+        // 大于等于 则
+        if (todayUploadCount >= marketingCommonConfig.getDeWuCollidingStopThresholdCount()) {
+            limitCount = marketingCommonConfig.getDeWuCollidingStopCount() - todayUploadCount;
+        }
+        DewuCollidingDataExample dce = new DewuCollidingDataExample();
+        dce.createCriteria()
+                .andStatusEqualTo(1)
+                .andPushStatusEqualTo(0)
+                .andIsDeletedEqualTo(0)
+                .andLocalIdEqualTo(localFile.getId());
+        dce.setOrderByClause("id desc limit " + limitCount);
+        // 查询待推送量级
+        List<DewuCollidingData> dewuCollidingDataList = dewuCollidingDataMapper.selectByExample(dce);
+        return dewuCollidingDataList;
+    }
+
+    public void pushDewuCollidingData(List<DewuCollidingData> dewuCollidingDataList, LocalFile localFile) {
+        // 创建
+        List<DewuCollidingData> collidingDataMobileList = pushCollidingDataProcessBefore(dewuCollidingDataList);
+        if (collidingDataMobileList.size() > 0) {
+            List<String> collidingMobileList = collidingDataMobileList.stream().map(DewuCollidingData::getMobile).collect(Collectors.toList());
+            Result result = dewuClient.pushCollidingData(collidingMobileList);
+            pushCollidingDataProcessAfter(localFile, result, collidingDataMobileList);
+        }
+    }
+
+    private void pushCollidingDataProcessAfter(LocalFile localFile, Result result, List<DewuCollidingData> collidingDataMobileList) {
+        List<Long> ids = collidingDataMobileList.stream().map(DewuCollidingData::getId).collect(Collectors.toList());
+        if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
+            JSONObject resultJson = JSONObject.parseObject(result.getData().toString());
+            JSONArray returnMobileDataList = resultJson.getJSONArray("data");
+            List<DewuCollidingData> updatePushStatus = new ArrayList<>();
+            List<DewuCollidingDataLog> insertDewuCollidingDataLogList = new ArrayList<>();
+            List<DewuCollidingDataUploadSync> insertDewuCollidingDataUploadSyncList = new ArrayList<>();
+            for (int i = 0; i < returnMobileDataList.size(); i++) {
+                JSONObject returnMobileDataJson = returnMobileDataList.getJSONObject(i);
+                String status = returnMobileDataJson.getString("status");
+                String mobile = returnMobileDataJson.getString("mobile");
+
+                // 若果返回的status =1 根据返回的mobile  从推送集合中匹配数据。
+                DewuCollidingData dewuCollidingData = collidingDataMobileList.stream().filter((DewuCollidingData de) -> de.equals(mobile)).findAny().orElse(null);
+                if (dewuCollidingData == null) {
+                    log.error("得物撞库返回结果");
+                }
+
+                // 组装日志
+                DewuCollidingDataLog dewuCollidingDataLog = new DewuCollidingDataLog();
+                dewuCollidingDataLog.setMobile(mobile);
+                dewuCollidingDataLog.setLocalId(localFile.getId());
+                dewuCollidingDataLog.setReturnStatus(status);
+
+                // 组装data
+                dewuCollidingData.setPushDate(2);
+                updatePushStatus.add(dewuCollidingData);
+
+                if (status.equals("1")) {
+                    // 组装日志
+                    String userId = returnMobileDataJson.getString("userId");
+                    dewuCollidingDataLog.setUserId(userId);
+
+
+                    // 组装待上传表数据
+                    DewuCollidingDataUploadSync dewuCollidingDataUploadSync = new DewuCollidingDataUploadSync();
+                    String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+                    dewuCollidingDataUploadSync.setCreateDate(Integer.valueOf(currentDate));
+                    dewuCollidingDataUploadSync.setMobile(mobile);
+                    dewuCollidingDataUploadSync.setPushStatus(0);
+                    insertDewuCollidingDataUploadSyncList.add(dewuCollidingDataUploadSync);
+                }
+                insertDewuCollidingDataLogList.add(dewuCollidingDataLog);
+            }
+            // 更新data 状态
+            dewuCollidingDataMapper.updateBatchById(ids, 2);
+            // 保存日志
+            dewuCollidingDataLogMapper.saveBatch(insertDewuCollidingDataLogList);
+            // 保存待上传记录
+            dewuCollidingDataUploadSyncMapper.saveBatch(insertDewuCollidingDataUploadSyncList);
+
+        } else {
+            // 返回异常  更新 data 表push_status  =3
+            dewuCollidingDataMapper.updateBatchById(ids, 3);
+        }
+    }
+
+    private List<DewuCollidingData> pushCollidingDataProcessBefore(List<DewuCollidingData> dewuCollidingDataList) {
+        List<DewuCollidingData> collidingDataMobileList = new ArrayList<>();
+        dewuCollidingDataList.forEach((DewuCollidingData dewuCollidingData) -> {
+            String mobile = dewuCollidingData.getMobile();
+            String key = RedisKeyConstant.pushDewuCollidingDataLock.concat(":")
+                    .concat(mobile);
+            String value = UUID.randomUUID().toString();
+            redisChgService.lock(key, value);
+            DewuCollidingDataExample de = new DewuCollidingDataExample();
+            String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            de.createCriteria().andIsDeletedEqualTo(0)
+                    .andPushStatusGreaterThan(0)
+                    .andPushDateEqualTo(Integer.valueOf(currentDate))
+                    .andMobileEqualTo(mobile);
+            int exitCount = dewuCollidingDataMapper.countByExample(de);
+            // 如果撞过则更新status  = 2 ,
+            DewuCollidingData dewuCollidingDataUpdatePushStatus = new DewuCollidingData();
+            dewuCollidingDataUpdatePushStatus.setId(dewuCollidingData.getId());
+            if (exitCount > 0) {
+                dewuCollidingDataUpdatePushStatus.setStatus(2);
+                dewuCollidingDataUpdatePushStatus.setPushDate(3);
+            } else {
+                dewuCollidingDataUpdatePushStatus.setPushDate(1);
+                collidingDataMobileList.add(dewuCollidingData);
+            }
+            dewuCollidingDataMapper.updateByPrimaryKeySelective(dewuCollidingDataUpdatePushStatus);
+            redisChgService.unlock(key, value);
+        });
+        return collidingDataMobileList;
+    }
+}
