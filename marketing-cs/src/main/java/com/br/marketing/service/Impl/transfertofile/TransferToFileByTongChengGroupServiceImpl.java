@@ -181,7 +181,7 @@ public class TransferToFileByTongChengGroupServiceImpl implements ITransferToFil
      * @param transferFileTask 转化数据对象
      * @param requestDate 当前时间或者job中的时间
      */
-    private void writeTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask
+    public void writeTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask
             , String requestDate) {
         long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
@@ -204,12 +204,12 @@ public class TransferToFileByTongChengGroupServiceImpl implements ITransferToFil
             // 周期数据范围结束时间
             String endDate = configList.getValidEndDate();
             if(StringUtils.isNotBlank(endDate)){
-                boolean after = LocalDate.now().isAfter(LocalDate.parse(endDate, YYYYMMDDLINEDF));
+                boolean after = dateT.isAfter(LocalDate.parse(endDate, YYYYMMDDLINEDF));
                 if(!after){
-                    endDate = requestDataMinusOne;
+                    endDate = requestDate;
                 }
             }else{
-                endDate = requestDataMinusOne;
+                endDate = requestDate;
             }
             for (; ; ) {
                 List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
