@@ -1644,12 +1644,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                     String key = transferSyncUser.getUserType();
                     if (StringUtils.isNotBlank(key)
                             && (transferInfo.getApiCode().startsWith("3") || transferInfo.getApiCode().startsWith("4"))
-                            && transferSyncUser.getId() != null) {
+                            && transferSyncUser.getId() != null
+                            && !localUserTypeCache.containsKey(key)) {
                         // 入库成功后将userType为key，并且唯一
                         // 缓存场景数据
-                        if (!localUserTypeCache.containsKey(key)) {
-                            localUserTypeCache.put(key, new UserTypeCollectionDTO(transferSyncUser.getUserType()));
-                        }
+                        localUserTypeCache.put(key, new UserTypeCollectionDTO(transferSyncUser.getUserType()));
                     }
                     //转化请求监控统
                     //是否影响性能待观察
