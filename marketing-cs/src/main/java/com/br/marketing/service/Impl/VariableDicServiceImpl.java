@@ -419,10 +419,8 @@ public class VariableDicServiceImpl implements VariableDicService {
         marketingSyncUser.setAppletDate(parseTime.toLocalDate().toString());
         String basicDate = parseTime.format(DateTimeFormatter.BASIC_ISO_DATE);
         // 添加有效期范围
-        if (marketingCommonConfig.getCustomizeConfigValidDefaultApiCodes().contains(apiCode)) {
-            if (StringUtils.hasText(collectionDTO.getTaskId())) {
-                return;
-            }
+        if (marketingCommonConfig.getCustomizeConfigValidDefaultApiCodes().contains(apiCode)
+                && StringUtils.hasText(collectionDTO.getTaskId())) {
             marketingSyncUser.setCusBatch(collectionDTO.getTaskId());
             // 定制生成有效期
             configValidDateDefault(marketingSyncUser
