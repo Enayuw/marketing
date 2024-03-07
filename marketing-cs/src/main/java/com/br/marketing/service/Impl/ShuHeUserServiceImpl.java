@@ -282,7 +282,7 @@ public class ShuHeUserServiceImpl {
         caseShuheUserMapper.insertSelective(caseShuheUser);
         // 6、转化信息入转化标准库
         Long id = saveTransferNew(apiCode, caseShuheUser, transferSyncUser, createTime);
-        if (id != null && id > 0) {
+        if (StringUtils.hasText(transferSyncUser.getUserType()) && id != null && id > 0) {
             try {
                 ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
                 dataInfoDTO.setApiCode(apiCode);

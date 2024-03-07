@@ -1641,10 +1641,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 try {
                     marketingTransferSyncUserMapper.insertSelective(transferSyncUser);
-                    if ((transferInfo.getApiCode().startsWith("3") || transferInfo.getApiCode().startsWith("4"))
+                    String key = transferSyncUser.getUserType();
+                    if (StringUtils.isNotBlank(key)
+                            && (transferInfo.getApiCode().startsWith("3") || transferInfo.getApiCode().startsWith("4"))
                             && transferSyncUser.getId() != null) {
                         // 入库成功后将userType为key，并且唯一
-                        String key = transferSyncUser.getUserType();
                         // 缓存场景数据
                         if (!localUserTypeCache.containsKey(key)) {
                             localUserTypeCache.put(key, new UserTypeCollectionDTO(transferSyncUser.getUserType()));
