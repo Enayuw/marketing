@@ -181,8 +181,7 @@ public class TransferToFileByTongChengGroupServiceImpl implements ITransferToFil
      * @param transferFileTask 转化数据对象
      * @param requestDate 当前时间或者job中的时间
      */
-    public void writeTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask
-            , String requestDate) {
+    public void writeTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
         long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         int page = 0;
