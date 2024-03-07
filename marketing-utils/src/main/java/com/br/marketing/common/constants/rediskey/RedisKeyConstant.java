@@ -136,6 +136,12 @@ public class RedisKeyConstant {
      */
     public static final String CUSTOMER_FIELD_KEY = prefix.concat("customer:field:");
 
+    /**
+     * 2023-12-22 15:21
+     * 场景字典
+     */
+    public static final String USERTYPE_DICT = prefix.concat("usertype:dict:");
+
 
     /**
      * 转化数据提取任务锁
