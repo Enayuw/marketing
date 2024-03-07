@@ -230,9 +230,13 @@ public class VariableDicServiceImpl implements VariableDicService {
                     , new TypeReference<ApiDataInfoDTO<UserTypeCollectionDTO>>() {
                     }.getType());
             String apiCode = apiDataInfoDTO.getApiCode();
+            if (StringUtils.isEmpty(apiCode)) {
+                log.error("未获取到apiCode，消息内容：{}", msgStr);
+                return result;
+            }
             String cId = StringUtils.hasText(apiDataInfoDTO.getCid()) ? apiDataInfoDTO.getCid()
                     : tableCreateService.getCId(apiCode);
-            if (StringUtils.isEmpty(apiCode) || StringUtils.isEmpty(cId)) {
+            if (StringUtils.isEmpty(cId)) {
                 log.error("未获取到cid，消息内容：{}", msgStr);
                 return result;
             }
