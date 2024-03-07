@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -264,7 +265,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                     if (isError) {
                         variableDicExample.setOrderByClause("id for update");
                     }
-                    transactionTemplate.execute(status -> {
+                    transactionTemplate.execute((TransactionStatus status) -> {
                         int count = variableDicMapper.countByExample(variableDicExample);
                         if (count < 1) {
                             LocalDateTime parseTime = LocalDateTime.parse(apiDataInfoDTO.getRawDataSaveTimeStr()

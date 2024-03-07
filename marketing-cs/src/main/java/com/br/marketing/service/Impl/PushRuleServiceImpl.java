@@ -1238,7 +1238,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         // 发送场景收集队列
-        sendUserTypeCollectionMsg(localUserTypeCache, (localUserTypeCacheMap) -> {
+        sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
             ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
             dataInfoDTO.setApiCode(apiCode);
             dataInfoDTO.setRawDataSaveTimeStr(marketingSyncInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
@@ -1694,16 +1694,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         // 发送场景收集队列
-        sendUserTypeCollectionMsg(localUserTypeCache, (localUserTypeCacheMap) -> {
-            ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
-            List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
-            dataInfoDTO.setArgList(collections);
-            dataInfoDTO.setCid(cid);
-            dataInfoDTO.setApiCode(transferInfo.getApiCode());
-            dataInfoDTO.setRawDataSaveTimeStr(transferInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
-                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-            return dataInfoDTO.addTransferMsgSource();
-        });
+        transferSendUserTypeCollectionMsg(cid, transferInfo, localUserTypeCache);
         MarketingTransferInfo updateSyncInfo = new MarketingTransferInfo();
         updateSyncInfo.setId(id);
         updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_running);
@@ -1733,6 +1724,20 @@ public class PushRuleServiceImpl implements PushRuleService {
             producter.sendToUniversalTransferQueue(mqFact);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
+    }
+
+    private void transferSendUserTypeCollectionMsg(String cid, MarketingTransferInfo transferInfo
+            , Map<String, UserTypeCollectionDTO> localUserTypeCache) {
+        sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
+            ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
+            List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
+            dataInfoDTO.setArgList(collections);
+            dataInfoDTO.setCid(cid);
+            dataInfoDTO.setApiCode(transferInfo.getApiCode());
+            dataInfoDTO.setRawDataSaveTimeStr(transferInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            return dataInfoDTO.addTransferMsgSource();
+        });
     }
 
 
