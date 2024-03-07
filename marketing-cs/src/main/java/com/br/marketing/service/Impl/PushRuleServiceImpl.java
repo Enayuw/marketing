@@ -3595,8 +3595,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             transferJsonObject.put("validityRate", list.get(18));
             uploadJsonObject.put("applyLentTime", list.get(25));
             transferJsonObject.put("applyLentTime", list.get(25));
-            uploadJsonObject.put("cps", list.get(32));
-            transferJsonObject.put("cps", list.get(32));
+            uploadJsonObject.put("extend01", list.get(32));
+            transferJsonObject.put("extend01", list.get(32));
+            uploadJsonObject.put("extend02", list.get(33));
+            transferJsonObject.put("extend02", list.get(33));
             uploadJsonObject.put("lentAmountFirst", list.get(28));
             transferJsonObject.put("lentAmountFirst", list.get(28));
             uploadJsonObject.put("lentTimeFirst", list.get(27));
