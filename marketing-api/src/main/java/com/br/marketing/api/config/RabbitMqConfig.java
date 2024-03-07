@@ -126,6 +126,8 @@ public class RabbitMqConfig {
 
     /**
      * 标准接口接收场景字典收集队列
+     *
+     * @return Queue 持久化队列
      */
     @Bean(name = MQConstants.MARKETING_STANDARD_API_USERTYPE_COLLECTION)
     public Queue usertypeCollectionQueue() {
@@ -134,6 +136,10 @@ public class RabbitMqConfig {
 
     /**
      * 标准接口接收场景字典收集队列绑定普通交换机
+     *
+     * @param delayQueue   场景字典收集队列
+     * @param gateExchange 主题交换机
+     * @return Queue 持久化队列
      */
     @Bean
     public Binding usertypeCollectionQueueBindingGateExchange(
