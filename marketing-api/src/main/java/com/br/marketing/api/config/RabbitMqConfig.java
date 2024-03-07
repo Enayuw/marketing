@@ -145,6 +145,8 @@ public class RabbitMqConfig {
 
     /**
      * 标准接口接收数据量级碎片队列
+     *
+     * @return 持久化队列
      */
     @Bean(name = MQConstants.MARKETING_STANDARD_API_DATA_COUNT_FRAGMENTS)
     public Queue dataCountFragmentsQueue() {
@@ -153,6 +155,9 @@ public class RabbitMqConfig {
 
     /**
      * 标准接口接收数据量级碎片队列绑定普通交换机
+     * @param delayQueue  数据量级碎片队列
+     * @param gateExchange 普通交换机
+     * @return 绑定关系
      */
     @Bean
     public Binding dataCountFragmentsQueueBindingGateExchange(
