@@ -362,6 +362,40 @@ public class AlarmAndNoticeTest {
     }
 
     @Resource
+    private TransferToFileByTongChengGroupServiceImpl transferToFileByTongChengGroupService;
+
+    @Test
+    public void NewTongChengGroupTransferFileTest() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7492639");
+        String myParam = "7492639#2024-03-07";
+        String dd = isMyParam("7492639", myParam);
+        transferFileTask.setStartDate(dd);
+        String recordDate = transferFileTask.getStartDate();
+        boolean isParam = StringUtils.isNotBlank(dd);
+        String dateyyyymmddStr = isParam ? dd.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        transferFileTask.setFileName(String.format("tongcheng_zhuanhua_%s.txt", dateyyyymmddStr));
+        log.warn("同程新系统转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String apiCode = transferFileTask.getApiCode();
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
+            fw.append(TABLE_HEAD_TRANSFER);
+            fw.append("\r\n");
+            transferToFileByTongChengGroupService.writeTransferToFile(fw, apiCode,transferFileTask, recordDate);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+
+    }
+
+    @Resource
     private TransferToFileByNewHaierServiceImpl toFileByNewHaierService;
 
     private final static String TABLE_HEAD_HAIER_TRANSFER = "custNum,userType,customName,registerTime,applyDt,auditTime,requestTime";

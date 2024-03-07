@@ -138,7 +138,7 @@ public class ConsumerApp {
             , durable = "true")
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
             , key = MQConstants.ROUTING_KEY_MARKETING_STANDARD_API_USERTYPE_COLLECTION)}
-            , containerFactory = "concurrentContainerFactory")
+            , containerFactory = "consumerTenPrefetchTwoFactory")
     public void standardApiUsertypeCollection(Channel channel, Message message) {
         consumerService.consumerRun(channel, message, variableDicService::batchAddUserTypeVariableDicTry
                 , new String(message.getBody(), StandardCharsets.UTF_8), null);

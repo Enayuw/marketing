@@ -6,6 +6,7 @@ import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.origin.MqFact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,7 +83,7 @@ public class RabbitMqProducter {
      */
     public void sendByExpiration(String routeKey, String message, String expireTime, int priority) {
         CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(), message);
-        rabbitTemplate.convertAndSend(exchange, routeKey, message, arg0 -> {
+        rabbitTemplate.convertAndSend(exchange, routeKey, message, (Message arg0) -> {
             arg0.getMessageProperties().setContentEncoding("UTF-8");
             arg0.getMessageProperties().setExpiration(expireTime);
             arg0.getMessageProperties().setPriority(priority);

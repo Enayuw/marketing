@@ -3,11 +3,34 @@
 <mapper namespace="com.br.marketing.mapper.XieChengSmsCollidingDataMapper" >
 
 
-    <select id="selectByLocalId" resultType="com.br.marketing.entity.XieChengSmsCollidingData">
+
+    <select id="selectByRetryCount" resultType="com.br.marketing.entity.XieChengSmsCollidingData">
         select
         *
         from b_xiecheng_sms_colliding_data
         where  status =1  and local_id = #{localId}
+        <![CDATA[   and retry_count > 0 and retry_count < 3]]>
+        <if test="minId != null and minId>0">
+            and id > #{minId}
+        </if>
+        order by id asc limit 15000;
+    </select>
+    <select id="selectByRetryCountThree" resultType="com.br.marketing.entity.XieChengSmsCollidingData">
+        select
+        *
+        from b_xiecheng_sms_colliding_data
+        where  status =1  and local_id = #{localId}
+        and retry_count =3
+        <if test="minId != null and minId>0">
+            and id > #{minId}
+        </if>
+        order by id asc limit 15000;
+    </select>
+    <select id="selectByLocalId" resultType="com.br.marketing.entity.XieChengSmsCollidingData">
+        select
+        *
+        from b_xiecheng_sms_colliding_data
+        where  status =1  and local_id = #{localId} and retry_count =0
         <choose>
             <when test="endTime != null and endTime!=''">
                 <![CDATA[   and next_push_time <= #{endTime}  ]]>
@@ -22,11 +45,18 @@
         order by id asc limit 15000;
     </select>
     <update id="updateBatch">
-        update b_xiecheng_sms_colliding_data set next_push_time = now() where sha256_code_list in
+        update b_xiecheng_sms_colliding_data set next_push_time = now(),retry_count = 0 where sha256_code_list in
         <foreach collection="list" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+        and status = 1
     </update>
-
+    <update id="updateBatchRetryCount">
+        update b_xiecheng_sms_colliding_data set  retry_count = retry_count+1 where sha256_code_list in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        and status = 1
+    </update>
 
 </mapper>
