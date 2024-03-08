@@ -59,6 +59,11 @@ public class DewuCollidingData {
     private Date updateTime;
 
     /**
+     * 创建日期
+     */
+    private Integer createDate;
+
+    /**
      * 扩展字段
      */
     private String extend;
@@ -149,6 +154,14 @@ public class DewuCollidingData {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Integer getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Integer createDate) {
+        this.createDate = createDate;
     }
 
     public String getExtend() {
