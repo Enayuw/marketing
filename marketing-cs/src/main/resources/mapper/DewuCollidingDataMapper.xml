@@ -19,7 +19,7 @@
     <result column="extend" property="extend" jdbcType="LONGVARCHAR" />
   </resultMap>
   <update id="updateBatchById">
-    update b_dewu_colliding_data set push_status = #{pushStatus}  where id in
+    update b_dewu_colliding_data set push_status = #{pushStatus},update_time = now() ,push_date = #{pushDate} where id in
     <foreach collection="ids" item="id" open="(" separator="," close=")">
       #{id}
     </foreach>

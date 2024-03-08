@@ -20,19 +20,20 @@
 
   <insert id="saveBatch" parameterType="list">
     insert into b_dewu_colliding_data_upload_sync (api_code, local_id,
-    mobile,user_id, create_time,update_time)values
+    mobile,user_id,create_date, create_time,update_time)values
     <foreach collection="list" item="data" separator=",">
       (#{data.apiCode,jdbcType=VARCHAR}, #{data.localId,jdbcType=BIGINT},
       #{data.mobile,jdbcType=VARCHAR},  #{data.userId,jdbcType=VARCHAR},
+       #{data.createDate,jdbcType=INTEGER},
       now(),now()
       )
     </foreach>
   </insert>
   <update id="updateBatchById">
-    update b_dewu_colliding_data_upload_sync set push_status = #{pushStatus} where id in
+    update b_dewu_colliding_data_upload_sync set push_status = #{pushStatus},push_time = now(),update_time= now() where id in
     <foreach collection="ids" item="id" open="(" separator="," close=")">
       #{id}
     </foreach>
-    and is_delete = 0
+    and is_deleted = 0
   </update>
 </mapper>
