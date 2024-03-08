@@ -142,6 +142,11 @@ public class RedisKeyConstant {
      */
     public static final String USERTYPE_DICT = prefix.concat("usertype:dict:");
 
+    /**
+     * 众安撞库 cell 今日缓存
+     */
+    public static final String zhongAnZkCellToday = prefix.concat("zhongan:zk:cell:");
+
 
     /**
      * 转化数据提取任务锁
