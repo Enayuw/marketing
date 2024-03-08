@@ -241,12 +241,12 @@ public class VariableDicServiceImpl implements VariableDicService {
                 log.error("未获取到cid，消息内容：{}", msgStr);
                 return result;
             }
-            String key = RedisKeyConstant.USERTYPE_DICT.concat(cId).concat(":").concat(apiCode);
+            String key = RedisKeyConstant.USERTYPE_DICT + cId.concat(":").concat(apiCode);
             String fieldName = "userType";
             for (UserTypeCollectionDTO collectionDTO : apiDataInfoDTO.getArgList()) {
                 String userType = collectionDTO.getUserType();
                 LocalDateTime localDateTime = LocalDateTime.now();
-                String redisKey = key.concat(":").concat(userType);
+                String redisKey = key.concat(":") + (userType);
                 boolean exists = true;
                 boolean isError = false;
                 try {
@@ -300,7 +300,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                         , userType);
             }
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error(e.getMessage() + "\n" + msgStr, e);
             result.setCode(ResultCode.FAIL.getValue());
         } finally {
             LOCK.unlock();
@@ -353,7 +353,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                             , String.valueOf(ttl), priority);
                 }
                 // 缓存批量结果
-                redisChgService.saddMember(key, apiCode.concat("  ").concat(userType));
+                redisChgService.saddMember(key, apiCode.concat("  ") + (userType));
                 if (!exists) {
                     // 设置过期时间
                     redisChgService.expire(key, 3600 * 25);
@@ -364,7 +364,7 @@ public class VariableDicServiceImpl implements VariableDicService {
             boolean isRealTimeSend = (localTime.isAfter(startParse) || localTime.equals(startParse))
                     && (localTime.isBefore(endParse) || localTime.equals(endParse));
             if (isRealTimeSend) {
-                String content = ("apiCode  userType\n".concat(apiCode).concat("  ").concat(userType).concat("\n"));
+                String content = ("apiCode  userType\n".concat(apiCode).concat("  " + (userType)).concat("\n"));
                 sendDingDingTextMessage(content, map);
             } else {
                 // T+1日延时定时发送消息
@@ -380,14 +380,14 @@ public class VariableDicServiceImpl implements VariableDicService {
                                     .plusDays(day).atTime(startParse).atZone(ZoneId.systemDefault()))), priority);
                 }
                 // 缓存批量结果
-                redisChgService.saddMember(key, apiCode.concat("  ").concat(userType));
+                redisChgService.saddMember(key, apiCode.concat("  " + userType));
                 if (!exists) {
                     // 设置过期时间
                     redisChgService.expire(key, 3600 * 25);
                 }
             }
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error(e.getMessage() + "\napiCode:" + apiCode + ";userType:" + userType, e);
         }
     }
 
@@ -419,17 +419,18 @@ public class VariableDicServiceImpl implements VariableDicService {
         marketingSyncUser.setAppletDate(parseTime.toLocalDate().toString());
         String basicDate = parseTime.format(DateTimeFormatter.BASIC_ISO_DATE);
         // 添加有效期范围
-        if (marketingCommonConfig.getCustomizeConfigValidDefaultApiCodes().contains(apiCode)) {
+        if (marketingCommonConfig.getCustomizeConfigValidDefaultApiCodes().contains(apiCode)
+                && StringUtils.hasText(collectionDTO.getTaskId())) {
             marketingSyncUser.setCusBatch(collectionDTO.getTaskId());
             // 定制生成有效期
             configValidDateDefault(marketingSyncUser
-                    , syncUser -> apiCode.concat(":").concat(userType).concat(":").concat(syncUser.getCusBatch())
-                            .concat(":").concat(basicDate)
+                    , syncUser -> apiCode.concat(":" + userType).concat(":" + syncUser.getCusBatch())
+                            .concat(":" + basicDate)
                     , syncUser -> periodOfValidityService.customizeConfigValidDateDefault(syncUser));
         } else {
             // 通用生成有效期
             configValidDateDefault(marketingSyncUser
-                    , syncUser -> apiCode.concat(":").concat(userType).concat(":").concat(basicDate)
+                    , syncUser -> apiCode.concat(":" + userType).concat(":" + basicDate)
                     , syncUser -> periodOfValidityService.configValidDateDefault(syncUser));
         }
     }
@@ -462,18 +463,22 @@ public class VariableDicServiceImpl implements VariableDicService {
                 function.apply(syncUser);
             }
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error(e.getMessage() + "\nApiCode:" + syncUser.getApiCode() + ";UserType:"
+                    + syncUser.getUserType() + ";TaskId:" + syncUser.getCusBatch(), e);
         }
     }
 
     @Override
     public Result<Boolean> delaySendUserTypeMessage(String redisKey) {
-        Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
-        Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.USERTYPE_ADD_SENDUSERTYPEADDDINGDINGMGS
-                .toString());
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(false);
+        if (StringUtils.hasText(redisKey)) {
+            return result;
+        }
+        Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+        Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.USERTYPE_ADD_SENDUSERTYPEADDDINGDINGMGS
+                .toString());
         if (CollectionUtils.isEmpty(map)) {
             return result;
         }

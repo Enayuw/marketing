@@ -1179,12 +1179,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                             || marketingSyncUser.getIsRepeat().equals(2) || marketingSyncUser.getIsRepeat().equals(1));
                     if (isCreate) {
                         // 入库成功后将userType、cusBatch(taskId)、status为key，并且唯一
-                        String key = marketingSyncUser.getUserType() + marketingSyncUser.getCusBatch()
+                        String key = marketingSyncUser.getUserType() + marketingSyncInfo.getCusBatch()
                                 + marketingSyncUser.getStatus();
                         // 缓存场景数据
                         if (!localUserTypeCache.containsKey(key)) {
                             localUserTypeCache.put(key, new UserTypeCollectionDTO(marketingSyncUser.getUserType()
-                                    , marketingSyncUser.getCusBatch(), marketingSyncUser.getStatus())
+                                    , marketingSyncInfo.getCusBatch(), marketingSyncUser.getStatus())
                             );
                         }
                     }
@@ -1641,14 +1641,14 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 try {
                     marketingTransferSyncUserMapper.insertSelective(transferSyncUser);
-                    if ((transferInfo.getApiCode().startsWith("3") || transferInfo.getApiCode().startsWith("4"))
-                            && transferSyncUser.getId() != null) {
+                    String key = transferSyncUser.getUserType();
+                    if (StringUtils.isNotBlank(key)
+                            && (transferInfo.getApiCode().startsWith("3") || transferInfo.getApiCode().startsWith("4"))
+                            && transferSyncUser.getId() != null
+                            && !localUserTypeCache.containsKey(key)) {
                         // 入库成功后将userType为key，并且唯一
-                        String key = transferSyncUser.getUserType();
                         // 缓存场景数据
-                        if (!localUserTypeCache.containsKey(key)) {
-                            localUserTypeCache.put(key, new UserTypeCollectionDTO(transferSyncUser.getUserType()));
-                        }
+                        localUserTypeCache.put(key, new UserTypeCollectionDTO(transferSyncUser.getUserType()));
                     }
                     //转化请求监控统
                     //是否影响性能待观察
