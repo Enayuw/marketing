@@ -23,6 +23,6 @@
     <foreach collection="ids" item="id" open="(" separator="," close=")">
       #{id}
     </foreach>
-    and is_delete = 0
+    and is_deleted = 0
   </update>
 </mapper>

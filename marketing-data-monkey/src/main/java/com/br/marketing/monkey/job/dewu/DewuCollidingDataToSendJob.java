@@ -13,14 +13,14 @@ import javax.annotation.Resource;
 import java.util.List;
 
 /**
- * 得物撞库结果推送上传接口
+ * 得物撞库job
  *
- * @author guangxiu.li
- * @dateTime 2024/01/25 16:13
+ * @author 张广超
+ * @dateTime 2024/03/08 16:13
  */
 @Component
 @Slf4j
-public class DewuColldingDataUploadSyncJob extends AbstractSimpleElasticJob {
+public class DewuCollidingDataToSendJob extends AbstractSimpleElasticJob {
 
 
 
@@ -32,8 +32,14 @@ public class DewuColldingDataUploadSyncJob extends AbstractSimpleElasticJob {
     private final static String DEWUCOLLIDINGDATA = "dewucollidingdata";
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-
-            dewuCollidingDataService.collidingDataUploadSyncProcess();
-
+        LocalFileExample localFileExample = new LocalFileExample();
+        localFileExample.createCriteria()
+                .andFileTypeEqualTo(DEWUCOLLIDINGDATA)
+                .andStatusEqualTo("2");
+        localFileExample.setOrderByClause("create_time desc");
+        List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
+        localFileList.forEach((LocalFile lf) ->
+            dewuCollidingDataService.collidingDataProcess(lf)
+        );
     }
 }
