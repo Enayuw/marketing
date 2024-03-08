@@ -97,7 +97,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             //1.获取所有客户
             customers.add(customerMapper.getCustomerByApiCode(apiCodes));
         } else {
-            customers = customerMapper.getAllCustomerByResentlySyncInfo();
+            customers = customerMapper.getAllCustomerByResentlySyncInfotiflash_();
         }
         Map<String, Set<String>> userTypeMap = getUserTypeMap();
         CountDownLatch countDownLatch = new CountDownLatch(customers.size());
@@ -177,7 +177,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                 }
 
                             }
-                            log.warn("上传记录更新耗时：{}s" + (System.currentTimeMillis() - start) / 1000);
+                            log.warn("上传记录更新耗时：{}s" ,(System.currentTimeMillis() - start) / 1000);
                         }
                     }
                 } catch (Exception e) {

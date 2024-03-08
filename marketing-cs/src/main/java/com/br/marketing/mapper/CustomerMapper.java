@@ -17,5 +17,5 @@ public interface CustomerMapper {
      * 查询T-1日至今有上传数据的客户列表
      * @return
      */
-    List<Customer> getAllCustomerByResentlySyncInfo();
+    List<Customer> getAllCustomerByResentlySyncInfotiflash_();
 }
