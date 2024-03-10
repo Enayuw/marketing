@@ -13,6 +13,7 @@ import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.monkeydata.handle.zhongan.PushRosterLockingDataToZhongAnHandle;
+import com.br.marketing.monkeydata.handle.zhongan.ZhongAnPushRosterDataHandler;
 import com.br.marketing.service.Impl.YiXinTransferServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -43,6 +44,9 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
     private PushRosterLockingDataToZhongAnHandle rosterLockingDataToZhongAn;
 
     @Resource
+    private ZhongAnPushRosterDataHandler zhongAnPushRosterDataHandler;
+
+    @Resource
     private ZhonganRosterLockingDataMapper zhonganRosterLockingDataMapper;
 
     @Resource
@@ -66,12 +70,13 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         String zhongAnRosterLockingTime = marketingCommonConfig.getZhongAnRosterLockingTime();
-        LocalTime localTimeLockingTime = LocalTime.parse(StringUtils.isNotBlank(zhongAnRosterLockingTime)
-                ? zhongAnRosterLockingTime : EXECUTE_TIME);
-        if (LocalTime.now().isBefore(localTimeLockingTime)) {
-            log.warn("【名单锁定推送众安】未到配置的运行时间:{}", zhongAnRosterLockingTime);
-            return;
-        }
+//        LocalTime localTimeLockingTime = LocalTime.parse(StringUtils.isNotBlank(zhongAnRosterLockingTime)
+//                ? zhongAnRosterLockingTime : EXECUTE_TIME);
+//        if (LocalTime.now().isBefore(localTimeLockingTime)) {
+//            log.warn("【名单锁定推送众安】未到配置的运行时间:{}", zhongAnRosterLockingTime);
+//            return;
+//        }
+
         String parameter = shardingContext.getJobParameter();
         long start = System.currentTimeMillis();
         List<String> list = new ArrayList<>();
@@ -104,7 +109,7 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
         for (String apiCode : list) {
             bizDate = dateList.get(i);
             ++i;
-            //查询推送记录
+            // 查询推送记录
             List<TransferActionFront> actionFrontList = getActionFront(apiCode, bizDate);
             Long frontId;
             if (actionFrontList.size() > 0) {
@@ -118,22 +123,41 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             } else {
                 frontId = yiXinTransferService.saveFrontData(apiCode, bizDate, 3);
             }
+
             List<Long> sftpFileIdList = zhonganRosterLockingDataMapper.getSftpFileIdList(apiCode, bizDate);
             if (!CollectionUtils.isEmpty(sftpFileIdList)) {
                 localFileMapper.updateUploadStartTimeById(sftpFileIdList, new Date());
             }
-            long startcg = System.currentTimeMillis();
-            Result<?> cg = action("CG", apiCode, bizDate, data);
-            long endcg = System.currentTimeMillis();
-            log.warn("api_code:{},biz_date:{}【CG名单锁定推送众安】结束，耗时:{}", apiCode, bizDate, endcg - startcg);
 
-            long startmg = System.currentTimeMillis();
-            Result<?> mg = action("MG", apiCode, bizDate, data);
-            long endmg = System.currentTimeMillis();
-            log.warn("api_code:{},biz_date:{}【MG名单锁定推送众安】结束，耗时:{}", apiCode, bizDate, endmg - startmg);
-            if (ResultCode.SUCCESS.getValue().equals(cg.getCode()) && ResultCode.SUCCESS.getValue().equals(mg.getCode())) {
+            // 优先级分批推送
+            long start1 = System.currentTimeMillis();
+            Result<?> result1 = action(apiCode, bizDate, "CG", 1, "1", data);
+            long end1 = System.currentTimeMillis();
+            log.warn("api_code:{},biz_date:{}【CG名单锁定推送众安】结束，耗时:{}", apiCode, bizDate, end1 - start1);
+
+            long start2 = System.currentTimeMillis();
+            Result<?> result2 = action(apiCode, bizDate, "MG", 2, "1", data);
+            long end2 = System.currentTimeMillis();
+            log.warn("api_code:{},biz_date:{}【MG名单锁定推送众安】结束，耗时:{}", apiCode, bizDate, end2 - start2);
+
+            long start3 = System.currentTimeMillis();
+            Result<?> result3 = action(apiCode, bizDate, "MG", 1, "1", data);
+            long end3 = System.currentTimeMillis();
+            log.warn("api_code:{},biz_date:{}【MG名单锁定推送众安】结束，耗时:{}", apiCode, bizDate, end3 - start3);
+
+            long start4 = System.currentTimeMillis();
+            Result<?> result4 = action(apiCode, bizDate, "MG", 2, "7", data);
+            long end4 = System.currentTimeMillis();
+            log.warn("api_code:{},biz_date:{}【MG名单锁定推送众安】结束，耗时:{}", apiCode, bizDate, end4 - start4);
+
+            if (ResultCode.SUCCESS.getValue().equals(result1.getCode())
+                    && ResultCode.SUCCESS.getValue().equals(result2.getCode())
+                    && ResultCode.SUCCESS.getValue().equals(result3.getCode())
+                    && ResultCode.SUCCESS.getValue().equals(result4.getCode())
+            ) {
                 yiXinTransferService.updateFrontDataStatus(frontId, 2);
             }
+
             rosterLockingDataToZhongAn.localFilePushStatis(apiCode, bizDate);
         }
         // 清理缓存
@@ -168,6 +192,19 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
         zhonganRosterLockingData.setPushStatus(1);
         data.setParam(zhonganRosterLockingData);
         return rosterLockingDataToZhongAn.action(data);
+    }
+
+    private Result<?> action(String apiCode, String bizDate, String tag, Integer dataSource, String userType,
+                             Page2Condition<ZhonganRosterLockingData> condition) {
+        ZhonganRosterLockingData param = new ZhonganRosterLockingData();
+        param.setApiCode(apiCode);
+        param.setBizDate(bizDate);
+        param.setTag(tag);
+        param.setDataSource(dataSource);
+        param.setPushStatus(1);
+        param.setUserType(userType);
+        condition.setParam(param);
+        return zhongAnPushRosterDataHandler.action(condition);
     }
 
 
