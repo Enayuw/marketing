@@ -9,10 +9,12 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.es.util.BrCipherMaker;
+import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.mapper.ZhonganMarketingBanMapper;
 import com.br.marketing.service.ITransferToFileService;
+import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
 import com.br.marketing.service.Impl.RuleRedisServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.SyncConfigService;
@@ -68,11 +70,17 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
     // 众安转化数据提取时间
     final static String EXECUTE_TIME_ZHUANHUA = "9:00:00";
 
+    @Autowired
+    DynamicParameterServiceImpl dynamicParameterService;
+
     @Resource
     private TableCreateServiceImpl tableCreateService;
 
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+
+    @Resource
+    private MarketingDataValidConfigMapper marketingDataValidConfigMapper;
 
     public static final String ZHUANHUA_COLUMU_NAME = "custNum,cell,userType,createTime,bizType,eventTime,eventType," +
             "amountStatus,highApplyStatus,auditAmountGroup,lentAmountGroup";
@@ -288,7 +296,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         log.warn("众安异业撞库数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
     }
 
-    private void writeZhongAnTransferToFileZhuanHua(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
+    public void writeZhongAnTransferToFileZhuanHua(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
         long start = System.currentTimeMillis();
         int page = 0;
         int offset = 2000;
@@ -296,12 +304,18 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         int totalSize = 0;
         String tcId = tableCreateService.getTcId(apiCode);
         LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDLINEDF);
+        MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
+        syncUser.settCid(tcId);
+        syncUser.setApiCode(apiCode);
+        Integer pageSize = dynamicParameterService.getPageSize(null);
+        MarketingDataValidConfig configList = marketingDataValidConfigMapper
+                .queryStartDateEndDatetikv_(apiCode, localDate.toString(), null);
+        String startDate = configList.getValidStartDate();
+        String endDate = configList.getValidEndDate();
+
         while (mark) {
-            // 获取前一天的日期
-            LocalDate yesterday = localDate.minusDays(1);
             List<MarketingTransferSyncUser> list = marketingTransferSyncUserMapper
-                    .getTransferDataByRequestDataAndApiCode(tcId, apiCode, yesterday.toString(),
-                    page * offset);
+                    .getTransferByStartAndEndDate(syncUser, startDate, endDate, null, page * pageSize, pageSize);
             if (CollectionUtils.isEmpty(list)) {
                 mark = Boolean.FALSE;
                 continue;
@@ -312,7 +326,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
             Set<String> set = list.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
             //判断转化数据是否在有效期内
             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService
-                    .getValidityPeriodsByCustNum(set, apiCode, yesterday);
+                    .getValidityPeriodsByCustNum(set, apiCode, localDate);
 
 
             for (MarketingTransferSyncUser transferSyncUser : list) {
