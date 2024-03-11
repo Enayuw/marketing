@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
@@ -324,16 +325,15 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
             // 过滤有效期内数据
             List<MarketingTransferSyncUser> periodList = new ArrayList<>(offset);
             Set<String> set = list.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-            //判断转化数据是否在有效期内
-            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService
-                    .getValidityPeriodsByCustNum(set, apiCode, localDate);
 
 
             for (MarketingTransferSyncUser transferSyncUser : list) {
                 String custNum = transferSyncUser.getCustNum();
                 String userType = transferSyncUser.getUserType();
-
-                SyncUserValidityPeriodsBO boMap = validityPeriodsByCustNum.get(custNum + userType);
+                //判断转化数据是否在有效期内
+                Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService
+                        .getValidityPeriodsByCustNumAndUserType(set, userType, apiCode, localDate);
+                SyncUserValidityPeriodsBO boMap = validityPeriodsByCustNum.get(custNum);
                 if (boMap == null) {
                     log.warn("{}:{}不满足案件编号“有效期内”条件", custNum, userType);
                     continue;
