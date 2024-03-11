@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 得物撞库job
@@ -37,7 +38,8 @@ public class DewuCollidingDataToSendJob extends AbstractSimpleElasticJob {
     private final static String DEWUCOLLIDINGDATA = "dewucollidingdata";
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-
+        String uuid = UUID.randomUUID().toString();
+        log.warn("DewuCollidingDataToSendJob-start-{}",uuid);
         String jobParameter = context.getJobParameter();
         List<String> localFileIds = new ArrayList<>();
         if (StringUtils.isNotBlank(jobParameter)) {
@@ -62,5 +64,6 @@ public class DewuCollidingDataToSendJob extends AbstractSimpleElasticJob {
                     dewuCollidingDataService.collidingDataProcess(lf.getId())
             );
         }
+        log.warn("DewuCollidingDataToSendJob-end-{}",uuid);
     }
 }

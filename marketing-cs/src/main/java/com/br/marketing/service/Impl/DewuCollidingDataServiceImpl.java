@@ -29,8 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -81,13 +80,30 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
             if (dewuCollidingDataList.size() == 0) {
                 break;
             }
+            // 主要是为了判断异步执行是否完成（返回结果目前并没有实际意义）
+            List<Future<String>> futureList = new ArrayList<>();
             List<List<DewuCollidingData>> dewuCollidingDataListPartition = Lists.partition(dewuCollidingDataList, 200);
             dewuCollidingDataListPartition.forEach(p -> {
                 List<Long> ids = p.stream().map(DewuCollidingData::getId).collect(Collectors.toList());
                 dewuCollidingDataMapper.updateBatchById(ids, 1,Integer.valueOf(currentDate));
-                deWuCollidingThread.execute(() -> pushDewuCollidingData(p, localFileId));
+                Future<String> submit = deWuCollidingThread.submit(() -> pushDewuCollidingData(p, localFileId));
+                futureList.add(submit);
             });
-            if (todayUploadCount >= marketingCommonConfig.getDeWuCollidingStopThresholdCount()) {
+            for (int i = 0; i < futureList.size(); i++) {
+                Future<String> stringFuture = futureList.get(i);
+                try {
+                    stringFuture.get(5, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    log.warn("InterruptedException:",e);
+                } catch (ExecutionException e) {
+                    log.warn("InterruptedException:",e);
+                } catch (TimeoutException e) {
+                    log.warn("TimeoutException:",e);
+                }
+            }
+            // 等待上面执行结束后重新查库，确保撞得数据不超限
+            int todayUploadCountAfter = dewuCollidingDataUploadSyncMapper.countByExample(dcuse);
+            if (todayUploadCountAfter >= marketingCommonConfig.getDeWuCollidingStopThresholdCount()) {
                 break;
             }
         }
@@ -188,7 +204,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
         return dewuCollidingDataList;
     }
 
-    public void pushDewuCollidingData(List<DewuCollidingData> dewuCollidingDataList, Long localFileId) {
+    public String pushDewuCollidingData(List<DewuCollidingData> dewuCollidingDataList, Long localFileId) {
         try {
             List<DewuCollidingData> collidingDataMobileList = pushCollidingDataProcessBefore(dewuCollidingDataList);
             if (collidingDataMobileList.size() > 0) {
@@ -199,8 +215,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
         }catch (Exception e){
             log.error("得物撞库异常，{}",e);
         }
-        // 创建
-
+        return "";
     }
 
     private void pushCollidingDataProcessAfter(Long localFileId, Result result, List<DewuCollidingData> collidingDataMobileList) {
