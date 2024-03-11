@@ -393,7 +393,7 @@ public class AlarmAndNoticeTest {
         try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
             fw.append(ZHUANHUA_COLUMU_NAME);
             fw.append("\r\n");
-            transferToFileByZhongAnService.writeZhongAnTransferToFileZhuanHua(fw,apiCode,transferFileTask, recordDate);
+            transferToFileByZhongAnService.writeZhongAnTransferToFileZhuanHua(fw,apiCode,transferFileTask);
         } catch (Exception ex) {
             log.error(ex.getMessage());
         }
