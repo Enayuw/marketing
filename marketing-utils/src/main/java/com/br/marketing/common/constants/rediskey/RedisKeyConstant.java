@@ -145,7 +145,7 @@ public class RedisKeyConstant {
     /**
      * 众安撞库 cell 今日缓存
      */
-    public static final String zhongAnZkCellToday = prefix.concat("zhongan:zk:cell:");
+    public static final String ZHONGAN_ZK_CELL_TODAY = prefix.concat("zhongan:zk:cell:");
 
 
     /**
