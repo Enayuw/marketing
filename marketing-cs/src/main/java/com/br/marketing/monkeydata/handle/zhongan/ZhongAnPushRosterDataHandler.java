@@ -279,12 +279,12 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             switch (tag) {
                 // 对照组
                 case "CG":
-                    processCG(pageList, apiCode, tag, userType, md5ToLogMap, cellToSyncUserBoMap, notPushIds,
+                    processCG(pageList, pageParam, md5ToLogMap, cellToSyncUserBoMap, notPushIds,
                             notMarketingIds, pushList, pushConfig, iterator);
                     break;
                 // 营销组
                 case "MG":
-                    processMG(pageList, apiCode, tag, userType, md5ToLogMap, cellToSyncUserBoMap, notPushIds, hitBlackIds,
+                    processMG(pageList, pageParam, md5ToLogMap, cellToSyncUserBoMap, notPushIds, hitBlackIds,
                             keyToSyncUserMap, pushList, pushConfig);
                     break;
                 default:
@@ -320,35 +320,15 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
         return result;
     }
 
-    private void processMG(List<ZhonganRosterLockingData> pageList, String apiCode, String tag, String userType,
-            Map<String, String> md5ToLogMap, Map<String, SyncUserValidityPeriodsBO> cellToSyncUserBoMap,
-            List<Long> notPushIds, List<Long> hitBlackIds, Map<String, MarketingSyncUser> keyToSyncUserMap,
-                           List<ZhonganRosterLockingDataBO> pushList, HashMap<String, JSONObject> pushConfig) {
-        Iterator<ZhonganRosterLockingData> iterator = pageList.iterator();
+    private void processCG(List<ZhonganRosterLockingData> pageList, ZhonganRosterLockingData pageParam,
+                           Map<String, String> md5ToLogMap, Map<String, SyncUserValidityPeriodsBO> cellToSyncUserBoMap,
+                           List<Long> notPushIds, List<Long> notMarketingIds, List<ZhonganRosterLockingDataBO> pushList,
+                           HashMap<String, JSONObject> pushConfig, Iterator<ZhonganRosterLockingData> iterator) {
         MarketingSyncUser syncUser;
-        Set<String> custNumBlackListSet = assembleBackList(pageList, keyToSyncUserMap, apiCode, cellToSyncUserBoMap);
-        while (iterator.hasNext()) {
-            ZhonganRosterLockingData next = iterator.next();
+        String apiCode = pageParam.getApiCode();
+        String tag = pageParam.getTag();
+        String userType = pageParam.getUserType();
 
-            syncUser = collectNotPushIds(pushConfig, userType, notPushIds, next, cellToSyncUserBoMap, md5ToLogMap);
-            if(syncUser==null){
-                continue;
-            }
-
-            // 判断黑名单
-            if (custNumBlackListSet.contains(syncUser.getCustNum() + next.getBizDate())) {
-                hitBlackIds.add(next.getId());
-                continue;
-            }
-            pushList.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
-        }
-    }
-
-    private void processCG(List<ZhonganRosterLockingData> pageList, String apiCode, String tag, String userType,
-            Map<String, String> md5ToLogMap, Map<String, SyncUserValidityPeriodsBO> cellToSyncUserBoMap,
-            List<Long> notPushIds, List<Long> notMarketingIds, List<ZhonganRosterLockingDataBO> pushList,
-            HashMap<String, JSONObject> pushConfig, Iterator<ZhonganRosterLockingData> iterator) {
-        MarketingSyncUser syncUser;
         // 众安不营销记录表
         Set<String> cellZkDateMap = getMarketingBanMap(apiCode, pageList, md5ToLogMap);
         while (iterator.hasNext()) {
@@ -362,6 +342,34 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             String cell = md5ToLogMap.getOrDefault(next.getMobileMd5(), "");
             if (cellZkDateMap.contains(cell + next.getBizDate())) {
                 notMarketingIds.add(next.getId());
+                continue;
+            }
+            pushList.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
+        }
+    }
+
+    private void processMG(List<ZhonganRosterLockingData> pageList, ZhonganRosterLockingData pageParam,
+            Map<String, String> md5ToLogMap, Map<String, SyncUserValidityPeriodsBO> cellToSyncUserBoMap,
+            List<Long> notPushIds, List<Long> hitBlackIds, Map<String, MarketingSyncUser> keyToSyncUserMap,
+                           List<ZhonganRosterLockingDataBO> pushList, HashMap<String, JSONObject> pushConfig) {
+        Iterator<ZhonganRosterLockingData> iterator = pageList.iterator();
+        MarketingSyncUser syncUser;
+        String apiCode = pageParam.getApiCode();
+        String tag = pageParam.getTag();
+        String userType = pageParam.getUserType();
+
+        Set<String> custNumBlackListSet = assembleBackList(pageList, keyToSyncUserMap, apiCode, cellToSyncUserBoMap);
+        while (iterator.hasNext()) {
+            ZhonganRosterLockingData next = iterator.next();
+
+            syncUser = collectNotPushIds(pushConfig, userType, notPushIds, next, cellToSyncUserBoMap, md5ToLogMap);
+            if(syncUser==null){
+                continue;
+            }
+
+            // 判断黑名单
+            if (custNumBlackListSet.contains(syncUser.getCustNum() + next.getBizDate())) {
+                hitBlackIds.add(next.getId());
                 continue;
             }
             pushList.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
