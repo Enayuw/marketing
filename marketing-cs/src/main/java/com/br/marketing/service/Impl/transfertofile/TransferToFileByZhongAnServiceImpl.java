@@ -74,7 +74,8 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
-    public static final String ZHUANHUA_COLUMU_NAME = "custNum,cell,userType,createTime,bizType,eventTime,eventType,amountStatus,highApplyStatus,auditAmountGroup,lentAmountGroup";
+    public static final String ZHUANHUA_COLUMU_NAME = "custNum,cell,userType,createTime,bizType,eventTime,eventType," +
+            "amountStatus,highApplyStatus,auditAmountGroup,lentAmountGroup";
 
     @Resource
     TransferDataValidityPeriodService validityPeriodService;
@@ -298,7 +299,8 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         while (mark) {
             // 获取前一天的日期
             LocalDate yesterday = localDate.minusDays(1);
-            List<MarketingTransferSyncUser> list = marketingTransferSyncUserMapper.getTransferDataByRequestDataAndApiCode(tcId, apiCode, yesterday.toString(),
+            List<MarketingTransferSyncUser> list = marketingTransferSyncUserMapper
+                    .getTransferDataByRequestDataAndApiCode(tcId, apiCode, yesterday.toString(),
                     page * offset);
             if (CollectionUtils.isEmpty(list)) {
                 mark = Boolean.FALSE;
@@ -393,10 +395,6 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String concat = apiCode.concat("_").concat(yyyyMMdd).concat("_").concat(contextId.toString());
         return concat;
-    }
-
-    private String newCreateBatchNumber(String apiCode, Long contextId, String dateStr) {
-        return apiCode.concat("_").concat(dateStr).concat("_").concat(contextId.toString());
     }
 
     /**
