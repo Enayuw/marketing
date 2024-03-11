@@ -276,58 +276,37 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             Iterator<ZhonganRosterLockingData> iterator = pageList.iterator();
             MarketingSyncUser syncUser;
             switch (tag) {
+                // 对照组
                 case "CG":
-                    // 对照组
                     // 众安不营销记录表
                     Set<String> cellZkDateMap = getMarketingBanMap(apiCode, pageList, md5ToLogMap);
                     while (iterator.hasNext()) {
                         ZhonganRosterLockingData next = iterator.next();
-                        String mobileMd5 = next.getMobileMd5();
-                        String key = mobileMd5 + next.getBizDate();
 
-                        // 未配置可推送， 放入notPushIds
-                        if (isEnablePushConfig(pushConfig, userType)) {
-                            notPushIds.add(next.getId());
+                        syncUser = collectNotPushIds(pushConfig, userType, notPushIds, next, cellToSyncUserBoMap);
+                        if(syncUser==null){
                             continue;
                         }
-
-                        // 不在有效期
-                        SyncUserValidityPeriodsBO syncUserBO = cellToSyncUserBoMap.get(mobileMd5);
-                        if(syncUserBO==null || syncUserBO.getSyncUsers().size()<1){
-                            notPushIds.add(next.getId());
-                            continue;
-                        }
-                        syncUser = syncUserBO.getSyncUsers().get(0);
 
                         String cell = md5ToLogMap.getOrDefault(next.getMobileMd5(), "");
                         if (cellZkDateMap.contains(cell + next.getBizDate())) {
-                            // 不营销id
                             notMarketingIds.add(next.getId());
                             continue;
                         }
                         pushList.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
                     }
                     break;
+                // 营销组
                 case "MG":
-                    // 营销组 3个条件
                     Set<String> custNumBlackListSet = assembleBackList(pageList, keyToSyncUserMap, apiCode, cellToSyncUserBoMap);
                     iterator = pageList.iterator();
                     while (iterator.hasNext()) {
                         ZhonganRosterLockingData next = iterator.next();
 
-                        // 未配置可推送， 放入notPushIds
-                        if (isEnablePushConfig(pushConfig, userType)) {
-                            notPushIds.add(next.getId());
+                        syncUser = collectNotPushIds(pushConfig, userType, notPushIds, next, cellToSyncUserBoMap);
+                        if(syncUser==null){
                             continue;
                         }
-
-                        // 不在有效期
-                        SyncUserValidityPeriodsBO syncUserBO = cellToSyncUserBoMap.get(next.getMobileMd5());
-                        if(syncUserBO==null || syncUserBO.getSyncUsers().size()<1){
-                            notPushIds.add(next.getId());
-                            continue;
-                        }
-                        syncUser = syncUserBO.getSyncUsers().get(0);
 
                         // 判断黑名单
                         if (custNumBlackListSet.contains(syncUser.getCustNum() + next.getBizDate())) {
@@ -366,6 +345,24 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             log.error(e.getMessage(), e);
         }
         return result;
+    }
+
+    private MarketingSyncUser collectNotPushIds(HashMap<String, JSONObject> pushConfig, String userType, List<Long> notPushIds,
+        ZhonganRosterLockingData next, Map<String, SyncUserValidityPeriodsBO> cellToSyncUserBoMap){
+        // 未配置可推送， 放入notPushIds
+        if (isEnablePushConfig(pushConfig, userType)) {
+            notPushIds.add(next.getId());
+            return null;
+        }
+
+        // 不在有效期
+        SyncUserValidityPeriodsBO syncUserBO = cellToSyncUserBoMap.get(next.getMobileMd5());
+        if(syncUserBO==null || syncUserBO.getSyncUsers().size()<1){
+            notPushIds.add(next.getId());
+            return null;
+        }
+        MarketingSyncUser syncUser = syncUserBO.getSyncUsers().get(0);
+        return syncUser;
     }
 
     /**
