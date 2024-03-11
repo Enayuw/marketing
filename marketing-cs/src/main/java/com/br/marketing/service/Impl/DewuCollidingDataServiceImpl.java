@@ -170,7 +170,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
 
     private List<DewuCollidingData> getDewuCollidingDataList(Long localFileId, int todayUploadCount) {
         // 创建limit 量级
-        int limitCount = 10000;
+        int limitCount = marketingCommonConfig.getDeWuCollidingLimit();
         // 判断是否接近停止撞库量级
         // 大于等于 则
         if (todayUploadCount >= marketingCommonConfig.getDeWuCollidingStopThresholdCount()) {

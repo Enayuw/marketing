@@ -1376,5 +1376,29 @@ public class MarketingCommonConfig {
      * 得物撞库appId
      */
     private String deWuAppId;
+    /**
+     * 得物撞库一次性从基表中获取数据量
+     */
+    private int deWuCollidingLimit = 10000;
+    /**
+     * 得物mock数据开关["开关","httpcode","code","status"],
+     * 样例：
+     *   deWuCollidingMockSwitch=["true","200","200","1"] 开启挡板，并且得到网络响应200,数据中code=200,status=1的样例数据
+     * 详解：
+     *   开关:
+     *     "true":开启挡板,使用测试数据
+     *     "false"关闭挡板,使用真实调用客户的返回结果
+     *   httpcode:
+     *     "200":返回httpcode=200的mock数据
+     *     "500":返回httpcode=500的mock数据
+     *     "1001":返回httpcode=1001的mock数据
+     *   code:
+     *     "200":返回code=200的mock数据
+     *     "401":返回code=401的签名认证失败的mock数据
+     *   status:
+     *     "0":status=0的mock数据
+     *     "1":status=1的mock数据
+     */
+    private List<String> deWuCollidingMockSwitch;
 }
 
