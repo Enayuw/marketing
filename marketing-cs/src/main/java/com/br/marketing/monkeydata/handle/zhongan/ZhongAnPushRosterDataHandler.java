@@ -278,43 +278,13 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             switch (tag) {
                 // 对照组
                 case "CG":
-                    // 众安不营销记录表
-                    Set<String> cellZkDateMap = getMarketingBanMap(apiCode, pageList, md5ToLogMap);
-                    while (iterator.hasNext()) {
-                        ZhonganRosterLockingData next = iterator.next();
-
-                        syncUser = collectNotPushIds(pushConfig, userType, notPushIds, next, cellToSyncUserBoMap);
-                        if(syncUser==null){
-                            continue;
-                        }
-
-                        String cell = md5ToLogMap.getOrDefault(next.getMobileMd5(), "");
-                        if (cellZkDateMap.contains(cell + next.getBizDate())) {
-                            notMarketingIds.add(next.getId());
-                            continue;
-                        }
-                        pushList.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
-                    }
+                    processCG(pageList, apiCode, tag, userType, md5ToLogMap, cellToSyncUserBoMap, notPushIds,
+                            notMarketingIds, pushList, pushConfig, iterator);
                     break;
                 // 营销组
                 case "MG":
-                    Set<String> custNumBlackListSet = assembleBackList(pageList, keyToSyncUserMap, apiCode, cellToSyncUserBoMap);
-                    iterator = pageList.iterator();
-                    while (iterator.hasNext()) {
-                        ZhonganRosterLockingData next = iterator.next();
-
-                        syncUser = collectNotPushIds(pushConfig, userType, notPushIds, next, cellToSyncUserBoMap);
-                        if(syncUser==null){
-                            continue;
-                        }
-
-                        // 判断黑名单
-                        if (custNumBlackListSet.contains(syncUser.getCustNum() + next.getBizDate())) {
-                            hitBlackIds.add(next.getId());
-                            continue;
-                        }
-                        pushList.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
-                    }
+                    processMG(pageList, apiCode, tag, userType, cellToSyncUserBoMap, notPushIds, hitBlackIds,
+                            keyToSyncUserMap, pushList, pushConfig);
                     break;
                 default:
                     while (iterator.hasNext()) {
@@ -345,6 +315,54 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             log.error(e.getMessage(), e);
         }
         return result;
+    }
+
+    private void processMG(List<ZhonganRosterLockingData> pageList, String apiCode, String tag, String userType,
+            Map<String, SyncUserValidityPeriodsBO> cellToSyncUserBoMap, List<Long> notPushIds, List<Long> hitBlackIds,
+            Map<String, MarketingSyncUser> keyToSyncUserMap, List<ZhonganRosterLockingDataBO> pushList, HashMap<String,
+            JSONObject> pushConfig) {
+        Iterator<ZhonganRosterLockingData> iterator = pageList.iterator();
+        MarketingSyncUser syncUser;
+        Set<String> custNumBlackListSet = assembleBackList(pageList, keyToSyncUserMap, apiCode, cellToSyncUserBoMap);
+        while (iterator.hasNext()) {
+            ZhonganRosterLockingData next = iterator.next();
+
+            syncUser = collectNotPushIds(pushConfig, userType, notPushIds, next, cellToSyncUserBoMap);
+            if(syncUser==null){
+                continue;
+            }
+
+            // 判断黑名单
+            if (custNumBlackListSet.contains(syncUser.getCustNum() + next.getBizDate())) {
+                hitBlackIds.add(next.getId());
+                continue;
+            }
+            pushList.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
+        }
+    }
+
+    private void processCG(List<ZhonganRosterLockingData> pageList, String apiCode, String tag, String userType,
+            Map<String, String> md5ToLogMap, Map<String, SyncUserValidityPeriodsBO> cellToSyncUserBoMap,
+            List<Long> notPushIds, List<Long> notMarketingIds, List<ZhonganRosterLockingDataBO> pushList,
+            HashMap<String, JSONObject> pushConfig, Iterator<ZhonganRosterLockingData> iterator) {
+        MarketingSyncUser syncUser;
+        // 众安不营销记录表
+        Set<String> cellZkDateMap = getMarketingBanMap(apiCode, pageList, md5ToLogMap);
+        while (iterator.hasNext()) {
+            ZhonganRosterLockingData next = iterator.next();
+
+            syncUser = collectNotPushIds(pushConfig, userType, notPushIds, next, cellToSyncUserBoMap);
+            if(syncUser==null){
+                continue;
+            }
+
+            String cell = md5ToLogMap.getOrDefault(next.getMobileMd5(), "");
+            if (cellZkDateMap.contains(cell + next.getBizDate())) {
+                notMarketingIds.add(next.getId());
+                continue;
+            }
+            pushList.add(new ZhonganRosterLockingDataBO(next, syncUser, apiCode, tag));
+        }
     }
 
     private MarketingSyncUser collectNotPushIds(HashMap<String, JSONObject> pushConfig, String userType, List<Long> notPushIds,
@@ -449,7 +467,7 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             }
         }
         if (!CollectionUtils.isEmpty(custNumMap)) {
-            // 客服拨打记录表  12-黑名单
+            // 客服拨打记录表  callStatus≠12 12-黑名单
             List<CallRecord> blackListSettikv_ = callRecordMapper.getBlackListSettikv_(custNumMap, apiCode);
             if (!CollectionUtils.isEmpty(blackListSettikv_)) {
                 custNumBlackListSet.addAll(blackListSettikv_.stream()
@@ -546,8 +564,8 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
         return list.parallelStream().collect(Collectors.collectingAndThen(Collectors.toCollection(
                 () -> new TreeSet<>(Comparator.comparing(ZhonganRosterLockingData::getMobileMd5)))
                 , ArrayList::new))
-                .stream().collect(Collectors.toConcurrentMap(ZhonganRosterLockingData::getMobileMd5,
-                        (ZhonganRosterLockingData d) -> {
+                .stream().collect(Collectors.toConcurrentMap(
+                        ZhonganRosterLockingData::getMobileMd5, (ZhonganRosterLockingData d) -> {
             String query = RpcClientProxy.decode(d.getMobileMd5(), "cell", "md5", "");
             return StringUtils.isBlank(query) ? d.getMobileMd5() : BrCipherMaker.getInstance().encode(query);
         }, (v1, v2) -> v1));
