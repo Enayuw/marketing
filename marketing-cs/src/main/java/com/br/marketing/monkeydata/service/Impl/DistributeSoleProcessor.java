@@ -25,7 +25,7 @@ public class DistributeSoleProcessor {
     @Resource
     DataDistributeDetailLogMapper dataDistributeDetailLogMapper;
 
-    public List<Long> process(SoleFieldEnum soleFieldEnum, List<ZhonganRosterLockingDataBO> pushList){
+    public List<Long> process(List<ZhonganRosterLockingDataBO> pushList){
         List<Long> notPushIds = new ArrayList<>();
         String key = RedisKeyConstant.dributeDataSloeLock;
         Integer distributeType = 2;

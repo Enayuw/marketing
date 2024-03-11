@@ -67,6 +67,8 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
     private final static String EXECUTE_TIME = "21:00:00";
     private final static String CLEAR_REDIS_TIME = "23:40:00";
 
+    private final static String TITLE = "【名单锁定推送众安】";
+
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         String zhongAnRosterLockingTime = marketingCommonConfig.getZhongAnRosterLockingTime();
@@ -130,25 +132,13 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             }
 
             // 优先级分批推送
-            long start1 = System.currentTimeMillis();
             Result<?> result1 = action(apiCode, bizDate, "CG", 1, "1", data);
-            long end1 = System.currentTimeMillis();
-            log.warn("api_code:{},biz_date:{}【CG名单锁定推送众安】结束，耗时:{}", apiCode, bizDate, end1 - start1);
 
-            long start2 = System.currentTimeMillis();
             Result<?> result2 = action(apiCode, bizDate, "MG", 2, "1", data);
-            long end2 = System.currentTimeMillis();
-            log.warn("api_code:{},biz_date:{}【MG名单锁定推送众安】结束，耗时:{}", apiCode, bizDate, end2 - start2);
 
-            long start3 = System.currentTimeMillis();
             Result<?> result3 = action(apiCode, bizDate, "MG", 1, "1", data);
-            long end3 = System.currentTimeMillis();
-            log.warn("api_code:{},biz_date:{}【MG名单锁定推送众安】结束，耗时:{}", apiCode, bizDate, end3 - start3);
 
-            long start4 = System.currentTimeMillis();
             Result<?> result4 = action(apiCode, bizDate, "MG", 2, "7", data);
-            long end4 = System.currentTimeMillis();
-            log.warn("api_code:{},biz_date:{}【MG名单锁定推送众安】结束，耗时:{}", apiCode, bizDate, end4 - start4);
 
             if (ResultCode.SUCCESS.getValue().equals(result1.getCode())
                     && ResultCode.SUCCESS.getValue().equals(result2.getCode())
@@ -196,6 +186,9 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
 
     private Result<?> action(String apiCode, String bizDate, String tag, Integer dataSource, String userType,
                              Page2Condition<ZhonganRosterLockingData> condition) {
+        long start = System.currentTimeMillis();
+        log.info(TITLE+"开始"+"apiCode:{},bizDate:{},tag:{},dataSource:{},userType:{}",
+                apiCode, bizDate, tag, dataSource, userType);
         ZhonganRosterLockingData param = new ZhonganRosterLockingData();
         param.setApiCode(apiCode);
         param.setBizDate(bizDate);
@@ -204,7 +197,11 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
         param.setPushStatus(1);
         param.setUserType(userType);
         condition.setParam(param);
-        return zhongAnPushRosterDataHandler.action(condition);
+        Result actionResult = zhongAnPushRosterDataHandler.action(condition);
+        long end = System.currentTimeMillis();
+        log.info(TITLE+"结束"+"apiCode:{},bizDate:{},tag:{},dataSource:{},userType:{}"+"耗时:{}",
+                apiCode, bizDate, tag, dataSource, userType, end - start);
+        return actionResult;
     }
 
 
