@@ -289,11 +289,11 @@ public class ShuHeUserServiceImpl {
                 dataInfoDTO.setRawDataSaveTimeStr(transferSyncUser.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                         .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
                 dataInfoDTO.setArgList(Collections.singletonList(new UserTypeCollectionDTO(transferSyncUser.getUserType())));
-                producter.send(MQConstants.ROUTING_KEY_MARKETING_STANDARD_API_USERTYPE_COLLECTION
+                producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS
                         , JSONArray.toJSONString(dataInfoDTO.addTransferMsgSource()));
             } catch (Exception e) {
                 log.error("数禾转化定制接口推送场景信息到队列失败,发送队列"
-                        + MQConstants.MARKETING_STANDARD_API_USERTYPE_COLLECTION + ",消息内容:" + msg
+                        + MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS + ",消息内容:" + msg
                         + "\n" + e.getMessage(), e);
             }
         }
