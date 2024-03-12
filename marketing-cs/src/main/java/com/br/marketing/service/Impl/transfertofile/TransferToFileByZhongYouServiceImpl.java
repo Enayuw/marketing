@@ -6,7 +6,9 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.TransferFileTask;
+import com.br.marketing.entity.TransferFileTaskExample;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
@@ -21,13 +23,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @Author 李广秀
@@ -63,9 +74,9 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
     final static String ZHONGYOU_TRANSFER_FILE = "transform_";
 
     final static String FILE_HEADER = "taskId,custNum,userType,customName,registerTime,ifLogin,loginTime," +
-            "ifApply,applyDt,applyResult,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount," +
-            "pushTime,loginChannel,auditRate,couponType,validityAmt,rateType,lentRate,validityRate,applyLentTime,cps," +
-            "lentAmountFirst,lentTimeFirst,cpsRate,fileName,firstName,gender,cell";
+        "ifApply,applyDt,applyResult,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount," +
+        "pushTime,loginChannel,auditRate,couponType,validityAmt,rateType,lentRate,validityRate,applyLentTime,cps," +
+        "lentAmountFirst,lentTimeFirst,cpsRate,fileName,firstName,gender,cell,extend01,extend02";
 
     @Override
     public String isMyParam(String apiCode, String jobParameter) {
@@ -78,7 +89,7 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
         Date now = new Date();
         //可配置
         String execute = EXECUTE_TIME;
-        if (StringUtils.isNotEmpty(marketingCommonConfig.getZhongYouTransferExecuteTime()) ) {
+        if (StringUtils.isNotEmpty(marketingCommonConfig.getZhongYouTransferExecuteTime())) {
             execute = " " + marketingCommonConfig.getZhongYouTransferExecuteTime();
         }
         Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, execute);
@@ -126,8 +137,8 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
         transferFileTask.setFilePath(descPath);
         File file = new File(fileAllPath);
         try (Writer fw = new BufferedWriter(
-                new OutputStreamWriter(
-                        new FileOutputStream(file), "UTF-8"));) {
+            new OutputStreamWriter(
+                new FileOutputStream(file), "UTF-8"));) {
             fw.append(FILE_HEADER);
             fw.append("\r\n");
             writeZhongYouTransferToFile(fw, apiCode, transferFileTask);
@@ -152,9 +163,10 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
                 continue;
             }
             page++;
-            String pushTime = "" , loginChannel = "" , auditRate = "" , couponType = "" , validityAmt = "" , rateType = "";
-            String lentRate = "" , validityRate = "" , applyLentTime = "" , cps = "" , lentAmountFirst = "" , lentTimeFirst = "";
-            String cpsRate = "" , fileName = "" , firstName = "" , gender = "" , cell = "" , taskId  = "";
+            String pushTime = "", loginChannel = "", auditRate = "", couponType = "", validityAmt = "", rateType = "";
+            String lentRate = "", validityRate = "", applyLentTime = "", cps = "", lentAmountFirst = "", lentTimeFirst = "";
+            String cpsRate = "", fileName = "", firstName = "", gender = "", cell = "", taskId = "";
+            String extend01 = "", extend02 = "";
 
             List<MarketingTransferSyncUser> data = transferData.getData();
             Set<String> custNumSet = new HashSet<>();
@@ -196,6 +208,8 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
                             firstName = getReserFieldVal(transferSyncUser.getReserveField1(), "firstName");
                             gender = getReserFieldVal(transferSyncUser.getReserveField1(), "gender");
                             cell = getReserFieldVal(transferSyncUser.getReserveField1(), "cell");
+                            extend01 = getReserFieldVal(transferSyncUser.getReserveField1(), "extend01");
+                            extend02 = getReserFieldVal(transferSyncUser.getReserveField1(), "extend02");
                         } catch (Exception e) {
                             log.warn("中邮转化数据提取,ReserveField1非JSON格式{}", transferSyncUser.getReserveField1());
                         }
@@ -203,44 +217,46 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
                     StringBuilder sb = new StringBuilder();
 
                     sb.append(deleteNull(taskId))
-                            .append(deleteNull(transferSyncUser.getCustNum()))
-                            .append(deleteNull(transferSyncUser.getUserType()))
-                            .append(deleteNull(transferSyncUser.getCustomName()))
-                            .append(formDateStr2(transferSyncUser.getRegisterTime()))
-                            .append(deleteNull(transferSyncUser.getIfLogin()))
-                            .append(formDateStr2(transferSyncUser.getLoginTime()))
-                            .append(deleteNull(transferSyncUser.getIfApply()))
-                            .append(formDateStr2(transferSyncUser.getApplyDt()))
-                            .append(deleteNull(transferSyncUser.getApplyResult()))
-                            .append(formDateStr2(transferSyncUser.getAuditTime()))
-                            .append(deleteNull(transferSyncUser.getAuditAmount()))
-                            .append(deleteNull(transferSyncUser.getIfLent()))
-                            .append(formDateStr2(transferSyncUser.getLentTime()))
-                            .append(deleteNull(transferSyncUser.getLentAmount()))
-                            .append(deleteNull(transferSyncUser.getUnlentAmount()))
-                            .append(formDateStr(pushTime))
-                            .append(deleteNull(loginChannel))
-                            .append(deleteNull(auditRate))
-                            .append(deleteNull(couponType))
-                            .append(formDateStr2(validityAmt))
-                            .append(deleteNull(rateType))
-                            .append(deleteNull(lentRate))
-                            .append(formDateStr2(validityRate))
-                            .append(formDateStr2(applyLentTime))
-                            .append(deleteNull(cps))
-                            .append(deleteNull(lentAmountFirst))
-                            .append(formDateStr2(lentTimeFirst))
-                            .append(deleteNull(cpsRate))
-                            .append(deleteNull(fileName))
-                            .append(deleteNull(firstName))
-                            .append(deleteNull(gender))
-                            .append(StringUtils.isNotEmpty(cell) ? cell : "");
+                        .append(deleteNull(transferSyncUser.getCustNum()))
+                        .append(deleteNull(transferSyncUser.getUserType()))
+                        .append(deleteNull(transferSyncUser.getCustomName()))
+                        .append(formDateStr2(transferSyncUser.getRegisterTime()))
+                        .append(deleteNull(transferSyncUser.getIfLogin()))
+                        .append(formDateStr2(transferSyncUser.getLoginTime()))
+                        .append(deleteNull(transferSyncUser.getIfApply()))
+                        .append(formDateStr2(transferSyncUser.getApplyDt()))
+                        .append(deleteNull(transferSyncUser.getApplyResult()))
+                        .append(formDateStr2(transferSyncUser.getAuditTime()))
+                        .append(deleteNull(transferSyncUser.getAuditAmount()))
+                        .append(deleteNull(transferSyncUser.getIfLent()))
+                        .append(formDateStr2(transferSyncUser.getLentTime()))
+                        .append(deleteNull(transferSyncUser.getLentAmount()))
+                        .append(deleteNull(transferSyncUser.getUnlentAmount()))
+                        .append(formDateStr(pushTime))
+                        .append(deleteNull(loginChannel))
+                        .append(deleteNull(auditRate))
+                        .append(deleteNull(couponType))
+                        .append(formDateStr2(validityAmt))
+                        .append(deleteNull(rateType))
+                        .append(deleteNull(lentRate))
+                        .append(formDateStr2(validityRate))
+                        .append(formDateStr2(applyLentTime))
+                        .append(deleteNull(cps))
+                        .append(deleteNull(lentAmountFirst))
+                        .append(formDateStr2(lentTimeFirst))
+                        .append(deleteNull(cpsRate))
+                        .append(deleteNull(fileName))
+                        .append(deleteNull(firstName))
+                        .append(deleteNull(gender))
+                        .append(StringUtils.isNotEmpty(cell) ? cell : "")
+                        .append(StringUtils.isNotEmpty(extend01) ? extend01 : "")
+                        .append(StringUtils.isNotEmpty(extend02) ? extend02 : "");
                     sb.append("\r\n");
 
                     fw.append(sb);
                     totalSize = totalSize + 1;
                 } catch (Exception e) {
-                    log.error("{}:{}数据异常", transferSyncUser.getCustNum(), transferSyncUser.getUserType(),e);
+                    log.error("{}:{}数据异常", transferSyncUser.getCustNum(), transferSyncUser.getUserType(), e);
                 }
             }
         }
@@ -257,6 +273,7 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
 
     /**
      * 删除null字符串
+     *
      * @param value
      * @return
      */
@@ -266,13 +283,14 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
 
     /**
      * 格式化时间
+     *
      * @param dateTimeStr
      * @return
      */
     private String formDateStr(String dateTimeStr) {
         try {
             return LocalDateTime.parse(dateTimeStr
-                    , DATE_TIME_FORMATTER).format(DATE_TIME_2_FORMATTER).concat(",");
+                , DATE_TIME_FORMATTER).format(DATE_TIME_2_FORMATTER).concat(",");
         } catch (Exception e) {
             return deleteNull(dateTimeStr);
         }
@@ -281,7 +299,7 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
     private static String formDateStr2(String dateString) {
         try {
 //            String[] patterns = {"yyyy-MM-dd", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss.SSS", "yyyy-MM-dd HH:mm:ss:SSS"};
-            String[] patterns = {"yyyy-MM-dd HH:mm:ss" , "yyyy-MM-dd HH:mm:ss[:SSS]"};
+            String[] patterns = {"yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss[:SSS]"};
             Date date = null;
 
             for (String pattern : patterns) {
@@ -305,7 +323,7 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
         }
     }
 
-    private String getReserFieldVal(String reserStr,String field){
+    private String getReserFieldVal(String reserStr, String field) {
         return StringUtils.isNotEmpty(JSON.parseObject(reserStr).getString(field)) ? JSON.parseObject(reserStr).getString(field) : "";
     }
 
@@ -318,14 +336,15 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
 
     /**
      * 获取转换数据
+     *
      * @param tcId
      * @param endDate
      * @param pageIndex
      * @return
      */
-    private Result<List<MarketingTransferSyncUser>> getOrderTransferData(String apiCode,String tcId,String endDate,Integer pageIndex) {
+    private Result<List<MarketingTransferSyncUser>> getOrderTransferData(String apiCode, String tcId, String endDate, Integer pageIndex) {
         Integer limitStart = pageIndex * 2000;
-        List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferDataByDate(apiCode, tcId, endDate,limitStart);
+        List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferDataByDate(apiCode, tcId, endDate, limitStart);
         if (transferOrderInsertTime.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
