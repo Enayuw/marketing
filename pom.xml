@@ -25,7 +25,7 @@
         <io.springfox.springfox-swagger-ui>2.6.1</io.springfox.springfox-swagger-ui>
         <elasticsearch.version>7.7.1</elasticsearch.version>
         <log4j.onver.slf4j.version>1.7.25</log4j.onver.slf4j.version>
-        <pulsar.version>1.0.0</pulsar.version>
+        <pulsar.version>1.0.2</pulsar.version>
         <speed.version>2.0.1</speed.version>
         <lettuce.version>6.2.0.RELEASE</lettuce.version>
         <reactor.version>3.4.24</reactor.version>
