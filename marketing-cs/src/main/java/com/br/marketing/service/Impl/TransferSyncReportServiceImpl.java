@@ -1,26 +1,42 @@
 package com.br.marketing.service.Impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.auth.AuthShowProductor;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
+import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingCustomerMapper;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferSyncReportMapper;
 import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.service.ICompatibleService;
+import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.TransferSyncReportService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.TransferSyncReportNumVO;
 import com.br.marketing.vo.TransferSyncReportVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -46,12 +62,28 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
-    
+
     @Autowired
     ICompatibleService iCompatibleService;
 
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
+
+    @Resource
+    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+
+    @Resource
+    private RedisChgService redisChgService;
+
+    @Resource
+    private MarketingCustomerService marketingCustomerService;
+
+    @Resource
+    private PlatformTransactionManager platformTransactionManager;
+
+
     @Override
-    public void reportProcess(Set<String> dateStrSet, int shardingTotalCount, List<Integer> shardingItems,String JobName) {
+    public void reportProcess(Set<String> dateStrSet, int shardingTotalCount, List<Integer> shardingItems, String JobName) {
         long l = System.currentTimeMillis();
         // 分片获取所有客户
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
@@ -231,5 +263,142 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
             params.put("userTypeList", Arrays.asList(split));
         }
         return params;
+    }
+
+    @Override
+    public Result<Boolean> nearRealtimeDataCountFragmentsStatis(String dataCountFragmentsMgs) {
+        Result<Boolean> result = new Result<>();
+        result.setDate(false);
+        result.setCode(ResultCode.SUCCESS.getValue());
+        if (StringUtils.isNotBlank(dataCountFragmentsMgs)) {
+            return result;
+        }
+        ApiDataInfoDTO<UserTypeCollectionDTO> apiDataInfoDTO = JSONObject.parseObject(dataCountFragmentsMgs
+                , new TypeReference<ApiDataInfoDTO<UserTypeCollectionDTO>>() {
+                }.getType());
+        String apiCode = apiDataInfoDTO.getApiCode();
+        if (StringUtils.isBlank(apiCode)) {
+            log.error("转化未获取到apiCode，消息内容：{}", dataCountFragmentsMgs);
+            return result;
+        }
+        String cId = StringUtils.isBlank(apiDataInfoDTO.getCid()) ? apiDataInfoDTO.getCid()
+                : tableCreateService.getCId(apiCode);
+        if (StringUtils.isBlank(cId)) {
+            log.error("转化未获取到cid，消息内容：{}", dataCountFragmentsMgs);
+            return result;
+        }
+        LocalDateTime rawDataSaveTime = LocalDateTime.parse(apiDataInfoDTO.getRawDataSaveTimeStr()
+                , DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        String requestDateStr = rawDataSaveTime.toLocalDate().toString();
+        StringBuilder redisKey = new StringBuilder(RedisKeyConstant.ASYNC_COUNT);
+        redisKey.append(cId).append(":").append(apiCode).append(":").append(requestDateStr).append(":")
+                .append(apiDataInfoDTO.getMsgSource()).append(":");
+        if (apiDataInfoDTO.isTransferMsgSource()) {
+            MarketingCustomer customer = marketingCustomerService.getCacheCustomerByApiCode(apiCode);
+            String requestId = apiDataInfoDTO.getRequestId();
+            Set<String> userTypeSet = apiDataInfoDTO.getArgList().stream().map(UserTypeCollectionDTO::getUserType)
+                    .collect(Collectors.toSet());
+            if (CollectionUtils.isEmpty(userTypeSet)) {
+                userTypeSet = null;
+            }
+            List<TransferSyncReport> syncUserList = marketingTransferSyncUserMapper.selectTransferSyncReportByRequestIdCount(
+                    apiCode, tableCreateService.getTcId(apiCode), requestId, userTypeSet, requestDateStr);
+            if (CollectionUtils.isEmpty(syncUserList)) {
+                return result;
+            }
+            TransactionStatus transaction = platformTransactionManager.getTransaction(new DefaultTransactionDefinition());
+            try {
+                for (TransferSyncReport transferSyncReport : syncUserList) {
+                    String userType = transferSyncReport.getUserType();
+                    String hKey = redisKey + ":" + userType;
+                    String lockKey = hKey + ":lock";
+                    String lockValue = apiDataInfoDTO.getRawDataSaveTimeStr() + transferSyncReport.getId();
+                    transferSyncReport.setId(null);
+                    try {
+                        boolean lockExists = redisChgService.lock(lockKey, lockValue, 5000L);
+                        if (lockExists) {
+                            // 上锁
+                            Map<String, Object> cacheMap = redisChgService.hgetall(hKey);
+                            if (CollectionUtils.isEmpty(cacheMap)) {
+                                // 缓存不存在
+                                TransferSyncReportExample example = new TransferSyncReportExample();
+                                example.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cId)
+                                        .andUserTypeEqualTo(userType).andAppletDateEqualTo(requestDateStr);
+                                List<TransferSyncReport> syncReports = transferSyncReportMapper.selectNumberByExample(example);
+                                if (CollectionUtils.isEmpty(syncReports)) {
+                                    // 未持久化
+                                    transferSyncReport.setApiCode(apiCode);
+                                    transferSyncReport.setCid(cId);
+                                    transferSyncReport.setCreateTime(new Date());
+                                    transferSyncReport.setUpdateTime(transferSyncReport.getCreateTime());
+                                    transferSyncReport.setShortName(customer == null ? "" : customer.getShortName());
+                                    transferSyncReport.setAppletDate(requestDateStr);
+                                    int i = transferSyncReportMapper.insertSelective(transferSyncReport);
+                                    if (i > 0 && transferSyncReport.getId() != null) {
+                                        TransferSyncReport newReport = new TransferSyncReport();
+                                        newReport.setAppletBeginTime(transferSyncReport.getAppletBeginTime());
+                                        newReport.setId(transferSyncReport.getId());
+                                        newReport.setAppletEndTime(transferSyncReport.getAppletEndTime());
+                                        newReport.setDataCount(transferSyncReport.getDataCount());
+                                        Map<String, Object> map = BeanUtil.beanToMap(newReport, false, true);
+                                        redisChgService.hmset(hKey, map);
+                                        redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
+                                        redisChgService.unlock(lockKey, lockValue);
+                                        continue;
+                                    }
+                                } else {
+                                    // 已持久化
+                                    TransferSyncReport syncReportOld = syncReports.get(0);
+                                    transferSyncReportSummary(transferSyncReport, syncReportOld);
+                                }
+                            } else {
+                                // 缓存
+                                TransferSyncReport cacheSyncReport = BeanUtil.toBean(cacheMap, TransferSyncReport.class);
+                                transferSyncReportSummary(transferSyncReport, cacheSyncReport);
+                            }
+                            if (transferSyncReportMapper.updateByPrimaryKeySelective(transferSyncReport) > 0) {
+                                Map<String, Object> updateMap = BeanUtil.beanToMap(transferSyncReport, false, true);
+                                redisChgService.hmset(hKey, updateMap);
+                                redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
+                            } else {
+                                redisChgService.del(hKey);
+                            }
+                        }
+                    } finally {
+                        redisChgService.unlock(lockKey, lockValue);
+                    }
+                }
+                platformTransactionManager.commit(transaction);
+            } catch (Exception e) {
+                platformTransactionManager.rollback(transaction);
+                syncUserList.forEach((TransferSyncReport syncReport) -> {
+                    String key = redisKey + ":" + syncReport.getUserType();
+                    try {
+                        redisChgService.del(key);
+                    } catch (Exception exception) {
+                        log.error(exception + "\n转化数据统计清理redis主键失败:" + key, exception);
+                    }
+                });
+                result.setCode(ResultCode.FAIL.getValue());
+                log.error(e.getMessage() + "\n" + dataCountFragmentsMgs, e);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 2024-03-12 15:01
+     * 汇总数据
+     *
+     * @param syncReport    目标记录
+     * @param syncReportOld 历史记录
+     */
+    private void transferSyncReportSummary(TransferSyncReport syncReport, TransferSyncReport syncReportOld) {
+        syncReport.setDataCount(syncReportOld.getDataCount() + syncReport.getDataCount());
+        syncReport.setAppletBeginTime(syncReportOld.getAppletBeginTime()
+                .before(syncReport.getAppletBeginTime()) ? null : syncReport.getAppletBeginTime());
+        syncReport.setAppletEndTime(syncReportOld.getAppletEndTime()
+                .after(syncReport.getAppletEndTime()) ? null : syncReport.getAppletEndTime());
+        syncReport.setId(syncReportOld.getId());
     }
 }
