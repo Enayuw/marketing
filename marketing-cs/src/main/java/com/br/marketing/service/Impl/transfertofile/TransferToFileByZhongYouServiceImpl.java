@@ -172,7 +172,7 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
             Set<String> custNumSet = new HashSet<>();
             data.forEach(list -> custNumSet.add(list.getCustNum()));
             // 过滤有效期内数据
-//            Map<String, SyncUserValidityPeriodBO> validityPeriodCustNumBatchFirstVersion = transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(custNumSet, apiCode, date);
+            Map<String, SyncUserValidityPeriodBO> validityPeriodCustNumBatchFirstVersion = transferDataValidityPeriodService.getValidityPeriodCustNumBatchFirstVersion(custNumSet, apiCode, date);
 
 //            Map<String, SyncUserValidityPeriodBO> validityPeriodCustNumBatchFirstVersion = transferDataValidityPeriodService.getValidityPeriodUserTypeBatchFirstVersion(data, apiCode, date);
 
@@ -180,13 +180,13 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
                 String custNum = transferSyncUser.getCustNum();
 //                String userType = transferSyncUser.getUserType();
 
-//                SyncUserValidityPeriodBO boMap = validityPeriodCustNumBatchFirstVersion.get(custNum);
-////                SyncUserValidityPeriodBO boMap = validityPeriodCustNumBatchFirstVersion.get(custNum + userType);
-//                if (boMap == null) {
-//                    log.warn("{}:{}不满足案件编号“有效期内”条件", custNum);
-////                    log.warn("{}:{}不满足案件编号“有效期内”条件", custNum, userType);
-//                    continue;
-//                }
+                SyncUserValidityPeriodBO boMap = validityPeriodCustNumBatchFirstVersion.get(custNum);
+//                SyncUserValidityPeriodBO boMap = validityPeriodCustNumBatchFirstVersion.get(custNum + userType);
+                if (boMap == null) {
+                    log.warn("{}:{}不满足案件编号“有效期内”条件", custNum);
+//                    log.warn("{}:{}不满足案件编号“有效期内”条件", custNum, userType);
+                    continue;
+                }
                 try {
                     if (transferSyncUser != null && StringUtils.isNotEmpty(transferSyncUser.getReserveField1())) {
                         try {
