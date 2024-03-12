@@ -47,6 +47,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -266,6 +268,8 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             List<Long> notMarketingIds = new ArrayList<>();
             // 黑名单
             List<Long> hitBlackIds = new ArrayList<>();
+            // 重复数据
+            List<Long> distributeIds = new ArrayList<>();
 
             // 有效期内assembleKeyToSyncUserMap, key: MobileMd5 + bizDate, value: MarketingSyncUser
             Map<String, MarketingSyncUser> keyToSyncUserMap = assembleKeyToSyncUserMap(pageList, md5ToLogMap,
@@ -297,8 +301,13 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
                     }
             }
             // distribute去重 cell + distribute_date
-            List<Long> distributeIds = distributeSoleProcessor.process(pushList);
-            notPushIds.addAll(distributeIds);
+            distributeIds = distributeSoleProcessor.process(pushList);
+
+            log.warn(TITLE+"notValidityIds:{}",JSONObject.toJSON(notValidityIds));
+            log.warn(TITLE+"notPushIds:{}",JSONObject.toJSON(notPushIds));
+            log.warn(TITLE+"notMarketingIds:{}",JSONObject.toJSON(notMarketingIds));
+            log.warn(TITLE+"hitBlackIds:{}",JSONObject.toJSON(hitBlackIds));
+            log.warn(TITLE+"distributeIds:{}",JSONObject.toJSON(distributeIds));
 
             if(judgeChangeStatus(pageParam)) {
                 updatePushStatusById(notValidityIds, 4);
@@ -306,6 +315,7 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             updatePushStatusById(notPushIds, 8);
             updatePushStatusById(notMarketingIds, 7);
             updatePushStatusById(hitBlackIds, 5);
+            updatePushStatusById(distributeIds, 6);
             if (CollectionUtils.isEmpty(pushList)) {
                 return result;
             }
@@ -436,7 +446,9 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             }
             notValidityIds.add(data.getId());
             return false;
-        }).collect(Collectors.toConcurrentMap(
+        })
+        .filter(distinctByKey(ZhonganRosterLockingData::getMobileMd5, ZhonganRosterLockingData::getBizDate))
+        .collect(Collectors.toConcurrentMap(
                 (ZhonganRosterLockingData data) -> data.getMobileMd5() + data.getBizDate(),
                 (ZhonganRosterLockingData data) -> {
                     SyncUserValidityPeriodsBO bo = cellToSyncUserBOMap.get(md5ToLogMap.get(data.getMobileMd5()));
@@ -447,6 +459,11 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
                     }
                 }));
         return keyToSyncUserMap;
+    }
+
+    private static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor1, Function<? super T, Object> keyExtractor2) {
+        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
+        return t -> seen.putIfAbsent(String.valueOf(keyExtractor1.apply(t))+String.valueOf(keyExtractor2.apply(t)), Boolean.TRUE) == null;
     }
 
     /**

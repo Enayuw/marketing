@@ -104,6 +104,8 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             return;
         }
 
+        log.warn(TITLE+"调度开始apiCodes:{}, bizDate:{}, 耗时:{}", Arrays.toString(list.toArray())
+                , Arrays.toString(dateList.toArray()));
         Page2Condition<ZhonganRosterLockingData> data = new Page2Condition<>();
         data.setPageIndex(0);
         data.setPageSize(2000);
@@ -187,7 +189,7 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
     private Result<?> action(String apiCode, String bizDate, String tag, Integer dataSource, String userType,
                              Page2Condition<ZhonganRosterLockingData> condition) {
         long start = System.currentTimeMillis();
-        log.info(TITLE+"action开始"+"apiCode:{}, bizDate:{}, tag:{}, dataSource:{}, userType:{}",
+        log.warn(TITLE+"action开始"+"apiCode:{}, bizDate:{}, tag:{}, dataSource:{}, userType:{}",
                 apiCode, bizDate, tag, dataSource, userType);
         ZhonganRosterLockingData param = new ZhonganRosterLockingData();
         param.setApiCode(apiCode);
@@ -199,7 +201,7 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
         condition.setParam(param);
         Result actionResult = zhongAnPushRosterDataHandler.action(condition);
         long end = System.currentTimeMillis();
-        log.info(TITLE+"action结束"+"apiCode:{}, bizDate:{}, tag:{}, dataSource:{}, userType:{}, 耗时:{}",
+        log.warn(TITLE+"action结束"+"apiCode:{}, bizDate:{}, tag:{}, dataSource:{}, userType:{}, 耗时:{}",
                 apiCode, bizDate, tag, dataSource, userType, end - start);
         return actionResult;
     }
