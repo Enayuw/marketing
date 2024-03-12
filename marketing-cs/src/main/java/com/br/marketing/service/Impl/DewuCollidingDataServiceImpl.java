@@ -271,8 +271,9 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                 // 保存日志
                 dewuCollidingDataLogMapper.saveBatch(insertDewuCollidingDataLogList);
                 // 保存待上传记录
-                dewuCollidingDataUploadSyncMapper.saveBatch(insertDewuCollidingDataUploadSyncList);
-
+                if(insertDewuCollidingDataLogList.size()>0){
+                    dewuCollidingDataUploadSyncMapper.saveBatch(insertDewuCollidingDataUploadSyncList);
+                }
             } else {
                 // 返回异常  更新 data 表push_status  =3
                 dewuCollidingDataMapper.updateBatchById(ids, 3,Integer.valueOf(currentDate));
