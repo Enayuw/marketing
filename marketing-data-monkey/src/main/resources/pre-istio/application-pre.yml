@@ -3,7 +3,7 @@ datasource:
     names: shardingmarketing,marketingTikiv,marketingTiFlash
     defaultSource: shardingmarketing
     shardingmarketing:
-      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: u_pd_marketing
       password: M6teKbFVl1odfOCkC1JA
       type: com.alibaba.druid.pool.DruidDataSource
@@ -26,7 +26,7 @@ datasource:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: u_pd_marketing
       password: M6teKbFVl1odfOCkC1JA
       initialSize: 5 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
@@ -52,7 +52,7 @@ datasource:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-pre.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://tidb-pre.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: u_pd_marketing
       password: M6teKbFVl1odfOCkC1JA
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
@@ -101,14 +101,17 @@ otherConfig:
         appName: loan-warning
         appSecretKey: f15a1421ac95a284683688af14688b72
   proxy:
-    proxy_host_zw: 192.168.22.169
+    proxy_host: squid-proxy2.brapp.com
     proxy_port: 3128
     proxy_username: bairong
     proxy_password: Proxy_br
+    proxy_host_zw: 192.168.22.169
   mom:
     appSecretKey: d42726322ba9bda57b74043be21aa2c4
     appName: marketing_query_producer
     destinationName: marketing_query_log
+cluster:
+  flag: ${CONF_CLUSTER}
 api:
   intelligentCustomerService:
     baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
@@ -158,6 +161,10 @@ api:
   xiecheng:
     openUrl: https://cgcallback-fat.ctripqa.com/nemoweb/ad/common/outAdMonitor.do
     appId: bairong001
+    appIdVt: test002
+    keyVt: 6b219b9e71fdb2d2
+    ivVt: 5e7b6c07d3edbc01
+    signKeyVt: b8845b4cb1f16471
     key: f3df6f62f0527bf0
     iv: 3b2dac323465b024
     singKey: 95cc01ec07387a44
@@ -171,6 +178,30 @@ api:
     rsapKey: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCVuaxc7ZznPdvsH0nhd2eQ/uhu/LewJqUVMvdYUKwXPxzGBUz8cVKyltwpMJ03uMPx+RStWnkWcmCSeQdqiw27FtaPELOxxQQc06OGBXfp5R86MKp2+bkdPRSkpUKK2X8vCyiopQojBXbaVzRUwjPPsQAsDinCGkSUirWETxfCxwIDAQAB
     xdCode: 07brdyy01
     bxCode: 3360001
+  didi:
+    baseUrl: https://admarketing-manhattan.xiaojukeji.com
+    smsUrl: ${api.didi.baseUrl}/crow/collision/bairong
+    reachUrl: ${api.didi.baseUrl}/crow/user/success/bairong
+    jmassSUrl: ${api.didi.baseUrl}/model/sample/mediaName
+    failedUrl: ${api.didi.baseUrl}/crow/faileduser/mediaName
+    token: DK&SgWl!fZ%WVSXe
+    scas: "0001"
+    channelId: 3140738836439875
+    channelIdMap: "{bairong:'3140738836439875',bairongA:'3140738898634899'}"
+    isProxy: true
+  qifu:
+    baseUri: https://stg1-gws-bps-web.daikuan.360.cn
+    saveReachDeleteRecordUrl: ${api.qifu.baseUri}/api/gws/bps/gateway/agent/operation/agentOperationSaveReachDeleteRecord
+    qifuPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwQAaMvE6+7Wy+rf6jfW8OEKhGSmmg6LaiSLaTui3lBA4V4eqfQEpLfL8dGYYcakiH6CUAMPZ0jqNEN/En3Mtfclhr8903m/xG3IOUxhbqiVZBZmQ8esG6nP8MHsFWK2hMHN20xh0qKN6hg0BHQIIkbbnZjN9FGD/hz1t4NJvwIHxqJC+I3pRkCrC+SPWH5djzQdhYczgpyGwNqrGpg5dPibZJ+/qw15Va0vDBMp8cGad+Njcw5n7QcxBvSpViTYl704+wyohX36bF1CkrtfV6z1JnDqR+9KtEaRpfnUC/eh7gvltDbl/vTfeZLuShLs+/csgVshVIXEpL8g9uC0XOQIDAQAB"
+    brPrivateKey: "MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDdAO5CXKe5ugLICKdPeAXE7/4V484BPYdZVMoexCoWN7vwFV1dW8AyjsOYvvMOYSd/MOCqE0sK4CN/Tf857nalMqA5oU+MIEUkbb+KyXFXpNFi/LLi8FGGHQgTQFAS+Tikz1sHtYg3W8G7wQJsTDKXGQ7dEH9pJv3RbGZzQnTlzj/1brJ8uDGXYmKVPr2MbuOmtzCzzd9O0cPO1fEVwpnJbAUfQxZleMUL21OpkmTjqIBQfANf/24DjbJelZjRUA7YIR42XpxGXWeOlXR1D3jzIN0lguacwy+en3JvhbC62E6f04rzqs3TThlKxH4cjFZjOPvoGml2Z43S1k46lPjtAgMBAAECggEBANTyjKFM/iArZ3qvO+eK0qRMSxt0gY8YZk5hMNAsXBFEasaPD4NhYPRWM4n+k9yLKK+ZvSCjrm8wQYPs97wuVgwfl9tv32I5xeWwChwEtj2pBkjHDOc2gJclah6CnaVqlnXXhvMKq9ILi8UJ2PfZA/YrovLHbr03YOJl/OGaa2DxbIyDQsz8LH/4o7QLaRkAkwZw3egd/jepSB9hZwZ8NghkpqbSnRokjH+Rfx9b8uQ/MIqIfDXD8gMCALV+JFjG60mP/yGYS9xb1pHiW07M3QphYo8IV+X1YCnJ1nt7FrAQaPUIe+/zJhFsBM7EN6hX4RdqTacnpKZ0IfEOn/jU9YECgYEA9DLxbNPaAm5HnBA0tD7euFokyP9td8+EVhjeMPCZqPlVnWDm3c9bdrAWQbtwyMA0gvkcELtgFnPf0ICuV2FCKaTPtPa6C73ZR5ElBWkJ/pSbyYw8YGvN98Nh8xbEVqippN5Ypp8vQrZAT5A/qoekq0kYTS7Ymgqj7pq3xIPfHUUCgYEA568H8/qyhmrna84pAQf9gz3ln6EQWm/RfdOi+v42ZdL6sjmpHfT0VYaBuxc54D6OvhvPSoYizhZaHLuDnioaGwkDgducA057EIumDgn2Fvw1mUfcKymGngk4Z5GiWsFqJ66yO5X7ci/4JaD9rG8sKI0JKkhfhL0EyrzgWIykg4kCgYEAvy0eus9EDsEdSL2bNT0/Cd5wi/cEUVbhyLGhSXkjIxlIAHR7aU1L0qhaVE2VJ2Tp91tksGiw+gLvRoFne7sFnCqN/aNm1YhkkVW9QPYRv//B0tD595aOYhjRFwlM3ncekJcNmixnSHf78w3/+dZFgV8xKkOxiS8pVcREeBGxW20CgYBAbLuZbK0YE8ImiD1+u+oTBLNFoFQb0dw/UQqRIP+fcPulc8NDQUpwPeb1T5AYe0zWMIWEA6jKBg0o0DvZT3vS6L7A7YCEqt4ty6dxX/O+kIOXDBR9LB7y8z1sD2NGOWJ7hmipiRtStWQbkpj3yjJNVGqoB1gIYUdj2QHJndJhgQKBgQDTkCUFF0CgiBWUIyI96RkaSW/9/+3PAFojgHrbp93RLsW18j+YVZOyvQshhmNjlhEs2cONLYdNl5kPEi4yt/f8TrFbKBSgBlO0t9u0z0tAo+xfpocTzmYCw1eDnkXWxzZLwBSsB3Vkt7GJb11Uee7HW4MjHOTXuUvdQ8Alg+NXqw=="
+    brPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3QDuQlynuboCyAinT3gFxO/+FePOAT2HWVTKHsQqFje78BVdXVvAMo7DmL7zDmEnfzDgqhNLCuAjf03/Oe52pTKgOaFPjCBFJG2/islxV6TRYvyy4vBRhh0IE0BQEvk4pM9bB7WIN1vBu8ECbEwylxkO3RB/aSb90Wxmc0J05c4/9W6yfLgxl2JilT69jG7jprcws83fTtHDztXxFcKZyWwFH0MWZXjFC9tTqZJk46iAUHwDX/9uA42yXpWY0VAO2CEeNl6cRl1njpV0dQ948yDdJYLmnMMvnp9yb4WwuthOn9OK86rN004ZSsR+HIxWYzj76BppdmeN0tZOOpT47QIDAQAB"
+    appId: "bairong"
+    isProxy: true
+  tongchengAgentMkt:
+    baseUrl: https://mns.qa.lylend.com
+    address: ${api.tongchengAgentMkt.baseUrl}/api/cep/agent/mkt/baiRong
+    secretKey: JhcwsW4ArsdJ8kjcXQnW734ydF7brpMZywg3T9MXRNAwqTcSW3UasDTFAUheAV24
+    isProxy: true
 spring:
   rabbitmq:
     addresses: delivery-rabbitmq-cluster-01.brapp.com:5672

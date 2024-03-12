@@ -6,6 +6,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.monkeydata.entity.InputDataCondition;
 import com.br.marketing.monkeydata.entity.IterationResult;
+import com.br.marketing.monkeydata.entity.commonobj.MonkeyContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +27,16 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
      * @return
      */
     public Boolean isThread() {
+        return false;
+    }
+
+
+    /**
+     * 是否暂停
+     *
+     * @return
+     */
+    public Boolean isPause() {
         return false;
     }
 
@@ -80,14 +91,46 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
         return null;
     }
 
+    public Thread listenThreadPool(String taskId, ThreadPoolExecutor threadPoolExecutor) {
+        Thread thread = new Thread(() -> {
+            try {
+                while (true) {
+                    log.warn(String.format("任务：%s 的线程池运行状态 " +
+                                    "活动线程数：%d" +
+                                    "，核心线程数：%d" +
+                                    "，最大线程数：%d" +
+                                    "，队列量：%d"
+                            , taskId
+                            , threadPoolExecutor.getActiveCount()
+                            , threadPoolExecutor.getCorePoolSize()
+                            , threadPoolExecutor.getMaximumPoolSize()
+                            , threadPoolExecutor.getQueue().size()));
+
+                    Thread.sleep(60000L);
+
+                }
+            } catch (InterruptedException e) {
+                log.warn(String.format("任务监听线程：%s 收到中断信号", taskId));
+            }
+        });
+        thread.start();
+        return thread;
+    }
+
+    public void removelistenThreadPool(Thread thread) {
+        if (thread != null) {
+            thread.interrupt();
+        }
+    }
 
     /**
      * 调用入口
      * 该方法返回Result对象
      * 先去执行自定义执行方法
      * 如自定义方法未实现 则执行该模板流程
-     *  需注意 未开启多线成执行，getInputData，processData，resultAction 有异常，将退出执行，执行结果返回false
-     *        开启多线成，线程内的异常只会记录日志 并不会阻断流程
+     * 需注意 未开启多线成执行，getInputData，processData，resultAction 有异常，将退出执行，执行结果返回false
+     * 开启多线成，线程内的异常只会记录日志 并不会阻断流程
+     *
      * @param condition
      * @return
      */
@@ -103,8 +146,10 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
             }
             Result res = new Result();
             ThreadPoolExecutor pool = null;
+            Thread threadReport = null;
             if (isThread()) {
                 pool = BrExecutors.getThreadPool(getThread(), getThread());
+                threadReport = listenThreadPool(id, pool);
             }
             res.setCode(ResultCode.SUCCESS.getValue());
             for (; ; ) {
@@ -112,23 +157,35 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
                 if (ResultCode.FAIL.getValue().equals(inputRes.getCode())) {
                     break;
                 }
+                if (isPause()) {
+                    System.out.println("主线程暂停");
+                    break;
+                }
                 condition = inputRes.getData().getInDatacondition();
                 List inputDataList = inputRes.getData().getInputDataList();
                 if (isThread() && pool != null) {
+//                    Object context =  MonkeyContext.getProcessContext();
                     pool.submit(() -> {
+//                        MonkeyContext.setProcessContext(context);
                         try {
-                            Result<List<O>> outRes = processData(inputDataList);
-                            if (ResultCode.SUCCESS.getValue().equals(outRes.getCode())) {
-                                List data = outRes.getData();
-                                Result result = resultAction(data);
-                                if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                                    res.setCode(ResultCode.FAIL.getValue());
-                                    log.warn(res.getMessage());
+                            if (!isPause()) {
+                                Result<List<O>> outRes = processData(inputDataList);
+                                if (ResultCode.SUCCESS.getValue().equals(outRes.getCode())) {
+                                    List data = outRes.getData();
+                                    Result result = resultAction(data);
+                                    if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                                        res.setCode(ResultCode.FAIL.getValue());
+                                        log.warn(res.getMessage());
+                                    }
                                 }
+                            } else {
+                                System.out.println("线程暂停");
                             }
-                        }catch (Exception ex){
-                            log.error(ex.getMessage(),ex);
+                        } catch (Exception ex) {
+//                            MonkeyContext.clearProcessContext();
+                            log.error(ex.getMessage(), ex);
                         }
+//                        MonkeyContext.clearProcessContext();
                     });
                 } else {
                     Result<List<O>> outRes = processData(inputDataList);
@@ -154,11 +211,13 @@ public abstract class IMonkeyDataHandle<I, O, R extends InputDataCondition> {
                 } catch (Exception ex) {
                     log.error(ex.getMessage(), ex);
                 }
+                removelistenThreadPool(threadReport);
             }
+//            MonkeyContext.clearProcessContext();
             log.warn("执行结束 执行id：{}，执行耗时：{}", id, System.currentTimeMillis() - start);
             return res;
         } catch (Exception ex) {
-            log.error("执行异常："+ex.getMessage(), ex);
+            log.error("执行异常：" + ex.getMessage(), ex);
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
         }
     }

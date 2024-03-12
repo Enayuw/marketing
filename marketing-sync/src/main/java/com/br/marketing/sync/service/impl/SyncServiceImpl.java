@@ -64,22 +64,24 @@ public class SyncServiceImpl implements SyncService {
         loanSyncConfigMapper.insertConfig(loanSyncConfig);
     }
 
-    private void sync(List<SyncConfig> loanSyncConfigs){
+    public void sync(List<SyncConfig> loanSyncConfigs){
         //当前时间减1小时，目的在于防止跨天情况，导致文件无法同步问题；
         Set<String> dateSet =new TreeSet<>();
         dateSet.add(DateHelper.getDateByMinute(-60));
         dateSet.add(DateHelper.getDateAddYyMmDd(0));
         for(SyncConfig loanSyncConfig:loanSyncConfigs){
             log.info("LoanSyncConfig:{}",loanSyncConfig);
+            String srcPath = loanSyncConfig.getSrcPath();
+            String targetPath = loanSyncConfig.getTargetPath();
             for (String date : dateSet) {
-                loanSyncConfig.setSrcPath(loanSyncConfig.getSrcPath().replace("yyyyMMdd", date));
-                loanSyncConfig.setTargetPath(loanSyncConfig.getTargetPath().replace("yyyyMMdd", date));
+                loanSyncConfig.setSrcPath(srcPath.replace("yyyyMMdd", date));
+                loanSyncConfig.setTargetPath(targetPath.replace("yyyyMMdd", date));
                 Map<String, List<String>> stringListMap = listFile(loanSyncConfig);
                 syncFile(loanSyncConfig,stringListMap,date);
             }
-
         }
     }
+
     /**
      * 同步文件
      * 根据文件类型同步文件
@@ -126,6 +128,23 @@ public class SyncServiceImpl implements SyncService {
                             log.info("--------------开始同步success文件---------------");
                             String successFile=fileName+".success";
 
+                            bean.copyFile(loanSyncConfig,successFile,srcClient,targetClient);
+                        }
+                    }
+                }
+            }
+        }
+
+        if(suffixStr.contains(".csv")){
+            log.info("--------------开始同步csv文件---------------");
+            List<String> txtList = stringListMap.get("csv");
+            if(txtList!=null){
+                for(String fileName:txtList){
+                    if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList,date)){
+                        bean.copyFile(loanSyncConfig,fileName,srcClient,targetClient);
+                        if(suffixStr.contains(".success")){
+                            log.info("--------------开始同步success文件---------------");
+                            String successFile=fileName+".success";
                             bean.copyFile(loanSyncConfig,successFile,srcClient,targetClient);
                         }
                     }

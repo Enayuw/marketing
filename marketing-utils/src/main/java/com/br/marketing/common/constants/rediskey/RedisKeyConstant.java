@@ -40,6 +40,8 @@ public class RedisKeyConstant {
 
     public static final String shuhePushDxSingleMutex = prefix.concat("shuhe:pushdx:singleMutex");
 
+    public static final String fenqiHappyPushDx = prefix.concat("fenqiHappy:pushdx");
+
     public static final String taskGetLock = prefix.concat("tasklock");
 
     public static final String taskByPushRuleGetLock = prefix.concat("pushruletasklock");
@@ -78,11 +80,20 @@ public class RedisKeyConstant {
      */
     public static final String pushXieChengLock = prefix.concat("xieCheng:pushXieCheng");
 
+    /**
+     * 同程集团迁移可营销名单推客户缓存锁  key
+     */
+    public static final String PUSH_TONG_CHENG_LOCK = prefix.concat("tongcheng:pushTongChengLock");
 
     /**
      * 携程拨打数据推送缓存锁  key
      */
     public static final String pushXieChengSmsCollidingLock = prefix.concat("xieCheng:pushXieChengSmsColliding");
+    public static final String pushXieChengSmsCollidingVtLock = prefix.concat("xieCheng:pushXieChengSmsCollidingVtLock");
+    /**
+     * 滴滴拨打数据推送缓存锁  key
+     */
+    public static final String pushDidiCollRecordLock = prefix.concat("didi:pushDidiCollRecord");
 
     /**
      * 分发数据日志锁
@@ -93,4 +104,55 @@ public class RedisKeyConstant {
      * 榕树推送人工Ibu手机号加锁  key
      */
     public static final String pushRongShuDaasIbuKey = prefix.concat("rongshu:pushdaasibu:cell");
+
+    /**
+     * 3k加密类型
+     */
+    public static final String encryptyKey = prefix.concat("threek:encrypty");
+
+    /**
+     * 2023-07-06 15:00
+     * 上传有效期
+     */
+    public static final String validKey = prefix.concat("upload:valid");
+
+    /**
+     * 代运营数据requestId的key
+     */
+    public static final String uploadKey = prefix.concat("upload");
+
+    /**
+     * 转化数据requestId的key
+     */
+    public static final String transferKey = prefix.concat("transfer");
+
+    /**
+     * 2022/9/1 17:02
+     * 定制化客户传输，字段缓存key
+     */
+    public static final String CUSTOMER_TRANSFER_FIELD_KEY = prefix.concat("customer:transfer:field");
+
+    /**
+     * 2023-12-22 15:21
+     * 定制化客户传输，字段缓存key
+     */
+    public static final String CUSTOMER_FIELD_KEY = prefix.concat("customer:field:");
+
+    /**
+     * 2023-12-22 15:21
+     * 场景字典
+     */
+    public static final String USERTYPE_DICT = prefix.concat("usertype:dict:");
+
+
+    /**
+     * 转化数据提取任务锁
+     */
+    public static final String TRANSFER_FILE_TASK_JOB_KEY = prefix.concat("transfer:file:task");
+
+    public static final String SCORE_TO_CUSTOMER_SORT_KEY = prefix.concat("scoreSort");
+
+    public static final String SCORE_TO_CUSTOMER_CONFIG_KEY = prefix.concat("scorePushConfig");
+
+    public static final String SCORE_TO_CUSTOMER_FILE_KEY = prefix.concat("scoreCallFileId");
 }

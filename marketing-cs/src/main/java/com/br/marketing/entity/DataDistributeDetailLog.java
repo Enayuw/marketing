@@ -1,11 +1,13 @@
 package com.br.marketing.entity;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class DataDistributeDetailLog {
-    /**
-     * 
-     */
+/**
+ * b_data_distribute_detail_log
+ * @author 
+ */
+public class DataDistributeDetailLog implements Serializable {
     private Long id;
 
     /**
@@ -22,6 +24,11 @@ public class DataDistributeDetailLog {
      * 手机号
      */
     private String cell;
+
+    /**
+     * 情况类型
+     */
+    private String status;
 
     /**
      * 推送状态1-待推送；2-成功；
@@ -63,6 +70,13 @@ public class DataDistributeDetailLog {
      */
     private String sourceType;
 
+    /**
+     * 扩展字段
+     */
+    private String extend;
+
+    private static final long serialVersionUID = 1L;
+
     public Long getId() {
         return id;
     }
@@ -76,7 +90,7 @@ public class DataDistributeDetailLog {
     }
 
     public void setApiCode(String apiCode) {
-        this.apiCode = apiCode == null ? null : apiCode.trim();
+        this.apiCode = apiCode;
     }
 
     public String getCustNum() {
@@ -84,7 +98,7 @@ public class DataDistributeDetailLog {
     }
 
     public void setCustNum(String custNum) {
-        this.custNum = custNum == null ? null : custNum.trim();
+        this.custNum = custNum;
     }
 
     public String getCell() {
@@ -92,7 +106,15 @@ public class DataDistributeDetailLog {
     }
 
     public void setCell(String cell) {
-        this.cell = cell == null ? null : cell.trim();
+        this.cell = cell;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public Integer getpStatus() {
@@ -108,7 +130,7 @@ public class DataDistributeDetailLog {
     }
 
     public void setDistributeDate(String distributeDate) {
-        this.distributeDate = distributeDate == null ? null : distributeDate.trim();
+        this.distributeDate = distributeDate;
     }
 
     public Integer getDistributeType() {
@@ -124,7 +146,7 @@ public class DataDistributeDetailLog {
     }
 
     public void setSuccessDate(String successDate) {
-        this.successDate = successDate == null ? null : successDate.trim();
+        this.successDate = successDate;
     }
 
     public Date getCreateTime() {
@@ -156,6 +178,14 @@ public class DataDistributeDetailLog {
     }
 
     public void setSourceType(String sourceType) {
-        this.sourceType = sourceType == null ? null : sourceType.trim();
+        this.sourceType = sourceType;
+    }
+
+    public String getExtend() {
+        return extend;
+    }
+
+    public void setExtend(String extend) {
+        this.extend = extend;
     }
 }

@@ -30,12 +30,14 @@ public class MQConstants {
     public static final String MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH = "Marketing_Push_CustomerService_Search";
     public static final String MARKETING_PUSH_CUSTOMER_SERVICE = "Marketing_Push_CustomerService";
     public static final String MARKETING_PUSH_DASS_SCORE = "Marketing_Push_Dass_Score";
+
     public static final String MARKETING_PUSH_DASS_TRANSFER = "Marketing_Push_Dass_Transfer";
     public static final String MARKETING_PUSH_DASS_IBU = "Marketing_Push_Dass_Ibu";
     public static final String MARKETING_PUSH_BLACK = "Marketing_Push_Black";
     public static final String MARKETING_PUSH_TWOSEVEN_FILETRANSFER = "Marketing_Push_Seven_FileTransfer";
     public static final String MARKETING_QUEUE_PUSH_TRANSFER_HAIER = "marketing_queue_push_transfer_haier";
     public static final String MARKETING_UNIVERSAL_SFTPTODB_RECEIVE = "Marketing_Universal_SftpToDb_Receive";
+    public static final String MARKETING_XIECHENG_SMSCOLLIDINGVT_CUSTOMER = "Marketing_XieChengSmsCollidingVt_Customer";
 
 
 
@@ -61,12 +63,32 @@ public class MQConstants {
     // 文件合并队列
     public static final String MARKETING_PUSHTASK_FILE_MERGE = "Marketing_PushTask_File_Merge";
 
+    public static final String MARKETING_PUSHTASK_FILE_INITMERGE = "Marketing_PushTask_File_InitMerge";
+
     public static final String MARKETING_PUSHTASK_FILE_MERGE_ERRORDELAY = "Marketing_PushTask_File_Merge_ErrorDelay";
 
     // 离线跑批回调队列
     public static final String MARKETING_OFFLINETASK_FILE_CALLBACK = "Marketing_OffLineTask_File_CallBack";
 
     public static final String MARKETING_OFFLINETASK_FILE_CALLBACK_ERRORDELAY = "Marketing_OffLineTask_File_CallBack_ErrorDelay";
+
+    //中邮数据清洗 队列
+    public static final String MARKETING_ZHONGYOU_DATA_CLEAN = "Marketing_Zhongyou_Data_Clean";
+
+    //众邦财富定制标签 队列
+    public static final String MARKETING_ZHONGBANGCAIFU_LABEL_DATA = "Marketing_ZhongBangCaiFu_Label_Data";
+    public static final String MARKETING_TEST_QUEUE_ONE = "Marketing_Test_Queue_One";
+
+    public static final String MARKETING_TEST_QUEUE_Two = "Marketing_Test_Queue_Two";
+
+    // 标准接口接收场景字典收集队列
+    public static final String MARKETING_STANDARD_API_USERTYPE_COLLECTION = "marketing_standard_api_usertype_collection";
+    // 发送场景消息延迟队列
+    public static final String MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE = "marketing_send_usertype_message_delay_queue";
+    // 发送场景消息死信队列
+    public static final String MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE = "marketing_send_usertype_message_dead_queue";
+
+
     /**
      * routingkey
      */
@@ -84,6 +106,8 @@ public class MQConstants {
     public static final String ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY = "Marketing.Push.CustomerService.Search.Delay";
     public static final String ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE = "Marketing.Push.CustomerService";
     public static final String ROUTING_KEY_MARKETING_PUSH_DASS_SCORE = "Marketing.Push.Dass.Score";
+    public static final String MARKETING_PUSH_OUTBOUND_SCORE = "Marketing_Push_OutBound_Score";
+    public static final String ROUTING_KEY_MARKETING_PUSH_DATA_SCORE = "Marketing.Push.Data.Score";
     public static final String ROUTING_KEY_MARKETING_PUSH_DASS_TRANSFER = "Marketing.Push.Dass.Transfer";
     public static final String ROUTING_KEY_MARKETING_PUSH_DASS_IBU = "Marketing.Push.Dass.Ibu";
     public static final String ROUTING_KEY_MARKETING_PUSH_BLACK = "Marketing.Push.Black";
@@ -105,11 +129,14 @@ public class MQConstants {
 
     // 携程营销数据
     public static final String ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE = "Marketing.Universal.SftpToDb.XieChengReceive";
+    public static final String ROUTING_KEY_XIECHENG_SMSCOLLIDINGVT_CUSTOMER = "Marketing.XieChengSmsCollidingVt.Customer";
 
     // 携程短信撞库
     public static final String ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGSMSCOLLIDINGRECEIVE = "Marketing.Universal.SftpToDb.XieChengSmsCollidingReceive";
     //文件合并
     public static final String ROUTING_KEY_PUSHTASK_FILE_MERGE = "Marketing.PushTask.File.Merge";
+
+    public static final String ROUTING_KEY_PUSHTASK_FILE_INITMERGE = "Marketing.PushTask.File.InitMerge";
 
     public static final String ROUTING_KEY_PUSHTASK_FILE_MERGE_ERRORDELAY ="Marketing.PushTask.File.Merge.ErrorDelay";
 
@@ -117,4 +144,21 @@ public class MQConstants {
     public static final String ROUTING_KEY_OFFLINETASK_FILE_CALLBACK = "Marketing.OffLineTask.File.CallBack";
 
     public static final String ROUTING_KEY_OFFLINETASK_FILE_CALLBACK_ERRORDELAY = "Marketing.OffLineTask.File.CallBack.ErrorDelay";
+
+    //中邮数据清洗队列路由key
+    public static final String ROUTING_KEY_MARKETING_ZHONGYOU_DATA_CLEAN = "Marketing.Zhongyou.Data.Clean";
+
+    //众邦财富标签队列路由key
+    public static final String ROUTING_KEY_MARKETING_ZHONGBANGCAIFU_LABEL_DATA = "Marketing.ZhongBangCaiFu.Label.Data";
+
+    public static final String ROUTING_KEY_MARKETING_TEST_QUEUE_ONE = "Marketing.Test.Queue.One";
+
+    public static final String ROUTING_KEY_MARKETING_TEST_QUEUE_Two = "Marketing.Test.Queue.Two";
+
+    // 标准接口接收场景字典收集路由键
+    public static final String ROUTING_KEY_MARKETING_STANDARD_API_USERTYPE_COLLECTION = "marketing.standard.api.usertype.collection";
+    // 发送场景消息延迟路由键
+    public static final String ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE = "marketing.send.usertype.message.delay.queue";
+    // 发送场景消息死信路由键
+    public static final String ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE = "marketing.send.usertype.message.dead.queue";
 }

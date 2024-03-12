@@ -83,6 +83,21 @@ public class MyTest {
     }
 
     @Test
+    public void testIbu(){
+        IbuReqDTO ibuReqDTO = new IbuReqDTO();
+        ibuReqDTO.setData("[{\"id\":614504,\"phone\":\"14455624387\",\"planId\":5655,\"reserveField1\":\"{\\\"operateType\\\":\\\"0\\\",\\\"tid\\\":\\\"89658\\\"}\",\"source\":\"100\",\"uid\":\"zwistio_2023030708174\",\"userCode\":\"zwistio_2023030708174\",\"userName\":\"1\",\"userType\":\"D\"},{\"id\":614505,\"phone\":\"14455624388\",\"planId\":5655,\"reserveField1\":\"{\\\"operateType\\\":\\\"0\\\",\\\"tid\\\":\\\"89658\\\"}\",\"source\":\"100\",\"uid\":\"zwistio_2023030708175\",\"userCode\":\"zwistio_2023030708175\",\"userName\":\"1\",\"userType\":\"D\"},{\"id\":614506,\"phone\":\"14455624389\",\"planId\":5655,\"reserveField1\":\"{\\\"operateType\\\":\\\"0\\\",\\\"tid\\\":\\\"89658\\\"}\",\"source\":\"100\",\"uid\":\"zwistio_2023030708176\",\"userCode\":\"zwistio_2023030708176\",\"userName\":\"1\",\"userType\":\"D\"}]");
+        ibuReqDTO.setAccessKey("d87a6e0ab4dc2903");
+        ibuReqDTO.setTs(System.currentTimeMillis());
+        StringBuilder mText = new StringBuilder();
+        mText.append("fbd1478a51d88954");
+        mText.append(ibuReqDTO.getData());
+        mText.append(ibuReqDTO.getTs());
+        String s = DigestUtils.md5DigestAsHex(mText.toString().getBytes()).toUpperCase();
+        ibuReqDTO.setSign(s);
+        System.out.println(ibuReqDTO.toString());
+    }
+
+    @Test
     public void testThreadSafe() {
         String abc = "2021-08-11 11:00:00";
         for (int i = 0; i < 20; i++) {
@@ -641,12 +656,80 @@ public class MyTest {
 
     @Test
     public void testSm3() throws IOException {
-        String nn = Sm3Util.getSM3Value("wzq" + "9a3a4beb9508b71114ac8346122067250d205c5b123b6be277e72245ac39738b");
-        System.out.println(nn.toLowerCase());
-        String mm = nn.toLowerCase() + "dyih";
-        String sm3Value = Sm3Util.getSM3Value(mm).toLowerCase();
-        //String sm3Value =  Sm3Util.getSM3Value("b42b692a53777f13a894a881b24492fe86e06838ae23e91ac9f2ba43050bc448dyih");
-        System.out.println(sm3Value);
+//        String nn = Sm3Util.getSM3Value("wzq" + "9a3a4beb9508b71114ac8346122067250d205c5b123b6be277e72245ac39738b");
+//        System.out.println(nn.toLowerCase());
+//        String mm = nn.toLowerCase() + "dyih";
+//        String sm3Value = Sm3Util.getSM3Value(mm).toLowerCase();
+//        //String sm3Value =  Sm3Util.getSM3Value("b42b692a53777f13a894a881b24492fe86e06838ae23e91ac9f2ba43050bc448dyih");
+//        System.out.println(sm3Value);
+        LocalDate date = LocalDate.now();
+        System.out.println(date);
     }
+
+
+    /**
+     *  异步，多任务。汇总返回值
+     */
+    @Test
+    public  void allOfGet()  {
+        //该线程池仅用于示例，实际建议使用自定义的线程池
+        ExecutorService executorService = Executors.newCachedThreadPool();
+
+        //线程安全的list，适合写多读少的场景
+        List<String> resultList = Collections.synchronizedList(new ArrayList<>(50));
+        CompletableFuture<String> completableFuture1 = CompletableFuture.supplyAsync(
+                        () -> runTask("result1", 1000), executorService)
+                .whenComplete((result, throwable) -> {
+                    //任务完成时执行。用list存放任务的返回值
+                    if (result != null) {
+                        resultList.add(result);
+                    }
+                    //触发异常
+                    if (throwable != null) {
+                        log.error("completableFuture1  error:{}", throwable);
+                    }
+                });
+
+        CompletableFuture<String> completableFuture2 = CompletableFuture.supplyAsync(
+                        () -> runTask("result2", 1500), executorService)
+                .whenComplete((result, throwable) ->{
+                    if (result != null) {
+                        resultList.add(result);
+                    }
+                    if (throwable != null) {
+                        log.error("completableFuture2  error:{}", throwable);
+                    }
+
+                });
+
+        List<CompletableFuture<String>> futureList = new ArrayList<>();
+        futureList.add(completableFuture1);
+        futureList.add(completableFuture2);
+
+        try  {
+            //多个任务
+            CompletableFuture[] futureArray = futureList.toArray(new CompletableFuture[0]);
+            //将多个任务，汇总成一个任务，总共耗时不超时2秒
+            CompletableFuture.allOf(futureArray).get(2, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.error("CompletableFuture.allOf Exception error.", e);
+        }
+        List<String> list = new ArrayList<>(resultList);
+
+        list.forEach(System.out::println);
+    }
+
+
+    private static String runTask(String result, int millis) {
+        try {
+            //此处忽略实际的逻辑，用sleep代替
+            //任务耗时。可以分别设置1000和3000，看未超时和超时的不同结果。
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            log.error("supplyAsyncGet error.");
+        }
+        return result;
+    }
+
 
 }

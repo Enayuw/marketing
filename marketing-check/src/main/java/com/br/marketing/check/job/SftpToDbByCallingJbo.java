@@ -6,7 +6,9 @@ import com.br.marketing.client.SftpClient;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CustomerCallingMapper;
 import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.service.CallingToDbService;
+import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.SyncConfigService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -54,6 +56,12 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
     @Resource
     CustomerCallingMapper customerCallingMapper;
 
+    @Resource
+    MarketingCustomerMapper marketingCustomerMapper;
+
+    @Autowired
+    ICompatibleService iCompatibleService;
+
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         this.process(getSftpClient(),context);
@@ -67,6 +75,17 @@ public class SftpToDbByCallingJbo extends AbstractSimpleElasticJob {
         List<CustomerCalling> customerCallings = getCustomerCallings();
         log.warn("1用户信息调用开始：{}", customerCallings);
         for (CustomerCalling customerCalling : customerCallings) {
+            MarketingCustomerExample customerExample = new MarketingCustomerExample();
+            customerExample.createCriteria().andApiCodeEqualTo(customerCalling.getApiCode()).andStatusEqualTo(Byte.valueOf("1"));
+            List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
+            if(marketingCustomers.size()<=0){
+                continue;
+            }
+            MarketingCustomer marketingCustomer = marketingCustomers.get(0);
+            Boolean action = iCompatibleService.isAction(marketingCustomer.getExtendConfigInfo(),context.getJobName());
+            if(!action){
+                continue;
+            }
             Map<String, Set<String>> map = new HashMap<>(16);
             // 文件处理逻辑
             processFile(customerCalling.getSftpPath(), sftpClient, map,context);

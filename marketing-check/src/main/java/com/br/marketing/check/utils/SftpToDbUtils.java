@@ -348,8 +348,6 @@ public class SftpToDbUtils {
         if(heads.size()<=0){
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("head信息不存在");
         }
-        Integer extraMark = null;
-        Boolean baseMark = false;
         Boolean startExt = false;
         if(!heads.containsAll(baseHeads)){
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("表头缺少必填字段");

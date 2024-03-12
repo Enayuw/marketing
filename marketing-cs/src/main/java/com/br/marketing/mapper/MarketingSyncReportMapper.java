@@ -1,5 +1,7 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.dto.SyncUserTypeNumDTO;
+import com.br.marketing.entity.MarketingDataValidConfig;
 import com.br.marketing.entity.MarketingSyncReport;
 import com.br.marketing.entity.MarketingSyncReportExample;
 import com.br.marketing.mysqlInterceptor.AddDataAuth;
@@ -20,7 +22,7 @@ public interface MarketingSyncReportMapper {
     String uploadSyncMaxAppletTime(@Param("apiCode") String apiCode, @Param("userType") String userType,
                                    @Param("uploadDate") String uploadDate);
 
-    List<String> getAppletDatetiflash_(@Param("apiCode") String apiCode, @Param("userType") String userType,
+    List<String> getAppletDatetikv_(@Param("apiCode") String apiCode, @Param("userType") String userType,
                                    @Param("startDate") String startDate,@Param("endDate") String endDate);
 
     @AddDataAuth
@@ -54,4 +56,30 @@ public interface MarketingSyncReportMapper {
     int updateByPrimaryKey(MarketingSyncReport record);
 
     int deleteByAppletDate(@Param("apiCode") String apiCode,@Param("appletDate") String appletDate);
+
+    List<SyncUserTypeNumDTO> uploadSyncCount(@Param("apiCode") String apiCode,@Param("appletDate") String appletDate);
+
+    /**
+     * 根据ID查找有效期记录
+     * @param id
+     * @return
+     */
+    MarketingSyncReportVO selectById(@Param("id") Long id);
+
+
+    /**
+     * 获取有效期数据
+     * @param apiCode
+     * @param userType
+     * @param appletDate
+     * @return
+     */
+    MarketingDataValidConfig selectValidData(@Param("apiCode")String apiCode ,@Param("userType")String userType ,@Param("appletDate")String appletDate);
+
+    /**
+     * 修改有效期记录数据
+     * @param config
+     * @return
+     */
+    Integer updateById(@Param("config")MarketingDataValidConfig config);
 }

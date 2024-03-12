@@ -1,15 +1,11 @@
 package com.br.marketing.strategy;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
-import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
-import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundSoleDTO;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
+import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.es.util.BrCipherMaker;
@@ -48,23 +44,37 @@ public class CustomerTransferSoleHandler extends AbstractExternalInterfaceHandle
             sum++;
             sendList.add(conversionData);
             // 把封装的日志插入到数组中
-            logList.add(methodRetryHandlerService.dataJoinLogFix(conversionData,DistributeTypeEnum.CUSTOMERTRANSFER
-                    ,context.getApiCode(), conversionData.getCaseNum(), BrCipherMaker.getInstance().encode(conversionData.getPhone())
-                    , Long.valueOf(conversionData.getDataId()), DistributeSourceTypeEnum.TRANSFER));
-            if(sendList.size()==pageSize||sum == totalCount){
+            logList.add(methodRetryHandlerService.dataJoinLogFix(conversionData, DistributeTypeEnum.CUSTOMERTRANSFER
+                    , context.getApiCode()
+                    , conversionData.getCaseNum()
+                    , BrCipherMaker.getInstance().encode(conversionData.getPhone())
+                    , Long.valueOf(conversionData.getDataId())
+                    , conversionData.getDistributeSourceTypeEnum() == null
+                            ? DistributeSourceTypeEnum.TRANSFER : conversionData.getDistributeSourceTypeEnum()
+                    , null
+                    , conversionData.getExpireEndDate()));
+            if (sendList.size() == pageSize || sum == totalCount) {
                 // 对象继承 DataDistributeLogBase
                 TransferRobotOutboundSoleDTO robotOutboundDTO = new TransferRobotOutboundSoleDTO();
                 robotOutboundDTO.setApiCode(context.getApiCode());
                 robotOutboundDTO.setTransferInfoId(context.getTransferInfoId());
                 robotOutboundDTO.setData(sendList);
                 robotOutboundDTO.setDetailLogList(logList);
-                robotOutboundDTO.setLast(sum == totalCount?last:(last != null ? "0" : null));
+                robotOutboundDTO.setLast(sum == totalCount ? last : (last != null ? "0" : null));
                 //传参去重
+                //去重字段维度,根据传入值赋值，默认为cell维度去重
+                if(conversionData.getSoleField()!=null){
+                    robotOutboundDTO.setSoleField(conversionData.getSoleField());
+                }else {
+                    robotOutboundDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
+                }
+                //去重范围,根据传入值赋值，默认当天去重
+                if(conversionData.getSoleType()!=null){
+                    robotOutboundDTO.setSoleDay(conversionData.getSoleType());
+                }else{
+                    robotOutboundDTO.setSoleDay(1);
+                }
                 robotOutboundDTO.setIsSole(true);
-                //2-根据apicode cell维度去重
-                robotOutboundDTO.setSoleField(2);
-                //去重数据范围1-是当天
-                robotOutboundDTO.setSoleDay(1);
                 methodRetryHandlerService.callCustomerTransfer(robotOutboundDTO, null);
                 sendList = new ArrayList<>();
                 logList = new ArrayList<>();

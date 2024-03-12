@@ -87,4 +87,14 @@
         </foreach>
     </update>
 
+
+    <select id="getDataByCells" resultType="com.br.marketing.entity.XieChengSmsCollidingDataLog">
+        select * from b_xiecheng_sms_colliding_data_log
+        where sha256_code_list in
+        <foreach collection="cells" item="cell" open="(" separator="," close=")">
+            #{cell}
+        </foreach>
+        and status=2
+    </select>
+
 </mapper>

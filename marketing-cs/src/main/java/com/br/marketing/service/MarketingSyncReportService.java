@@ -16,6 +16,7 @@ import java.util.Map;
  */
 public interface MarketingSyncReportService {
 
+    void syncReportProcess(String uploadDate,String jobName);
     /**
      * 根据日期对上传数据进行报表统计
      *
@@ -63,5 +64,14 @@ public interface MarketingSyncReportService {
      * @param json
      */
     void deleteReportByAppletDate(String json);
+
+    /**
+     * 修改有效期记录
+     * @param id
+     * @param validStartDate
+     * @param validEndDate
+     * @return
+     */
+    boolean updateById(Long id, String validStartDate, String validEndDate);
 
 }

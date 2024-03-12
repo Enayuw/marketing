@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XieChengSmsCollidingDataVtMapper" >
+
+    <select id="selectByLocalIdVttikv_" resultType="com.br.marketing.entity.XieChengSmsCollidingDataVt">
+        select  a.sha256_code_list,
+        a.api_code,
+        a.local_id,
+        a.id from b_xiecheng_sms_colliding_data_vt a
+        left join b_xiecheng_sms_colliding_data_log_vt b on a.sha256_code_list = b.sha256_code_list and b.send_date = #{sendDate}  and b.status in(1,2,3)
+        where a.local_id = #{localId}  and b.id is null   limit #{xieChengSmsCollidingDataVtPageSize}
+    </select>
+</mapper>

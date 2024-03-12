@@ -47,6 +47,10 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
             , @Param("sDate") String sDate, @Param("eTimeStr") String eTimeStr
             , @Param("whereStr") String whereStr);
 
+    List<String> queryUserTypeListWithDatetikv_(@Param("apiCode") String apiCode
+            , @Param("sDate") String sDate, @Param("eTimeStr") String eTimeStr
+            , @Param("whereStr") String whereStr);
+
     Integer countByRuleScoreWithDate(@Param("apiCode") String apiCode
             , @Param("whereStr") String whereStr);
 
@@ -79,6 +83,12 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     List<MarketingSyncUser> getPreUserByInCust(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);
 
+    /**
+     * 2023-03-24 1:44
+     * 废弃原因：
+     * 当案件编号存在大量重复时，获取到大的对象集合，会出现内存溢出
+     */
+    @Deprecated
     List<MarketingSyncUser> getPreUserByInCustAndStatus(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);
 
     List<MarketingSyncUser> getPreUserByInCustWithNoFail(@Param("apiCode") String apiCode, @Param("custs") Set<String> custs);
@@ -240,5 +250,21 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
     List<MarketingSyncUser> getSmyDataByGroupType(@Param("apiCode") String apiCode,@Param("groupType") String groupType);
 
     int getUnresolvedCount(@Param("apiCode") String apiCode, @Param("startDate") String startDate,@Param("endDate") String endDate);
+
+    /**
+     * 查询
+     * @param cusBatch cusBatch
+     * @param apiCode apiCode
+     * @return java.lang.String 查询 applet_date 结果
+     */
+    String getAppletDateByCusBatch(@Param("cusBatch") String cusBatch,@Param("apiCode") String apiCode);
+
+    /**
+     * 查询
+     * @param appletDate appletDate
+     * @param apiCode apiCode
+     * @return java.util.List<java.lang.String> 查询到的cus_batch集合
+     */
+    List<String> getCusBatchByAppletDate(@Param("appletDate") String appletDate,@Param("apiCode") String apiCode);
 
 }

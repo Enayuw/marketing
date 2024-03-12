@@ -117,14 +117,14 @@
         order by push_dx_time desc,id desc limit #{limitStart},2000;
     </select>
     <insert id="saveBatch" parameterType="list">
-        insert into b_phone_sale_extend_info (api_code, cust_num, task_id,
+        insert into b_phone_sale_extend_info (api_code, cust_num,cell, task_id,
         user_type, applet_date, applet_time,
         status, p_status, create_time,
         update_time, type, dx_type,
         push_dx_time, transform_type, source_id
         )values
          <foreach collection="list" item="data" separator=",">
-             (#{data.apiCode,jdbcType=VARCHAR}, #{data.custNum,jdbcType=VARCHAR}, #{data.taskId,jdbcType=VARCHAR},
+             (#{data.apiCode,jdbcType=VARCHAR}, #{data.custNum,jdbcType=VARCHAR},#{data.cell,jdbcType=VARCHAR}, #{data.taskId,jdbcType=VARCHAR},
              #{data.userType,jdbcType=VARCHAR}, #{data.appletDate,jdbcType=VARCHAR}, #{data.appletTime,jdbcType=VARCHAR},
              #{data.status,jdbcType=VARCHAR}, #{data.pStatus,jdbcType=INTEGER}, #{data.createTime,jdbcType=TIMESTAMP},
              #{data.updateTime,jdbcType=TIMESTAMP}, #{data.type,jdbcType=VARCHAR}, #{data.dxType,jdbcType=VARCHAR},
@@ -227,6 +227,46 @@
             </foreach>
         </where>
     </sql>
+
+    <sql id="Example_Where_Clause_Custom_1">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test='criterion.condition.contains("cell") or criterion.condition.contains("push_dx_time")'>
+                                </when>
+                                <otherwise>
+                                    <choose>
+                                        <when test='criterion.condition.startsWith("cell") or criterion.condition.startsWith("push_dx_time")'>
+                                        </when>
+
+                                        <when test="criterion.noValue">
+                                            and ${criterion.condition}
+                                        </when>
+                                        <when test="criterion.singleValue">
+                                            and ${criterion.condition} #{criterion.value}
+                                        </when>
+                                        <when test="criterion.betweenValue">
+                                            and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                        </when>
+                                        <when test="criterion.listValue">
+                                            and ${criterion.condition}
+                                            <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                                     separator=",">
+                                                #{listItem}
+                                            </foreach>
+                                        </when>
+                                    </choose>
+                                </otherwise>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
     <select id="findListPageByExample" resultType="com.br.marketing.entity.PhoneSaleExtendInfo"
             parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample">
         select
@@ -247,6 +287,29 @@
         where t2.id = t1.id
     </select>
 
+    <select id="findListPageByExampleSqlStr" resultType="com.br.marketing.entity.PhoneSaleExtendInfo"
+            parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample">
+        select
+        <if test="example.distinct">
+            distinct
+        </if>
+        t1.*
+        from b_phone_sale_extend_info t1
+        , (select id
+        from b_phone_sale_extend_info
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause_Custom"/>
+        </if>
+        <if test="sqlWhereStr != null and sqlWhereStr != ''">
+            ${sqlWhereStr}
+        </if>
+        <if test="example.orderByClause != null">
+            order by ${example.orderByClause}
+        </if>
+        limit ${(pageNum - 1) * pageSize}, #{pageSize}) as t2
+        where t2.id = t1.id
+    </select>
+
     <select id="getCustNumSettikv_" resultType="java.lang.String"
             parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample">
         select
@@ -257,6 +320,54 @@
         from b_phone_sale_extend_info
         <if test="_parameter != null">
             <include refid="Example_Where_Clause_Custom"/>
+        </if>
+        <if test="example.orderByClause != null">
+            order by ${example.orderByClause}
+        </if>
+    </select>
+    <select id="getToDassLogInfoList" resultType="java.lang.String">
+        select
+        cell
+        from b_phone_sale_extend_info
+        where api_code = #{apiCode}
+        and cell in
+        <foreach collection="cells" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        and date_format(now(),"%Y-%m-%d") = date_format(create_time,"%Y-%m-%d")
+
+
+    </select>
+
+    <select id="selectCustNumByExampletikv_" resultType="java.lang.String"
+            parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample">
+        select
+        <if test="example.distinct">
+            distinct
+        </if>
+        cust_num
+        from b_phone_sale_extend_info
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause_Custom"/>
+        </if>
+        <if test="example.orderByClause != null">
+            order by ${example.orderByClause}
+        </if>
+    </select>
+
+    <select id="findInfoByMaxPushDxTimeAndCellList" resultType="com.br.marketing.entity.PhoneSaleExtendInfo"
+            parameterType="com.br.marketing.entity.PhoneSaleExtendInfoExample">
+        select t2.push_dx_time, t2.cust_num, t2.cell, t2.status, t2.group_no, t2.create_time
+        from (select max(push_dx_time) as push_dx_time, cell
+        from b_phone_sale_extend_info
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause_Custom"/>
+        </if>
+        group by cell) t1
+        left join b_phone_sale_extend_info as t2
+        on t1.push_dx_time = t2.push_dx_time and t1.cell = t2.cell
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause_Custom_1"/>
         </if>
         <if test="example.orderByClause != null">
             order by ${example.orderByClause}

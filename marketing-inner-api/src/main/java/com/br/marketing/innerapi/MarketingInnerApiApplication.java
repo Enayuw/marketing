@@ -5,11 +5,9 @@ import com.br.cloud.boot.EnablePrometheusEndpoint;
 import com.br.cloud.counter.EnableBrCounter;
 import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
-import com.br.cloud.threadpool.EnablePrometheusIceThreadPool;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
-import com.br.marketing.mysqlInterceptor.MyDataPermissionAutoConfiguration;
-import com.br.monitor.grpc.EnvUtil;
+import com.br.marketing.service.Impl.ConsumerService;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
@@ -19,7 +17,6 @@ import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
 import org.springframework.cloud.netflix.feign.EnableFeignClients;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.ImportResource;
 
 
 /**
@@ -32,7 +29,6 @@ import org.springframework.context.annotation.ImportResource;
  * @UpdateRemark 修改内容
  * @Version 1.0
  */
-@ImportResource(locations = {"classpath:scheduler.xml"})
 @SpringBootApplication(exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class}, scanBasePackages = {"com.br.marketing"})
 @EnableAspectJAutoProxy
 @EnableFeignClients(basePackages = {"com.br.marketing"})
@@ -43,7 +39,6 @@ import org.springframework.context.annotation.ImportResource;
 @EnableHystrixPrometheus
 @EnablePrometheusTiming
 @EnableBrCounter(namespace = "marketing_inner_api")
-@EnablePrometheusIceThreadPool
 public class MarketingInnerApiApplication {
 
 
@@ -72,9 +67,11 @@ public class MarketingInnerApiApplication {
      */
     public static void stop() {
         try {
-            if ("GRPC".equals(EnvUtil.getProperties("GRPC_MODE"))) {
-                BrGrpcUtils.shutDown();
-            }
+            ConsumerService.consumerDownStatus = Boolean.TRUE;
+            log.warn("消费者下线");
+            Thread.sleep(4500L);
+            BrGrpcUtils.shutDown();
+            log.warn("GRPC服务关闭正常");
         } catch (Exception e) {
             log.error("GRPC服务关闭异常", e);
         }

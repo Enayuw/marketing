@@ -1,19 +1,19 @@
 package com.br.marketing.aspect;
 
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.common.annoation.DistributeLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.enums.DistributeTypeEnum;
+import com.br.marketing.common.enums.SoleFieldEnum;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.DataDistributeLogBase;
 import com.br.marketing.dto.DataJoinLogDTO;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.DataDistributeDetailLog;
+import com.br.marketing.entity.DataDistributeDetailLogExample;
 import com.br.marketing.mapper.DataDistributeDetailLogMapper;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -23,7 +23,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
-import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -40,20 +39,23 @@ public class DistributeLogAspect {
 
     @Autowired
     RedisChgService redisChgService;
+    /*private final static List soleTypes;
 
-    private final static List soleTypes;
-
-    // 1-apiCode,custNum
+   // 1-apiCode,custNum
     private final static Integer soleTypeOne = new Integer(1);
 
     // 2-apiCode,cell
     private final static Integer soleTypeTwo = new Integer(2);
 
+    // 3-apiCode,cell,status
+    private final static Integer soleTypeThree = new Integer(3);
+
     static {
         soleTypes = new ArrayList();
         soleTypes.add(soleTypeOne);
         soleTypes.add(soleTypeTwo);
-    }
+        soleTypes.add(soleTypeThree);
+    }*/
 
     @Around("@annotation(com.br.marketing.common.annoation.DistributeLog)")
     public Object distribute(ProceedingJoinPoint jp) throws Throwable {
@@ -68,7 +70,7 @@ public class DistributeLogAspect {
         if (detailLogList.size() <= 0) {
             return jp.proceed();
         }
-        if (logBase.getIsSole() && !soleTypes.contains(logBase.getSoleField())) {
+        if (logBase.getIsSole() && (!SoleFieldEnum.getValues().contains(logBase.getSoleField()))) {
             return jp.proceed();
         }
         List data = logBase.getData();
@@ -96,12 +98,22 @@ public class DistributeLogAspect {
                 if (logBase.getIsSole()) {
                     //region 去重处理
                     String key = RedisKeyConstant.dributeDataSloeLock;
-                    if (soleTypeOne.equals(logBase.getSoleField())) {
+                    if (SoleFieldEnum.CUST_NUM_SOLE.getValue().equals(logBase.getSoleField())) {
                         key = key.concat(String.format(":%d:%d:%s:%s", logData.getDistributeType()
                                 , logBase.getSoleDay(), logData.getApiCode(), logData.getCustNum()));
-                    } else if (soleTypeTwo.equals(logBase.getSoleField())) {
+                    } else if (SoleFieldEnum.CELL_SOLE.getValue().equals(logBase.getSoleField())) {
                         key = key.concat(String.format(":%d:%d:%s:%s", logData.getDistributeType()
                                 , logBase.getSoleDay(), logData.getApiCode(), logData.getCell()));
+                    }else if (SoleFieldEnum.CELL_STATUS_SOLE.getValue().equals(logBase.getSoleField())) {
+                        key = key.concat(String.format(":%d:%d:%s:%s:%s", logData.getDistributeType()
+                                , logBase.getSoleDay(), logData.getApiCode(), logData.getCell(), logData.getStatus()));
+                    } else if (SoleFieldEnum.CUST_NUM_STATUS_SOLE.getValue().equals(logBase.getSoleField())) {
+                        key = key.concat(String.format(":%d:%d:%s:%s:%s"
+                                , logData.getDistributeType()
+                                , logBase.getSoleDay()
+                                , logData.getApiCode()
+                                , logData.getCustNum()
+                                , logData.getStatus()));
                     }
 
                     try {
@@ -130,11 +142,24 @@ public class DistributeLogAspect {
                                 String day = LocalDate.now().minusDays(logBase.getSoleDay() - 1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                                 criteria.andDistributeDateGreaterThanOrEqualTo(day);
                             }
+                        } else if (logBase.getSoleDay() != null && logBase.getSoleDay() == -1) {
+                            //单条数据当前有效期内去重
+                            if(StringUtils.isEmpty(logData.getExtend())){
+                                criteria.andExtendIsNull();
+                            }else{
+                                criteria.andExtendEqualTo(logData.getExtend());
+                            }
                         }
-                        if (logBase.getSoleField() == 1) {
+                        if (logBase.getSoleField().equals(SoleFieldEnum.CUST_NUM_SOLE.getValue())) {
                             criteria.andCustNumEqualTo(logData.getCustNum());
-                        } else if (logBase.getSoleField() == 2) {
+                        } else if (logBase.getSoleField().equals(SoleFieldEnum.CELL_SOLE.getValue())) {
                             criteria.andCellEqualTo(logData.getCell());
+                        } else if (logBase.getSoleField().equals(SoleFieldEnum.CELL_STATUS_SOLE.getValue())) {
+                            criteria.andCellEqualTo(logData.getCell());
+                            criteria.andStatusEqualTo(logData.getStatus());
+                        } else if (SoleFieldEnum.CUST_NUM_STATUS_SOLE.getValue().equals(logBase.getSoleField())) {
+                            criteria.andCustNumEqualTo(logData.getCustNum());
+                            criteria.andStatusEqualTo(logData.getStatus());
                         }
                         List<DataDistributeDetailLog> dataDistributeDetailLogs = dataDistributeDetailLogMapper.selectByExample(logExample);
                         if (dataDistributeDetailLogs.size() > 0) {

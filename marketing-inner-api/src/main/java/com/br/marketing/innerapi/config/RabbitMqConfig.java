@@ -310,6 +310,26 @@ public class RabbitMqConfig {
     }
 
     /**
+     * 2023-01-07 14:49
+     * 通用队列监听工厂 alpha
+     */
+    @Bean(name = "universalDataContainerFactory")
+    public SimpleRabbitListenerContainerFactory universalDataContainerFactory(
+            SimpleRabbitListenerContainerFactoryConfigurer configurer,
+            @Qualifier("primaryConnectionFactory") ConnectionFactory connectionFactory) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+        // 预取
+        factory.setPrefetchCount(30);
+        //设置线程数
+        factory.setConcurrentConsumers(2);
+        //最大线程数
+        factory.setMaxConcurrentConsumers(5);
+        configurer.configure(factory, connectionFactory);
+        return factory;
+    }
+
+    /**
      * 配置
      *
      * @param configurer

@@ -1,18 +1,19 @@
 package com.br.marketing.check.job;
 
 import com.br.marketing.check.dto.FileContext;
-import com.br.marketing.check.service.Impl.*;
+import com.br.marketing.check.service.Impl.SftpToDbByCommonService;
+import com.br.marketing.check.service.Impl.SftpToDbByDXService;
 import com.br.marketing.check.utils.SftpToDbUtils;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.*;
+import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.MarketingCustomerMapper;
+import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.IApiToDbService;
+import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.ITxtToDbService;
-import com.br.marketing.service.Impl.ValidDataAlarmServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -20,12 +21,10 @@ import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.jcraft.jsch.JSchException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -71,22 +70,6 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
     private String sftpUsername;
     @Value("${otherConfig.warning.sftpPwd:00}")
     private String sftpPwd;
-    @Resource
-    SftpToDbService sftpToDbService;
-    @Resource
-    MarketingTaskMapper marketingTaskMapper;
-    @Resource
-    MarketingTaskExtendMapper marketingTaskExtendMapper;
-    @Resource
-    RedisChgService redisChgService;
-    @Resource
-    MarketingUserMapper marketingUserMapper;
-    @Resource
-    ValidDataAlarmServiceImpl validDataAlarmService;
-    @Resource
-    FileCheckServiceImpl fileCheckService;
-    @Resource
-    DeleteService deleteService;
     @Autowired
     IApiToDbService iApiToDbService;
     @Resource
@@ -110,6 +93,8 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
+    @Autowired
+    ICompatibleService iCompatibleService;
 
     /**
      * 1、先从customer读取客户
@@ -127,7 +112,8 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
-        List<String> apiCodes = marketingCustomers.stream().map(t -> t.getApiCode()).collect(Collectors.toList());
+        List<String> apiCodes = marketingCustomers.stream().filter(t->iCompatibleService.isAction(t.getExtendConfigInfo(),jobExecutionMultipleShardingContext.getJobName()))
+                .map(t -> t.getApiCode()).collect(Collectors.toList());
         SyncConfigExample syncConfigExample = new SyncConfigExample();
         syncConfigExample.createCriteria().andApiCodeIn(apiCodes).andStatusEqualTo(1).andDataTypeEqualTo(3).andTypeEqualTo(1);
         List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
@@ -174,6 +160,7 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
         List xwList = dxFileCustomize.get("xw");
         List juziList = dxFileCustomize.get("juzi");
         List yixinList = dxFileCustomize.get("yixin");
+        List zhongYuanList = dxFileCustomize.get("zhongYuan");
         for (Map.Entry<String, Set<String>> entry : map.entrySet()) {
             String srcPath = entry.getKey();
             Set<String> fileNames = entry.getValue();
@@ -228,6 +215,13 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                                         , MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE
                                         , iTxtToDbService::phoneTodbByYiXin
                                         ,iTxtToDbService::phoneTodbByYiXinAfterAction);
+                            } else if (zhongYuanList.contains(apiCode)) {
+                                ArrayList<String> baseHeads = new ArrayList<>(Arrays.asList("uid", "phone", "name", "orgname", "user_type"));
+                                sftpToDbByCommonService.actionTxtFile(context
+                                        , localFile
+                                        , baseHeads
+                                        , MQConstants.ROUTING_KEY_MARKETING_PUSH_DATA_SCORE
+                                        , iTxtToDbService::phoneTodb);
                             } else {
                                 ArrayList<String> baseHeads = new ArrayList<String>(Arrays.asList("uid", "phone", "name", "orgname", "user_type"));
                                 sftpToDbByCommonService.actionTxtFile(context

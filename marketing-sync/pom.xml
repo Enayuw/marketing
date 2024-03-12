@@ -4,6 +4,7 @@
         <artifactId>marketing</artifactId>
         <groupId>com.br.marketing</groupId>
         <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -68,11 +69,11 @@
         </dependency>
 
         <!-- exporter 监控 http://c.100credit.cn/pages/viewpage.action?pageId=38205220 -->
-        <dependency>
+       <!-- <dependency>
             <groupId>com.br.cloud</groupId>
             <artifactId>spring_boot_exporter</artifactId>
             <version>1.0-SNAPSHOT</version>
-        </dependency>
+        </dependency>-->
     </dependencies>
 
     <!-- 预发、生产环境打包方式-->
@@ -83,7 +84,6 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
                 <includes>
-                    <include>**/*.ObjectPrxHelperBase</include>
                     <include>mapper/**</include>
                     <include>**/*.yml</include>
                     <include>**/*.xml</include>
@@ -106,6 +106,7 @@
                 </executions>
                 <configuration>
                     <mainClass>com.br.marketing.sync.SyncApplication</mainClass>
+                    <includeSystemScope>true</includeSystemScope>
                 </configuration>
             </plugin>
         </plugins>

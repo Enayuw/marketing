@@ -25,6 +25,11 @@ public class TxtToDbDTO {
     private Integer line;
 
     /**
+     * key:line,value:content
+     */
+    private HashMap<Integer,String> datas;
+
+    /**
      * 全部字段
      */
     private HashSet<String> fieldAll;

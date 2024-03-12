@@ -3,6 +3,7 @@ package com.br.marketing.client.dassservice;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.cloud.counter.BrCounter;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportAdapHaluoDTO;
@@ -14,13 +15,13 @@ import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDT
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
-import com.br.marketing.client.haier.output.Response2Entity;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
+import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -36,10 +37,17 @@ import org.springframework.util.DigestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
-import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -160,6 +168,13 @@ public class DassServiceClient {
             interfaceLog.setResult(hashMap.get("content"));
             interfaceLog.setExpire(String.valueOf(end - start));
             if (Integer.valueOf(200).equals(code)) {
+                //调用数量监控
+                try {
+                    BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_BATCH_USERDATA_METRIC_NAME, dto.getList().get(0).getOrgname(), "batchUserData-api",
+                        dtos.size());
+                } catch (Exception ex) {
+                    log.error("电销批量接口统计异常" + ex.getMessage(), ex);
+                }
                 result.setCode(ResultCode.SUCCESS.getValue());
             } else {
                 result.setCode(ResultCode.FAIL.getValue());
@@ -210,6 +225,13 @@ public class DassServiceClient {
                     result.setCode(ResultCode.SUCCESS.getValue());
                     result.setDate(JSON.parseObject(content, new TypeReference<PushBlackListResponse>() {
                     }.getType()));
+                    try {
+                        //调用数量监控
+                        BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_BLACK_DATA_METRIC_NAME, list.get(0).getApiCode(), "blackData-api",
+                            list.size());
+                    } catch (Exception ex) {
+                        log.error("电销黑名单接口统计异常" + ex.getMessage(), ex);
+                    }
                 } else {
                     result.setCode(ResultCode.FAIL.getValue());
                     result.setMessage(content);
@@ -234,11 +256,10 @@ public class DassServiceClient {
     /**
      * 单条用户数据实时推送
      */
-    public Result postRealTimeUserData(DassSingleImportAdapDTO dto) {
+    public Result<JSONObject> postRealTimeUserData(DassSingleImportAdapDTO dto) {
         Result result = new Result();
         DassSingleImportDataDTO dassSingleImportDataDTO = dto.getDassSingleImportDataDTO();
-        String phoneAesEncrypt = AESUtil.aesEncrypty(dassSingleImportDataDTO.getPhone(), ascKey);
-        dassSingleImportDataDTO.setPhone(phoneAesEncrypt);
+        dassSingleImportDataDTO.setPhone(getPhone(dassSingleImportDataDTO.getPhone()));
         dassSingleImportDataDTO.setExtend(extendSort(dassSingleImportDataDTO.getExtend()));
         List<DassSingleImportDataDTO> dassSingleImportAdapDTOList = Lists.newArrayList(dassSingleImportDataDTO);
         long l = LocalDateTime.now().plusMinutes(10L).toInstant(ZoneOffset.of("+8")).toEpochMilli();
@@ -286,7 +307,24 @@ public class DassServiceClient {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage("无应答消息");
                 return result;
             }
-            result.setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.parseObject(respStr, Response2Entity.class));
+            try {
+                JSONObject resJson = JSONObject.parseObject(respStr);
+                //判断返回结果result中code,0为成功，非0失败。
+                boolean resultSuccess = Objects.equals(0, resJson.getInteger("code"));
+                result.setCode(resultSuccess ? ResultCode.SUCCESS.getValue() : ResultCode.FAIL.getValue()).setDate(resJson);
+                //调用成功才统计调用信息
+                if (resultSuccess) {
+                    try {
+                        //调用数量监控
+                        BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_SINGLE_USERDATA_METRIC_NAME, dassSingleImportDataDTO.getOrgname(), "DaasRealTimeData-api");
+                    } catch (Exception ex) {
+                        log.error("电销单条接口统计异常" + ex.getMessage(), ex);
+                    }
+                }
+            } catch (Exception e) {
+                log.error("单条用户数据实时推送响应结果respStr:{},转化json异常", respStr, e);
+                result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
+            }
         } else {
             result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
         }
@@ -317,6 +355,15 @@ public class DassServiceClient {
         return jsonSortParam.toJSONString();
     }
 
+    private String getPhone(String phone) {
+        String content = phone;
+        String s = AESUtil.aesDecrypt(phone, ascKey);
+        if (StringUtils.isBlank(s)) {
+            content = AESUtil.aesEncrypty(phone, ascKey);
+        }
+        return content;
+    }
+
     /**
      * 推送转化数据
      */
@@ -325,7 +372,7 @@ public class DassServiceClient {
         List<DassTransferDataDTO> dassTransferDataDTOList = dassTransferDataAdapDTO.getDassTransferDataDTOList();
         dassTransferDataDTOList.forEach(dassTransferDataDTO -> {
             if (StringUtils.isNotEmpty(dassTransferDataDTO.getPhone())) {
-                dassTransferDataDTO.setPhone(AESUtil.aesEncrypty(dassTransferDataDTO.getPhone(), ascKey));
+                dassTransferDataDTO.setPhone(getPhone(dassTransferDataDTO.getPhone()));
             }
         });
         long l = LocalDateTime.now().plusMinutes(10L).toInstant(ZoneOffset.of("+8")).toEpochMilli();
@@ -374,6 +421,13 @@ public class DassServiceClient {
                 return result;
             }
             result.setCode(ResultCode.SUCCESS.getValue()).setDate(respStr);
+            try {
+                //调用数量监控
+                BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_TRANSFER_METRIC_NAME, dassTransferDataDTOList.get(0).getOrgName(), "transferData-api",
+                    dassTransferDataDTOList.size());
+            } catch (Exception ex) {
+                log.error("电销转化接口统计异常" + ex.getMessage(), ex);
+            }
         } else {
             result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
         }
@@ -401,27 +455,27 @@ public class DassServiceClient {
             ibuReqDTO.setSign(s);
             StringBuilder paramStr = new StringBuilder();
             HashMap<String, String> resContent = httpProxyClient.sendByCodeWithLog(ibuReqDTO, batchHermesUserData
-                    , isProxy.equals("0") ? false : true
-                    , MediaType.APPLICATION_FORM_URLENCODED_VALUE, reqId.toString()
-                    , httpProxyClient.isLogStore(ibuBatchToDass).get(0)
-                    , httpProxyClient.isLogStore(ibuBatchToDass).get(1));
+                , isProxy.equals("0") ? false : true
+                , MediaType.APPLICATION_FORM_URLENCODED_VALUE, reqId.toString()
+                , httpProxyClient.isLogStore(ibuBatchToDass).get(0)
+                , httpProxyClient.isLogStore(ibuBatchToDass).get(1));
             String httpcode = resContent.get("httpcode");
-            if("200".equals(httpcode)){
+            if ("200".equals(httpcode)) {
                 JSONObject content = JSONObject.parseObject(resContent.get("content"));
                 Integer code = content.getInteger("code");
-                if(new Integer(0).equals(code)){
+                if (new Integer(0).equals(code)) {
                     res.setCode(ResultCode.SUCCESS.getValue());
-                }else {
-                    log.error("ibu定制接口非code成功("+reqId.toString()+")："+resContent.getOrDefault("content",""));
+                } else {
+                    log.error("ibu定制接口非code成功(" + reqId.toString() + ")：" + resContent.getOrDefault("content", ""));
                     res.setCode(ResultCode.FAIL.getValue()).setMessage(resContent.get("content"));
                 }
-            }else{
-                log.error("ibu定制接口非200情况("+reqId.toString()+")："+resContent.getOrDefault("content",""));
+            } else {
+                log.error("ibu定制接口非200情况(" + reqId.toString() + ")：" + resContent.getOrDefault("content", ""));
                 res.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(resContent.get("content"));
             }
             return res;
         } catch (Exception ex) {
-            log.error("ibu定制接口错误("+reqId.toString()+")"+ex.getMessage(),ex);
+            log.error("ibu定制接口错误(" + reqId.toString() + ")" + ex.getMessage(), ex);
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
 

@@ -1,5 +1,8 @@
 package com.br.marketing.service;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.entity.CaseShuheUploadData;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -24,6 +27,5 @@ public interface ITransferSyncUserService {
             , MarketingTransferInfo transferInfo, CaseShuheUser caseShuheUser) throws Exception;
 
     int updateByPrimaryKeySelective(MarketingTransferSyncUser marketingTransferSyncUser);
-
 
 }

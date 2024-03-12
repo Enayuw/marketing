@@ -150,9 +150,8 @@ public class MarketingUserPreController {
     /**
      * 数禾订制版上传数据接口
      *
-     * @param apiCode
-     * @param jsonData
-     * @return
+     * @param apiCode  客户编号
+     * @param jsonData 业务数据
      * @author Guo Zeqiang
      * @dateTime 2022/8/28 9:55
      */

@@ -19,15 +19,40 @@
     where  status =1 and push_status =1
     order by id asc limit 10000
   </select>
-  <select id="getByCellToday" resultType="com.br.marketing.entity.XieChengData"
-          parameterType="java.lang.String">
+  <select id="getByCellToday" resultType="com.br.marketing.entity.XieChengData">
     select
       *
     from b_xiecheng_data
     where  status =1 and push_status =2 and sha256_tel = #{cell}
+      and api_code in
+      <foreach collection="apiCodes" open="(" close=")" item="apiCode" separator=",">
+        #{apiCode}
+      </foreach>
       and create_time > str_to_date(now(), '%Y-%m-%d')
 
   </select>
 
+  <select id="getByCellTodayAndLocalId"  resultType="com.br.marketing.entity.XieChengData">
+    select
+      *
+    from b_xiecheng_data
+    where  create_date =#{createDate} and local_id not in (2242481,2242482,2272503)
+    <if test="minlocalId !=null and minlocalId>0">
+      and local_id > #{minlocalId}
+    </if>
+    order by local_id limit 5000;
+
+  </select>
+
+  <select id="selectXieChengCall" resultType="com.br.marketing.entity.XieChengData">
+    select id,local_id as localId
+    from b_xiecheng_data
+    where create_time >= #{createTime}
+      and push_status =1 and status =1
+    <if test="id != null and id>0">
+      and id > #{id}
+    </if>
+    order by id limit 5000;
+  </select>
 
 </mapper>

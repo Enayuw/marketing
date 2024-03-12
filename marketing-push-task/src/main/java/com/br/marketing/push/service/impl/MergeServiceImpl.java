@@ -1,39 +1,33 @@
 package com.br.marketing.push.service.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.ProFieldsClient;
-import com.br.marketing.client.StrategyClient;
 import com.br.marketing.common.bean.Score;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.utils.*;
+import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.common.utils.FastdfsUtils;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.common.utils.file.ZipUtil;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.Customer;
+import com.br.marketing.entity.LoanFile;
+import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
-import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.TaskStatusDistributeMapper;
 import com.br.marketing.push.service.MergeService;
 import com.br.marketing.push.util.FileUtil;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.StrategyCs;
 import com.br.marketing.service.MarketingSepService;
-import com.br.marketing.vo.ConfigByApiCodeVO;
 import com.google.common.base.Joiner;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.ReadContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.*;
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -85,22 +79,26 @@ public class MergeServiceImpl implements MergeService {
     private static final Pattern MYREGEX1 = Pattern.compile("_");
     @Override
     public List<LoanFile> process(Customer customer) {
+        return process(null,customer);
+    }
+
+    @Override
+    public List<LoanFile> process(List<LoanFile> fileList, Customer customer) {
         List<LoanFile> pushList =new ArrayList<>();
         try{
-            if(customer !=null){
+            if(fileList != null && fileList.size()>0){
+                pushList =mergeAllOrOnce(fileList,customer);
+            }else{
                 List<LoanFile> list= loanFileMapper.queryFile(customer.getApiCode());
                 pushList =mergeAllOrOnce(list,customer);
             }
-
         }catch (Exception e){
             log.error("error-----",e);
         }
         return pushList;
     }
 
-
-
-    private  List<LoanFile> mergeAllOrOnce(List<LoanFile> loanFileList,Customer customer) {
+    private  List<LoanFile> mergeAllOrOnce(List<LoanFile> loanFileList, Customer customer) {
         List<LoanFile> pushList=new ArrayList<>();
         for(LoanFile blf:loanFileList){
             String zipName = mergeResultFile(blf,customer);

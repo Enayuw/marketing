@@ -1,39 +1,41 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.DataDistributeDetailLogMapper" >
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.DataDistributeDetailLog" >
-    <id column="id" property="id" jdbcType="BIGINT" />
-    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
-    <result column="cust_num" property="custNum" jdbcType="VARCHAR" />
-    <result column="cell" property="cell" jdbcType="VARCHAR" />
-    <result column="p_status" property="pStatus" jdbcType="INTEGER" />
-    <result column="distribute_date" property="distributeDate" jdbcType="VARCHAR" />
-    <result column="distribute_type" property="distributeType" jdbcType="INTEGER" />
-    <result column="success_date" property="successDate" jdbcType="VARCHAR" />
-    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
-    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
-    <result column="source_id" property="sourceId" jdbcType="BIGINT" />
-    <result column="source_type" property="sourceType" jdbcType="VARCHAR" />
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.DataDistributeDetailLogMapperBase">
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.DataDistributeDetailLog">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
+    <result column="cust_num" jdbcType="VARCHAR" property="custNum" />
+    <result column="cell" jdbcType="VARCHAR" property="cell" />
+    <result column="status" jdbcType="VARCHAR" property="status" />
+    <result column="p_status" jdbcType="INTEGER" property="pStatus" />
+    <result column="distribute_date" jdbcType="VARCHAR" property="distributeDate" />
+    <result column="distribute_type" jdbcType="INTEGER" property="distributeType" />
+    <result column="success_date" jdbcType="VARCHAR" property="successDate" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="source_id" jdbcType="BIGINT" property="sourceId" />
+    <result column="source_type" jdbcType="VARCHAR" property="sourceType" />
+    <result column="extend" jdbcType="VARCHAR" property="extend" />
   </resultMap>
-  <sql id="Example_Where_Clause" >
-    <where >
-      <foreach collection="oredCriteria" item="criteria" separator="or" >
-        <if test="criteria.valid" >
-          <trim prefix="(" suffix=")" prefixOverrides="and" >
-            <foreach collection="criteria.criteria" item="criterion" >
-              <choose >
-                <when test="criterion.noValue" >
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue" >
+                <when test="criterion.singleValue">
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue" >
+                <when test="criterion.betweenValue">
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue" >
+                <when test="criterion.listValue">
                   and ${criterion.condition}
-                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
                     #{listItem}
                   </foreach>
                 </when>
@@ -44,25 +46,25 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Update_By_Example_Where_Clause" >
-    <where >
-      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
-        <if test="criteria.valid" >
-          <trim prefix="(" suffix=")" prefixOverrides="and" >
-            <foreach collection="criteria.criteria" item="criterion" >
-              <choose >
-                <when test="criterion.noValue" >
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue" >
+                <when test="criterion.singleValue">
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue" >
+                <when test="criterion.betweenValue">
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue" >
+                <when test="criterion.listValue">
                   and ${criterion.condition}
-                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
                     #{listItem}
                   </foreach>
                 </when>
@@ -73,185 +75,200 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Base_Column_List" >
-    id, api_code, cust_num, cell, p_status, distribute_date, distribute_type, success_date, 
-    create_time, update_time, source_id, source_type
+  <sql id="Base_Column_List">
+    id, api_code, cust_num, cell, `status`, p_status, distribute_date, distribute_type, 
+    success_date, create_time, update_time, source_id, source_type, extend
   </sql>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.DataDistributeDetailLogExample" >
+  <select id="selectByExample" parameterType="com.br.marketing.entity.DataDistributeDetailLogExample" resultMap="BaseResultMap">
     select
-    <if test="distinct" >
+    <if test="distinct">
       distinct
     </if>
     <include refid="Base_Column_List" />
     from b_data_distribute_detail_log
-    <if test="_parameter != null" >
+    <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
-    <if test="orderByClause != null" >
+    <if test="orderByClause != null">
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
     from b_data_distribute_detail_log
     where id = #{id,jdbcType=BIGINT}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
     delete from b_data_distribute_detail_log
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.DataDistributeDetailLogExample" >
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.DataDistributeDetailLogExample">
     delete from b_data_distribute_detail_log
-    <if test="_parameter != null" >
+    <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.br.marketing.entity.DataDistributeDetailLog" >
-    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
-      SELECT LAST_INSERT_ID()
-    </selectKey>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.DataDistributeDetailLog" useGeneratedKeys="true">
     insert into b_data_distribute_detail_log (api_code, cust_num, cell, 
-      p_status, distribute_date, distribute_type, 
-      success_date, create_time, update_time, 
-      source_id, source_type)
+      `status`, p_status, distribute_date, 
+      distribute_type, success_date, create_time, 
+      update_time, source_id, source_type, 
+      extend)
     values (#{apiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, 
-      #{pStatus,jdbcType=INTEGER}, #{distributeDate,jdbcType=VARCHAR}, #{distributeType,jdbcType=INTEGER}, 
-      #{successDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{sourceId,jdbcType=BIGINT}, #{sourceType,jdbcType=VARCHAR})
+      #{status,jdbcType=VARCHAR}, #{pStatus,jdbcType=INTEGER}, #{distributeDate,jdbcType=VARCHAR}, 
+      #{distributeType,jdbcType=INTEGER}, #{successDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{sourceId,jdbcType=BIGINT}, #{sourceType,jdbcType=VARCHAR}, 
+      #{extend,jdbcType=VARCHAR})
   </insert>
-  <insert id="insertSelective" parameterType="com.br.marketing.entity.DataDistributeDetailLog" >
-    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
-      SELECT LAST_INSERT_ID()
-    </selectKey>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.DataDistributeDetailLog" useGeneratedKeys="true">
     insert into b_data_distribute_detail_log
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="apiCode != null" >
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="apiCode != null">
         api_code,
       </if>
-      <if test="custNum != null" >
+      <if test="custNum != null">
         cust_num,
       </if>
-      <if test="cell != null" >
+      <if test="cell != null">
         cell,
       </if>
-      <if test="pStatus != null" >
+      <if test="status != null">
+        `status`,
+      </if>
+      <if test="pStatus != null">
         p_status,
       </if>
-      <if test="distributeDate != null" >
+      <if test="distributeDate != null">
         distribute_date,
       </if>
-      <if test="distributeType != null" >
+      <if test="distributeType != null">
         distribute_type,
       </if>
-      <if test="successDate != null" >
+      <if test="successDate != null">
         success_date,
       </if>
-      <if test="createTime != null" >
+      <if test="createTime != null">
         create_time,
       </if>
-      <if test="updateTime != null" >
+      <if test="updateTime != null">
         update_time,
       </if>
-      <if test="sourceId != null" >
+      <if test="sourceId != null">
         source_id,
       </if>
-      <if test="sourceType != null" >
+      <if test="sourceType != null">
         source_type,
       </if>
+      <if test="extend != null">
+        extend,
+      </if>
     </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="apiCode != null" >
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="apiCode != null">
         #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="custNum != null" >
+      <if test="custNum != null">
         #{custNum,jdbcType=VARCHAR},
       </if>
-      <if test="cell != null" >
+      <if test="cell != null">
         #{cell,jdbcType=VARCHAR},
       </if>
-      <if test="pStatus != null" >
+      <if test="status != null">
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="pStatus != null">
         #{pStatus,jdbcType=INTEGER},
       </if>
-      <if test="distributeDate != null" >
+      <if test="distributeDate != null">
         #{distributeDate,jdbcType=VARCHAR},
       </if>
-      <if test="distributeType != null" >
+      <if test="distributeType != null">
         #{distributeType,jdbcType=INTEGER},
       </if>
-      <if test="successDate != null" >
+      <if test="successDate != null">
         #{successDate,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null" >
+      <if test="createTime != null">
         #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null" >
+      <if test="updateTime != null">
         #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="sourceId != null" >
+      <if test="sourceId != null">
         #{sourceId,jdbcType=BIGINT},
       </if>
-      <if test="sourceType != null" >
+      <if test="sourceType != null">
         #{sourceType,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null">
+        #{extend,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.DataDistributeDetailLogExample" resultType="java.lang.Integer" >
+  <select id="countByExample" parameterType="com.br.marketing.entity.DataDistributeDetailLogExample" resultType="java.lang.Long">
     select count(*) from b_data_distribute_detail_log
-    <if test="_parameter != null" >
+    <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </select>
-  <update id="updateByExampleSelective" parameterType="map" >
+  <update id="updateByExampleSelective" parameterType="map">
     update b_data_distribute_detail_log
-    <set >
-      <if test="record.id != null" >
+    <set>
+      <if test="record.id != null">
         id = #{record.id,jdbcType=BIGINT},
       </if>
-      <if test="record.apiCode != null" >
+      <if test="record.apiCode != null">
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="record.custNum != null" >
+      <if test="record.custNum != null">
         cust_num = #{record.custNum,jdbcType=VARCHAR},
       </if>
-      <if test="record.cell != null" >
+      <if test="record.cell != null">
         cell = #{record.cell,jdbcType=VARCHAR},
       </if>
-      <if test="record.pStatus != null" >
+      <if test="record.status != null">
+        `status` = #{record.status,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pStatus != null">
         p_status = #{record.pStatus,jdbcType=INTEGER},
       </if>
-      <if test="record.distributeDate != null" >
+      <if test="record.distributeDate != null">
         distribute_date = #{record.distributeDate,jdbcType=VARCHAR},
       </if>
-      <if test="record.distributeType != null" >
+      <if test="record.distributeType != null">
         distribute_type = #{record.distributeType,jdbcType=INTEGER},
       </if>
-      <if test="record.successDate != null" >
+      <if test="record.successDate != null">
         success_date = #{record.successDate,jdbcType=VARCHAR},
       </if>
-      <if test="record.createTime != null" >
+      <if test="record.createTime != null">
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.updateTime != null" >
+      <if test="record.updateTime != null">
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.sourceId != null" >
+      <if test="record.sourceId != null">
         source_id = #{record.sourceId,jdbcType=BIGINT},
       </if>
-      <if test="record.sourceType != null" >
+      <if test="record.sourceType != null">
         source_type = #{record.sourceType,jdbcType=VARCHAR},
       </if>
+      <if test="record.extend != null">
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
     </set>
-    <if test="_parameter != null" >
+    <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByExample" parameterType="map" >
+  <update id="updateByExample" parameterType="map">
     update b_data_distribute_detail_log
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       cust_num = #{record.custNum,jdbcType=VARCHAR},
       cell = #{record.cell,jdbcType=VARCHAR},
+      `status` = #{record.status,jdbcType=VARCHAR},
       p_status = #{record.pStatus,jdbcType=INTEGER},
       distribute_date = #{record.distributeDate,jdbcType=VARCHAR},
       distribute_type = #{record.distributeType,jdbcType=INTEGER},
@@ -259,55 +276,63 @@
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       source_id = #{record.sourceId,jdbcType=BIGINT},
-      source_type = #{record.sourceType,jdbcType=VARCHAR}
-    <if test="_parameter != null" >
+      source_type = #{record.sourceType,jdbcType=VARCHAR},
+      extend = #{record.extend,jdbcType=VARCHAR}
+    <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.DataDistributeDetailLog" >
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.DataDistributeDetailLog">
     update b_data_distribute_detail_log
-    <set >
-      <if test="apiCode != null" >
+    <set>
+      <if test="apiCode != null">
         api_code = #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="custNum != null" >
+      <if test="custNum != null">
         cust_num = #{custNum,jdbcType=VARCHAR},
       </if>
-      <if test="cell != null" >
+      <if test="cell != null">
         cell = #{cell,jdbcType=VARCHAR},
       </if>
-      <if test="pStatus != null" >
+      <if test="status != null">
+        `status` = #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="pStatus != null">
         p_status = #{pStatus,jdbcType=INTEGER},
       </if>
-      <if test="distributeDate != null" >
+      <if test="distributeDate != null">
         distribute_date = #{distributeDate,jdbcType=VARCHAR},
       </if>
-      <if test="distributeType != null" >
+      <if test="distributeType != null">
         distribute_type = #{distributeType,jdbcType=INTEGER},
       </if>
-      <if test="successDate != null" >
+      <if test="successDate != null">
         success_date = #{successDate,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null" >
+      <if test="createTime != null">
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null" >
+      <if test="updateTime != null">
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="sourceId != null" >
+      <if test="sourceId != null">
         source_id = #{sourceId,jdbcType=BIGINT},
       </if>
-      <if test="sourceType != null" >
+      <if test="sourceType != null">
         source_type = #{sourceType,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null">
+        extend = #{extend,jdbcType=VARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.DataDistributeDetailLog" >
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.DataDistributeDetailLog">
     update b_data_distribute_detail_log
     set api_code = #{apiCode,jdbcType=VARCHAR},
       cust_num = #{custNum,jdbcType=VARCHAR},
       cell = #{cell,jdbcType=VARCHAR},
+      `status` = #{status,jdbcType=VARCHAR},
       p_status = #{pStatus,jdbcType=INTEGER},
       distribute_date = #{distributeDate,jdbcType=VARCHAR},
       distribute_type = #{distributeType,jdbcType=INTEGER},
@@ -315,7 +340,8 @@
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       source_id = #{sourceId,jdbcType=BIGINT},
-      source_type = #{sourceType,jdbcType=VARCHAR}
+      source_type = #{sourceType,jdbcType=VARCHAR},
+      extend = #{extend,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

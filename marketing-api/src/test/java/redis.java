@@ -4,9 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.util.AESAlgorithmUtil;
 import com.br.marketing.api.MarketingApiApplication;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.RedisService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailVariablesDTO;
 import com.br.marketing.common.utils.*;
@@ -59,8 +58,6 @@ public class redis {
         }
     }
 
-    @Resource
-    RedisService redisService;
 //
 
     @Autowired
@@ -490,7 +487,7 @@ public class redis {
 //            System.out.println(bloomFilter.contains("10086"));
     }
     @Resource
-    DecodeClient decodeClient;
+    DecodeGrpcClient decodeClient;
 
 
     @Test
@@ -622,15 +619,7 @@ public class redis {
     }
 
 
-    @Test
-    public void testaesde(){
-        try {
-            String s = AESUtil.decrypt("LBAo6LBNxPIcnfEWpaAE3mswF9YJc0WV4DYlRyrPtzI=", "ovksl39fcl13m9dF");
-            System.out.println(s);
-        }catch (Exception ex){
 
-        }
-    }
 
     @Autowired
     ProductFlagScoreMapper productFlagScoreMapper;

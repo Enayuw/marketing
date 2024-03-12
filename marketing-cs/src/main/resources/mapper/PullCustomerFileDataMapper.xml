@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.PullCustomerFileDataMapper">
+   <sql id="Base_Column_List_Child">
+        t1.id
+        , api_code, local_file_id, file_data, json_data, data_status, data_desc, data_fingerprint,
+    extend, create_date, create_time, update_time
+    </sql>
+
+    <sql id="Example_Where_Clause_Child" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+
+    <select id="selectPageListByExampletikv_" resultMap="BaseResultMap"
+            parameterType="com.br.marketing.entity.PullCustomerFileDataExample">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List_Child"/>
+        from b_pull_customer_file_data t1
+                inner join (select id
+        from b_pull_customer_file_data
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause_Child"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+        limit 2000
+        ) t2 on t1.id = t2.id
+    </select>
+
+    <insert id="insertBatchSelective" parameterType="list">
+        insert into b_pull_customer_file_data(
+        api_code,
+        local_file_id,
+        file_data,
+        json_data,
+        data_status,
+        data_fingerprint,
+        create_date,
+        create_time,
+        update_time) values
+        <foreach collection="recordList" item="record" separator=",">
+            (#{record.apiCode,jdbcType=VARCHAR},
+            #{record.localFileId,jdbcType=BIGINT},
+            #{record.fileData,jdbcType=VARCHAR},
+            #{record.jsonData,jdbcType=VARCHAR},
+            #{record.dataStatus,jdbcType=INTEGER},
+            #{record.dataFingerprint,jdbcType=VARCHAR},
+            #{record.createDate,jdbcType=VARCHAR},
+            #{record.createTime,jdbcType=TIMESTAMP},
+            #{record.updateTime,jdbcType=TIMESTAMP})
+        </foreach>
+    </insert>
+
+    <select id="getDataFingerprintSet" resultType="java.lang.String">
+        select data_fingerprint from b_pull_customer_file_data where local_file_id=${localFileId} and data_fingerprint
+        in (
+        <foreach collection="recordList" item="record" separator=",">
+            #{record.dataFingerprint,jdbcType=VARCHAR}
+        </foreach>
+        )
+    </select>
+
+</mapper>

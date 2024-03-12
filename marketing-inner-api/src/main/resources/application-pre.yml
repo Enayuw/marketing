@@ -5,7 +5,7 @@ datasource:
     shardingmarketing:
       url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
       username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      password: f9daIYUIAXQkeyVbDoOI
       type: com.alibaba.druid.pool.DruidDataSource
       driver-class-name: com.mysql.jdbc.Driver
       isSharding: true
@@ -28,7 +28,7 @@ datasource:
       driverClassName: com.mysql.jdbc.Driver
       url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
       username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      password: f9daIYUIAXQkeyVbDoOI
       initialSize: 5 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 5 # 最小连接池数量
       maxActive: 30 # 最大连接池数量
@@ -55,7 +55,7 @@ datasource:
       driverClassName: com.mysql.jdbc.Driver
       url: jdbc:mysql://tidb-pre.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8
       username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      password: f9daIYUIAXQkeyVbDoOI
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 4 # 最小连接池数量
       maxActive: 4 # 最大连接池数量
@@ -88,16 +88,16 @@ spring:
       password: strategy_distribute
       publisher-confirms: true
       publisher-returns: true
-      virtual-host: marketing_juman
+      virtual-host: marketing_juman_01
     yz:
       addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
       username: strategy_distribute
       password: strategy_distribute
       publisher-confirms: true
       publisher-returns: true
-      virtual-host: marketing_juman
+      virtual-host: marketing_juman_01
     secondary:
-      addresses: 192.168.21.96:5672,192.168.21.97:5672
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
       username: rabbitmq
       password: rabbitmq
       virtual-host: common

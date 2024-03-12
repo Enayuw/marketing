@@ -3,7 +3,7 @@ datasource:
     names: shardingmarketing,marketingTikiv,marketingTiFlash
     defaultSource: shardingmarketing
     shardingmarketing:
-      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: u_pd_marketing
       password: M6teKbFVl1odfOCkC1JA
       type: com.alibaba.druid.pool.DruidDataSource
@@ -26,7 +26,7 @@ datasource:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: u_pd_marketing
       password: M6teKbFVl1odfOCkC1JA
       initialSize: 5 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
@@ -52,7 +52,7 @@ datasource:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-pre.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://tidb-pre.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: u_pd_marketing
       password: M6teKbFVl1odfOCkC1JA
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
@@ -93,7 +93,7 @@ spring:
       password: strategy_distribute
       publisher-confirms: true
       publisher-returns: true
-      virtual-host: marketing-flow-default
+      virtual-host: marketing-flow-default-yz
     secondary:
       addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
       username: strategy_distribute
@@ -133,10 +133,11 @@ otherConfig:
     appName: loan-warning
     appSecretKey: f15a1421ac95a284683688af14688b72
   proxy:
-    proxy_host_zw: 192.168.22.169
+    proxy_host: squid-proxy2.brapp.com
     proxy_port: 3128
     proxy_username: bairong
     proxy_password: Proxy_br
+    proxy_host_zw: 192.168.22.169
   mom:
     appSecretKey: d42726322ba9bda57b74043be21aa2c4
     appName: marketing_query_producer

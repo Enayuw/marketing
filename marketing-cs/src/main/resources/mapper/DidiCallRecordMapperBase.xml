@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.DidiCallRecordMapperBase">
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.DidiCallRecord">
+    <id column="id" property="id" jdbcType="BIGINT"/>
+    <result column="cell" property="cell" jdbcType="VARCHAR"/>
+    <result column="cust_num" property="custNum" jdbcType="VARCHAR"/>
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR"/>
+    <result column="status" property="status" jdbcType="INTEGER"/>
+    <result column="create_date" property="createDate" jdbcType="INTEGER"/>
+    <result column="result" property="result" jdbcType="BIT"/>
+    <result column="error_code" property="errorCode" jdbcType="VARCHAR"/>
+    <result column="error_message" property="errorMessage" jdbcType="VARCHAR"/>
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    <result column="sys_message" property="sysMessage" jdbcType="VARCHAR"/>
+    <result column="scas" property="scas" jdbcType="VARCHAR"/>
+    <result column="media_name" property="mediaName" jdbcType="VARCHAR"/>
+    <result column="local_id" property="localId" jdbcType="BIGINT"/>
+    <result column="extend" property="extend" jdbcType="VARCHAR"/>
+    <result column="data_message" property="dataMessage" jdbcType="VARCHAR"/>
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" suffix=")" prefixOverrides="and">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" suffix=")" prefixOverrides="and">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id
+    , cell, cust_num, api_code, `status`, create_date, `result`, error_code, error_message,
+    create_time, update_time, sys_message, scas, media_name, local_id, extend, data_message
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.DidiCallRecordExample">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List"/>
+    from b_didi_call_record
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause"/>
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+    select
+    <include refid="Base_Column_List"/>
+    from b_didi_call_record
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete
+    from b_didi_call_record
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.DidiCallRecordExample">
+    delete from b_didi_call_record
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause"/>
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.DidiCallRecord">
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_didi_call_record (cell, cust_num, api_code,
+    `status`, create_date, `result`,
+    error_code, error_message, create_time,
+    update_time, sys_message, scas,
+    media_name, local_id, extend,
+    data_message)
+    values (#{cell,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR},
+    #{status,jdbcType=INTEGER}, #{createDate,jdbcType=INTEGER}, #{result,jdbcType=BIT},
+    #{errorCode,jdbcType=VARCHAR}, #{errorMessage,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}, #{sysMessage,jdbcType=VARCHAR}, #{scas,jdbcType=VARCHAR},
+    #{mediaName,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{extend,jdbcType=VARCHAR},
+    #{dataMessage,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.DidiCallRecord">
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_didi_call_record
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="cell != null">
+        cell,
+      </if>
+      <if test="custNum != null">
+        cust_num,
+      </if>
+      <if test="apiCode != null">
+        api_code,
+      </if>
+      <if test="status != null">
+        `status`,
+      </if>
+      <if test="createDate != null">
+        create_date,
+      </if>
+      <if test="result != null">
+        `result`,
+      </if>
+      <if test="errorCode != null">
+        error_code,
+      </if>
+      <if test="errorMessage != null">
+        error_message,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="sysMessage != null">
+        sys_message,
+      </if>
+      <if test="scas != null">
+        scas,
+      </if>
+      <if test="mediaName != null">
+        media_name,
+      </if>
+      <if test="localId != null">
+        local_id,
+      </if>
+      <if test="extend != null">
+        extend,
+      </if>
+      <if test="dataMessage != null">
+        data_message,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="cell != null">
+        #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="custNum != null">
+        #{custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null">
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="createDate != null">
+        #{createDate,jdbcType=INTEGER},
+      </if>
+      <if test="result != null">
+        #{result,jdbcType=BIT},
+      </if>
+      <if test="errorCode != null">
+        #{errorCode,jdbcType=VARCHAR},
+      </if>
+      <if test="errorMessage != null">
+        #{errorMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="sysMessage != null">
+        #{sysMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="scas != null">
+        #{scas,jdbcType=VARCHAR},
+      </if>
+      <if test="mediaName != null">
+        #{mediaName,jdbcType=VARCHAR},
+      </if>
+      <if test="localId != null">
+        #{localId,jdbcType=BIGINT},
+      </if>
+      <if test="extend != null">
+        #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="dataMessage != null">
+        #{dataMessage,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.DidiCallRecordExample"
+          resultType="java.lang.Integer">
+    select count(*) from b_didi_call_record
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause"/>
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update b_didi_call_record
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.cell != null">
+        cell = #{record.cell,jdbcType=VARCHAR},
+      </if>
+      <if test="record.custNum != null">
+        cust_num = #{record.custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="record.apiCode != null">
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.status != null">
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.createDate != null">
+        create_date = #{record.createDate,jdbcType=INTEGER},
+      </if>
+      <if test="record.result != null">
+        `result` = #{record.result,jdbcType=BIT},
+      </if>
+      <if test="record.errorCode != null">
+        error_code = #{record.errorCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.errorMessage != null">
+        error_message = #{record.errorMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.sysMessage != null">
+        sys_message = #{record.sysMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="record.scas != null">
+        scas = #{record.scas,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mediaName != null">
+        media_name = #{record.mediaName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.localId != null">
+        local_id = #{record.localId,jdbcType=BIGINT},
+      </if>
+      <if test="record.extend != null">
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dataMessage != null">
+        data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause"/>
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update b_didi_call_record
+    set id = #{record.id,jdbcType=BIGINT},
+    cell = #{record.cell,jdbcType=VARCHAR},
+    cust_num = #{record.custNum,jdbcType=VARCHAR},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    `status` = #{record.status,jdbcType=INTEGER},
+    create_date = #{record.createDate,jdbcType=INTEGER},
+    `result` = #{record.result,jdbcType=BIT},
+    error_code = #{record.errorCode,jdbcType=VARCHAR},
+    error_message = #{record.errorMessage,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    sys_message = #{record.sysMessage,jdbcType=VARCHAR},
+    scas = #{record.scas,jdbcType=VARCHAR},
+    media_name = #{record.mediaName,jdbcType=VARCHAR},
+    local_id = #{record.localId,jdbcType=BIGINT},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    data_message = #{record.dataMessage,jdbcType=VARCHAR}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause"/>
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.DidiCallRecord">
+    update b_didi_call_record
+    <set>
+      <if test="cell != null">
+        cell = #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="custNum != null">
+        cust_num = #{custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null">
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="createDate != null">
+        create_date = #{createDate,jdbcType=INTEGER},
+      </if>
+      <if test="result != null">
+        `result` = #{result,jdbcType=BIT},
+      </if>
+      <if test="errorCode != null">
+        error_code = #{errorCode,jdbcType=VARCHAR},
+      </if>
+      <if test="errorMessage != null">
+        error_message = #{errorMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="sysMessage != null">
+        sys_message = #{sysMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="scas != null">
+        scas = #{scas,jdbcType=VARCHAR},
+      </if>
+      <if test="mediaName != null">
+        media_name = #{mediaName,jdbcType=VARCHAR},
+      </if>
+      <if test="localId != null">
+        local_id = #{localId,jdbcType=BIGINT},
+      </if>
+      <if test="extend != null">
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="dataMessage != null">
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.DidiCallRecord">
+    update b_didi_call_record
+    set cell          = #{cell,jdbcType=VARCHAR},
+        cust_num      = #{custNum,jdbcType=VARCHAR},
+        api_code      = #{apiCode,jdbcType=VARCHAR},
+        `status`      = #{status,jdbcType=INTEGER},
+        create_date   = #{createDate,jdbcType=INTEGER},
+        `result`      = #{result,jdbcType=BIT},
+        error_code    = #{errorCode,jdbcType=VARCHAR},
+        error_message = #{errorMessage,jdbcType=VARCHAR},
+        create_time   = #{createTime,jdbcType=TIMESTAMP},
+        update_time   = #{updateTime,jdbcType=TIMESTAMP},
+        sys_message   = #{sysMessage,jdbcType=VARCHAR},
+        scas          = #{scas,jdbcType=VARCHAR},
+        media_name    = #{mediaName,jdbcType=VARCHAR},
+        local_id      = #{localId,jdbcType=BIGINT},
+        extend        = #{extend,jdbcType=VARCHAR},
+        data_message  = #{dataMessage,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

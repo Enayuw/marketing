@@ -1,5 +1,9 @@
 package com.br.marketing.service.Impl;
 
+
+import cn.hutool.core.util.ObjectUtil;
+import com.br.marketing.mapper.*;
+import com.br.marketing.service.ValidityPeriodResendRecordService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -9,15 +13,14 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.CustomerMapper;
-import com.br.marketing.mapper.MarketingSyncReportMapper;
-import com.br.marketing.mapper.VariableDicMapper;
+import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.MarketingSyncReportService;
 import com.br.marketing.vo.MarketingSyncReportNumVO;
 import com.br.marketing.vo.MarketingSyncReportVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -51,6 +54,26 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     @Resource
     private MarketingSyncReportMapper syncReportMapper;
 
+    @Autowired
+    EntityOptServiceImpl entityOptService;
+
+    @Autowired
+    MarketingDataValidConfigMapper marketingDataValidConfigMapper;
+
+    @Autowired
+    ICompatibleService iCompatibleService;
+
+    @Resource
+    MarketingValidityChangeMapper changeMapper;
+
+    @Resource
+    ValidityPeriodResendRecordService recordService;
+
+    @Override
+    public void syncReportProcess(String uploadDate, String jobName) {
+        this.doSyncReportProcess(uploadDate,null,jobName);
+    }
+
     /**
      * 上传数据统计报表流程
      *
@@ -59,14 +82,14 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
      */
     @Override
     public void syncReportProcess(String uploadDate) {
-        this.doSyncReportProcess(uploadDate,null);
+        this.doSyncReportProcess(uploadDate,null,null);
     }
     @Override
     public void syncReportProcessByApiCode(String uploadDate,String apiCode) {
-        this.doSyncReportProcess(uploadDate,apiCode);
+        this.doSyncReportProcess(uploadDate,apiCode,null);
     }
 
-    public void doSyncReportProcess(String uploadDate, String apiCodes) {
+    public void doSyncReportProcess(String uploadDate, String apiCodes,String jobName) {
         long l = System.currentTimeMillis();
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
         List<Customer> customers = new ArrayList<>();
@@ -79,6 +102,13 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         Map<String, Set<String>> userTypeMap = getUserTypeMap();
         CountDownLatch countDownLatch = new CountDownLatch(customers.size());
         for (Customer customer : customers) {
+            if(StringUtils.isNoneBlank(jobName)){
+                Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo(),jobName);
+                if(!action){
+                    countDownLatch.countDown();
+                    continue;
+                }
+            }
             threadPool.submit(() -> {
                 try {
                     if (AuthShowProductor.NORMAL.getCode().equals(customer.getStatus())) {
@@ -92,7 +122,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                 String createStartDate = uploadDate;
                                 String createEndDate = LocalDate.parse(uploadDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                                         .plusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                                List<String> appletDateList = syncReportMapper.getAppletDatetiflash_(apiCode, userType, createStartDate, createEndDate);
+                                List<String> appletDateList = syncReportMapper.getAppletDatetikv_(apiCode, userType, createStartDate, createEndDate);
                                 for (String appletDate : appletDateList) {
                                     //上传开始时间
                                     String appletBeginTime = getAppletTime(apiCode, userType, appletDate, Boolean.TRUE);
@@ -279,6 +309,19 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
 
         PageHelper.startPage(current, size);
         List<MarketingSyncReportVO> list = syncReportMapper.selectList(params);
+        for (MarketingSyncReportVO marketingSyncReportVO : list) {
+            String apiCode = marketingSyncReportVO.getApiCode();
+            String userType = marketingSyncReportVO.getUserType();
+            String appletDate = marketingSyncReportVO.getAppletDate();
+            MarketingDataValidConfig validDate = changeMapper.getValidDate(apiCode, userType, appletDate);
+            if (ObjectUtil.isNotEmpty(validDate)){
+                marketingSyncReportVO.setValidStartDate(validDate.getValidStartDate());
+                marketingSyncReportVO.setValidEndDate(validDate.getValidEndDate());
+            } else {
+                log.warn("该apiCode={} , userType={} , appletDate={}维度不存在有效期起止时间", apiCode, userType, appletDate);
+            }
+
+        }
 
         return PageResultReturn.setPageResult(list, current,size);
     }
@@ -315,14 +358,14 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         params.put("userTypeList",userTypeList);
 
         Map map = new HashMap();
-        Integer normalNumTotal = 0;
-        Integer duplicateRemovalNumTotal = 0;
+        Long normalNumTotal = 0L;
+        Long duplicateRemovalNumTotal = 0L;
         List<MarketingSyncReportNumVO> listTotal = syncReportMapper.getReportListTotaltiflash_(params);
         if (!CollectionUtils.isEmpty(listTotal)) {
             //数据正常入库条数
-            normalNumTotal = listTotal.stream().collect(Collectors.summingInt(MarketingSyncReportNumVO::getNormalNumTotal));
+            normalNumTotal = listTotal.stream().collect(Collectors.summingLong(MarketingSyncReportNumVO::getNormalNumTotal));
             //去重后数据量
-            duplicateRemovalNumTotal = listTotal.stream().collect(Collectors.summingInt(MarketingSyncReportNumVO::getDuplicateRemovalNumTotal));
+            duplicateRemovalNumTotal = listTotal.stream().collect(Collectors.summingLong(MarketingSyncReportNumVO::getDuplicateRemovalNumTotal));
         }
         map.put("normalNumTotal", normalNumTotal);
         map.put("duplicateRemovalNumTotal", duplicateRemovalNumTotal);
@@ -357,4 +400,41 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         }
 
     }
+
+    @Override
+    public boolean updateById(Long id, String validStartDate, String validEndDate) {
+        try {
+            MarketingSyncReportVO reportVO= syncReportMapper.selectById(id);
+            String apiCode = reportVO.getApiCode();
+            String userType = reportVO.getUserType();
+            String appletDate = reportVO.getAppletDate();
+            MarketingDataValidConfig data = syncReportMapper.selectValidData(apiCode, userType, appletDate);
+            if (ObjectUtil.isEmpty(data)){
+                log.warn("apiCode={},userType={},appletDate={}没有相应的有效期数据",apiCode, userType, appletDate);
+                return false;
+            }
+            MarketingDataValidConfig newData = new MarketingDataValidConfig();
+            validStartDate = DateUtils.format(addDay(validStartDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
+            validEndDate = DateUtils.format(addDay(validEndDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
+            if (validStartDate.equals(data.getValidStartDate()) && validEndDate.equals(data.getValidEndDate())){
+                log.warn("有效期日期未修改,apiCode={},userType={},appletDate={}", apiCode, userType, appletDate);
+                return true;
+            }
+            newData.setId(data.getId());
+            newData.setValidStartDate(validStartDate);
+            newData.setValidEndDate(validEndDate);
+            int i = marketingDataValidConfigMapper.updateByPrimaryKeySelective(newData);
+            entityOptService.writeOptLog(data.getId(), newData, data);
+            if (i == 1){
+                log.warn("开始重推, apiCode={}, userType={}, id={}", apiCode, userType, newData.getId());
+                recordService.saveRecord(apiCode,userType,newData.getId());
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error(e.getMessage(), e);
+            return false;
+        }
+    }
+
 }

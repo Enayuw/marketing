@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:reg="http://www.dangdang.com/schema/ddframe/reg"
+       xmlns:job="http://www.dangdang.com/schema/ddframe/job"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans.xsd 
+                        http://www.springframework.org/schema/context 
+                        http://www.springframework.org/schema/context/spring-context.xsd 
+                        http://www.dangdang.com/schema/ddframe/reg 
+                        http://www.dangdang.com/schema/ddframe/reg/reg.xsd 
+                        http://www.dangdang.com/schema/ddframe/job 
+                        http://www.dangdang.com/schema/ddframe/job/job.xsd 
+                        ">
+    <context:component-scan base-package="com.br.marketing.task.job"/>
+
+    <reg:zookeeper id="regCenter"
+                   server-lists="${SERVER_LISTS}"
+                   namespace="${NAMESPACE}"
+                   base-sleep-time-milliseconds="${BASE_SLEEP_TIME_MILLISECONDS}"
+                   max-sleep-time-milliseconds="${MAX_SLEEP_TIME_MILLISECONDS}"
+                   max-retries="${MAX_RETRIES}"
+                   nested-port="${NESTED_PORT}"
+                   nested-data-dir="${NESTED_DATA_DIR}"
+                   connection-timeout-milliseconds="60000"/>
+
+    <job:simple id="buildTaskJob"
+                class="com.br.marketing.task.job.BuildTaskJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="生成任务"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="true"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+    <job:simple id="backBuildTaskJob"
+                class="com.br.marketing.task.job.BackBuildTaskJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="手动生成任务"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="true"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+    <job:simple id="taskScoreStartJob"
+                class="com.br.marketing.task.job.TaskScoreStartJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="跑分任务"
+                registry-center-ref="regCenter"
+                sharding-total-count="2"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="true"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+</beans>

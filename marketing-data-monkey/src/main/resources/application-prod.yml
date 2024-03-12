@@ -98,11 +98,11 @@ otherConfig:
         pageSize: 5000
         apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
         path: /opt/data/inloan/download/warning/
-        ftpHost: 192.168.188.120
+        ftpHost: 10.100.188.120
         ftpPort: 21
         ftpUsername: dev_web
         ftpPwd: 0tMKa8jf@8zg
-        sftpHost: brsftp.brapp.com
+        sftpHost: brsftp3.brapp.com
         sftpPort: 9999
         sftpUser: loan_warning
         sftpPwd: 2lT57nWUlel0FxkNDHlK@_2020.11.03
@@ -133,10 +133,33 @@ api:
     rsapKey: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCG0Brdms00ECe0Qo/Fljo1S/ZAjGe9BvhLAH9zCGpeQLI9opkvyZFSnBhdP+Nb1pFPQkls8Dpsr0J17M8uEcoglIK1ADVxnqOf9qbzwgDE44/6Bca28gid+b1aL2KpWc0B1U/Q/TFn7ez93/jGcDXN5wxErR2+sIUE1oRUuZQC9wIDAQAB
     xdCode: 07brdyy001
     bxCode: 3360001
+  didi:
+    baseUrl: https://admarketing-manhattan.xiaojukeji.com
+    smsUrl: ${api.didi.baseUrl}/crow/collision/bairong
+    reachUrl: ${api.didi.baseUrl}/crow/user/success/bairong
+    jmassSUrl: ${api.didi.baseUrl}/model/sample/bairong
+    failedUrl: ${api.didi.baseUrl}/crow/faileduser/mediaName
+    token: DK&SgWl!fZ%WVSXe
+    scas: "0001"
+    channelId: 3140738836439875
+    channelIdMap: "{bairong:'3140738836439875',bairongA:'3140738898634899'}"
+    isProxy: true
+  qifu:
+    baseUri: https://gws-bps.daikuan.360.cn
+    saveReachDeleteRecordUrl: ${api.qifu.baseUri}/api/gws/bps/gateway/agent/operation/agentOperationSaveReachDeleteRecord
+    qifuPublicKey: ""
+    brPrivateKey: ""
+    brPublicKey: ""
+    isProxy: true
+  tongchengAgentMkt:
+    baseUrl: https://mns.lylend.com
+    address: ${api.tongchengAgentMkt.baseUrl}/api/cep/agent/mkt/baiRong
+    secretKey: 3VMUkXxpauLzA7kzHdq7uCNMFjDUMCgyUzgSe83hdb64QcU2KJT5Rcb7enVtYzR9
+    isProxy: true
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置
-SERVER_LISTS: 192.168.21.41:2181,192.168.21.42:2181,192.168.21.43:2181
+SERVER_LISTS: pd-zk-yz-01.brapp.com:2181,pd-zk-yz-02.brapp.com:2181,pd-zk-yz-03.brapp.com:2181
 NAMESPACE: marketing-job
 BASE_SLEEP_TIME_MILLISECONDS: 1000
 MAX_SLEEP_TIME_MILLISECONDS: 3000

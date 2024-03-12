@@ -15,6 +15,8 @@ public interface LoanFileMapper {
     Integer insertFile(LoanFile blf);
 
     List<LoanFile> queryFile(String apiCode);
+
+    List<LoanFile> queryFileById(Long id);
     List<LoanFile> queryUploadFile(String apiCode);
 
     void updateFile(LoanFile blf);

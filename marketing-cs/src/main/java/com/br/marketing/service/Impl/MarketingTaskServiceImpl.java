@@ -9,22 +9,18 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.OffLineCallBackDTO;
-import com.br.marketing.dto.ResultPreviewDTO;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.ScoreStatusEnum;
-import com.br.marketing.enums.ZkScoreStatusEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.*;
@@ -35,15 +31,11 @@ import com.br.marketing.vo.ResultPreviewVO;
 import com.br.marketing.vo.StatisticsDataDayVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.zookeeper.data.Stat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -87,6 +79,8 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Resource
     MarketingTaskExtendMapper marketingTaskExtendMapper;
+    @Resource
+    MarketingTaskUserTypeMapper marketingTaskUserTypeMapper;
 
     @Resource
     TaskBatchnumberPreMapper taskBatchnumberPreMapper;
@@ -102,12 +96,6 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Resource
     private MarketingSyncReportMapper marketingSyncReportMapper;
-
-    @Resource
-    MarketingCustomerMapper marketingCustomerMapper;
-
-    @Resource
-    CustomerRuleMapper customerRuleMapper;
 
     @Resource
     MarketingTaskResultPreviewMapper marketingTaskResultPreviewMapper;
@@ -314,12 +302,14 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             log.warn(errorMsg);
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
         }
+        // 跑分批次号
         String number = "";
 
         Long minId = syncInfoMapper
                 .getMinIdByRuleScoreWithDate(apiCode, sDate, eTimeStr, conditionRes.getData());
         if (minId != null && minId > 0) {
             String time = LocalDateTime.parse(eTimeStr, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+            // 生成跑分批次号
             Result<String> batchNumberRes = iApiToDbService.buildBatchNumber(apiCode
                     , vo.getId().toString(), vo.getRuleNameShort()
                     , time, null);
@@ -333,6 +323,10 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("没有符合条件的数据");
         }
         //endregion
+
+        // 查询符合跑分数据的场景
+        List<String> userTypeList = syncInfoMapper
+                .queryUserTypeListWithDatetikv_(apiCode, sDate, eTimeStr, conditionRes.getData());
 
         //跑分条件转化
         Result<String> conditionTransferRes = soleStrategyService.analysisTransferConditions(vo.getConditionInfo(), sDate, eTimeStr);
@@ -360,11 +354,11 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             }
         }
         vo.setConditionInfo(transferData);
-        return saveTask(apiCode, number, vo, taskStart, count, 1, showStr.toString());
+        return saveTask(apiCode, number, vo, taskStart, count, 1, showStr.toString(), userTypeList);
     }
 
     @Override
-    public Result<Long> buildScoreTaskOfSelect(CustomerScoreRuleVO vo) {
+    public Result<Long> buildScoreTaskOfSelect(CustomerScoreRuleVO vo, List<String> userTypeList) {
 
         Boolean isVer = new Integer(1).equals(vo.getIsOrNoScoreVer());
         String apiCode = vo.getApiCode();
@@ -378,6 +372,12 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         Integer count = 0;
         Integer preMaxNum = vo.getDataLimit() != null && vo.getDataLimit() > 0 ? vo.getDataLimit() : 500;
         StringBuilder showStr = new StringBuilder();
+        // 是否需要根据ConditionInfos获取多条件下的场景
+        boolean userTypeFromConditionInfosFlag = false;
+        if(null == userTypeList || userTypeList.size()<1){
+            userTypeFromConditionInfosFlag = true;
+            userTypeList = new ArrayList<>();
+        }
         for (int i = 0; i < data.size(); i++) {
             if (isVer && preMaxNum <= 0) {
                 continue;
@@ -394,8 +394,18 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             if (i < data.size() - 1) {
                 showStr.append(",");
             }
+            if(userTypeFromConditionInfosFlag){
+                List<String> userTypeByList;
+                // 查询符合跑分数据的场景
+                userTypeByList = syncInfoMapper
+                        .queryUserTypeListWithDatetikv_(apiCode, null, null, whereStr);
+                if(null != userTypeByList && userTypeByList.size() > 0){
+                    userTypeList.addAll(userTypeByList);
+                }
+            }
         }
-
+        // 去重
+        userTypeList = userTypeList.stream().distinct().collect(Collectors.toList());
         if (count <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("该apicode的统计记录失真，请更新该apicode所选的数据统计记录");
         }
@@ -406,17 +416,19 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             String time = LocalDateTime.parse(concatTime, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
             number = createMarketingTaskBatchNumber(apiCode, time);
         }
-        return saveTask(apiCode, number, vo, vo.getStartDate(), count, 2, showStr.toString());
+        return saveTask(apiCode, number, vo, vo.getStartDate(), count, 2, showStr.toString(), userTypeList);
 
     }
 
     @Override
     public Result<List<Long>> saveTaskSelect(TaskSelectSaveDTO dto) {
         List<Long> resIds = new ArrayList<>();
+        // 查询符合跑分数据的场景
+        List<String> userTypeList = new ArrayList<>();
 
         Result<List<CustomerScoreRuleVO>> scoreConfigNow = iRuleConfigService.getScoreConfigNow(dto.getRuleIds());
         AssertResult.assertResult(scoreConfigNow);
-        String conditionInfo = getConditionInfo(dto.getDataIdDesc());
+        String conditionInfo = getConditionInfo(dto.getDataIdDesc(), userTypeList);
         for (CustomerScoreRuleVO datum : scoreConfigNow.getData()) {
 
             datum.setConditionInfo(conditionInfo);
@@ -427,7 +439,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 datum.setIsOrNoScoreVer(dto.getIsOrNoScoreVer());
                 datum.setDataLimit(dto.getDataLimit());
             }
-            Result<Long> result = buildScoreTaskOfSelect(datum);
+            Result<Long> result = buildScoreTaskOfSelect(datum, userTypeList);
             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 resIds.add(result.getData());
             }
@@ -435,7 +447,13 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(resIds);
     }
 
-    private String getConditionInfo(List<Long> ids) {
+    /**
+     * 根据前端选中的跑分数据id选择
+     * @param ids 跑分数据ID
+     * @param userTypeList 跑分数据id对应的场景值
+     * @return java.lang.String 返回条件
+     */
+    private String getConditionInfo(List<Long> ids, List<String> userTypeList) {
         MarketingSyncReportExample reportExample = new MarketingSyncReportExample();
         reportExample.createCriteria().andIdIn(ids);
         List<MarketingSyncReport> marketingSyncReports = marketingSyncReportMapper.selectByExample(reportExample);
@@ -458,15 +476,27 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             jsonUserType.put("fieldName", "userType");
             jsonUserType.put("fieldValue", t.getUserType());
             jsonUserType.put("operation", "=");
-
+            userTypeList.add(t.getUserType());
             resObj.add(simpleCondition);
         });
         return JSON.toJSONString(resObj);
     }
 
+    /**
+     * 保存任务
+     * @param apiCode apiCode
+     * @param batchNumber 预生成的跑分批次
+     * @param ruleVO 跑分规则配置
+     * @param taskStart 任务的开始时间
+     * @param preNum 按照条件查询的总条数
+     * @param conditionType 1-自动；2-手动
+     * @param showDataStr
+     * @param userTypeList 本次跑分数据对应的场景集合
+     * @return com.br.marketing.common.commondto.Result<java.lang.Long> b_marketing_task 表中唯一主键
+     */
     private Result<Long> saveTask(String apiCode, String batchNumber
             , CustomerScoreRuleVO ruleVO, String taskStart
-            , Integer preNum, Integer conditionType, String showDataStr) {
+            , Integer preNum, Integer conditionType, String showDataStr, List<String> userTypeList) {
 
         MarketingTask hasTask = marketingTaskMapper.getByBatchNumber(batchNumber);
         if (hasTask != null) {
@@ -553,6 +583,14 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         taskExtend.setExtendConfigInfo(JSON.toJSONString(taskExtendExtendFieldDTO));
         marketingTaskExtendMapper.insertSelective(taskExtend);
         //endregion
+        userTypeList.stream().forEach((String t) -> {
+            MarketingTaskUserType marketingTaskUserType = new MarketingTaskUserType();
+            marketingTaskUserType.setApiCode(apiCode);
+            marketingTaskUserType.setBatchNumber(batchNumber);
+            marketingTaskUserType.setUserType(t);
+            marketingTaskUserType.setCreateTime(new Date());
+            marketingTaskUserTypeMapper.insert(marketingTaskUserType);
+        });
 
         //region 跑分编号表
         if (conditionType.equals(0)) {
@@ -691,11 +729,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     private boolean offLineCallBackLock(Long id, String value) {
         String key = RedisKeyConstant.offLineLock.concat(":").concat(id.toString());
-        Long setnx = redisChgService.setnx(key, value, 3);
-        if (setnx.equals(0L)) {
-            return false;
-        }
-        return true;
+        return redisChgService.setnx(key, value, 3);
     }
 
     private void removeOffLineLock(Long id, String value) {
@@ -734,7 +768,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     private static Integer mo = 10;
 
     @Override
-    public Integer getPart(Integer sum, Integer index) {
+    public Integer getPart(Integer sum, Long index) {
         if(sum==null||sum==0||index==null||index==0){
             throw new RuntimeException("参数不能为空或者0");
         }
@@ -743,7 +777,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         while (sum>zuNum*zu){
             zu++;
         }
-        return ((zu-1)*mo)+(index%mo);
+        return ((zu-1)*mo)+(index.intValue()%mo);
     }
 
     @Override

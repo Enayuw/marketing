@@ -80,22 +80,6 @@
             <version>${io.springfox.springfox-swagger-ui}</version>
         </dependency>
         <dependency>
-            <groupId>com.br.bsf</groupId>
-            <artifactId>bsf-ext</artifactId>
-            <version>3.0.3</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.br.mom</groupId>
-            <artifactId>broker_layer_api</artifactId>
-            <version>3.0.1</version>
-        </dependency>
-        <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
             <version>3.14.9</version>
@@ -120,7 +104,7 @@
         <dependency>
             <groupId>com.br.speed</groupId>
             <artifactId>speed-client</artifactId>
-            <version>1.2.0</version>
+            <version>${speed.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>log4j</groupId>

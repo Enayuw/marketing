@@ -135,8 +135,37 @@ public  interface PhoneSaleExtendInfoMapper extends PhoneSaleExtendInfoMapperBas
      * 2023/02/14 10:36
      * 获取分页数据
      *
+     * @param example  检索条件
+     * @param pageNum  页号
+     * @param pageSize 页大小
+     * @return PhoneSaleExtendInfo list
+     */
+    List<PhoneSaleExtendInfo> findListPageByExampleSqlStr(@Param("example") PhoneSaleExtendInfoExample example
+            , @Param("sqlWhereStr") String sqlWhereStr
+            , @Param("pageNum") int pageNum
+            , @Param("pageSize") int pageSize);
+
+    /**
+     * 2023/02/14 10:36
+     * 获取分页数据
+     *
      * @param example 检索条件
      * @return set CustNum
      */
     Set<String> getCustNumSettikv_(@Param("example") PhoneSaleExtendInfoExample example);
+
+    Set<String> getToDassLogInfoList(@Param("apiCode") String apiCode, @Param("cells") Set<String> cells);
+
+    /**
+     * 2023-06-26 17:34
+     * 根据条件获取案件编号集合
+     */
+    List<String> selectCustNumByExampletikv_(@Param("example") PhoneSaleExtendInfoExample example);
+
+    /**
+     * 2023-08-25 17:34
+     * 近推送的记录
+     */
+    List<PhoneSaleExtendInfo> findInfoByMaxPushDxTimeAndCellList(@Param("example") PhoneSaleExtendInfoExample example);
+
 }

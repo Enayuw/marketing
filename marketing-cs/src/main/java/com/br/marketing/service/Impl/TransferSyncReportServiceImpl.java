@@ -1,33 +1,25 @@
 package com.br.marketing.service.Impl;
 
-import IceInternal.Ex;
-import com.alibaba.fastjson.JSON;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.auth.AuthShowProductor;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.TransferSyncReportMapper;
 import com.br.marketing.mapper.VariableDicMapper;
+import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.TransferSyncReportService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.vo.MarketingSyncReportNumVO;
 import com.br.marketing.vo.TransferSyncReportNumVO;
 import com.br.marketing.vo.TransferSyncReportVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
-import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -54,9 +46,12 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
+    
+    @Autowired
+    ICompatibleService iCompatibleService;
 
     @Override
-    public void reportProcess(Set<String> dateStrSet, int shardingTotalCount, List<Integer> shardingItems) {
+    public void reportProcess(Set<String> dateStrSet, int shardingTotalCount, List<Integer> shardingItems,String JobName) {
         long l = System.currentTimeMillis();
         // 分片获取所有客户
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
@@ -72,6 +67,12 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                 : marketingCommonConfig.getSaMoYeTransferFileApiCodes();
         for (String dateStr : dateStrSet) {
             for (MarketingCustomer customer : customers) {
+                if(StringUtils.isNoneBlank(JobName)){
+                    Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo(),JobName);
+                    if(!action){
+                        continue;
+                    }
+                }
                 String apiCode = customer.getApiCode();
                 String tCid = Optional.ofNullable(customer.getCid()).orElse(other).replace("-", other);
                 boolean smy = smyApiCodes.contains(apiCode);
@@ -83,7 +84,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                             .plusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                     List<String> requestDateList = new ArrayList<>();
                     try {
-                        requestDateList = smy ? Arrays.asList(startDate) : transferSyncReportMapper.requestDatetiflash_(tCid, apiCode, startDate, endDate, userType);
+                        requestDateList = smy ? Arrays.asList(startDate) : transferSyncReportMapper.requestDatetikv_(tCid, apiCode, startDate, endDate, userType);
                     } catch (Exception ex) {
                         continue;
                     }
@@ -177,7 +178,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
 
     @Override
     public void reportProcess(Set<String> dateStrSet) {
-        reportProcess(dateStrSet, 1, Collections.singletonList(0));
+        reportProcess(dateStrSet, 1, Collections.singletonList(0),null);
     }
 
     @Override
@@ -200,7 +201,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
         Map<String, Object> params = queryParams(cidOrName, appletTimeStart, appletTimeEnd, apiCodes, userTypes);
         Map<String, String> map = new HashMap<>(2);
         List<TransferSyncReportNumVO> totalList = transferSyncReportMapper.getReportListTotaltiflash_(params);
-        map.put("numTotal", totalList.stream().collect(Collectors.summingInt(TransferSyncReportNumVO::getNumTotal)).toString());
+        map.put("numTotal", totalList.stream().collect(Collectors.summingLong(TransferSyncReportNumVO::getNumTotal)).toString());
         return map;
     }
 

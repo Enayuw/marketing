@@ -136,7 +136,6 @@ public class DataPermissionInterceptor implements Interceptor {
 
         /* 因为我拦截的就是Executor，所以我可以强转为 Executor，默认情况下，这个Executor 是个 SimpleExecutor */
 
-        System.out.println("====intercept======");
 
         /*
          * Executor 的 query 方法里面有一个参数 MappedStatement，它是包含了 sql 语句的，所以我获取这个对象

@@ -200,7 +200,7 @@ public class TaskScoreServiceImpl {
             //region 重试
             try {
                 String hkey = Constants.HXRESULTERROR_RETRY_KEY + ":" + task.getFileId();
-                Set<String> hkeys = redisChgService.hkeys(hkey);
+                List<String> hkeys = redisChgService.hkeys(hkey);
                 if (!hkeys.isEmpty() && hkeys.size() > 0) {
                     warrningExecutor = BrExecutors.getThreadPool(20, 20);
                     int i = 1;
@@ -254,6 +254,8 @@ public class TaskScoreServiceImpl {
                 marketingTaskMapper.updateByPrimaryKeySelective(updateTask);
                 if (isOffline) {
                     producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE, task.getFileId().toString());
+                }else{
+                    producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getFileId().toString());
                 }
             } else {
                 updateFile.setStatus(ScoreStatusEnum.PAUSEED.getValue());
@@ -316,7 +318,7 @@ public class TaskScoreServiceImpl {
         String dateAddYyMmDd = DateHelper.getDateAddYyMmDd(0);
         String s = dateAddYyMmDd + num.toString();
         String row = null;
-        int currentPage = Integer.parseInt(s);
+        Long currentPage = Long.parseLong(s);
         try (FileReader read = new FileReader(errorFile);
              BufferedReader br = new BufferedReader(read);) {
             List<MarketingSyncUser> list = new ArrayList<>();
@@ -512,7 +514,7 @@ public class TaskScoreServiceImpl {
 
             String separator = marketingSepService.querySepByApiCode(blt.getApiCode());
             String redisOpen = redisChgService.get(RedisEsOpen);
-            Integer esOpenMark = StringUtils.isNotBlank(redisOpen) ? Integer.valueOf(redisOpen) : 1;
+            String esOpenMark = StringUtils.isNotBlank(redisOpen) ? redisOpen : "1";
             MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(blt.getId());
             //析出客户上传字段
             BaseHeadConfigVO baseHeadConfigVO = baseHeadHandle(marketingTaskExtend, blt);
@@ -525,7 +527,7 @@ public class TaskScoreServiceImpl {
             Result<List<String>> dataCondition = scoreRuleConfigService.getDataCondition(marketingTaskExtend, blt, day);
             AssertResult.assertResult(dataCondition);
             List<String> conditionDatas = dataCondition.getData();
-            int currentPage = 1;
+            Long currentPage = 1L;
             Integer sumNum = 0;
             long startTime = System.currentTimeMillis();
             //是否是预览跑分
@@ -612,7 +614,7 @@ public class TaskScoreServiceImpl {
             if (log.isWarnEnabled()) {
                 log.warn("apicode:".concat(blt.getBatchNumber()).concat("~~查询总耗时："
                         .concat(String.valueOf(endtime - startTime)).concat("~~轮询总次数：")
-                        .concat(String.valueOf(currentPage).concat("~~esOpen:").concat(esOpenMark.toString()))));
+                        .concat(String.valueOf(currentPage).concat("~~esOpen:").concat(esOpenMark))));
             }
 
 
@@ -628,7 +630,7 @@ public class TaskScoreServiceImpl {
      * @param page   页码
      * @return false-为暂未跑完；true-已经跑完；
      */
-    boolean getCoreDataStatus(String fileId, Integer page) {
+    boolean getCoreDataStatus(String fileId, Long page) {
         String key = RedisKeyConstant.scoreStatus.concat(fileId).concat(":").concat(page.toString());
         String s = redisChgService.get(key);
         if (StringUtils.isBlank(s)) {
@@ -729,7 +731,7 @@ public class TaskScoreServiceImpl {
         NodeCache nodeCache = new NodeCache(client, zkpath);
         nodeCache.getListenable().addListener(() -> {
             if (nodeCache.getCurrentData() != null) {
-                int threadNum = Integer.valueOf(new String(nodeCache.getCurrentData().getData())).intValue();
+                int threadNum = Integer.parseInt(new String(nodeCache.getCurrentData().getData(),StandardCharsets.UTF_8));
                 threadContextNum.put(customer.getApiCode(), threadNum);
                 executor
                         .setCorePoolSize(threadNum);

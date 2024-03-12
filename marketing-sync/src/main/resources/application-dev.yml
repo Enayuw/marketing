@@ -51,6 +51,8 @@ otherConfig:
   encodeMapping:
         appName: loan-warning
         appSecretKey: f15a1421ac95a284683688af14688b72
+cluster:
+  flag: k8s-prod-a
 #elastic-job配置
 SERVER_LISTS: 127.0.0.1:2181
 NAMESPACE: warning-job

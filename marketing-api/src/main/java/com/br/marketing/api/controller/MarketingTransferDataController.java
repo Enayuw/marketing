@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.marketing.api.customer.service.CustomerTransferDataService;
 import com.br.marketing.aspect.LogAnnotation;
 import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.commondto.ApiResult;
@@ -43,6 +44,9 @@ public class MarketingTransferDataController {
 
     @Resource
     private IPushShuheDataService iPushShuheDataService;
+
+    @Resource
+    private CustomerTransferDataService customerTransferDataService;
 
 
     /**
@@ -103,7 +107,27 @@ public class MarketingTransferDataController {
         RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
         RuntimeDataContext.getData().setApiCode(apiCode);
         RuntimeDataContext.getData().setJsonData(jsonData);
-        return iPushShuheDataService.saveShuheTransferData(apiCode, jsonData);
+        return iPushShuheDataService.saveShuheTransferDataTwoVersion(apiCode, jsonData);
+    }
+
+
+    /**
+     * 订制转化数据上传接口
+     *
+     * @param apiCode  apiCode
+     * @param jsonData 业务数据json结构
+     * @return ResponseCustomDTO 业务响应
+     */
+    @ApiOperation(value = "订制转化数据上传接口")
+    @PostMapping("receiveTransferData")
+    @LogAnnotation
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    public ResponseCustomDTO receiveTransferData(@RequestParam("apiCode") String apiCode
+            , @RequestParam("jsonData") String jsonData) {
+        RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
+        RuntimeDataContext.getData().setApiCode(apiCode);
+        RuntimeDataContext.getData().setJsonData(jsonData);
+        return customerTransferDataService.receiveTransferDataHandler(apiCode, jsonData);
     }
 
 

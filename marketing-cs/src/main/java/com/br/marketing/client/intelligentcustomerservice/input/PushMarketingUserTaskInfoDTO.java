@@ -49,4 +49,9 @@ public class PushMarketingUserTaskInfoDTO implements Serializable {
      *外呼数据
      */
     private List<PushMarketingUserDetailDTO> data;
+
+    /**
+     * 请求批次号：b_customer_info_push_main的主键id
+     */
+    private String taskId;
 }

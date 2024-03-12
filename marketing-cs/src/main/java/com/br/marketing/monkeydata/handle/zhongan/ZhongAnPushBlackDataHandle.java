@@ -2,6 +2,7 @@ package com.br.marketing.monkeydata.handle.zhongan;
 
 import com.alibaba.fastjson.JSON;
 import com.br.common.util.BrCipherMaker;
+import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.robotaiapi.input.BlackDetailDTO;
 import com.br.marketing.client.zhongan.ZhongAnClient;
@@ -14,9 +15,8 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.RetryMainLog;
-import com.br.marketing.entity.ZhonganMarketingBan;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.mapper.ZhonganMarketingBanMapper;
@@ -24,6 +24,7 @@ import com.br.marketing.monkeydata.entity.IterationResult;
 import com.br.marketing.monkeydata.entity.commonobj.MarketingSyncCondition;
 import com.br.marketing.monkeydata.handle.commonhandle.InputCommonHandle;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
+import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.CustomerBlackListHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -34,10 +35,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -73,6 +71,13 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
 
+    @Autowired
+    private  MarketingDataValidConfigMapper marketingDataValidConfigMapper;
+
+    @Resource
+    private IPeriodOfValidityService iPeriodOfValidityService;
+
+
     @Override
     public Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> getInputData(MarketingSyncCondition inputData) {
         //暂停开关
@@ -84,7 +89,7 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
         for (Iterator<String> iterator = executeDateList.iterator(); iterator.hasNext(); ) {
             String executeDate = iterator.next();
             Long minId = inputData.getMinId();
-            List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByAppletDate(inputData.getApiCode(), executeDate, minId);
+            List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByAppletDateAndUserType(inputData.getApiCode(), executeDate, minId,inputData.getUserType());
             if (marketingSyncUserList.size() <= 0) {
                 //该日期执行完成，开始执行下一个日期
                 iterator.remove();
@@ -105,30 +110,57 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
     public Result customizedAction(MarketingSyncCondition inputData) {
         Result res = new Result();
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(200, 200, 200);
-        List<String> appletDateList = marketingSyncUserMapper.getAppletDate(inputData.getApiCode(), inputData.getAppletDateStart(), inputData.getAppletDateEnd());
-        inputData.setExecuteDateList(appletDateList);
-        for (; ; ) {
-            if (StringUtils.isNotEmpty(marketingCommonConfig.getZhongAnPushBlackThreadNum())) {
-                pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum()));
-                pool.setMaximumPoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum()));
-                log.warn("众安推送黑名单线程调整，corePoolSize={},maxPoolSize={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
+        String date = LocalDate.now().toString();
+        List<String> userTypes = marketingCommonConfig.getZhongAnZkUserType();
+        //根据userType循环处理
+        userTypes.forEach(usertype -> {
+          /*  String appletDateStart, appletDateEnd;
+            // apicode+userType有效期配置
+            List<MarketingDataValidConfig> configList = findConfigByUserType(inputData.getApiCode(), usertype);
+            if (CollectionUtils.isEmpty(configList) || (configList.size() > 1)) {
+                return;
             }
-            Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> inputRes = getInputData(inputData);
-            if (ResultCode.FAIL.getValue().equals(inputRes.getCode())) {
-                break;
+            MarketingDataValidConfig dataValidConfig = configList.get(0);
+            if (StringUtils.isNotEmpty(dataValidConfig.getValidDays())) {
+                PeriodOfValidityBO builder = iPeriodOfValidityService.getPeriodOfValidityRange(dataValidConfig.getValidDays().replace("+","-")
+                        , new Date()).addDateString().builder();
+                appletDateStart = builder.getBeginDateStr();
+                appletDateEnd = builder.getEnDateStr();
+            } else {
+                appletDateStart = dataValidConfig.getValidStartDate();
+                appletDateEnd = dataValidConfig.getValidEndDate();
+            }*/
+            List<MarketingDataValidConfig> configList = findConfigByBetweenDate(inputData.getApiCode(), date,usertype);
+            if (CollectionUtils.isEmpty(configList)) {
+                log.error("众安撞库未配置有效期，请检查");
+                return;
             }
-            List<MarketingSyncUser> inputDataList = inputRes.getData().getInputDataList();
-            inputDataList.add(null);
+            List<String> appletDateList = configList.stream().map(marketingDataValidConfig -> marketingDataValidConfig.getAppletDate()).collect(Collectors.toList());
+            inputData.setExecuteDateList(appletDateList);
+            inputData.setUserType(usertype);
+            for (; ; ) {
+                if (StringUtils.isNotEmpty(marketingCommonConfig.getZhongAnPushBlackThreadNum().get(usertype))) {
+                    pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum().get(usertype)));
+                    pool.setMaximumPoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum().get(usertype)));
+                    log.warn("众安推送黑名单线程调整，userType={},corePoolSize={},maxPoolSize={}", usertype, pool.getCorePoolSize(), pool.getMaximumPoolSize());
+                }
+                Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> inputRes = getInputData(inputData);
+                if (ResultCode.FAIL.getValue().equals(inputRes.getCode())) {
+                    break;
+                }
+                List<MarketingSyncUser> inputDataList = inputRes.getData().getInputDataList();
+                inputDataList.add(null);
 //            List<String> inputDataList = inputRes.getData().getInputDataList().stream().map(MarketingSyncUser::getCell).collect(Collectors.toList());
 //            inputDataList.add(inputData.getApiCode());
-            pool.submit(() -> {
-                Result result = resultAction(inputDataList);
-                if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                    res.setCode(ResultCode.FAIL.getValue());
-                    log.warn(res.getMessage());
-                }
-            });
-        }
+                pool.submit(() -> {
+                    Result result = resultAction(inputDataList);
+                    if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                        res.setCode(ResultCode.FAIL.getValue());
+                        log.warn(res.getMessage());
+                    }
+                });
+            }
+        });
         pool.shutdown();
         try {
             while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
@@ -137,6 +169,12 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
             log.error(ex.getMessage(), ex);
         }
         return res;
+    }
+
+    private List<MarketingDataValidConfig> findConfigByUserType(String apiCode,String userType) {
+        MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(1).andUserTypeEqualTo(userType);
+        return marketingDataValidConfigMapper.selectByExample(example);
     }
 
 
@@ -165,13 +203,14 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
         if (retryMark == null) {
             dataList.remove(dataList.size() - 1);
         }
+        Map<String,String> channelCodes = marketingCommonConfig.getZhongAnZkUserTypeChannelCode();
         List<MarketingSyncUser> retryDataList = new ArrayList<>();
         List<BlackDetailDTO> blackDetailDTOList = new ArrayList<>();
         dataList.forEach(t -> {
             String decodeCell = BrCipherMaker.getInstance().decode(t.getCell());
             ZkReqDTO xd = new ZkReqDTO();
             xd.setCustMobileMd5(Md5OfZanUtils.getMD5(decodeCell));
-            xd.setChannelCode(ZhongAnClient.XdChannelCode);
+            xd.setChannelCode(channelCodes.get(t.getUserType()));
             Result<ZkReponseVO> result = zhongAnClient.zkXd(xd);
             //需要重试加入重试表
             if (result.getCode().equals(ResultCode.INTERNAL_SERVER_ERROR.getValue())) {
@@ -222,5 +261,17 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
         }
         customerBlackListHandler.xieChengCall(blackDetailDTOList, apiCode);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+
+    /**
+     * apicode有效期配置
+     */
+    private List<MarketingDataValidConfig> findConfigByBetweenDate(String apiCode, String date,String userType) {
+        MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType).andValidStartDateLessThanOrEqualTo(date)
+                .andValidEndDateGreaterThanOrEqualTo(date).andIsDelEqualTo(1);
+        example.setOrderByClause("create_time desc, update_time desc");
+        return marketingDataValidConfigMapper.selectByExample(example);
     }
 }

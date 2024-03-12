@@ -148,11 +148,18 @@ public interface MarketingUserMapper {
 
         void createMarketingTransferUserTable(@Param("tableName") String tableName);
 
-        int countByPreUser(@Param("apiCode") String apiCode,@Param("cusBatch")String cusBatch,@Param("groupType")String groupType,@Param("appletDate")String appletDate);
+        int countByPreUser(@Param("apiCode") String apiCode, @Param("cusBatch") String cusBatch, @Param("groupType") String groupType, @Param("appletDate") String appletDate);
 
-        int countBySureUser(@Param("apiCode") String apiCode,@Param("batchNumber")String batchNumber);
+        int countBySureUser(@Param("apiCode") String apiCode, @Param("batchNumber") String batchNumber);
 
-        List<MarketingSyncUser> selectSyncUser(@Param("apiCode") String apiCode, @Param("requestId")String requestId);
-        MarketingSyncUser selectSyncUserByCustNum(@Param("apiCode") String apiCode, @Param("custNum")String custNum);
+        List<MarketingSyncUser> selectSyncUser(@Param("apiCode") String apiCode, @Param("requestId") String requestId);
+
+        MarketingSyncUser selectSyncUserByCustNum(@Param("apiCode") String apiCode, @Param("custNum") String custNum);
+
+        List<MarketingSyncUser> findCustNumCellUserTypeScoreDatePage(@Param("apiCode") String apiCode
+                , @Param("beginTime") String beginTime
+                , @Param("endTime") String endTime
+                , @Param("page") int page
+        );
 }
 

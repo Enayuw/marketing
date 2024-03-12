@@ -20,7 +20,8 @@
         bf.push_number,
         bc.short_name,
         bc.cid from b_local_file bf inner join b_marketing_customer bc on bc.api_code = bf.api_code
-        where bf.file_type in ('qiqi','xiecheng','yiqianbao','dianxiao','halo','haier','zhongan','xiechengsms','marketingData','dx_transform')
+        where bf.file_type in
+        ('qiqi','xiecheng','yiqianbao','dianxiao','halo','haier','zhongan','xiechengsms','marketingData','dx_transform','didi','xiechengsmscollidingvt','zhongbang_caifu','zhongbanglabel','haierColliding')
         <if test="search !=null and search!=''">
             and (
             bc.cid like concat("%", #{search},"%")
@@ -43,8 +44,10 @@
         order by bf.create_time desc
     </select>
     <select id="allCount" resultType="java.lang.Integer">
-        select sum(bf.actual_number),bf.api_code from b_local_file bf left join b_marketing_customer bc on bc.api_code = bf.api_code
-        where bf.file_type in ('qiqi','xiecheng','yiqianbao','dianxiao','halo','haier','zhongan','xiechengsms','marketingData','dx_transform')
+        select sum(bf.actual_number),bf.api_code from b_local_file bf left join b_marketing_customer bc on bc.api_code =
+        bf.api_code
+        where bf.file_type in
+        ('qiqi','xiecheng','yiqianbao','dianxiao','halo','haier','zhongan','xiechengsms','marketingData','dx_transform','didi','xiechengsmscollidingvt','zhongbang_caifu','zhongbanglabel','haierColliding')
         <if test="search !=null and search!=''">
             and (
             bc.cid like concat("%", #{search},"%")
@@ -79,6 +82,22 @@
         from b_local_file
         where id = #{id}
     </select>
+    <select id="getLocalFileByPushNoOrError" resultType="com.br.marketing.entity.LocalFile">
+        select *
+        from b_local_file
+        where api_code = #{apiCode}
+        and file_type = #{fileType}
+        and status = 2 and (push_status is null or push_status = '3')
+        order by create_time asc
+    </select>
 
-
+    <select id="getNotPushLocalFileByFileTypeAndFileName" resultMap="BaseResultMap">
+        select *
+        FROM b_local_file
+        WHERE file_type = #{fileType,jdbcType=VARCHAR}
+          AND file_name like #{fileName,jdbcType=VARCHAR}
+          AND status = '2'
+          AND (push_status != '2' or push_status is null)
+        order by create_time
+    </select>
 </mapper>

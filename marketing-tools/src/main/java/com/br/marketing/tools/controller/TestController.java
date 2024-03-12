@@ -1,6 +1,6 @@
 package com.br.marketing.tools.controller;
 
-import com.br.marketing.common.utils.net.ApiCaller;
+import com.br.marketing.client.net.ApiCaller;
 import com.br.marketing.tools.job.DbMonitor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;

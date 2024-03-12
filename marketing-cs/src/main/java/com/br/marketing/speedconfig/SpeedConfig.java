@@ -1,12 +1,18 @@
 package com.br.marketing.speedconfig;
 
 import com.alibaba.fastjson.JSON;
+import com.br.common.log.AlertLog;
+import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.origin.DataLoadingHandlerService;
+import com.br.marketing.service.Impl.RedisTestServiceImpl;
 import com.br.speed.client.SpeedMgrBean;
 import com.br.speed.client.common.append.ISpeedAppendPipeline;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -52,11 +58,20 @@ public class SpeedConfig implements ISpeedAppendPipeline {
         log.warn("配置中心item -- {} --{} 变动通知",key,value);
         AgentItem item = JSON.parseObject(value, AgentItem.class);
         String message = item.getMessage();
+        Integer redisTest = item.getRedisTest();
+        Integer speedTest = item.getSpeedTest();
         switch (key) {
             case "marketing_broadcast_notice_item": {
                 // {"message":"customer_rule_mapping","update_time":"2022-04-01 14:53:01"}
                 if ("customer_rule_mapping".equals(message)) {
                     DataLoadingHandlerService.invalidateAll();
+                }
+                if(!new Integer(0).equals(redisTest)){
+                    RedisTestServiceImpl redisTestServiceImpl = context.getBean("redisTestServiceImpl", RedisTestServiceImpl.class);
+                    RedisChgService redisChgService = context.getBean("redisChgService",RedisChgService.class);
+                    if(redisTestServiceImpl !=null){
+                        redisTestServiceImpl.redisTest(redisTest,redisChgService);
+                    }
                 }
                 break;
             }
@@ -67,6 +82,10 @@ public class SpeedConfig implements ISpeedAppendPipeline {
 
     }
 
+    @Override
+    public void onError(String s, String s1, byte[] bytes, Long aLong, ApplicationContext applicationContext, Exception e) throws Exception {
+        log.error(String.format("speed报错：%s",e.getMessage()),e);
+    }
 
     <T> void setValue(T config, String path) {
         try (FileReader read = new FileReader(path);
@@ -90,7 +109,8 @@ public class SpeedConfig implements ISpeedAppendPipeline {
                     field.setAccessible(true);
                     assignmentFieldValue(config, field, fieldValue);
                 } catch (NoSuchFieldException e) {
-                    log.error(e.getMessage(),e);
+                    String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_SPEEDCOMMONCONFIG.getCode(), "该服务Speed配置不存在字段:".concat(fieldNm), "marketingCommonConfig提示");
+                    log.warn(msg);
                 } catch (IllegalAccessException e) {
                     log.error(e.getMessage(),e);
                 } catch (Exception ex){

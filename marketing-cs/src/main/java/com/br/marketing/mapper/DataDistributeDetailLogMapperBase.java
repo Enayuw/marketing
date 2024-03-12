@@ -2,12 +2,11 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.DataDistributeDetailLog;
 import com.br.marketing.entity.DataDistributeDetailLogExample;
+import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
-
 public interface DataDistributeDetailLogMapperBase {
-    int countByExample(DataDistributeDetailLogExample example);
+    long countByExample(DataDistributeDetailLogExample example);
 
     int deleteByExample(DataDistributeDetailLogExample example);
 

@@ -54,7 +54,7 @@ public class TaskTransferSyncReportJob extends AbstractSimpleElasticJob {
         if (now.toLocalDate().isAfter(minus)) {
             dateStrSet.add(minus.format(DateTimeFormatter.ISO_LOCAL_DATE));
         }
-        transferSyncReportService.reportProcess(dateStrSet, shardingTotalCount, shardingItems);
+        transferSyncReportService.reportProcess(dateStrSet, shardingTotalCount, shardingItems,context.getJobName());
         Long end = System.currentTimeMillis();
         log.warn("【转化数据统计调度任务】调度结束，耗时：{},分片：{}", end - start, context.getShardingItemParameters());
     }

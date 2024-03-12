@@ -3,7 +3,7 @@ datasource:
     names: shardingmarketing,marketingTikiv,marketingTiFlash
     defaultSource: shardingmarketing
     shardingmarketing:
-      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: u_pd_marketing
       password: qTODziGYQsq11aw8Js2V
       type: com.alibaba.druid.pool.DruidDataSource
@@ -26,7 +26,7 @@ datasource:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: u_pd_marketing
       password: qTODziGYQsq11aw8Js2V
       initialSize: 5 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
@@ -52,7 +52,7 @@ datasource:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-w-marketing.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://tidb-tiflash-marketing.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: u_pd_marketing
       password: qTODziGYQsq11aw8Js2V
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
@@ -95,7 +95,7 @@ spring:
       publisher-returns: true
       virtual-host: marketing-flow
     secondary:
-      addresses: 192.168.21.96:5672,192.168.21.97:5672
+      addresses: rabbitmq2.brapp.com:5671
       username: rabbitmq
       password: rabbitmq
       virtual-host: common
@@ -130,7 +130,7 @@ otherConfig:
     pageSize: 5000
     apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
     path: /opt/data/inloan/download/marketing/
-    sftpHost: brsftp.brapp.com
+    sftpHost: brsftp3.brapp.com
     sftpPort: 9999
     sftpUser: BRmarketing
     sftpPwd: gKjTC62qUJMKigEyvn01@_2021.06.07
@@ -138,10 +138,11 @@ otherConfig:
     appName: loan-warning
     appSecretKey: a938d0e974746651a11ddcdbcea31404
   proxy:
-    proxy_host_zw: 192.168.22.169
+    proxy_host: squid-proxy2.brapp.com
     proxy_port: 3128
     proxy_username: bairong
     proxy_password: Proxy_br
+    proxy_host_zw: 192.168.22.169
   mom:
     appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
     appName: marketing_query_producer
@@ -182,7 +183,7 @@ api:
     baseUrl: http://script-govern.100credit.cn
     executeTask: ${api.bi.baseUrl}/api/distribute/offlineBatch/executeTask
 #elastic-job配置
-SERVER_LISTS: 192.168.21.41:2181,192.168.21.42:2181,192.168.21.43:2181
+SERVER_LISTS: pd-zk-yz-01.brapp.com:2181,pd-zk-yz-02.brapp.com:2181,pd-zk-yz-03.brapp.com:2181
 NAMESPACE: marketing-job
 BASE_SLEEP_TIME_MILLISECONDS: 1000
 MAX_SLEEP_TIME_MILLISECONDS: 3000

@@ -1,6 +1,5 @@
 package com.br.marketing.mapper;
 
-import com.br.marketing.entity.MarketingTransfer;
 import com.br.marketing.entity.MarketingTransferCell;
 import com.br.marketing.entity.MarketingTransferInfo;
 import org.apache.ibatis.annotations.Param;
@@ -38,4 +37,19 @@ public interface MarketingTransferInfoMapper extends MarketingTransferInfoMapper
 
     @Select("select bt.*,bs.cell from b_marketing_transfer_${apiCode} bt left join b_marketing_sync_${apiCode} bs on bt.cust_num = bs.cust_num where TO_DAYS(bt.create_time) = TO_DAYS(NOW()) and  bt.group_type = #{groupType} and bt.reserve_field1 =1")
     List<MarketingTransferCell> getSmyTransferDataByGroupType(@Param("apiCode") String apiCode, @Param("groupType") String groupType);
+
+
+
+    @Select("SELECT request_id FROM b_marketing_transfer_info WHERE  api_code=#{apiCode} and create_time >= #{createTime} and last=#{last} limit 1")
+    String  countByApiCodAndLastOne(@Param("apiCode") String apiCode, @Param("createTime") String createTime, @Param("last") String last);
+
+    List<MarketingTransferInfo> getMarketingTransferInfoIdByValidPeriodRange(@Param("apiCode") String apiCode,
+                                                                             @Param("validStartDate") String validStartDate,
+                                                                             @Param("validEndDate") String validEndDate,
+                                                                             @Param("page") int page,
+                                                                             @Param("pageSize") int pageSize);
+
+
+    int getTransferUnresolvedCount(@Param("apiCode") String apiCode, @Param("startDate") String startDate,@Param("endDate") String endDate);
+
 }

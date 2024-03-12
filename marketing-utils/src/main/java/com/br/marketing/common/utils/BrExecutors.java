@@ -4,10 +4,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class BrExecutors {
     private static final Logger logger = LoggerFactory.getLogger(BrExecutors.class);
@@ -22,19 +19,36 @@ public class BrExecutors {
 
     public static ThreadPoolExecutor getThreadPool(int initNum, int maxNum) {
         return new ThreadPoolExecutor(initNum, maxNum, 60L, TimeUnit.SECONDS,
-                new ArrayBlockingQueue(200),new ThreadFactoryBuilder().setNameFormat("br-statistic-pool-%d").build()
+                new ArrayBlockingQueue(200), new ThreadFactoryBuilder().setNameFormat("br-statistic-pool-%d").build()
                 , new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
-    public static ThreadPoolExecutor getThreadPool(int initNum, int maxNum,int queueNum) {
+    public static ThreadPoolExecutor getThreadPool(int initNum, int maxNum, int queueNum) {
         return new ThreadPoolExecutor(initNum, maxNum, 60L, TimeUnit.SECONDS,
-                new ArrayBlockingQueue(queueNum),new ThreadFactoryBuilder().setNameFormat("br-statistic-queue-%d").build()
+                new ArrayBlockingQueue(queueNum), new ThreadFactoryBuilder().setNameFormat("br-statistic-queue-%d").build()
+                , new ThreadPoolExecutor.CallerRunsPolicy());
+    }
+
+    public static ThreadPoolExecutor getThreadPool(int initNum, int maxNum, BlockingQueue<Runnable> workQueue) {
+        return new ThreadPoolExecutor(initNum, maxNum, 60L, TimeUnit.SECONDS,
+                workQueue, new ThreadFactoryBuilder().setNameFormat("br-statistic-workQueue-%d").build()
+                , new ThreadPoolExecutor.CallerRunsPolicy());
+    }
+
+    public static ThreadPoolExecutor getThreadPool(int initNum, int maxNum,String poolName) {
+        return new ThreadPoolExecutor(initNum, maxNum, 60L, TimeUnit.SECONDS,
+                new ArrayBlockingQueue(200), new ThreadFactoryBuilder().setNameFormat(poolName).build()
+                , new ThreadPoolExecutor.CallerRunsPolicy());
+    }
+    public static ThreadPoolExecutor getThreadPool(int initNum, int maxNum,String poolName, int queueNum) {
+        return new ThreadPoolExecutor(initNum, maxNum, 60L, TimeUnit.SECONDS,
+                new ArrayBlockingQueue(queueNum), new ThreadFactoryBuilder().setNameFormat(poolName).build()
                 , new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     static {
         other = new ThreadPoolExecutor(50, 50, 60L, TimeUnit.SECONDS
-                , new ArrayBlockingQueue('썐'),new ThreadFactoryBuilder().setNameFormat("br-statistic-other-pool-%d").build()
+                , new ArrayBlockingQueue('썐'), new ThreadFactoryBuilder().setNameFormat("br-statistic-other-pool-%d").build()
                 , new BrExecutors.CallerRunsPolicy2());
     }
 

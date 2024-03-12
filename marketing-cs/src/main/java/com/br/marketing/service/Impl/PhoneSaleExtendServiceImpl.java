@@ -20,13 +20,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -71,6 +75,9 @@ public class PhoneSaleExtendServiceImpl {
 
     @Autowired
     MultipleDassAndBlackHandler multipleDassAndBlackHandler;
+
+    @Resource
+    private PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
 
     public HashSet<String> getStatus() {
         HashSet status = new HashSet();
@@ -402,9 +409,9 @@ public class PhoneSaleExtendServiceImpl {
                 .concat(info.getApiCode()).concat(":")
                 .concat(info.getTaskId()).concat(":")
                 .concat(info.getCustNum());
-        Long setnx = redisChgService.setnx(key, info.getStatus(), 3);
+        Boolean setnx = redisChgService.setnx(key, info.getStatus(), 3);
         //已经被其他数据抢占锁了
-        if (setnx.equals(0L)) {
+        if (!setnx) {
 
             //如果当前数据不是d就不推
             if (!info.getStatus().equals("d")) {
@@ -447,5 +454,139 @@ public class PhoneSaleExtendServiceImpl {
         }
 
         return time;
+    }
+
+    /**
+     * 2023-08-25 10:10
+     * 组规则判断
+     * 查询{@code day}天内（包含当天）是否推送过该手机号:
+     * 不存在  推送；
+     * 存在，取最近推送状态：
+     * 组1→组2 推送
+     * 组2→组1 不推送
+     * 组1→组1 不推送
+     * 组2→组2 不推送
+     *
+     * @param apiCode     apiCode
+     * @param day         天
+     * @param cell        手机号
+     * @param groupNo 组号
+     * @return true 推送
+     */
+    public boolean groupRule(String apiCode
+            , int day
+            , String cell
+            , int groupNo) {
+        if (StringUtils.isBlank(cell)) {
+            return false;
+        }
+        PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
+        getInfoExampleGroup(example, day, apiCode).andCellEqualTo(cell);
+        List<PhoneSaleExtendInfo> list = phoneSaleExtendInfoMapper.findInfoByMaxPushDxTimeAndCellList(example);
+        if (CollectionUtils.isEmpty(list)) {
+            return true;
+        }
+        PhoneSaleExtendInfo info = list.get(0);
+        return info.getGroupNo() == 0 || info.getGroupNo() < groupNo;
+    }
+
+    /**
+     * 2023-08-25 10:15
+     * 批量组规则判断,多手机号多组情况
+     * 查询{@code day}天内（包含当天）是否推送过该手机号:
+     * 不存在  推送；
+     * 存在，取最近推送状态：
+     * 组1→组2 推送
+     * 组2→组1 不推送
+     * 组1→组1 不推送
+     * 组2→组2 不推送
+     *
+     * @param apiCode            apiCode
+     * @param day                天
+     * @param cellGroupNumberMap key cell手机号；value groupNumber组号
+     * @return map{@code cellGroupNumberMap} map中存在则推送
+     */
+    public Map<String, Integer> groupRule(String apiCode
+            , int day
+            , Map<String, Integer> cellGroupNumberMap) {
+        if (CollectionUtils.isEmpty(cellGroupNumberMap)) {
+            return cellGroupNumberMap;
+        }
+        PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
+        Set<String> cellSet = cellGroupNumberMap.keySet();
+        getInfoExampleGroup(example, day, apiCode).andCellIn(new ArrayList<>(cellSet));
+        List<PhoneSaleExtendInfo> list = phoneSaleExtendInfoMapper.findInfoByMaxPushDxTimeAndCellList(example);
+        if (CollectionUtils.isEmpty(list)) {
+            return cellGroupNumberMap;
+        }
+        Map<String, Integer> dbCellGroupMap = list.stream().collect(Collectors.toConcurrentMap(PhoneSaleExtendInfo::getCell
+                , PhoneSaleExtendInfo::getGroupNo, (v1, v2) -> v1 > v2 ? v1 : v2));
+        Map<String, Integer> map = new ConcurrentHashMap<>(cellGroupNumberMap.size());
+        cellGroupNumberMap.forEach((cell, groupNo) -> {
+            Integer groupNoOld = dbCellGroupMap.get(cell);
+            if (groupNoOld == null || groupNoOld == 0 || groupNoOld < groupNo) {
+                map.put(cell, groupNo);
+            }
+        });
+        return map;
+    }
+
+    /**
+     * 2023-08-25 10:15
+     * 批量组规则判断,多手机号一组情况
+     * 查询{@code day}天内（包含当天）是否推送过该手机号:
+     * 不存在  推送；
+     * 存在，取最近推送状态：
+     * 组1→组2 推送
+     * 组2→组1 不推送
+     * 组1→组1 不推送
+     * 组2→组2 不推送
+     *
+     * @param apiCode apiCode
+     * @param day     天
+     * @param cellSet cell手机号
+     * @return map{@code cellGroupNumberMap} map中存在则推送
+     */
+    public Set<String> groupRule(String apiCode
+            , int day
+            , Set<String> cellSet
+            , int groupNo) {
+        if (CollectionUtils.isEmpty(cellSet)) {
+            return cellSet;
+        }
+        PhoneSaleExtendInfoExample example = new PhoneSaleExtendInfoExample();
+        getInfoExampleGroup(example, day, apiCode).andCellIn(new ArrayList<>(cellSet));
+        List<PhoneSaleExtendInfo> list = phoneSaleExtendInfoMapper.findInfoByMaxPushDxTimeAndCellList(example);
+        if (CollectionUtils.isEmpty(list)) {
+            return cellSet;
+        }
+        Map<String, Integer> dbCellGroupMap = list.stream().collect(Collectors.toConcurrentMap(PhoneSaleExtendInfo::getCell
+                , PhoneSaleExtendInfo::getGroupNo, (v1, v2) -> v1 > v2 ? v1 : v2));
+        Set<String> set = new HashSet<>(cellSet.size());
+        cellSet.forEach(cell -> {
+            Integer groupNoOld = dbCellGroupMap.get(cell);
+            if (groupNoOld == null || groupNoOld == 0 || groupNoOld < groupNo) {
+                set.add(cell);
+            }
+        });
+        return set;
+    }
+
+    /**
+     * 2023-09-02 16:29
+     * 构造公共参数
+     */
+    private PhoneSaleExtendInfoExample.Criteria getInfoExampleGroup(PhoneSaleExtendInfoExample example
+            , int day
+            , String apiCode) {
+        example.setOrderByClause("push_dx_time desc");
+        LocalDate now = LocalDate.now();
+        Instant instantStart = now.minusDays(day).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant();
+        Instant instantEnd = now.atTime(23, 59, 59, 999999999)
+                .atZone(ZoneId.systemDefault()).toInstant();
+        return example.createCriteria()
+                .andPushDxTimeBetween(Date.from(instantStart), Date.from(instantEnd))
+                .andApiCodeEqualTo(apiCode);
+
     }
 }

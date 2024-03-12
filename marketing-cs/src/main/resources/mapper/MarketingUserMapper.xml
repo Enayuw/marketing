@@ -265,19 +265,18 @@
 	<select id="selectSyncUserByCustNum" resultType="com.br.marketing.entity.MarketingSyncUser">
         select *
         from  b_marketing_sync_${apiCode}
-        where cust_num = #{custNum} limit 1
+        where cust_num = #{custNum} and status = 1 order by applet_time desc limit 1
     </select>
-	<insert id="insertLoanUser" parameterType="map">
-    INSERT INTO b_marketing_user (
-        	`api_code`,
-        	`batch_number`,
-        	`cus_num`,
-        	`id_card`,
-        	`name`,
-        	`cell`,
-        	`linkman_cell`,
-        	`home_addr`,
-        	`tel_home`,
+    <insert id="insertLoanUser" parameterType="map">
+		INSERT INTO b_marketing_user (`api_code`,
+									  `batch_number`,
+									  `cus_num`,
+									  `id_card`,
+									  `name`,
+									  `cell`,
+									  `linkman_cell`,
+									  `home_addr`,
+									  `tel_home`,
         	`mail`,
         	`create_time`,
         	`update_time`,
@@ -455,14 +454,51 @@
 	  `insert_time` varchar(30) DEFAULT NULL COMMENT '创建时间yyyy-mm-dd hh:mm:ss:SSS',
 	  `reserve_field1` longtext DEFAULT NULL COMMENT '业务保留字段1',
 	  `reserve_field2` longtext DEFAULT NULL COMMENT '业务保留字段2',
-	  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
-	  `update_time` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
-	  `request_data` varchar(20) DEFAULT NULL COMMENT '客户请求日期',
-	  `request_time` varchar(20) DEFAULT NULL COMMENT '客户请求时间',
-	  PRIMARY KEY (`id`),
-	  KEY `idx_unique_transfer_syncinfo_request_id` (`request_id`),
-	  KEY `idx_transfer_syncinfo_code` (`api_code`),
-	  KEY `idx_transfer_syncinfo_cust_num` (`cust_num`)
-	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='客户转化数据记录表';
+		`create_time` datetime DEFAULT NULL COMMENT '创建时间',
+		`update_time` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+		`request_data` varchar
+	(
+		20
+	) DEFAULT NULL COMMENT '客户请求日期',
+		`request_time` varchar
+	(
+		20
+	) DEFAULT NULL COMMENT '客户请求时间',
+		PRIMARY KEY
+	(
+		`id`
+	),
+		KEY `idx_unique_transfer_syncinfo_request_id`
+	(
+		`request_id`
+	),
+		KEY `idx_transfer_syncinfo_code`
+	(
+		`api_code`
+	),
+		KEY `idx_transfer_syncinfo_cust_num`
+	(
+		`cust_num`
+	)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE =utf8_bin COMMENT='客户转化数据记录表';
 </update>
+
+	<select id="findCustNumCellUserTypeScoreDatePage" resultType="com.br.marketing.entity.MarketingSyncUser">
+		select t1.cust_num, t1.cell, t1.user_type, t1.create_time, t1.applet_time
+		from b_marketing_sync_${apiCode} as t1,
+		(select id
+		from b_marketing_sync_${apiCode}
+		where
+		<choose>
+			<when test="beginTime != null and beginTime != '' and endTime != null and endTime != ''">
+				<![CDATA[ create_time > #{beginTime} and create_time <= #{endTime}]]>
+			</when>
+			<otherwise>
+				<![CDATA[ create_time > #{beginTime}]]>
+			</otherwise>
+		</choose>
+		order by create_time, id limit ${page*2000},2000) as t2
+		where t1.id = t2.id;
+	</select>
+
 </mapper>

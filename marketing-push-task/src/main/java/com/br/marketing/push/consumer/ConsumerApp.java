@@ -52,6 +52,16 @@ public class ConsumerApp {
     }
 
 
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_PUSHTASK_FILE_INITMERGE, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE)}, containerFactory = "containerFactory")
+    public void consumerInitFileMerge(Channel channel, Message message) {
+        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+        }.getType());
+        consumerService.consumerRun(channel, message, mergeWithMessageService::consumerInitFileMsg, o, null);
+    }
+
+
     /**
      * 延迟消费 获取推送客服中心数据状态
      *

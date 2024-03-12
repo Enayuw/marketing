@@ -3,7 +3,7 @@ sharding:
     datasource:
       names: ds0
       ds0:
-         url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+         url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
          username: u_pd_marketing
          password: M6teKbFVl1odfOCkC1JA
          type: com.alibaba.druid.pool.DruidDataSource
@@ -51,7 +51,8 @@ otherConfig:
   encodeMapping:
         appName: loan-warning
         appSecretKey: f15a1421ac95a284683688af14688b72
-
+cluster:
+  flag: ${CONF_CLUSTER}
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
 NAMESPACE: marketing-job-default

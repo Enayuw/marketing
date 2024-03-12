@@ -9,10 +9,7 @@ import com.br.marketing.service.MarketingSyncReportService;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.Map;
@@ -36,7 +33,7 @@ public class SyncReportController {
     @Resource
     private MarketingSyncReportService syncReportService;
 
-    @GetMapping("/getReportList")
+    @PostMapping("/getReportList")
     @ApiOperation(value = "客户上传数据统计报表列表", notes = "客户上传数据统计报表列表", httpMethod = "GET")
     @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
             , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
@@ -62,7 +59,7 @@ public class SyncReportController {
         return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
     }
 
-    @GetMapping("/getReportListTotal")
+    @PostMapping("/getReportListTotal")
     @ApiOperation(value = "客户上传数据统计报表总计", notes = "客户上传数据统计报表列表总计", httpMethod = "GET")
     @ApiImplicitParams({@ApiImplicitParam(name = "cidOrName", value = "客户名称/客户编号",paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "appletTimeStart", value = "上传日期开始",paramType = "query", dataType = "string")
@@ -95,6 +92,28 @@ public class SyncReportController {
         }catch (Exception e){
             log.warn("手动执行上传数据统计报表任务异常");
             return new ApiResult<Boolean>().fail("手动执行上传数据统计报表任务异常,请稍后再试！");
+        }
+    }
+
+    @ApiOperation(value = "修改有效期记录", notes = "修改有效期记录")
+    @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "id", required = true, dataType = "Long")
+            , @ApiImplicitParam(name = "validStartDate", value = "生效开始日期", required = true, paramType = "query", dataType = "String")
+            , @ApiImplicitParam(name = "validEndDate", value = "生效结束日期", required = true, paramType = "query", dataType = "String")
+    })
+    @GetMapping("/updateValidity")
+    public ApiResult<Boolean> updateValidity(@RequestParam Long id
+            , @RequestParam String validStartDate
+            , @RequestParam String validEndDate) {
+        try {
+            boolean flag = syncReportService.updateById(id, validStartDate, validEndDate);
+            if (flag) {
+                return new ApiResult<Boolean>().success(true, "操作成功！");
+            } else {
+                return new ApiResult<Boolean>().fail(false, "操作失败！");
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
     }
 

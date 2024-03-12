@@ -29,7 +29,7 @@ public class XieChengSmsCollidingData {
     private String sha256CodeList;
 
     /**
-     * 状态 1-未推送；2-推送
+     * 备用字段
      */
     private Integer pushStatus;
 
@@ -57,6 +57,21 @@ public class XieChengSmsCollidingData {
      * 修改时间
      */
     private Date updateTime;
+
+    /**
+     * 
+     */
+    private Integer createDate;
+
+    /**
+     * 周期天数 7 = 1+6 
+     */
+    private Integer cycleDate;
+
+    /**
+     * 重试次数
+     */
+    private Integer retryCount;
 
     /**
      * 扩展字段
@@ -149,6 +164,30 @@ public class XieChengSmsCollidingData {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Integer getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Integer createDate) {
+        this.createDate = createDate;
+    }
+
+    public Integer getCycleDate() {
+        return cycleDate;
+    }
+
+    public void setCycleDate(Integer cycleDate) {
+        this.cycleDate = cycleDate;
+    }
+
+    public Integer getRetryCount() {
+        return retryCount;
+    }
+
+    public void setRetryCount(Integer retryCount) {
+        this.retryCount = retryCount;
     }
 
     public String getExtend() {

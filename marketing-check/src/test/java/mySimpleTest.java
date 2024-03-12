@@ -8,7 +8,7 @@
 //import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 //import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 //import com.br.marketing.mapper.TransferActionFrontMapper;
-//import com.br.marketing.service.Impl.TransferToFileByYiXinRealTimeServiceImpl;
+//import com.br.marketing.service.Impl.transfertofile.TransferToFileByYiXinRealTimeServiceImpl;
 //import org.junit.Test;
 //import org.junit.runner.RunWith;
 //import org.springframework.beans.factory.annotation.Autowired;

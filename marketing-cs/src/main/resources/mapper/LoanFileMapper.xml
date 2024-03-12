@@ -164,6 +164,21 @@
 			AND `api_code` =#{apiCode}
 		</if>
     </select>
+
+	<select id="queryFileById" resultType="com.br.marketing.entity.LoanFile" parameterType="java.lang.Long">
+		SELECT
+		id,
+		batch_number,
+		api_code,
+		`type`,
+		file_path,
+		create_time,
+		index_num
+		FROM
+		stra_his_file
+		WHERE
+		`status` = 1 and id = #{id}
+	</select>
 	<select id="queryUploadFile" resultType="com.br.marketing.entity.LoanFile" parameterType="java.lang.String">
 		SELECT
 		id,
@@ -217,20 +232,17 @@
 	</update>
 
 	<update id="updateStatus" parameterType="map">
-		UPDATE  stra_his_file
-		SET  status=2,
-		update_time=now()
-		where
-		api_code=#{apiCode}
-		AND
-		create_time>date_add(curdate(), interval -1 day)
-		<if test="fileName!=null">
-			AND zipFile_name=#{fileName}
+		UPDATE stra_his_file
+		SET status=2,
+			update_time=now()
+		where api_code = #{apiCode}
+		  AND create_time >= date_add(curdate(), interval -1 day)
+		<if test="fileName != null">
+			AND zipFile_name = #{fileName}
 		</if>
-		<if test="batchNumber!=null">
-			AND batch_number=#{batchNumber}
+		<if test="batchNumber != null">
+			AND batch_number = #{batchNumber}
 		</if>
-
 	</update>
 
 	<update id="update" parameterType="com.br.marketing.entity.LoanFile">

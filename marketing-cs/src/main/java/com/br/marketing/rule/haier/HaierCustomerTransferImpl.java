@@ -1,7 +1,7 @@
 package com.br.marketing.rule.haier;
 
 import com.alibaba.fastjson.JSON;
-import com.br.common.util.BrCipherMaker;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -10,7 +10,6 @@ import com.br.marketing.context.impl.HaiErRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
-import com.br.marketing.service.Impl.PushRuleServiceImpl;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
@@ -18,12 +17,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.regex.Pattern;
 
 
 @Service
@@ -31,6 +26,22 @@ import java.util.regex.Pattern;
 public class HaierCustomerTransferImpl implements AssembleData<ConversionData> {
 
     private static final String msTimeRegex = "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$";
+
+    private final DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    private Boolean dateCompare(LocalDate uploadDate, String otherTime) {
+        try {
+            if (com.br.common.util.StringUtils.isNotBlank(otherTime)) {
+                LocalDate otherDate = LocalDate.parse(otherTime.substring(0, 10), df);
+                if (otherDate.compareTo(uploadDate) >= 0) {
+                    return true;
+                }
+            }
+        } catch (Exception ex) {
+            log.error("海尔比较时间错误：" + ex.getMessage(), ex);
+        }
+        return false;
+    }
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
@@ -42,41 +53,38 @@ public class HaierCustomerTransferImpl implements AssembleData<ConversionData> {
             if (syncUser == null) {
                 return false;
             }
-            if ("4".equals(transferSyncUser.getUserType())) {
+            String upLoadDateStr = syncUser.getAppletDate();
+            LocalDate upLoadDate = LocalDate.parse(upLoadDateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            if ("4".equals(transferSyncUser.getUserType())
+                    && (dateCompare(upLoadDate, transferSyncUser.getLentTime()))) {
+                return true;
+            }
+            if ("4".equals(transferSyncUser.getUserType())
+                    && (dateCompare(upLoadDate, transferSyncUser.getApplyDt()))
+                    && "0".equals(transferSyncUser.getApplyResult())) {
+                return true;
+            }
+            try {
+                JSONObject jb = JSON.parseObject(transferSyncUser.getReserveField1());
+                if ("5".equals(transferSyncUser.getUserType()) && !StringUtils.isEmpty(transferSyncUser.getUnlentAmount())
+                        && new Double(0).equals(Double.valueOf(transferSyncUser.getUnlentAmount()))
+                        && jb != null && dateCompare(upLoadDate, jb.getString("applyLoanTime"))) {
+                    return true;
+                }
+            }catch (Exception ex){
+                log.error(ex.getMessage(),ex);
+            }
+            if ("3".equals(transferSyncUser.getUserType())
+                    && dateCompare(upLoadDate, transferSyncUser.getLentTime())
+                    && dateCompare(upLoadDate, transferSyncUser.getAuditTime())) {
                 return true;
             }
             if ("3".equals(transferSyncUser.getUserType())
-                    && org.apache.commons.lang3.StringUtils.isNotBlank(transferSyncUser.getAuditTime())
-                    && Pattern.compile(msTimeRegex).matcher(transferSyncUser.getAuditTime()).matches()
-                    && org.apache.commons.lang3.StringUtils.isNotBlank(transferSyncUser.getLentTime())
-                    && Pattern.compile(msTimeRegex).matcher(transferSyncUser.getLentTime()).matches()
-                    && "0".equals(transferSyncUser.getIfLent())) {
+                    && "0".equals(transferSyncUser.getApplyResult())
+                    && dateCompare(upLoadDate, transferSyncUser.getApplyDt())) {
                 return true;
             }
-            if (StringUtils.isEmpty(transferSyncUser.getApplyDt())) {
-                return false;
-            }
-            LocalDate applydt = LocalDate.parse(transferSyncUser.getApplyDt().substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            LocalDate appletDate = LocalDate.parse(syncUser.getAppletDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            if ("0".equals(transferSyncUser.getApplyResult()) && applydt.compareTo(appletDate) >= 0) {
-                return true;
-            }
-            if (StringUtils.isEmpty(transferSyncUser.getRegisterTime())
-                    && "1".equals(transferSyncUser.getApplyResult())
-                    && applydt.compareTo(appletDate) >= 0) {
-                return true;
-            }
-            if (!StringUtils.isEmpty(transferSyncUser.getRegisterTime())
-                    && Pattern.compile(msTimeRegex).matcher(transferSyncUser.getRegisterTime()).matches()
-                    && LocalDate.parse(transferSyncUser.getRegisterTime().substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd")).compareTo(appletDate)>=0
-                    && !StringUtils.isEmpty(transferSyncUser.getAuditTime())
-                    && LocalDate.parse(transferSyncUser.getAuditTime().substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd")).compareTo(appletDate)>=0
-                    && Pattern.compile(msTimeRegex).matcher(transferSyncUser.getAuditTime()).matches()
-                    && StringUtils.isEmpty(transferSyncUser.getLentTime())
-                    && "1".equals(transferSyncUser.getApplyResult())
-                    && applydt.compareTo(appletDate) >= 0) {
-                return true;
-            }
+
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
@@ -97,32 +105,12 @@ public class HaierCustomerTransferImpl implements AssembleData<ConversionData> {
                 return null;
             }
             String status = "0";
-//            if ("4".equals(transferSyncUser.getUserType())||"3".equals(transferSyncUser.getUserType())) {
-//                status = "0";
-//            } else {
-//                if (transferSyncUser.getApplyDt() == null) {
-//                    return null;
-//                }
-//                Date applydt = null;
-//                try {
-//                    applydt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(transferSyncUser.getApplyDt());
-//                    Date appletTime = syncUser.getAppletTime();
-//                    if ("0".equals(transferSyncUser.getApplyResult()) && applydt.compareTo(appletTime) > 0) {
-//                        status = "2";
-//                    }
-//                } catch (ParseException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//            if (StringUtils.isEmpty(status)) {
-//                return null;
-//            }
             ConversionData conversionData = new ConversionData();
             conversionData.setDataId(transferSyncUser.getId().toString());
             conversionData.setCid(transferSyncUser.getCid());
             conversionData.setCaseNum(transferSyncUser.getCustNum());
             conversionData.setGroupType(transferSyncUser.getUserType());
-            conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUser.getCell()));
+//            conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUser.getCell()));
             conversionData.setInversionStatus(status);
             if (!StringUtils.isEmpty(transferSyncUser.getCreateTime())) {
                 conversionData.setPartnerProcessDate(DateUtils.format(transferSyncUser.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));

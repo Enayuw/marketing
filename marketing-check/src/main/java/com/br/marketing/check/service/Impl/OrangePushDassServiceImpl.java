@@ -2,6 +2,8 @@ package com.br.marketing.check.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.check.service.OriginPeriodPredicateGetDataService;
+import com.br.marketing.check.service.OriginPeriodPredicateService;
 import com.br.marketing.check.service.OrangePushDassService;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
@@ -9,12 +11,15 @@ import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUserCell;
 import com.br.marketing.entity.MarketingTransferSyncUserExample;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.mapper.DataDistributeDetailLogMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.ArtificialBatchRealTimeDataHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +37,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 桔子推送电销 业务实现
@@ -54,6 +60,12 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
     @Resource
     private ArtificialBatchRealTimeDataHandler artificialBatchRealTimeDataHandler;
 
+
+    @Resource
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
+
+    @Resource
+    private DataDistributeDetailLogMapper dataDistributeDetailLogMapper;
     @Value("${api.dass.aesKey:}")
     private String aesKey;
 
@@ -86,6 +98,68 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
                 , dxTypeA, statusList);
     }
 
+    @Override
+    public void transferPeriodToPushDaas(String tcid, String apiCode, String status,
+                                         List<OriginPeriodPredicateService> juZiPeriodPredicateServiceList,
+                                         List<OriginPeriodPredicateGetDataService> originPeriodPredicateGetDataServices) {
+
+        boolean ruleContinue = Boolean.TRUE;
+        Long minId = null;
+        while (ruleContinue) {
+
+            List<MarketingTransferSyncUser> juZiRuleDataList = new ArrayList<>();
+            // 获取需要处理的数据  a,b,c,d 4种情况。
+            for (int i = 0; i < originPeriodPredicateGetDataServices.size(); i++) {
+                juZiRuleDataList = originPeriodPredicateGetDataServices.get(i).getJuZiRuleData(status, tcid,apiCode, minId);
+                if(juZiRuleDataList.size() > 0) break;
+            }
+            if (juZiRuleDataList.size() == 0) {
+                ruleContinue = Boolean.FALSE;
+                continue;
+            }
+            minId = juZiRuleDataList.get(juZiRuleDataList.size() - 1).getId() + 1;
+
+            // 1. 获取有效期内的最新的数据
+            List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists =
+                    juZiRuleDataList.stream().map(jz -> transferDataValidityPeriodService.getNewValidityPeriodTransferData(jz,null))
+                    .collect(Collectors.toList()).stream().filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            // 2. 批次内去重
+            Set<MarketingTransferSyncUserCell> marketingTransferSyncUserCellSet = new TreeSet<>(Comparator.comparing(MarketingTransferSyncUserCell::getCell));
+            marketingTransferSyncUserCellSet.addAll(marketingTransferSyncUserCellLists);
+
+
+            // 3. 情况b 和 c 要做剔除 < 1000
+            if ("b".equals(status) || "c".equals(status)) {
+                marketingTransferSyncUserCellSet.removeIf(m ->
+                        marketingTransferSyncUserMapper.getValidityPeriodData(tcid,apiCode,m.getCustNum())
+                                .stream().anyMatch(d -> transferDataValidityPeriodService.isValidityPeriod(d,null)));
+            }
+
+            if (marketingTransferSyncUserCellSet.size() > 0) {
+                // 获取cell set 集合
+                Set<String> cellSet = marketingTransferSyncUserCellSet.stream().map(MarketingTransferSyncUserCell::getCell).collect(Collectors.toSet());
+                // 查询电销推送日志表
+                Set<String> toDassLogInfoSet = phoneSaleExtendInfoMapper.getToDassLogInfoList(apiCode,cellSet);
+                // 查询决策推送日志表
+                Set<String> distributionToDassLogInfoSet = dataDistributeDetailLogMapper.getToDataDistributeInfoList(apiCode, cellSet);
+                // 合并2个集合
+                Set<String> resultSet = new HashSet<>();
+                Stream.of(toDassLogInfoSet, distributionToDassLogInfoSet).forEach(resultSet::addAll);
+
+                // 4. 剔除当天推过的数据。
+                marketingTransferSyncUserCellSet.removeIf(m -> resultSet.contains(m.getCell()));
+
+                // 5. 推送daas 、 决策
+                if (marketingTransferSyncUserCellSet.size() > 0) {
+                    juZiPeriodPredicateServiceList.forEach(juZiPeriodPredicateService -> juZiPeriodPredicateService.transferDataPeriod(apiCode,status, marketingTransferSyncUserCellSet));
+                }
+            }
+        }
+}
+
+
     /**
      * 2022/10/20 15:53
      * c1情况前置剔除条件
@@ -111,7 +185,7 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             } catch (Exception e) {
                 try {
                     applyLoanTimeLocalDate = LocalDateTime.parse(applyLoanTimeStr
-                            , DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT))
+                                    , DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT))
                             .toLocalDate().plusDays(day);
                     if (localDate.isBefore(applyLoanTimeLocalDate) || localDate.isEqual(applyLoanTimeLocalDate)) {
                         return true;

@@ -3,9 +3,9 @@ datasource:
     names: shardingmarketing,marketingTikiv,marketingTiFlash
     defaultSource: shardingmarketing
     shardingmarketing:
-      url: jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
       username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      password: f9daIYUIAXQkeyVbDoOI
       type: com.alibaba.druid.pool.DruidDataSource
       driver-class-name: com.mysql.jdbc.Driver
       isSharding: true
@@ -26,9 +26,9 @@ datasource:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
       username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      password: f9daIYUIAXQkeyVbDoOI
       initialSize: 5 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 5 # 最小连接池数量
       maxActive: 30 # 最大连接池数量
@@ -54,9 +54,9 @@ datasource:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://10.100.151.104:4020/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
       username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      password: f9daIYUIAXQkeyVbDoOI
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 4 # 最小连接池数量
       maxActive: 4 # 最大连接池数量
@@ -119,12 +119,33 @@ otherConfig:
 
 spring:
   rabbitmq:
-    addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
-    username: strategy_distribute
-    password: strategy_distribute
-    publisher-confirms: true
-    publisher-returns: true
-    virtual-host: marketing_juman
+    zw:
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
+      username: strategy_distribute
+      password: strategy_distribute
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-test
+    yz:
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
+      username: strategy_distribute
+      password: strategy_distribute
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-test
+    listener:
+      retry:
+        enabled: true
+        max-attempts: 5
+        initial-interval: 3000
+      acknowledge-mode: manual
+      default-requeue-rejected: false
+      auto-startup: true
+  web:
+    interceptors.enabled: true
+  sql.source: prod
+cluster:
+  flag: k8s-prod-d
 api:
   bi:
     baseUrl: http://script-govern-pre.100credit.cn

@@ -1,8 +1,9 @@
 package com.br.marketing.service.Impl;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.DataTypeEnum;
-import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.SyncConfig;
@@ -21,8 +22,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 
@@ -43,17 +46,17 @@ public class SyncConfigServiceImpl implements SyncConfigService {
     MarketingCommonConfig marketingCommonConfig;
 
     @Override
-    public PageResultReturn getSftpList(int page, int pageSize, String apiCode) {
+    public PageResultReturn getSftpList(int page, int pageSize, String apiCode, Integer dataType) {
         PageHelper.startPage(page, pageSize);
         try {
-            List<SyncConfigEditVO> list = syncConfigMapper.getSftpList(apiCode);
-            list.stream().map(syncConfigEditVO ->{
+            List<SyncConfigEditVO> list = syncConfigMapper.getSftpList(apiCode, dataType);
+            list.stream().map(syncConfigEditVO -> {
                 String s = DataTypeEnum.fromDescByValue(syncConfigEditVO.getDataType());
                 syncConfigEditVO.setDataTypeValue(s);
                 return syncConfigEditVO;
             }).collect(Collectors.toList());
 
-            return PageResultReturn.setPageResult(list, page,pageSize);
+            return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -61,21 +64,21 @@ public class SyncConfigServiceImpl implements SyncConfigService {
     }
 
     @Override
-    public List<Map> getDataTypeList(){
-        List<Map> list = new ArrayList<>();
-        for(DataTypeEnum typeEnum : DataTypeEnum.values()){
-            Map map = new HashMap();
-            map.put("value",typeEnum.getValue());
-            map.put("desc",typeEnum.getDesc());
-            list.add(map);
+    public JSONArray getDataTypeList() {
+        JSONArray typeList = new JSONArray();
+        for (DataTypeEnum typeEnum : DataTypeEnum.values()) {
+            JSONObject type = new JSONObject();
+            type.put("value", typeEnum.getValue());
+            type.put("desc", typeEnum.getDesc());
+            typeList.add(type);
         }
-        return list;
+        return typeList;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ApiResult<Boolean> copySftp(String id, String apiCode, String srcPath, String targePath
-            , Integer type, Integer dataType,
+        , Integer type, Integer dataType,
                                        String suffix, String srcSftpHost, Integer srcSftpPort, String srcSftpUser, String srcSftpPwd,
                                        String targetSftpHost, Integer targetSftpPort, String targetSftpUser, String targetSftpPwd) {
         SyncConfig syncConfig = syncConfigMapper.selectByPrimaryKey(Long.parseLong(id));
@@ -93,7 +96,7 @@ public class SyncConfigServiceImpl implements SyncConfigService {
 
         try {
             ConvertUtils.register(new DateConverter(null), java.util.Date.class);
-            BeanUtils.copyProperties(syncConfigNew,syncConfig);
+            BeanUtils.copyProperties(syncConfigNew, syncConfig);
             syncConfigNew.setApiCode(apiCode);
             syncConfigNew.setSrcPath(srcPath);
             syncConfigNew.setTargetPath(targePath);
@@ -110,13 +113,13 @@ public class SyncConfigServiceImpl implements SyncConfigService {
             syncConfigNew.setTargetSftpPwd(targetSftpPwd);
             syncConfigNew.setCreateTime(new Date());
             syncConfigNew.setUpdateTime(new Date());
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("复制sftp配置信息失败！");
             e.printStackTrace();
         }
         int insert = syncConfigMapper.insert(syncConfigNew);
 
-        if (StringUtils.isEmpty(insert)){
+        if (StringUtils.isEmpty(insert)) {
             log.error("复制sftp配置信息失败！");
         }
 
@@ -136,7 +139,7 @@ public class SyncConfigServiceImpl implements SyncConfigService {
         SyncConfig syncConfig = new SyncConfig();
 
         try {
-            BeanUtils.copyProperties(syncConfig,vo);
+            BeanUtils.copyProperties(syncConfig, vo);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (InvocationTargetException e) {
@@ -149,34 +152,34 @@ public class SyncConfigServiceImpl implements SyncConfigService {
         syncConfig.setType(vo.getType());
         syncConfig.setUpdateTime(new Date());
         int update = syncConfigMapper.updateByPrimaryKeySelective(syncConfig);
-        if (StringUtils.isEmpty(update) || update<=0){
+        if (StringUtils.isEmpty(update) || update <= 0) {
             log.error("编辑sftp配置信息失败！");
         }
         return new ApiResult<Boolean>().success(true);
     }
 
     //对aipCode,dataType,type判重
-    public boolean sftpOnly(String id,String aipCode,Integer dataType,Integer type){
+    public boolean sftpOnly(String id, String aipCode, Integer dataType, Integer type) {
         SyncConfigExample example = new SyncConfigExample();
         example.createCriteria().andApiCodeEqualTo(aipCode)
-                .andDataTypeEqualTo(dataType)
-                .andTypeEqualTo(type)
-                .andStatusEqualTo(1);
+            .andDataTypeEqualTo(dataType)
+            .andTypeEqualTo(type)
+            .andStatusEqualTo(1);
         List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(example);
-        if(StringUtils.isEmpty(id)){
+        if (StringUtils.isEmpty(id)) {
             //新增
-            if(syncConfigs.size() == 0){
+            if (syncConfigs.size() == 0) {
                 return true;
             }
             return false;
         }
         //编辑
-        if(syncConfigs != null && syncConfigs.size()>1){
-            log.error("apicode="+aipCode+",dataType="+dataType+",type="+type+"的配置存在多条！");
+        if (syncConfigs != null && syncConfigs.size() > 1) {
+            log.error("apicode=" + aipCode + ",dataType=" + dataType + ",type=" + type + "的配置存在多条！");
             return false;
         }
-        for (SyncConfig s : syncConfigs){
-            if(StringUtils.isNotEmpty(id) && id.equals(s.getId().toString())){
+        for (SyncConfig s : syncConfigs) {
+            if (StringUtils.isNotEmpty(id) && id.equals(s.getId().toString())) {
                 return true;
             }
         }
@@ -186,6 +189,12 @@ public class SyncConfigServiceImpl implements SyncConfigService {
     @Override
     public String getPath() {
         String nfsPath = marketingCommonConfig.getNfsPath();
-        return StringUtils.isBlank(nfsPath)?"/opt/data/inloan/download/marketing/":nfsPath;
+        return StringUtils.isBlank(nfsPath) ? "/opt/data/inloan/download/marketing/" : nfsPath;
+    }
+
+    @Override
+    public String getPullCustomerFilePath(String apiCode) {
+        return getPath().concat("pullCustomerFile")
+                .concat(File.separator).concat(apiCode).concat(File.separator);
     }
 }

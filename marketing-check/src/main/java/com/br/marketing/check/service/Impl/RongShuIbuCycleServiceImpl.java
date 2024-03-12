@@ -104,6 +104,11 @@ public class RongShuIbuCycleServiceImpl implements RongShuIbuCycleService {
                 //推电销时间置为null
                 extendInfo.setPushDxTime(null);
                 extendInfo.setStatus("b");
+                extendInfo.setInterfaceType((marketingCommonConfig.getRongShuPushNewIbuSwitch() != null && !marketingCommonConfig.getRongShuPushNewIbuSwitch())
+                        ? 2 : 1);
+                if (StringUtils.isBlank(datum.getGoalsApp())) {
+                    datum.setGoalsApp("01");
+                }
                 //构造推客服数据
                 ConversionData conversionData = new ConversionData();
                 conversionData.setCid(cId);

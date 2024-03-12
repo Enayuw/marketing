@@ -4,7 +4,6 @@ import com.br.grpc.encodemapping.EncodeMappingGrpc;
 import com.br.grpc.mom.broker_layer_api.BrokerLayerGrpc;
 import com.br.grpc.service.usercenterrely.UserCenterGreeterGrpc;
 import com.br.grpc.utils.BrGrpcUtils;
-import com.br.monitor.grpc.EnvUtil;
 import io.grpc.ManagedChannel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,9 +31,6 @@ public class GrpcClientInitConfig {
 
     @PostConstruct
     void init() throws Exception {
-        if (!isGrpc()) {
-            return;
-        }
         _environment = environment;
         if (isDomain()) {
             domainInit();
@@ -66,8 +62,8 @@ public class GrpcClientInitConfig {
 
             //策略
 //            StrategyClientGrpc.StrategyClientBlockingStub _strategyBlockingStub = (StrategyClientGrpc.StrategyClientBlockingStub)
-//                    BrGrpcUtils.newBlockStub(serviceName, managedChannels[i], UserCenterGreeterGrpc.class);
-//            _strategyBlockingStub.ping(com.br.grpc.encodemapping.PingRequest.newBuilder().build());
+//                    BrGrpcUtils.newBlockStub(DOMAIN_SERVICE_NAME, managedChannels[i], UserCenterGreeterGrpc.class);
+//            _strategyBlockingStub.ping(com.br.grpc.client.strategy.Request.newBuilder().build());
         }
     }
 
@@ -112,8 +108,4 @@ public class GrpcClientInitConfig {
         return "dev".equals(env) || "pre".equals(env);
     }
 
-    static Boolean isGrpc() {
-//        return true;
-        return "GRPC".equals(EnvUtil.getProperties("GRPC_MODE"));
-    }
 }

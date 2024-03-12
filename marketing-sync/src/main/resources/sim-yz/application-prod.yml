@@ -1,0 +1,68 @@
+sharding:
+  jdbc:
+    datasource:
+      names: ds0
+      ds0:
+         url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+         username: u_pd_marketing
+         password: qTODziGYQsq11aw8Js2V
+         type: com.alibaba.druid.pool.DruidDataSource
+         driver-class-name: com.mysql.jdbc.Driver
+         filters: stat
+         maxActive: 300
+         initialSize: 1
+         maxWait: 60000
+         minIdle: 1
+         timeBetweenEvictionRunsMillis: 60000
+         minEvictableIdleTimeMillis: 300000
+         validationQuery: select 'x'
+         testWhileIdle: true
+         testOnBorrow: false
+         testOnReturn: false
+         poolPreparedStatements: true
+         maxOpenPreparedStatements: 20
+    config:
+      sharding:
+        props:
+          sql.show: false
+        tables:
+          b_marketing_user:
+            table-strategy:
+              inline:
+                sharding-column: api_code
+                algorithm-expression: b_marketing_user_${api_code}
+logging:
+    level:
+        com.br.off.mapper: debug
+    file: ./logs/core.log
+    root: INFO
+otherConfig:
+  huaXiangInterface:
+        getReport: http://CLOUD-HX-RIBBON/huaxiang/v1/get_report
+  sanxiangzhiliInterface:
+        sanxiang_url: http://zh-service/v1/getData
+        haina_url: http://HAINA-SERVICE/query
+  alarm:
+        secretKey: b58783d4b67f942166f2ffad298080e4
+        appName: marketing
+        outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
+        outsideAppName: marketing-out
+  userCenter:
+        appName: loan-strategy
+        appSecretKey: 7357430aa11febfe81d45945c02706b3
+  warning:
+        pageSize: 5000
+        apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
+  encodeMapping:
+        appName: loan-warning
+        appSecretKey: a938d0e974746651a11ddcdbcea31404
+cluster:
+  flag: ${CONF_CLUSTER}
+#elastic-job配置
+SERVER_LISTS: pd-zk-yz-01.brapp.com:2181,pd-zk-yz-02.brapp.com:2181,pd-zk-yz-03.brapp.com:2181
+NAMESPACE: marketing-yz-job
+BASE_SLEEP_TIME_MILLISECONDS: 1000
+MAX_SLEEP_TIME_MILLISECONDS: 6000
+MAX_RETRIES: 3
+NESTED_PORT: -1
+NESTED_DATA_DIR: target/test_zk_data/

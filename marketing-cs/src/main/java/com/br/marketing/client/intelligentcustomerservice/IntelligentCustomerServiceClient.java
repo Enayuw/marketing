@@ -1,17 +1,20 @@
 package com.br.marketing.client.intelligentcustomerservice;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.counter.BrCounter;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
+import com.br.marketing.client.intelligentcustomerservice.output.PolicyResultByTaskIdsDTO;
+import com.br.marketing.client.net.ApiCaller;
 import com.br.marketing.client.net.ApiCallerUtil;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import com.br.marketing.entity.CustomerInfoPushLog;
 import com.br.marketing.mapper.CustomerInfoPushLogMapper;
 import com.br.marketing.mapper.InterfaceLogMapper;
+import com.br.marketing.monitor.PrometheusMonitorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +26,8 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.Properties;
 
 @Service
 public class IntelligentCustomerServiceClient {
@@ -76,6 +79,13 @@ public class IntelligentCustomerServiceClient {
             }
             if ("00".equals(jsonObject.getString("code"))) {
                 result.setCode(ResultCode.SUCCESS.getValue());
+                try {
+                    //调用数量监控
+                    BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME, dto.getApiCode(), "policy-api",
+                            pushNum);
+                } catch (Exception ex) {
+                    logger.error("推送决策接口统计异常" + ex.getMessage(), ex);
+                }
             } else {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
             }
@@ -101,12 +111,20 @@ public class IntelligentCustomerServiceClient {
             }
             if ("00".equals(jsonObject.getString("code"))) {
                 result.setCode(ResultCode.SUCCESS.getValue());
+                try {
+                    //监控
+                    PushMarketingUserTaskInfoDTO taskInfoDTO = (PushMarketingUserTaskInfoDTO) dto.getJsonData();
+                    BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME, dto.getApiCode(), "policy-api",
+                            taskInfoDTO.getData().size());
+                } catch (Exception ex) {
+                    logger.error("推送决策接口统计异常" + ex.getMessage(), ex);
+                }
             } else {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
             }
         } catch (Exception ex) {
             logger.error(ex.getMessage(),ex);
-            result.setDate(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
+            result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
         return result;
     }
@@ -130,4 +148,40 @@ public class IntelligentCustomerServiceClient {
         }
         return result;
     }
+
+    public Result<List<PolicyResultByTaskIdsDTO>> getTaskIdsResult(String apiCode, List<String> taskIds) {
+        PushMarketingUserDTO dto = new PushMarketingUserDTO();
+        JSONObject jsonData = new JSONObject();
+        jsonData.put("method", "uploadVerification");
+        JSONObject taskIdJsons = new JSONObject();
+        taskIdJsons.put("taskIds", taskIds);
+        jsonData.put("data", taskIdJsons);
+        dto.setJsonData(jsonData);
+        dto.setApiCode(apiCode);
+        dto.setPlatApiCode(customerServiceApiCode);
+        Result<List<PolicyResultByTaskIdsDTO>> result = new Result();
+        try {
+            ThirdApiResultTransfer transfer = new ApiCaller(restTemplate).setUrl(pushUrl)
+                    .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .setEncode(Boolean.TRUE)
+                    .setRequestParam(dto).postTransferStr();
+            JSONObject jsonObject = JSON.parseObject(transfer.getResult());
+            if (transfer.getHttpCode() != 200) {
+                result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(transfer.getResult());
+                return result;
+            }
+            if ("00".equals(jsonObject.getString("code"))) {
+                result.setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.parseArray(jsonObject.getJSONArray("data").toJSONString(),
+                        PolicyResultByTaskIdsDTO.class));
+            } else {
+                result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
+            }
+
+        } catch (Exception ex) {
+            result.setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
+        }
+        return result;
+    }
+
+
 }

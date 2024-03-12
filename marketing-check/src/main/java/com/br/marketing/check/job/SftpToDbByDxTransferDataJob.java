@@ -1,18 +1,20 @@
 package com.br.marketing.check.job;
 
 import com.br.marketing.check.dto.FileContext;
-import com.br.marketing.check.service.Impl.*;
+import com.br.marketing.check.service.Impl.SftpToDbByCommonService;
+import com.br.marketing.check.service.Impl.SftpToDbByDXService;
 import com.br.marketing.check.utils.SftpToDbUtils;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.*;
+import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.MarketingCustomerMapper;
+import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.IApiToDbService;
+import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.ITxtToDbService;
-import com.br.marketing.service.Impl.ValidDataAlarmServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -44,22 +46,6 @@ public class SftpToDbByDxTransferDataJob extends AbstractSimpleElasticJob {
     private String sftpUsername;
     @Value("${otherConfig.warning.sftpPwd:00}")
     private String sftpPwd;
-    @Resource
-    SftpToDbService sftpToDbService;
-    @Resource
-    MarketingTaskMapper marketingTaskMapper;
-    @Resource
-    MarketingTaskExtendMapper marketingTaskExtendMapper;
-    @Resource
-    RedisChgService redisChgService;
-    @Resource
-    MarketingUserMapper marketingUserMapper;
-    @Resource
-    ValidDataAlarmServiceImpl validDataAlarmService;
-    @Resource
-    FileCheckServiceImpl fileCheckService;
-    @Resource
-    DeleteService deleteService;
     @Autowired
     IApiToDbService iApiToDbService;
     @Resource
@@ -83,6 +69,8 @@ public class SftpToDbByDxTransferDataJob extends AbstractSimpleElasticJob {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
+    @Autowired
+    ICompatibleService iCompatibleService;
 
     /**
      * 1、先从customer读取客户
@@ -100,7 +88,7 @@ public class SftpToDbByDxTransferDataJob extends AbstractSimpleElasticJob {
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
-        List<String> apiCodes = marketingCustomers.stream().map(t -> t.getApiCode()).collect(Collectors.toList());
+        List<String> apiCodes = marketingCustomers.stream().filter(t->iCompatibleService.isAction(t.getExtendConfigInfo(),jobExecutionMultipleShardingContext.getJobName())).map(t -> t.getApiCode()).collect(Collectors.toList());
         SyncConfigExample syncConfigExample = new SyncConfigExample();
         syncConfigExample.createCriteria().andApiCodeIn(apiCodes).andStatusEqualTo(1)
                 .andDataTypeEqualTo(DataTypeEnum.DXTRANSFER.getValue()).andTypeEqualTo(1);

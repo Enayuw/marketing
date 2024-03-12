@@ -3,11 +3,16 @@ package com.br.marketing.client.intelligentcustomerservice.input;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.rule.SourceData;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * 用于规则流转进行组装的对象
  */
-@Data
+@Getter
+@Setter
+@ToString
 public class PushMarketingUserDetailByRuleDTO extends SourceData {
 
     /**
@@ -34,5 +39,16 @@ public class PushMarketingUserDetailByRuleDTO extends SourceData {
      * 触达策略
      */
     private String strategyCode;
+
+    /**
+     * 场景status
+     */
+    private String status;
+
+    /**
+     *手机号码 明文
+     * 用于存入b_data_distribute_detail_log表cell统一格式
+     */
+    private String cell;
 
 }

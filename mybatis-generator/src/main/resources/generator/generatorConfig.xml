@@ -5,7 +5,7 @@
 <!-- 配置生成器 -->
 <generatorConfiguration>
     <context id="DB2Tables" targetRuntime="MyBatis3">
-
+        <property name="javaFileEncoding" value="UTF-8"/>
         <!--        <commentGenerator>-->
         <!--            <property name="suppressDate" value="true"/>-->
         <!--            &lt;!&ndash; 是否去除自动生成的注释 true：是 ： false:否 &ndash;&gt;-->
@@ -29,9 +29,9 @@
 
         <!-- 数据库链接URL，用户名、密码 -->
         <jdbcConnection driverClass="com.mysql.jdbc.Driver"
-                        connectionURL="jdbc:mysql://10.100.151.104:4000/marketing"
+                        connectionURL="jdbc:mysql://tidb-pre.brapp.com:4000/marketing"
                         userId="u_pd_marketing"
-                        password="M6teKbFVl1odfOCkC1JA">
+                        password="f9daIYUIAXQkeyVbDoOI">
         </jdbcConnection>
 
         <!-- 类型转换 -->
@@ -59,13 +59,13 @@
         <!-- 要生成的表 tableName是数据库中的表名或视图名 domainObjectName是实体类名-->
         <!--        <table tableName="b_loan_task" domainObjectName="LoanTask" enableCountByExample="false" enableUpdateByExample="false"-->
         <!--               enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false">-->
-        <table tableName="b_phone_sale_ibu" domainObjectName="PhoneSaleIbu" >
+        <table tableName="b_tongcheng_agent_mtk_data" domainObjectName="TongChengAgentMtkData" >
 <!--            <property name="useActualColumnNames" value="false"/>-->
             <!-- 数据库表主键 自动返回主键值 -->
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
             <!--如果有超常字段 需要映射字段类型为VARCHAR-->
 
-            <columnOverride column="content" javaType="java.lang.String" jdbcType="VARCHAR" />
+            <columnOverride column="field_mapping" javaType="java.lang.String" jdbcType="VARCHAR" />
 <!--            <columnOverride column="content_show" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="result_content" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="error_content" javaType="java.lang.String" jdbcType="VARCHAR" />-->

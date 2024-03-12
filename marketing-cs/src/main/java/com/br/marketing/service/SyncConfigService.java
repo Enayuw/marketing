@@ -1,11 +1,9 @@
 package com.br.marketing.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.vo.SyncConfigEditVO;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * sftp账号配置业务接口
@@ -26,14 +24,19 @@ public interface SyncConfigService {
                                 String suffix, String srcSftpHost, Integer srcSftpPort, String srcSftpUser, String srcSftpPwd,
                                 String targetSftpHost, Integer targetSftpPort, String targetSftpUser, String targetSftpPwd);
 
+
     /**
-     * 复制sftp配置信息
-     * @param page
-     * @param pageSize
-     * @param apiCode
-     * @return
+     * 获取sftp列表
+     *
+     * @param page     页面
+     * @param pageSize 页面大小
+     * @param apiCode  apiCode
+     * @param dataType 文件类型
+     * @return {@link PageResultReturn }
+     * @author senyang.zheng
+     * @date 2023/09/12
      */
-    PageResultReturn getSftpList(int page, int pageSize, String apiCode);
+    PageResultReturn getSftpList(int page, int pageSize, String apiCode, Integer dataType);
 
     /**
      * 编辑sftp配置信息
@@ -42,7 +45,9 @@ public interface SyncConfigService {
      */
     ApiResult<Boolean> editSftp(SyncConfigEditVO vo);
 
-    List<Map> getDataTypeList();
+    JSONArray getDataTypeList();
 
     String getPath();
+
+    String getPullCustomerFilePath(String apiCode);
 }

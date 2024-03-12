@@ -174,7 +174,7 @@ public class HxUtil {
         try {
             result = restTemplate.postForObject(url, requestEntity, String.class);
         } catch (Exception e) {
-            log.warn(" 画像错误 ---{}---重试", paramMap.toString(), e);
+            log.warn(" 画像错误 ---api_code={}---重试", customer.getApiCode(), e);
             try {
                 result = restTemplate.postForObject(url, requestEntity, String.class);
                 log.warn(" 画像重试返回结果 ---{}", result);
