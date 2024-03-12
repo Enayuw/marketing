@@ -36,6 +36,7 @@ import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -338,26 +339,25 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
                 mark = Boolean.FALSE;
                 continue;
             }
+            Map<String,  List<MarketingTransferSyncUser>> userTypeMap = list.stream().collect(Collectors.groupingBy(MarketingTransferSyncUser::getUserType
+                    , Collectors.mapping(Function.identity(), Collectors.toList())));
             page++;
             threadPool.submit(() -> {
                 // 过滤有效期内数据
                 List<MarketingTransferSyncUser> periodList = new ArrayList<>(offset);
-
-                for (MarketingTransferSyncUser transferSyncUser : list) {
-                    HashSet<String> set = new HashSet<>();
-                    String custNum = transferSyncUser.getCustNum();
-                    String userType = transferSyncUser.getUserType();
-                    //判断转化数据是否在有效期内
-                    set.add(custNum);
+                userTypeMap.forEach((String userType,  List<MarketingTransferSyncUser> transferSyncUserList)->{
+                    Set<String> stringSet = transferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
                     Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService
-                            .getValidityPeriodsByCustNumAndUserType(set, userType, apiCode, localDate);
-                    SyncUserValidityPeriodsBO boMap = validityPeriodsByCustNum.get(custNum);
-                    if (boMap == null) {
-                        log.warn("{}:{}不满足案件编号“有效期内”条件", custNum, userType);
-                        continue;
+                            .getValidityPeriodsByCustNumAndUserType(stringSet, userType, apiCode, localDate);
+                    for (MarketingTransferSyncUser syncUser1 : transferSyncUserList) {
+                        SyncUserValidityPeriodsBO boMap = validityPeriodsByCustNum.get(syncUser1.getCustNum());
+                        if (boMap == null) {
+                            log.warn("{}:{}不满足案件编号“有效期内”条件", syncUser1.getCustNum(), userType);
+                            continue;
+                        }
+                        periodList.add(syncUser1);
                     }
-                    periodList.add(transferSyncUser);
-                }
+                });
 
                 for (MarketingTransferSyncUser data : periodList) {
                     String custNum = data.getCustNum();
