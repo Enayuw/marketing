@@ -1245,8 +1245,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                     .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
             dataInfoDTO.setArgList(collections);
+            dataInfoDTO.setRequestId(marketingSyncInfo.getRequestBatch());
             return dataInfoDTO.addUploadMsgSource();
-        });
+        }, MQConstants.ROUTING_KEY_MARKETING_UPLOAD_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS);
         MarketingSyncInfo updateSyncInfo = new MarketingSyncInfo();
         updateSyncInfo.setId(marketingSyncInfo.getId());
         updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_running);
@@ -1317,16 +1318,14 @@ public class PushRuleServiceImpl implements PushRuleService {
      * 上传数据发送场景消息到收集队列
      */
     private void sendUserTypeCollectionMsg(Map<String, UserTypeCollectionDTO> localUserTypeCache
-            , Function<Map<String, UserTypeCollectionDTO>, ApiDataInfoDTO<UserTypeCollectionDTO>> function) {
+            , Function<Map<String, UserTypeCollectionDTO>, ApiDataInfoDTO<UserTypeCollectionDTO>> function
+            , String routingKey) {
         String msg = "";
         try {
             msg = JSONArray.toJSONString(function.apply(localUserTypeCache));
-            producter.send(MQConstants.ROUTING_KEY_MARKETING_STANDARD_API_USERTYPE_COLLECTION
-                    , msg);
+            producter.send(routingKey, msg);
         } catch (Exception e) {
-            log.error("推送场景信息到队列失败,发送队列"
-                    + MQConstants.MARKETING_STANDARD_API_USERTYPE_COLLECTION + ",消息内容:" + msg
-                    + "\n" + e.getMessage(), e);
+            log.error("推送场景信息到队列失败,发送队列路由键" + routingKey + ",消息内容:" + msg + "\n" + e.getMessage(), e);
         } finally {
             // 辅助gc
             localUserTypeCache.clear();
@@ -1736,8 +1735,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             dataInfoDTO.setApiCode(transferInfo.getApiCode());
             dataInfoDTO.setRawDataSaveTimeStr(transferInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                     .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            dataInfoDTO.setRequestId(transferInfo.getRequestId());
             return dataInfoDTO.addTransferMsgSource();
-        });
+        }, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS);
     }
 
 
