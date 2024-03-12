@@ -86,7 +86,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
             List<List<DewuCollidingData>> dewuCollidingDataListPartition = Lists.partition(dewuCollidingDataList, 200);
             dewuCollidingDataListPartition.forEach((List<DewuCollidingData> p) -> {
                 List<Long> ids = p.stream().map(DewuCollidingData::getId).collect(Collectors.toList());
-                dewuCollidingDataMapper.updateBatchById(ids, 1,Integer.valueOf(currentDate));
+
                 Future<String> submit = deWuCollidingThread.submit(() -> pushDewuCollidingData(p, localFileId));
                 futureList.add(submit);
             });
@@ -295,6 +295,10 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                         .concat(mobile);
                 String value = UUID.randomUUID().toString();
             redisChgService.lock(key, value);
+                DewuCollidingData dewuCollidingDataUpdatePushStatus = new DewuCollidingData();
+                dewuCollidingDataUpdatePushStatus.setId(dewuCollidingData.getId());
+                dewuCollidingDataUpdatePushStatus.setStatus(1);
+                dewuCollidingDataMapper.updateByPrimaryKeySelective(dewuCollidingDataUpdatePushStatus);
                 DewuCollidingDataExample de = new DewuCollidingDataExample();
                 String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
                 de.createCriteria().andIsDeletedEqualTo(0)
@@ -304,8 +308,6 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                         .andMobileEqualTo(mobile);
                 int exitCount = dewuCollidingDataMapper.countByExample(de);
                 // 如果撞过则更新status  = 2 ,
-                DewuCollidingData dewuCollidingDataUpdatePushStatus = new DewuCollidingData();
-                dewuCollidingDataUpdatePushStatus.setId(dewuCollidingData.getId());
                 if (exitCount > 0) {
                     dewuCollidingDataUpdatePushStatus.setStatus(2);
                     dewuCollidingDataUpdatePushStatus.setPushStatus(3);
