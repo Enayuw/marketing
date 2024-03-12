@@ -334,13 +334,15 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
 
         while (mark) {
             List<MarketingTransferSyncUser> list = marketingTransferSyncUserMapper
-                    .getTransferByStartAndEndDate(syncUser, startDate.toString(), endDate.toString(), null, page * pageSize, pageSize);
+                    .getTransferByStartAndEndDate(syncUser, startDate.toString(), endDate.toString(), null
+                            , page * pageSize, pageSize);
             if (CollectionUtils.isEmpty(list)) {
                 mark = Boolean.FALSE;
                 continue;
             }
-            Map<String,  List<MarketingTransferSyncUser>> userTypeMap = list.stream().collect(Collectors.groupingBy(MarketingTransferSyncUser::getUserType
-                    , Collectors.mapping(Function.identity(), Collectors.toList())));
+            Map<String,  List<MarketingTransferSyncUser>> userTypeMap = list.stream()
+                    .collect(Collectors.groupingBy(MarketingTransferSyncUser::getUserType
+                            , Collectors.mapping(Function.identity(), Collectors.toList())));
             page++;
             threadPool.submit(() -> {
                 // 过滤有效期内数据
