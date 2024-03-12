@@ -357,7 +357,7 @@
       group by user_type
   </select>
 
-  <select id="getAppletDatetikv_" resultType="java.lang.String">
+  <select id="getAppletDate" resultType="java.lang.String">
     select applet_date
     from b_marketing_sync_${apiCode}
     where user_type = #{userType}

@@ -125,7 +125,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                         .plusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                                 String appletDateStart = LocalDate.parse(uploadDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                                         .minusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                                List<String> appletDateList = syncReportMapper.getAppletDatetikv_(apiCode, userType, createStartDate, createEndDate
+                                List<String> appletDateList = syncReportMapper.getAppletDate(apiCode, userType, createStartDate, createEndDate
                                         , appletDateStart);
                                 for (String appletDate : appletDateList) {
                                     //上传开始时间
