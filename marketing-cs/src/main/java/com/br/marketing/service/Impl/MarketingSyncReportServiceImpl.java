@@ -1,32 +1,46 @@
 package com.br.marketing.service.Impl;
 
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.br.marketing.mapper.*;
-import com.br.marketing.service.ValidityPeriodResendRecordService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.common.util.DateUtils;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.auth.AuthShowProductor;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
+import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.ICompatibleService;
+import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.MarketingSyncReportService;
+import com.br.marketing.service.ValidityPeriodResendRecordService;
 import com.br.marketing.vo.MarketingSyncReportNumVO;
 import com.br.marketing.vo.MarketingSyncReportVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -69,9 +83,24 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     @Resource
     ValidityPeriodResendRecordService recordService;
 
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
+
+    @Resource
+    private MarketingSyncUserMapper marketingSyncUserMapper;
+
+    @Resource
+    private RedisChgService redisChgService;
+
+    @Resource
+    private MarketingCustomerService marketingCustomerService;
+
+    @Resource
+    private PlatformTransactionManager platformTransactionManager;
+
     @Override
     public void syncReportProcess(String uploadDate, String jobName) {
-        this.doSyncReportProcess(uploadDate,null,jobName);
+        this.doSyncReportProcess(uploadDate, null, jobName);
     }
 
     /**
@@ -427,7 +456,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             entityOptService.writeOptLog(data.getId(), newData, data);
             if (i == 1){
                 log.warn("开始重推, apiCode={}, userType={}, id={}", apiCode, userType, newData.getId());
-                recordService.saveRecord(apiCode,userType,newData.getId());
+                recordService.saveRecord(apiCode, userType, newData.getId());
             }
             return true;
         } catch (Exception e) {
@@ -437,4 +466,162 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         }
     }
 
+    @Override
+    public Result<Boolean> nearRealtimeDataCountFragmentsStatis(String dataCountFragmentsMgs) {
+        Result<Boolean> result = new Result<>();
+        result.setCode(ResultCode.SUCCESS.getValue());
+        result.setDate(false);
+        if (StringUtils.isNotBlank(dataCountFragmentsMgs)) {
+            return result;
+        }
+        ApiDataInfoDTO<UserTypeCollectionDTO> apiDataInfoDTO = JSONObject.parseObject(dataCountFragmentsMgs
+                , new TypeReference<ApiDataInfoDTO<UserTypeCollectionDTO>>() {
+                }.getType());
+        String apiCode = apiDataInfoDTO.getApiCode();
+        if (StringUtils.isBlank(apiCode)) {
+            log.error("上传未获取到apiCode，消息内容：{}", dataCountFragmentsMgs);
+            return result;
+        }
+        String cId = StringUtils.isBlank(apiDataInfoDTO.getCid()) ? apiDataInfoDTO.getCid()
+                : tableCreateService.getCId(apiCode);
+        if (StringUtils.isBlank(cId)) {
+            log.error("上传未获取到cid，消息内容：{}", dataCountFragmentsMgs);
+            return result;
+        }
+        Set<String> userTypeSet = apiDataInfoDTO.getArgList().stream().map(UserTypeCollectionDTO::getUserType)
+                .collect(Collectors.toSet());
+        LocalDateTime rawDataSaveTime = LocalDateTime.parse(apiDataInfoDTO.getRawDataSaveTimeStr()
+                , DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        LocalDate rawDataSaveDate = rawDataSaveTime.toLocalDate();
+        String rawDataSaveDateStr = rawDataSaveDate.toString();
+        String requestId = apiDataInfoDTO.getRequestId();
+        MarketingCustomer customer = marketingCustomerService.getCacheCustomerByApiCode(apiCode);
+        StringBuilder redisKey = new StringBuilder(RedisKeyConstant.ASYNC_COUNT);
+        redisKey.append(cId).append(":").append(apiCode).append(":").append(rawDataSaveDateStr).append(":")
+                .append(apiDataInfoDTO.getMsgSource()).append(":");
+        if (apiDataInfoDTO.isUploadMsgSource()) {
+            if (CollectionUtils.isEmpty(userTypeSet)) {
+                userTypeSet = null;
+            }
+            List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.selectSyncUserByRequestBatchList(apiCode
+                    , requestId, userTypeSet, rawDataSaveDateStr);
+            if (CollectionUtils.isEmpty(syncUserList)) {
+                return result;
+            }
+            Map<String, MarketingSyncReport> userTypeMap = new HashMap<>();
+            for (MarketingSyncUser syncUser : syncUserList) {
+                String userType = syncUser.getUserType();
+                int n = syncUser.getStatus() == 1 && (syncUser.getIsRepeat() == 1 || syncUser.getIsRepeat() == 2) ? 1 : 0;
+                MarketingSyncReport syncReport = userTypeMap.getOrDefault(userType, new MarketingSyncReport());
+                syncReport.setId(syncUser.getId());
+                if (syncReport.getUserType() == null) {
+                    userTypeMap.put(syncUser.getUserType(), syncReport);
+                    syncReport.setApiCode(syncUser.getApiCode());
+                    syncReport.setCid(cId);
+                    syncReport.setUserType(userType);
+                    syncReport.setAppletDate(rawDataSaveDateStr);
+                    syncReport.setAppletBeginTime(syncUser.getCreateTime());
+                    syncReport.setAppletEndTime(syncReport.getAppletBeginTime());
+                    syncReport.setNormalNum(1);
+                    syncReport.setDuplicateRemovalNum(n);
+                    syncReport.setShortName(customer.getShortName());
+                } else {
+                    syncReport.setNormalNum(syncReport.getNormalNum() + 1);
+                    syncReport.setDuplicateRemovalNum(syncReport.getDuplicateRemovalNum() + n);
+                    syncReport.setAppletEndTime(syncUser.getCreateTime());
+                }
+            }
+            TransactionStatus transaction = platformTransactionManager.getTransaction(new DefaultTransactionDefinition());
+            try {
+                userTypeMap.forEach((String userType, MarketingSyncReport syncReport) -> {
+                    String hKey = redisKey + ":" + userType;
+                    String lockKey = hKey + ":lock";
+                    String lockValue = apiDataInfoDTO.getRawDataSaveTimeStr() + syncReport.getId();
+                    syncReport.setId(null);
+                    try {
+                        boolean lockExists = redisChgService.lock(lockKey, lockValue, 5000L);
+                        if (lockExists) {
+                            // 上锁
+                            Map<String, Object> cacheMap = redisChgService.hgetall(hKey);
+                            if (CollectionUtils.isEmpty(cacheMap)) {
+                                // 缓存不存在
+                                MarketingSyncReportExample example = new MarketingSyncReportExample();
+                                example.createCriteria().andApiCodeEqualTo(syncReport.getApiCode()).andCidEqualTo(syncReport.getCid())
+                                        .andUserTypeEqualTo(userType).andAppletDateEqualTo(syncReport.getAppletDate());
+                                List<MarketingSyncReport> syncReports = syncReportMapper.selectNumberByExample(example);
+                                if (CollectionUtils.isEmpty(syncReports)) {
+                                    // 未持久化
+                                    syncReport.setCreateTime(new Date());
+                                    syncReport.setUpdateTime(syncReport.getCreateTime());
+                                    int i = syncReportMapper.insertSelective(syncReport);
+                                    if (i > 0 && syncReport.getId() != null) {
+                                        MarketingSyncReport report = new MarketingSyncReport();
+                                        report.setId(syncReport.getId());
+                                        report.setNormalNum(syncReport.getNormalNum());
+                                        report.setDuplicateRemovalNum(syncReport.getDuplicateRemovalNum());
+                                        report.setAppletBeginTime(syncReport.getAppletBeginTime());
+                                        report.setAppletEndTime(syncReport.getAppletEndTime());
+                                        Map<String, Object> map = BeanUtil.beanToMap(report, false, true);
+                                        redisChgService.hmset(hKey, map);
+                                        redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
+                                        redisChgService.unlock(lockKey, lockValue);
+                                        return;
+                                    }
+                                } else {
+                                    // 已持久化
+                                    MarketingSyncReport syncReportOld = syncReports.get(0);
+                                    syncReportSummary(syncReport, syncReportOld);
+                                }
+                            } else {
+                                // 缓存
+                                MarketingSyncReport cacheSyncReport = BeanUtil.toBean(cacheMap, MarketingSyncReport.class);
+                                syncReportSummary(syncReport, cacheSyncReport);
+                            }
+                            int i = syncReportMapper.updateByPrimaryKeySelective(syncReport);
+                            if (i > 0) {
+                                Map<String, Object> updateMap = BeanUtil.beanToMap(syncReport, false, true);
+                                redisChgService.hmset(hKey, updateMap);
+                                redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
+                            } else {
+                                redisChgService.del(hKey);
+                            }
+                        }
+                    } finally {
+                        redisChgService.unlock(lockKey, lockValue);
+                    }
+                });
+                platformTransactionManager.commit(transaction);
+            } catch (Exception e) {
+                platformTransactionManager.rollback(transaction);
+                userTypeMap.keySet().forEach((String userType) -> {
+                    String key = redisKey + ":" + userType;
+                    try {
+                        redisChgService.del(key);
+                    } catch (Exception exception) {
+                        log.error(exception + "\n上传数据统计清理redis主键失败:" + key, exception);
+                    }
+                });
+                result.setCode(ResultCode.FAIL.getValue());
+                log.error(e.getMessage() + "\n" + dataCountFragmentsMgs, e);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 2024-03-12 15:01
+     * 汇总数据
+     *
+     * @param syncReport    目标记录
+     * @param syncReportOld 历史记录
+     */
+    private void syncReportSummary(MarketingSyncReport syncReport, MarketingSyncReport syncReportOld) {
+        syncReport.setNormalNum(syncReportOld.getNormalNum() + syncReport.getNormalNum());
+        syncReport.setDuplicateRemovalNum(syncReportOld.getNormalNum() + syncReport.getNormalNum());
+        syncReport.setAppletBeginTime(syncReportOld.getAppletBeginTime()
+                .before(syncReport.getAppletBeginTime()) ? null : syncReport.getAppletBeginTime());
+        syncReport.setAppletEndTime(syncReportOld.getAppletEndTime()
+                .after(syncReport.getAppletEndTime()) ? null : syncReport.getAppletEndTime());
+        syncReport.setId(syncReportOld.getId());
+    }
 }
