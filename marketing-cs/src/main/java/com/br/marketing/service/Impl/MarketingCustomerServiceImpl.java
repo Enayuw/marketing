@@ -1,6 +1,9 @@
 package com.br.marketing.service.Impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.TableCodeEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.EntityOptLog;
@@ -18,11 +21,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -40,6 +45,9 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
 
     @Resource
     private EntityOptLogMapper entityOptLogMapper;
+
+    @Resource
+    private RedisChgService redisChgService;
 
     @Override
     public List<CustomerSelectVO> getCidOrApiCodeList(String cid) {
@@ -198,5 +206,27 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
         }).collect(Collectors.toList());
 
         return vos;
+    }
+
+    @Override
+    public MarketingCustomer getCacheCustomerByApiCode(String apiCode) {
+        try {
+            Map<String, Object> hgetall = redisChgService.hgetall(RedisKeyConstant.CUSTOMER_INFO.concat(apiCode));
+            if (CollectionUtils.isEmpty(hgetall)) {
+                List<MarketingCustomer> customers = marketingCustomerMapper.getNameByApiCodeList(apiCode);
+                if (CollectionUtils.isEmpty(customers)) {
+                    return null;
+                }
+                MarketingCustomer customer = customers.get(0);
+                Map<String, Object> map = BeanUtil.beanToMap(customer);
+                redisChgService.hmset(RedisKeyConstant.CUSTOMER_INFO.concat(apiCode), map);
+                return customer;
+            }
+            return BeanUtil.toBean(hgetall, MarketingCustomer.class);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            List<MarketingCustomer> customers = marketingCustomerMapper.getNameByApiCodeList(apiCode);
+            return CollectionUtils.isEmpty(customers) ? null : customers.get(0);
+        }
     }
 }
