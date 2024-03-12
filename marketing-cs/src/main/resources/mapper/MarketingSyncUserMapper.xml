@@ -818,7 +818,24 @@
     <select id="getUserLastByCell" resultType="com.br.marketing.entity.MarketingSyncUser">
         select *
         from b_marketing_sync_${apiCode}
-        where `cell` = #{cell} and `status` =1
+        where `cell` = #{cell}
+          and `status` = 1
         order by applet_time desc limit 1
     </select>
+
+    <select id="selectSyncUserByRequestBatchList" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select user_type,status,is_repeat,create_time
+        from b_marketing_sync_${apiCode}
+        where api_code = '${apiCode}'
+        and request_batch = '${requestBatch}'
+        and applet_date = '${appletDate}'
+        <if test="userTypeSet != null">
+            and user_type in
+            <foreach collection="userTypeSet" open="(" close=")" separator="," item="userType">
+                '${userType}'
+            </foreach>
+        </if>
+        order by user_type,create_time;
+    </select>
+
 </mapper>

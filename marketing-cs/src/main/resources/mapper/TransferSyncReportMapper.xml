@@ -1,6 +1,36 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.TransferSyncReportMapper">
+    <sql id="Example_Where_Clause_1">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
     <select id="dateTimeMinMaxCountSMYtiflash_" resultType="com.br.marketing.entity.TransferSyncReport">
         select min(create_time) appletBeginTime, max(create_time) appletEndTime, count(*) dataCount
         from b_marketing_transfer_${apiCode}
@@ -73,4 +103,24 @@
             </if>
         </where>
     </sql>
+
+    <sql id="Base_Column_List_1">
+        id
+        , data_count, applet_begin_time, applet_end_time
+    </sql>
+    <select id="selectNumberByExample" resultMap="BaseResultMap"
+            parameterType="com.br.marketing.entity.MarketingSyncReportExample">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List_1"/>
+        from b_marketing_sync_report
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause_1"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
 </mapper>
