@@ -47,8 +47,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -91,8 +89,6 @@ public class VariableDicServiceImpl implements VariableDicService {
 
     @Resource
     private TransactionTemplate transactionTemplate;
-
-    private final static Lock LOCK = new ReentrantLock();
 
 
     @Override
@@ -225,7 +221,6 @@ public class VariableDicServiceImpl implements VariableDicService {
         if (!StringUtils.hasText(msgStr)) {
             return result;
         }
-        LOCK.lock();
         try {
             ApiDataInfoDTO<UserTypeCollectionDTO> apiDataInfoDTO = JSONObject.parseObject(msgStr
                     , new TypeReference<ApiDataInfoDTO<UserTypeCollectionDTO>>() {
@@ -302,8 +297,6 @@ public class VariableDicServiceImpl implements VariableDicService {
         } catch (Exception e) {
             log.error(e.getMessage() + "\n" + msgStr, e);
             result.setCode(ResultCode.FAIL.getValue());
-        } finally {
-            LOCK.unlock();
         }
         return result;
     }
