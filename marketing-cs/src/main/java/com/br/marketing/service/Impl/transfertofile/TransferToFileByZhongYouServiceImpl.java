@@ -76,7 +76,7 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
     final static String FILE_HEADER = "taskId,custNum,userType,customName,registerTime,ifLogin,loginTime," +
         "ifApply,applyDt,applyResult,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount," +
         "pushTime,loginChannel,auditRate,couponType,validityAmt,rateType,lentRate,validityRate,applyLentTime,cps," +
-        "lentAmountFirst,lentTimeFirst,cpsRate,fileName,firstName,gender,cell,extend01,extend01";
+        "lentAmountFirst,lentTimeFirst,cpsRate,fileName,firstName,gender,cell,extend01,extend02";
 
     @Override
     public String isMyParam(String apiCode, String jobParameter) {
