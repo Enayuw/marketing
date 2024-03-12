@@ -13,8 +13,8 @@
 		FROM
 		b_marketing_customer where api_code=#{apiCode}
 	</select>
-	<select id="getAllCustomerByResentlySyncInfotiflash_" resultType="com.br.marketing.entity.Customer">
-		SELECT *
+	<select id="getAllCustomerByResentlySyncInfotikv_" resultType="com.br.marketing.entity.Customer">
+		SELECT t1.*
 		FROM b_marketing_customer t1
 				 inner join (select api_code, row_number() over (partition by api_code order by create_time) as num
 							 from b_marketing_sync_info

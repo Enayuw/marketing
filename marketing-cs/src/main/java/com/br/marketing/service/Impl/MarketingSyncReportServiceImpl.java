@@ -97,7 +97,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             //1.获取所有客户
             customers.add(customerMapper.getCustomerByApiCode(apiCodes));
         } else {
-            customers = customerMapper.getAllCustomerByResentlySyncInfotiflash_();
+            customers = customerMapper.getAllCustomerByResentlySyncInfotikv_();
         }
         Map<String, Set<String>> userTypeMap = getUserTypeMap();
         CountDownLatch countDownLatch = new CountDownLatch(customers.size());
@@ -125,7 +125,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                         .plusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                                 String appletDateStart = LocalDate.parse(uploadDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                                         .minusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                                List<String> appletDateList = syncReportMapper.getAppletDatetiflash_(apiCode, userType, createStartDate, createEndDate, appletDateStart);
+                                List<String> appletDateList = syncReportMapper.getAppletDatetikv_(apiCode, userType, createStartDate, createEndDate, appletDateStart);
                                 for (String appletDate : appletDateList) {
                                     //上传开始时间
                                     String appletBeginTime = getAppletTime(apiCode, userType, appletDate, Boolean.TRUE);
