@@ -89,6 +89,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                 Future<String> submit = deWuCollidingThread.submit(() -> pushDewuCollidingData(p, localFileId));
                 futureList.add(submit);
             });
+            // 等待上面执行结束，确保下次循环开始时能正常查询已经撞得数据量
             for (int i = 0; i < futureList.size(); i++) {
                 Future<String> stringFuture = futureList.get(i);
                 try {
@@ -101,11 +102,6 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                 } catch (TimeoutException e) {
                     log.warn("TimeoutException:",e);
                 }
-            }
-            // 等待上面执行结束后重新查库，确保撞得数据不超限
-            int todayUploadCountAfter = dewuCollidingDataUploadSyncMapper.countByExample(dcuse);
-            if (todayUploadCountAfter >= marketingCommonConfig.getDeWuCollidingStopThresholdCount()) {
-                break;
             }
         }
         deWuCollidingThread.shutdown();
