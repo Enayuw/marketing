@@ -72,12 +72,12 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         String zhongAnRosterLockingTime = marketingCommonConfig.getZhongAnRosterLockingTime();
-//        LocalTime localTimeLockingTime = LocalTime.parse(StringUtils.isNotBlank(zhongAnRosterLockingTime)
-//                ? zhongAnRosterLockingTime : EXECUTE_TIME);
-//        if (LocalTime.now().isBefore(localTimeLockingTime)) {
-//            log.warn("【名单锁定推送众安】未到配置的运行时间:{}", zhongAnRosterLockingTime);
-//            return;
-//        }
+        LocalTime localTimeLockingTime = LocalTime.parse(StringUtils.isNotBlank(zhongAnRosterLockingTime)
+                ? zhongAnRosterLockingTime : EXECUTE_TIME);
+        if (LocalTime.now().isBefore(localTimeLockingTime)) {
+            log.warn(TITLE+"未到配置的运行时间:{}", zhongAnRosterLockingTime);
+            return;
+        }
 
         String parameter = shardingContext.getJobParameter();
         long start = System.currentTimeMillis();
@@ -117,7 +117,7 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             if (actionFrontList.size() > 0) {
                 TransferActionFront actionFront = actionFrontList.get(0);
                 if (2 == actionFront.getStatus()) {
-                    log.warn("api_code:{},biz_date:{}【名单锁定推送众安】该任务今日已经推送", apiCode, bizDate);
+                    log.warn(TITLE+"该任务今日已经推送"+"api_code:{}, biz_date:{}", apiCode, bizDate);
                     continue;
                 } else {
                     frontId = actionFront.getId();
@@ -155,7 +155,7 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             popCache(RedisKeyConstant.zhongAnblackCusNumToday, 3000);
         }
         long end = System.currentTimeMillis();
-        log.warn("【名单锁定推送众安】调度结束apiCodes:{},bizDate:{}，耗时:{}", Arrays.toString(list.toArray())
+        log.warn(TITLE+"调度结束apiCodes:{}, bizDate:{}, 耗时:{}", Arrays.toString(list.toArray())
                 , Arrays.toString(dateList.toArray()), end - start);
     }
 
@@ -187,7 +187,7 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
     private Result<?> action(String apiCode, String bizDate, String tag, Integer dataSource, String userType,
                              Page2Condition<ZhonganRosterLockingData> condition) {
         long start = System.currentTimeMillis();
-        log.info(TITLE+"开始"+"apiCode:{},bizDate:{},tag:{},dataSource:{},userType:{}",
+        log.info(TITLE+"action开始"+"apiCode:{}, bizDate:{}, tag:{}, dataSource:{}, userType:{}",
                 apiCode, bizDate, tag, dataSource, userType);
         ZhonganRosterLockingData param = new ZhonganRosterLockingData();
         param.setApiCode(apiCode);
@@ -199,11 +199,10 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
         condition.setParam(param);
         Result actionResult = zhongAnPushRosterDataHandler.action(condition);
         long end = System.currentTimeMillis();
-        log.info(TITLE+"结束"+"apiCode:{},bizDate:{},tag:{},dataSource:{},userType:{}"+"耗时:{}",
+        log.info(TITLE+"action结束"+"apiCode:{}, bizDate:{}, tag:{}, dataSource:{}, userType:{}, 耗时:{}",
                 apiCode, bizDate, tag, dataSource, userType, end - start);
         return actionResult;
     }
-
 
     private List<TransferActionFront> getActionFront(String apiCode, String bizDate) {
         TransferActionFrontExample example = new TransferActionFrontExample();

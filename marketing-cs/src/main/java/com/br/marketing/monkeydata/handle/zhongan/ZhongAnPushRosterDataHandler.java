@@ -51,8 +51,7 @@ import java.util.stream.Collectors;
 
 /**
  * 推送名单锁定数据到众安
- *
- * @author lixiang
+ * <p>部分逻辑从PushRosterLockingDataToZhongAnHandle直接迁移</p>
  * @dateTime 2024/03/09 11:43
  */
 @Service
@@ -113,13 +112,13 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
     public Result<?> customizedAction(Page2Condition<ZhonganRosterLockingData> condition) {
         Result<?> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
-        // TODO
+
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(2, 2, 10);
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(24, 24, new SynchronousQueue<>());
 
         ZhonganRosterLockingData conditionParam = condition.getParam();
 
-        // 营销日期集合, 根据条件查询, 条件 apiCode &bizDate &tag=CG、MG &pushStatus=1 &status=1 &sourceType=1,2
+        // 营销日期集合, 分组条件查询, 条件 apiCode &bizDate &tag=CG、MG &pushStatus=1 &status=1 &sourceType=1,2
         Set<String> bizDates = zhonganRosterLockingDataMapper.getBizDateListtikv_(conditionParam);
 
         List<Future<Result<List<ZhonganRosterLockingDataBO>>>> futureList = new ArrayList<>();
@@ -247,13 +246,12 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             Map<String, SyncUserValidityPeriodsBO> cellToSyncUserBoMap = transferDataValidityPeriodService
                     .getValidityPeriodsByCellAndUserType(cellSet, userType, apiCode, bizDate);
 
-            boolean isEmptyBO = CollectionUtils.isEmpty(cellToSyncUserBoMap);
             // 未获取到上传数据
-            if (isEmptyBO) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
-                        , "tag:" + tag + ",apiCode:" + apiCode + "未获取到上传数据或未配置有效期！"
-                        , apiCode + "," + tag + "锁定名单推送众安异常"));
-                if("MG".equals(tag)&&"7".equals(userType)) {
+            if (CollectionUtils.isEmpty(cellToSyncUserBoMap)) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode(),
+                        "tag:" + tag + ",apiCode:" + apiCode + "未获取到上传数据或未配置有效期！",
+                        apiCode + "," + tag + "锁定名单推送众安异常"));
+                if(judgeChangeStatus(pageParam)) {
                     List<Long> ids = pageList.parallelStream().map(ZhonganRosterLockingData::getId).collect(Collectors.toList());
                     updatePushStatusById(ids, 4);
                 }
@@ -269,7 +267,7 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             // 黑名单
             List<Long> hitBlackIds = new ArrayList<>();
 
-            // 有效期内assembleKeyToSyncUserMap, key: MobileMd5 + bizDate
+            // 有效期内assembleKeyToSyncUserMap, key: MobileMd5 + bizDate, value: MarketingSyncUser
             Map<String, MarketingSyncUser> keyToSyncUserMap = assembleKeyToSyncUserMap(pageList, md5ToLogMap,
                     cellToSyncUserBoMap, notValidityIds);
 
@@ -279,8 +277,8 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             switch (tag) {
                 // 对照组
                 case "CG":
-                    processCG(pageList, pageParam, md5ToLogMap, cellToSyncUserBoMap, notPushIds,
-                            notMarketingIds, pushList, pushConfig, iterator);
+                    processCG(pageList, pageParam, md5ToLogMap, cellToSyncUserBoMap, notPushIds, notMarketingIds,
+                            pushList, pushConfig, iterator);
                     break;
                 // 营销组
                 case "MG":
@@ -302,7 +300,7 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             List<Long> distributeIds = distributeSoleProcessor.process(pushList);
             notPushIds.addAll(distributeIds);
 
-            if("MG".equals(tag)&&"7".equals(userType)) {
+            if(judgeChangeStatus(pageParam)) {
                 updatePushStatusById(notValidityIds, 4);
             }
             updatePushStatusById(notPushIds, 8);
@@ -320,11 +318,14 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
         return result;
     }
 
+    /**
+     * 从历史@PushRosterLockingDataToZhongAnHandle迁移
+     * <p>为配置sonar扫描，提取方法，参数较多</p>
+     */
     private void processCG(List<ZhonganRosterLockingData> pageList, ZhonganRosterLockingData pageParam,
                            Map<String, String> md5ToLogMap, Map<String, SyncUserValidityPeriodsBO> cellToSyncUserBoMap,
                            List<Long> notPushIds, List<Long> notMarketingIds, List<ZhonganRosterLockingDataBO> pushList,
                            HashMap<String, JSONObject> pushConfig, Iterator<ZhonganRosterLockingData> iterator) {
-        MarketingSyncUser syncUser;
         String apiCode = pageParam.getApiCode();
         String tag = pageParam.getTag();
         String userType = pageParam.getUserType();
@@ -334,12 +335,16 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
         while (iterator.hasNext()) {
             ZhonganRosterLockingData next = iterator.next();
 
-            syncUser = collectNotPushIds(pushConfig, userType, notPushIds, next, cellToSyncUserBoMap, md5ToLogMap);
-            if(syncUser==null){
+            collectNotPushIds(pushConfig, userType, notPushIds, next);
+
+            // 不在有效期
+            String cell = md5ToLogMap.getOrDefault(next.getMobileMd5(),"");
+            SyncUserValidityPeriodsBO syncUserBO = cellToSyncUserBoMap.get(cell);
+            if(syncUserBO==null || syncUserBO.getSyncUsers().size()<1){
                 continue;
             }
+            MarketingSyncUser syncUser = syncUserBO.getSyncUsers().get(0);
 
-            String cell = md5ToLogMap.getOrDefault(next.getMobileMd5(), "");
             if (cellZkDateMap.contains(cell + next.getBizDate())) {
                 notMarketingIds.add(next.getId());
                 continue;
@@ -348,12 +353,15 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
         }
     }
 
+    /**
+     * 从历史@PushRosterLockingDataToZhongAnHandle迁移
+     * <p>为配置sonar扫描，提取方法，参数较多</p>
+     */
     private void processMG(List<ZhonganRosterLockingData> pageList, ZhonganRosterLockingData pageParam,
             Map<String, String> md5ToLogMap, Map<String, SyncUserValidityPeriodsBO> cellToSyncUserBoMap,
             List<Long> notPushIds, List<Long> hitBlackIds, Map<String, MarketingSyncUser> keyToSyncUserMap,
                            List<ZhonganRosterLockingDataBO> pushList, HashMap<String, JSONObject> pushConfig) {
         Iterator<ZhonganRosterLockingData> iterator = pageList.iterator();
-        MarketingSyncUser syncUser;
         String apiCode = pageParam.getApiCode();
         String tag = pageParam.getTag();
         String userType = pageParam.getUserType();
@@ -362,10 +370,15 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
         while (iterator.hasNext()) {
             ZhonganRosterLockingData next = iterator.next();
 
-            syncUser = collectNotPushIds(pushConfig, userType, notPushIds, next, cellToSyncUserBoMap, md5ToLogMap);
-            if(syncUser==null){
+            collectNotPushIds(pushConfig, userType, notPushIds, next);
+
+            // 不在有效期
+            String cell = md5ToLogMap.getOrDefault(next.getMobileMd5(),"");
+            SyncUserValidityPeriodsBO syncUserBO = cellToSyncUserBoMap.get(cell);
+            if(syncUserBO==null || syncUserBO.getSyncUsers().size()<1){
                 continue;
             }
+            MarketingSyncUser syncUser = syncUserBO.getSyncUsers().get(0);
 
             // 判断黑名单
             if (custNumBlackListSet.contains(syncUser.getCustNum() + next.getBizDate())) {
@@ -376,22 +389,12 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
         }
     }
 
-    private MarketingSyncUser collectNotPushIds(HashMap<String, JSONObject> pushConfig, String userType, List<Long> notPushIds,
-        ZhonganRosterLockingData next, Map<String, SyncUserValidityPeriodsBO> cellToSyncUserBoMap, Map<String, String> md5ToLogMap){
+    private void collectNotPushIds(HashMap<String, JSONObject> pushConfig, String userType, List<Long> notPushIds,
+        ZhonganRosterLockingData next){
         // 未配置可推送， 放入notPushIds
         if (!isEnablePushConfig(pushConfig, userType)) {
             notPushIds.add(next.getId());
-            return null;
         }
-
-        // 不在有效期
-        String cell = md5ToLogMap.getOrDefault(next.getMobileMd5(),"");
-        SyncUserValidityPeriodsBO syncUserBO = cellToSyncUserBoMap.get(cell);
-        if(syncUserBO==null || syncUserBO.getSyncUsers().size()<1){
-            return null;
-        }
-        MarketingSyncUser syncUser = syncUserBO.getSyncUsers().get(0);
-        return syncUser;
     }
 
     /**
@@ -403,6 +406,20 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             return true;
         }
         return false;
+    }
+
+    /**
+     * judgeChangeStatus
+     * <p>判断status置为4的条件</p>
+     */
+    private boolean judgeChangeStatus(ZhonganRosterLockingData pageParam) {
+        String tag = pageParam.getTag();
+        String userType = pageParam.getUserType();
+        Integer dataSource = pageParam.getDataSource();
+        boolean a = "CG".equals(tag) && "1".equals(String.valueOf(dataSource)) && "1".equals(userType);
+        boolean b = "MG".equals(tag) && "1".equals(String.valueOf(dataSource)) && "1".equals(userType);
+        boolean c = "MG".equals(tag) && "2".equals(String.valueOf(dataSource)) && "7".equals(userType);
+        return a || b || c;
     }
 
     /**
