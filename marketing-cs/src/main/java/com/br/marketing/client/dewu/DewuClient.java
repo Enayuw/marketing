@@ -47,7 +47,6 @@ public class DewuClient {
             resMap = buildMockResultMap(mobileList);
         }
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.error("得物撞库接口httpcode非200异常:{}", JSON.toJSONString(jsonObject));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(JSON.toJSONString(resMap));
         }
         String content = resMap.get("content");
@@ -57,8 +56,7 @@ public class DewuClient {
         if (code == 200) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(content);
         }
-        log.error("得物撞库接口code非200异常:{}", JSON.toJSONString(jsonObject));
-        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(JSON.toJSONString(resMap));
     }
 
     /**

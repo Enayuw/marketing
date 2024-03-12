@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
@@ -276,6 +277,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                 }
             } else {
                 // 返回异常  更新 data 表push_status  =3
+                log.error("得物撞库接口重试3次失败异常:{}", result.getData());
                 dewuCollidingDataMapper.updateBatchById(ids, 3,Integer.valueOf(currentDate));
             }
         }catch (Exception e){
