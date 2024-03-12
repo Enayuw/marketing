@@ -83,7 +83,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
             // 主要是为了判断异步执行是否完成（返回结果目前并没有实际意义）
             List<Future<String>> futureList = new ArrayList<>();
             List<List<DewuCollidingData>> dewuCollidingDataListPartition = Lists.partition(dewuCollidingDataList, 200);
-            dewuCollidingDataListPartition.forEach(p -> {
+            dewuCollidingDataListPartition.forEach((List<DewuCollidingData> p) -> {
                 List<Long> ids = p.stream().map(DewuCollidingData::getId).collect(Collectors.toList());
                 dewuCollidingDataMapper.updateBatchById(ids, 1,Integer.valueOf(currentDate));
                 Future<String> submit = deWuCollidingThread.submit(() -> pushDewuCollidingData(p, localFileId));
@@ -95,6 +95,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                     stringFuture.get(5, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     log.warn("InterruptedException:",e);
+                    Thread.currentThread().interrupt();
                 } catch (ExecutionException e) {
                     log.warn("InterruptedException:",e);
                 } catch (TimeoutException e) {
@@ -122,7 +123,8 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
     @Override
     public void collidingDataUploadSyncProcess() {
         ThreadPoolExecutor deWuCollidingDataUploadSyncThread =
-                BrExecutors.getThreadPool(marketingCommonConfig.getDeWuCollidingDataUploadSyncThread(), marketingCommonConfig.getDeWuCollidingDataUploadSyncThread());
+                BrExecutors.getThreadPool(marketingCommonConfig.getDeWuCollidingDataUploadSyncThread()
+                        , marketingCommonConfig.getDeWuCollidingDataUploadSyncThread());
 
         while (true) {
             String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -234,7 +236,8 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                     String mobile = returnMobileDataJson.getString("mobile");
 
                     // 若果返回的status =1 根据返回的mobile  从推送集合中匹配数据。
-                    DewuCollidingData dewuCollidingData = collidingDataMobileList.stream().filter((DewuCollidingData de) -> de.getMobile().equals(mobile)).findAny().orElse(null);
+                    DewuCollidingData dewuCollidingData = collidingDataMobileList.stream().
+                            filter((DewuCollidingData de) -> de.getMobile().equals(mobile)).findAny().orElse(null);
                     if (dewuCollidingData == null) {
                         log.error("得物撞库返回结果");
                         continue;
@@ -289,7 +292,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
         try {
             dewuCollidingDataList.forEach((DewuCollidingData dewuCollidingData) -> {
                 String mobile = dewuCollidingData.getMobile();
-                String key = RedisKeyConstant.pushDewuCollidingDataLock.concat(":")
+                String key = RedisKeyConstant.PUSH_DEWU_COLLIDING_DATA_LOCK.concat(":")
                         .concat(mobile);
                 String value = UUID.randomUUID().toString();
             redisChgService.lock(key, value);

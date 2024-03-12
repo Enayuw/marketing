@@ -151,5 +151,5 @@ public class RedisKeyConstant {
     /**
      * 得物撞库所
      */
-    public static final String pushDewuCollidingDataLock = prefix.concat("dewu:pushDewuCollidingDataLock");
+    public static final String PUSH_DEWU_COLLIDING_DATA_LOCK = prefix.concat("dewu:pushDewuCollidingDataLock");
 }
