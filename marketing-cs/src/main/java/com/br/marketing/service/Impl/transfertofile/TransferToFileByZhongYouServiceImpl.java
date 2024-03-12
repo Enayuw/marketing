@@ -248,8 +248,8 @@ public class TransferToFileByZhongYouServiceImpl implements ITransferToFileServi
                         .append(deleteNull(fileName))
                         .append(deleteNull(firstName))
                         .append(deleteNull(gender))
-                        .append(StringUtils.isNotEmpty(cell) ? cell : "")
-                        .append(StringUtils.isNotEmpty(extend01) ? extend01 : "")
+                        .append(deleteNull(cell))
+                        .append(deleteNull(extend01))
                         .append(StringUtils.isNotEmpty(extend02) ? extend02 : "");
                     sb.append("\r\n");
 
