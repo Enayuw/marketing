@@ -230,6 +230,10 @@ public class VariableDicServiceImpl implements VariableDicService {
                 log.error("未获取到apiCode，消息内容：{}", msgStr);
                 return result;
             }
+            if (CollectionUtils.isEmpty(apiDataInfoDTO.getArgList())) {
+                log.error("场景内容新增中，新增数量为0，消息内容：{}", msgStr);
+                return result;
+            }
             String cId = StringUtils.hasText(apiDataInfoDTO.getCid()) ? apiDataInfoDTO.getCid()
                     : tableCreateService.getCId(apiCode);
             if (StringUtils.isEmpty(cId)) {
@@ -296,7 +300,6 @@ public class VariableDicServiceImpl implements VariableDicService {
             }
         } catch (Exception e) {
             log.error(e.getMessage() + "\n" + msgStr, e);
-            result.setCode(ResultCode.FAIL.getValue());
         }
         return result;
     }
@@ -466,35 +469,41 @@ public class VariableDicServiceImpl implements VariableDicService {
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(false);
-        if (StringUtils.hasText(redisKey)) {
+        if (StringUtils.isEmpty(redisKey)) {
             return result;
         }
         Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
         Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.USERTYPE_ADD_SENDUSERTYPEADDDINGDINGMGS
                 .toString());
         if (CollectionUtils.isEmpty(map)) {
+            log.warn("场景告警redis主键：{}", redisKey);
             return result;
         }
-        Set<String> userTypeSet = redisChgService.smembers(redisKey);
-        if (CollectionUtils.isEmpty(userTypeSet)) {
-            return result;
-        }
-        String contentHeld = "apiCode  userType\n";
-        String content = "";
-        int count = 0;
-        for (String mgs : userTypeSet) {
-            count++;
-            content = content.concat(mgs).concat("\n");
-            if (count >= 100) {
-                count = 0;
+        try {
+            Set<String> userTypeSet = redisChgService.smembers(redisKey);
+            if (CollectionUtils.isEmpty(userTypeSet)) {
+                log.warn("场景告警redis主键{}中不存在内容！", redisKey);
+                return result;
+            }
+            String contentHeld = "apiCode  userType\n";
+            String content = "";
+            int count = 0;
+            for (String mgs : userTypeSet) {
+                count++;
+                content = content.concat(mgs).concat("\n");
+                if (count >= 100) {
+                    count = 0;
+                    sendDingDingTextMessage(contentHeld + content, map);
+                }
+            }
+            if (count > 0) {
                 sendDingDingTextMessage(contentHeld + content, map);
             }
+            // 清理
+            redisChgService.delBigSet(redisKey, 500);
+        } catch (Exception e) {
+            log.error(e.getMessage() + "\n" + redisKey, e);
         }
-        if (count > 0) {
-            sendDingDingTextMessage(contentHeld + content, map);
-        }
-        // 清理
-        redisChgService.delBigSet(redisKey, 500);
         return result;
     }
 
