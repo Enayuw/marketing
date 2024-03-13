@@ -294,17 +294,13 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                         .concat(mobile);
                 String value = UUID.randomUUID().toString();
                 redisChgService.lock(key, value);
-                log.warn("抢锁成功：{},{}",dewuCollidingData.getId(),key);
                 DewuCollidingData dewuCollidingDataUpdatePushStatus = new DewuCollidingData();
                 dewuCollidingDataUpdatePushStatus.setId(dewuCollidingData.getId());
                 dewuCollidingDataUpdatePushStatus.setPushDate(Integer.valueOf(currentDate));
                 dewuCollidingDataUpdatePushStatus.setPushStatus(1);
                 int i = dewuCollidingDataMapper.updateByPrimaryKeySelective(dewuCollidingDataUpdatePushStatus);
-                log.warn("是否更新成功：{},{}",dewuCollidingData.getId(),key);
                 if(i>0){
-                    log.warn("更新成功：{},{}",dewuCollidingData.getId(),key);
                     DewuCollidingDataExample de = new DewuCollidingDataExample();
-
                     de.createCriteria().andIsDeletedEqualTo(0)
                             .andPushStatusGreaterThan(0)
                             .andPushDateEqualTo(Integer.valueOf(currentDate))
@@ -313,16 +309,13 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                     int exitCount = dewuCollidingDataMapper.countByExample(de);
                     // 如果撞过则更新status  = 2 ,
                     if (exitCount > 0) {
-                        log.warn("数据重复：{},{}",dewuCollidingData.getId(),key);
                         dewuCollidingDataUpdatePushStatus.setStatus(2);
                         dewuCollidingDataUpdatePushStatus.setPushStatus(3);
                         dewuCollidingDataMapper.updateByPrimaryKeySelective(dewuCollidingDataUpdatePushStatus);
                     } else {
-                        log.warn("不重复：{},{}",dewuCollidingData.getId(),key);
                         collidingDataMobileList.add(dewuCollidingData);
                     }
                 }
-                log.warn("更新成功：{},{}",dewuCollidingData.getId(),key);
             redisChgService.unlock(key, value);
             });
         }catch (Exception e){
