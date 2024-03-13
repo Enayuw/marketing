@@ -84,7 +84,7 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
     @Resource
     private DistributeSoleProcessor distributeSoleProcessor;
 
-    private static final String TITLE = "众安锁定名单推送告警";
+    private static final String TITLE = "众安锁定名单推送";
 
     @Override
     public Result<IterationResult<ZhonganRosterLockingData, Page2Condition<ZhonganRosterLockingData>>> getInputData(

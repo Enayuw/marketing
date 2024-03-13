@@ -732,6 +732,17 @@ public class MethodRetryHandlerService {
     @RetryMethod(retryNowNum = 1, isOrNoDbRetry = true)
     public Result<?> callZhongAnData(ZaMarketDataBO bo, Integer retry) {
         Result<Object> result = new Result<>();
+
+        // 挡板，1：开启，0：关闭
+        String zhongAnPushMock = marketingCommonConfig.getZhongAnPushMock();
+        JSONObject jo = JSONObject.parseObject(zhongAnPushMock);
+        if("1".equals(jo.getString("pushSwitch"))){
+            log.warn("【众安锁定名单推送】"+"挡板开启, {}", JSONObject.toJSONString(jo));
+            updatePushStatus(bo, 2, null);
+            result.setCode(ResultCode.SUCCESS.getValue());
+            return result;
+        }
+
         Result<?> zhongAnResult = zhongAnClient.pushDetail(bo.getDataDTO());
         switch (zhongAnResult.getCode()) {
             case 500:

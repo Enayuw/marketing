@@ -763,6 +763,11 @@ public class MarketingCommonConfig {
      */
     private HashMap<String, JSONObject> zhongAnDetailPush;
 
+    /**
+     * 众安明细推送Mock挡板  1: 开启, 0: 关闭
+     * {"pushSwitch":"1","retCode":"1"}
+     */
+    private String zhongAnPushMock;
 
     /**
      * 永辉化数据提取apiCode
