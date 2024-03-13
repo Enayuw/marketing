@@ -733,7 +733,7 @@ public class MethodRetryHandlerService {
     public Result<?> callZhongAnData(ZaMarketDataBO bo, Integer retry) {
         Result<Object> result = new Result<>();
 
-        // 挡板，1：开启，0：关闭
+        // 众安明细推送Mock挡板，1：开启，0：关闭
         String zhongAnPushMock = marketingCommonConfig.getZhongAnPushMock();
         JSONObject jo = JSONObject.parseObject(zhongAnPushMock);
         if("1".equals(jo.getString("pushSwitch"))){

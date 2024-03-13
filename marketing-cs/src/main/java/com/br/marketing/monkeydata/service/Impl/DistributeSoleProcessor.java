@@ -27,7 +27,7 @@ public class DistributeSoleProcessor {
 
     public List<Long> process(List<ZhonganRosterLockingDataBO> pushList){
         List<Long> notPushIds = new ArrayList<>();
-        String key = RedisKeyConstant.dributeDataSloeLock;
+        String key = RedisKeyConstant.pushZhongAnDributeDataSloeLock;
         Integer distributeType = 2;
         Integer soleDay = 1;
 
@@ -37,8 +37,7 @@ public class DistributeSoleProcessor {
             ZhonganRosterLockingDataBO next = iterator.next();
             String apiCode = next.getApiCode();
             String cell = next.getSyncUser().getCell();
-            key = key.concat(String.format(":%d:%d:%s:%s", distributeType
-                    , soleDay, apiCode, cell));
+            key = key.concat(String.format(":%d:%d:%s:%s", distributeType, soleDay, apiCode, cell));
             UUID uuid = UUID.randomUUID();
             try {
                 redisChgService.lock(key, uuid.toString());
