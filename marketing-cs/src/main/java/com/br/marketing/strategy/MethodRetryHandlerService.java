@@ -378,12 +378,7 @@ public class MethodRetryHandlerService {
             }
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        if (("00".equals(reqBlackPhoneVO.getCode()) && (!CollectionUtils.isEmpty(reqBlackPhoneVO.getData())))
-                || "9999".equals(reqBlackPhoneVO.getCode())) {
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue())
-                    .setDate("9999".equals(reqBlackPhoneVO.getCode()) ? "9999" : "部分成功");
-        }
-        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(reqBlackPhoneVO.getCode());
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
     /**
