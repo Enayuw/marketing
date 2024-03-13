@@ -1,6 +1,8 @@
 package com.br.marketing.service.Impl;
 
-import cn.hutool.core.bean.BeanUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -18,6 +20,7 @@ import com.br.marketing.vo.MarketingCustomerListVO;
 import com.br.marketing.vo.MarketingCustomerVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -210,19 +213,23 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
 
     @Override
     public MarketingCustomer getCacheCustomerByApiCode(String apiCode) {
+        String redisKey = RedisKeyConstant.CUSTOMER_INFO.concat(apiCode);
         try {
-            Map<String, Object> hgetall = redisChgService.hgetall(RedisKeyConstant.CUSTOMER_INFO.concat(apiCode));
+            Map<String, Object> hgetall = redisChgService.hgetall(redisKey);
             if (CollectionUtils.isEmpty(hgetall)) {
                 List<MarketingCustomer> customers = marketingCustomerMapper.getNameByApiCodeList(apiCode);
                 if (CollectionUtils.isEmpty(customers)) {
                     return null;
                 }
                 MarketingCustomer customer = customers.get(0);
-                Map<String, Object> map = BeanUtil.beanToMap(customer);
-                redisChgService.hmset(RedisKeyConstant.CUSTOMER_INFO.concat(apiCode), map);
+                redisChgService.hmset(redisKey, JSONObject.parseObject(JSON.toJSONString(customer)
+                        , new TypeReference<Map<String, String>>() {
+                        }));
+                redisChgService.expire(redisKey, RandomUtils.nextInt(3600 * 24 * 3, 3600 * 24 * 7));
                 return customer;
             }
-            return BeanUtil.toBean(hgetall, MarketingCustomer.class);
+            return JSONObject.parseObject(JSON.toJSONString(hgetall), new TypeReference<MarketingCustomer>() {
+            });
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             List<MarketingCustomer> customers = marketingCustomerMapper.getNameByApiCodeList(apiCode);
