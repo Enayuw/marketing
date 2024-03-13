@@ -1,6 +1,6 @@
 package com.br.marketing.service.Impl;
 
-import cn.hutool.core.bean.BeanUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.RedisChgService;
@@ -270,7 +270,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
         Result<Boolean> result = new Result<>();
         result.setDate(false);
         result.setCode(ResultCode.SUCCESS.getValue());
-        if (StringUtils.isNotBlank(dataCountFragmentsMgs)) {
+        if (StringUtils.isBlank(dataCountFragmentsMgs)) {
             return result;
         }
         ApiDataInfoDTO<UserTypeCollectionDTO> apiDataInfoDTO = JSONObject.parseObject(dataCountFragmentsMgs
@@ -281,8 +281,8 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
             log.error("转化未获取到apiCode，消息内容：{}", dataCountFragmentsMgs);
             return result;
         }
-        String cId = StringUtils.isBlank(apiDataInfoDTO.getCid()) ? apiDataInfoDTO.getCid()
-                : tableCreateService.getCId(apiCode);
+        MarketingCustomer customer = marketingCustomerService.getCacheCustomerByApiCode(apiCode);
+        String cId = StringUtils.isNotBlank(apiDataInfoDTO.getCid()) ? apiDataInfoDTO.getCid() : customer.getCid();
         if (StringUtils.isBlank(cId)) {
             log.error("转化未获取到cid，消息内容：{}", dataCountFragmentsMgs);
             return result;
@@ -290,11 +290,11 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
         LocalDateTime rawDataSaveTime = LocalDateTime.parse(apiDataInfoDTO.getRawDataSaveTimeStr()
                 , DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         String requestDateStr = rawDataSaveTime.toLocalDate().toString();
+        String yyyymmdd = rawDataSaveTime.format(DateTimeFormatter.BASIC_ISO_DATE);
         StringBuilder redisKey = new StringBuilder(RedisKeyConstant.ASYNC_COUNT);
-        redisKey.append(cId).append(":").append(apiCode).append(":").append(requestDateStr).append(":")
+        redisKey.append(cId).append(":").append(apiCode).append(":").append(yyyymmdd).append(":")
                 .append(apiDataInfoDTO.getMsgSource()).append(":");
         if (apiDataInfoDTO.isTransferMsgSource()) {
-            MarketingCustomer customer = marketingCustomerService.getCacheCustomerByApiCode(apiCode);
             String requestId = apiDataInfoDTO.getRequestId();
             Set<String> userTypeSet = apiDataInfoDTO.getArgList().stream().map(UserTypeCollectionDTO::getUserType)
                     .collect(Collectors.toSet());
@@ -302,7 +302,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                 userTypeSet = null;
             }
             List<TransferSyncReport> syncUserList = marketingTransferSyncUserMapper.selectTransferSyncReportByRequestIdCount(
-                    apiCode, tableCreateService.getTcId(apiCode), requestId, userTypeSet, requestDateStr);
+                    apiCode, cId.replaceAll("-", ""), requestId, userTypeSet, requestDateStr);
             if (CollectionUtils.isEmpty(syncUserList)) {
                 return result;
             }
@@ -310,59 +310,60 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
             try {
                 for (TransferSyncReport transferSyncReport : syncUserList) {
                     String userType = transferSyncReport.getUserType();
-                    String hKey = redisKey + ":" + userType;
+                    String hKey = redisKey + userType;
                     String lockKey = hKey + ":lock";
                     String lockValue = apiDataInfoDTO.getRawDataSaveTimeStr() + transferSyncReport.getId();
                     transferSyncReport.setId(null);
                     try {
-                        boolean lockExists = redisChgService.lock(lockKey, lockValue, 5000L);
-                        if (lockExists) {
-                            // 上锁
-                            Map<String, Object> cacheMap = redisChgService.hgetall(hKey);
-                            if (CollectionUtils.isEmpty(cacheMap)) {
-                                // 缓存不存在
-                                TransferSyncReportExample example = new TransferSyncReportExample();
-                                example.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cId)
-                                        .andUserTypeEqualTo(userType).andAppletDateEqualTo(requestDateStr);
-                                List<TransferSyncReport> syncReports = transferSyncReportMapper.selectNumberByExample(example);
-                                if (CollectionUtils.isEmpty(syncReports)) {
-                                    // 未持久化
-                                    transferSyncReport.setApiCode(apiCode);
-                                    transferSyncReport.setCid(cId);
-                                    transferSyncReport.setCreateTime(new Date());
-                                    transferSyncReport.setUpdateTime(transferSyncReport.getCreateTime());
-                                    transferSyncReport.setShortName(customer == null ? "" : customer.getShortName());
-                                    transferSyncReport.setAppletDate(requestDateStr);
-                                    int i = transferSyncReportMapper.insertSelective(transferSyncReport);
-                                    if (i > 0 && transferSyncReport.getId() != null) {
-                                        TransferSyncReport newReport = new TransferSyncReport();
-                                        newReport.setAppletBeginTime(transferSyncReport.getAppletBeginTime());
-                                        newReport.setId(transferSyncReport.getId());
-                                        newReport.setAppletEndTime(transferSyncReport.getAppletEndTime());
-                                        newReport.setDataCount(transferSyncReport.getDataCount());
-                                        Map<String, Object> map = BeanUtil.beanToMap(newReport, false, true);
-                                        redisChgService.hmset(hKey, map);
-                                        redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
-                                        redisChgService.unlock(lockKey, lockValue);
-                                        continue;
-                                    }
-                                } else {
-                                    // 已持久化
-                                    TransferSyncReport syncReportOld = syncReports.get(0);
-                                    transferSyncReportSummary(transferSyncReport, syncReportOld);
+                        redisChgService.lock(lockKey, lockValue);
+                        // 上锁
+                        Map<String, Object> cacheMap = redisChgService.hgetall(hKey);
+                        Map<String, String> jsonObject = null;
+                        if (CollectionUtils.isEmpty(cacheMap)) {
+                            // 缓存不存在
+                            TransferSyncReportExample example = new TransferSyncReportExample();
+                            example.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cId)
+                                    .andUserTypeEqualTo(userType).andAppletDateEqualTo(requestDateStr);
+                            List<TransferSyncReport> syncReports = transferSyncReportMapper.selectNumberByExample(example);
+                            if (CollectionUtils.isEmpty(syncReports)) {
+                                // 未持久化
+                                transferSyncReport.setApiCode(apiCode);
+                                transferSyncReport.setCid(cId);
+                                transferSyncReport.setCreateTime(new Date());
+                                transferSyncReport.setUpdateTime(transferSyncReport.getCreateTime());
+                                transferSyncReport.setShortName(customer == null ? "" : customer.getShortName());
+                                transferSyncReport.setAppletDate(requestDateStr);
+                                int i = transferSyncReportMapper.insertSelective(transferSyncReport);
+                                if (i > 0 && transferSyncReport.getId() != null) {
+                                    TransferSyncReport newReport = new TransferSyncReport();
+                                    newReport.setAppletBeginTime(transferSyncReport.getAppletBeginTime());
+                                    newReport.setId(transferSyncReport.getId());
+                                    newReport.setAppletEndTime(transferSyncReport.getAppletEndTime());
+                                    newReport.setDataCount(transferSyncReport.getDataCount());
+                                    redisChgService.hmset(hKey, JSONObject.parseObject(JSON.toJSONString(newReport)
+                                            , new TypeReference<Map<String, String>>() {
+                                            }));
+                                    redisChgService.unlock(lockKey, lockValue);
+                                    redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
+                                    continue;
                                 }
                             } else {
-                                // 缓存
-                                TransferSyncReport cacheSyncReport = BeanUtil.toBean(cacheMap, TransferSyncReport.class);
-                                transferSyncReportSummary(transferSyncReport, cacheSyncReport);
+                                // 已持久化
+                                TransferSyncReport syncReportOld = syncReports.get(0);
+                                jsonObject = transferSyncReportSummary(transferSyncReport, syncReportOld, false);
                             }
-                            if (transferSyncReportMapper.updateByPrimaryKeySelective(transferSyncReport) > 0) {
-                                Map<String, Object> updateMap = BeanUtil.beanToMap(transferSyncReport, false, true);
-                                redisChgService.hmset(hKey, updateMap);
-                                redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
-                            } else {
-                                redisChgService.del(hKey);
-                            }
+                        } else {
+                            // 缓存
+                            TransferSyncReport cacheSyncReport = JSONObject.parseObject(JSON.toJSONString(cacheMap)
+                                    , new TypeReference<TransferSyncReport>() {
+                                    });
+                            jsonObject = transferSyncReportSummary(transferSyncReport, cacheSyncReport, true);
+                        }
+                        if (transferSyncReportMapper.updateByPrimaryKeySelective(transferSyncReport) > 0) {
+                            redisChgService.hmset(hKey, jsonObject);
+                            redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
+                        } else {
+                            redisChgService.del(hKey);
                         }
                     } finally {
                         redisChgService.unlock(lockKey, lockValue);
@@ -393,12 +394,41 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
      * @param syncReport    目标记录
      * @param syncReportOld 历史记录
      */
-    private void transferSyncReportSummary(TransferSyncReport syncReport, TransferSyncReport syncReportOld) {
+    private Map<String, String> transferSyncReportSummary(TransferSyncReport syncReport, TransferSyncReport syncReportOld
+            , boolean cacheBool) {
+        syncReport.setUserType(null);
+        syncReport.setCid(null);
+        syncReport.setAppletDate(null);
+        syncReport.setApiCode(null);
+        syncReport.setCreateTime(null);
+        syncReport.setShortName(null);
+        syncReport.setRemark(null);
         syncReport.setDataCount(syncReportOld.getDataCount() + syncReport.getDataCount());
-        syncReport.setAppletBeginTime(syncReportOld.getAppletBeginTime()
-                .before(syncReport.getAppletBeginTime()) ? null : syncReport.getAppletBeginTime());
-        syncReport.setAppletEndTime(syncReportOld.getAppletEndTime()
-                .after(syncReport.getAppletEndTime()) ? null : syncReport.getAppletEndTime());
-        syncReport.setId(syncReportOld.getId());
+        boolean beginBool = (syncReportOld.getAppletBeginTime().before(syncReport.getAppletBeginTime())
+                || syncReportOld.getAppletBeginTime().equals(syncReport.getAppletBeginTime()));
+        boolean endBool = (syncReportOld.getAppletEndTime().after(syncReport.getAppletEndTime())
+                || syncReportOld.getAppletEndTime().equals(syncReport.getAppletEndTime()));
+        String cacheString;
+        if (cacheBool) {
+            syncReport.setAppletBeginTime(beginBool ? null : syncReport.getAppletBeginTime());
+            syncReport.setAppletEndTime(endBool ? null : syncReport.getAppletEndTime());
+            cacheString = JSON.toJSONString(syncReport);
+            syncReport.setId(syncReportOld.getId());
+        } else {
+            syncReport.setAppletBeginTime(beginBool ? syncReportOld.getAppletBeginTime() : syncReport.getAppletBeginTime());
+            syncReport.setAppletEndTime(endBool ? syncReportOld.getAppletEndTime() : syncReport.getAppletEndTime());
+            syncReport.setId(syncReportOld.getId());
+            cacheString = JSON.toJSONString(syncReport);
+            if (endBool) {
+                syncReport.setAppletEndTime(null);
+            }
+            if (beginBool) {
+                syncReport.setAppletBeginTime(null);
+            }
+        }
+        Map<String, String> stringMap = JSONObject.parseObject(cacheString, new TypeReference<Map<String, String>>() {
+        });
+        syncReport.setUpdateTime(new Date());
+        return stringMap;
     }
 }

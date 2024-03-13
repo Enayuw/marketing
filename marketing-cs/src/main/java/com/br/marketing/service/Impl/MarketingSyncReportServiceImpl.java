@@ -1,7 +1,6 @@
 package com.br.marketing.service.Impl;
 
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -471,7 +470,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(false);
-        if (StringUtils.isNotBlank(dataCountFragmentsMgs)) {
+        if (StringUtils.isBlank(dataCountFragmentsMgs)) {
             return result;
         }
         ApiDataInfoDTO<UserTypeCollectionDTO> apiDataInfoDTO = JSONObject.parseObject(dataCountFragmentsMgs
@@ -482,8 +481,8 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             log.error("上传未获取到apiCode，消息内容：{}", dataCountFragmentsMgs);
             return result;
         }
-        String cId = StringUtils.isBlank(apiDataInfoDTO.getCid()) ? apiDataInfoDTO.getCid()
-                : tableCreateService.getCId(apiCode);
+        MarketingCustomer customer = marketingCustomerService.getCacheCustomerByApiCode(apiCode);
+        String cId = StringUtils.isNotBlank(apiDataInfoDTO.getCid()) ? apiDataInfoDTO.getCid() : customer.getCid();
         if (StringUtils.isBlank(cId)) {
             log.error("上传未获取到cid，消息内容：{}", dataCountFragmentsMgs);
             return result;
@@ -494,10 +493,10 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 , DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         LocalDate rawDataSaveDate = rawDataSaveTime.toLocalDate();
         String rawDataSaveDateStr = rawDataSaveDate.toString();
+        String yyyymmdd = rawDataSaveDate.format(DateTimeFormatter.BASIC_ISO_DATE);
         String requestId = apiDataInfoDTO.getRequestId();
-        MarketingCustomer customer = marketingCustomerService.getCacheCustomerByApiCode(apiCode);
         StringBuilder redisKey = new StringBuilder(RedisKeyConstant.ASYNC_COUNT);
-        redisKey.append(cId).append(":").append(apiCode).append(":").append(rawDataSaveDateStr).append(":")
+        redisKey.append(cId).append(":").append(apiCode).append(":").append(yyyymmdd).append(":")
                 .append(apiDataInfoDTO.getMsgSource()).append(":");
         if (apiDataInfoDTO.isUploadMsgSource()) {
             if (CollectionUtils.isEmpty(userTypeSet)) {
@@ -516,7 +515,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 syncReport.setId(syncUser.getId());
                 if (syncReport.getUserType() == null) {
                     userTypeMap.put(syncUser.getUserType(), syncReport);
-                    syncReport.setApiCode(syncUser.getApiCode());
+                    syncReport.setApiCode(apiCode);
                     syncReport.setCid(cId);
                     syncReport.setUserType(userType);
                     syncReport.setAppletDate(rawDataSaveDateStr);
@@ -534,57 +533,58 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             TransactionStatus transaction = platformTransactionManager.getTransaction(new DefaultTransactionDefinition());
             try {
                 userTypeMap.forEach((String userType, MarketingSyncReport syncReport) -> {
-                    String hKey = redisKey + ":" + userType;
+                    String hKey = redisKey + userType;
                     String lockKey = hKey + ":lock";
                     String lockValue = apiDataInfoDTO.getRawDataSaveTimeStr() + syncReport.getId();
                     syncReport.setId(null);
                     try {
-                        boolean lockExists = redisChgService.lock(lockKey, lockValue, 5000L);
-                        if (lockExists) {
-                            // 上锁
-                            Map<String, Object> cacheMap = redisChgService.hgetall(hKey);
-                            if (CollectionUtils.isEmpty(cacheMap)) {
-                                // 缓存不存在
-                                MarketingSyncReportExample example = new MarketingSyncReportExample();
-                                example.createCriteria().andApiCodeEqualTo(syncReport.getApiCode()).andCidEqualTo(syncReport.getCid())
-                                        .andUserTypeEqualTo(userType).andAppletDateEqualTo(syncReport.getAppletDate());
-                                List<MarketingSyncReport> syncReports = syncReportMapper.selectNumberByExample(example);
-                                if (CollectionUtils.isEmpty(syncReports)) {
-                                    // 未持久化
-                                    syncReport.setCreateTime(new Date());
-                                    syncReport.setUpdateTime(syncReport.getCreateTime());
-                                    int i = syncReportMapper.insertSelective(syncReport);
-                                    if (i > 0 && syncReport.getId() != null) {
-                                        MarketingSyncReport report = new MarketingSyncReport();
-                                        report.setId(syncReport.getId());
-                                        report.setNormalNum(syncReport.getNormalNum());
-                                        report.setDuplicateRemovalNum(syncReport.getDuplicateRemovalNum());
-                                        report.setAppletBeginTime(syncReport.getAppletBeginTime());
-                                        report.setAppletEndTime(syncReport.getAppletEndTime());
-                                        Map<String, Object> map = BeanUtil.beanToMap(report, false, true);
-                                        redisChgService.hmset(hKey, map);
-                                        redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
-                                        redisChgService.unlock(lockKey, lockValue);
-                                        return;
-                                    }
-                                } else {
-                                    // 已持久化
-                                    MarketingSyncReport syncReportOld = syncReports.get(0);
-                                    syncReportSummary(syncReport, syncReportOld);
+                        redisChgService.lock(lockKey, lockValue);
+                        // 上锁
+                        Map<String, Object> cacheMap = redisChgService.hgetall(hKey);
+                        Map<String, String> jsonObject = null;
+                        if (CollectionUtils.isEmpty(cacheMap)) {
+                            // 缓存不存在
+                            MarketingSyncReportExample example = new MarketingSyncReportExample();
+                            example.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cId)
+                                    .andUserTypeEqualTo(userType).andAppletDateEqualTo(rawDataSaveDateStr);
+                            List<MarketingSyncReport> syncReports = syncReportMapper.selectNumberByExample(example);
+                            if (CollectionUtils.isEmpty(syncReports)) {
+                                // 未持久化
+                                syncReport.setCreateTime(new Date());
+                                syncReport.setUpdateTime(syncReport.getCreateTime());
+                                int i = syncReportMapper.insertSelective(syncReport);
+                                if (i > 0 && syncReport.getId() != null) {
+                                    MarketingSyncReport report = new MarketingSyncReport();
+                                    report.setId(syncReport.getId());
+                                    report.setNormalNum(syncReport.getNormalNum());
+                                    report.setDuplicateRemovalNum(syncReport.getDuplicateRemovalNum());
+                                    report.setAppletBeginTime(syncReport.getAppletBeginTime());
+                                    report.setAppletEndTime(syncReport.getAppletEndTime());
+                                    redisChgService.hmset(hKey, JSONObject.parseObject(JSON.toJSONString(report)
+                                            , new TypeReference<Map<String, String>>() {
+                                            }));
+                                    redisChgService.unlock(lockKey, lockValue);
+                                    redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
+                                    return;
                                 }
                             } else {
-                                // 缓存
-                                MarketingSyncReport cacheSyncReport = BeanUtil.toBean(cacheMap, MarketingSyncReport.class);
-                                syncReportSummary(syncReport, cacheSyncReport);
+                                // 已持久化
+                                MarketingSyncReport syncReportOld = syncReports.get(0);
+                                jsonObject = syncReportSummary(syncReport, syncReportOld, false);
                             }
-                            int i = syncReportMapper.updateByPrimaryKeySelective(syncReport);
-                            if (i > 0) {
-                                Map<String, Object> updateMap = BeanUtil.beanToMap(syncReport, false, true);
-                                redisChgService.hmset(hKey, updateMap);
-                                redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
-                            } else {
-                                redisChgService.del(hKey);
-                            }
+                        } else {
+                            // 缓存
+                            MarketingSyncReport cacheSyncReport = JSONObject.parseObject(JSON.toJSONString(cacheMap)
+                                    , new TypeReference<MarketingSyncReport>() {
+                                    });
+                            jsonObject = syncReportSummary(syncReport, cacheSyncReport, true);
+                        }
+                        int i = syncReportMapper.updateByPrimaryKeySelective(syncReport);
+                        if (i > 0 && jsonObject != null) {
+                            redisChgService.hmset(hKey, jsonObject);
+                            redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
+                        } else {
+                            redisChgService.del(hKey);
                         }
                     } finally {
                         redisChgService.unlock(lockKey, lockValue);
@@ -614,14 +614,44 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
      *
      * @param syncReport    目标记录
      * @param syncReportOld 历史记录
+     * @return key filed; value value
      */
-    private void syncReportSummary(MarketingSyncReport syncReport, MarketingSyncReport syncReportOld) {
+    private Map<String, String> syncReportSummary(MarketingSyncReport syncReport, MarketingSyncReport syncReportOld
+            , boolean cacheBool) {
+        String cacheString;
+        syncReport.setUserType(null);
+        syncReport.setCid(null);
+        syncReport.setAppletDate(null);
+        syncReport.setApiCode(null);
+        syncReport.setCreateTime(null);
+        syncReport.setShortName(null);
+        syncReport.setRemark(null);
         syncReport.setNormalNum(syncReportOld.getNormalNum() + syncReport.getNormalNum());
-        syncReport.setDuplicateRemovalNum(syncReportOld.getNormalNum() + syncReport.getNormalNum());
-        syncReport.setAppletBeginTime(syncReportOld.getAppletBeginTime()
-                .before(syncReport.getAppletBeginTime()) ? null : syncReport.getAppletBeginTime());
-        syncReport.setAppletEndTime(syncReportOld.getAppletEndTime()
-                .after(syncReport.getAppletEndTime()) ? null : syncReport.getAppletEndTime());
-        syncReport.setId(syncReportOld.getId());
+        syncReport.setDuplicateRemovalNum(syncReportOld.getDuplicateRemovalNum() + syncReport.getDuplicateRemovalNum());
+        boolean beginBool = (syncReportOld.getAppletBeginTime().before(syncReport.getAppletBeginTime())
+                || syncReportOld.getAppletBeginTime().equals(syncReport.getAppletBeginTime()));
+        boolean endBool = (syncReportOld.getAppletEndTime().after(syncReport.getAppletEndTime())
+                || syncReportOld.getAppletEndTime().equals(syncReport.getAppletEndTime()));
+        if (cacheBool) {
+            syncReport.setAppletBeginTime(beginBool ? null : syncReport.getAppletBeginTime());
+            syncReport.setAppletEndTime(endBool ? null : syncReport.getAppletEndTime());
+            cacheString = JSON.toJSONString(syncReport);
+            syncReport.setId(syncReportOld.getId());
+        } else {
+            syncReport.setAppletBeginTime(beginBool ? syncReportOld.getAppletBeginTime() : syncReport.getAppletBeginTime());
+            syncReport.setAppletEndTime(endBool ? syncReportOld.getAppletEndTime() : syncReport.getAppletEndTime());
+            syncReport.setId(syncReportOld.getId());
+            cacheString = JSON.toJSONString(syncReport);
+            if (beginBool) {
+                syncReport.setAppletBeginTime(null);
+            }
+            if (endBool) {
+                syncReport.setAppletEndTime(null);
+            }
+        }
+        Map<String, String> stringMap = JSONObject.parseObject(cacheString, new TypeReference<Map<String, String>>() {
+        });
+        syncReport.setUpdateTime(new Date());
+        return stringMap;
     }
 }
