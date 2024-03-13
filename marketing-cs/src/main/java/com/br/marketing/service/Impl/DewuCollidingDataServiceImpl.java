@@ -210,7 +210,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                 pushCollidingDataProcessAfter(localFileId, result, collidingDataMobileList);
             }
         }catch (Exception e){
-            log.error("得物撞库异常，{}",e);
+            log.error("得物撞库异常",e);
         }
         return "";
     }
@@ -279,7 +279,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                 dewuCollidingDataMapper.updateBatchById(ids, 3,Integer.valueOf(currentDate));
             }
         }catch (Exception e){
-            log.error("得物撞库结果处理异常，{}",e);
+            log.error("得物撞库结果处理异常,{}",collidingDataMobileList,e);
         }
 
     }
@@ -297,29 +297,32 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                 DewuCollidingData dewuCollidingDataUpdatePushStatus = new DewuCollidingData();
                 dewuCollidingDataUpdatePushStatus.setId(dewuCollidingData.getId());
                 dewuCollidingDataUpdatePushStatus.setPushStatus(1);
-                dewuCollidingDataMapper.updateByPrimaryKeySelective(dewuCollidingDataUpdatePushStatus);
-                DewuCollidingDataExample de = new DewuCollidingDataExample();
-                String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-                de.createCriteria().andIsDeletedEqualTo(0)
-                        .andPushStatusGreaterThan(0)
-                        .andPushDateEqualTo(Integer.valueOf(currentDate))
-                        .andIdNotEqualTo(dewuCollidingData.getId())
-                        .andMobileEqualTo(mobile);
-                int exitCount = dewuCollidingDataMapper.countByExample(de);
-                // 如果撞过则更新status  = 2 ,
-                if (exitCount > 0) {
-                    log.warn("数据重复：{},{}",dewuCollidingData.getId(),key);
-                    dewuCollidingDataUpdatePushStatus.setStatus(2);
-                    dewuCollidingDataUpdatePushStatus.setPushStatus(3);
-                    dewuCollidingDataMapper.updateByPrimaryKeySelective(dewuCollidingDataUpdatePushStatus);
-                } else {
-                    log.warn("不重复：{},{}",dewuCollidingData.getId(),key);
-                    collidingDataMobileList.add(dewuCollidingData);
+                int i = dewuCollidingDataMapper.updateByPrimaryKeySelective(dewuCollidingDataUpdatePushStatus);
+                log.warn("是否更新成功：{},{}",dewuCollidingData.getId(),key);
+                if(i>0){
+                    DewuCollidingDataExample de = new DewuCollidingDataExample();
+                    String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+                    de.createCriteria().andIsDeletedEqualTo(0)
+                            .andPushStatusGreaterThan(0)
+                            .andPushDateEqualTo(Integer.valueOf(currentDate))
+                            .andIdNotEqualTo(dewuCollidingData.getId())
+                            .andMobileEqualTo(mobile);
+                    int exitCount = dewuCollidingDataMapper.countByExample(de);
+                    // 如果撞过则更新status  = 2 ,
+                    if (exitCount > 0) {
+                        log.warn("数据重复：{},{}",dewuCollidingData.getId(),key);
+                        dewuCollidingDataUpdatePushStatus.setStatus(2);
+                        dewuCollidingDataUpdatePushStatus.setPushStatus(3);
+                        dewuCollidingDataMapper.updateByPrimaryKeySelective(dewuCollidingDataUpdatePushStatus);
+                    } else {
+                        log.warn("不重复：{},{}",dewuCollidingData.getId(),key);
+                        collidingDataMobileList.add(dewuCollidingData);
+                    }
                 }
             redisChgService.unlock(key, value);
             });
         }catch (Exception e){
-            log.error("得物撞库程序前置处理异常，{}",e);
+            log.error("得物撞库程序前置处理异常,{}",dewuCollidingDataList,e);
         }
         return collidingDataMobileList;
     }
