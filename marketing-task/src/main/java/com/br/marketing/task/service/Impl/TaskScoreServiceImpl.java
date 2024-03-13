@@ -556,7 +556,11 @@ public class TaskScoreServiceImpl {
                         List<MarketingSyncUser> list = new ArrayList<>();
                         while (true) {
                             try {
-                                list = iDynamicSqlService.selectDataRuleScoreWithDate(blt.getApiCode(), conditionData, begin, isVerScore ? verNum : pageSize);
+                                list = iDynamicSqlService.
+                                        selectDataRuleScoreWithDate(blt.getApiCode()
+                                                , conditionData
+                                                , begin
+                                                , isVerScore ? verNum : pageSize);
                                 break;
                             } catch (Exception ex) {
                                 log.error(String.format("该跑分任务捞取数据异常：%s;错误信息：%s", blt.getBatchNumber(), ex.getMessage()), ex);
