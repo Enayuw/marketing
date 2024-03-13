@@ -412,7 +412,12 @@ public class RedisTestServiceImpl {
             redisChgService.sadd(key, strings1);
         }
 
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        BrRedisClient<String, String> marketingRedisClient = null;
+        try {
+            marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         String cursorIndex = "0";
         ScanCursor cursor = ScanCursor.of(cursorIndex);
         do {
