@@ -1338,6 +1338,31 @@ public class MarketingCommonConfig {
      */
     private String xieChengGroupSecret;
 
+    /**
+     * 得物撞库开关
+     * true 开启撞库  false  暂停撞库
+     */
+    private Boolean deWuCollidingSwitch;
+
+    /**
+     * 得物撞库线程池数
+     */
+    private Integer deWuCollidingThread;
+
+    /**
+     * 得物撞库数据上传线程池数
+     */
+    private Integer deWuCollidingDataUploadSyncThread;
+
+    /**
+     * 得物撞库apiCode
+     */
+    private String deWuCollidingAiCode;
+
+    /**
+     * 得物停止撞库量级
+     */
+    private Integer deWuCollidingStopCount;
 
     /**
      * 2024-03-01 15:12
@@ -1350,5 +1375,43 @@ public class MarketingCommonConfig {
     private Map<String, JSONObject> dingDingWebHookInfo = new ConcurrentHashMap<>();
 
 
+    /**
+     * 得物撞库limit 数量降级的量级
+     */
+    private Integer deWuCollidingStopThresholdCount;
+
+    /**
+     *  得物撞库url地址
+     */
+
+    private String deWuCollidingUrl;
+    /**
+     * 得物撞库appId
+     */
+    private String deWuAppId;
+    /**
+     * 得物撞库一次性从基表中获取数据量
+     */
+    private int deWuCollidingLimit = 10000;
+    /**
+     * 得物mock数据开关["开关","httpcode","code","status"],
+     * 样例：
+     *   deWuCollidingMockSwitch=["true","200","200","1"] 开启挡板，并且得到网络响应200,数据中code=200,status=1的样例数据
+     * 详解：
+     *   开关:
+     *     "true":开启挡板,使用测试数据
+     *     "false"关闭挡板,使用真实调用客户的返回结果
+     *   httpcode:
+     *     "200":返回httpcode=200的mock数据
+     *     "500":返回httpcode=500的mock数据
+     *     "1001":返回httpcode=1001的mock数据
+     *   code:
+     *     "200":返回code=200的mock数据
+     *     "401":返回code=401的签名认证失败的mock数据
+     *   status:
+     *     "0":status=0的mock数据
+     *     "1":status=1的mock数据
+     */
+    private List<String> deWuCollidingMockSwitch;
 }
 
