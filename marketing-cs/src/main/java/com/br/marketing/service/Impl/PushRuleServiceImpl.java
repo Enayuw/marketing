@@ -393,8 +393,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         try {
             String taskByPushRuleGetLock = RedisKeyConstant.taskByPushRuleGetLock.concat(":" + taskId);
             UUID uuid = UUID.randomUUID();
-            Long setnx = redisChgService.setnx(taskByPushRuleGetLock, uuid.toString(), 3);
-            if (setnx.equals(0l)) {
+            Boolean setnx = redisChgService.setnx(taskByPushRuleGetLock, uuid.toString(), 3);
+            if (!setnx) {
                 return null;
             }
             return uuid.toString();
@@ -645,7 +645,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         Integer realTotalNum = 0;
         CustomerInfoPushMain main = new CustomerInfoPushMain();
-        main.setmStatus(2);
+        main.setmStatus(PushRuleStatusEnum.TO_BE_CONFIRMED.getValue());
         ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum, 50);
         ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(getJcNum, getJcNum, 50);
         List<Future<List<Future<Result<Integer>>>>> res = new ArrayList<>();
@@ -682,7 +682,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 for (Future<Result<Integer>> pushFuture : futures) {
                     Result<Integer> pushRes = pushFuture.get();
                     if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
-                        main.setmStatus(3);
+                        main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
                     } else {
                         realTotalNum += pushRes.getData();
                     }
@@ -690,7 +690,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         } catch (Exception ex) {
             log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
-            main.setmStatus(3);
+            main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
         }
         try {
             actionEs.shutdown();
