@@ -300,6 +300,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                 int i = dewuCollidingDataMapper.updateByPrimaryKeySelective(dewuCollidingDataUpdatePushStatus);
                 log.warn("是否更新成功：{},{}",dewuCollidingData.getId(),key);
                 if(i>0){
+                    log.warn("更新成功：{},{}",dewuCollidingData.getId(),key);
                     DewuCollidingDataExample de = new DewuCollidingDataExample();
                     String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
                     de.createCriteria().andIsDeletedEqualTo(0)
@@ -319,6 +320,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                         collidingDataMobileList.add(dewuCollidingData);
                     }
                 }
+                log.warn("更新成功：{},{}",dewuCollidingData.getId(),key);
             redisChgService.unlock(key, value);
             });
         }catch (Exception e){
