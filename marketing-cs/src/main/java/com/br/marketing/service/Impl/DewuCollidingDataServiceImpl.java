@@ -85,8 +85,6 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
             List<Future<String>> futureList = new ArrayList<>();
             List<List<DewuCollidingData>> dewuCollidingDataListPartition = Lists.partition(dewuCollidingDataList, 200);
             dewuCollidingDataListPartition.forEach((List<DewuCollidingData> p) -> {
-                List<Long> ids = p.stream().map(DewuCollidingData::getId).collect(Collectors.toList());
-
                 Future<String> submit = deWuCollidingThread.submit(() -> pushDewuCollidingData(p, localFileId));
                 futureList.add(submit);
             });
@@ -297,7 +295,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
             redisChgService.lock(key, value);
                 DewuCollidingData dewuCollidingDataUpdatePushStatus = new DewuCollidingData();
                 dewuCollidingDataUpdatePushStatus.setId(dewuCollidingData.getId());
-                dewuCollidingDataUpdatePushStatus.setStatus(1);
+                dewuCollidingDataUpdatePushStatus.setPushStatus(1);
                 dewuCollidingDataMapper.updateByPrimaryKeySelective(dewuCollidingDataUpdatePushStatus);
                 DewuCollidingDataExample de = new DewuCollidingDataExample();
                 String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
