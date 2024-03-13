@@ -287,6 +287,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
     private List<DewuCollidingData> pushCollidingDataProcessBefore(List<DewuCollidingData> dewuCollidingDataList) {
         List<DewuCollidingData> collidingDataMobileList = new ArrayList<>();
         try {
+            String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             dewuCollidingDataList.forEach((DewuCollidingData dewuCollidingData) -> {
                 String mobile = dewuCollidingData.getMobile();
                 String key = RedisKeyConstant.PUSH_DEWU_COLLIDING_DATA_LOCK.concat(":")
@@ -296,13 +297,14 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                 log.warn("抢锁成功：{},{}",dewuCollidingData.getId(),key);
                 DewuCollidingData dewuCollidingDataUpdatePushStatus = new DewuCollidingData();
                 dewuCollidingDataUpdatePushStatus.setId(dewuCollidingData.getId());
+                dewuCollidingDataUpdatePushStatus.setPushDate(Integer.valueOf(currentDate));
                 dewuCollidingDataUpdatePushStatus.setPushStatus(1);
                 int i = dewuCollidingDataMapper.updateByPrimaryKeySelective(dewuCollidingDataUpdatePushStatus);
                 log.warn("是否更新成功：{},{}",dewuCollidingData.getId(),key);
                 if(i>0){
                     log.warn("更新成功：{},{}",dewuCollidingData.getId(),key);
                     DewuCollidingDataExample de = new DewuCollidingDataExample();
-                    String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+
                     de.createCriteria().andIsDeletedEqualTo(0)
                             .andPushStatusGreaterThan(0)
                             .andPushDateEqualTo(Integer.valueOf(currentDate))
