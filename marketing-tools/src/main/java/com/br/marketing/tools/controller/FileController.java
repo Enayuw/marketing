@@ -144,7 +144,7 @@ public class FileController {
         File file1 = new File(path);
         File[] files = file1.listFiles();
         for (File file : files) {
-            ExecutorService mergeExecutor = BrExecutors.getThreadPool(100, 100);
+            ExecutorService mergeExecutor = BrExecutors.getThreadPool(10, 10);
             String[] fileSplit = file.getPath().split("\\.");
             String wFilePath = fileSplit[0] + "_phoneAction." + fileSplit[1];
             File wFile = new File(wFilePath);
@@ -163,27 +163,47 @@ public class FileController {
                     Integer threaNum = rownum;
                     mergeExecutor.submit(()->{
                         try {
-                            if(new Integer(1).equals(threaNum)){
-//                                String[] split = content.split(",");
-                                StringBuilder sb = new StringBuilder();
-                                sb.append(content.trim());
-                                sb.append("\r\n");
-                                writer.append(sb.toString());
-                            }else{
-                                if(!"".equals(content.trim())||!"\"\"".equals(content.trim())){
-                                    String cell = RpcClientProxy.decode(content.trim(), "cell", "sha", "");
-                                    if(StringUtils.isBlank(cell)){
-                                        error.incrementAndGet();
-                                    }else{
-                                        String[] split = content.split(",");
-                                        StringBuilder sb = new StringBuilder();
-                                        sb.append(BrCipherMaker.getInstance().encode(cell));
-                                        sb.append("\r\n");
-                                        writer.append(sb.toString());
-                                        success.incrementAndGet();
-                                    }
-//
+//                            if(new Integer(1).equals(threaNum)){
+////                                String[] split = content.split(",");
+//                                StringBuilder sb = new StringBuilder();
+//                                sb.append(content.trim());
+//                                sb.append("\r\n");
+//                                writer.append(sb.toString());
+//                            }else{
+//                                if(!"".equals(content.trim())||!"\"\"".equals(content.trim())){
+//                                    String cell = RpcClientProxy.decode(content.trim(), "cell", "sha", "");
+//                                    if(StringUtils.isBlank(cell)){
+//                                        error.incrementAndGet();
+//                                    }else{
+//                                        String[] split = content.split(",");
+//                                        StringBuilder sb = new StringBuilder();
+//                                        sb.append(BrCipherMaker.getInstance().encode(cell));
+//                                        sb.append("\r\n");
+//                                        writer.append(sb.toString());
+//                                        success.incrementAndGet();
+//                                    }
+////
+//                                }
+//                            }
+
+                            if(!"".equals(content.trim())||!"\"\"".equals(content.trim())){
+                                String cell = RpcClientProxy.decode(content.trim(), "cell", "sha", "");
+                                if(StringUtils.isBlank(cell)){
+                                    log.warn(content.trim());
+                                    error.incrementAndGet();
+                                    StringBuilder sb = new StringBuilder();
+                                    sb.append(content.trim());
+                                    sb.append("\r\n");
+                                    writer.append(sb);
+                                }else{
+                                    String[] split = content.split(",");
+                                    StringBuilder sb = new StringBuilder();
+                                    sb.append(BrCipherMaker.getInstance().encode(cell));
+                                    sb.append("\r\n");
+                                    writer.append(sb.toString());
+                                    success.incrementAndGet();
                                 }
+//
                             }
 
                         } catch (IOException e) {
@@ -212,7 +232,7 @@ public class FileController {
                 writer.close();
                 log.warn("rownum=" + rownum);
                 log.warn("解密失败="+error.get());
-                log.warn("解密失败="+success.get());
+                log.warn("解密成功="+success.get());
             } catch (FileNotFoundException e) {
                 log.error("FileNotFoundException ", e);
             } catch (Exception e) {
