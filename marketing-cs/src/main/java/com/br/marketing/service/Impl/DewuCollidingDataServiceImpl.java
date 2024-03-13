@@ -292,7 +292,8 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                 String key = RedisKeyConstant.PUSH_DEWU_COLLIDING_DATA_LOCK.concat(":")
                         .concat(mobile);
                 String value = UUID.randomUUID().toString();
-            redisChgService.lock(key, value);
+                redisChgService.lock(key, value);
+                log.warn("抢锁成功：{},{}",dewuCollidingData.getId(),key);
                 DewuCollidingData dewuCollidingDataUpdatePushStatus = new DewuCollidingData();
                 dewuCollidingDataUpdatePushStatus.setId(dewuCollidingData.getId());
                 dewuCollidingDataUpdatePushStatus.setPushStatus(1);
@@ -307,10 +308,12 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                 int exitCount = dewuCollidingDataMapper.countByExample(de);
                 // 如果撞过则更新status  = 2 ,
                 if (exitCount > 0) {
+                    log.warn("数据重复：{},{}",dewuCollidingData.getId(),key);
                     dewuCollidingDataUpdatePushStatus.setStatus(2);
                     dewuCollidingDataUpdatePushStatus.setPushStatus(3);
                     dewuCollidingDataMapper.updateByPrimaryKeySelective(dewuCollidingDataUpdatePushStatus);
                 } else {
+                    log.warn("不重复：{},{}",dewuCollidingData.getId(),key);
                     collidingDataMobileList.add(dewuCollidingData);
                 }
             redisChgService.unlock(key, value);
