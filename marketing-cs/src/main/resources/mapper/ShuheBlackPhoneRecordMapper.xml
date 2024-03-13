@@ -35,7 +35,7 @@
         and is_delete=0
     </select>
 
-    <select id="countTmpNonBlackListByCell" resultType="java.util.Set">
+    <select id="countTmpNonBlackListByCell" resultType="java.lang.Integer">
         select count(*)
         from tmp_case_shuhe_non_black_list
         where cell = '${cell}'
