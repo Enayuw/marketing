@@ -99,6 +99,11 @@ public class RedisKeyConstant {
     public static final String dributeDataSloeLock = prefix.concat("dributeData");
 
     /**
+     * 推送众安分发数据日志锁
+     */
+    public static final String pushZhongAnDributeDataSloeLock = prefix.concat("zhongan:dributeData:cell");
+
+    /**
      * 榕树推送人工Ibu手机号加锁  key
      */
     public static final String pushRongShuDaasIbuKey = prefix.concat("rongshu:pushdaasibu:cell");
@@ -141,6 +146,11 @@ public class RedisKeyConstant {
      * 场景字典
      */
     public static final String USERTYPE_DICT = prefix.concat("usertype:dict:");
+
+    /**
+     * 众安撞库 cell 今日缓存
+     */
+    public static final String ZHONGAN_ZK_CELL_TODAY = prefix.concat("zhongan:zk:cell:");
 
 
     /**

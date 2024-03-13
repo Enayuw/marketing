@@ -35,6 +35,9 @@
             <if test="data.tag!=null and data.tag!=''">
                 and tag='${data.tag}'
             </if>
+            <if test="data.dataSource!=null">
+                and data_source='${data.dataSource}'
+            </if>
             <if test="data.pushStatus!=null and data.pushStatus!=''">
                 and push_status=${data.pushStatus}
             </if>
