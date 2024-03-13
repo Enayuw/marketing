@@ -824,7 +824,7 @@
     </select>
 
     <select id="selectSyncUserByRequestBatchList" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select user_type,status,is_repeat,create_time
+        select id,user_type,status,is_repeat,create_time
         from b_marketing_sync_${apiCode}
         where api_code = '${apiCode}'
         and request_batch = '${requestBatch}'

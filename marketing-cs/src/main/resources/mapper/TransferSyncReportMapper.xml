@@ -115,7 +115,7 @@
             distinct
         </if>
         <include refid="Base_Column_List_1"/>
-        from b_marketing_sync_report
+        from b_marketing_transfer_sync_report
         <if test="_parameter != null">
             <include refid="Example_Where_Clause_1"/>
         </if>
