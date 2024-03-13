@@ -191,8 +191,8 @@ public class RedisChgService {
      * @param map  field-value (字段-值)
      * @return 命令执行成功，返回 OK
      */
-    public boolean hmset(String hkey, Map<String, Object> map) {
-        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+    public boolean hmset(String hkey, Map<String, String> map) {
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         return "OK".equals(marketingRedisClient.hmset(hkey, map));
     }
 
