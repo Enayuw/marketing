@@ -24,4 +24,22 @@
         </foreach>
     </insert>
 
+    <select id="fendCellByCell" resultType="java.util.Set">
+        select cell
+        from tmp_case_shuhe_non_black_list
+        where
+        cell in
+        <foreach collection="cellSet" item="cell" separator="," open="(" close=")">
+            '${cell}'
+        </foreach>
+        and is_delete=0
+    </select>
+
+    <select id="countTmpNonBlackListByCell" resultType="java.util.Set">
+        select count(*)
+        from tmp_case_shuhe_non_black_list
+        where cell = '${cell}'
+          and is_delete = 0
+    </select>
+
 </mapper>

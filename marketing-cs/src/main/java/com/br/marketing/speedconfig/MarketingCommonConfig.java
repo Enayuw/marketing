@@ -1418,5 +1418,7 @@ public class MarketingCommonConfig {
      *     "1":status=1的mock数据
      */
     private List<String> deWuCollidingMockSwitch;
+
+    private Set<String> shuHeNonBlackListApiCodeSet = new HashSet<>(Arrays.asList("3710071", "3710051", "3710023", "3710128", "3710117", "3710123", "7410785"));
 }
 
