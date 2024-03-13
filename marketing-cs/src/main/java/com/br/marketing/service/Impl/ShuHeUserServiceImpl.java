@@ -286,9 +286,13 @@ public class ShuHeUserServiceImpl {
             try {
                 ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
                 dataInfoDTO.setApiCode(apiCode);
+                dataInfoDTO.setCid(transferSyncUser.getCid());
                 dataInfoDTO.setRawDataSaveTimeStr(transferSyncUser.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                         .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-                dataInfoDTO.setArgList(Collections.singletonList(new UserTypeCollectionDTO(transferSyncUser.getUserType())));
+                if (apiCode.startsWith("3") || apiCode.startsWith("4")) {
+                    dataInfoDTO.setArgList(Collections.singletonList(new UserTypeCollectionDTO(transferSyncUser.getUserType())));
+                }
+                dataInfoDTO.setRequestId(requestId);
                 producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS
                         , JSONArray.toJSONString(dataInfoDTO.addTransferMsgSource()));
             } catch (Exception e) {
