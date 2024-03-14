@@ -82,7 +82,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
     private MarketingDataValidConfigMapper marketingDataValidConfigMapper;
 
     public static final String ZHUANHUA_COLUMU_NAME = "custNum,cell,userType,createTime,bizType,eventTime,eventType," +
-            "amountStatus,highApplyStatus,auditAmountGroup,lentAmountGroup";
+            "amountStatus,highApplyStatus,auditAmountGroup,lentAmountGroup,lentType";
 
     @Resource
     TransferDataValidityPeriodService validityPeriodService;
@@ -301,41 +301,17 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
         String tcId = tableCreateService.getTcId(apiCode);
-        LocalDate localDate = LocalDate.now();
-        LocalDate startDate = localDate;
-        LocalDate endDate = localDate.minusDays(30);
+        LocalDate localDate = LocalDate.now().minusDays(1);
         MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
+        syncUser.setRequestData(localDate.toString());
         Integer pageSize = dynamicParameterService.getPageSize(null);
-        List<MarketingDataValidConfig> validityDataByApiCode = marketingDataValidConfigMapper.getValidityDataByApiCode(apiCode, localDate.toString());
-        if (validityDataByApiCode.size() <= 0){
-            log.warn("列表可能为空");
-            mark = Boolean.FALSE;
-        }
-        Optional<MarketingDataValidConfig> minDateConfig = validityDataByApiCode.stream()
-                .min(Comparator.comparing(MarketingDataValidConfig::getValidStartDate));
-        if (minDateConfig.isPresent()) {
-            startDate = LocalDate.parse(minDateConfig.get().getValidStartDate(), YYYYMMDDSHORTLINE);
-        } else {
-            log.warn("列表为空，无法获取最小的startDate");
-        }
-        Optional<MarketingDataValidConfig> maxDateConfig = validityDataByApiCode.stream()
-                .max(Comparator.comparing(MarketingDataValidConfig::getValidEndDate));
-        if (maxDateConfig.isPresent()) {
-            endDate = LocalDate.parse(maxDateConfig.get().getValidEndDate(), YYYYMMDDSHORTLINE);
-            if (endDate.isBefore(localDate) || endDate.isEqual(localDate)){
-                endDate = localDate;
-            }
-        } else {
-            log.warn("列表为空，无法获取最大的ValidEndDate");
-        }
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
 
         while (mark) {
             List<MarketingTransferSyncUser> list = marketingTransferSyncUserMapper
-                    .getTransferByStartAndEndDate(syncUser, startDate.toString(), endDate.toString(), null
-                            , page * pageSize, pageSize);
+                    .findTransferByApiCodeAndCreateTimePage(syncUser, null, null, null, page * pageSize, pageSize);
             if (CollectionUtils.isEmpty(list)) {
                 mark = Boolean.FALSE;
                 continue;
@@ -377,6 +353,7 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
                         Object highApplyStatus = reserveFieldJson.get("highApplyStatus");
                         Object auditAmountGroup = reserveFieldJson.get("auditAmountGroup");
                         Object lentAmountGroup = reserveFieldJson.get("lentAmountGroup");
+                        Object lentType = reserveFieldJson.get("lentType");
 
                         String sb = deleteNull(custNum) +
                                 deleteNull(cell) +
@@ -388,7 +365,8 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
                                 deleteNull(amountStatus) +
                                 deleteNull(highApplyStatus) +
                                 deleteNull(auditAmountGroup) +
-                                (lentAmountGroup != null ? lentAmountGroup.toString() : "") +
+                                deleteNull(lentAmountGroup) +
+                                (lentType != null ? lentType.toString() : "") +
                                 "\r\n";
 
                         fw.append(sb);
