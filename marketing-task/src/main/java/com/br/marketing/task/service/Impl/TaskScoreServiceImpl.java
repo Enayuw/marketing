@@ -254,7 +254,7 @@ public class TaskScoreServiceImpl {
                 marketingTaskMapper.updateByPrimaryKeySelective(updateTask);
                 if (isOffline) {
                     producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE, task.getFileId().toString());
-                }else{
+                } else {
                     producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getFileId().toString());
                 }
             } else {
@@ -340,7 +340,7 @@ public class TaskScoreServiceImpl {
             param.put("appSecretKey", appSecretKey);
             param.put("isRepair", marketingTask.getIsRepair());
             param.put("fileId", marketingTask.getFileId().toString());
-            param.put("part",marketingTaskService.getPart(num).toString());
+            param.put("part", marketingTaskService.getPart(num).toString());
             warrningExecutor.submit(new CoreScoreThread(
                     list, param, currentPage, true, customer
                     , marketingTask, noflagproductlist
@@ -350,7 +350,7 @@ public class TaskScoreServiceImpl {
         }
     }
 
-    private void generateTask(ObservedTaskObj taskObj , MarketingCustomer customer, String day) {
+    private void generateTask(ObservedTaskObj taskObj, MarketingCustomer customer, String day) {
         ExecutorService warrningExecutor = taskObj.getExecutorService();
         MarketingTask blt = taskObj.getMarketingTask();
         String productJson = "";
@@ -553,7 +553,19 @@ public class TaskScoreServiceImpl {
                             continue;
                         }
                         //获取跑分数据 预览跑分则筛选限制的剩余条数
-                        List<MarketingSyncUser> list = iDynamicSqlService.selectDataRuleScoreWithDate(blt.getApiCode(), conditionData, begin, isVerScore ? verNum : pageSize);
+                        List<MarketingSyncUser> list = new ArrayList<>();
+                        while (true) {
+                            try {
+                                list = iDynamicSqlService.
+                                        selectDataRuleScoreWithDate(blt.getApiCode()
+                                                , conditionData
+                                                , begin
+                                                , isVerScore ? verNum : pageSize);
+                                break;
+                            } catch (Exception ex) {
+                                log.error(String.format("该跑分任务捞取数据异常：%s;错误信息：%s", blt.getBatchNumber(), ex.getMessage()), ex);
+                            }
+                        }
                         if (list.size() <= 0) {
                             threadpoolStatus = Boolean.FALSE;
                             continue;
@@ -594,7 +606,7 @@ public class TaskScoreServiceImpl {
                             param.put("isRepair", blt.getIsRepair());
                             param.put("fileId", fileId);
                             param.put("noflagproduct", noflagproduct);
-                            param.put("part",marketingTaskService.getPart(sumNum,currentPage).toString());
+                            param.put("part", marketingTaskService.getPart(sumNum, currentPage).toString());
                             warrningExecutor.submit(new CoreScoreThread(
                                     list, param, currentPage
                                     , firstTime, customer, blt
@@ -713,6 +725,7 @@ public class TaskScoreServiceImpl {
 
     /**
      * 线程监听
+     *
      * @param executor
      * @param customer
      * @param task
@@ -731,7 +744,7 @@ public class TaskScoreServiceImpl {
         NodeCache nodeCache = new NodeCache(client, zkpath);
         nodeCache.getListenable().addListener(() -> {
             if (nodeCache.getCurrentData() != null) {
-                int threadNum = Integer.parseInt(new String(nodeCache.getCurrentData().getData(),StandardCharsets.UTF_8));
+                int threadNum = Integer.parseInt(new String(nodeCache.getCurrentData().getData(), StandardCharsets.UTF_8));
                 threadContextNum.put(customer.getApiCode(), threadNum);
                 executor
                         .setCorePoolSize(threadNum);
@@ -748,9 +761,10 @@ public class TaskScoreServiceImpl {
 
     /**
      * 跑分监听
+     *
      * @param taskObj
      */
-    private void scoreStatusListen(ObservedTaskObj taskObj){
+    private void scoreStatusListen(ObservedTaskObj taskObj) {
         MarketingTask task = taskObj.getMarketingTask();
         String zkStatusPath = ZookeeperPath.marketStatusPath.concat("/").concat(task.getFileId().toString());
         try {
@@ -758,14 +772,14 @@ public class TaskScoreServiceImpl {
             String[] parentArrays = zkStatusPath.split("\\/");
             for (int i = 0; i < parentArrays.length; i++) {
                 String pathNode = parentArrays[i];
-                if(StringUtils.isBlank(pathNode)){
+                if (StringUtils.isBlank(pathNode)) {
                     continue;
                 }
-                if(i== parentArrays.length-1){
+                if (i == parentArrays.length - 1) {
                     continue;
                 }
-                parentPaht += "/"+ pathNode;
-                if(client.checkExists().forPath(parentPaht) == null){
+                parentPaht += "/" + pathNode;
+                if (client.checkExists().forPath(parentPaht) == null) {
                     client.create().forPath(parentPaht);
                 }
             }
