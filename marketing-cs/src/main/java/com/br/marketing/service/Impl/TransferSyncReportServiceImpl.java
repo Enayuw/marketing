@@ -81,7 +81,6 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
     @Resource
     private PlatformTransactionManager platformTransactionManager;
 
-    private final static String replaceCidPattern = "-";
 
 
     @Override
@@ -303,8 +302,9 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
             if (CollectionUtils.isEmpty(userTypeSet)) {
                 userTypeSet = null;
             }
+            String tCid = cId.replaceAll("-", "");
             List<TransferSyncReport> syncUserList = marketingTransferSyncUserMapper.selectTransferSyncReportByRequestIdCount(
-                    apiCode, cId.replaceAll(replaceCidPattern, ""), requestId, userTypeSet, requestDateStr);
+                    apiCode, tCid, requestId, userTypeSet, requestDateStr);
             if (CollectionUtils.isEmpty(syncUserList)) {
                 return result;
             }
