@@ -10,6 +10,7 @@ public enum DistributeTypeEnum {
     POLICYDATA(2, "决策数据"),
     DAAS_REAL_TIME_USER_ONE(3, "人工实时推送用户名单(单条)"),
     DAAS_TRANSFER(4, "人工转化"),
+    ZHONGAN_PUSH_DETAIL(5, "众安明细推送"),
     ;
 
     private Integer value;

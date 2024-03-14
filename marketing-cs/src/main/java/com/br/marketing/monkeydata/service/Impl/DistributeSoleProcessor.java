@@ -3,6 +3,8 @@ package com.br.marketing.monkeydata.service.Impl;
 import com.br.marketing.bo.ZhonganRosterLockingDataBO;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.DistributeSourceTypeEnum;
+import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.entity.DataDistributeDetailLog;
 import com.br.marketing.entity.DataDistributeDetailLogExample;
@@ -27,8 +29,8 @@ public class DistributeSoleProcessor {
 
     public List<Long> process(List<ZhonganRosterLockingDataBO> pushList){
         List<Long> notPushIds = new ArrayList<>();
-        String key = RedisKeyConstant.pushZhongAnDributeDataSloeLock;
-        Integer distributeType = 2;
+        String key = RedisKeyConstant.PUSH_ZHONGAN_DISTRIBUTE_DATA_SLOE_LOCK;
+        Integer distributeType = DistributeTypeEnum.ZHONGAN_PUSH_DETAIL.getValue();
         Integer soleDay = 1;
 
         Iterator<ZhonganRosterLockingDataBO> iterator = pushList.iterator();
@@ -41,13 +43,14 @@ public class DistributeSoleProcessor {
             UUID uuid = UUID.randomUUID();
             try {
                 redisChgService.lock(key, uuid.toString());
+                String distributeDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                 DataDistributeDetailLogExample logExample = new DataDistributeDetailLogExample();
                 logExample.setOrderByClause(" id limit 1 ");
-                DataDistributeDetailLogExample.Criteria criteria = logExample.createCriteria().andApiCodeEqualTo(apiCode)
-                        .andDistributeTypeEqualTo(distributeType);
-                        String distributeDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                        criteria.andDistributeDateEqualTo(distributeDate);
-                    criteria.andCellEqualTo(cell);
+                DataDistributeDetailLogExample.Criteria criteria = logExample.createCriteria();
+                criteria.andApiCodeEqualTo(apiCode)
+                        .andDistributeTypeEqualTo(distributeType)
+                        .andDistributeDateEqualTo(distributeDate)
+                        .andCellEqualTo(cell);
                 List<DataDistributeDetailLog> dataDistributeDetailLogs = dataDistributeDetailLogMapper.selectByExample(logExample);
                 if (dataDistributeDetailLogs.size() > 0) {
                     iterator.remove();
@@ -66,7 +69,7 @@ public class DistributeSoleProcessor {
                     distributeLog.setSuccessDate(distributeDate);
                     distributeLog.setCreateTime(new Date());
                     distributeLog.setSourceId(next.getSyncUser().getId());
-                    distributeLog.setSourceType("1");
+                    distributeLog.setSourceType(DistributeSourceTypeEnum.ZHONGAN_LOCKING_DATA.getValue());
                     // distributeLog.setExtend("");
                     dataDistributeDetailLogMapper.insertSelective(distributeLog);
                 }
