@@ -78,8 +78,6 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
-    @Resource
-    private MarketingDataValidConfigMapper marketingDataValidConfigMapper;
 
     public static final String ZHUANHUA_COLUMU_NAME = "custNum,cell,userType,createTime,bizType,eventTime,eventType," +
             "amountStatus,highApplyStatus,auditAmountGroup,lentAmountGroup,lentType";
@@ -311,7 +309,8 @@ public class TransferToFileByZhongAnServiceImpl implements ITransferToFileServic
 
         while (mark) {
             List<MarketingTransferSyncUser> list = marketingTransferSyncUserMapper
-                    .findTransferByApiCodeAndCreateTimePage(syncUser, null, null, null, page * pageSize, pageSize);
+                    .findTransferByApiCodeAndCreateTimePage(syncUser, null, null, null,
+                            page * pageSize, pageSize);
             if (CollectionUtils.isEmpty(list)) {
                 mark = Boolean.FALSE;
                 continue;
