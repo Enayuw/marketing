@@ -101,7 +101,7 @@ public class RedisKeyConstant {
     /**
      * 推送众安分发数据日志锁
      */
-    public static final String pushZhongAnDributeDataSloeLock = prefix.concat("zhongan:dributeData:cell");
+    public static final String PUSH_ZHONGAN_DISTRIBUTE_DATA_SLOE_LOCK = prefix.concat("zhongan:dributeData:cell");
 
     /**
      * 榕树推送人工Ibu手机号加锁  key
