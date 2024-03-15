@@ -13,6 +13,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.*;
@@ -34,7 +35,10 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -206,7 +210,19 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
         Map<String,String> channelCodes = marketingCommonConfig.getZhongAnZkUserTypeChannelCode();
         List<MarketingSyncUser> retryDataList = new ArrayList<>();
         List<BlackDetailDTO> blackDetailDTOList = new ArrayList<>();
+        String key = RedisKeyConstant.ZHONGAN_ZK_CELL_TODAY.concat(apiCode).concat(LocalDate.now().toString());
         dataList.forEach(t -> {
+            String redisKey = key.concat(":").concat(t.getUserType()).concat(":").concat(t.getCell());
+            //添加当日userType+cell到redis中，过期时间第二日凌晨
+            try {
+                Boolean setnx = redisChgService.setnx(redisKey, UUID.randomUUID().toString(), DateHelper.getRemainSecondsOneDay(new Date()));
+                //重复数据，跳过继续循环
+                if (!setnx) {
+                    return;
+                }
+            } catch (Exception e) {
+                log.error("众安撞库cell存入redis失败，key={}", redisKey, e.getMessage());
+            }
             String decodeCell = BrCipherMaker.getInstance().decode(t.getCell());
             ZkReqDTO xd = new ZkReqDTO();
             xd.setCustMobileMd5(Md5OfZanUtils.getMD5(decodeCell));
@@ -214,6 +230,10 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
             Result<ZkReponseVO> result = zhongAnClient.zkXd(xd);
             //需要重试加入重试表
             if (result.getCode().equals(ResultCode.INTERNAL_SERVER_ERROR.getValue())) {
+                //需要重试的删除key
+                if (redisChgService.exists(key)) {
+                    redisChgService.del(key);
+                }
                 retryDataList.add(t);
             }
             if (result.getData() != null
@@ -274,4 +294,5 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
         example.setOrderByClause("create_time desc, update_time desc");
         return marketingDataValidConfigMapper.selectByExample(example);
     }
+
 }

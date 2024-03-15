@@ -17,9 +17,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
-import java.util.HashMap;
-import java.util.Map;
-
 
 @Configuration
 public class RabbitMqConfig {
@@ -205,6 +202,31 @@ public class RabbitMqConfig {
     @Bean
     public Binding transferPushCustomerBinding() {
         return BindingBuilder.bind(transferPushCustomerQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER);
+    }
+
+    /**
+     * 标准接口接收场景字典收集队列
+     *
+     * @return Queue 持久化队列
+     */
+    @Bean(name = MQConstants.MARKETING_STANDARD_API_USERTYPE_COLLECTION)
+    public Queue usertypeCollectionQueue() {
+        return QueueBuilder.durable(MQConstants.MARKETING_STANDARD_API_USERTYPE_COLLECTION).build();
+    }
+
+    /**
+     * 标准接口接收场景字典收集队列绑定普通交换机
+     *
+     * @param delayQueue   场景字典收集队列
+     * @param gateExchange 主题交换机
+     * @return Queue 持久化队列
+     */
+    @Bean
+    public Binding usertypeCollectionQueueBindingGateExchange(
+            @Qualifier(MQConstants.MARKETING_STANDARD_API_USERTYPE_COLLECTION) Queue delayQueue
+            , @Qualifier(MQConstants.MARKETINGEXCHANGER_NAME) TopicExchange gateExchange) {
+        return BindingBuilder.bind(delayQueue).to(gateExchange).with(
+                MQConstants.ROUTING_KEY_MARKETING_STANDARD_API_USERTYPE_COLLECTION);
     }
 
     @Bean

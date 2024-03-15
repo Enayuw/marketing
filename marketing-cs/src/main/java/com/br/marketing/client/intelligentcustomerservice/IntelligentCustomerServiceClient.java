@@ -112,10 +112,10 @@ public class IntelligentCustomerServiceClient {
             if ("00".equals(jsonObject.getString("code"))) {
                 result.setCode(ResultCode.SUCCESS.getValue());
                 try {
+                    //监控
                     PushMarketingUserTaskInfoDTO taskInfoDTO = (PushMarketingUserTaskInfoDTO) dto.getJsonData();
-                //调用数量监控
-                BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME,dto.getApiCode(),"policy-api",
-                        taskInfoDTO.getData().size());
+                    BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME, dto.getApiCode(), "policy-api",
+                            taskInfoDTO.getData().size());
                 } catch (Exception ex) {
                     logger.error("推送决策接口统计异常" + ex.getMessage(), ex);
                 }

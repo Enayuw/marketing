@@ -48,6 +48,11 @@ public class VariableDic {
      */
     private Date updateTime;
 
+    /**
+     * 字段值来源；0-手动添加；1-上传接口；2-转化接口
+     */
+    private Integer fieldValueSource;
+
     public Long getId() {
         return id;
     }
@@ -118,5 +123,13 @@ public class VariableDic {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Integer getFieldValueSource() {
+        return fieldValueSource;
+    }
+
+    public void setFieldValueSource(Integer fieldValueSource) {
+        this.fieldValueSource = fieldValueSource;
     }
 }

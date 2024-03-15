@@ -272,7 +272,6 @@ public class XieChengService {
      * @param sha256CodeList
      * @return
      */
-    @RetryMethod(retryNowNum = 3)
     public Result pushXieChengSmsCollidingData(List<String> sha256CodeList) {
         /**
          * data 组装
@@ -287,11 +286,16 @@ public class XieChengService {
         retMap.put("channel", smsCollidingChannel);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingKey, smsCollidingIv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingSingKey));
-//        HashMap<String, String> resMap = getTestMap(sha256CodeList);
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
+        HashMap<String, String> resMap = new HashMap<>();
+        if(marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(0)){
+         resMap = getTestMap(sha256CodeList);
+        }else {
+          resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy,
+                    MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
+        }
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.error("携程短信撞库接口httpcode非200异常，重试");
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            log.error("携程短信撞库接口httpcode非200异常");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("{'msg':'httpCode非200'}");
         }
         String content = resMap.get("content");
         JSONObject resultJson = JSONObject.parseObject(content);
@@ -299,7 +303,7 @@ public class XieChengService {
         if (code == 0) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
         } else {
-            log.error("携程短信撞库接口请求返回code 非0异常，无重试，需要是手动处理。");
+            log.error("携程短信撞库接口请求返回code 非0异常");
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
         }
 
@@ -353,8 +357,14 @@ public class XieChengService {
 
     private HashMap<String,String> getTestMap(List<String> sha256CodeList){
         JSONObject map = new JSONObject();
-        map.put("code",0);
-        map.put("msg","success");
+        if(marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(2)){
+            map.put("code",9999);
+            map.put("msg","测试挡板非0异常");
+        }else {
+            map.put("code",0);
+            map.put("msg","success");
+        }
+
         JSONArray jsonArray = new JSONArray();
         for(int i=0;i<sha256CodeList.size();i++){
             JSONObject dataMap = new JSONObject();
@@ -372,7 +382,12 @@ public class XieChengService {
         }
         map.put("data",jsonArray);
         HashMap<String, String> resMap = new HashMap<>();
-        resMap.put("httpcode","200");
+        if(marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(1)){
+            resMap.put("httpcode","201");
+        }else {
+            resMap.put("httpcode","200");
+        }
+
         resMap.put("content",map.toString());
         return resMap;
 
