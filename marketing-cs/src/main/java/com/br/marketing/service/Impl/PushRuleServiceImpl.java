@@ -1655,7 +1655,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<String> pushCustomerApiCodes = marketingCommonConfig.getApiCodeOfpushCustomer();
         List<String> haluoApiCodes = marketingCommonConfig.getApiCodeOfpushHaluoByTransfer();
         List<String> universalProcessApiCode = marketingCommonConfig.getUniversalProcessApiCode();
-        Integer soleNum = 20;
+        Integer soleNumTrans = marketingCommonConfig.getSoleNumTrans();
         Boolean isContinue = Boolean.FALSE;
         MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
         TransferFieldProcessFactory transferFieldProcessFactory = transferFiledProcess.getTransferFieldProcessFactory(transferInfo.getApiCode());
@@ -1746,7 +1746,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         List<MarketingPreUserErrorDetailVO> errorBuild = new ArrayList<>();
         Integer errorSize = 0;
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(soleNum, soleNum);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(soleNumTrans, soleNumTrans);
         List<Future<Result<MarketingPreUserErrorDetailVO>>> futures = null;
         try {
             futures = threadPool.invokeAll(list);
