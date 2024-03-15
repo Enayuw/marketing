@@ -1322,7 +1322,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             , String routingKey) {
         String msg = "";
         try {
-            msg = JSONArray.toJSONString(function.apply(localUserTypeCache));
+            msg = JSONObject.toJSONString(function.apply(localUserTypeCache));
             producter.send(routingKey, msg);
         } catch (Exception e) {
             log.error("推送场景信息到队列失败,发送队列路由键" + routingKey + ",消息内容:" + msg + "\n" + e.getMessage(), e);

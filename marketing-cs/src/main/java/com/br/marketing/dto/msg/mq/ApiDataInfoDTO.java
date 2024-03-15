@@ -1,5 +1,7 @@
 package com.br.marketing.dto.msg.mq;
 
+import org.springframework.data.annotation.Transient;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -152,10 +154,12 @@ public class ApiDataInfoDTO<T> implements Serializable {
         return this;
     }
 
+    @Transient
     public boolean isUploadMsgSource() {
         return this.getMsgSource() == MsgSourceEnum.UPLOAD.getValue();
     }
 
+    @Transient
     public boolean isTransferMsgSource() {
         return this.getMsgSource() == MsgSourceEnum.TRANSFER.getValue();
     }

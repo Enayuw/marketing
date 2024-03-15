@@ -231,7 +231,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                 return result;
             }
             if (CollectionUtils.isEmpty(apiDataInfoDTO.getArgList())) {
-                log.error("场景内容新增中，新增数量为0，消息内容：{}", msgStr);
+                log.warn("场景内容新增中，新增数量为0，消息内容：{}", msgStr);
                 return result;
             }
             String cId = StringUtils.hasText(apiDataInfoDTO.getCid()) ? apiDataInfoDTO.getCid()

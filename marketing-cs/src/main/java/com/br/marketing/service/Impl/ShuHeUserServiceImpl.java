@@ -294,7 +294,7 @@ public class ShuHeUserServiceImpl {
                 }
                 dataInfoDTO.setRequestId(requestId);
                 producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS
-                        , JSONArray.toJSONString(dataInfoDTO.addTransferMsgSource()));
+                        , JSONObject.toJSONString(dataInfoDTO.addTransferMsgSource()));
             } catch (Exception e) {
                 log.error("数禾转化定制接口推送场景信息到队列失败,发送队列"
                         + MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS + ",消息内容:" + msg
