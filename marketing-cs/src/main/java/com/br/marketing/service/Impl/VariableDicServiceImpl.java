@@ -218,7 +218,7 @@ public class VariableDicServiceImpl implements VariableDicService {
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(false);
-        if (!StringUtils.hasText(msgStr)) {
+        if (StringUtils.isEmpty(msgStr)) {
             return result;
         }
         try {
