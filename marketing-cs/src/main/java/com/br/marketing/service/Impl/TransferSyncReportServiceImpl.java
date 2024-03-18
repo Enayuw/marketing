@@ -304,11 +304,8 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                 userTypeSet = null;
             }
             List<TransferSyncReport> syncUserList = marketingTransferSyncUserMapper.selectTransferSyncReportByRequestIdCount(
-                    apiCode
-                    , TCID_PATTERN.matcher(cId).matches()
-                            ? TCID_PATTERN.matcher(cId).replaceAll("")
-                            : cId
-                    , requestId, userTypeSet, requestDateStr);
+                    apiCode, cId.contains("-") ? cId.replace("-", "") : cId, requestId, userTypeSet
+                    , requestDateStr);
             if (CollectionUtils.isEmpty(syncUserList)) {
                 return result;
             }
