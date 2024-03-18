@@ -487,8 +487,6 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             log.error("上传未获取到cid，消息内容：{}", dataCountFragmentsMgs);
             return result;
         }
-        Set<String> userTypeSet = apiDataInfoDTO.getArgList().stream().map(UserTypeCollectionDTO::getUserType)
-                .collect(Collectors.toSet());
         LocalDateTime rawDataSaveTime = LocalDateTime.parse(apiDataInfoDTO.getRawDataSaveTimeStr()
                 , DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         LocalDate rawDataSaveDate = rawDataSaveTime.toLocalDate();
@@ -498,7 +496,9 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         StringBuilder redisKey = new StringBuilder(RedisKeyConstant.ASYNC_COUNT);
         redisKey.append(cId).append(":").append(apiCode).append(":").append(yyyymmdd).append(":")
                 .append(apiDataInfoDTO.getMsgSource()).append(":");
-        if (apiDataInfoDTO.uploadMsgSource()) {
+        if (apiDataInfoDTO.uploadMsgSource() && !CollectionUtils.isEmpty(apiDataInfoDTO.getArgList()) {
+            Set<String> userTypeSet = apiDataInfoDTO.getArgList().stream().map(UserTypeCollectionDTO::getUserType)
+                    .collect(Collectors.toSet());
             if (CollectionUtils.isEmpty(userTypeSet)) {
                 userTypeSet = null;
             }

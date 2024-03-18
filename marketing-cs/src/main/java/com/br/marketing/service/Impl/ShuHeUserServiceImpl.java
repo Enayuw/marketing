@@ -282,16 +282,15 @@ public class ShuHeUserServiceImpl {
         caseShuheUserMapper.insertSelective(caseShuheUser);
         // 6、转化信息入转化标准库
         Long id = saveTransferNew(apiCode, caseShuheUser, transferSyncUser, createTime);
-        if (StringUtils.hasText(transferSyncUser.getUserType()) && id != null && id > 0) {
+        boolean bool = apiCode.startsWith("3") || apiCode.startsWith("4");
+        if (StringUtils.hasText(transferSyncUser.getUserType()) && id != null && id > 0 && bool) {
             try {
                 ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
                 dataInfoDTO.setApiCode(apiCode);
                 dataInfoDTO.setCid(transferSyncUser.getCid());
                 dataInfoDTO.setRawDataSaveTimeStr(transferSyncUser.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                         .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-                if (apiCode.startsWith("3") || apiCode.startsWith("4")) {
-                    dataInfoDTO.setArgList(Collections.singletonList(new UserTypeCollectionDTO(transferSyncUser.getUserType())));
-                }
+                dataInfoDTO.setArgList(Collections.singletonList(new UserTypeCollectionDTO(transferSyncUser.getUserType())));
                 dataInfoDTO.setRequestId(requestId);
                 producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS
                         , JSONObject.toJSONString(dataInfoDTO.addTransferMsgSource()));
