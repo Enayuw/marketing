@@ -401,7 +401,7 @@ public class VariableDicServiceImpl implements VariableDicService {
      */
     private void createValidDateConfig(ApiDataInfoDTO<UserTypeCollectionDTO> apiDataInfoDTO, String dateTimeStr
             , UserTypeCollectionDTO collectionDTO, String apiCode, String userType) {
-        if (apiDataInfoDTO.isUploadMsgSource() && collectionDTO.getStatus() == MonitorTypeEnum.STATUS_2.getTypeCode()) {
+        if (apiDataInfoDTO.uploadMsgSource() && collectionDTO.getStatus() == MonitorTypeEnum.STATUS_2.getTypeCode()) {
             return;
         }
         Set<String> apiCodes = marketingCommonConfig.getNonConfigValidDefaultApiCodes();

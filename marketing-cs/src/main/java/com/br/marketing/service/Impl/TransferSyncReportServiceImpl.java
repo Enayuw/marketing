@@ -40,7 +40,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -68,9 +67,6 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
     ICompatibleService iCompatibleService;
 
     @Resource
-    private TableCreateServiceImpl tableCreateService;
-
-    @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
     @Resource
@@ -82,7 +78,6 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
     @Resource
     private PlatformTransactionManager platformTransactionManager;
 
-    private final static Pattern TCID_PATTERN = Pattern.compile("-");
 
     @Override
     public void reportProcess(Set<String> dateStrSet, int shardingTotalCount, List<Integer> shardingItems, String JobName) {
@@ -296,7 +291,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
         StringBuilder redisKey = new StringBuilder(RedisKeyConstant.ASYNC_COUNT);
         redisKey.append(cId).append(":").append(apiCode).append(":").append(yyyymmdd).append(":")
                 .append(apiDataInfoDTO.getMsgSource()).append(":");
-        if (apiDataInfoDTO.isTransferMsgSource()) {
+        if (apiDataInfoDTO.transferMsgSource()) {
             String requestId = apiDataInfoDTO.getRequestId();
             Set<String> userTypeSet = apiDataInfoDTO.getArgList().stream().map(UserTypeCollectionDTO::getUserType)
                     .collect(Collectors.toSet());
