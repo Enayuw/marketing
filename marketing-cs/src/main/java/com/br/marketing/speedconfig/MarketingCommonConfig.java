@@ -1351,6 +1351,7 @@ public class MarketingCommonConfig {
 
     /**
      * apiCode自动生成场景与统计控制
+     * ["3","4"]
      */
     private Set<String> userTypeAndSumRealtimeApiCodeStartsWith = new HashSet<>(Arrays.asList("3", "4"));
 
