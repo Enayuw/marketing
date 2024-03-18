@@ -291,13 +291,10 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
         StringBuilder redisKey = new StringBuilder(RedisKeyConstant.ASYNC_COUNT);
         redisKey.append(cId).append(":").append(apiCode).append(":").append(yyyymmdd).append(":")
                 .append(apiDataInfoDTO.getMsgSource()).append(":");
-        if (apiDataInfoDTO.transferMsgSource() && !CollectionUtils.isEmpty(apiDataInfoDTO.getArgList())) {
+        if (apiDataInfoDTO.transferMsgSource()) {
             String requestId = apiDataInfoDTO.getRequestId();
-            Set<String> userTypeSet = apiDataInfoDTO.getArgList().stream().map(UserTypeCollectionDTO::getUserType)
-                    .collect(Collectors.toSet());
-            if (CollectionUtils.isEmpty(userTypeSet)) {
-                userTypeSet = null;
-            }
+            Set<String> userTypeSet = CollectionUtils.isEmpty(apiDataInfoDTO.getArgList()) ? null
+                    : apiDataInfoDTO.getArgList().stream().map(UserTypeCollectionDTO::getUserType).collect(Collectors.toSet());
             List<TransferSyncReport> syncUserList = marketingTransferSyncUserMapper.selectTransferSyncReportByRequestIdCount(
                     apiCode, cId.contains("-") ? cId.replace("-", "") : cId, requestId, userTypeSet
                     , requestDateStr);

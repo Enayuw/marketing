@@ -496,12 +496,9 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         StringBuilder redisKey = new StringBuilder(RedisKeyConstant.ASYNC_COUNT);
         redisKey.append(cId).append(":").append(apiCode).append(":").append(yyyymmdd).append(":")
                 .append(apiDataInfoDTO.getMsgSource()).append(":");
-        if (apiDataInfoDTO.uploadMsgSource() && !CollectionUtils.isEmpty(apiDataInfoDTO.getArgList())) {
-            Set<String> userTypeSet = apiDataInfoDTO.getArgList().stream().map(UserTypeCollectionDTO::getUserType)
-                    .collect(Collectors.toSet());
-            if (CollectionUtils.isEmpty(userTypeSet)) {
-                userTypeSet = null;
-            }
+        if (apiDataInfoDTO.uploadMsgSource()) {
+            Set<String> userTypeSet = CollectionUtils.isEmpty(apiDataInfoDTO.getArgList()) ? null
+                    : apiDataInfoDTO.getArgList().stream().map(UserTypeCollectionDTO::getUserType).collect(Collectors.toSet());
             List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.selectSyncUserByRequestBatchList(apiCode
                     , requestId, userTypeSet, rawDataSaveDateStr);
             if (CollectionUtils.isEmpty(syncUserList)) {
