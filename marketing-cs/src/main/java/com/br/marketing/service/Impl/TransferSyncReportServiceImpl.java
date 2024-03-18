@@ -40,6 +40,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -81,6 +82,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
     @Resource
     private PlatformTransactionManager platformTransactionManager;
 
+    private final static Pattern TCID_PATTERN = Pattern.compile("-");
 
     @Override
     public void reportProcess(Set<String> dateStrSet, int shardingTotalCount, List<Integer> shardingItems, String JobName) {
@@ -99,9 +101,9 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                 : marketingCommonConfig.getSaMoYeTransferFileApiCodes();
         for (String dateStr : dateStrSet) {
             for (MarketingCustomer customer : customers) {
-                if(StringUtils.isNoneBlank(JobName)){
-                    Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo(),JobName);
-                    if(!action){
+                if (StringUtils.isNoneBlank(JobName)) {
+                    Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo(), JobName);
+                    if (!action) {
                         continue;
                     }
                 }
@@ -210,7 +212,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
 
     @Override
     public void reportProcess(Set<String> dateStrSet) {
-        reportProcess(dateStrSet, 1, Collections.singletonList(0),null);
+        reportProcess(dateStrSet, 1, Collections.singletonList(0), null);
     }
 
     @Override
@@ -302,7 +304,11 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                 userTypeSet = null;
             }
             List<TransferSyncReport> syncUserList = marketingTransferSyncUserMapper.selectTransferSyncReportByRequestIdCount(
-                    apiCode, cId.replaceAll("-", ""), requestId, userTypeSet, requestDateStr);
+                    apiCode
+                    , TCID_PATTERN.matcher(cId).matches()
+                            ? TCID_PATTERN.matcher(cId).replaceAll("")
+                            : cId
+                    , requestId, userTypeSet, requestDateStr);
             if (CollectionUtils.isEmpty(syncUserList)) {
                 return result;
             }
