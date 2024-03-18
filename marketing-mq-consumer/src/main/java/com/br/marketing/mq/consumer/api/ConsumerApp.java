@@ -190,7 +190,7 @@ public class ConsumerApp {
             , durable = "true")
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
             , key = MQConstants.BINDING_KEY_MARKETING_UPLOAD_API_COLLECTION_FRAGMENTS)}
-            , containerFactory = "concurrentContainerFactory")
+            , containerFactory = "consumerTenPrefetchTwoFactory")
     public void uploadDataCountFragments(Channel channel, Message message) {
         consumerService.consumerRun(channel, message, marketingSyncReportService::nearRealtimeDataCountFragmentsStatis
                 , new String(message.getBody(), StandardCharsets.UTF_8), null);
@@ -206,7 +206,7 @@ public class ConsumerApp {
             , durable = "true")
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
             , key = MQConstants.BINDING_KEY_MARKETING_TRANSFER_API_COLLECTION_FRAGMENTS)}
-            , containerFactory = "concurrentContainerFactory")
+            , containerFactory = "consumerTenPrefetchTwoFactory")
     public void transferDataCountFragments(Channel channel, Message message) {
         consumerService.consumerRun(channel, message, transferSyncReportService::nearRealtimeDataCountFragmentsStatis
                 , new String(message.getBody(), StandardCharsets.UTF_8), null);
