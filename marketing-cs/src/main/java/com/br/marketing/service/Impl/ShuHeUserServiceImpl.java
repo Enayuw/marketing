@@ -282,17 +282,16 @@ public class ShuHeUserServiceImpl {
         caseShuheUserMapper.insertSelective(caseShuheUser);
         // 6、转化信息入转化标准库
         Long id = saveTransferNew(apiCode, caseShuheUser, transferSyncUser, createTime);
-        if (StringUtils.hasText(transferSyncUser.getUserType()) && id != null && id > 0) {
+        Set<String> startsWith = marketingCommonConfig.getUserTypeAndSumRealtimeApiCodeStartsWith();
+        if (StringUtils.hasText(transferSyncUser.getUserType()) && id != null && id > 0
+                && startsWith.stream().anyMatch(apiCode::startsWith)) {
             try {
                 ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
                 dataInfoDTO.setApiCode(apiCode);
                 dataInfoDTO.setCid(transferSyncUser.getCid());
                 dataInfoDTO.setRawDataSaveTimeStr(transferSyncUser.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                         .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-                boolean bool = apiCode.startsWith("3") || apiCode.startsWith("4");
-                if (bool) {
-                    dataInfoDTO.setArgList(Collections.singletonList(new UserTypeCollectionDTO(transferSyncUser.getUserType())));
-                }
+                dataInfoDTO.setArgList(Collections.singletonList(new UserTypeCollectionDTO(transferSyncUser.getUserType())));
                 dataInfoDTO.setRequestId(requestId);
                 producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS
                         , JSONObject.toJSONString(dataInfoDTO.addTransferMsgSource()));
