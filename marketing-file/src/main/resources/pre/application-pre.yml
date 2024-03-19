@@ -1,0 +1,63 @@
+sharding:
+  jdbc:
+    datasource:
+      names: ds0
+      ds0:
+         url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+         username: u_pd_marketing
+         password: M6teKbFVl1odfOCkC1JA
+         type: com.alibaba.druid.pool.DruidDataSource
+         driver-class-name: com.mysql.jdbc.Driver
+         filters: stat
+         maxActive: 300
+         initialSize: 1
+         maxWait: 60000
+         minIdle: 1
+         timeBetweenEvictionRunsMillis: 60000
+         minEvictableIdleTimeMillis: 300000
+         validationQuery: select 'x'
+         testWhileIdle: true
+         testOnBorrow: false
+         testOnReturn: false
+         poolPreparedStatements: true
+         maxOpenPreparedStatements: 20
+    config:
+      sharding:
+        props:
+          sql.show: false
+        tables:
+          b_marketing_user:
+            table-strategy:
+              inline:
+                sharding-column: api_code
+                algorithm-expression: b_marketing_user_${api_code}
+logging:
+    level:
+        com.br.off.mapper: debug
+    file: ./logs/core.log
+    root: INFO
+otherConfig:
+  alarm:
+        secretKey: a9c57e4138807a9e18b439cd9dab275b
+        appName: marketing
+        outsideSecretKey: 71e63ead0af0a07ae4191eb14b75a541
+        outsideAppName: marketing-out
+  userCenter:
+        appName: loan-strategy
+        appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
+  warning:
+        pageSize: 5000
+        apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
+  encodeMapping:
+        appName: loan-warning
+        appSecretKey: f15a1421ac95a284683688af14688b72
+cluster:
+  flag: ${CONF_CLUSTER}
+#elastic-job配置
+SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
+NAMESPACE: marketing-job
+BASE_SLEEP_TIME_MILLISECONDS: 1000
+MAX_SLEEP_TIME_MILLISECONDS: 3000
+MAX_RETRIES: 3
+NESTED_PORT: -1
+NESTED_DATA_DIR: target/test_zk_data/

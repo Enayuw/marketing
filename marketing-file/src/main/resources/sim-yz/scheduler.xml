@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:reg="http://www.dangdang.com/schema/ddframe/reg"
+       xmlns:job="http://www.dangdang.com/schema/ddframe/job"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans.xsd 
+                        http://www.springframework.org/schema/context 
+                        http://www.springframework.org/schema/context/spring-context.xsd 
+                        http://www.dangdang.com/schema/ddframe/reg 
+                        http://www.dangdang.com/schema/ddframe/reg/reg.xsd 
+                        http://www.dangdang.com/schema/ddframe/job 
+                        http://www.dangdang.com/schema/ddframe/job/job.xsd 
+                        ">
+    <context:component-scan base-package="com.br.marketing.sync.job"/>
+
+    <reg:zookeeper id="regCenter"
+                   server-lists="${SERVER_LISTS}"
+                   namespace="${NAMESPACE}"
+                   base-sleep-time-milliseconds="${BASE_SLEEP_TIME_MILLISECONDS}"
+                   max-sleep-time-milliseconds="${MAX_SLEEP_TIME_MILLISECONDS}"
+                   max-retries="${MAX_RETRIES}"
+                   nested-port="${NESTED_PORT}"
+                   nested-data-dir="${NESTED_DATA_DIR}"/>
+
+
+    <job:simple id="GetFromSftpJob"
+                class="com.br.marketing.file.job.GetFromSftpJob"
+                cron="0 1/10 * * * ?"
+                description="从客户sftp同步文件到内部sftp"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+    <job:simple id="PutToSftpJob"
+                class="com.br.marketing.file.job.PutToSftpJob"
+                cron="0 8/10 * * * ?"
+                description="回传结果文件"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+</beans>
