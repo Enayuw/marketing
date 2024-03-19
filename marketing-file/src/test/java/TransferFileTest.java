@@ -1,12 +1,10 @@
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.file.FileApplication;
-import com.br.marketing.file.service.impl.SyncServiceImpl;
+import com.br.marketing.file.service.sync.FileSyncService;
 import com.br.marketing.mapper.SyncConfigMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,7 +28,7 @@ import java.util.List;
 public class TransferFileTest implements ApplicationContextAware {
 
     @Autowired
-    SyncServiceImpl syncService;
+    FileSyncService fileSyncService;
     @Resource
     SyncConfigMapper syncConfigMapper;
 
@@ -46,9 +44,9 @@ public class TransferFileTest implements ApplicationContextAware {
         config.setApiCode("3710065");
         config.setDataType(6);
         SyncConfig queryConfig = syncConfigMapper.queryConfigByConditaion(config);
-        List<SyncConfig> loanSyncConfigs = new ArrayList<>();
-        loanSyncConfigs.add(queryConfig);
-        syncService.sync(loanSyncConfigs);
+        List<SyncConfig> syncConfigList = new ArrayList<>();
+        syncConfigList.add(queryConfig);
+        fileSyncService.pullFromSftp();
     }
 
 }

@@ -1,11 +1,12 @@
-package com.br.marketing.file.service;
+package com.br.marketing.file.service.sync;
 
 import com.br.marketing.entity.SyncConfig;
 
 /**
  * 文件同步接口类
  */
-public interface SyncService {
+public interface FileSyncService {
+
     /**
      * 从客户的sfpt目录同步客户上传的文件到存量监控内部账号对应目录下
      * 1.只同步配置的文件类型
@@ -13,7 +14,7 @@ public interface SyncService {
      * 3.按是否校验success文件、是否校验finish文件判断是否立即同步
      * 4.同步完成后需要对比两个目录下的文件大小是否一致
      */
-    void getFromSftp();
+    void pullFromSftp();
 
     /**
      * 从存量监控sftp内部账号目录同步结果结果文件到对应的客户sftp目录
@@ -22,7 +23,5 @@ public interface SyncService {
      * 3.按是否校验success文件、是否校验finish文件判断是否立即同步
      * 4.同步完成后需要对比两个目录下的文件大小是否一致
      */
-    void putToSftp();
-
-    void insertConfig(SyncConfig loanSyncConfig);
+    void pushToSftp();
 }

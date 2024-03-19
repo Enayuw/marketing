@@ -27,17 +27,14 @@ import org.springframework.context.annotation.ImportResource;
 @Slf4j
 public class FileApplication {
     public static ConfigurableApplicationContext ac;
+
     public static void main(String[] args) {
-        Long start = System.currentTimeMillis();
         log.warn("marketing-file开始启动！");
-        ac= new SpringApplicationBuilder().sources(FileApplication.class).run(args);
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                FileApplication.stop();
-            }
-        });
-        log.warn("marketing-file启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
+        Long start = System.currentTimeMillis();
+        ac = new SpringApplicationBuilder().sources(FileApplication.class).run(args);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> stop()));
+        Long end = System.currentTimeMillis();
+        log.warn("marketing-file启动结束，耗时{}s", (end - start) / 1000);
     }
 
     /**
