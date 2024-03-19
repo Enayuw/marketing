@@ -890,20 +890,20 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="ZhongBangCaiFuLabelPushJob"
-                class="com.br.marketing.check.job.zhongbang.ZhongBangCaiFuLabelPushJob"
-                cron="0 */5 * ? * *"
-                description="众邦财富定制标签推送任务"
-                registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters="0=A"
-                monitor-execution="true"
-                failover="false"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
+<!--    <job:simple id="ZhongBangCaiFuLabelPushJob"-->
+<!--                class="com.br.marketing.check.job.zhongbang.ZhongBangCaiFuLabelPushJob"-->
+<!--                cron="0 */5 * ? * *"-->
+<!--                description="众邦财富定制标签推送任务"-->
+<!--                registry-center-ref="regCenter"-->
+<!--                sharding-total-count="1"-->
+<!--                sharding-item-parameters="0=A"-->
+<!--                monitor-execution="true"-->
+<!--                failover="false"-->
+<!--                misfire="false"-->
+<!--                disabled="true"-->
+<!--                overwrite="true"-->
+<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
+<!--    />-->
     <job:simple id="HaierCollidingDataJob"
                 class="com.br.marketing.check.job.HaierCollidingDataJob"
                 cron="0 */3 * ? * *"
