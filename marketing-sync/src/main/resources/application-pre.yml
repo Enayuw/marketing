@@ -3,9 +3,9 @@ sharding:
     datasource:
       names: ds0
       ds0:
-        url: jdbc:mysql://10.100.151.104:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+        url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
         username: u_pd_marketing
-        password: M6teKbFVl1odfOCkC1JA
+        password: f9daIYUIAXQkeyVbDoOI
         type: com.alibaba.druid.pool.DruidDataSource
         driver-class-name: com.mysql.jdbc.Driver
         filters: stat

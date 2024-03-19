@@ -361,6 +361,81 @@ public class AlarmAndNoticeTest {
 
     }
 
+
+    @Resource
+    private TransferToFileByZhongAnServiceImpl transferToFileByZhongAnService;
+
+    public static final String ZHUANHUA_COLUMU_NAME = "custNum,cell,userType,createTime,bizType,eventTime,eventType," +
+            "amountStatus,highApplyStatus,auditAmountGroup,lentAmountGroup";
+
+    @Test
+    public void ZhongAnTransferFileTest() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7410906");
+        String myParam = "7410906#2024-03-11";
+        String dd = isMyParam("7410906", myParam);
+        transferFileTask.setStartDate(dd);
+        String recordDate = transferFileTask.getStartDate();
+        boolean isParam = StringUtils.isNotBlank(dd);
+        // 当天的记录
+        String dateyyyymmddStr = isParam ? myParam.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        transferFileTask.setFileName(String.format("zhongandai_zhuanhua_%s.txt", dateyyyymmddStr));
+        log.warn("众安转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String apiCode = transferFileTask.getApiCode();
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
+            fw.append(ZHUANHUA_COLUMU_NAME);
+            fw.append("\r\n");
+            transferToFileByZhongAnService.writeZhongAnTransferToFileZhuanHua(fw,apiCode,transferFileTask);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+
+    }
+
+
+
+    @Resource
+    private TransferToFileByTongChengGroupServiceImpl transferToFileByTongChengGroupService;
+
+    @Test
+    public void NewTongChengGroupTransferFileTest() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7492639");
+        String myParam = "7492639#2024-03-07";
+        String dd = isMyParam("7492639", myParam);
+        transferFileTask.setStartDate(dd);
+        String recordDate = transferFileTask.getStartDate();
+        boolean isParam = StringUtils.isNotBlank(dd);
+        String dateyyyymmddStr = isParam ? dd.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        transferFileTask.setFileName(String.format("tongcheng_zhuanhua_%s.txt", dateyyyymmddStr));
+        log.warn("同程新系统转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String apiCode = transferFileTask.getApiCode();
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
+            fw.append(TABLE_HEAD_TRANSFER);
+            fw.append("\r\n");
+            transferToFileByTongChengGroupService.writeTransferToFile(fw, apiCode,transferFileTask, recordDate);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+
+    }
+
     @Resource
     private TransferToFileByNewHaierServiceImpl toFileByNewHaierService;
 

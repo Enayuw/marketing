@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.XieChengSmsCollidingDataMapperBase" >
+<mapper namespace="com.br.marketing.mapper.XieChengSmsCollidingDataMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.XieChengSmsCollidingData" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
@@ -13,6 +13,9 @@
     <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="create_date" property="createDate" jdbcType="INTEGER" />
+    <result column="cycle_date" property="cycleDate" jdbcType="INTEGER" />
+    <result column="retry_count" property="retryCount" jdbcType="INTEGER" />
   </resultMap>
   <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.XieChengSmsCollidingData" extends="BaseResultMap" >
     <result column="extend" property="extend" jdbcType="LONGVARCHAR" />
@@ -76,8 +79,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, local_id, type, sha256_code_list, push_status, next_push_time, status, 
-    data_message, create_time, update_time
+    id, api_code, local_id, `type`, sha256_code_list, push_status, next_push_time, `status`,
+    data_message, create_time, update_time, create_date, cycle_date, retry_count
   </sql>
   <sql id="Blob_Column_List" >
     extend
@@ -113,7 +116,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     ,
     <include refid="Blob_Column_List" />
@@ -134,14 +137,16 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_xiecheng_sms_colliding_data (api_code, local_id, type, 
-      sha256_code_list, push_status, next_push_time, 
-      status, data_message, create_time, 
-      update_time, extend)
-    values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR}, 
-      #{sha256CodeList,jdbcType=VARCHAR}, #{pushStatus,jdbcType=INTEGER}, #{nextPushTime,jdbcType=TIMESTAMP}, 
-      #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{extend,jdbcType=LONGVARCHAR})
+    insert into b_xiecheng_sms_colliding_data (api_code, local_id, `type`,
+    sha256_code_list, push_status, next_push_time,
+    `status`, data_message, create_time,
+    update_time, create_date, cycle_date,
+    retry_count, extend)
+    values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR},
+    #{sha256CodeList,jdbcType=VARCHAR}, #{pushStatus,jdbcType=INTEGER}, #{nextPushTime,jdbcType=TIMESTAMP},
+    #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}, #{createDate,jdbcType=INTEGER}, #{cycleDate,jdbcType=INTEGER},
+    #{retryCount,jdbcType=INTEGER}, #{extend,jdbcType=LONGVARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.XieChengSmsCollidingData" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -156,7 +161,7 @@
         local_id,
       </if>
       <if test="type != null" >
-        type,
+        `type`,
       </if>
       <if test="sha256CodeList != null" >
         sha256_code_list,
@@ -168,7 +173,7 @@
         next_push_time,
       </if>
       <if test="status != null" >
-        status,
+        `status`,
       </if>
       <if test="dataMessage != null" >
         data_message,
@@ -178,6 +183,15 @@
       </if>
       <if test="updateTime != null" >
         update_time,
+      </if>
+      <if test="createDate != null" >
+        create_date,
+      </if>
+      <if test="cycleDate != null" >
+        cycle_date,
+      </if>
+      <if test="retryCount != null" >
+        retry_count,
       </if>
       <if test="extend != null" >
         extend,
@@ -214,6 +228,15 @@
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="createDate != null" >
+        #{createDate,jdbcType=INTEGER},
+      </if>
+      <if test="cycleDate != null" >
+        #{cycleDate,jdbcType=INTEGER},
+      </if>
+      <if test="retryCount != null" >
+        #{retryCount,jdbcType=INTEGER},
+      </if>
       <if test="extend != null" >
         #{extend,jdbcType=LONGVARCHAR},
       </if>
@@ -238,7 +261,7 @@
         local_id = #{record.localId,jdbcType=BIGINT},
       </if>
       <if test="record.type != null" >
-        type = #{record.type,jdbcType=VARCHAR},
+        `type` = #{record.type,jdbcType=VARCHAR},
       </if>
       <if test="record.sha256CodeList != null" >
         sha256_code_list = #{record.sha256CodeList,jdbcType=VARCHAR},
@@ -250,7 +273,7 @@
         next_push_time = #{record.nextPushTime,jdbcType=TIMESTAMP},
       </if>
       <if test="record.status != null" >
-        status = #{record.status,jdbcType=INTEGER},
+        `status` = #{record.status,jdbcType=INTEGER},
       </if>
       <if test="record.dataMessage != null" >
         data_message = #{record.dataMessage,jdbcType=VARCHAR},
@@ -260,6 +283,15 @@
       </if>
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.createDate != null" >
+        create_date = #{record.createDate,jdbcType=INTEGER},
+      </if>
+      <if test="record.cycleDate != null" >
+        cycle_date = #{record.cycleDate,jdbcType=INTEGER},
+      </if>
+      <if test="record.retryCount != null" >
+        retry_count = #{record.retryCount,jdbcType=INTEGER},
       </if>
       <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=LONGVARCHAR},
@@ -272,17 +304,20 @@
   <update id="updateByExampleWithBLOBs" parameterType="map" >
     update b_xiecheng_sms_colliding_data
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      local_id = #{record.localId,jdbcType=BIGINT},
-      type = #{record.type,jdbcType=VARCHAR},
-      sha256_code_list = #{record.sha256CodeList,jdbcType=VARCHAR},
-      push_status = #{record.pushStatus,jdbcType=INTEGER},
-      next_push_time = #{record.nextPushTime,jdbcType=TIMESTAMP},
-      status = #{record.status,jdbcType=INTEGER},
-      data_message = #{record.dataMessage,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      extend = #{record.extend,jdbcType=LONGVARCHAR}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    local_id = #{record.localId,jdbcType=BIGINT},
+    `type` = #{record.type,jdbcType=VARCHAR},
+    sha256_code_list = #{record.sha256CodeList,jdbcType=VARCHAR},
+    push_status = #{record.pushStatus,jdbcType=INTEGER},
+    next_push_time = #{record.nextPushTime,jdbcType=TIMESTAMP},
+    `status` = #{record.status,jdbcType=INTEGER},
+    data_message = #{record.dataMessage,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    create_date = #{record.createDate,jdbcType=INTEGER},
+    cycle_date = #{record.cycleDate,jdbcType=INTEGER},
+    retry_count = #{record.retryCount,jdbcType=INTEGER},
+    extend = #{record.extend,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -290,16 +325,19 @@
   <update id="updateByExample" parameterType="map" >
     update b_xiecheng_sms_colliding_data
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      local_id = #{record.localId,jdbcType=BIGINT},
-      type = #{record.type,jdbcType=VARCHAR},
-      sha256_code_list = #{record.sha256CodeList,jdbcType=VARCHAR},
-      push_status = #{record.pushStatus,jdbcType=INTEGER},
-      next_push_time = #{record.nextPushTime,jdbcType=TIMESTAMP},
-      status = #{record.status,jdbcType=INTEGER},
-      data_message = #{record.dataMessage,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    local_id = #{record.localId,jdbcType=BIGINT},
+    `type` = #{record.type,jdbcType=VARCHAR},
+    sha256_code_list = #{record.sha256CodeList,jdbcType=VARCHAR},
+    push_status = #{record.pushStatus,jdbcType=INTEGER},
+    next_push_time = #{record.nextPushTime,jdbcType=TIMESTAMP},
+    `status` = #{record.status,jdbcType=INTEGER},
+    data_message = #{record.dataMessage,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    create_date = #{record.createDate,jdbcType=INTEGER},
+    cycle_date = #{record.cycleDate,jdbcType=INTEGER},
+    retry_count = #{record.retryCount,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -314,7 +352,7 @@
         local_id = #{localId,jdbcType=BIGINT},
       </if>
       <if test="type != null" >
-        type = #{type,jdbcType=VARCHAR},
+        `type` = #{type,jdbcType=VARCHAR},
       </if>
       <if test="sha256CodeList != null" >
         sha256_code_list = #{sha256CodeList,jdbcType=VARCHAR},
@@ -326,7 +364,7 @@
         next_push_time = #{nextPushTime,jdbcType=TIMESTAMP},
       </if>
       <if test="status != null" >
-        status = #{status,jdbcType=INTEGER},
+        `status` = #{status,jdbcType=INTEGER},
       </if>
       <if test="dataMessage != null" >
         data_message = #{dataMessage,jdbcType=VARCHAR},
@@ -337,6 +375,15 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="createDate != null" >
+        create_date = #{createDate,jdbcType=INTEGER},
+      </if>
+      <if test="cycleDate != null" >
+        cycle_date = #{cycleDate,jdbcType=INTEGER},
+      </if>
+      <if test="retryCount != null" >
+        retry_count = #{retryCount,jdbcType=INTEGER},
+      </if>
       <if test="extend != null" >
         extend = #{extend,jdbcType=LONGVARCHAR},
       </if>
@@ -346,30 +393,36 @@
   <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.XieChengSmsCollidingData" >
     update b_xiecheng_sms_colliding_data
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      local_id = #{localId,jdbcType=BIGINT},
-      type = #{type,jdbcType=VARCHAR},
-      sha256_code_list = #{sha256CodeList,jdbcType=VARCHAR},
-      push_status = #{pushStatus,jdbcType=INTEGER},
-      next_push_time = #{nextPushTime,jdbcType=TIMESTAMP},
-      status = #{status,jdbcType=INTEGER},
-      data_message = #{dataMessage,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      extend = #{extend,jdbcType=LONGVARCHAR}
+        local_id = #{localId,jdbcType=BIGINT},
+        `type` = #{type,jdbcType=VARCHAR},
+        sha256_code_list = #{sha256CodeList,jdbcType=VARCHAR},
+        push_status = #{pushStatus,jdbcType=INTEGER},
+        next_push_time = #{nextPushTime,jdbcType=TIMESTAMP},
+        `status` = #{status,jdbcType=INTEGER},
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        create_date = #{createDate,jdbcType=INTEGER},
+        cycle_date = #{cycleDate,jdbcType=INTEGER},
+        retry_count = #{retryCount,jdbcType=INTEGER},
+        extend = #{extend,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XieChengSmsCollidingData" >
     update b_xiecheng_sms_colliding_data
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      local_id = #{localId,jdbcType=BIGINT},
-      type = #{type,jdbcType=VARCHAR},
-      sha256_code_list = #{sha256CodeList,jdbcType=VARCHAR},
-      push_status = #{pushStatus,jdbcType=INTEGER},
-      next_push_time = #{nextPushTime,jdbcType=TIMESTAMP},
-      status = #{status,jdbcType=INTEGER},
-      data_message = #{dataMessage,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        local_id = #{localId,jdbcType=BIGINT},
+        `type` = #{type,jdbcType=VARCHAR},
+        sha256_code_list = #{sha256CodeList,jdbcType=VARCHAR},
+        push_status = #{pushStatus,jdbcType=INTEGER},
+        next_push_time = #{nextPushTime,jdbcType=TIMESTAMP},
+        `status` = #{status,jdbcType=INTEGER},
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        create_date = #{createDate,jdbcType=INTEGER},
+        cycle_date = #{cycleDate,jdbcType=INTEGER},
+        retry_count = #{retryCount,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
