@@ -13,7 +13,7 @@ import com.br.marketing.entity.SyncLog;
 import com.br.marketing.file.service.SyncService;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.mapper.SyncLogMapper;
-import com.br.marketing.sync.SyncApplication;
+import com.br.marketing.file.FileApplication;
 import com.jcraft.jsch.SftpATTRS;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.net.ftp.FTPFile;
@@ -116,7 +116,7 @@ public class SyncServiceImpl implements SyncService {
         String suffixStr = loanSyncConfig.getSuffix();
         List<String> successList = stringListMap.get("success");
         List<String> finishList = stringListMap.get("finish");
-        SyncServiceImpl bean = SyncApplication.ac.getBean(SyncServiceImpl.class);
+        SyncServiceImpl bean = FileApplication.ac.getBean(SyncServiceImpl.class);
         if(suffixStr.contains(".txt")){
             log.info("--------------开始同步txt文件---------------");
             List<String> txtList = stringListMap.get("txt");

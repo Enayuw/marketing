@@ -84,9 +84,9 @@ if [[ $PINPOINT_ENABLE == 'true' ]] ; then
     echo "开启Pinpoint"
     AGENT_ID=`echo -n $POD_NAME|openssl dgst -md5 -binary|base64|sed "s/+/-/g;s/\//_/g;s/=//g"`
     if [[ "${PINPOINT_OPTIONS_VER}" == "new" ]] ; then
-        PINPOINT_OPTIONS=" -javaagent:/opt/springcloud/data/pinpoint-1.8.4/pinpoint-bootstrap-1.8.4.jar -Dpinpoint.agentId=$AGENT_ID -Dpinpoint.applicationName=marketing-sync-$SPEED_ENV "
+        PINPOINT_OPTIONS=" -javaagent:/opt/springcloud/data/pinpoint-1.8.4/pinpoint-bootstrap-1.8.4.jar -Dpinpoint.agentId=$AGENT_ID -Dpinpoint.applicationName=marketing-file-$SPEED_ENV "
     else
-        PINPOINT_OPTIONS=" -javaagent:/opt/springcloud/data/pinpoint/pinpoint-bootstrap-1.8.4.jar -Dpinpoint.agentId=$AGENT_ID -Dpinpoint.applicationName=marketing-sync-$SPEED_ENV "
+        PINPOINT_OPTIONS=" -javaagent:/opt/springcloud/data/pinpoint/pinpoint-bootstrap-1.8.4.jar -Dpinpoint.agentId=$AGENT_ID -Dpinpoint.applicationName=marketing-file-$SPEED_ENV "
     fi
 else
     echo "未开启Pinpoint"

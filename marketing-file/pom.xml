@@ -104,7 +104,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>com.br.marketing.sync.SyncApplication</mainClass>
+                    <mainClass>com.br.marketing.file.FileApplication</mainClass>
                     <includeSystemScope>true</includeSystemScope>
                 </configuration>
             </plugin>

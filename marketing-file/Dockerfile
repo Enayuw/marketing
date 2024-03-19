@@ -1,7 +1,7 @@
 #指定基础镜像
 FROM registry.100credit.cn/centos6/jdk_8u191:v1.0
 #Dockerfile使用变量（可以在Dockerfile中进行引用）
-ARG APPNAME=marketing-sync
+ARG APPNAME=marketing-file
 ARG APP_HOME=/opt/SpringCloud
 #工作目录
 WORKDIR $APP_HOME
@@ -10,7 +10,7 @@ LABEL appname=$APPNAME \
 #指定version标签
 version=1.0.0
 #把在宿主机上编译好的jar包复制到容器内的指定地址，格式为”COPY [宿主机目录] [容器内目录]“，注意宿主机目录一定是Dockerfile所在目录的相对目录
-COPY $APPNAME/target/marketing-sync*.jar $APP_HOME/app/$APPNAME/lib/
+COPY $APPNAME/target/marketing-file*.jar $APP_HOME/app/$APPNAME/lib/
 #拷贝不同环境配置文件到config目录
 COPY $APPNAME/src/main/resources/ $APP_HOME/app/$APPNAME/config/
 #拷贝启动文件到 工作目录
@@ -23,7 +23,7 @@ APP_HOME=$APP_HOME \
 #服务目录
 SERVICE_HOME=$APP_HOME/app/$APPNAME \
 #启动类
-MAIN_CLASS=com.br.marketing.sync.SyncApplication \
+MAIN_CLASS=com.br.marketing.file.FileApplication \
 #application文件名
 APP_CONFIG=application.yml \
 #是否依赖公共jar, 1 依赖 2 不依赖

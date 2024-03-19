@@ -52,7 +52,7 @@
                 <transformer />
                 <transformer>
                   <manifestEntries>
-                    <Main-Class>com.br.marketing.sync.SyncApplication</Main-Class>
+                    <Main-Class>com.br.marketing.file.FileApplication</Main-Class>
                   </manifestEntries>
                 </transformer>
               </transformers>

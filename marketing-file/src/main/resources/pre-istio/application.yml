@@ -1,7 +1,7 @@
 spring:
   web.interceptors.enabled: true
   application:
-    name: marketing-sync
+    name: marketing-file
   profiles.active: pre
   aop:
    proxy-target-class: true

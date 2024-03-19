@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:reg="http://www.dangdang.com/schema/ddframe/reg"
@@ -13,7 +12,7 @@
                         http://www.dangdang.com/schema/ddframe/job 
                         http://www.dangdang.com/schema/ddframe/job/job.xsd 
                         ">
-    <context:component-scan base-package="com.br.marketing.sync.job"/>
+    <context:component-scan base-package="com.br.marketing.file.job"/>
 
     <reg:zookeeper id="regCenter"
                    server-lists="${SERVER_LISTS}"

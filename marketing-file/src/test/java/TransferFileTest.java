@@ -1,7 +1,8 @@
 import com.br.marketing.entity.SyncConfig;
-import com.br.marketing.mapper.SyncConfigMapper;
-import com.br.marketing.sync.SyncApplication;
+import com.br.marketing.file.FileApplication;
 import com.br.marketing.file.service.impl.SyncServiceImpl;
+import com.br.marketing.mapper.SyncConfigMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -20,13 +21,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * xiechengTest
+ * TransferFileTest
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = {SyncApplication.class})
+@SpringBootTest(classes = {FileApplication.class})
 @WebAppConfiguration
-public class TranserFileTest implements ApplicationContextAware {
-    protected final static Logger log = LoggerFactory.getLogger(TranserFileTest.class);
+@Slf4j
+public class TransferFileTest implements ApplicationContextAware {
 
     @Autowired
     SyncServiceImpl syncService;
@@ -35,7 +36,7 @@ public class TranserFileTest implements ApplicationContextAware {
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        SyncApplication.ac = (ConfigurableApplicationContext) applicationContext;
+        FileApplication.ac = (ConfigurableApplicationContext) applicationContext;
     }
 
     @Test
