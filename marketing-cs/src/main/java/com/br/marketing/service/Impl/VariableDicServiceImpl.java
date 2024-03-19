@@ -317,7 +317,7 @@ public class VariableDicServiceImpl implements VariableDicService {
             Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
             Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.USERTYPE_ADD_SENDUSERTYPEADDDINGDINGMGS
                     .toString());
-            if (CollectionUtils.isEmpty(map)) {
+            if (CollectionUtils.isEmpty(map) || apiCode.startsWith("7")) {
                 return;
             }
             // 添加新增场景通知信息
