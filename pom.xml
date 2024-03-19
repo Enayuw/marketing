@@ -242,6 +242,7 @@
         <module>marketing-tools</module>
         <module>marketing-mq-consumer</module>
         <module>marketing-data-monkey</module>
+        <module>marketing-xc-general</module>
         <!--        <module>marketing-fast-task</module>-->
     </modules>
 </project>

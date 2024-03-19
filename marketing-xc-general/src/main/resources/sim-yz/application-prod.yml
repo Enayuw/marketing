@@ -80,27 +80,6 @@ logging:
     file: ./logs/core.log
     root: INFO
 otherConfig:
-  huaXiangInterface:
-        getReport: http://CLOUD-HX-RIBBON/huaxiang/v1/get_report
-  sanxiangzhiliInterface:
-        sanxiang_url: http://zh-service/v1/getData
-        haina_url: http://HAINA-SERVICE/query
-  alarm:
-        secretKey: b58783d4b67f942166f2ffad298080e4
-        appName: marketing
-        outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
-        outsideAppName: marketing-out
-  userCenter:
-        appName: loan-strategy
-        appSecretKey: 7357430aa11febfe81d45945c02706b3
-  warning:
-        pageSize: 5000
-        apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
-        path: /opt/data/inloan/download/marketing/
-        sftpHost: brsftp3.brapp.com
-        sftpPort: 9999
-        sftpUser: BRmarketing
-        sftpPwd: gKjTC62qUJMKigEyvn01@_2021.06.07
   encodeMapping:
         appName: loan-warning
         appSecretKey: a938d0e974746651a11ddcdbcea31404
@@ -110,34 +89,7 @@ otherConfig:
     proxy_username: bairong
     proxy_password: Proxy_br
     proxy_host_zw: 192.168.22.169
-  mom:
-    appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
-    appName: marketing_query_producer
-    destinationName: marketing_query_log
 api:
-  intelligentCustomerService:
-    baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
-    pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
-  robotAiApiService:
-    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
-    robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
-  dass:
-    baseUrl: http://daas.huiyunai.com
-    postHermesUserData: ${api.dass.baseUrl}/csos-daas/call/postHermesUserData
-    postBlackList: ${api.dass.baseUrl}/csos-daas/call/postBlackList # 黑名单数据推送
-    postRealTimeUserData: ${api.dass.baseUrl}/csos-daas/call/postRealTimeUserData # 实时单条用户名单数据推送
-    postTransferData: ${api.dass.baseUrl}/csos-daas/call/postDealData # 转化数据推送
-    aesKey: MgoTm8GxuxTUc6y5
-    SecretKey: MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBAKm7vv0ZdB36H8sGL2YZWAPM3sQ+tMbfoPp71KncNzOzMMqd9KiK9tPrfeoApo+xXBZFvid8f+1BxiyU7/bHrxiIFvawfzTt0PTj/gYcM9k0gMMUmomGNir9PMzV2WWBDpvSLUSoWX56yk3LhUB4rHXrj5pUIpO0pEr5b9cPQbZBAgMBAAECgYEAkSXIkdBuiCQZhBjp97m8lqNf7RpipZ8fnpS+q/NyEXgvRVYGnwsXQOqlZrLfvQnC4hkKH+JL06znt8A15SemB0NizbDmFvtsi+tQQm9qK8jvMkdo6zVeXlNjJ2kDVu98WFDK3EEukWTQXiYTdX6paKiFQnWQwV/EKlb/Bi3lfEECQQDclPdFCptoKDv52HEqs4UbsGY/yO4ZbZXTPst1w0EKjhFIn9jcoFPBoO3o4URPM8ENeBZv8bpU0djGO2nCfAGFAkEAxPymAEbUmtHH893JILrfo65O85K5MmGNR/NSdn4uBjD9E0R1cWB3SHlfDUv9+r0GtuQasLSp3cvJI5OY2sdgjQJBALmurHfx9eA3/kTTbnADrokgdPI8sjG1jenFcoAvXREFhoccB/GxBNB6J8th1Z7Wcixkan7RfYjpHRHB8cVFngECQFy0tn8s1oPiNKMtfql7qSKENz3kkGoIhRAWkHmZmplpVsFJl6f7CUg/bp94Yxgs+8r5ASKmc8chUBEBNo/IA0UCQQCt75iTugjsjbZUvoYHwZ9A7Bf7vfG7sOI3cismFzARUpSUPN6dEht4X4Z2AdC9HXXS+Mb3vFaCIK+h3WDZeZJt
-    isProxy: 1
-  twoSeven:
-    baseUrl: http://8.129.19.178:8888
-    zhuangku: ${api.twoSeven.baseUrl}/zhuangku
-    isProxy: 1
-  marketing:
-    baseUrl: http://marketing-api
-    transferUrl: ${api.marketing.baseUrl}/marketingTransferData/receiveTransferDataSync
-    uploadUrl: ${api.marketing.baseUrl}/marketingUserPre/receiveMarketingPreUser
   xiecheng:
     openUrl: https://jr.ctrip.com/nemoweb/ad/common/outAdMonitor.do
     appId: bairong001
@@ -151,7 +103,26 @@ api:
     source: BaiRong_C01
     channel: commonOutAdMonitor
     isProxy: true
-
+    smsQuit:
+      openUrl: https://jr.ctrip.com/nemoweb/ad/common/saveAdMobileBlack.do
+      appId: bairong001
+      key: f3df6f62f0527bf0
+      iv: 3b2dac323465b024
+      singKey: 95cc01ec07387a44
+      channel: saveAdMobileBlack
+      isProxy: true
+    smsColliding:
+      openUrl: https://jr.ctrip.com/nemoweb/ad/common/unionCheckUser.do
+      appId: bairong001
+      key: f3df6f62f0527bf0
+      iv: 3b2dac323465b024
+      singKey: 95cc01ec07387a44
+      appIdVt: bairong002
+      keyVt: f3df6f62f0527bf0
+      ivVt: 3b2dac323465b024
+      signKeyVt: 95cc01ec07387a44
+      channel: commonUnionCheckUser
+      isProxy: true
 spring:
   rabbitmq:
     addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672
