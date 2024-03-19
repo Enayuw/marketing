@@ -35,7 +35,7 @@ import java.util.*;
 public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     private static int initCollectionSize = 64;
 
-    @Autowired
+    @Resource
     MarketingCustomerMapper customerMapper;
     /*萨摩耶的实现*/
     @Resource
@@ -45,10 +45,10 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     ITransferToFileService transferToFileByHaluoServiceImpl;
 
-    @Autowired
+    @Resource
     SftpInnerServiceImpl sftpInnerService;
 
-    @Autowired
+    @Resource
     RedisChgService redisChgService;
 
     @Resource
@@ -125,12 +125,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByPPDOldServiceImpl transferToFileByPPDOldService;
 
-    @Autowired
+    @Resource
     private TransferToFileByYouMeDServiceImpl transferToFileByYouMeDService;
-    @Autowired
+    @Resource
     private TransferToFileByGomeServiceImpl transferToFileByGomeService;
 
-    @Autowired
+    @Resource
     private TransferToFileByDiDiServiceImpl transferToFileByDiDiService;
 
     /**
@@ -177,7 +177,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
 
 
 
-    @Autowired
+    @Resource
     ICompatibleService iCompatibleService;
 
     @Override

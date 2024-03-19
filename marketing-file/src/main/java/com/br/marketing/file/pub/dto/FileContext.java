@@ -1,4 +1,4 @@
-package com.br.marketing.file.dto;
+package com.br.marketing.file.pub.dto;
 
 import com.br.marketing.client.BaseFtpClient;
 import com.br.marketing.common.utils.Constants;
@@ -9,31 +9,8 @@ import com.br.marketing.entity.MerchantParam;
 import lombok.Data;
 
 /**
- * //				    _ooOoo_
- * //				   o8888888o
- * //				   88" . "88
- * //				   (| -_- |)
- * //				   O\  =  /O
- * //			    ____/`---'\____
- * //			  .'  \\|     |//  `.
- * //		     /  \\|||  :  |||//  \
- * //		    /  _|||||--:--|||||_  \
- * //		    | / | \\\  -  /// | \ |
- * //		    | \_|  ''\-:-/''  |_/ |
- * //		    \  .-\__  `-`  ___/-. /
- * //		  ___`...'  /--.--\  '...`___
- * //	   ."" '< `.___\_<|>_/___.'  >' "".
- * //	   | | : `- \`.;`\ _ /`;.`/ -` : | |
- * //	    \ \ `-.  \_ __\ /__ _/  .-` / /
- * // ======`-.____`-.____\____/.-`____.-`======
- * //				    `=---='
- * //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- * //			  Buddha Bless, No Bug !
- *
- * @Author xiaoxin.pang
- * @Date 2021/6/1 11:31
- * @Description:
- **/
+ * FileContext
+ */
 @Data
 public class FileContext {
     /**

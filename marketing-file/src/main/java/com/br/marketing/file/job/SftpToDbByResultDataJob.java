@@ -4,10 +4,10 @@ import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.entity.*;
-import com.br.marketing.file.dto.FileContext;
-import com.br.marketing.file.service.todb.SftpToDbByCommonService;
-import com.br.marketing.file.service.todb.SftpToDbByDXService;
-import com.br.marketing.file.utils.SftpToDbUtils;
+import com.br.marketing.file.pub.dto.FileContext;
+import com.br.marketing.file.service.todb.impl.SftpToDbByCommonService;
+import com.br.marketing.file.service.todb.impl.SftpToDbByDXService;
+import com.br.marketing.file.common.utils.SftpToDbUtils;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
@@ -31,31 +31,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * //				    _ooOoo_
- * //				   o8888888o
- * //				   88" . "88
- * //				   (| -_- |)
- * //				   O\  =  /O
- * //			    ____/`---'\____
- * //			  .'  \\|     |//  `.
- * //		     /  \\|||  :  |||//  \
- * //		    /  _|||||--:--|||||_  \
- * //		    | / | \\\  -  /// | \ |
- * //		    | \_|  ''\-:-/''  |_/ |
- * //		    \  .-\__  `-`  ___/-. /
- * //		  ___`...'  /--.--\  '...`___
- * //	   ."" '< `.___\_<|>_/___.'  >' "".
- * //	   | | : `- \`.;`\ _ /`;.`/ -` : | |
- * //	    \ \ `-.  \_ __\ /__ _/  .-` / /
- * // ======`-.____`-.____\____/.-`____.-`======
- * //				    `=---='
- * //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- * //			  Buddha Bless, No Bug !
- *
- * @Author xiaoxin.pang
- * @Date 2021/4/27 15:46
- * @Description:
- **/
+ * SftpToDbByResultDataJob
+ */
 @Component
 @Slf4j
 public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {

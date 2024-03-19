@@ -1,4 +1,4 @@
-package com.br.marketing.file.thread;
+package com.br.marketing.file.common.thread;
 
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +61,7 @@ public class ValidatorThread implements Callable<String>{
         this.head=head;
         this.filename=filename;
     }
+
     @Override
     public String call() throws Exception {
         log.info("start check data __{}",dataList.size());

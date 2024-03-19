@@ -1,4 +1,4 @@
-package com.br.marketing.file.utils;
+package com.br.marketing.file.common.utils;
 
 import com.br.common.encryption.BrCipherMaker;
 import com.br.common.validator.DateUtils;

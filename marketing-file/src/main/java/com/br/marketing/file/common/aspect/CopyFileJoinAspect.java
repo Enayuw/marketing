@@ -1,4 +1,4 @@
-package com.br.marketing.file.aspect;
+package com.br.marketing.file.common.aspect;
 
 import com.br.common.validator.DateUtils;
 import com.br.marketing.client.BaseFtpClient;
@@ -7,7 +7,6 @@ import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.LoanFileMapper;
@@ -20,7 +19,6 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -31,7 +29,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 @Aspect
 @Component
@@ -42,13 +39,13 @@ public class CopyFileJoinAspect {
     @Resource
     LoanFileMapper loanFileMapper;
 
-    @Autowired
+    @Resource
     TransferFileTaskMapper transferFileTaskMapper;
 
     @Pointcut("execution(public * com.br.marketing.file.service.impl.SyncServiceImpl.copyFile(..))")
     public void copyFile(){}
 
-    @Around("com.br.marketing.file.aspect.CopyFileJoinAspect.copyFile()")
+    @Around("com.br.marketing.file.common.aspect.CopyFileJoinAspect.copyFile()")
     public void copyFile(ProceedingJoinPoint joinPoint){
         Object[] args = joinPoint.getArgs();
         SyncConfig loanSyncConfig= new SyncConfig();

@@ -1,4 +1,4 @@
-package com.br.marketing.file.alarm;
+package com.br.marketing.file.pub.alarm;
 
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.classic.spi.ThrowableProxy;

@@ -1,4 +1,4 @@
-package com.br.marketing.file.utils;
+package com.br.marketing.file.common.utils;
 
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
@@ -7,8 +7,8 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.entity.SyncConfig;
-import com.br.marketing.file.dto.FileContext;
-import com.br.marketing.file.enums.ErrorFileTypeEnum;
+import com.br.marketing.file.pub.dto.FileContext;
+import com.br.marketing.file.common.enums.ErrorFileTypeEnum;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.google.common.base.Splitter;
 import com.jcraft.jsch.SftpATTRS;

@@ -1,4 +1,4 @@
-package com.br.marketing.file.service.todb;
+package com.br.marketing.file.service.todb.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.validator.CellUtils;
@@ -11,10 +11,10 @@ import com.br.marketing.entity.LoadResult;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.PhoneSale;
-import com.br.marketing.file.dto.FileContext;
-import com.br.marketing.file.enums.ErrorFileTypeEnum;
-import com.br.marketing.file.service.todb.impl.FileCheckServiceImpl;
-import com.br.marketing.file.utils.SftpToDbUtils;
+import com.br.marketing.file.pub.dto.FileContext;
+import com.br.marketing.file.common.enums.ErrorFileTypeEnum;
+import com.br.marketing.file.common.utils.SftpToDbUtils;
+import com.br.marketing.file.service.filecheck.FileCheckService;
 import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.PhoneSaleMapper;
@@ -24,7 +24,6 @@ import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.map.HashedMap;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -60,7 +59,7 @@ public class SftpToDbByDXService {
      * The File ckeck servicce.
      */
     @Resource
-    FileCheckServiceImpl fileCheckService;
+    FileCheckService fileCheckService;
 
     @Resource
     LocalFileMapper localFileMapper;

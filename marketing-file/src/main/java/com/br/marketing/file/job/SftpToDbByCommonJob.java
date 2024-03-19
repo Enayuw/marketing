@@ -1,6 +1,6 @@
 package com.br.marketing.file.job;
 
-import com.br.marketing.file.utils.SftpToDbUtils;
+import com.br.marketing.file.common.utils.SftpToDbUtils;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -8,9 +8,9 @@ import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.dto.TxtToDbDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.file.FileApplication;
-import com.br.marketing.file.dto.FileContext;
-import com.br.marketing.file.enums.FileTypeToAssemblerEnum;
-import com.br.marketing.file.service.todb.SftpToDbByCommonService;
+import com.br.marketing.file.pub.dto.FileContext;
+import com.br.marketing.file.common.enums.FileTypeToAssemblerEnum;
+import com.br.marketing.file.service.todb.impl.SftpToDbByCommonService;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.ICompatibleService;
@@ -23,7 +23,6 @@ import com.google.common.base.Function;
 import com.jcraft.jsch.JSchException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -37,7 +36,7 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
-    @Autowired
+    @Resource
     SyncConfigService syncConfigService;
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;

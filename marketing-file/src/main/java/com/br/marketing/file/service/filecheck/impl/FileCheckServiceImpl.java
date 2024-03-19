@@ -1,17 +1,17 @@
-package com.br.marketing.file.service.todb.impl;
+package com.br.marketing.file.service.filecheck.impl;
 
-import com.br.marketing.file.dto.FileContext;
-import com.br.marketing.file.enums.ErrorFileTypeEnum;
-import com.br.marketing.file.thread.ValidatorSmallFileThread;
-import com.br.marketing.file.thread.ValidatorThread;
-import com.br.marketing.file.utils.SftpToDbUtils;
+import com.br.marketing.file.pub.dto.FileContext;
+import com.br.marketing.file.common.enums.ErrorFileTypeEnum;
+import com.br.marketing.file.common.thread.ValidatorSmallFileThread;
+import com.br.marketing.file.common.thread.ValidatorThread;
+import com.br.marketing.file.common.utils.SftpToDbUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.entity.LoadResult;
-import com.br.marketing.file.service.todb.FileCheckService;
+import com.br.marketing.file.service.filecheck.FileCheckService;
 import com.br.marketing.mapper.CustomerMapper;
 import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Created by Bairong on 2020/1/15.
  */
-@Service
+@Service("fileCheckService")
 @Slf4j
 public class FileCheckServiceImpl implements FileCheckService {
 
@@ -189,6 +189,7 @@ public class FileCheckServiceImpl implements FileCheckService {
     }
 
 
+    @Override
     public void errorDetail(FileContext context, String errorMessage, ErrorFileTypeEnum errorFileTypeEnum){
         SftpToDbUtils.returnErrorFile(context,errorMessage,errorFileTypeEnum);
         String fileName="";
@@ -259,7 +260,8 @@ public class FileCheckServiceImpl implements FileCheckService {
      * @param value1 字段值
      * @return
      */
-    public boolean checkConfig(String field,String value,String apiCode,String value1){
+    @Override
+    public boolean checkConfig(String field, String value, String apiCode, String value1){
         boolean flag=true;
 
         switch (field) {

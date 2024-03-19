@@ -1,4 +1,4 @@
-package com.br.marketing.file.enums;
+package com.br.marketing.file.common.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
