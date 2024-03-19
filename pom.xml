@@ -243,6 +243,7 @@
         <module>marketing-mq-consumer</module>
         <module>marketing-data-monkey</module>
         <module>marketing-xc-general</module>
+        <module>marketing_xc_loop_cycle</module>
         <!--        <module>marketing-fast-task</module>-->
     </modules>
 </project>
