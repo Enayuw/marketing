@@ -1,7 +1,6 @@
 package com.br.marketing.xc;
 
 import com.br.cloud.boot.EnablePrometheusEndpoint;
-import com.br.cloud.counter.EnableBrCounter;
 import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
