@@ -44,6 +44,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -589,6 +590,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 });
                 platformTransactionManager.commit(transaction);
             } catch (Exception e) {
+                log.error(e.getMessage() + "\n" + dataCountFragmentsMgs, e);
                 platformTransactionManager.rollback(transaction);
                 userTypeMap.keySet().forEach((String userType) -> {
                     String key = redisKey + ":" + userType;
@@ -599,7 +601,11 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                     }
                 });
                 result.setCode(ResultCode.FAIL.getValue());
-                log.error(e.getMessage() + "\n" + dataCountFragmentsMgs, e);
+                try {
+                    TimeUnit.MINUTES.sleep(1);
+                } catch (InterruptedException interruptedException) {
+                    log.warn(e.getMessage(), e);
+                }
             }
         }
         return result;

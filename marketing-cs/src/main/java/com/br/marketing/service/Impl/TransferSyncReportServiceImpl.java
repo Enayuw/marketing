@@ -40,6 +40,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -366,6 +367,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                 }
                 platformTransactionManager.commit(transaction);
             } catch (Exception e) {
+                log.error(e.getMessage() + "\n" + dataCountFragmentsMgs, e);
                 platformTransactionManager.rollback(transaction);
                 syncUserList.forEach((TransferSyncReport syncReport) -> {
                     String key = redisKey + ":" + syncReport.getUserType();
@@ -376,7 +378,11 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                     }
                 });
                 result.setCode(ResultCode.FAIL.getValue());
-                log.error(e.getMessage() + "\n" + dataCountFragmentsMgs, e);
+                try {
+                    TimeUnit.MINUTES.sleep(1);
+                } catch (InterruptedException interruptedException) {
+                    log.warn(e.getMessage(), e);
+                }
             }
         }
         return result;
