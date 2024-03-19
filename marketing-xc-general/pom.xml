@@ -12,7 +12,7 @@
     <groupId>com.br.marketing</groupId>
     <artifactId>marketing-xc-general</artifactId>
     <name>marketing-xc-general</name>
-    <description>非周期撞库</description>
+    <description>携程通用服务</description>
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
