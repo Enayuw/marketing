@@ -38,24 +38,40 @@ logging:
     root: INFO
 otherConfig:
   huaXiangInterface:
-        getReport: http://CLOUD-HX-RIBBON/huaxiang/v1/get_report
+    getReport: http://CLOUD-HX-RIBBON/huaxiang/v1/get_report
   sanxiangzhiliInterface:
-        sanxiang_url: http://zh-service/v1/getData
-        haina_url: http://HAINA-SERVICE/query
+    sanxiang_url: http://zh-service/v1/getData
+    haina_url: http://HAINA-SERVICE/query
   alarm:
-        secretKey: b58783d4b67f942166f2ffad298080e4
-        appName: marketing
-        outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
-        outsideAppName: marketing-out
+    secretKey: b58783d4b67f942166f2ffad298080e4
+    appName: marketing
+    outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
+    outsideAppName: marketing-out
   userCenter:
-        appName: loan-strategy
-        appSecretKey: 7357430aa11febfe81d45945c02706b3
+    appName: loan-strategy
+    appSecretKey: 7357430aa11febfe81d45945c02706b3
   warning:
-        pageSize: 5000
-        apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
+    pageSize: 5000
+    apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
+    path: /opt/data/inloan/download/marketing/
+    sftpHost: brsftp3.brapp.com
+    sftpPort: 9999
+    sftpUser: BRmarketing
+    sftpPwd: gKjTC62qUJMKigEyvn01@_2021.06.07
   encodeMapping:
-        appName: loan-warning
-        appSecretKey: a938d0e974746651a11ddcdbcea31404
+    appName: loan-warning
+    appSecretKey: a938d0e974746651a11ddcdbcea31404
+  proxy:
+    proxy_host: squid-proxy2.brapp.com
+    proxy_port: 3128
+    proxy_username: bairong
+    proxy_password: Proxy_br
+    proxy_host_zw: 192.168.22.169
+  mom:
+    appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
+    appName: marketing_query_producer
+    destinationName: marketing_query_log
+
 cluster:
   flag: ${CONF_CLUSTER}
 #elastic-job配置

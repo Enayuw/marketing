@@ -38,19 +38,35 @@ logging:
     root: INFO
 otherConfig:
   alarm:
-        secretKey: a9c57e4138807a9e18b439cd9dab275b
-        appName: marketing
-        outsideSecretKey: 71e63ead0af0a07ae4191eb14b75a541
-        outsideAppName: marketing-out
+    secretKey: a9c57e4138807a9e18b439cd9dab275b
+    appName: marketing
+    outsideSecretKey: 71e63ead0af0a07ae4191eb14b75a541
+    outsideAppName: marketing-out
   userCenter:
-        appName: loan-strategy
-        appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
+    appName: loan-strategy
+    appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
   warning:
-        pageSize: 5000
-        apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
+    pageSize: 5000
+    apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
+    path: /opt/data/inloan/download/marketing/
+    sftpHost: 10.100.123.65
+    sftpPort: 9999
+    sftpUser: BRmarketing_pre
+    sftpPwd: 72aXd79ITcMeuyPAlDYy@_2021.06.07
   encodeMapping:
-        appName: loan-warning
-        appSecretKey: f15a1421ac95a284683688af14688b72
+    appName: loan-warning
+    appSecretKey: f15a1421ac95a284683688af14688b72
+  proxy:
+    proxy_host: squid-proxy2.brapp.com
+    proxy_port: 3128
+    proxy_username: bairong
+    proxy_password: Proxy_br
+    proxy_host_zw: 192.168.22.169
+  mom:
+    appSecretKey: d42726322ba9bda57b74043be21aa2c4
+    appName: marketing_query_producer
+    destinationName: marketing_query_log
+
 cluster:
   flag: ${CONF_CLUSTER}
 #elastic-job配置
