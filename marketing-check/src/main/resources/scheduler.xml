@@ -438,12 +438,6 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-<<<<<<< HEAD
-    <job:simple id="ToPolicyByRuleJob"
-                class="com.br.marketing.check.job.ToPolicyByRuleJob"
-                cron="0 0/5 * * * ? "
-                description="规则中心推送决策任务"
-=======
     <job:simple id="fenqilePeriodPushDecisionJob"
                 class="com.br.marketing.check.job.fenqile.FenqilePeriodPushDecisionJob"
                 cron="0 0 18 29 9 ? 2050-2050"
@@ -777,7 +771,36 @@
                 class="com.br.marketing.check.job.HaierCollidingDataSyncJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="海尔撞库上传清洗定时任务"
->>>>>>> main
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="ToPolicyByRuleJob"
+                class="com.br.marketing.check.job.ToPolicyByRuleJob"
+                cron="0 0/5 * * * ? "
+                description="规则中心推送决策任务"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="CustomerPushStatusQueryJob"
+                class="com.br.marketing.check.job.CustomerPushStatusQueryJob"
+                cron="0 0/5 * * * ? "
+                description="规则中心推送决策结果查询"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
