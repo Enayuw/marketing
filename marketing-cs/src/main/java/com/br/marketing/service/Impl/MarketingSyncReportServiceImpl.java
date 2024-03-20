@@ -93,8 +93,8 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     @Resource
     private PlatformTransactionManager platformTransactionManager;
 
-    private static final ThreadPoolExecutor POOL_EXECUTOR = BrExecutors.getThreadPool(5, 50
-            , new SynchronousQueue<>());
+    private static final ThreadPoolExecutor POOL_EXECUTOR = BrExecutors.getThreadPool(50, 100
+            , new SynchronousQueue<>(), "upload-sync-report");
 
     @Override
     public void syncReportProcess(String uploadDate, String jobName) {

@@ -81,8 +81,8 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
     @Resource
     private PlatformTransactionManager platformTransactionManager;
 
-    private static final ThreadPoolExecutor POOL_EXECUTOR = BrExecutors.getThreadPool(5, 50
-            , new SynchronousQueue<>());
+    private static final ThreadPoolExecutor POOL_EXECUTOR = BrExecutors.getThreadPool(50, 100
+            , new SynchronousQueue<>(), "transfer-sync-report");
 
 
     @Override
