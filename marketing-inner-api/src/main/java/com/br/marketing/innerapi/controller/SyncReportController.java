@@ -83,13 +83,16 @@ public class SyncReportController {
 
     @GetMapping("/triggerTaskUploadSyncReportJob")
     @ApiOperation(value = "手动执行上传数据统计报表任务", notes = "手动执行上传数据统计报表任务", httpMethod = "GET")
-    @ApiImplicitParam(name = "uploadDate", value = "当日日期(yyyy-MM-dd)",paramType = "query", dataType = "string")
+    @ApiImplicitParam(name = "uploadDate", value = "当日日期(yyyy-MM-dd)", paramType = "query", dataType = "string")
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
-    public ApiResult<Boolean> triggerTaskUploadSyncReportJob(@RequestParam(required = false) String uploadDate) {
+    public ApiResult<Boolean> triggerTaskUploadSyncReportJob(@RequestParam(required = false) String uploadDate
+            , @RequestParam(required = false, defaultValue = "false") Boolean isManual) {
         try {
-            syncReportService.syncReportProcess(uploadDate);
+            if (isManual) {
+                syncReportService.syncReportProcess(uploadDate);
+            }
             return new ApiResult<Boolean>().success(Boolean.TRUE);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.warn("手动执行上传数据统计报表任务异常");
             return new ApiResult<Boolean>().fail("手动执行上传数据统计报表任务异常,请稍后再试！");
         }
