@@ -3,4 +3,28 @@
 <mapper namespace="com.br.marketing.mapper.XieChengCollidingDataContrastMapper" >
 
 
+    <select id="temporaryCounttiflash_" resultType="java.lang.Long">
+        select count(distinct cell) from  #{tableName} where #{filterScore}
+    </select>
+
+    <select id="temporaryMaxAndMinId" resultType="Map">
+        select max(id) as maxId,min(id) as minId from  #{tableName} where #{filterScore}
+    </select>
+
+    <select id="temporaryCelltiflash_" resultType="Map">
+        select tid,cell  from  #{tableName} a left join b_xiecheng_colliding_data_contrast b
+                         on a.cell  = b.cell_sha256_code_list and b.is_deleted = 0 where #{filterScore}
+                                                                                     and b.id is null
+        limit #{xieChengCleanLimitCount}
+    </select>
+
+    <insert id="saveBatch" parameterType="list">
+        insert into b_xiecheng_colliding_data_contrast (rule_type_flag, cell_sha256_code_list,
+        create_time,update_time)values
+        <foreach collection="list" item="data" separator=",">
+            (#{data.ruleTypeFlag}, #{data.cellSha256CodeList,jdbcType=BIGINT},
+            now(),now()
+            )
+        </foreach>
+    </insert>
 </mapper>
