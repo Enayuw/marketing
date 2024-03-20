@@ -539,7 +539,8 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                         // 上锁
                         Map<String, Object> cacheMap = redisChgService.hgetall(hKey);
                         Map<String, String> jsonObject = null;
-                        if (CollectionUtils.isEmpty(cacheMap)) {
+                        boolean cacheBool = CollectionUtils.isEmpty(cacheMap);
+                        if (cacheBool) {
                             // 缓存不存在
                             MarketingSyncReportExample example = new MarketingSyncReportExample();
                             example.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cId)
@@ -561,7 +562,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                             , new TypeReference<Map<String, String>>() {
                                             }));
                                     redisChgService.unlock(lockKey, lockValue);
-                                    redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 12, 3600 * 24));
+                                    redisChgService.expire(hKey, RandomUtils.nextInt(60, 300));
                                     continue;
                                 }
                             } else {
@@ -579,7 +580,9 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                         int i = syncReportMapper.updateByPrimaryKeySelective(syncReport);
                         if (i > 0 && jsonObject != null) {
                             redisChgService.hmset(hKey, jsonObject);
-                            redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 12, 3600 * 24));
+                            if (cacheBool) {
+                                redisChgService.expire(hKey, RandomUtils.nextInt(360, 1800));
+                            }
                         } else {
                             redisChgService.del(hKey);
                         }
