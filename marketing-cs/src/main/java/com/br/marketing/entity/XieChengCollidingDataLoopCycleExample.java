@@ -425,6 +425,66 @@ public class XieChengCollidingDataLoopCycleExample {
             return (Criteria) this;
         }
 
+        public Criteria andPushTimeIsNull() {
+            addCriterion("push_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeIsNotNull() {
+            addCriterion("push_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeEqualTo(Date value) {
+            addCriterion("push_time =", value, "pushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeNotEqualTo(Date value) {
+            addCriterion("push_time <>", value, "pushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeGreaterThan(Date value) {
+            addCriterion("push_time >", value, "pushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeGreaterThanOrEqualTo(Date value) {
+            addCriterion("push_time >=", value, "pushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeLessThan(Date value) {
+            addCriterion("push_time <", value, "pushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeLessThanOrEqualTo(Date value) {
+            addCriterion("push_time <=", value, "pushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeIn(List<Date> values) {
+            addCriterion("push_time in", values, "pushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeNotIn(List<Date> values) {
+            addCriterion("push_time not in", values, "pushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeBetween(Date value1, Date value2) {
+            addCriterion("push_time between", value1, value2, "pushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeNotBetween(Date value1, Date value2) {
+            addCriterion("push_time not between", value1, value2, "pushTime");
+            return (Criteria) this;
+        }
+
         public Criteria andIsDeleteIsNull() {
             addCriterion("is_delete is null");
             return (Criteria) this;

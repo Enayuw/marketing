@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapperBase" >
+<mapper namespace="com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.XieChengCollidingDataLoopCycle" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="package_id" property="packageId" jdbcType="BIGINT" />
     <result column="data_source_type" property="dataSourceType" jdbcType="VARCHAR" />
     <result column="cell_sha256_code_list" property="cellSha256CodeList" jdbcType="VARCHAR" />
     <result column="release_time" property="releaseTime" jdbcType="TIMESTAMP" />
+    <result column="push_time" property="pushTime" jdbcType="TIMESTAMP" />
     <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -74,8 +75,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, package_id, data_source_type, cell_sha256_code_list, release_time, is_delete, 
-    create_time, update_time, retry_count
+    id, package_id, data_source_type, cell_sha256_code_list, release_time, push_time,
+    is_delete, create_time, update_time, retry_count
   </sql>
   <sql id="Blob_Column_List" >
     extend
@@ -111,7 +112,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     ,
     <include refid="Blob_Column_List" />
@@ -132,14 +133,14 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_xiecheng_colliding_data_loop_cycle (package_id, data_source_type, cell_sha256_code_list, 
-      release_time, is_delete, create_time, 
-      update_time, retry_count, extend
-      )
-    values (#{packageId,jdbcType=BIGINT}, #{dataSourceType,jdbcType=VARCHAR}, #{cellSha256CodeList,jdbcType=VARCHAR}, 
-      #{releaseTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{retryCount,jdbcType=INTEGER}, #{extend,jdbcType=LONGVARCHAR}
-      )
+    insert into b_xiecheng_colliding_data_loop_cycle (package_id, data_source_type, cell_sha256_code_list,
+    release_time, push_time, is_delete,
+    create_time, update_time, retry_count,
+    extend)
+    values (#{packageId,jdbcType=BIGINT}, #{dataSourceType,jdbcType=VARCHAR}, #{cellSha256CodeList,jdbcType=VARCHAR},
+    #{releaseTime,jdbcType=TIMESTAMP}, #{pushTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{retryCount,jdbcType=INTEGER},
+    #{extend,jdbcType=LONGVARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.XieChengCollidingDataLoopCycle" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -158,6 +159,9 @@
       </if>
       <if test="releaseTime != null" >
         release_time,
+      </if>
+      <if test="pushTime != null" >
+        push_time,
       </if>
       <if test="isDelete != null" >
         is_delete,
@@ -187,6 +191,9 @@
       </if>
       <if test="releaseTime != null" >
         #{releaseTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="pushTime != null" >
+        #{pushTime,jdbcType=TIMESTAMP},
       </if>
       <if test="isDelete != null" >
         #{isDelete,jdbcType=INTEGER},
@@ -229,6 +236,9 @@
       <if test="record.releaseTime != null" >
         release_time = #{record.releaseTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.pushTime != null" >
+        push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+      </if>
       <if test="record.isDelete != null" >
         is_delete = #{record.isDelete,jdbcType=INTEGER},
       </if>
@@ -252,15 +262,16 @@
   <update id="updateByExampleWithBLOBs" parameterType="map" >
     update b_xiecheng_colliding_data_loop_cycle
     set id = #{record.id,jdbcType=BIGINT},
-      package_id = #{record.packageId,jdbcType=BIGINT},
-      data_source_type = #{record.dataSourceType,jdbcType=VARCHAR},
-      cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
-      release_time = #{record.releaseTime,jdbcType=TIMESTAMP},
-      is_delete = #{record.isDelete,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      retry_count = #{record.retryCount,jdbcType=INTEGER},
-      extend = #{record.extend,jdbcType=LONGVARCHAR}
+    package_id = #{record.packageId,jdbcType=BIGINT},
+    data_source_type = #{record.dataSourceType,jdbcType=VARCHAR},
+    cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
+    release_time = #{record.releaseTime,jdbcType=TIMESTAMP},
+    push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+    is_delete = #{record.isDelete,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    retry_count = #{record.retryCount,jdbcType=INTEGER},
+    extend = #{record.extend,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -268,14 +279,15 @@
   <update id="updateByExample" parameterType="map" >
     update b_xiecheng_colliding_data_loop_cycle
     set id = #{record.id,jdbcType=BIGINT},
-      package_id = #{record.packageId,jdbcType=BIGINT},
-      data_source_type = #{record.dataSourceType,jdbcType=VARCHAR},
-      cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
-      release_time = #{record.releaseTime,jdbcType=TIMESTAMP},
-      is_delete = #{record.isDelete,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      retry_count = #{record.retryCount,jdbcType=INTEGER}
+    package_id = #{record.packageId,jdbcType=BIGINT},
+    data_source_type = #{record.dataSourceType,jdbcType=VARCHAR},
+    cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
+    release_time = #{record.releaseTime,jdbcType=TIMESTAMP},
+    push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+    is_delete = #{record.isDelete,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    retry_count = #{record.retryCount,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -294,6 +306,9 @@
       </if>
       <if test="releaseTime != null" >
         release_time = #{releaseTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="pushTime != null" >
+        push_time = #{pushTime,jdbcType=TIMESTAMP},
       </if>
       <if test="isDelete != null" >
         is_delete = #{isDelete,jdbcType=INTEGER},
@@ -316,26 +331,28 @@
   <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.XieChengCollidingDataLoopCycle" >
     update b_xiecheng_colliding_data_loop_cycle
     set package_id = #{packageId,jdbcType=BIGINT},
-      data_source_type = #{dataSourceType,jdbcType=VARCHAR},
-      cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
-      release_time = #{releaseTime,jdbcType=TIMESTAMP},
-      is_delete = #{isDelete,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      retry_count = #{retryCount,jdbcType=INTEGER},
-      extend = #{extend,jdbcType=LONGVARCHAR}
+        data_source_type = #{dataSourceType,jdbcType=VARCHAR},
+        cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
+        release_time = #{releaseTime,jdbcType=TIMESTAMP},
+        push_time = #{pushTime,jdbcType=TIMESTAMP},
+        is_delete = #{isDelete,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        retry_count = #{retryCount,jdbcType=INTEGER},
+        extend = #{extend,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XieChengCollidingDataLoopCycle" >
     update b_xiecheng_colliding_data_loop_cycle
     set package_id = #{packageId,jdbcType=BIGINT},
-      data_source_type = #{dataSourceType,jdbcType=VARCHAR},
-      cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
-      release_time = #{releaseTime,jdbcType=TIMESTAMP},
-      is_delete = #{isDelete,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      retry_count = #{retryCount,jdbcType=INTEGER}
+        data_source_type = #{dataSourceType,jdbcType=VARCHAR},
+        cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
+        release_time = #{releaseTime,jdbcType=TIMESTAMP},
+        push_time = #{pushTime,jdbcType=TIMESTAMP},
+        is_delete = #{isDelete,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        retry_count = #{retryCount,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
