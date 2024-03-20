@@ -893,20 +893,17 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     @Override
-    public Result<Boolean> getCustomerStatus(Long mId) {
-
-        CustomerInfoPushMain main = customerInfoPushMainMapper.selectByPrimaryKey(mId);
-        if (main == null) {
-            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
-        }
+    public Result<Boolean> getCustomerStatus(CustomerInfoPushMain customerInfoPushMain) {
+        Long mId = customerInfoPushMain.getId();
         Boolean isContinue = Boolean.FALSE;
+
         ArrayList<String> realStatus = new ArrayList<>();
         realStatus.add("1");
         realStatus.add("900013");
         List<CustomerPushLogVO> customerInfoPushLogs = customerInfoPushLogMapper.getPushLog(mId, realStatus);
         for (CustomerPushLogVO t : customerInfoPushLogs) {
             PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
-            pushMarketingUserDTO.setApiCode(main.getmApiCode());
+            pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
             pushMarketingUserDTO.setPlatApiCode("");
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("method", "uploadResult");

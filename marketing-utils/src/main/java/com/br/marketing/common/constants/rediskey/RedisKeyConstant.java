@@ -170,4 +170,9 @@ public class RedisKeyConstant {
      * 得物撞库所
      */
     public static final String PUSH_DEWU_COLLIDING_DATA_LOCK = prefix.concat("dewu:pushDewuCollidingDataLock");
+
+    /**
+     * 客户信息推送状态查询
+     */
+    public static final String CUSTOMER_PUSH_STATUS_QUERY_LOCK = prefix.concat("customerPushStatusQuery:pushMainLock");
 }

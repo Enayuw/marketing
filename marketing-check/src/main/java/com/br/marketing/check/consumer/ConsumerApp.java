@@ -114,13 +114,13 @@ public class ConsumerApp {
      * @param channel 通道
      * @param message 消息体
      */
-    @RabbitListener(queues = MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH, containerFactory = "containerFactory")
-    public void consumerUserStatus(Channel channel, Message message) {
-        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
-        }.getType());
-        consumerService.consumerRun(channel, message, pushRuleService::getCustomerStatus, o,
-                MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY);
-    }
+//    @RabbitListener(queues = MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH, containerFactory = "containerFactory")
+//    public void consumerUserStatus(Channel channel, Message message) {
+//        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
+//        }.getType());
+//        consumerService.consumerRun(channel, message, pushRuleService::getCustomerStatus, o,
+//                MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY);
+//    }
 
     /**
      * 消费sftpToDb数据
