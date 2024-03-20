@@ -2,9 +2,8 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
 import com.br.marketing.entity.XieChengCollidingDataLoopCycleExample;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 
 public interface XieChengCollidingDataLoopCycleMapperBase {
     int countByExample(XieChengCollidingDataLoopCycleExample example);

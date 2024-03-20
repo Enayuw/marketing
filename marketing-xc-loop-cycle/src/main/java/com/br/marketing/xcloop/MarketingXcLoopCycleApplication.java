@@ -25,11 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 @EnablePrometheusTiming
 @Slf4j
 public class MarketingXcLoopCycleApplication {
-
-//    public static void main(String[] args) {
-//        SpringApplication.run(MarketingXcLoopCycleApplication.class, args);
-//    }
-
     public static ConfigurableApplicationContext ac;
 
     public static void main(String[] args) {
@@ -56,5 +51,4 @@ public class MarketingXcLoopCycleApplication {
             log.error("GRPC服务关闭异常", e);
         }
     }
-
 }
