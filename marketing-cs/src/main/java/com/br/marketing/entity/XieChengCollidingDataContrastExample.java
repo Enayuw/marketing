@@ -225,6 +225,66 @@ public class XieChengCollidingDataContrastExample {
             return (Criteria) this;
         }
 
+        public Criteria andPackageIdIsNull() {
+            addCriterion("package_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdIsNotNull() {
+            addCriterion("package_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdEqualTo(Long value) {
+            addCriterion("package_id =", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdNotEqualTo(Long value) {
+            addCriterion("package_id <>", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdGreaterThan(Long value) {
+            addCriterion("package_id >", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("package_id >=", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdLessThan(Long value) {
+            addCriterion("package_id <", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdLessThanOrEqualTo(Long value) {
+            addCriterion("package_id <=", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdIn(List<Long> values) {
+            addCriterion("package_id in", values, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdNotIn(List<Long> values) {
+            addCriterion("package_id not in", values, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdBetween(Long value1, Long value2) {
+            addCriterion("package_id between", value1, value2, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdNotBetween(Long value1, Long value2) {
+            addCriterion("package_id not between", value1, value2, "packageId");
+            return (Criteria) this;
+        }
+
         public Criteria andCellSha256CodeListIsNull() {
             addCriterion("cell_sha256_code_list is null");
             return (Criteria) this;

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 /**
+ * 携程数据清洗流程job
  * @author guangchao.zhang
  * @Classname XieChengCollidingDataCleanJob
  * @Description 携程数据清洗流程job
@@ -24,18 +25,17 @@ import javax.annotation.Resource;
  *             "colliding_time": "撞库时间",
  *             "package_name": "包名称",
  *             "priority": "优先级"
- *             "loop_cycle": "是否处理周期数据：true 处理，false:不处理",
- *             "loop_cycle_non": "是否处理非周期数据：true 处理，false:不处理"
  *         },
  *         {
  *             "filter_score": "过滤分数表达式",
  *             "package_name": "包名称",
  *              "colliding_time": "撞库时间",
  *             "priority": "优先级"
- *             "loop_cycle": "是否处理周期数据：true 处理，false:不处理",
- *             "loop_cycle_non": "是否处理非周期数据：true 处理，false:不处理"
+ *
  *         }
  *     ],
+ *      "loop_cycle_switch": "是否处理周期数据：true 处理，false:不处理",
+ *       "rob_switch": "是否处理非周期数据：true 处理，false:不处理"
  * }
  */
 @Component
@@ -61,20 +61,7 @@ public class XieChengCollidingDataCleanJob extends AbstractSimpleElasticJob {
         //  4.2= 将对比表中的数据插入到非周期表中，并同时生成package 信息
         String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
         if (StringUtils.isNotBlank(jobParameter)) {
-            JSONObject parseJson = JSONObject.parseObject(jobParameter);
-            String temporaryTable = parseJson.getString("temporary_table");
-            JSONArray filterInfoArray = parseJson.getJSONArray("filter_info");
-            for (int i=0;i<filterInfoArray.size();i++){
-                String filterInfo = filterInfoArray.get(i).toString();
-                JSONObject filterInfoJson = JSONObject.parseObject(filterInfo);
-                String filterScore = filterInfoJson.getString("filter_score");
-                String packageName = filterInfoJson.getString("package_name");
-                String collidingTime = filterInfoJson.getString("colliding_time");
-                Integer priority = filterInfoJson.getInteger("priority");
-                Boolean loopCycle = filterInfoJson.getBoolean("loop_cycle");
-                Boolean loopCycleNon = filterInfoJson.getBoolean("loop_cycle_non");
-                xieChengCollidingDataCleanService.process(temporaryTable,filterScore,packageName,loopCycle,loopCycleNon,priority, collidingTime,i+1);
-            }
+            xieChengCollidingDataCleanService.process(jobParameter);
         }
     }
 }

@@ -1,10 +1,7 @@
 package com.br.marketing.entity;
 
-import lombok.Data;
-
 import java.util.Date;
 
-@Data
 public class XieChengCollidingDataContrast {
     /**
      * 
@@ -15,6 +12,11 @@ public class XieChengCollidingDataContrast {
      * 规则条件 1 ，2，,3
      */
     private Integer ruleTypeFlag;
+
+    /**
+     * 包id
+     */
+    private Long packageId;
 
     /**
      * 手机号
@@ -55,6 +57,14 @@ public class XieChengCollidingDataContrast {
 
     public void setRuleTypeFlag(Integer ruleTypeFlag) {
         this.ruleTypeFlag = ruleTypeFlag;
+    }
+
+    public Long getPackageId() {
+        return packageId;
+    }
+
+    public void setPackageId(Long packageId) {
+        this.packageId = packageId;
     }
 
     public String getCellSha256CodeList() {

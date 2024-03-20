@@ -19,19 +19,26 @@
         limit #{size};
     </delete>
 
-    <select id="temporaryCounttiflash_" resultType="java.lang.Long">
-        select count(distinct cell) from  #{tableName} where #{filterScore}
-    </select>
-
-    <select id="temporaryMaxAndMinId" resultType="Map">
-        select max(id) as maxId,min(id) as minId from  #{tableName} where #{filterScore}
-    </select>
-
     <select id="temporaryCelltiflash_" resultType="Map">
         select tid,cell  from  #{tableName} a left join b_xiecheng_colliding_data_contrast b
                          on a.cell  = b.cell_sha256_code_list and b.is_deleted = 0 where #{filterScore}
                                                                                      and b.id is null
         limit #{xieChengCleanLimitCount}
+    </select>
+    <select id="loopCycleCelltiflash_" resultType="java.lang.Long">
+        select a.id  from  b_xiecheng_colliding_data_loop_cycle a left join b_xiecheng_colliding_data_contrast b
+                    on a.cell_sha256_code_list  = b.cell_sha256_code_list and b.is_deleted = 0
+                   where   b.id is null and a.is_deleted =0    limit #{xieChengContrastCount}
+    </select>
+    <select id="loopCycleCellExisttiflash_" resultType="java.lang.Long">
+        select  b.id from  b_xiecheng_colliding_data_loop_cycle a  join b_xiecheng_colliding_data_contrast b
+                                                                          on a.cell_sha256_code_list  = b.cell_sha256_code_list and b.is_deleted = 0
+        where a.is_deleted =0 limit #{xieChengContrastCount}
+    </select>
+    <select id="robCelltiflash_" resultType="com.br.marketing.entity.XieChengCollidingDataContrast">
+        select  a.cell_sha256_code_list,a.package_id from  b_xiecheng_colliding_data_contrast a left  join b_xiecheng_colliding_data_rob b
+                                                                        on a.cell_sha256_code_list  = b.cell_sha256_code_list and b.is_deleted = 0
+        where a.is_deleted =0 and b.id is null limit #{xieChengContrastCount}
     </select>
 
     <insert id="saveBatch" parameterType="list">
@@ -43,4 +50,10 @@
             )
         </foreach>
     </insert>
+    <update id="updateBatchByIdToIsDeleted">
+        update b_xiecheng_colliding_data_contrast set is_deleted = 1,update_time = now() where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 </mapper>

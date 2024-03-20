@@ -8,13 +8,6 @@ import io.swagger.models.auth.In;
 
 public interface XieChengCollidingDataCleanService {
 
-    void process(String tableName,
-                 String filterScore,
-                 String packageName,
-                 Boolean loopCycle,
-                 Boolean loopCycleNon,
-                 Integer priority,
-                 String collidingTime,
-                 Integer ruleTypeFlag);
+    void process(String jobParameter);
 
 }

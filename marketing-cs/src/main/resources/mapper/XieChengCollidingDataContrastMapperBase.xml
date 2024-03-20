@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.XieChengCollidingDataContrastMapperBase" >
+<mapper namespace="com.br.marketing.mapper.XieChengCollidingDataContrastMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.XieChengCollidingDataContrast" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="rule_type_flag" property="ruleTypeFlag" jdbcType="INTEGER" />
+    <result column="package_id" property="packageId" jdbcType="BIGINT" />
     <result column="cell_sha256_code_list" property="cellSha256CodeList" jdbcType="VARCHAR" />
     <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
@@ -71,7 +72,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, rule_type_flag, cell_sha256_code_list, is_delete, create_time, update_time
+    id, rule_type_flag, package_id, cell_sha256_code_list, is_delete, create_time, update_time
   </sql>
   <sql id="Blob_Column_List" >
     extend
@@ -107,7 +108,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     ,
     <include refid="Blob_Column_List" />
@@ -128,12 +129,12 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_xiecheng_colliding_data_contrast (rule_type_flag, cell_sha256_code_list, 
-      is_delete, create_time, update_time, 
-      extend)
-    values (#{ruleTypeFlag,jdbcType=INTEGER}, #{cellSha256CodeList,jdbcType=VARCHAR}, 
-      #{isDelete,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{extend,jdbcType=LONGVARCHAR})
+    insert into b_xiecheng_colliding_data_contrast (rule_type_flag, package_id, cell_sha256_code_list,
+    is_delete, create_time, update_time,
+    extend)
+    values (#{ruleTypeFlag,jdbcType=INTEGER}, #{packageId,jdbcType=BIGINT}, #{cellSha256CodeList,jdbcType=VARCHAR},
+    #{isDelete,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
+    #{extend,jdbcType=LONGVARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.XieChengCollidingDataContrast" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -143,6 +144,9 @@
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="ruleTypeFlag != null" >
         rule_type_flag,
+      </if>
+      <if test="packageId != null" >
+        package_id,
       </if>
       <if test="cellSha256CodeList != null" >
         cell_sha256_code_list,
@@ -163,6 +167,9 @@
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="ruleTypeFlag != null" >
         #{ruleTypeFlag,jdbcType=INTEGER},
+      </if>
+      <if test="packageId != null" >
+        #{packageId,jdbcType=BIGINT},
       </if>
       <if test="cellSha256CodeList != null" >
         #{cellSha256CodeList,jdbcType=VARCHAR},
@@ -196,6 +203,9 @@
       <if test="record.ruleTypeFlag != null" >
         rule_type_flag = #{record.ruleTypeFlag,jdbcType=INTEGER},
       </if>
+      <if test="record.packageId != null" >
+        package_id = #{record.packageId,jdbcType=BIGINT},
+      </if>
       <if test="record.cellSha256CodeList != null" >
         cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
       </if>
@@ -219,12 +229,13 @@
   <update id="updateByExampleWithBLOBs" parameterType="map" >
     update b_xiecheng_colliding_data_contrast
     set id = #{record.id,jdbcType=BIGINT},
-      rule_type_flag = #{record.ruleTypeFlag,jdbcType=INTEGER},
-      cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
-      is_delete = #{record.isDelete,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      extend = #{record.extend,jdbcType=LONGVARCHAR}
+    rule_type_flag = #{record.ruleTypeFlag,jdbcType=INTEGER},
+    package_id = #{record.packageId,jdbcType=BIGINT},
+    cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
+    is_delete = #{record.isDelete,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    extend = #{record.extend,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -232,11 +243,12 @@
   <update id="updateByExample" parameterType="map" >
     update b_xiecheng_colliding_data_contrast
     set id = #{record.id,jdbcType=BIGINT},
-      rule_type_flag = #{record.ruleTypeFlag,jdbcType=INTEGER},
-      cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
-      is_delete = #{record.isDelete,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    rule_type_flag = #{record.ruleTypeFlag,jdbcType=INTEGER},
+    package_id = #{record.packageId,jdbcType=BIGINT},
+    cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
+    is_delete = #{record.isDelete,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -246,6 +258,9 @@
     <set >
       <if test="ruleTypeFlag != null" >
         rule_type_flag = #{ruleTypeFlag,jdbcType=INTEGER},
+      </if>
+      <if test="packageId != null" >
+        package_id = #{packageId,jdbcType=BIGINT},
       </if>
       <if test="cellSha256CodeList != null" >
         cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
@@ -268,20 +283,22 @@
   <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.XieChengCollidingDataContrast" >
     update b_xiecheng_colliding_data_contrast
     set rule_type_flag = #{ruleTypeFlag,jdbcType=INTEGER},
-      cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
-      is_delete = #{isDelete,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      extend = #{extend,jdbcType=LONGVARCHAR}
+        package_id = #{packageId,jdbcType=BIGINT},
+        cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
+        is_delete = #{isDelete,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        extend = #{extend,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XieChengCollidingDataContrast" >
     update b_xiecheng_colliding_data_contrast
     set rule_type_flag = #{ruleTypeFlag,jdbcType=INTEGER},
-      cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
-      is_delete = #{isDelete,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        package_id = #{packageId,jdbcType=BIGINT},
+        cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
+        is_delete = #{isDelete,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
