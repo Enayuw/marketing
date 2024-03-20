@@ -285,7 +285,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                         }
                         return null;
                     });
-                    if (dic.getId() != null) {
+                    if (dic != null && dic.getId() != null && dic.getId() > 0) {
                         // 发送告警通知
                         sendUserTypeAddDingDingMgs(localDateTime, apiCode, userType, String.valueOf(dic.getId()));
                     } else {
