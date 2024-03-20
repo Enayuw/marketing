@@ -82,9 +82,6 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     ValidityPeriodResendRecordService recordService;
 
     @Resource
-    private TableCreateServiceImpl tableCreateService;
-
-    @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
 
     @Resource
@@ -96,7 +93,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     @Resource
     private PlatformTransactionManager platformTransactionManager;
 
-    private static final ThreadPoolExecutor POOL_EXECUTOR = BrExecutors.getThreadPool(3, 50
+    private static final ThreadPoolExecutor POOL_EXECUTOR = BrExecutors.getThreadPool(5, 50
             , new SynchronousQueue<>());
 
     @Override
