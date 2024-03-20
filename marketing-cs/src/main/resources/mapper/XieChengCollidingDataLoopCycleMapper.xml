@@ -2,4 +2,19 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper" >
 
+    <select id="selectPerMinuteCounts" resultType="java.util.Map">
+        select DATE_FORMAT(release_time, '%Y-%m-%d %H:%i') as releaseTime, count(*) as counts
+        from b_xiecheng_colliding_data_loop_cycle
+        where DATE_FORMAT(release_time, '%Y-%m-%d') = curdate()
+        group by DATE_FORMAT(release_time, '%Y-%m-%d %H:%i')
+        order by DATE_FORMAT(release_time, '%Y-%m-%d %H:%i');
+    </select>
+
+    <select id="selectTodayCycleCount" resultType="java.lang.Integer">
+        select count(*) as counts
+        from b_xiecheng_colliding_data_loop_cycle
+        where DATE_FORMAT(release_time, '%Y-%m-%d') = curdate()
+          and DATE_FORMAT(release_time, '%Y-%m-%d') = date_sub(curdate(), interval 7 day)
+          and is_delete = 0;
+    </select>
 </mapper>
