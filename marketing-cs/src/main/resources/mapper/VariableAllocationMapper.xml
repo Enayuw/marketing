@@ -280,11 +280,5 @@
     order by create_time desc
   </select>
 
-  <select id="selectNum" resultType="java.lang.Integer">
-    select count(1)
-    from variable_allocation
-    where api_code = #{apiCode}
-      and allocation_type = #{allocationType}
-  </select>
 
 </mapper>
