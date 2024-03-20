@@ -25,8 +25,8 @@
                    nested-data-dir="${NESTED_DATA_DIR}"/>
 
 
-    <job:simple id="SftpToDbByCommonJob"
-                class="com.br.marketing.check.job.SftpToDbByCommonJob"
+    <job:simple id="file-SftpToDbByCommonJob"
+                class="com.br.marketing.file.job.SftpToDbByCommonJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="sftp文件数据入库"
                 registry-center-ref="regCenter"
@@ -39,8 +39,8 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="SftpToDbByResultDataJob"
-                class="com.br.marketing.check.job.SftpToDbByResultDataJob"
+    <job:simple id="file-SftpToDbByResultDataJob"
+                class="com.br.marketing.file.job.SftpToDbByResultDataJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="sftp运营结果文件数据入库"
                 registry-center-ref="regCenter"
@@ -53,8 +53,8 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="SftpToDbByDxIbuDataJob"
-                class="com.br.marketing.check.job.SftpToDbByDxIbuDataJob"
+    <job:simple id="file-SftpToDbByDxIbuDataJob"
+                class="com.br.marketing.file.job.SftpToDbByDxIbuDataJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="sftpDassIbu文件数据入库"
                 registry-center-ref="regCenter"
@@ -67,8 +67,8 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="SftpToDbByDxTransferDataJob"
-                class="com.br.marketing.check.job.SftpToDbByDxTransferDataJob"
+    <job:simple id="file-SftpToDbByDxTransferDataJob"
+                class="com.br.marketing.file.job.SftpToDbByDxTransferDataJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="sftpDass转化文件数据入库"
                 registry-center-ref="regCenter"
@@ -81,8 +81,8 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="check-ZhongBangPullFileDataJob"
-                class="com.br.marketing.check.job.zhongbang.ZhongBangPullFileDataJob"
+    <job:simple id="file-file-ZhongBangPullFileDataJob"
+                class="com.br.marketing.file.job.ZhongBangPullFileDataJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="众邦财富文件拉取,param格式：{'apiCode':'yyyyMMdd,yyyy-MM-dd HH:mm:ss,yyyy-MM-dd HH:mm:ss'}"
                 registry-center-ref="regCenter"
@@ -95,8 +95,8 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="TransferFileTaskJob"
-                class="com.br.marketing.check.job.TransferFileTaskJob"
+    <job:simple id="file-TransferFileTaskJob"
+                class="com.br.marketing.file.job.TransferFileTaskJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="转化数据作业"
                 registry-center-ref="regCenter"
@@ -109,8 +109,8 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="ZhongYouDataPullJob"
-                class="com.br.marketing.check.job.zhongyou.ZhongYouDataPullJob"
+    <job:simple id="file-ZhongYouDataPullJob"
+                class="com.br.marketing.file.job.ZhongYouDataPullJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="中邮数据拉取"
                 registry-center-ref="regCenter"

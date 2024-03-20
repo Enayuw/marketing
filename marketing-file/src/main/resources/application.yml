@@ -1,8 +1,8 @@
 spring:
   web.interceptors.enabled: true
   application:
-    name: loan-warning-file
-  profiles.active: pre
+    name: marketing-check
+  profiles.include: pre
   aop:
    proxy-target-class: true
    auto: true
@@ -17,12 +17,12 @@ spring:
     # 线程池维护线程所允许的空闲时间
     threadNamePrefix: ThreadPool-Common
     # 线程池所生产的线程名前缀
+
 server:
-  port: 19809
-mybatis:
-  mapper-locations: mapper/*.xml
-  configuration:
-    map-underscore-to-camel-case: true
+  port: 19708
+
+#生成结果文件目录
+result.file.path: /opt/data/inloan/warning
 #exporter监控
 endpoints:
   prometheus:
