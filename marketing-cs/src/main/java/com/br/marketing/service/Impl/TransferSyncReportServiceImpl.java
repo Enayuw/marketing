@@ -357,7 +357,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                             jsonObject = transferSyncReportSummary(transferSyncReport, cacheSyncReport, true);
                         }
                         int i = transferSyncReportMapper.updateByPrimaryKeySelective(transferSyncReport);
-                        if (i > 0) {
+                        if (i > 0 && jsonObject != null) {
                             redisChgService.hmset(hKey, jsonObject);
                             if (cacheBool) {
                                 redisChgService.expire(hKey, RandomUtils.nextInt(1800, 3600));
