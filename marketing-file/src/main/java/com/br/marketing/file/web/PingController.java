@@ -1,4 +1,4 @@
-package com.br.marketing.file.controller;
+package com.br.marketing.file.web;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

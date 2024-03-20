@@ -1,6 +1,6 @@
 package com.br.marketing.file.service.filecheck.impl;
 
-import com.br.marketing.file.pub.dto.FileContext;
+import com.br.marketing.file.model.dto.FileContext;
 import com.br.marketing.file.common.enums.ErrorFileTypeEnum;
 import com.br.marketing.file.common.thread.ValidatorSmallFileThread;
 import com.br.marketing.file.common.thread.ValidatorThread;

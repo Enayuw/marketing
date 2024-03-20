@@ -1,4 +1,4 @@
-package com.br.marketing.file.pub.dto;
+package com.br.marketing.file.model.dto;
 
 import com.br.marketing.client.BaseFtpClient;
 import com.br.marketing.common.utils.Constants;

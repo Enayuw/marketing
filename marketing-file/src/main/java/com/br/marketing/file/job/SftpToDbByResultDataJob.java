@@ -4,7 +4,7 @@ import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.entity.*;
-import com.br.marketing.file.pub.dto.FileContext;
+import com.br.marketing.file.model.dto.FileContext;
 import com.br.marketing.file.service.todb.impl.SftpToDbByCommonService;
 import com.br.marketing.file.service.todb.impl.SftpToDbByDXService;
 import com.br.marketing.file.common.utils.SftpToDbUtils;

@@ -1,6 +1,6 @@
 package com.br.marketing.file.service.filecheck;
 
-import com.br.marketing.file.pub.dto.FileContext;
+import com.br.marketing.file.model.dto.FileContext;
 import com.br.marketing.file.common.enums.ErrorFileTypeEnum;
 
 /**

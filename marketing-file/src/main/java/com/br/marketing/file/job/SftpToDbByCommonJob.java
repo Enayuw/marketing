@@ -8,7 +8,7 @@ import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.dto.TxtToDbDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.file.FileApplication;
-import com.br.marketing.file.pub.dto.FileContext;
+import com.br.marketing.file.model.dto.FileContext;
 import com.br.marketing.file.common.enums.FileTypeToAssemblerEnum;
 import com.br.marketing.file.service.todb.impl.SftpToDbByCommonService;
 import com.br.marketing.mapper.*;

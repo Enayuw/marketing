@@ -1,12 +1,9 @@
-import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.file.FileApplication;
-import com.br.marketing.file.service.sync.FileSyncService;
 import com.br.marketing.mapper.SyncConfigMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -15,8 +12,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * TransferFileTest
@@ -27,8 +22,8 @@ import java.util.List;
 @Slf4j
 public class TransferFileTest implements ApplicationContextAware {
 
-    @Autowired
-    FileSyncService fileSyncService;
+//    @Autowired
+//    FileSyncService fileSyncService;
     @Resource
     SyncConfigMapper syncConfigMapper;
 
@@ -39,14 +34,14 @@ public class TransferFileTest implements ApplicationContextAware {
 
     @Test
     public void test(){
-        SyncConfig config = new SyncConfig();
-        config.setType(1);
-        config.setApiCode("3710065");
-        config.setDataType(6);
-        SyncConfig queryConfig = syncConfigMapper.queryConfigByConditaion(config);
-        List<SyncConfig> syncConfigList = new ArrayList<>();
-        syncConfigList.add(queryConfig);
-        fileSyncService.pullFromSftp();
+//        SyncConfig config = new SyncConfig();
+//        config.setType(1);
+//        config.setApiCode("3710065");
+//        config.setDataType(6);
+//        SyncConfig queryConfig = syncConfigMapper.queryConfigByConditaion(config);
+//        List<SyncConfig> syncConfigList = new ArrayList<>();
+//        syncConfigList.add(queryConfig);
+//        fileSyncService.pullFromSftp();
     }
 
 }

@@ -11,7 +11,7 @@ import com.br.marketing.entity.LoadResult;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.PhoneSale;
-import com.br.marketing.file.pub.dto.FileContext;
+import com.br.marketing.file.model.dto.FileContext;
 import com.br.marketing.file.common.enums.ErrorFileTypeEnum;
 import com.br.marketing.file.common.utils.SftpToDbUtils;
 import com.br.marketing.file.service.filecheck.FileCheckService;

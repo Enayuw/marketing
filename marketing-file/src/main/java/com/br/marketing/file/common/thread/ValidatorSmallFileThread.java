@@ -1,7 +1,7 @@
 package com.br.marketing.file.common.thread;
 
 import com.br.marketing.file.FileApplication;
-import com.br.marketing.file.pub.dto.FileContext;
+import com.br.marketing.file.model.dto.FileContext;
 import com.br.marketing.file.common.utils.CheckDataUtil;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.utils.Constants;

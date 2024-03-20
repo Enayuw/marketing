@@ -36,7 +36,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     private static int initCollectionSize = 64;
 
     @Resource
-    MarketingCustomerMapper customerMapper;
+    MarketingCustomerMapper marketingCustomerMapper;
     /*萨摩耶的实现*/
     @Resource
     ITransferToFileService transferToFileBySamoyeServiveImpl;
@@ -188,7 +188,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"))
                 .andApiCodeIn(new ArrayList<>(bind.keySet()));
-        List<MarketingCustomer> marketingCustomers = customerMapper.selectByExample(customerExample);
+        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
         for (MarketingCustomer marketingCustomer : marketingCustomers) {
             String redisKey = RedisKeyConstant.TRANSFER_FILE_TASK_JOB_KEY.concat(":").concat(marketingCustomer.getApiCode());
             String value = RandomStringUtils.randomAlphabetic(16) + UUID.randomUUID();

@@ -14,7 +14,7 @@ import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.dto.TxtToDbDTO;
 import com.br.marketing.entity.FileDbConfig;
 import com.br.marketing.entity.LocalFile;
-import com.br.marketing.file.pub.dto.FileContext;
+import com.br.marketing.file.model.dto.FileContext;
 import com.br.marketing.file.common.utils.SftpToDbUtils;
 import com.br.marketing.file.service.filecheck.FileCheckService;
 import com.br.marketing.mapper.LoadResultMapper;

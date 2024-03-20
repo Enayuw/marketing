@@ -1,9 +1,7 @@
-package com.br.marketing.file.controller;
+package com.br.marketing.file.web;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.entity.MerchantParam;
-import com.br.marketing.entity.RequestLog;
-import com.br.marketing.rpcclient.rpcclientImpl.BrokerGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.UserCenterGrpcClient;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -14,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.util.Date;
 
 /**
  * 不包含MOM发送的测试
