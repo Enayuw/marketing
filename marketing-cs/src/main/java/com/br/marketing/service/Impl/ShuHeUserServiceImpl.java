@@ -223,7 +223,7 @@ public class ShuHeUserServiceImpl {
         return syncInfo.getId();
     }
 
-    @Transactional(rollbackFor = Exception.class)
+//    @Transactional(rollbackFor = Exception.class)
     public Map saveShTransferData(String apiCode, String jsonData,String requestId, ResponseShuheDTO responseShuheDTO,Date createTime){
         HashMap<String, Object> res = new HashMap<>();
         String msg="";
@@ -371,7 +371,7 @@ public class ShuHeUserServiceImpl {
 
     void sendAlarmMgs(String title, String error, AlarmApiClient alarmClient) {
         try {
-            alarmClient.sendAlarm(error, title, AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());
+            alarmClient.sendAlarm(error, title, AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode());
         } catch (Exception ignored) {
 
         }
