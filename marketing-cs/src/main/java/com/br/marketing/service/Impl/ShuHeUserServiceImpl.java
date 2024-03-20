@@ -10,11 +10,8 @@ import com.br.marketing.adapter.transfer.TransferSyncAdapter;
 import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
-import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
-import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.dto.shuhe.ResponseShuheDTO;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.dto.shuhe.factory.CaseShuheUserFactory;
@@ -23,7 +20,6 @@ import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.dto.shuhe.strategy.UnknownUserType;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -79,8 +75,6 @@ public class ShuHeUserServiceImpl {
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-    @Resource
-    private RabbitMqProducter producter;
 
     DateTimeFormatter ymdhms = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -223,7 +217,7 @@ public class ShuHeUserServiceImpl {
         return syncInfo.getId();
     }
 
-//    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public Map saveShTransferData(String apiCode, String jsonData,String requestId, ResponseShuheDTO responseShuheDTO,Date createTime){
         HashMap<String, Object> res = new HashMap<>();
         String msg="";
@@ -282,26 +276,12 @@ public class ShuHeUserServiceImpl {
         caseShuheUserMapper.insertSelective(caseShuheUser);
         // 6、转化信息入转化标准库
         Long id = saveTransferNew(apiCode, caseShuheUser, transferSyncUser, createTime);
-        Set<String> startsWith = marketingCommonConfig.getUserTypeAndSumRealtimeApiCodeStartsWith();
-        if (StringUtils.hasText(transferSyncUser.getUserType()) && id != null && id > 0
-                && startsWith.stream().anyMatch(apiCode::startsWith)) {
-            try {
-                ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
-                dataInfoDTO.setApiCode(apiCode);
-                dataInfoDTO.setCid(transferSyncUser.getCid());
-                dataInfoDTO.setRawDataSaveTimeStr(transferSyncUser.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
-                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-                dataInfoDTO.setArgList(Collections.singletonList(new UserTypeCollectionDTO(transferSyncUser.getUserType())));
-                dataInfoDTO.setRequestId(requestId);
-                producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS
-                        , JSONObject.toJSONString(dataInfoDTO.addTransferMsgSource()));
-            } catch (Exception e) {
-                log.error("数禾转化定制接口推送场景信息到队列失败,发送队列"
-                        + MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS + ",消息内容:" + msg
-                        + "\n" + e.getMessage(), e);
-            }
-        }
         res.put("transferInfoId", id);
+        res.put("userType", transferSyncUser.getUserType());
+        res.put("id", transferSyncUser.getId());
+        res.put("cid", transferSyncUser.getCid());
+        res.put("createTime", transferSyncUser.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         return res;
     }
 
