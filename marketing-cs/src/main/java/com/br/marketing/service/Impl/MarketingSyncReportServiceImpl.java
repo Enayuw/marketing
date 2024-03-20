@@ -562,7 +562,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                             , new TypeReference<Map<String, String>>() {
                                             }));
                                     redisChgService.unlock(lockKey, lockValue);
-                                    redisChgService.expire(hKey, RandomUtils.nextInt(60, 300));
+                                    redisChgService.expire(hKey, RandomUtils.nextInt(300, 1800));
                                     continue;
                                 }
                             } else {
@@ -581,7 +581,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                         if (i > 0 && jsonObject != null) {
                             redisChgService.hmset(hKey, jsonObject);
                             if (cacheBool) {
-                                redisChgService.expire(hKey, RandomUtils.nextInt(360, 1800));
+                                redisChgService.expire(hKey, RandomUtils.nextInt(1800, 3600));
                             }
                         } else {
                             redisChgService.del(hKey);

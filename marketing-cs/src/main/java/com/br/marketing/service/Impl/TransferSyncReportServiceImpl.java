@@ -341,7 +341,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                                             , new TypeReference<Map<String, String>>() {
                                             }));
                                     redisChgService.unlock(lockKey, lockValue);
-                                    redisChgService.expire(hKey, RandomUtils.nextInt(60, 300));
+                                    redisChgService.expire(hKey, RandomUtils.nextInt(300, 1800));
                                     continue;
                                 }
                             } else {
@@ -360,7 +360,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                         if (i > 0) {
                             redisChgService.hmset(hKey, jsonObject);
                             if (cacheBool) {
-                                redisChgService.expire(hKey, RandomUtils.nextInt(360, 1800));
+                                redisChgService.expire(hKey, RandomUtils.nextInt(1800, 3600));
                             }
                         } else {
                             redisChgService.del(hKey);
