@@ -338,12 +338,12 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                                     transferSyncReport.setAppletDate(requestDateStr);
                                     int i = transferSyncReportMapper.insertSelective(transferSyncReport);
                                     if (i > 0 && transferSyncReport.getId() != null) {
-                                        TransferSyncReport newReport = new TransferSyncReport();
-                                        newReport.setAppletBeginTime(transferSyncReport.getAppletBeginTime());
-                                        newReport.setId(transferSyncReport.getId());
-                                        newReport.setAppletEndTime(transferSyncReport.getAppletEndTime());
-                                        newReport.setDataCount(transferSyncReport.getDataCount());
-                                        redisChgService.hmset(hKey, JSONObject.parseObject(JSON.toJSONString(newReport)
+                                        TransferSyncReport newTransferReport = new TransferSyncReport();
+                                        newTransferReport.setAppletBeginTime(transferSyncReport.getAppletBeginTime());
+                                        newTransferReport.setId(transferSyncReport.getId());
+                                        newTransferReport.setAppletEndTime(transferSyncReport.getAppletEndTime());
+                                        newTransferReport.setDataCount(transferSyncReport.getDataCount());
+                                        redisChgService.hmset(hKey, JSONObject.parseObject(JSON.toJSONString(newTransferReport)
                                                 , new TypeReference<Map<String, String>>() {
                                                 }));
                                         redisChgService.unlock(lockKey, lockValue);
