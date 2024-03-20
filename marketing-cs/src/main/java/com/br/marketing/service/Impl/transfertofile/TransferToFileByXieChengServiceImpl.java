@@ -259,83 +259,96 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
 
     private void writeZk(Writer fw, String apiCode, TransferFileTask transferFileTask) {
         Long start = System.currentTimeMillis();
-        String sDateStr = LocalDate.parse(transferFileTask.getStartDate(), ymdShort).minusDays(1L).format(ymd).concat(" 06:00:00");
-        String eDateStr = LocalDate.parse(transferFileTask.getStartDate(), ymdShort).format(ymd).concat(" 09:00:00");
-        Date sDate = DateHelper.parseDate(sDateStr);
-        Date eDate = DateHelper.parseDate(eDateStr);
-        Long minId = null;
         int num = 0;
-        Boolean isContiue = Boolean.TRUE;
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100);
-        while (isContiue) {
-            XieChengCollidingDataLogExample dataExample = new XieChengCollidingDataLogExample();
-            dataExample.setOrderByClause(" id asc limit 2000");
-            XieChengCollidingDataLogExample.Criteria criteria = dataExample.createCriteria();
-            criteria.andIsDeleteEqualTo(0)
-                    .andCreateTimeGreaterThanOrEqualTo(sDate)
-                    .andCreateTimeLessThan(eDate);
-            if (minId != null) {
-                criteria.andIdGreaterThan(minId);
-            }
 
-            List<XieChengCollidingDataLog> xieChengCollidingDataLogs = xieChengCollidingDataLogMapper.selectByExample(dataExample);
-            List<Long> localIds = xieChengCollidingDataLogs.stream().map(t -> t.getPackageId()).distinct().collect(Collectors.toList());
-            if (xieChengCollidingDataLogs.size() <= 0) {
-                isContiue = Boolean.FALSE;
-                continue;
-            }
-            num += xieChengCollidingDataLogs.size();
-            xieChengCollidingDataPackageExample dataPackage = new xieChengCollidingDataPackageExample();
-            dataPackage.createCriteria().andIdIn(localIds);
-            List<XieChengCollidingDataPackage> dataPackageList = xieChengCollidingDataPackageMapper.selectByExample(dataPackage);
-            Map<Long, List<XieChengCollidingDataPackage>> dataPackagesMap = dataPackageList.stream().collect(Collectors.groupingBy(XieChengCollidingDataPackage::getId));
-            minId = xieChengCollidingDataLogs.get(xieChengCollidingDataLogs.size() - 1).getId();
-            threadPool.submit(()->{
-                try {
-                    for (XieChengCollidingDataLog xieChengCollidingDataLog : xieChengCollidingDataLogs) {
-                        List<XieChengCollidingDataPackage> dataPackages = dataPackagesMap.get(xieChengCollidingDataLog.getPackageId());
-                        String fileName = "";
-                        String ifCycle = xieChengCollidingDataLog.getDataSourceType();
-                        if (StringUtils.isNotEmpty(ifCycle)){
-                            ifCycle = ifCycle.equals("T") ? "1" : "0" ;
-                        } else {
-                            ifCycle = "";
-                        }
-                        if (dataPackages.size() > 0) {
-                            fileName = dataPackages.get(0).getPackageName();
-                        }
-                        StringBuilder sb = new StringBuilder();
-                        sb.append(xieChengCollidingDataLog.getCellSha256CodeList().concat(","));
-                        sb.append((xieChengCollidingDataLog.getResult() == null ? "" : xieChengCollidingDataLog.getResult().toString()).concat(","));
-                        sb.append((StringUtils.isBlank(xieChengCollidingDataLog.getOrgChannel()) ? "" : xieChengCollidingDataLog.getOrgChannel()).concat(","));
-                        sb.append((StringUtils.isBlank(xieChengCollidingDataLog.getMktLevel()) ? "" : xieChengCollidingDataLog.getMktLevel()).concat(","));
-                        sb.append((StringUtils.isBlank(xieChengCollidingDataLog.getInfo()) ? "" : xieChengCollidingDataLog.getInfo()).concat(","));
-                        sb.append(fileName.concat(","));
-                        sb.append(ifCycle);
-                        sb.append("\r\n");
-                        fw.append(sb.toString());
-                    }
-                }catch (Exception ex){
-                    log.error("携程锁定名单线程错误:"+ex.getMessage(),ex);
+        try {
+            String sDateStr = LocalDate.parse(transferFileTask.getStartDate(), ymdShort).minusDays(1L).format(ymd).concat(" 06:00:00");
+            String eDateStr = LocalDate.parse(transferFileTask.getStartDate(), ymdShort).format(ymd).concat(" 09:00:00");
+            Date sDate = DateHelper.parseDate(sDateStr);
+            Date eDate = DateHelper.parseDate(eDateStr);
+            Long minId = null;
+
+            while (true) {
+                XieChengCollidingDataLogExample dataExample = new XieChengCollidingDataLogExample();
+                dataExample.setOrderByClause("id asc limit 2000");
+                XieChengCollidingDataLogExample.Criteria criteria = dataExample.createCriteria();
+                criteria.andIsDeleteEqualTo(0)
+                        .andCreateTimeGreaterThanOrEqualTo(sDate)
+                        .andCreateTimeLessThan(eDate);
+                if (minId != null) {
+                    criteria.andIdGreaterThan(minId);
                 }
-            });
-        }
-        threadPool.shutdown();
-        try{
-            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
 
-            }}catch (Exception ex){
-            log.error(ex.getMessage(),ex);
+                List<XieChengCollidingDataLog> xieChengCollidingDataLogs = xieChengCollidingDataLogMapper.selectByExample(dataExample);
+                if (xieChengCollidingDataLogs.isEmpty()) {
+                    break;
+                }
+
+                List<Long> packageIds = xieChengCollidingDataLogs.stream()
+                        .map(XieChengCollidingDataLog::getPackageId)
+                        .distinct()
+                        .collect(Collectors.toList());
+
+                num += xieChengCollidingDataLogs.size();
+
+                XieChengCollidingDataPackageExample dataPackageExample = new XieChengCollidingDataPackageExample();
+                dataPackageExample.createCriteria().andIdIn(packageIds);
+                List<XieChengCollidingDataPackage> dataPackageList = xieChengCollidingDataPackageMapper.selectByExample(dataPackageExample);
+                Map<Long, List<XieChengCollidingDataPackage>> dataPackagesMap = dataPackageList.stream()
+                        .collect(Collectors.groupingBy(XieChengCollidingDataPackage::getId));
+                minId = xieChengCollidingDataLogs.get(xieChengCollidingDataLogs.size() - 1).getId();
+
+                threadPool.submit(() -> {
+                    try {
+                        for (XieChengCollidingDataLog xieChengCollidingDataLog : xieChengCollidingDataLogs) {
+                            List<XieChengCollidingDataPackage> dataPackages = dataPackagesMap.get(xieChengCollidingDataLog.getPackageId());
+                            String fileName = "";
+                            String ifCycle = StringUtils.isBlank(xieChengCollidingDataLog.getDataSourceType()) ? "" : xieChengCollidingDataLog.getDataSourceType();
+                            if (StringUtils.isNotBlank(ifCycle)){
+                                ifCycle = ifCycle.equals("T") ? "1" : "0";
+                            }
+                            if (!dataPackages.isEmpty()) {
+                                fileName = dataPackages.get(0).getPackageName();
+                            }
+                            StringBuilder sb = new StringBuilder();
+                            sb.append(xieChengCollidingDataLog.getCellSha256CodeList().concat(","));
+                            sb.append((xieChengCollidingDataLog.getResult() == null ? "" : xieChengCollidingDataLog.getResult().toString()).concat(","));
+                            sb.append((StringUtils.isBlank(xieChengCollidingDataLog.getOrgChannel()) ? "" : xieChengCollidingDataLog.getOrgChannel()).concat(","));
+                            sb.append((StringUtils.isBlank(xieChengCollidingDataLog.getMktLevel()) ? "" : xieChengCollidingDataLog.getMktLevel()).concat(","));
+                            sb.append((StringUtils.isBlank(xieChengCollidingDataLog.getInfo()) ? "" : xieChengCollidingDataLog.getInfo()).concat(","));
+                            sb.append(fileName.concat(","));
+                            sb.append(ifCycle);
+                            sb.append("\r\n");
+                            synchronized (fw) {
+                                fw.append(sb.toString());
+                            }
+                        }
+                    } catch (Exception ex) {
+                        log.error("携程锁定名单线程错误:" + ex.getMessage(), ex);
+                    }
+                });
+            }
+
+            // 等待所有任务完成
+            threadPool.shutdown();
+            threadPool.awaitTermination(1, TimeUnit.HOURS);
+
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        } finally {
+            TransferFileTask updateTask = new TransferFileTask();
+            updateTask.setId(transferFileTask.getId());
+            updateTask.setStatus(2);
+            updateTask.setFileName(transferFileTask.getFileName());
+            updateTask.setFilePath(transferFileTask.getFilePath());
+            updateTask.setTaskNumber(num);
+            transferFileTaskMapper.updateByPrimaryKeySelective(updateTask);
+
+            log.warn("携程锁定结果数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, num);
         }
-        TransferFileTask updatetask = new TransferFileTask();
-        updatetask.setId(transferFileTask.getId());
-        updatetask.setStatus(2);
-        updatetask.setFileName(transferFileTask.getFileName());
-        updatetask.setFilePath(transferFileTask.getFilePath());
-        updatetask.setTaskNumber(num);
-        transferFileTaskMapper.updateByPrimaryKeySelective(updatetask);
-        log.warn("携程锁定结果数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, num);
     }
+
 
     String createBatchNumber(String apiCode, Long contextId) {
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));

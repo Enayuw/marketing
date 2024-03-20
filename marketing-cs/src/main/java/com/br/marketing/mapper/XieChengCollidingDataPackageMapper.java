@@ -1,14 +1,14 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.entity.XieChengCollidingDataPackage;
-import com.br.marketing.entity.xieChengCollidingDataPackageExample;
+import com.br.marketing.entity.XieChengCollidingDataPackageExample;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 public interface XieChengCollidingDataPackageMapper {
-    int countByExample(xieChengCollidingDataPackageExample example);
+    int countByExample(XieChengCollidingDataPackageExample example);
 
-    int deleteByExample(xieChengCollidingDataPackageExample example);
+    int deleteByExample(XieChengCollidingDataPackageExample example);
 
     int deleteByPrimaryKey(Long id);
 
@@ -16,17 +16,17 @@ public interface XieChengCollidingDataPackageMapper {
 
     int insertSelective(XieChengCollidingDataPackage record);
 
-    List<XieChengCollidingDataPackage> selectByExampleWithBLOBs(xieChengCollidingDataPackageExample example);
+    List<XieChengCollidingDataPackage> selectByExampleWithBLOBs(XieChengCollidingDataPackageExample example);
 
-    List<XieChengCollidingDataPackage> selectByExample(xieChengCollidingDataPackageExample example);
+    List<XieChengCollidingDataPackage> selectByExample(XieChengCollidingDataPackageExample example);
 
     XieChengCollidingDataPackage selectByPrimaryKey(Long id);
 
-    int updateByExampleSelective(@Param("record") XieChengCollidingDataPackage record, @Param("example") xieChengCollidingDataPackageExample example);
+    int updateByExampleSelective(@Param("record") XieChengCollidingDataPackage record, @Param("example") XieChengCollidingDataPackageExample example);
 
-    int updateByExampleWithBLOBs(@Param("record") XieChengCollidingDataPackage record, @Param("example") xieChengCollidingDataPackageExample example);
+    int updateByExampleWithBLOBs(@Param("record") XieChengCollidingDataPackage record, @Param("example") XieChengCollidingDataPackageExample example);
 
-    int updateByExample(@Param("record") XieChengCollidingDataPackage record, @Param("example") xieChengCollidingDataPackageExample example);
+    int updateByExample(@Param("record") XieChengCollidingDataPackage record, @Param("example") XieChengCollidingDataPackageExample example);
 
     int updateByPrimaryKeySelective(XieChengCollidingDataPackage record);
 
