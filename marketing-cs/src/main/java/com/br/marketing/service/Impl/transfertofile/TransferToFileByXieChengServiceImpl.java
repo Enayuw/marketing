@@ -7,10 +7,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.mapper.TransferFileTaskMapper;
-import com.br.marketing.mapper.XieChengSmsCollidingDataLogMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.RuleRedisServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
@@ -52,9 +49,9 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
-    XieChengSmsCollidingDataLogMapper xieChengSmsCollidingDataLogMapper;
+    XieChengCollidingDataLogMapper xieChengCollidingDataLogMapper;
     @Resource
-    LocalFileMapper localFileMapper;
+    XieChengCollidingDataPackageMapper xieChengCollidingDataPackageMapper;
 
     final static String EXECUTE_TIME = " 09:00:00";
 
@@ -250,7 +247,7 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file), "UTF-8"));) {
-            fw.append("sha256Code,result,orgChannel,mktLevel,info,fileName");
+            fw.append("sha256Code,result,orgChannel,mktLevel,info,fileName,ifCycle");
             fw.append("\r\n");
             writeZk(fw, apiCode, transferFileTask);
         } catch (Exception ex) {
@@ -260,7 +257,7 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    private void writeZk(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException {
+    private void writeZk(Writer fw, String apiCode, TransferFileTask transferFileTask) {
         Long start = System.currentTimeMillis();
         String sDateStr = LocalDate.parse(transferFileTask.getStartDate(), ymdShort).minusDays(1L).format(ymd).concat(" 06:00:00");
         String eDateStr = LocalDate.parse(transferFileTask.getStartDate(), ymdShort).format(ymd).concat(" 09:00:00");
@@ -269,46 +266,52 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
         Long minId = null;
         int num = 0;
         Boolean isContiue = Boolean.TRUE;
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100);
         while (isContiue) {
-            XieChengSmsCollidingDataLogExample dataExample = new XieChengSmsCollidingDataLogExample();
+            XieChengCollidingDataLogExample dataExample = new XieChengCollidingDataLogExample();
             dataExample.setOrderByClause(" id asc limit 2000");
-            XieChengSmsCollidingDataLogExample.Criteria criteria = dataExample.createCriteria();
-            criteria.andApiCodeEqualTo(apiCode)
-                    .andStatusEqualTo(2)
+            XieChengCollidingDataLogExample.Criteria criteria = dataExample.createCriteria();
+            criteria.andIsDeleteEqualTo(0)
                     .andCreateTimeGreaterThanOrEqualTo(sDate)
                     .andCreateTimeLessThan(eDate);
             if (minId != null) {
                 criteria.andIdGreaterThan(minId);
             }
 
-            List<XieChengSmsCollidingDataLog> xieChengSmsCollidingDataLogs = xieChengSmsCollidingDataLogMapper.selectByExample(dataExample);
-            List<Long> localIds = xieChengSmsCollidingDataLogs.stream().map(t -> t.getLocalId()).distinct().collect(Collectors.toList());
-            if (xieChengSmsCollidingDataLogs.size() <= 0) {
+            List<XieChengCollidingDataLog> xieChengCollidingDataLogs = xieChengCollidingDataLogMapper.selectByExample(dataExample);
+            List<Long> localIds = xieChengCollidingDataLogs.stream().map(t -> t.getPackageId()).distinct().collect(Collectors.toList());
+            if (xieChengCollidingDataLogs.size() <= 0) {
                 isContiue = Boolean.FALSE;
                 continue;
             }
-            num += xieChengSmsCollidingDataLogs.size();
-            LocalFileExample fileExample = new LocalFileExample();
-            fileExample.createCriteria().andIdIn(localIds);
-            List<LocalFile> localFiles = localFileMapper.selectByExample(fileExample);
-            Map<Long, List<LocalFile>> fileMap = localFiles.stream().collect(Collectors.groupingBy(LocalFile::getId));
-            minId = xieChengSmsCollidingDataLogs.get(xieChengSmsCollidingDataLogs.size() - 1).getId();
+            num += xieChengCollidingDataLogs.size();
+            xieChengCollidingDataPackageExample dataPackage = new xieChengCollidingDataPackageExample();
+            dataPackage.createCriteria().andIdIn(localIds);
+            List<XieChengCollidingDataPackage> dataPackageList = xieChengCollidingDataPackageMapper.selectByExample(dataPackage);
+            Map<Long, List<XieChengCollidingDataPackage>> dataPackagesMap = dataPackageList.stream().collect(Collectors.groupingBy(XieChengCollidingDataPackage::getId));
+            minId = xieChengCollidingDataLogs.get(xieChengCollidingDataLogs.size() - 1).getId();
             threadPool.submit(()->{
                 try {
-                    for (XieChengSmsCollidingDataLog xieChengSmsCollidingDataLog : xieChengSmsCollidingDataLogs) {
-                        List<LocalFile> localFiles1 = fileMap.get(xieChengSmsCollidingDataLog.getLocalId());
+                    for (XieChengCollidingDataLog xieChengCollidingDataLog : xieChengCollidingDataLogs) {
+                        List<XieChengCollidingDataPackage> dataPackages = dataPackagesMap.get(xieChengCollidingDataLog.getPackageId());
                         String fileName = "";
-                        if (localFiles1.size() > 0) {
-                            fileName = localFiles1.get(0).getFileName();
+                        String ifCycle = xieChengCollidingDataLog.getDataSourceType();
+                        if (StringUtils.isNotEmpty(ifCycle)){
+                            ifCycle = ifCycle.equals("T") ? "1" : "0" ;
+                        } else {
+                            ifCycle = "";
+                        }
+                        if (dataPackages.size() > 0) {
+                            fileName = dataPackages.get(0).getPackageName();
                         }
                         StringBuilder sb = new StringBuilder();
-                        sb.append(xieChengSmsCollidingDataLog.getSha256CodeList().concat(","));
-                        sb.append((xieChengSmsCollidingDataLog.getResult() == null ? "" : xieChengSmsCollidingDataLog.getResult().toString()).concat(","));
-                        sb.append((StringUtils.isBlank(xieChengSmsCollidingDataLog.getOrgChannel()) ? "" : xieChengSmsCollidingDataLog.getOrgChannel()).concat(","));
-                        sb.append((StringUtils.isBlank(xieChengSmsCollidingDataLog.getMktLevel()) ? "" : xieChengSmsCollidingDataLog.getMktLevel()).concat(","));
-                        sb.append((StringUtils.isBlank(xieChengSmsCollidingDataLog.getInfo()) ? "" : xieChengSmsCollidingDataLog.getInfo()).concat(","));
-                        sb.append(fileName);
+                        sb.append(xieChengCollidingDataLog.getCellSha256CodeList().concat(","));
+                        sb.append((xieChengCollidingDataLog.getResult() == null ? "" : xieChengCollidingDataLog.getResult().toString()).concat(","));
+                        sb.append((StringUtils.isBlank(xieChengCollidingDataLog.getOrgChannel()) ? "" : xieChengCollidingDataLog.getOrgChannel()).concat(","));
+                        sb.append((StringUtils.isBlank(xieChengCollidingDataLog.getMktLevel()) ? "" : xieChengCollidingDataLog.getMktLevel()).concat(","));
+                        sb.append((StringUtils.isBlank(xieChengCollidingDataLog.getInfo()) ? "" : xieChengCollidingDataLog.getInfo()).concat(","));
+                        sb.append(fileName.concat(","));
+                        sb.append(ifCycle);
                         sb.append("\r\n");
                         fw.append(sb.toString());
                     }

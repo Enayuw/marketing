@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.xieChengCollidingDataPackageMapper" >
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.xieChengCollidingDataPackage" >
+<mapper namespace="com.br.marketing.mapper.XieChengCollidingDataPackageMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.XieChengCollidingDataPackage" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="package_name" property="packageName" jdbcType="VARCHAR" />
     <result column="priority" property="priority" jdbcType="INTEGER" />
@@ -10,7 +10,7 @@
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
-  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.xieChengCollidingDataPackage" extends="BaseResultMap" >
+  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.XieChengCollidingDataPackage" extends="BaseResultMap" >
     <result column="extend" property="extend" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
@@ -125,7 +125,7 @@
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.br.marketing.entity.xieChengCollidingDataPackage" >
+  <insert id="insert" parameterType="com.br.marketing.entity.XieChengCollidingDataPackage" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
@@ -136,7 +136,7 @@
       #{isDelete,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
       #{extend,jdbcType=LONGVARCHAR})
   </insert>
-  <insert id="insertSelective" parameterType="com.br.marketing.entity.xieChengCollidingDataPackage" >
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.XieChengCollidingDataPackage" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
@@ -253,7 +253,7 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.xieChengCollidingDataPackage" >
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.XieChengCollidingDataPackage" >
     update b_xiecheng_colliding_data_package
     <set >
       <if test="packageName != null" >
@@ -280,7 +280,7 @@
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.xieChengCollidingDataPackage" >
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.XieChengCollidingDataPackage" >
     update b_xiecheng_colliding_data_package
     set package_name = #{packageName,jdbcType=VARCHAR},
       priority = #{priority,jdbcType=INTEGER},
@@ -291,7 +291,7 @@
       extend = #{extend,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.xieChengCollidingDataPackage" >
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XieChengCollidingDataPackage" >
     update b_xiecheng_colliding_data_package
     set package_name = #{packageName,jdbcType=VARCHAR},
       priority = #{priority,jdbcType=INTEGER},
