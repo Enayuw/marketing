@@ -15,7 +15,7 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
      * 批量删除非周期数据
      * @return
      */
-    int updateOnBatchToIsDeleted();
+    void updateOnBatchToIsDeleted();
 
     /**
      * 非周期表数据批量保存
