@@ -1431,5 +1431,10 @@ public class MarketingCommonConfig {
      * true 打开，false 关闭
      */
     private Boolean xieChengForceOpenSwitch;
+
+    /**
+     * 携程非周期撞库线程池数
+     */
+    private Integer xiechengRobCollidingThread;
 }
 
