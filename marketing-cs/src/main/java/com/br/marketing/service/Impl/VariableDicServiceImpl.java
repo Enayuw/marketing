@@ -285,13 +285,15 @@ public class VariableDicServiceImpl implements VariableDicService {
                         }
                         return null;
                     });
-                    if (dic != null && dic.getId() != null && dic.getId() > 0) {
-                        // 发送告警通知
-                        sendUserTypeAddDingDingMgs(localDateTime, apiCode, userType, String.valueOf(dic.getId()));
-                    } else {
-                        log.error("自动化场景维护入库失败,cid:{},apiCode:{},userType:{},上传时间:{},数据来源:{}"
-                                , cId, apiCode, userType, apiDataInfoDTO.getRawDataSaveTimeStr()
-                                , apiDataInfoDTO.getMsgSource());
+                    if (dic != null) {
+                        if (dic.getId() != null && dic.getId() > 0) {
+                            // 发送告警通知
+                            sendUserTypeAddDingDingMgs(localDateTime, apiCode, userType, String.valueOf(dic.getId()));
+                        } else {
+                            log.error("自动化场景维护入库失败,cid:{},apiCode:{},userType:{},上传时间:{},数据来源:{}"
+                                    , cId, apiCode, userType, apiDataInfoDTO.getRawDataSaveTimeStr()
+                                    , apiDataInfoDTO.getMsgSource());
+                        }
                     }
                 }
                 // 生成有效期
