@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class XieChengCollidingDataRobArchive {
     /**
-     * 
+     * 主键id
      */
     private Long id;
 
@@ -57,6 +57,21 @@ public class XieChengCollidingDataRobArchive {
      * 扩展字段
      */
     private String extend;
+
+    public XieChengCollidingDataRobArchive(){}
+    public XieChengCollidingDataRobArchive(XieChengCollidingDataRob xieChengCollidingDataRob){
+        this.packageId = xieChengCollidingDataRob.getPackageId();
+        this.dataSourceType = xieChengCollidingDataRob.getDataSourceType();
+        this.cellSha256CodeList = xieChengCollidingDataRob.getCellSha256CodeList();
+        this.releaseTime = xieChengCollidingDataRob.getReleaseTime();
+        this.pushTime = xieChengCollidingDataRob.getPushTime();
+        this.isDelete = xieChengCollidingDataRob.getIsDelete();
+        this.createTime = xieChengCollidingDataRob.getCreateTime();
+        this.updateTime = xieChengCollidingDataRob.getUpdateTime();
+        this.retryCount = xieChengCollidingDataRob.getRetryCount();
+        this.extend = xieChengCollidingDataRob.getExtend();
+    }
+
 
     public Long getId() {
         return id;

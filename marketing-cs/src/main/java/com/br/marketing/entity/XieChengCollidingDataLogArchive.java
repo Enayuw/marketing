@@ -83,6 +83,25 @@ public class XieChengCollidingDataLogArchive {
      */
     private Date updateTime;
 
+    public XieChengCollidingDataLogArchive(){}
+    public XieChengCollidingDataLogArchive(XieChengCollidingDataLog xieChengCollidingDataLog){
+        this.smsCollidingDataId = xieChengCollidingDataLog.getSmsCollidingDataId();
+        this.packageId = xieChengCollidingDataLog.getPackageId();
+        this.dataSourceType = xieChengCollidingDataLog.getDataSourceType();
+        this.cellSha256CodeList = xieChengCollidingDataLog.getCellSha256CodeList();
+        this.releaseTime = xieChengCollidingDataLog.getReleaseTime();
+        this.orgChannel = xieChengCollidingDataLog.getOrgChannel();
+        this.mktLevel = xieChengCollidingDataLog.getMktLevel();
+        this.info = xieChengCollidingDataLog.getInfo();
+        this.result = xieChengCollidingDataLog.getResult();
+        this.httpCode = xieChengCollidingDataLog.getHttpCode();
+        this.businessCode = xieChengCollidingDataLog.getBusinessCode();
+        this.returnContent = xieChengCollidingDataLog.getReturnContent();
+        this.isDelete = xieChengCollidingDataLog.getIsDelete();
+        this.createTime = xieChengCollidingDataLog.getCreateTime();
+        this.updateTime = xieChengCollidingDataLog.getUpdateTime();
+    }
+
     public Long getId() {
         return id;
     }

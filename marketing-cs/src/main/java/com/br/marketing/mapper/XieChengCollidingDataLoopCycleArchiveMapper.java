@@ -7,4 +7,5 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 public interface XieChengCollidingDataLoopCycleArchiveMapper extends XieChengCollidingDataLoopCycleArchiveMapperBase{
+    void saveBatch(List<XieChengCollidingDataLoopCycleArchive> archiveList);
 }

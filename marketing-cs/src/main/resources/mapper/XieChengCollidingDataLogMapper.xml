@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.XieChengCollidingDataLogMapper" >
+    <select id="selectDeleteData" resultType="com.br.marketing.entity.XieChengCollidingDataLog">
+        select
+            *
+        from b_xiecheng_colliding_data_log
+        where is_delete = 1
+            <![CDATA[ and update_time < #{startTime}]]>
+        order by update_time asc limit #{size};
+    </select>
 
+    <delete id="deleteByIdList">
+        delete from b_xiecheng_colliding_data_log
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        limit #{size};
+    </delete>
 </mapper>
