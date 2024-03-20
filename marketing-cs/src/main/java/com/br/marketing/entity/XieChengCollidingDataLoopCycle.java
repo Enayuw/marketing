@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class XieChengCollidingDataLoopCycle {
     /**
-     * 
+     *
      */
     private Long id;
 
@@ -27,6 +27,11 @@ public class XieChengCollidingDataLoopCycle {
      * 数据释放时间，下次撞库时间
      */
     private Date releaseTime;
+
+    /**
+     * 最近一次撞库时间
+     */
+    private Date pushTime;
 
     /**
      * 状态 0-正常 1-删除
@@ -91,6 +96,14 @@ public class XieChengCollidingDataLoopCycle {
 
     public void setReleaseTime(Date releaseTime) {
         this.releaseTime = releaseTime;
+    }
+
+    public Date getPushTime() {
+        return pushTime;
+    }
+
+    public void setPushTime(Date pushTime) {
+        this.pushTime = pushTime;
     }
 
     public Integer getIsDelete() {

@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class xieChengCollidingDataPackageExample {
+public class XieChengCollidingDataPackageExample {
     protected String orderByClause;
 
     protected boolean distinct;
 
     protected List<Criteria> oredCriteria;
 
-    public xieChengCollidingDataPackageExample() {
+    public XieChengCollidingDataPackageExample() {
         oredCriteria = new ArrayList<Criteria>();
     }
 
