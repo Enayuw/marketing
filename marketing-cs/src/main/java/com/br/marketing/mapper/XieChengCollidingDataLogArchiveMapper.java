@@ -6,26 +6,5 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
-public interface XieChengCollidingDataLogArchiveMapper {
-    int countByExample(XieChengCollidingDataLogArchiveExample example);
-
-    int deleteByExample(XieChengCollidingDataLogArchiveExample example);
-
-    int deleteByPrimaryKey(Long id);
-
-    int insert(XieChengCollidingDataLogArchive record);
-
-    int insertSelective(XieChengCollidingDataLogArchive record);
-
-    List<XieChengCollidingDataLogArchive> selectByExample(XieChengCollidingDataLogArchiveExample example);
-
-    XieChengCollidingDataLogArchive selectByPrimaryKey(Long id);
-
-    int updateByExampleSelective(@Param("record") XieChengCollidingDataLogArchive record, @Param("example") XieChengCollidingDataLogArchiveExample example);
-
-    int updateByExample(@Param("record") XieChengCollidingDataLogArchive record, @Param("example") XieChengCollidingDataLogArchiveExample example);
-
-    int updateByPrimaryKeySelective(XieChengCollidingDataLogArchive record);
-
-    int updateByPrimaryKey(XieChengCollidingDataLogArchive record);
+public interface XieChengCollidingDataLogArchiveMapper extends XieChengCollidingDataLogArchiveMapperBase{
 }
