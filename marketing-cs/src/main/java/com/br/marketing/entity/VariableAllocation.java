@@ -4,32 +4,32 @@ import java.util.Date;
 
 public class VariableAllocation {
     /**
-     * 
+     *
      */
     private Integer id;
 
     /**
-     * 
+     *
      */
     private String apiCode;
 
     /**
-     * 
+     *
      */
     private String allocationType;
 
     /**
-     * 
+     *
      */
-    private Date createdAt;
+    private Date createTime;
 
     /**
-     * 
+     *
      */
-    private Date updatedAt;
+    private Date updateTime;
 
     /**
-     * 
+     *
      */
     private String allocationValue;
 
@@ -57,20 +57,20 @@ public class VariableAllocation {
         this.allocationType = allocationType == null ? null : allocationType.trim();
     }
 
-    public Date getCreatedAt() {
-        return createdAt;
+    public Date getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
     }
 
-    public Date getUpdatedAt() {
-        return updatedAt;
+    public Date getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
     }
 
     public String getAllocationValue() {

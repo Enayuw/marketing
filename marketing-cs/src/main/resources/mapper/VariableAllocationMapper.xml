@@ -5,8 +5,8 @@
     <id column="id" property="id" jdbcType="INTEGER" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="allocation_type" property="allocationType" jdbcType="VARCHAR" />
-    <result column="created_at" property="createdAt" jdbcType="TIMESTAMP" />
-    <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
   <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.VariableAllocation" extends="BaseResultMap" >
     <result column="allocation_value" property="allocationValue" jdbcType="LONGVARCHAR" />
@@ -70,7 +70,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, allocation_type, created_at, updated_at
+    id, api_code, allocation_type, create_time, update_time
   </sql>
   <sql id="Blob_Column_List" >
     allocation_value
@@ -106,7 +106,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Integer" >
-    select 
+    select
     <include refid="Base_Column_List" />
     ,
     <include refid="Blob_Column_List" />
@@ -127,10 +127,10 @@
     <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into variable_allocation (api_code, allocation_type, created_at, 
-      updated_at, allocation_value)
-    values (#{apiCode,jdbcType=VARCHAR}, #{allocationType,jdbcType=VARCHAR}, #{createdAt,jdbcType=TIMESTAMP}, 
-      #{updatedAt,jdbcType=TIMESTAMP}, #{allocationValue,jdbcType=LONGVARCHAR})
+    insert into variable_allocation (api_code, allocation_type, create_time,
+    update_time, allocation_value)
+    values (#{apiCode,jdbcType=VARCHAR}, #{allocationType,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}, #{allocationValue,jdbcType=LONGVARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.VariableAllocation" >
     <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER" >
@@ -144,11 +144,11 @@
       <if test="allocationType != null" >
         allocation_type,
       </if>
-      <if test="createdAt != null" >
-        created_at,
+      <if test="createTime != null" >
+        create_time,
       </if>
-      <if test="updatedAt != null" >
-        updated_at,
+      <if test="updateTime != null" >
+        update_time,
       </if>
       <if test="allocationValue != null" >
         allocation_value,
@@ -161,11 +161,11 @@
       <if test="allocationType != null" >
         #{allocationType,jdbcType=VARCHAR},
       </if>
-      <if test="createdAt != null" >
-        #{createdAt,jdbcType=TIMESTAMP},
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updatedAt != null" >
-        #{updatedAt,jdbcType=TIMESTAMP},
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="allocationValue != null" >
         #{allocationValue,jdbcType=LONGVARCHAR},
@@ -190,11 +190,11 @@
       <if test="record.allocationType != null" >
         allocation_type = #{record.allocationType,jdbcType=VARCHAR},
       </if>
-      <if test="record.createdAt != null" >
-        created_at = #{record.createdAt,jdbcType=TIMESTAMP},
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.updatedAt != null" >
-        updated_at = #{record.updatedAt,jdbcType=TIMESTAMP},
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="record.allocationValue != null" >
         allocation_value = #{record.allocationValue,jdbcType=LONGVARCHAR},
@@ -207,11 +207,11 @@
   <update id="updateByExampleWithBLOBs" parameterType="map" >
     update variable_allocation
     set id = #{record.id,jdbcType=INTEGER},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      allocation_type = #{record.allocationType,jdbcType=VARCHAR},
-      created_at = #{record.createdAt,jdbcType=TIMESTAMP},
-      updated_at = #{record.updatedAt,jdbcType=TIMESTAMP},
-      allocation_value = #{record.allocationValue,jdbcType=LONGVARCHAR}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    allocation_type = #{record.allocationType,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    allocation_value = #{record.allocationValue,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -219,10 +219,10 @@
   <update id="updateByExample" parameterType="map" >
     update variable_allocation
     set id = #{record.id,jdbcType=INTEGER},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      allocation_type = #{record.allocationType,jdbcType=VARCHAR},
-      created_at = #{record.createdAt,jdbcType=TIMESTAMP},
-      updated_at = #{record.updatedAt,jdbcType=TIMESTAMP}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    allocation_type = #{record.allocationType,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -236,11 +236,11 @@
       <if test="allocationType != null" >
         allocation_type = #{allocationType,jdbcType=VARCHAR},
       </if>
-      <if test="createdAt != null" >
-        created_at = #{createdAt,jdbcType=TIMESTAMP},
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updatedAt != null" >
-        updated_at = #{updatedAt,jdbcType=TIMESTAMP},
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="allocationValue != null" >
         allocation_value = #{allocationValue,jdbcType=LONGVARCHAR},
@@ -251,18 +251,40 @@
   <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.VariableAllocation" >
     update variable_allocation
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      allocation_type = #{allocationType,jdbcType=VARCHAR},
-      created_at = #{createdAt,jdbcType=TIMESTAMP},
-      updated_at = #{updatedAt,jdbcType=TIMESTAMP},
-      allocation_value = #{allocationValue,jdbcType=LONGVARCHAR}
+        allocation_type = #{allocationType,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        allocation_value = #{allocationValue,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=INTEGER}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.VariableAllocation" >
     update variable_allocation
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      allocation_type = #{allocationType,jdbcType=VARCHAR},
-      created_at = #{createdAt,jdbcType=TIMESTAMP},
-      updated_at = #{updatedAt,jdbcType=TIMESTAMP}
+        allocation_type = #{allocationType,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=INTEGER}
   </update>
+
+  <select id="getVariableList" resultType="com.br.marketing.entity.VariableAllocation">
+    select *
+    from variable_allocation
+    <where>
+      <if test="apiCode != null and apiCode.trim() neq ''">
+        and api_code like CONCAT('%', #{apiCode}, '%')
+      </if>
+      <if test="dataType != null">
+        and data_type = #{dataType}
+      </if>
+    </where>
+    order by create_time desc
+  </select>
+
+  <select id="selectNum" resultType="java.lang.Integer">
+    select count(1)
+    from variable_allocation
+    where api_code = #{apiCode}
+      and allocation_type = #{allocationType}
+  </select>
+
 </mapper>

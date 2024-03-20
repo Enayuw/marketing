@@ -3,6 +3,8 @@ package com.br.marketing.mapper;
 import com.br.marketing.entity.VariableAllocation;
 import com.br.marketing.entity.VariableAllocationExample;
 import java.util.List;
+
+import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import org.apache.ibatis.annotations.Param;
 
 public interface VariableAllocationMapper {
@@ -33,4 +35,13 @@ public interface VariableAllocationMapper {
     int updateByPrimaryKeyWithBLOBs(VariableAllocation record);
 
     int updateByPrimaryKey(VariableAllocation record);
+
+
+    /**
+     * 配置列表
+     * @param apiCode
+     * @return
+     */
+    @AddDataAuth
+    List<VariableAllocation> getVariableList(@Param("apiCode")String apiCode, @Param("dataType")Integer dataType);
 }
