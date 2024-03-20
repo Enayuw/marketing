@@ -39,8 +39,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.Future;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -80,9 +78,6 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
 
     @Resource
     private PlatformTransactionManager platformTransactionManager;
-
-    private static final ThreadPoolExecutor POOL_EXECUTOR = BrExecutors.getThreadPool(50, 100
-            , new SynchronousQueue<>(), "transfer-sync-report");
 
 
     @Override
@@ -308,76 +303,68 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                 return result;
             }
             TransactionStatus transaction = platformTransactionManager.getTransaction(new DefaultTransactionDefinition());
-            List<Future<Integer>> futureList = new ArrayList<>(syncUserList.size());
             try {
                 for (TransferSyncReport transferSyncReport : syncUserList) {
-                    Future<Integer> future = POOL_EXECUTOR.submit(() -> {
-                        String userType = transferSyncReport.getUserType();
-                        String hKey = redisKey + userType;
-                        String lockKey = hKey + ":lock";
-                        String lockValue = apiDataInfoDTO.getRawDataSaveTimeStr() + transferSyncReport.getId();
-                        transferSyncReport.setId(null);
-                        try {
-                            redisChgService.lock(lockKey, lockValue);
-                            // 上锁
-                            Map<String, Object> cacheMap = redisChgService.hgetall(hKey);
-                            Map<String, String> jsonObject = null;
-                            if (CollectionUtils.isEmpty(cacheMap)) {
-                                // 缓存不存在
-                                TransferSyncReportExample example = new TransferSyncReportExample();
-                                example.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cId)
-                                        .andUserTypeEqualTo(userType).andAppletDateEqualTo(requestDateStr);
-                                List<TransferSyncReport> syncReports = transferSyncReportMapper.selectNumberByExample(example);
-                                if (CollectionUtils.isEmpty(syncReports)) {
-                                    // 未持久化
-                                    transferSyncReport.setApiCode(apiCode);
-                                    transferSyncReport.setCid(cId);
-                                    transferSyncReport.setCreateTime(new Date());
-                                    transferSyncReport.setUpdateTime(transferSyncReport.getCreateTime());
-                                    transferSyncReport.setShortName(customer == null ? "" : customer.getShortName());
-                                    transferSyncReport.setAppletDate(requestDateStr);
-                                    int i = transferSyncReportMapper.insertSelective(transferSyncReport);
-                                    if (i > 0 && transferSyncReport.getId() != null) {
-                                        TransferSyncReport newTransferReport = new TransferSyncReport();
-                                        newTransferReport.setAppletBeginTime(transferSyncReport.getAppletBeginTime());
-                                        newTransferReport.setId(transferSyncReport.getId());
-                                        newTransferReport.setAppletEndTime(transferSyncReport.getAppletEndTime());
-                                        newTransferReport.setDataCount(transferSyncReport.getDataCount());
-                                        redisChgService.hmset(hKey, JSONObject.parseObject(JSON.toJSONString(newTransferReport)
-                                                , new TypeReference<Map<String, String>>() {
-                                                }));
-                                        redisChgService.unlock(lockKey, lockValue);
-                                        redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
-                                        return i;
-                                    }
-                                } else {
-                                    // 已持久化
-                                    TransferSyncReport syncReportOld = syncReports.get(0);
-                                    jsonObject = transferSyncReportSummary(transferSyncReport, syncReportOld, false);
+                    String userType = transferSyncReport.getUserType();
+                    String hKey = redisKey + userType;
+                    String lockKey = hKey + ":lock";
+                    String lockValue = apiDataInfoDTO.getRawDataSaveTimeStr() + transferSyncReport.getId();
+                    transferSyncReport.setId(null);
+                    try {
+                        redisChgService.lock(lockKey, lockValue);
+                        // 上锁
+                        Map<String, Object> cacheMap = redisChgService.hgetall(hKey);
+                        Map<String, String> jsonObject = null;
+                        if (CollectionUtils.isEmpty(cacheMap)) {
+                            // 缓存不存在
+                            TransferSyncReportExample example = new TransferSyncReportExample();
+                            example.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cId)
+                                    .andUserTypeEqualTo(userType).andAppletDateEqualTo(requestDateStr);
+                            List<TransferSyncReport> syncReports = transferSyncReportMapper.selectNumberByExample(example);
+                            if (CollectionUtils.isEmpty(syncReports)) {
+                                // 未持久化
+                                transferSyncReport.setApiCode(apiCode);
+                                transferSyncReport.setCid(cId);
+                                transferSyncReport.setCreateTime(new Date());
+                                transferSyncReport.setUpdateTime(transferSyncReport.getCreateTime());
+                                transferSyncReport.setShortName(customer == null ? "" : customer.getShortName());
+                                transferSyncReport.setAppletDate(requestDateStr);
+                                int i = transferSyncReportMapper.insertSelective(transferSyncReport);
+                                if (i > 0 && transferSyncReport.getId() != null) {
+                                    TransferSyncReport newTransferReport = new TransferSyncReport();
+                                    newTransferReport.setAppletBeginTime(transferSyncReport.getAppletBeginTime());
+                                    newTransferReport.setId(transferSyncReport.getId());
+                                    newTransferReport.setAppletEndTime(transferSyncReport.getAppletEndTime());
+                                    newTransferReport.setDataCount(transferSyncReport.getDataCount());
+                                    redisChgService.hmset(hKey, JSONObject.parseObject(JSON.toJSONString(newTransferReport)
+                                            , new TypeReference<Map<String, String>>() {
+                                            }));
+                                    redisChgService.unlock(lockKey, lockValue);
+                                    redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
+                                    continue;
                                 }
                             } else {
-                                // 缓存
-                                TransferSyncReport cacheSyncReport = JSONObject.parseObject(JSON.toJSONString(cacheMap)
-                                        , new TypeReference<TransferSyncReport>() {
-                                        });
-                                jsonObject = transferSyncReportSummary(transferSyncReport, cacheSyncReport, true);
+                                // 已持久化
+                                TransferSyncReport syncReportOld = syncReports.get(0);
+                                jsonObject = transferSyncReportSummary(transferSyncReport, syncReportOld, false);
                             }
-                            int i = transferSyncReportMapper.updateByPrimaryKeySelective(transferSyncReport);
-                            if (i > 0) {
-                                redisChgService.hmset(hKey, jsonObject);
-                                redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
-                            } else {
-                                redisChgService.del(hKey);
-                            }
-                            return i;
-                        } finally {
-                            redisChgService.unlock(lockKey, lockValue);
+                        } else {
+                            // 缓存
+                            TransferSyncReport cacheSyncReport = JSONObject.parseObject(JSON.toJSONString(cacheMap)
+                                    , new TypeReference<TransferSyncReport>() {
+                                    });
+                            jsonObject = transferSyncReportSummary(transferSyncReport, cacheSyncReport, true);
                         }
-                    });
-                    futureList.add(future);
-                }
-                for (Future<Integer> future : futureList) {
-                    future.get(5, TimeUnit.SECONDS);
+                        int i = transferSyncReportMapper.updateByPrimaryKeySelective(transferSyncReport);
+                        if (i > 0) {
+                            redisChgService.hmset(hKey, jsonObject);
+                            redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
+                        } else {
+                            redisChgService.del(hKey);
+                        }
+                    } finally {
+                        redisChgService.unlock(lockKey, lockValue);
+                    }
                 }
                 platformTransactionManager.commit(transaction);
             } catch (Exception e) {
