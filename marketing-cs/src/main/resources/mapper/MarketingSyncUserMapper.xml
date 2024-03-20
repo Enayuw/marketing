@@ -774,7 +774,7 @@
     <select id="getSyncUserByCellAndAppletDateList" resultType="com.br.marketing.entity.MarketingSyncUser">
         select *
         from b_marketing_sync_${apiCode}
-        where cust_num in
+        where cell in
         <foreach collection="cellSet" item="cell" open="(" separator="," close=")">
             '${cell}'
         </foreach>

@@ -11,7 +11,9 @@ import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
+import com.br.marketing.mapper.ShuheBlackPhoneRecordMapper;
 import com.br.marketing.service.IMarketingSyncUserService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +56,10 @@ public class ShuHeRuleCollectDataImpl extends CommonMethodHandlerService {
     private IMarketingSyncUserService iMarketingSyncUserService;
     @Resource
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
+    @Resource
+    private ShuheBlackPhoneRecordMapper shuheBlackPhoneRecordMapper;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
@@ -76,6 +82,13 @@ public class ShuHeRuleCollectDataImpl extends CommonMethodHandlerService {
             MarketingSyncUser marketingSyncUserByCell = marketingSyncInfoMapper.getNewestPreUserByCell(context.getApiCode(),
                     BrCipherMaker.getInstance().encode(shuHeRuleNecessaryData.getCaseShuheUser().getCell()));
             shuHeRuleNecessaryData.setMarketingSyncUserByCell(marketingSyncUserByCell);
+            String apiCode = context.getApiCode();
+            if (marketingCommonConfig.getShuHeNonBlackListApiCodeSet().contains(apiCode)) {
+                int count = shuheBlackPhoneRecordMapper.countTmpNonBlackListByCell(
+                        shuHeRuleNecessaryData.getCaseShuheUser().getMobile());
+                shuHeRuleNecessaryData.setNonBlackListCount(count);
+            }
+
         }
     }
 
@@ -112,6 +125,12 @@ public class ShuHeRuleCollectDataImpl extends CommonMethodHandlerService {
          * true 继续
          */
         private boolean continueJudgeRule;
+
+        /**
+         * 2024-03-13 21:18
+         * 非黑名单量级
+         */
+        private int nonBlackListCount;
 
         private Map<String, MarketingSyncUser> customerMap;
         /**
@@ -158,6 +177,7 @@ public class ShuHeRuleCollectDataImpl extends CommonMethodHandlerService {
             user.setClcUsrMaxDxRrtEnd(object.getString("clc_usr_max_dx_rrt_end"));
             user.setUsrForbidCallEndTim(object.getString("usr_forbid_call_end_tim"));
             user.setCell(BrCipherMaker.getInstance().decode(object.getString("cell")));
+            user.setMobile(object.getString("cell"));
             user.setJsonObject(object);
             data.setTaskId(object.getString("taskId"));
         }
