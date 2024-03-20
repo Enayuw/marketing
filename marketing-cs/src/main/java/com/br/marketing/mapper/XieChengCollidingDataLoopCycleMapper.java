@@ -1,0 +1,37 @@
+package com.br.marketing.mapper;
+
+import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
+import com.br.marketing.entity.XieChengCollidingDataLoopCycleExample;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+
+public interface XieChengCollidingDataLoopCycleMapper {
+    int countByExample(XieChengCollidingDataLoopCycleExample example);
+
+    int deleteByExample(XieChengCollidingDataLoopCycleExample example);
+
+    int deleteByPrimaryKey(Long id);
+
+    int insert(XieChengCollidingDataLoopCycle record);
+
+    int insertSelective(XieChengCollidingDataLoopCycle record);
+
+    List<XieChengCollidingDataLoopCycle> selectByExampleWithBLOBs(XieChengCollidingDataLoopCycleExample example);
+
+    List<XieChengCollidingDataLoopCycle> selectByExample(XieChengCollidingDataLoopCycleExample example);
+
+    XieChengCollidingDataLoopCycle selectByPrimaryKey(Long id);
+
+    int updateByExampleSelective(@Param("record") XieChengCollidingDataLoopCycle record, @Param("example") XieChengCollidingDataLoopCycleExample example);
+
+    int updateByExampleWithBLOBs(@Param("record") XieChengCollidingDataLoopCycle record, @Param("example") XieChengCollidingDataLoopCycleExample example);
+
+    int updateByExample(@Param("record") XieChengCollidingDataLoopCycle record, @Param("example") XieChengCollidingDataLoopCycleExample example);
+
+    int updateByPrimaryKeySelective(XieChengCollidingDataLoopCycle record);
+
+    int updateByPrimaryKeyWithBLOBs(XieChengCollidingDataLoopCycle record);
+
+    int updateByPrimaryKey(XieChengCollidingDataLoopCycle record);
+}
