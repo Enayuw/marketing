@@ -10,8 +10,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.br.marketing</groupId>
-    <artifactId>marketing_xc_loop_cycle</artifactId>
-    <name>marketing_xc_loop_cycle</name>
+    <artifactId>marketing-xc-loop-cycle</artifactId>
+    <name>marketing-xc-loop-cycle</name>
     <description>携程TRUE数据撞库作业</description>
     <properties>
         <maven.compiler.source>8</maven.compiler.source>

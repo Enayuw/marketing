@@ -1,7 +1,7 @@
 spring:
   web.interceptors.enabled: true
   application:
-    name: marketing_xc_loop_cycle
+    name: marketing-xc-loop-cycle
   profiles.active: pre
   aop:
    proxy-target-class: true
