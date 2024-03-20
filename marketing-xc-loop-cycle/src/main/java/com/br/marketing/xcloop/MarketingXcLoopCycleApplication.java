@@ -1,4 +1,4 @@
-package com.br.marketing.xc_loop_cycle;
+package com.br.marketing.xcloop;
 
 import com.br.cloud.boot.EnablePrometheusEndpoint;
 import com.br.cloud.hystrix.EnableHystrixPrometheus;

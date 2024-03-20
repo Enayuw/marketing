@@ -1,4 +1,4 @@
-package com.br.marketing.xc_loop_cycle.controller;
+package com.br.marketing.xcloop.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

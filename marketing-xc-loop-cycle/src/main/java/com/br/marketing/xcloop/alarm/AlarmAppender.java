@@ -1,10 +1,10 @@
-package com.br.marketing.xc_loop_cycle.alarm;
+package com.br.marketing.xcloop.alarm;
 
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.classic.spi.ThrowableProxy;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import com.br.marketing.service.Impl.SystemExceptionServiceImpl;
-import com.br.marketing.xc_loop_cycle.MarketingXcLoopCycleApplication;
+import com.br.marketing.xcloop.MarketingXcLoopCycleApplication;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
