@@ -42,9 +42,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -97,6 +95,9 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
 
     @Resource
     private PlatformTransactionManager platformTransactionManager;
+
+    private static final ThreadPoolExecutor POOL_EXECUTOR = BrExecutors.getThreadPool(3, 50
+            , new SynchronousQueue<>());
 
     @Override
     public void syncReportProcess(String uploadDate, String jobName) {
@@ -529,65 +530,75 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 }
             }
             TransactionStatus transaction = platformTransactionManager.getTransaction(new DefaultTransactionDefinition());
+            List<Future<Integer>> futureList = new ArrayList<>(userTypeMap.size());
             try {
-                userTypeMap.forEach((String userType, MarketingSyncReport syncReport) -> {
-                    String hKey = redisKey + userType;
-                    String lockKey = hKey + ":lock";
-                    String lockValue = apiDataInfoDTO.getRawDataSaveTimeStr() + syncReport.getId();
-                    syncReport.setId(null);
-                    try {
-                        redisChgService.lock(lockKey, lockValue);
-                        // 上锁
-                        Map<String, Object> cacheMap = redisChgService.hgetall(hKey);
-                        Map<String, String> jsonObject = null;
-                        if (CollectionUtils.isEmpty(cacheMap)) {
-                            // 缓存不存在
-                            MarketingSyncReportExample example = new MarketingSyncReportExample();
-                            example.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cId)
-                                    .andUserTypeEqualTo(userType).andAppletDateEqualTo(rawDataSaveDateStr);
-                            List<MarketingSyncReport> syncReports = syncReportMapper.selectNumberByExample(example);
-                            if (CollectionUtils.isEmpty(syncReports)) {
-                                // 未持久化
-                                syncReport.setCreateTime(new Date());
-                                syncReport.setUpdateTime(syncReport.getCreateTime());
-                                int i = syncReportMapper.insertSelective(syncReport);
-                                if (i > 0 && syncReport.getId() != null) {
-                                    MarketingSyncReport report = new MarketingSyncReport();
-                                    report.setId(syncReport.getId());
-                                    report.setNormalNum(syncReport.getNormalNum());
-                                    report.setDuplicateRemovalNum(syncReport.getDuplicateRemovalNum());
-                                    report.setAppletBeginTime(syncReport.getAppletBeginTime());
-                                    report.setAppletEndTime(syncReport.getAppletEndTime());
-                                    redisChgService.hmset(hKey, JSONObject.parseObject(JSON.toJSONString(report)
-                                            , new TypeReference<Map<String, String>>() {
-                                            }));
-                                    redisChgService.unlock(lockKey, lockValue);
-                                    redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
-                                    return;
+                for (Map.Entry<String, MarketingSyncReport> entry : userTypeMap.entrySet()) {
+                    String userType = entry.getKey();
+                    MarketingSyncReport syncReport = entry.getValue();
+                    Future<Integer> future = POOL_EXECUTOR.submit(() -> {
+                        String hKey = redisKey + userType;
+                        String lockKey = hKey + ":lock";
+                        String lockValue = apiDataInfoDTO.getRawDataSaveTimeStr() + syncReport.getId();
+                        syncReport.setId(null);
+                        try {
+                            redisChgService.lock(lockKey, lockValue);
+                            // 上锁
+                            Map<String, Object> cacheMap = redisChgService.hgetall(hKey);
+                            Map<String, String> jsonObject = null;
+                            if (CollectionUtils.isEmpty(cacheMap)) {
+                                // 缓存不存在
+                                MarketingSyncReportExample example = new MarketingSyncReportExample();
+                                example.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cId)
+                                        .andUserTypeEqualTo(userType).andAppletDateEqualTo(rawDataSaveDateStr);
+                                List<MarketingSyncReport> syncReports = syncReportMapper.selectNumberByExample(example);
+                                if (CollectionUtils.isEmpty(syncReports)) {
+                                    // 未持久化
+                                    syncReport.setCreateTime(new Date());
+                                    syncReport.setUpdateTime(syncReport.getCreateTime());
+                                    int i = syncReportMapper.insertSelective(syncReport);
+                                    if (i > 0 && syncReport.getId() != null) {
+                                        MarketingSyncReport report = new MarketingSyncReport();
+                                        report.setId(syncReport.getId());
+                                        report.setNormalNum(syncReport.getNormalNum());
+                                        report.setDuplicateRemovalNum(syncReport.getDuplicateRemovalNum());
+                                        report.setAppletBeginTime(syncReport.getAppletBeginTime());
+                                        report.setAppletEndTime(syncReport.getAppletEndTime());
+                                        redisChgService.hmset(hKey, JSONObject.parseObject(JSON.toJSONString(report)
+                                                , new TypeReference<Map<String, String>>() {
+                                                }));
+                                        redisChgService.unlock(lockKey, lockValue);
+                                        redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
+                                        return i;
+                                    }
+                                } else {
+                                    // 已持久化
+                                    MarketingSyncReport syncReportOld = syncReports.get(0);
+                                    jsonObject = syncReportSummary(syncReport, syncReportOld, false);
                                 }
                             } else {
-                                // 已持久化
-                                MarketingSyncReport syncReportOld = syncReports.get(0);
-                                jsonObject = syncReportSummary(syncReport, syncReportOld, false);
+                                // 缓存
+                                MarketingSyncReport cacheSyncReport = JSONObject.parseObject(JSON.toJSONString(cacheMap)
+                                        , new TypeReference<MarketingSyncReport>() {
+                                        });
+                                jsonObject = syncReportSummary(syncReport, cacheSyncReport, true);
                             }
-                        } else {
-                            // 缓存
-                            MarketingSyncReport cacheSyncReport = JSONObject.parseObject(JSON.toJSONString(cacheMap)
-                                    , new TypeReference<MarketingSyncReport>() {
-                                    });
-                            jsonObject = syncReportSummary(syncReport, cacheSyncReport, true);
+                            int i = syncReportMapper.updateByPrimaryKeySelective(syncReport);
+                            if (i > 0 && jsonObject != null) {
+                                redisChgService.hmset(hKey, jsonObject);
+                                redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
+                            } else {
+                                redisChgService.del(hKey);
+                            }
+                            return i;
+                        } finally {
+                            redisChgService.unlock(lockKey, lockValue);
                         }
-                        int i = syncReportMapper.updateByPrimaryKeySelective(syncReport);
-                        if (i > 0 && jsonObject != null) {
-                            redisChgService.hmset(hKey, jsonObject);
-                            redisChgService.expire(hKey, RandomUtils.nextInt(3600 * 24, 3600 * 24 * 2));
-                        } else {
-                            redisChgService.del(hKey);
-                        }
-                    } finally {
-                        redisChgService.unlock(lockKey, lockValue);
-                    }
-                });
+                    });
+                    futureList.add(future);
+                }
+                for (Future<Integer> future : futureList) {
+                    future.get(5, TimeUnit.SECONDS);
+                }
                 platformTransactionManager.commit(transaction);
             } catch (Exception e) {
                 log.error(e.getMessage() + "\n" + dataCountFragmentsMgs, e);
