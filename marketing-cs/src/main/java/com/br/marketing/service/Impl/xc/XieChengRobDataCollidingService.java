@@ -1,5 +1,10 @@
 package com.br.marketing.service.Impl.xc;
 
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import com.br.marketing.entity.XieChengCollidingDataRob;
+
 /**
  * 携程非周期数据撞库相关Service
  *
@@ -9,4 +14,6 @@ package com.br.marketing.service.Impl.xc;
 public interface XieChengRobDataCollidingService {
 
     void collidingData();
+
+    void pushRobCollidingData(List<XieChengCollidingDataRob> robData, AtomicInteger failNum);
 }

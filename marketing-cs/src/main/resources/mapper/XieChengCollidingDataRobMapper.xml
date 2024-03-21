@@ -6,7 +6,7 @@
         FROM b_xiecheng_colliding_data_rob rob
         JOIN b_xiecheng_colliding_data_package pkg ON rob.package_id = pkg.id
         WHERE pkg.is_delete = 0
-        and pkg.retry_count = 0
+        and rob.retry_count = 0
         <![CDATA[ and pkg.colliding_time <= now() ]]>
         and DATE_FORMAT(rob.push_time, '%Y-%m-%d') != curdate()
         ORDER BY pkg.priority

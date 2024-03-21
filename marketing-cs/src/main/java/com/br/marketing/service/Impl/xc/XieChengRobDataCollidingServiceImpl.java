@@ -1,7 +1,17 @@
 package com.br.marketing.service.Impl.xc;
 
-import cn.hutool.core.date.DatePattern;
-import cn.hutool.core.date.DateUtil;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.xiecheng.XieChengService;
 import com.br.marketing.common.commondto.Result;
@@ -12,17 +22,10 @@ import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 携程非周期数据撞库相关Service实现
@@ -52,21 +55,16 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     @Override
     public void collidingData() {
         Integer perMinuteCounts = getPerMinuteCounts();
-
         Integer todayTrueTotalCounts = xieChengCollidingDataLoopCycleMapper.selectTodayCycleCount();
-        //TODO 从广秀提供方法中获取
+        // TODO 从广秀提供方法中获取
         Integer totalThreshold = 5000000;
         Integer limit = Math.min(perMinuteCounts, todayTrueTotalCounts);
         ThreadPoolExecutor xiechengRobCollidingThread =
             BrExecutors.getThreadPool(marketingCommonConfig.getXiechengRobCollidingThread(), marketingCommonConfig.getXiechengRobCollidingThread());
         List<XieChengCollidingDataRob> robDataList = xieChengCollidingDataRobMapper.getRobCollidingDataList(limit);
-        Map<String, XieChengCollidingDataRob> cellMap = robDataList.stream().collect(Collectors.toMap(XieChengCollidingDataRob::getCellSha256CodeList,
-                                                                                                      rob -> rob, (existing, replacement) -> replacement));
-        List<CompletableFuture<Result>> futureList = Lists.newArrayList();
         List<List<XieChengCollidingDataRob>> xieChengCollidingDataListPartition = Lists.partition(robDataList, 50);
-        xieChengCollidingDataListPartition.forEach((List<XieChengCollidingDataRob> robData) -> {
-            CompletableFuture.runAsync(() -> pushRobCollidingData(robData, null), xiechengRobCollidingThread);
-        });
+        xieChengCollidingDataListPartition.forEach((List<XieChengCollidingDataRob> robData) -> CompletableFuture
+            .runAsync(() -> pushRobCollidingData(robData, new AtomicInteger(0)), xiechengRobCollidingThread));
     }
 
     /**
@@ -77,19 +75,17 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
      * @author senyang.zheng
      * @date 2024/03/21
      */
+    @Override
     public void pushRobCollidingData(List<XieChengCollidingDataRob> robData, AtomicInteger failNum) {
-        Map<String, XieChengCollidingDataRob> cellMap = robData.stream().collect(Collectors.toMap(XieChengCollidingDataRob::getCellSha256CodeList,
-                                                                                                  rob -> rob, (existing, replacement) -> replacement));
-        List<String> sha256Codes = robData.stream()
-                                          .map(XieChengCollidingDataRob::getCellSha256CodeList)
-                                          .collect(Collectors.toList());
-        Result result = xieChengService.pushXieChengSmsCollidingData(sha256Codes);
-        handleService.robDataHandle(result, cellMap,failNum);
-
+        Map<String, XieChengCollidingDataRob> cellMap = robData.stream()
+            .collect(Collectors.toMap(XieChengCollidingDataRob::getCellSha256CodeList, rob -> rob, (existing, replacement) -> replacement));
+        List<String> sha256Codes = robData.stream().map(XieChengCollidingDataRob::getCellSha256CodeList).collect(Collectors.toList());
+        Result result = xieChengService.pushXieChengSmsCollidingDataNew(sha256Codes);
+        handleService.robDataHandle(result, cellMap, failNum);
     }
 
     public Integer getPerMinuteCounts() {
-        //TODO 从广秀提供方法获取
+        // TODO 从广秀提供方法获取
         Integer threshold = 100000;
         String today = DateUtil.today();
         Long size = redisChgService.hlen(today);
@@ -102,6 +98,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
 
     private void initializeTodayReleaseTime(String today) {
         List<Map<String, String>> perMinuteCounts = xieChengCollidingDataLoopCycleMapper.selectPerMinuteCounts();
-        perMinuteCounts.forEach((Map<String, String> perMinuteCount) -> redisChgService.hset(today, perMinuteCount.get("releaseTime"), perMinuteCount.get("counts")));
+        perMinuteCounts.forEach(
+            (Map<String, String> perMinuteCount) -> redisChgService.hset(today, perMinuteCount.get("releaseTime"), perMinuteCount.get("counts")));
     }
 }
