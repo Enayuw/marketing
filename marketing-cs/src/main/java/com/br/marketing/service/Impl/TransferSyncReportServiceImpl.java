@@ -303,12 +303,12 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                 return result;
             }
             TransactionStatus transaction = platformTransactionManager.getTransaction(new DefaultTransactionDefinition());
-            Set<String> hashKeySet = new HashSet<>();
+            List<String> hashKeys = new ArrayList<>();
             try {
                 for (TransferSyncReport transferSyncReport : syncUserList) {
                     String userType = transferSyncReport.getUserType();
                     String hKey = redisKey + userType;
-                    hashKeySet.add(hKey);
+                    hashKeys.add(hKey);
                     String lockKey = hKey + ":lock";
                     String lockValue = apiDataInfoDTO.getRawDataSaveTimeStr() + transferSyncReport.getId();
                     transferSyncReport.setId(null);
@@ -375,13 +375,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
             } catch (Exception e) {
                 log.error(e.getMessage() + "\n" + dataCountFragmentsMgs, e);
                 platformTransactionManager.rollback(transaction);
-                hashKeySet.forEach((String key) -> {
-                    try {
-                        redisChgService.del(key);
-                    } catch (Exception exception) {
-                        log.error(exception + "\n转化数据统计清理redis主键失败:" + key, exception);
-                    }
-                });
+                delTransferSyncReportHashKey(hashKeys);
                 result.setCode(ResultCode.FAIL.getValue());
                 try {
                     TimeUnit.SECONDS.sleep(30);
@@ -392,6 +386,32 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
             }
         }
         return result;
+    }
+
+    /**
+     * 2024-03-21 17:03
+     * 批量删除hash key
+     *
+     * @param hashTransferSyncReportKeys key
+     */
+    private void delTransferSyncReportHashKey(List<String> hashTransferSyncReportKeys) {
+        String[] keys = hashTransferSyncReportKeys.toArray(new String[0]);
+        try {
+            long count = redisChgService.del(keys);
+            if (count != keys.length) {
+                log.warn("转化数据统计清理redis主键部分失败，共:{}；删除:{}；keys:{}"
+                        , keys.length, count, Arrays.toString(keys));
+                hashTransferSyncReportKeys.forEach((String key) -> {
+                    try {
+                        redisChgService.del(key);
+                    } catch (Exception exception) {
+                        log.warn(exception.getMessage(), exception);
+                    }
+                });
+            }
+        } catch (Exception exception) {
+            log.error(exception + "\n转化数据统计清理redis主键失败:" + Arrays.toString(keys), exception);
+        }
     }
 
     /**

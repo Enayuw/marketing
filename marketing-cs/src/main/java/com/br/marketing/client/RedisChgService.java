@@ -78,6 +78,19 @@ public class RedisChgService {
         long size = marketingRedisClient.del(key);
         return size;
     }
+
+    /**
+     * 2024-03-21 16:37
+     * 批量删除key
+     *
+     * @param keys key集合
+     * @return 删除成功量级
+     */
+    public long del(String... keys) {
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.del(keys);
+    }
+
     /**
      * INCR命令用于由一个递增key的整数值。如果该key不存在，返回1
      *

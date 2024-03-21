@@ -526,11 +526,13 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 }
             }
             TransactionStatus transaction = platformTransactionManager.getTransaction(new DefaultTransactionDefinition());
+            List<String> hashKeys = new ArrayList<>();
             try {
                 for (Map.Entry<String, MarketingSyncReport> entry : userTypeMap.entrySet()) {
                     String userType = entry.getKey();
                     MarketingSyncReport syncReport = entry.getValue();
                     String hKey = redisKey + userType;
+                    hashKeys.add(hKey);
                     String lockKey = hKey + ":lock";
                     String lockValue = apiDataInfoDTO.getRawDataSaveTimeStr() + syncReport.getId();
                     syncReport.setId(null);
@@ -594,14 +596,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             } catch (Exception e) {
                 log.error(e.getMessage() + "\n" + dataCountFragmentsMgs, e);
                 platformTransactionManager.rollback(transaction);
-                userTypeMap.keySet().forEach((String userType) -> {
-                    String key = redisKey + userType;
-                    try {
-                        redisChgService.del(key);
-                    } catch (Exception exception) {
-                        log.error(exception + "\n上传数据统计清理redis主键失败:" + key, exception);
-                    }
-                });
+                delSyncReportHashKey(hashKeys);
                 result.setCode(ResultCode.FAIL.getValue());
                 try {
                     TimeUnit.SECONDS.sleep(30);
@@ -612,6 +607,32 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             }
         }
         return result;
+    }
+
+    /**
+     * 2024-03-21 17:03
+     * 批量删除hash key
+     *
+     * @param hashSyncReportKeys key
+     */
+    private void delSyncReportHashKey(List<String> hashSyncReportKeys) {
+        String[] keys = hashSyncReportKeys.toArray(new String[0]);
+        try {
+            long count = redisChgService.del(keys);
+            if (count != keys.length) {
+                log.warn("转化数据统计清理redis主键部分失败，共:{}；删除:{}；keys:{}"
+                        , keys.length, count, Arrays.toString(keys));
+                hashSyncReportKeys.forEach((String key) -> {
+                    try {
+                        redisChgService.del(key);
+                    } catch (Exception exception) {
+                        log.warn(exception.getMessage(), exception);
+                    }
+                });
+            }
+        } catch (Exception exception) {
+            log.error(exception + "\n转化数据统计清理redis主键失败:" + Arrays.toString(keys), exception);
+        }
     }
 
     /**
