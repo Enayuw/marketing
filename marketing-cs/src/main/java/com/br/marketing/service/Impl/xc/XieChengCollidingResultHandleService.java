@@ -35,15 +35,16 @@ public class XieChengCollidingResultHandleService {
     private RabbitMqProducter rabbitMqProducter;
 
     @Transactional(rollbackFor = Exception.class)
-    public void robDataHandle(Result result, Map<String, XieChengCollidingDataRob> cellMap, AtomicInteger failNum) {
-        JSONObject resultJson = JSONObject.parseObject(result.getMessage());
-        boolean success = result.getCode().equals(ResultCode.SUCCESS.getValue());
+    public void robDataHandle(Result collidingResult, Map<String, XieChengCollidingDataRob> cellMap, AtomicInteger failNum) {
+        JSONObject resultJson = JSONObject.parseObject(collidingResult.getMessage());
+        boolean success = collidingResult.getCode().equals(ResultCode.SUCCESS.getValue());
         JSONArray returnDataList = resultJson.getJSONArray("data");
         for (int i = 0; i < returnDataList.size(); i++) {
             JSONObject returnData = returnDataList.getJSONObject(i);
             String cell = returnData.getString("sha256Code");
+            Boolean result = returnData.getBoolean("result");
             XieChengCollidingDataRob robData = cellMap.getOrDefault(cell, new XieChengCollidingDataRob());
-            if (success) {
+            if (result) {
                 // 周期表中新增True的数据
                 XieChengCollidingDataLoopCycle xieChengCollidingDataLoopCycle = new XieChengCollidingDataLoopCycle();
                 xieChengCollidingDataLoopCycle.setPackageId(cellMap.getOrDefault(cell, new XieChengCollidingDataRob()).getPackageId());

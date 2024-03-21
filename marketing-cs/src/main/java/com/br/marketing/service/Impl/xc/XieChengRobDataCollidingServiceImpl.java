@@ -80,8 +80,8 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
         Map<String, XieChengCollidingDataRob> cellMap = robData.stream()
             .collect(Collectors.toMap(XieChengCollidingDataRob::getCellSha256CodeList, rob -> rob, (existing, replacement) -> replacement));
         List<String> sha256Codes = robData.stream().map(XieChengCollidingDataRob::getCellSha256CodeList).collect(Collectors.toList());
-        Result result = xieChengService.pushXieChengSmsCollidingDataNew(sha256Codes);
-        handleService.robDataHandle(result, cellMap, failNum);
+        Result collidingResult = xieChengService.pushXieChengSmsCollidingDataNew(sha256Codes);
+        handleService.robDataHandle(collidingResult, cellMap, failNum);
     }
 
     public Integer getPerMinuteCounts() {
