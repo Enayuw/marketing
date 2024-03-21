@@ -5,10 +5,12 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.xiecheng.intput.AdReqDTO;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.ThirdAdOuterReq;
 import com.br.marketing.entity.XieChengData;
@@ -23,6 +25,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /**
@@ -155,6 +161,9 @@ public class XieChengService {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
+
+    @Autowired
+    private RedisChgService redisChgService;
 
     private static final String XIECHENGSMSQUIT = "xieChengSmsQuit";
 
@@ -392,5 +401,65 @@ public class XieChengService {
         return resMap;
 
     }
+
+
+    /**
+     * 携程撞库方法
+     * 使用范围：TRUE数据撞库、FALSE数据撞库、异常数据重试撞库
+     *
+     * @param sha256CodeList
+     * @return
+     */
+    public Result pushXieChengSmsCollidingDataNew(List<String> sha256CodeList) {
+        /**
+         * data 组装
+         */
+        XieChengSmsCollidingReq xieChengSmsCollidingReq = new XieChengSmsCollidingReq(
+                smsCollidingAppId, sha256CodeList, CODETYPE, MARKETTYPE, MARKETFINANCEUSER
+        );
+        String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
+        Map<String, Object> retMap = Maps.newHashMap();
+        retMap.put("appId", smsCollidingAppId);
+        retMap.put("timestamp", timestemp);
+        retMap.put("channel", smsCollidingChannel);
+        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingKey, smsCollidingIv));
+        retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingSingKey));
+        HashMap<String, String> resMap;
+        if(marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(0)){
+            resMap = getTestMap(sha256CodeList);
+        }else {
+            resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy,
+                    MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
+        }
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+            log.error("携程短信撞库接口httpcode非200异常");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("{'msg':'httpCode非200'}");
+        }
+        String content = resMap.get("content");
+        JSONObject resultJson = JSONObject.parseObject(content);
+        Integer code = resultJson.getInteger("code");
+        if (code == 0) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
+        } else {
+            if (code == 707) {
+                shutDownSwitch();
+            }
+
+            log.error("携程短信撞库接口请求返回code 非0异常");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
+        }
+
+    }
+
+    private void shutDownSwitch() {
+        // 当前日期
+        LocalDateTime now = LocalDateTime.now();
+        // 当前时间至23:59:59
+        LocalDateTime endOfDay = now.with(LocalTime.MAX);
+        // 计算当前时间至23:59:59的秒数
+        int secondsUntilEndOfDay = (int)ChronoUnit.SECONDS.between(now, endOfDay);
+        redisChgService.setex(RedisKeyConstant.XIECHENG_CONDITIONSWITCH, "false",secondsUntilEndOfDay);
+    }
+
 }
 

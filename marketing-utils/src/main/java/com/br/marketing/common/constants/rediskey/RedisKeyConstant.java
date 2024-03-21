@@ -168,4 +168,9 @@ public class RedisKeyConstant {
      * 得物撞库所
      */
     public static final String PUSH_DEWU_COLLIDING_DATA_LOCK = prefix.concat("dewu:pushDewuCollidingDataLock");
+
+    /**
+     * 携程撞库条件开关
+     */
+    public static final String XIECHENG_CONDITIONSWITCH = prefix.concat("xiecheng:conditionSwitch");
 }
