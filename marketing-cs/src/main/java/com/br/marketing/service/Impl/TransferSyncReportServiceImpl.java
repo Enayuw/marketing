@@ -303,10 +303,12 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                 return result;
             }
             TransactionStatus transaction = platformTransactionManager.getTransaction(new DefaultTransactionDefinition());
+            Set<String> hashKeySet = new HashSet<>();
             try {
                 for (TransferSyncReport transferSyncReport : syncUserList) {
                     String userType = transferSyncReport.getUserType();
                     String hKey = redisKey + userType;
+                    hashKeySet.add(hKey);
                     String lockKey = hKey + ":lock";
                     String lockValue = apiDataInfoDTO.getRawDataSaveTimeStr() + transferSyncReport.getId();
                     transferSyncReport.setId(null);
@@ -356,8 +358,8 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                                     });
                             jsonObject = transferSyncReportSummary(transferSyncReport, cacheSyncReport, true);
                         }
-                        int i = transferSyncReportMapper.updateByPrimaryKeySelective(transferSyncReport);
-                        if (i > 0 && jsonObject != null) {
+                        int b = transferSyncReportMapper.updateByPrimaryKeySelective(transferSyncReport);
+                        if (b > 0 && jsonObject != null) {
                             redisChgService.hmset(hKey, jsonObject);
                             if (cacheBool) {
                                 redisChgService.expire(hKey, RandomUtils.nextInt(1800, 3600));
@@ -373,8 +375,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
             } catch (Exception e) {
                 log.error(e.getMessage() + "\n" + dataCountFragmentsMgs, e);
                 platformTransactionManager.rollback(transaction);
-                syncUserList.forEach((TransferSyncReport syncReport) -> {
-                    String key = redisKey + syncReport.getUserType();
+                hashKeySet.forEach((String key) -> {
                     try {
                         redisChgService.del(key);
                     } catch (Exception exception) {
