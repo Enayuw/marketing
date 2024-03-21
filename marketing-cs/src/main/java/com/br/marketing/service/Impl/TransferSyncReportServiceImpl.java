@@ -386,6 +386,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                     TimeUnit.SECONDS.sleep(30);
                 } catch (InterruptedException interruptedException) {
                     log.warn(interruptedException.getMessage(), interruptedException);
+                    Thread.currentThread().interrupt();
                 }
             }
         }
