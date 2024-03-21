@@ -36,6 +36,23 @@ public class XieChengCollidingResultHandleService {
     private RabbitMqProducter rabbitMqProducter;
 
     @Transactional(rollbackFor = Exception.class)
+    public void cycleDataHandle(XieChengCollidingDataLoopCycle loopCycleDto, AtomicInteger failNum) {
+        // 更新true数据表
+        loopCycleDto.setIsDelete(1);
+        xieChengCollidingDataLoopCycleMapper.updateByPrimaryKeySelective(loopCycleDto);
+
+        // 插入false数据表
+        XieChengCollidingDataRob robDto = new XieChengCollidingDataRob();
+        robDto.setPackageId(loopCycleDto.getPackageId());
+        robDto.setDataSourceType("T");
+        robDto.setCellSha256CodeList(loopCycleDto.getCellSha256CodeList());
+        robDto.setPushTime(new Date());
+        robDto.setIsDelete(0);
+        robDto.setRetryCount(0);
+        xieChengCollidingDataRobMapper.insert(robDto);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
     public void robDataHandle(Result collidingResult, Map<String, XieChengCollidingDataRob> cellMap, AtomicInteger failNum) {
         JSONObject resultJson = JSONObject.parseObject(collidingResult.getMessage());
         boolean success = collidingResult.getCode().equals(ResultCode.SUCCESS.getValue());
@@ -121,5 +138,6 @@ public class XieChengCollidingResultHandleService {
         xieChengCollidingDataLog.setUpdateTime(new Date());
         return xieChengCollidingDataLog;
     }
+
 
 }

@@ -1,6 +1,5 @@
 package com.br.marketing.client.xiecheng;
 
-import cn.hutool.core.thread.ThreadUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -13,19 +12,15 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.ThirdAdOuterReq;
-import com.br.marketing.entity.XieChengData;
 import com.br.marketing.entity.XieChengSmsCollidingReq;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.velocity.runtime.directive.Foreach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
@@ -432,7 +427,6 @@ public class XieChengService {
                     MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
         }
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.error("携程短信撞库接口httpcode非200异常");
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("{'msg':'httpCode非200'}");
         }
         String content = resMap.get("content");
@@ -442,16 +436,15 @@ public class XieChengService {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
         } else {
             if (code == 707) {
-                shutDownSwitch();
+                shutDownConditionSwitch();
             }
 
-            log.error("携程短信撞库接口请求返回code 非0异常");
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
         }
 
     }
 
-    private void shutDownSwitch() {
+    private void shutDownConditionSwitch() {
         // 当前日期
         LocalDateTime now = LocalDateTime.now();
         // 当前时间至23:59:59
