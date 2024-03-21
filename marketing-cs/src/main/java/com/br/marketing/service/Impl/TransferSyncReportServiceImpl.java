@@ -383,7 +383,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                 });
                 result.setCode(ResultCode.FAIL.getValue());
                 try {
-                    TimeUnit.SECONDS.sleep(10);
+                    TimeUnit.SECONDS.sleep(30);
                 } catch (InterruptedException interruptedException) {
                     log.warn(e.getMessage(), e);
                 }
