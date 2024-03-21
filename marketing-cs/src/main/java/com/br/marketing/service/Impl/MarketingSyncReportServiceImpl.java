@@ -604,7 +604,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 });
                 result.setCode(ResultCode.FAIL.getValue());
                 try {
-                    TimeUnit.MINUTES.sleep(1);
+                    TimeUnit.SECONDS.sleep(10);
                 } catch (InterruptedException interruptedException) {
                     log.warn(e.getMessage(), e);
                 }
