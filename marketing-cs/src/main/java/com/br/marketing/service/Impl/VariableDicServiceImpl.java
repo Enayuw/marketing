@@ -20,6 +20,7 @@ import com.br.marketing.mapper.MarketingValidityChangeMapper;
 import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IPeriodOfValidityService;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.VariableDicService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CustomerSelectVO;
@@ -94,6 +95,8 @@ public class VariableDicServiceImpl implements VariableDicService {
 
     private final static Lock LOCK = new ReentrantLock();
 
+    @Resource
+    private MarketingDataValidConfigDefaultMapper validConfigDefaultMapper;
 
     @Override
     public List<VariableDicSelectVO> findListByCidAndApiCode(String cid, String apiCode) {
@@ -190,7 +193,15 @@ public class VariableDicServiceImpl implements VariableDicService {
                 validityChangeMapper.updateMarketingDataValidConfigDefault(validConfigDefault);
                 entityOptService.writeOptLog(dataValidConfigDefault.getId(), validConfigDefault, dataValidConfigDefault);
             } else {
-                log.warn("该apiCode={} , userType={}维度不存在代运营默认有效期配置", apiCode, userType);
+                MarketingDataValidConfigDefault configDefault = new MarketingDataValidConfigDefault();
+                configDefault.setApiCode(apiCode);
+                configDefault.setUserType(userType);
+                configDefault.setValidDaysDefault(Integer.valueOf(vo.getValidDaysDefault()));
+                configDefault.setCreateTime(data.getCreateTime());
+                configDefault.setUpdateTime(new Date());
+                configDefault.setIsDel(1);
+                validConfigDefaultMapper.insertSelective(configDefault);
+                entityOptService.writeOptLog(configDefault.getId(), configDefault, null);
             }
 
         }
