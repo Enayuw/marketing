@@ -2,14 +2,12 @@ package com.br.marketing.service.Impl.xc;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Md5Utils;
-import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import sun.security.provider.MD5;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -28,7 +26,7 @@ public class TableBackupServiceImpl implements TableBackupService{
 
     @Override
     public void testInsert() {
-        for (int i = 0; i < 100000; i++) {
+        for (int i = 3000; i < 100000; i++) {
             String s = i + "";
             String s1 = Md5Utils.cell32(s);
             XieChengCollidingDataLoopCycle loopCycle = new XieChengCollidingDataLoopCycle();
@@ -127,29 +125,38 @@ public class TableBackupServiceImpl implements TableBackupService{
     public void loopCycleHandle(String daysAgo14,int limit) {
         // 创建撞库线程池
         ThreadPoolExecutor loopCycleThread = BrExecutors.getThreadPool(30, 30, "loopCycleBackup");
-        List<XieChengCollidingDataLoopCycle> xieChengCollidingDataLoopCycles =
-                xieChengCollidingDataLoopCycleMapper.selectDeleteData(daysAgo14, limit);
-        List<List<XieChengCollidingDataLoopCycle>> loopCycleListPartition =
-                Lists.partition(xieChengCollidingDataLoopCycles, 200);
-        List<Future<String>> futureList = new ArrayList<>();
-        loopCycleListPartition.forEach((List<XieChengCollidingDataLoopCycle> p) -> {
-            Future<String> submit = loopCycleThread.submit(() -> loopCycleBackupAndDelete(p));
-            futureList.add(submit);
-        });
-        // 等待上面执行结束，确保下次循环开始时能正常查询已经撞得数据量
-        for (int i = 0; i < futureList.size(); i++) {
-            Future<String> stringFuture = futureList.get(i);
-            try {
-                stringFuture.get(5, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                log.warn("InterruptedException:",e);
-                Thread.currentThread().interrupt();
-            } catch (ExecutionException e) {
-                log.warn("InterruptedException:",e);
-            } catch (TimeoutException e) {
-                log.warn("TimeoutException:",e);
+        int count = 0;
+        while(true){
+            List<XieChengCollidingDataLoopCycle> xieChengCollidingDataLoopCycles =
+                    xieChengCollidingDataLoopCycleMapper.selectDeleteData(daysAgo14, limit);
+            int size = xieChengCollidingDataLoopCycles.size();
+            if(size<1){
+                break;
+            }
+            count = count + size;
+            List<List<XieChengCollidingDataLoopCycle>> loopCycleListPartition =
+                    Lists.partition(xieChengCollidingDataLoopCycles, 200);
+            List<Future<String>> futureList = new ArrayList<>();
+            loopCycleListPartition.forEach((List<XieChengCollidingDataLoopCycle> p) -> {
+                Future<String> submit = loopCycleThread.submit(() -> loopCycleBackupAndDelete(p));
+                futureList.add(submit);
+            });
+            // 等待上面执行结束，确保下次循环开始时能正常查询需要备份的数据量
+            for (int i = 0; i < futureList.size(); i++) {
+                Future<String> stringFuture = futureList.get(i);
+                try {
+                    stringFuture.get(5, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    log.warn("InterruptedException:",e);
+                    Thread.currentThread().interrupt();
+                } catch (ExecutionException e) {
+                    log.warn("InterruptedException:",e);
+                } catch (TimeoutException e) {
+                    log.warn("TimeoutException:",e);
+                }
             }
         }
+        log.warn("本次job需要备份的xc周期数据量为:{}--{}--{}",count,daysAgo14,limit);
     }
     public String loopCycleBackupAndDelete(List<XieChengCollidingDataLoopCycle> loopCycleList) {
         try {
@@ -175,29 +182,38 @@ public class TableBackupServiceImpl implements TableBackupService{
     public void robHandle(String daysAgo14,int limit) {
         // 创建撞库线程池
         ThreadPoolExecutor robThread = BrExecutors.getThreadPool(30, 30, "robBackup");
-        List<XieChengCollidingDataRob> xieChengCollidingDataRob =
-                xieChengCollidingDataRobMapper.selectDeleteData(daysAgo14, limit);
-        List<List<XieChengCollidingDataRob>> robListPartition =
-                Lists.partition(xieChengCollidingDataRob, 200);
-        List<Future<String>> futureList = new ArrayList<>();
-        robListPartition.forEach((List<XieChengCollidingDataRob> p) -> {
-            Future<String> submit = robThread.submit(() -> robBackupAndDelete(p));
-            futureList.add(submit);
-        });
-        // 等待上面执行结束，确保下次循环开始时能正常查询已经撞得数据量
-        for (int i = 0; i < futureList.size(); i++) {
-            Future<String> stringFuture = futureList.get(i);
-            try {
-                stringFuture.get(5, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                log.warn("InterruptedException:",e);
-                Thread.currentThread().interrupt();
-            } catch (ExecutionException e) {
-                log.warn("InterruptedException:",e);
-            } catch (TimeoutException e) {
-                log.warn("TimeoutException:",e);
+        int count = 0;
+        while(true){
+            List<XieChengCollidingDataRob> xieChengCollidingDataRob =
+                    xieChengCollidingDataRobMapper.selectDeleteData(daysAgo14, limit);
+            int size = xieChengCollidingDataRob.size();
+            if(size<1){
+                break;
+            }
+            count = count + size;
+            List<List<XieChengCollidingDataRob>> robListPartition =
+                    Lists.partition(xieChengCollidingDataRob, 200);
+            List<Future<String>> futureList = new ArrayList<>();
+            robListPartition.forEach((List<XieChengCollidingDataRob> p) -> {
+                Future<String> submit = robThread.submit(() -> robBackupAndDelete(p));
+                futureList.add(submit);
+            });
+            // 等待上面执行结束，确保下次循环开始时能正常查询已经撞得数据量
+            for (int i = 0; i < futureList.size(); i++) {
+                Future<String> stringFuture = futureList.get(i);
+                try {
+                    stringFuture.get(5, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    log.warn("InterruptedException:",e);
+                    Thread.currentThread().interrupt();
+                } catch (ExecutionException e) {
+                    log.warn("InterruptedException:",e);
+                } catch (TimeoutException e) {
+                    log.warn("TimeoutException:",e);
+                }
             }
         }
+        log.warn("本次job需要备份的xc非周期数据量为:{}--{}--{}",count,daysAgo14,limit);
     }
     public String robBackupAndDelete(List<XieChengCollidingDataRob> robList) {
         try {
@@ -223,29 +239,38 @@ public class TableBackupServiceImpl implements TableBackupService{
     public void logHandle(String daysAgo14,int limit) {
         // 创建撞库线程池
         ThreadPoolExecutor logThread = BrExecutors.getThreadPool(30, 30, "logBackup");
-        List<XieChengCollidingDataLog> xieChengCollidingDataLog =
-                xieChengCollidingDataLogMapper.selectDeleteData(daysAgo14, limit);
-        List<List<XieChengCollidingDataLog>> robListPartition =
-                Lists.partition(xieChengCollidingDataLog, 200);
-        List<Future<String>> futureList = new ArrayList<>();
-        robListPartition.forEach((List<XieChengCollidingDataLog> p) -> {
-            Future<String> submit = logThread.submit(() -> logBackupAndDelete(p));
-            futureList.add(submit);
-        });
-        // 等待上面执行结束，确保下次循环开始时能正常查询已经撞得数据量
-        for (int i = 0; i < futureList.size(); i++) {
-            Future<String> stringFuture = futureList.get(i);
-            try {
-                stringFuture.get(5, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                log.warn("InterruptedException:",e);
-                Thread.currentThread().interrupt();
-            } catch (ExecutionException e) {
-                log.warn("InterruptedException:",e);
-            } catch (TimeoutException e) {
-                log.warn("TimeoutException:",e);
+        int count = 0;
+        while(true){
+            List<XieChengCollidingDataLog> xieChengCollidingDataLog =
+                    xieChengCollidingDataLogMapper.selectDeleteData(daysAgo14, limit);
+            int size = xieChengCollidingDataLog.size();
+            if(size<1){
+                break;
+            }
+            count = count + size;
+            List<List<XieChengCollidingDataLog>> robListPartition =
+                    Lists.partition(xieChengCollidingDataLog, 200);
+            List<Future<String>> futureList = new ArrayList<>();
+            robListPartition.forEach((List<XieChengCollidingDataLog> p) -> {
+                Future<String> submit = logThread.submit(() -> logBackupAndDelete(p));
+                futureList.add(submit);
+            });
+            // 等待上面执行结束，确保下次循环开始时能正常查询需要备份的数据量
+            for (int i = 0; i < futureList.size(); i++) {
+                Future<String> stringFuture = futureList.get(i);
+                try {
+                    stringFuture.get(5, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    log.warn("InterruptedException:",e);
+                    Thread.currentThread().interrupt();
+                } catch (ExecutionException e) {
+                    log.warn("InterruptedException:",e);
+                } catch (TimeoutException e) {
+                    log.warn("TimeoutException:",e);
+                }
             }
         }
+        log.warn("本次job需要备份的xc-log数据量为:{}--{}--{}",count,daysAgo14,limit);
     }
     public String logBackupAndDelete(List<XieChengCollidingDataLog> logList) {
         try {
@@ -271,29 +296,38 @@ public class TableBackupServiceImpl implements TableBackupService{
     public void contrastHandle(String nowString,int limit) {
         // 创建撞库线程池
         ThreadPoolExecutor logThread = BrExecutors.getThreadPool(30, 30, "contrastDelete");
-        List<XieChengCollidingDataContrast> xieChengCollidingDataContrast =
-                xieChengCollidingDataContrastMapper.selectDeleteData(nowString, limit);
-        List<List<XieChengCollidingDataContrast>> contrastListPartition =
-                Lists.partition(xieChengCollidingDataContrast, 200);
-        List<Future<String>> futureList = new ArrayList<>();
-        contrastListPartition.forEach((List<XieChengCollidingDataContrast> p) -> {
-            Future<String> submit = logThread.submit(() -> contrastDelete(p));
-            futureList.add(submit);
-        });
-        // 等待上面执行结束，确保下次循环开始时能正常查询已经撞得数据量
-        for (int i = 0; i < futureList.size(); i++) {
-            Future<String> stringFuture = futureList.get(i);
-            try {
-                stringFuture.get(5, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                log.warn("InterruptedException:",e);
-                Thread.currentThread().interrupt();
-            } catch (ExecutionException e) {
-                log.warn("InterruptedException:",e);
-            } catch (TimeoutException e) {
-                log.warn("TimeoutException:",e);
+        int count = 0;
+        while(true){
+            List<XieChengCollidingDataContrast> xieChengCollidingDataContrast =
+                    xieChengCollidingDataContrastMapper.selectDeleteData(nowString, limit);
+            int size = xieChengCollidingDataContrast.size();
+            if(size<1){
+                break;
+            }
+            count = count + size;
+            List<List<XieChengCollidingDataContrast>> contrastListPartition =
+                    Lists.partition(xieChengCollidingDataContrast, 200);
+            List<Future<String>> futureList = new ArrayList<>();
+            contrastListPartition.forEach((List<XieChengCollidingDataContrast> p) -> {
+                Future<String> submit = logThread.submit(() -> contrastDelete(p));
+                futureList.add(submit);
+            });
+            // 等待上面执行结束，确保下次循环开始时能正常查询需要备份的数据量
+            for (int i = 0; i < futureList.size(); i++) {
+                Future<String> stringFuture = futureList.get(i);
+                try {
+                    stringFuture.get(5, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    log.warn("InterruptedException:",e);
+                    Thread.currentThread().interrupt();
+                } catch (ExecutionException e) {
+                    log.warn("InterruptedException:",e);
+                } catch (TimeoutException e) {
+                    log.warn("TimeoutException:",e);
+                }
             }
         }
+        log.warn("本次job需要删除的xc对比数据数据量为:{}--{}--{}",count,nowString,limit);
     }
 
 
