@@ -48,7 +48,11 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         List<String> cells = list.stream().map(XieChengCollidingDataLoopCycle::getCellSha256CodeList).collect(Collectors.toList());
         Result resultInfo = xieChengService.pushXieChengSmsCollidingDataNew(cells);
 
-        JSONObject resultJson = JSONObject.parseObject(resultInfo.getMessage());
+        JSONObject resMap = JSONObject.parseObject(resultInfo.getMessage());
+        String httpcode = resMap.getString("httpcode");
+        JSONObject resultJson = JSONObject.parseObject(resMap.getString("content"));
+        Integer businessCode = resultJson.getInteger("code");
+
         JSONArray returnDataList = resultJson.getJSONArray("data");
         if (ResultCode.SUCCESS.getValue().equals(resultInfo.getCode())) {
             // code==0
@@ -87,7 +91,7 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
 
                     dataLoopCycleMapper.updateByPrimaryKeySelective(dto);
                 } else {
-                    handleService.cycleDataHandle(dto, failNum);
+                    handleService.cycleDataHandle(dto);
                 }
 
                 // 插入log表

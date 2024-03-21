@@ -439,7 +439,7 @@ public class XieChengService {
                 shutDownConditionSwitch();
             }
 
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(JSON.toJSONString(resMap));
         }
 
     }

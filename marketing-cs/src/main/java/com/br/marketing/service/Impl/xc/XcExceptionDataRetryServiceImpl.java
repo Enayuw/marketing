@@ -73,7 +73,7 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
             }
 
             // 统计撞库异常数据发系统告警
-            sendAlarm(failNum, "携程短信撞库接口重试推送异常，请检查");
+            sendAlarm(failNum, "携程短信撞库接口重试推送异常，需要关注！！！");
         }
 
         threadPool.shutdown();
