@@ -35,12 +35,12 @@ public class CustomerPushStatusQueryJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         log.info(TITLE + "start");
         long start = System.currentTimeMillis();
-        processList();
+        processToBeConfirmList();
         long end = System.currentTimeMillis();
-        log.info(TITLE + "end");
+        log.info(TITLE + "end, 耗时{}ms", end-start);
     }
 
-    private void processList() {
+    private void processToBeConfirmList() {
         Integer status = 2;
         String keyPrefix = RedisKeyConstant.CUSTOMER_PUSH_STATUS_QUERY_LOCK;
 
@@ -62,7 +62,7 @@ public class CustomerPushStatusQueryJob extends AbstractSimpleElasticJob {
                 redisChgService.unlock(key, uuid.toString());
             } catch (Exception e) {
                 redisChgService.unlock(key, uuid.toString());
-                log.warn(TITLE + "processList error", e);
+                log.warn(TITLE + "processToBeConfirmList error", e);
             }
         }
     }
