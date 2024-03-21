@@ -1,10 +1,13 @@
 package com.br.marketing.entity;
 
+import lombok.Data;
+
 import java.util.Date;
 
+@Data
 public class XieChengCollidingDataLoopCycleArchive {
     /**
-     * 
+     * 主键
      */
     private Long id;
 
@@ -52,6 +55,20 @@ public class XieChengCollidingDataLoopCycleArchive {
      * 扩展字段
      */
     private String extend;
+
+    public XieChengCollidingDataLoopCycleArchive(){}
+
+    public XieChengCollidingDataLoopCycleArchive(XieChengCollidingDataLoopCycle xieChengCollidingDataLoopCycle){
+        this.packageId = xieChengCollidingDataLoopCycle.getPackageId();
+        this.dataSourceType = xieChengCollidingDataLoopCycle.getDataSourceType();
+        this.cellSha256CodeList = xieChengCollidingDataLoopCycle.getCellSha256CodeList();
+        this.releaseTime = xieChengCollidingDataLoopCycle.getReleaseTime();
+        this.isDelete = xieChengCollidingDataLoopCycle.getIsDelete();
+        this.createTime = xieChengCollidingDataLoopCycle.getCreateTime();
+        this.updateTime = xieChengCollidingDataLoopCycle.getUpdateTime();
+        this.retryCount = xieChengCollidingDataLoopCycle.getRetryCount();
+        this.extend = xieChengCollidingDataLoopCycle.getExtend();
+    }
 
     public Long getId() {
         return id;

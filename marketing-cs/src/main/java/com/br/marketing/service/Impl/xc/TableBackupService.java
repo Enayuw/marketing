@@ -12,25 +12,27 @@ public interface TableBackupService {
      * @Author yu.xia@brgroup.com
      * @Date 2024/3/20 15:15
      */
-    void loopCycleHandle();
+    void loopCycleHandle(String daysAgo14,int limit);
     /**
      * 非周期表备份
      * @Author yu.xia@brgroup.com
      * @Date 2024/3/20 15:15
      */
-    void robHandle();
+    void robHandle(String daysAgo14,int limit);
     /**
      * 日志表备份方法
      * @Author yu.xia@brgroup.com
      * @Date 2024/3/20 15:15
      * @paramd
      */
-    void logHandle();
+    void logHandle(String daysAgo14,int limit);
     /**
      * 对比表
      * @Author yu.xia@brgroup.com
      * @Date 2024/3/20 15:15
      */
-    void contrastHandle();
+    void contrastHandle(String nowString,int limit);
+
+    void testInsert();
 
 }

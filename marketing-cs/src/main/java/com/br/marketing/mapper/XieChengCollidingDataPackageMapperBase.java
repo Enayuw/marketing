@@ -4,8 +4,7 @@ import com.br.marketing.entity.XieChengCollidingDataPackage;
 import com.br.marketing.entity.XieChengCollidingDataPackageExample;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
-
-public interface XieChengCollidingDataPackageMapper extends XieChengCollidingDataPackageMapperBase {
+public interface XieChengCollidingDataPackageMapperBase {
     int countByExample(XieChengCollidingDataPackageExample example);
 
     int deleteByExample(XieChengCollidingDataPackageExample example);

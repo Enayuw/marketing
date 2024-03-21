@@ -6,8 +6,7 @@ import java.util.List;
 
 import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import org.apache.ibatis.annotations.Param;
-
-public interface VariableAllocationMapper extends VariableAllocationMapperBase{
+public interface VariableAllocationMapperBase {
     int countByExample(VariableAllocationExample example);
 
     int deleteByExample(VariableAllocationExample example);

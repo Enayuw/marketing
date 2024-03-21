@@ -1,7 +1,10 @@
 package com.br.marketing.entity;
 
+import lombok.Data;
+
 import java.util.Date;
 
+@Data
 public class XieChengCollidingDataLog {
     /**
      * 

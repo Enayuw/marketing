@@ -17,4 +17,28 @@
           and DATE_FORMAT(release_time, '%Y-%m-%d') = date_sub(curdate(), interval 7 day)
           and is_delete = 0;
     </select>
+    <select id="selectDeleteData" resultType="com.br.marketing.entity.XieChengCollidingDataLoopCycle">
+        select
+            *
+        from b_xiecheng_colliding_data_loop_cycle
+        where is_delete = 1
+            <![CDATA[ and update_time < #{startTime}]]>
+        order by update_time asc limit #{size};
+    </select>
+
+    <delete id="deleteByIdList">
+        delete from b_xiecheng_colliding_data_loop_cycle
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        limit #{size};
+    </delete>
+    <update id="updateBatchByIdToIsDeleted">
+        update b_xiecheng_colliding_data_loop_cycle set is_delete = 1,update_time = now() where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
 </mapper>

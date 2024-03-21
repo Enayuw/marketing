@@ -3,11 +3,15 @@ package com.br.marketing.xc.job;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.service.Impl.xc.TableBackupService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 /**
@@ -21,6 +25,9 @@ import java.util.UUID;
 @Slf4j
 public class TableBackupJob extends AbstractSimpleElasticJob {
 
+    final static DateTimeFormatter ymd = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    @Resource
+    private TableBackupService tableBackupService;
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         String uuid = UUID.randomUUID().toString();
@@ -51,21 +58,28 @@ public class TableBackupJob extends AbstractSimpleElasticJob {
                 }
             }
         }
-        //1.周期表 b_xiecheng_colliding_data_loop_cycle 备份代码
-        if(loopCycleSkipFlag){
+        LocalDateTime currentTime = LocalDateTime.now();
+        // 获取当前时间
+        String nowString = currentTime.format(ymd);
+        // 获取当前时间前14天
+        String daysAgo14 = currentTime.minusDays(7).format(ymd);
+        int limit = 10000;
 
+        //1.周期表 b_xiecheng_colliding_data_loop_cycle 备份代码
+        if(!loopCycleSkipFlag){
+            tableBackupService.loopCycleHandle(daysAgo14,limit);
         }
         //2.非周期表b_xiecheng_colliding_data_rob 备份代码
-        if(robSkipFlag){
-
+        if(!robSkipFlag){
+            tableBackupService.robHandle(daysAgo14,limit);
         }
         //3.撞库结果日志表b_xiecheng_colliding_data_log 备份代码
-        if(logSkipFlag){
-
+        if(!logSkipFlag){
+            tableBackupService.logHandle(daysAgo14,limit);
         }
         //4.对比表b_xiecheng_colliding_data_contrast 数据删除代码
-        if(contrastSkipFlag){
-
+        if(!contrastSkipFlag){
+            tableBackupService.contrastHandle(nowString,limit);
         }
         log.warn("TableBackupJob-end-{}",uuid);
     }

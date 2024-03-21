@@ -14,6 +14,11 @@ public class XieChengCollidingDataContrast {
     private Integer ruleTypeFlag;
 
     /**
+     * 包id
+     */
+    private Long packageId;
+
+    /**
      * 手机号
      */
     private String cellSha256CodeList;
@@ -52,6 +57,14 @@ public class XieChengCollidingDataContrast {
 
     public void setRuleTypeFlag(Integer ruleTypeFlag) {
         this.ruleTypeFlag = ruleTypeFlag;
+    }
+
+    public Long getPackageId() {
+        return packageId;
+    }
+
+    public void setPackageId(Long packageId) {
+        this.packageId = packageId;
     }
 
     public String getCellSha256CodeList() {
