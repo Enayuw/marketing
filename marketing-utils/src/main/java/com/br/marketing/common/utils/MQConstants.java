@@ -87,12 +87,18 @@ public class MQConstants {
 
     public static final String MARKETING_TEST_QUEUE_Two = "Marketing_Test_Queue_Two";
 
-    // 标准接口接收场景字典收集队列
-    public static final String MARKETING_STANDARD_API_USERTYPE_COLLECTION = "marketing_standard_api_usertype_collection";
+    // 上传接口接收场景字典收集队列
+    public static final String MARKETING_UPLOAD_API_USERTYPE_COLLECTION = "marketing_upload_api_usertype_collection";
+    // 转化接口接收场景字典收集队列
+    public static final String MARKETING_TRANSFER_API_USERTYPE_COLLECTION = "marketing_transfer_api_usertype_collection";
     // 发送场景消息延迟队列
     public static final String MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE = "marketing_send_usertype_message_delay_queue";
     // 发送场景消息死信队列
     public static final String MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE = "marketing_send_usertype_message_dead_queue";
+    // 上传接口接收数据量级碎片队列
+    public static final String MARKETING_UPLOAD_API_DATA_COUNT_FRAGMENTS = "marketing_upload_api_data_count_fragments";
+    // 转化接口接收数据量级碎片队列
+    public static final String MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS = "marketing_transfer_api_data_count_fragments";
 
 
     /**
@@ -167,10 +173,19 @@ public class MQConstants {
 
     public static final String ROUTING_KEY_MARKETING_TEST_QUEUE_Two = "Marketing.Test.Queue.Two";
 
-    // 标准接口接收场景字典收集路由键
-    public static final String ROUTING_KEY_MARKETING_STANDARD_API_USERTYPE_COLLECTION = "marketing.standard.api.usertype.collection";
+    // 上传接口接收场景字典收集与数据量级碎片路由键
+    public static final String ROUTING_KEY_MARKETING_UPLOAD_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS
+            = "marketing.upload.api.usertype.collection.count.fragments";
+    // 转化接口接收场景字典收集与数据量级碎片路由键
+    public static final String ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS
+            = "marketing.transfer.api.usertype.collection.count.fragments";
     // 发送场景消息延迟路由键
     public static final String ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE = "marketing.send.usertype.message.delay.queue";
     // 发送场景消息死信路由键
     public static final String ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE = "marketing.send.usertype.message.dead.queue";
+    // 上传场景字典收集、据量级碎片绑定key
+    public static final String BINDING_KEY_MARKETING_UPLOAD_API_COLLECTION_FRAGMENTS = "marketing.upload.api.*.collection.*.fragments";
+    // 转化场景字典收集、据量级碎片绑定key
+    public static final String BINDING_KEY_MARKETING_TRANSFER_API_COLLECTION_FRAGMENTS = "marketing.transfer.api.*.collection.*.fragments";
+
 }

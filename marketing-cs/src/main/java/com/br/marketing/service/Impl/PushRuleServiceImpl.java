@@ -1195,7 +1195,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                         log.info(String.format("去重数据：%d,数据入库和去重时间耗时：%d，数据去重时间：%d"
                                 , marketingSyncUser.getId(), et1, et2));
                     }
-                    boolean isCreate = (apiCode.startsWith("3") || apiCode.startsWith("4"))
+                    Set<String> startsWith = marketingCommonConfig.getUserTypeAndSumRealtimeApiCodeStartsWith();
+                    boolean isCreate = startsWith.stream().anyMatch(apiCode::startsWith)
                             && marketingSyncUser.getId() != null && (marketingSyncUser.getIsRepeat() == null
                             || marketingSyncUser.getIsRepeat().equals(2) || marketingSyncUser.getIsRepeat().equals(1));
                     if (isCreate) {
@@ -1266,8 +1267,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                     .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
             dataInfoDTO.setArgList(collections);
+            dataInfoDTO.setRequestId(marketingSyncInfo.getRequestBatch());
             return dataInfoDTO.addUploadMsgSource();
-        });
+        }, MQConstants.ROUTING_KEY_MARKETING_UPLOAD_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS);
         MarketingSyncInfo updateSyncInfo = new MarketingSyncInfo();
         updateSyncInfo.setId(marketingSyncInfo.getId());
         updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_running);
@@ -1338,16 +1340,14 @@ public class PushRuleServiceImpl implements PushRuleService {
      * 上传数据发送场景消息到收集队列
      */
     private void sendUserTypeCollectionMsg(Map<String, UserTypeCollectionDTO> localUserTypeCache
-            , Function<Map<String, UserTypeCollectionDTO>, ApiDataInfoDTO<UserTypeCollectionDTO>> function) {
+            , Function<Map<String, UserTypeCollectionDTO>, ApiDataInfoDTO<UserTypeCollectionDTO>> function
+            , String routingKey) {
         String msg = "";
         try {
-            msg = JSONArray.toJSONString(function.apply(localUserTypeCache));
-            producter.send(MQConstants.ROUTING_KEY_MARKETING_STANDARD_API_USERTYPE_COLLECTION
-                    , msg);
+            msg = JSONObject.toJSONString(function.apply(localUserTypeCache));
+            producter.send(routingKey, msg);
         } catch (Exception e) {
-            log.error("推送场景信息到队列失败,发送队列"
-                    + MQConstants.MARKETING_STANDARD_API_USERTYPE_COLLECTION + ",消息内容:" + msg
-                    + "\n" + e.getMessage(), e);
+            log.error("推送场景信息到队列失败,发送队列路由键" + routingKey + ",消息内容:" + msg + "\n" + e.getMessage(), e);
         } finally {
             // 辅助gc
             localUserTypeCache.clear();
@@ -1663,10 +1663,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 try {
                     marketingTransferSyncUserMapper.insertSelective(transferSyncUser);
                     String key = transferSyncUser.getUserType();
+                    Set<String> startsWith = marketingCommonConfig.getUserTypeAndSumRealtimeApiCodeStartsWith();
                     if (StringUtils.isNotBlank(key)
-                            && (transferInfo.getApiCode().startsWith("3") || transferInfo.getApiCode().startsWith("4"))
-                            && transferSyncUser.getId() != null
-                            && !localUserTypeCache.containsKey(key)) {
+                            && startsWith.stream().anyMatch(transferInfo.getApiCode()::startsWith)
+                            && transferSyncUser.getId() != null && !localUserTypeCache.containsKey(key)) {
                         // 入库成功后将userType为key，并且唯一
                         // 缓存场景数据
                         localUserTypeCache.put(key, new UserTypeCollectionDTO(transferSyncUser.getUserType()));
@@ -1757,8 +1757,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             dataInfoDTO.setApiCode(transferInfo.getApiCode());
             dataInfoDTO.setRawDataSaveTimeStr(transferInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                     .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            dataInfoDTO.setRequestId(transferInfo.getRequestId());
             return dataInfoDTO.addTransferMsgSource();
-        });
+        }, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS);
     }
 
 

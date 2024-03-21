@@ -2,35 +2,49 @@ package com.br.marketing.service.Impl;
 
 
 import cn.hutool.core.util.ObjectUtil;
-import com.br.marketing.mapper.*;
-import com.br.marketing.service.ValidityPeriodResendRecordService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.common.util.DateUtils;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.auth.AuthShowProductor;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
+import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.ICompatibleService;
+import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.MarketingSyncReportService;
+import com.br.marketing.service.ValidityPeriodResendRecordService;
 import com.br.marketing.vo.MarketingSyncReportNumVO;
 import com.br.marketing.vo.MarketingSyncReportVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -69,9 +83,21 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     @Resource
     ValidityPeriodResendRecordService recordService;
 
+    @Resource
+    private MarketingSyncUserMapper marketingSyncUserMapper;
+
+    @Resource
+    private RedisChgService redisChgService;
+
+    @Resource
+    private MarketingCustomerService marketingCustomerService;
+
+    @Resource
+    private PlatformTransactionManager platformTransactionManager;
+
     @Override
     public void syncReportProcess(String uploadDate, String jobName) {
-        this.doSyncReportProcess(uploadDate,null,jobName);
+        this.doSyncReportProcess(uploadDate, null, jobName);
     }
 
     /**
@@ -427,7 +453,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             entityOptService.writeOptLog(data.getId(), newData, data);
             if (i == 1){
                 log.warn("开始重推, apiCode={}, userType={}, id={}", apiCode, userType, newData.getId());
-                recordService.saveRecord(apiCode,userType,newData.getId());
+                recordService.saveRecord(apiCode, userType, newData.getId());
             }
             return true;
         } catch (Exception e) {
@@ -437,4 +463,222 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         }
     }
 
+    @Override
+    public Result<Boolean> nearRealtimeDataCountFragmentsStatis(String dataCountFragmentsMgs) {
+        Result<Boolean> result = new Result<>();
+        result.setCode(ResultCode.SUCCESS.getValue());
+        result.setDate(false);
+        if (StringUtils.isBlank(dataCountFragmentsMgs)) {
+            return result;
+        }
+        ApiDataInfoDTO<UserTypeCollectionDTO> apiDataInfoDTO = JSONObject.parseObject(dataCountFragmentsMgs
+                , new TypeReference<ApiDataInfoDTO<UserTypeCollectionDTO>>() {
+                }.getType());
+        String apiCode = apiDataInfoDTO.getApiCode();
+        if (StringUtils.isBlank(apiCode)) {
+            log.error("上传未获取到apiCode，消息内容：{}", dataCountFragmentsMgs);
+            return result;
+        }
+        MarketingCustomer customer = marketingCustomerService.getCacheCustomerByApiCode(apiCode);
+        String cId = StringUtils.isNotBlank(apiDataInfoDTO.getCid()) ? apiDataInfoDTO.getCid() : customer.getCid();
+        if (StringUtils.isBlank(cId)) {
+            log.error("上传未获取到cid，消息内容：{}", dataCountFragmentsMgs);
+            return result;
+        }
+        LocalDateTime rawDataSaveTime = LocalDateTime.parse(apiDataInfoDTO.getRawDataSaveTimeStr()
+                , DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        LocalDate rawDataSaveDate = rawDataSaveTime.toLocalDate();
+        String rawDataSaveDateStr = rawDataSaveDate.toString();
+        String yyyymmdd = rawDataSaveDate.format(DateTimeFormatter.BASIC_ISO_DATE);
+        String requestId = apiDataInfoDTO.getRequestId();
+        StringBuilder redisKey = new StringBuilder(RedisKeyConstant.ASYNC_COUNT);
+        redisKey.append(cId).append(":").append(apiCode).append(":").append(yyyymmdd).append(":")
+                .append(apiDataInfoDTO.getMsgSource()).append(":");
+        if (apiDataInfoDTO.uploadMsgSource()) {
+            Set<String> userTypeSet = CollectionUtils.isEmpty(apiDataInfoDTO.getArgList()) ? null
+                    : apiDataInfoDTO.getArgList().stream().map(UserTypeCollectionDTO::getUserType).collect(Collectors.toSet());
+            List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.selectSyncUserByRequestBatchList(apiCode
+                    , requestId, userTypeSet, rawDataSaveDateStr);
+            if (CollectionUtils.isEmpty(syncUserList)) {
+                return result;
+            }
+            Map<String, MarketingSyncReport> userTypeMap = new HashMap<>();
+            for (MarketingSyncUser syncUser : syncUserList) {
+                String userType = syncUser.getUserType();
+                int n = syncUser.getStatus() == 1 && (syncUser.getIsRepeat() == 1 || syncUser.getIsRepeat() == 2) ? 1 : 0;
+                MarketingSyncReport syncReport = userTypeMap.getOrDefault(userType, new MarketingSyncReport());
+                syncReport.setId(syncUser.getId());
+                if (syncReport.getUserType() == null) {
+                    userTypeMap.put(syncUser.getUserType(), syncReport);
+                    syncReport.setApiCode(apiCode);
+                    syncReport.setCid(cId);
+                    syncReport.setUserType(userType);
+                    syncReport.setAppletDate(rawDataSaveDateStr);
+                    syncReport.setAppletBeginTime(syncUser.getCreateTime());
+                    syncReport.setAppletEndTime(syncReport.getAppletBeginTime());
+                    syncReport.setNormalNum(1);
+                    syncReport.setDuplicateRemovalNum(n);
+                    syncReport.setShortName(customer.getShortName());
+                } else {
+                    syncReport.setNormalNum(syncReport.getNormalNum() + 1);
+                    syncReport.setDuplicateRemovalNum(syncReport.getDuplicateRemovalNum() + n);
+                    syncReport.setAppletEndTime(syncUser.getCreateTime());
+                }
+            }
+            TransactionStatus transaction = platformTransactionManager.getTransaction(new DefaultTransactionDefinition());
+            List<String> hashKeys = new ArrayList<>();
+            try {
+                for (Map.Entry<String, MarketingSyncReport> entry : userTypeMap.entrySet()) {
+                    String userType = entry.getKey();
+                    MarketingSyncReport syncReport = entry.getValue();
+                    String hKey = redisKey + userType;
+                    hashKeys.add(hKey);
+                    String lockKey = hKey + ":lock";
+                    String lockValue = apiDataInfoDTO.getRawDataSaveTimeStr() + syncReport.getId();
+                    syncReport.setId(null);
+                    try {
+                        redisChgService.lock(lockKey, lockValue);
+                        // 上锁
+                        Map<String, Object> cacheMap = redisChgService.hgetall(hKey);
+                        Map<String, String> jsonObject = null;
+                        boolean cacheBool = CollectionUtils.isEmpty(cacheMap);
+                        if (cacheBool) {
+                            // 缓存不存在
+                            MarketingSyncReportExample example = new MarketingSyncReportExample();
+                            example.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cId)
+                                    .andUserTypeEqualTo(userType).andAppletDateEqualTo(rawDataSaveDateStr);
+                            List<MarketingSyncReport> syncReports = syncReportMapper.selectNumberByExample(example);
+                            if (CollectionUtils.isEmpty(syncReports)) {
+                                // 未持久化
+                                syncReport.setCreateTime(new Date());
+                                syncReport.setUpdateTime(syncReport.getCreateTime());
+                                int i = syncReportMapper.insertSelective(syncReport);
+                                if (i > 0 && syncReport.getId() != null) {
+                                    MarketingSyncReport report = new MarketingSyncReport();
+                                    report.setId(syncReport.getId());
+                                    report.setNormalNum(syncReport.getNormalNum());
+                                    report.setDuplicateRemovalNum(syncReport.getDuplicateRemovalNum());
+                                    report.setAppletBeginTime(syncReport.getAppletBeginTime());
+                                    report.setAppletEndTime(syncReport.getAppletEndTime());
+                                    redisChgService.hmset(hKey, JSONObject.parseObject(JSON.toJSONString(report)
+                                            , new TypeReference<Map<String, String>>() {
+                                            }));
+                                    redisChgService.unlock(lockKey, lockValue);
+                                    redisChgService.expire(hKey, RandomUtils.nextInt(300, 1800));
+                                    continue;
+                                }
+                            } else {
+                                // 已持久化
+                                MarketingSyncReport syncReportOld = syncReports.get(0);
+                                jsonObject = syncReportSummary(syncReport, syncReportOld, false);
+                            }
+                        } else {
+                            // 缓存
+                            MarketingSyncReport cacheSyncReport = JSONObject.parseObject(JSON.toJSONString(cacheMap)
+                                    , new TypeReference<MarketingSyncReport>() {
+                                    });
+                            jsonObject = syncReportSummary(syncReport, cacheSyncReport, true);
+                        }
+                        int i = syncReportMapper.updateByPrimaryKeySelective(syncReport);
+                        if (i > 0 && jsonObject != null) {
+                            redisChgService.hmset(hKey, jsonObject);
+                            if (cacheBool) {
+                                redisChgService.expire(hKey, RandomUtils.nextInt(1800, 3600));
+                            }
+                        } else {
+                            redisChgService.del(hKey);
+                        }
+                    } finally {
+                        redisChgService.unlock(lockKey, lockValue);
+                    }
+                }
+                platformTransactionManager.commit(transaction);
+            } catch (Exception e) {
+                log.error(e.getMessage() + "\n" + dataCountFragmentsMgs, e);
+                platformTransactionManager.rollback(transaction);
+                delSyncReportHashKey(hashKeys);
+                result.setCode(ResultCode.FAIL.getValue());
+                try {
+                    TimeUnit.SECONDS.sleep(30);
+                } catch (InterruptedException interruptedException) {
+                    log.warn(interruptedException.getMessage(), interruptedException);
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 2024-03-21 17:03
+     * 批量删除hash key
+     *
+     * @param hashSyncReportKeys key
+     */
+    private void delSyncReportHashKey(List<String> hashSyncReportKeys) {
+        String[] keys = hashSyncReportKeys.toArray(new String[0]);
+        try {
+            long count = redisChgService.del(keys);
+            if (count != keys.length) {
+                log.warn("转化数据统计清理redis主键部分失败，共:{}；删除:{}；keys:{}"
+                        , keys.length, count, Arrays.toString(keys));
+                hashSyncReportKeys.forEach((String key) -> {
+                    try {
+                        redisChgService.del(key);
+                    } catch (Exception exception) {
+                        log.warn(exception.getMessage(), exception);
+                    }
+                });
+            }
+        } catch (Exception exception) {
+            log.error(exception + "\n转化数据统计清理redis主键失败:" + Arrays.toString(keys), exception);
+        }
+    }
+
+    /**
+     * 2024-03-12 15:01
+     * 汇总数据
+     *
+     * @param syncReport    目标记录
+     * @param syncReportOld 历史记录
+     * @return key filed; value value
+     */
+    private Map<String, String> syncReportSummary(MarketingSyncReport syncReport, MarketingSyncReport syncReportOld
+            , boolean cacheBool) {
+        String cacheString;
+        syncReport.setUserType(null);
+        syncReport.setCid(null);
+        syncReport.setAppletDate(null);
+        syncReport.setApiCode(null);
+        syncReport.setCreateTime(null);
+        syncReport.setShortName(null);
+        syncReport.setRemark(null);
+        syncReport.setNormalNum(syncReportOld.getNormalNum() + syncReport.getNormalNum());
+        syncReport.setDuplicateRemovalNum(syncReportOld.getDuplicateRemovalNum() + syncReport.getDuplicateRemovalNum());
+        boolean beginBool = (syncReportOld.getAppletBeginTime().before(syncReport.getAppletBeginTime())
+                || syncReportOld.getAppletBeginTime().equals(syncReport.getAppletBeginTime()));
+        boolean endBool = (syncReportOld.getAppletEndTime().after(syncReport.getAppletEndTime())
+                || syncReportOld.getAppletEndTime().equals(syncReport.getAppletEndTime()));
+        if (cacheBool) {
+            syncReport.setAppletBeginTime(beginBool ? null : syncReport.getAppletBeginTime());
+            syncReport.setAppletEndTime(endBool ? null : syncReport.getAppletEndTime());
+            cacheString = JSON.toJSONString(syncReport);
+            syncReport.setId(syncReportOld.getId());
+        } else {
+            syncReport.setAppletBeginTime(beginBool ? syncReportOld.getAppletBeginTime() : syncReport.getAppletBeginTime());
+            syncReport.setAppletEndTime(endBool ? syncReportOld.getAppletEndTime() : syncReport.getAppletEndTime());
+            syncReport.setId(syncReportOld.getId());
+            cacheString = JSON.toJSONString(syncReport);
+            if (beginBool) {
+                syncReport.setAppletBeginTime(null);
+            }
+            if (endBool) {
+                syncReport.setAppletEndTime(null);
+            }
+        }
+        Map<String, String> stringMap = JSONObject.parseObject(cacheString, new TypeReference<Map<String, String>>() {
+        });
+        syncReport.setUpdateTime(new Date());
+        return stringMap;
+    }
 }

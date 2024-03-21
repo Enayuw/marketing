@@ -74,12 +74,22 @@ public interface MarketingSyncReportMapper {
      * @param appletDate
      * @return
      */
-    MarketingDataValidConfig selectValidData(@Param("apiCode")String apiCode ,@Param("userType")String userType ,@Param("appletDate")String appletDate);
+    MarketingDataValidConfig selectValidData(@Param("apiCode") String apiCode, @Param("userType") String userType, @Param("appletDate") String appletDate);
 
     /**
      * 修改有效期记录数据
+     *
      * @param config
      * @return
      */
-    Integer updateById(@Param("config")MarketingDataValidConfig config);
+    Integer updateById(@Param("config") MarketingDataValidConfig config);
+
+    /**
+     * 2024-03-08 9:29
+     * 获取数据量级
+     *
+     * @param example 条件
+     * @return list
+     */
+    List<MarketingSyncReport> selectNumberByExample(MarketingSyncReportExample example);
 }

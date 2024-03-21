@@ -6,11 +6,8 @@ import com.br.marketing.api.customer.service.CustomerTransferDataService;
 import com.br.marketing.common.constants.PulsarSubscription;
 import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.service.IPushShuheDataService;
+import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.ConsumerService;
-import com.br.marketing.service.PushDataService;
-import com.br.marketing.service.PushRuleService;
-import com.br.marketing.service.VariableDicService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +48,12 @@ public class ConsumerApp {
 
     @Resource
     private VariableDicService variableDicService;
+
+    @Resource
+    private MarketingSyncReportService marketingSyncReportService;
+
+    @Resource
+    private TransferSyncReportService transferSyncReportService;
 
 
     /**
@@ -185,17 +188,33 @@ public class ConsumerApp {
     }
 
     /**
-     * 场景收集队列消费端
+     * 上传场景收集队列消费端
      *
      * @param channel 通道
      * @param message 消息体
      */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_STANDARD_API_USERTYPE_COLLECTION
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_UPLOAD_API_USERTYPE_COLLECTION
             , durable = "true")
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
-            , key = MQConstants.ROUTING_KEY_MARKETING_STANDARD_API_USERTYPE_COLLECTION)}
+            , key = MQConstants.BINDING_KEY_MARKETING_UPLOAD_API_COLLECTION_FRAGMENTS)}
             , containerFactory = "consumerTenPrefetchTwoFactory")
-    public void standardApiUsertypeCollection(Channel channel, Message message) {
+    public void uploadApiUsertypeCollection(Channel channel, Message message) {
+        consumerService.consumerRun(channel, message, variableDicService::batchAddUserTypeVariableDicTry
+                , new String(message.getBody(), StandardCharsets.UTF_8), null);
+    }
+
+    /**
+     * 转化场景收集队列消费端
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_TRANSFER_API_USERTYPE_COLLECTION
+            , durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.BINDING_KEY_MARKETING_TRANSFER_API_COLLECTION_FRAGMENTS)}
+            , containerFactory = "consumerTenPrefetchTwoFactory")
+    public void transferApiUsertypeCollection(Channel channel, Message message) {
         consumerService.consumerRun(channel, message, variableDicService::batchAddUserTypeVariableDicTry
                 , new String(message.getBody(), StandardCharsets.UTF_8), null);
     }
@@ -216,6 +235,38 @@ public class ConsumerApp {
                 , new String(message.getBody(), StandardCharsets.UTF_8), null);
     }
 
+
+    /**
+     * 上传接口接收数据量级碎片队列消费端
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_UPLOAD_API_DATA_COUNT_FRAGMENTS
+            , durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.BINDING_KEY_MARKETING_UPLOAD_API_COLLECTION_FRAGMENTS)}
+            , containerFactory = "consumerTenPrefetchTwoFactory")
+    public void uploadDataCountFragments(Channel channel, Message message) {
+        consumerService.consumerRun(channel, message, marketingSyncReportService::nearRealtimeDataCountFragmentsStatis
+                , new String(message.getBody(), StandardCharsets.UTF_8), null);
+    }
+
+    /**
+     * 转化接口接收数据量级碎片队列消费端
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS
+            , durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.BINDING_KEY_MARKETING_TRANSFER_API_COLLECTION_FRAGMENTS)}
+            , containerFactory = "consumerTenPrefetchTwoFactory")
+    public void transferDataCountFragments(Channel channel, Message message) {
+        consumerService.consumerRun(channel, message, transferSyncReportService::nearRealtimeDataCountFragmentsStatis
+                , new String(message.getBody(), StandardCharsets.UTF_8), null);
+    }
 
     @PostConstruct
     void init() {

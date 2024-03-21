@@ -148,6 +148,17 @@ public class RedisKeyConstant {
     public static final String USERTYPE_DICT = prefix.concat("usertype:dict:");
 
     /**
+     * 2023-12-22 15:21
+     * 异步数据统计
+     */
+    public static final String ASYNC_COUNT = prefix.concat("async:count:");
+    /**
+     * 2023-12-22 15:21
+     * 异步数据统计
+     */
+    public static final String CUSTOMER_INFO = prefix.concat("customer:info:");
+
+    /**
      * 众安撞库 cell 今日缓存
      */
     public static final String ZHONGAN_ZK_CELL_TODAY = prefix.concat("zhongan:zk:cell:");

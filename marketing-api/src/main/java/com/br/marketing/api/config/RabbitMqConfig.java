@@ -208,28 +208,103 @@ public class RabbitMqConfig {
     }
 
     /**
-     * 标准接口接收场景字典收集队列
+     * 上传接口接收场景字典收集队列
      *
      * @return Queue 持久化队列
      */
-    @Bean(name = MQConstants.MARKETING_STANDARD_API_USERTYPE_COLLECTION)
-    public Queue usertypeCollectionQueue() {
-        return QueueBuilder.durable(MQConstants.MARKETING_STANDARD_API_USERTYPE_COLLECTION).build();
+    @Bean(name = MQConstants.MARKETING_UPLOAD_API_USERTYPE_COLLECTION)
+    public Queue uploadUsertypeCollectionQueue() {
+        return QueueBuilder.durable(MQConstants.MARKETING_UPLOAD_API_USERTYPE_COLLECTION).build();
     }
 
     /**
-     * 标准接口接收场景字典收集队列绑定普通交换机
+     * 上传接口接收场景字典收集队列绑定普通交换机
      *
      * @param delayQueue   场景字典收集队列
      * @param gateExchange 主题交换机
      * @return Queue 持久化队列
      */
     @Bean
-    public Binding usertypeCollectionQueueBindingGateExchange(
-            @Qualifier(MQConstants.MARKETING_STANDARD_API_USERTYPE_COLLECTION) Queue delayQueue
+    public Binding uploadUsertypeCollectionQueueBindingGateExchange(
+            @Qualifier(MQConstants.MARKETING_UPLOAD_API_USERTYPE_COLLECTION) Queue delayQueue
             , @Qualifier(MQConstants.MARKETINGEXCHANGER_NAME) TopicExchange gateExchange) {
         return BindingBuilder.bind(delayQueue).to(gateExchange).with(
-                MQConstants.ROUTING_KEY_MARKETING_STANDARD_API_USERTYPE_COLLECTION);
+                MQConstants.BINDING_KEY_MARKETING_UPLOAD_API_COLLECTION_FRAGMENTS);
+    }
+
+    /**
+     * 转化接口接收场景字典收集队列
+     *
+     * @return Queue 持久化队列
+     */
+    @Bean(name = MQConstants.MARKETING_TRANSFER_API_USERTYPE_COLLECTION)
+    public Queue transferUsertypeCollectionQueue() {
+        return QueueBuilder.durable(MQConstants.MARKETING_TRANSFER_API_USERTYPE_COLLECTION).build();
+    }
+
+    /**
+     * 转化接口接收场景字典收集队列绑定普通交换机
+     *
+     * @param delayQueue   场景字典收集队列
+     * @param gateExchange 主题交换机
+     * @return Queue 持久化队列
+     */
+    @Bean
+    public Binding transferUsertypeCollectionQueueBindingGateExchange(
+            @Qualifier(MQConstants.MARKETING_TRANSFER_API_USERTYPE_COLLECTION) Queue delayQueue
+            , @Qualifier(MQConstants.MARKETINGEXCHANGER_NAME) TopicExchange gateExchange) {
+        return BindingBuilder.bind(delayQueue).to(gateExchange).with(
+                MQConstants.BINDING_KEY_MARKETING_TRANSFER_API_COLLECTION_FRAGMENTS);
+    }
+
+    /**
+     * 上传接口接收数据量级碎片队列
+     *
+     * @return 持久化队列
+     */
+    @Bean(name = MQConstants.MARKETING_UPLOAD_API_DATA_COUNT_FRAGMENTS)
+    public Queue uploadDataCountFragmentsQueue() {
+        return QueueBuilder.durable(MQConstants.MARKETING_UPLOAD_API_DATA_COUNT_FRAGMENTS).build();
+    }
+
+    /**
+     * 上传接口接收数据量级碎片队列绑定普通交换机
+     *
+     * @param delayQueue   数据量级碎片队列
+     * @param gateExchange 普通交换机
+     * @return 绑定关系
+     */
+    @Bean
+    public Binding uploadDataCountFragmentsQueueBindingGateExchange(
+            @Qualifier(MQConstants.MARKETING_UPLOAD_API_DATA_COUNT_FRAGMENTS) Queue delayQueue
+            , @Qualifier(MQConstants.MARKETINGEXCHANGER_NAME) TopicExchange gateExchange) {
+        return BindingBuilder.bind(delayQueue).to(gateExchange).with(
+                MQConstants.BINDING_KEY_MARKETING_UPLOAD_API_COLLECTION_FRAGMENTS);
+    }
+
+    /**
+     * 转化接口接收数据量级碎片队列
+     *
+     * @return 持久化队列
+     */
+    @Bean(name = MQConstants.MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS)
+    public Queue transferDataCountFragmentsQueue() {
+        return QueueBuilder.durable(MQConstants.MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS).build();
+    }
+
+    /**
+     * 转化接口接收数据量级碎片队列绑定普通交换机
+     *
+     * @param delayQueue   数据量级碎片队列
+     * @param gateExchange 普通交换机
+     * @return 绑定关系
+     */
+    @Bean
+    public Binding transferDataCountFragmentsQueueBindingGateExchange(
+            @Qualifier(MQConstants.MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS) Queue delayQueue
+            , @Qualifier(MQConstants.MARKETINGEXCHANGER_NAME) TopicExchange gateExchange) {
+        return BindingBuilder.bind(delayQueue).to(gateExchange).with(
+                MQConstants.BINDING_KEY_MARKETING_TRANSFER_API_COLLECTION_FRAGMENTS);
     }
 
     @Bean

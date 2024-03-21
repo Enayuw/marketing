@@ -85,10 +85,13 @@ public class TransferSyncReportController {
     @ApiOperation(value = "手动执行转化数据统计报表任务", notes = "手动执行转化数据统计报表任务", httpMethod = "GET")
     @ApiImplicitParam(name = "uploadDate", value = "当日日期(yyyy-MM-dd)", paramType = "query", dataType = "string")
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
-    public ApiResult<Boolean> triggerTaskUploadSyncReportJob(@RequestParam(required = false) String dateStr) {
+    public ApiResult<Boolean> triggerTaskUploadSyncReportJob(@RequestParam(required = false) String dateStr
+            , @RequestParam(required = false, defaultValue = "false") Boolean isManual) {
         try {
-            transferSyncReportService.reportProcess(new HashSet<>(Collections.singletonList(StringUtils.isBlank(dateStr)
-                    ? LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) : dateStr)));
+            if (isManual) {
+                transferSyncReportService.reportProcess(new HashSet<>(Collections.singletonList(StringUtils.isBlank(dateStr)
+                        ? LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) : dateStr)));
+            }
             return new ApiResult<Boolean>().success(Boolean.TRUE);
         } catch (Exception e) {
             log.warn("手动执行转化数据统计报表任务异常");

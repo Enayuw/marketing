@@ -2,6 +2,7 @@ package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.MarketingCustomerListVO;
@@ -63,8 +64,20 @@ public interface MarketingCustomerService {
 
     /**
      * 客户名称/客户编号,支持联想输入
+     *
      * @param search
      * @return
      */
     List<MarketingCustomerVO> getCidOrName(String search);
+
+
+    /**
+     * 根据cid获取客户信息
+     *
+     * @param apiCode apiCode
+     * @return {@link MarketingCustomer}
+     * @author Hua Qiang
+     * @dateTime 2024/3/12 10:35
+     */
+    MarketingCustomer getCacheCustomerByApiCode(String apiCode);
 }

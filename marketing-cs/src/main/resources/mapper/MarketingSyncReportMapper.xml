@@ -516,4 +516,24 @@
     where id = #{config.id,jdbcType=BIGINT}
   </update>
 
+  <sql id="Base_Column_List_1">
+    id
+    , normal_num, duplicate_removal_num, applet_begin_time, applet_end_time
+  </sql>
+
+  <select id="selectNumberByExample" resultMap="BaseResultMap"
+          parameterType="com.br.marketing.entity.MarketingSyncReportExample">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List_1"/>
+    from b_marketing_sync_report
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause"/>
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
 </mapper>

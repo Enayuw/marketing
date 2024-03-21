@@ -1384,6 +1384,12 @@ public class MarketingCommonConfig {
      */
     private Map<String, JSONObject> dingDingWebHookInfo = new ConcurrentHashMap<>();
 
+    /**
+     * apiCode自动生成场景与统计控制
+     * ["3","4"]
+     */
+    private Set<String> userTypeAndSumRealtimeApiCodeStartsWith = new HashSet<>(Arrays.asList("3", "4"));
+
 
     /**
      * 得物撞库limit 数量降级的量级
