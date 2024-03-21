@@ -49,9 +49,14 @@ public class MarketingCommonConfig {
     private List<String> apiCodeOfRecordTaskTime;
 
     /**
-     * 去重线程数
+     * 原始上传消费端入库线程数
      */
     private Integer soleNum;
+
+    /**
+     * 原始转化消费端入库线程数
+     */
+    private Integer soleNumTrans;
 
     /**
      * 萨摩耶场景

@@ -17,6 +17,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 @Configuration
 public class RabbitMqConfig {
@@ -45,9 +48,8 @@ public class RabbitMqConfig {
     }
 
     /**
-     * marketing 营销平台接受预处理人员队列
-     *
-     * @return
+     * marketing 原始上传数据大队列
+     * @return Queue
      */
     @Bean(name = MQConstants.MARKETING_PRE_USER_RECEIVE)
     public Queue preUserQueue() {
@@ -55,13 +57,54 @@ public class RabbitMqConfig {
     }
 
     /**
-     * 绑定——营销平台接受预处理人员队列
-     *
-     * @return
+     * 绑定原始上传数据大队列
+     * @return Binding
      */
     @Bean
     public Binding preUserBinding() {
         return BindingBuilder.bind(preUserQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE);
+    }
+
+    /**
+     * marketing 原始上传数据小队列
+     * @return Queue
+     */
+    @Bean(name = MQConstants.MARKETING_PREUSER_RECEIVE_SMALL)
+    public Queue preUserQueueSmall() {
+        Map<String, Object> args = new HashMap<>();
+        // 设置队列的最大优先级为10
+        args.put("x-max-priority", 10);
+        return new Queue(MQConstants.MARKETING_PREUSER_RECEIVE_SMALL, true, false, false, args);
+    }
+
+    /**
+     * 绑定原始上传数据小队列
+     * @return Binding
+     */
+    @Bean
+    public Binding preUserSmallBinding() {
+        return BindingBuilder.bind(preUserQueueSmall()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PREUSER_RECEIVE_SMALL);
+    }
+
+    /**
+     * marketing 原始上传数据应急队列
+     * @return Queue
+     */
+    @Bean(name = MQConstants.MARKETING_PREUSER_RECEIVE_EMERGENCY)
+    public Queue preUserQueueEmergency() {
+        Map<String, Object> args = new HashMap<>();
+        // 设置队列的最大优先级为10
+        args.put("x-max-priority", 10);
+        return new Queue(MQConstants.MARKETING_PREUSER_RECEIVE_EMERGENCY, true, false, false, args);
+    }
+
+    /**
+     * 绑定原始上传数据应急队列
+     * @return Binding
+     */
+    @Bean
+    public Binding preUserEmergencyBinding() {
+        return BindingBuilder.bind(preUserQueueEmergency()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PREUSER_RECEIVE_EMERGENCY);
     }
 
     /**
@@ -85,9 +128,8 @@ public class RabbitMqConfig {
     }
 
     /**
-     * marketing 转化数据队列
-     *
-     * @return
+     * marketing 原始转化数据大队列
+     * @return Queue
      */
     @Bean(name = MQConstants.MARKETING_TRANSFER_RECEIVE)
     public Queue transferQueue() {
@@ -95,13 +137,54 @@ public class RabbitMqConfig {
     }
 
     /**
-     * 绑定——转化数据队列
-     *
-     * @return
+     * 绑定原始转化数据大队列
+     * @return Binding
      */
     @Bean
     public Binding transferBinding() {
         return BindingBuilder.bind(transferQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE);
+    }
+
+    /**
+     * marketing 原始转化数据小队列
+     * @return Queue
+     */
+    @Bean(name = MQConstants.MARKETING_TRANSFER_RECEIVE_SMALL)
+    public Queue transferQueueSmall() {
+        Map<String, Object> args = new HashMap<>();
+        // 设置队列的最大优先级为10
+        args.put("x-max-priority", 10);
+        return new Queue(MQConstants.MARKETING_TRANSFER_RECEIVE_SMALL, true, false, false, args);
+    }
+
+    /**
+     * 绑定原始转化数据小队列
+     * @return Binding
+     */
+    @Bean
+    public Binding transferSmallBinding() {
+        return BindingBuilder.bind(transferQueueSmall()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_SMALL);
+    }
+
+    /**
+     * marketing 原始转化数据应急队列
+     * @return Queue
+     */
+    @Bean(name = MQConstants.MARKETING_TRANSFER_RECEIVE_EMERGENCY)
+    public Queue transferQueueEmergency() {
+        Map<String, Object> args = new HashMap<>();
+        // 设置队列的最大优先级为10
+        args.put("x-max-priority", 10);
+        return new Queue(MQConstants.MARKETING_TRANSFER_RECEIVE_EMERGENCY, true, false, false, args);
+    }
+
+    /**
+     * 绑定原始转化数据应急队列
+     * @return Binding
+     */
+    @Bean
+    public Binding transferEmergencyBinding() {
+        return BindingBuilder.bind(transferQueueEmergency()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_EMERGENCY);
     }
 
     /**
