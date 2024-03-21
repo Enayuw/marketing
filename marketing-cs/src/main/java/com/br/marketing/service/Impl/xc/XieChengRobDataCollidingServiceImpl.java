@@ -59,12 +59,18 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
         // TODO 从广秀提供方法中获取
         Integer totalThreshold = 5000000;
         Integer limit = Math.min(perMinuteCounts, todayTrueTotalCounts);
-        ThreadPoolExecutor xiechengRobCollidingThread =
-            BrExecutors.getThreadPool(marketingCommonConfig.getXiechengRobCollidingThread(), marketingCommonConfig.getXiechengRobCollidingThread());
-        List<XieChengCollidingDataRob> robDataList = xieChengCollidingDataRobMapper.getRobCollidingDataList(limit);
-        List<List<XieChengCollidingDataRob>> xieChengCollidingDataListPartition = Lists.partition(robDataList, 50);
-        xieChengCollidingDataListPartition.forEach((List<XieChengCollidingDataRob> robData) -> CompletableFuture
-            .runAsync(() -> pushRobCollidingData(robData, new AtomicInteger(0)), xiechengRobCollidingThread));
+        // TODO 从陈宏配置字段取
+        Integer decrement = 20000;
+        while (limit > 0) {
+            ThreadPoolExecutor xiechengRobCollidingThread = BrExecutors.getThreadPool(marketingCommonConfig.getXiechengRobCollidingThread(),
+                marketingCommonConfig.getXiechengRobCollidingThread());
+            List<XieChengCollidingDataRob> robDataList = xieChengCollidingDataRobMapper.getRobCollidingDataList(limit);
+            List<List<XieChengCollidingDataRob>> xieChengCollidingDataListPartition = Lists.partition(robDataList, 50);
+            xieChengCollidingDataListPartition.forEach((List<XieChengCollidingDataRob> robData) -> CompletableFuture
+                .runAsync(() -> pushRobCollidingData(robData, new AtomicInteger(0)), xiechengRobCollidingThread));
+            limit -= decrement;
+        }
+
     }
 
     /**
