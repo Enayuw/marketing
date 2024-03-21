@@ -269,7 +269,7 @@ public interface TransferDataValidityPeriodService {
                                                                                 Object requestDateObj);
 
     /**
-     * 获取有效期的有效期配置,重叠时间段会合并,分页
+     * 获取有效期的有效期配置,分页
      *
      * @param apiCode        客户编号
      * @param requestDateObj 请求时间

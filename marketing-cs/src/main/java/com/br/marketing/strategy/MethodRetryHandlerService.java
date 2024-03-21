@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.bo.SaveReachDeleteRecordReqBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.bo.ZaMarketDataBO;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
@@ -930,9 +931,12 @@ public class MethodRetryHandlerService {
                 marketingTransferSyncUser.setRequestData(LocalDate.now().toString());
                 marketingTransferSyncUser.setCustNum(custNum);
                 // 判断是否有效
-                MarketingSyncUser newValidityPeriodData = transferDataValidityPeriodService.getMarketingSyncUserDidi(marketingTransferSyncUser, null);
-                if (newValidityPeriodData != null) {
-                    updateDidiCallRecord.setCell(newValidityPeriodData.getCell());
+                Map<String, SyncUserValidityPeriodsBO> validityPeriodsBOMap = transferDataValidityPeriodService
+                        .getValidityPeriodsByCustNum(Collections.singleton(custNum), apiCode, null);
+                SyncUserValidityPeriodsBO bo = validityPeriodsBOMap.get(custNum);
+                if (bo != null) {
+                    List<MarketingSyncUser> syncUsers = bo.getSyncUsers();
+                    updateDidiCallRecord.setCell(syncUsers.get(0).getCell());
                     // 调接口推送
                     DiDiReqVO diDiReqVO = new DiDiReqVO();
                     diDiReqVO.setMediaName(meidaName);
