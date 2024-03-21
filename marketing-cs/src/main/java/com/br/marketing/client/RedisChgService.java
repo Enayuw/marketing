@@ -86,9 +86,13 @@ public class RedisChgService {
      * @param keys key集合
      * @return 删除成功量级
      */
-    public long del(String... keys) {
-        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        return marketingRedisClient.del(keys);
+    public long del(String... keys) throws Exception {
+        try {
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.del(keys);
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
     /**
