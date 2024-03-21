@@ -88,6 +88,8 @@ public class MQConstants {
     // 发送场景消息死信队列
     public static final String MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE = "marketing_send_usertype_message_dead_queue";
 
+    public static final String MARKETING_XIECHENG_COLLIDING_LOG_QUEUE = "marketing_xiecheng_colliding_log_queue";
+
 
     /**
      * routingkey
@@ -162,5 +164,5 @@ public class MQConstants {
     // 发送场景消息死信路由键
     public static final String ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE = "marketing.send.usertype.message.dead.queue";
 
-    public static final String ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG = "routing.key.marketing.xiecheng.colliding.log";
+    public static final String ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG = "marketing.xiecheng.colliding.log";
 }

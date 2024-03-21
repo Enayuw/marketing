@@ -2,14 +2,10 @@ package com.br.marketing.service.Impl.xc;
 
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.xiecheng.XieChengService;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
 import com.br.marketing.entity.XieChengCollidingDataRob;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
@@ -21,11 +17,11 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -69,20 +65,27 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
         List<CompletableFuture<Result>> futureList = Lists.newArrayList();
         List<List<XieChengCollidingDataRob>> xieChengCollidingDataListPartition = Lists.partition(robDataList, 50);
         xieChengCollidingDataListPartition.forEach((List<XieChengCollidingDataRob> robData) -> {
-            CompletableFuture<Result> completableFuture = CompletableFuture.supplyAsync(() -> {
-                List<String> sha256Codes = robData.stream()
-                                                  .map(XieChengCollidingDataRob::getCellSha256CodeList)
-                                                  .collect(Collectors.toList());
-                return xieChengService.pushXieChengSmsCollidingData(sha256Codes);
-            }, xiechengRobCollidingThread);
-            futureList.add(completableFuture);
+            CompletableFuture.runAsync(() -> pushRobCollidingData(robData, null), xiechengRobCollidingThread);
         });
-        CompletableFuture<Void> allFutures = CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0]));
-        allFutures.join();
-        List<Result> pushResults = futureList.stream()
-                                             .map(CompletableFuture::join)
-                                             .collect(Collectors.toList());
-        handleService.robDataHandle(pushResults,cellMap);
+    }
+
+    /**
+     * 推送非周期撞库数据
+     *
+     * @param robData rob数据
+     * @param failNum fail num
+     * @author senyang.zheng
+     * @date 2024/03/21
+     */
+    public void pushRobCollidingData(List<XieChengCollidingDataRob> robData, AtomicInteger failNum) {
+        Map<String, XieChengCollidingDataRob> cellMap = robData.stream().collect(Collectors.toMap(XieChengCollidingDataRob::getCellSha256CodeList,
+                                                                                                  rob -> rob, (existing, replacement) -> replacement));
+        List<String> sha256Codes = robData.stream()
+                                          .map(XieChengCollidingDataRob::getCellSha256CodeList)
+                                          .collect(Collectors.toList());
+        Result result = xieChengService.pushXieChengSmsCollidingData(sha256Codes);
+        handleService.robDataHandle(result, cellMap,failNum);
+
     }
 
     public Integer getPerMinuteCounts() {
