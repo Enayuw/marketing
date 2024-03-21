@@ -83,48 +83,48 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="SftpToDbByResultDataJob"
-                class="com.br.marketing.check.job.SftpToDbByResultDataJob"
-                cron="0 0 18 29 9 ? 2050-2050"
-                description="sftp运营结果文件数据入库"
-                registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters="0=A"
-                monitor-execution="true"
-                failover="false"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
-    <job:simple id="SftpToDbByDxTransferDataJob"
-                class="com.br.marketing.check.job.SftpToDbByDxTransferDataJob"
-                cron="0 0 18 29 9 ? 2050-2050"
-                description="sftpDass转化文件数据入库"
-                registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters="0=A"
-                monitor-execution="true"
-                failover="false"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
-    <job:simple id="SftpToDbByDxIbuDataJob"
-                class="com.br.marketing.check.job.SftpToDbByDxIbuDataJob"
-                cron="0 0 18 29 9 ? 2050-2050"
-                description="sftpDassIbu文件数据入库"
-                registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters="0=A"
-                monitor-execution="true"
-                failover="false"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
+<!--    <job:simple id="SftpToDbByResultDataJob"-->
+<!--                class="com.br.marketing.check.job.SftpToDbByResultDataJob"-->
+<!--                cron="0 0 18 29 9 ? 2050-2050"-->
+<!--                description="sftp运营结果文件数据入库"-->
+<!--                registry-center-ref="regCenter"-->
+<!--                sharding-total-count="1"-->
+<!--                sharding-item-parameters="0=A"-->
+<!--                monitor-execution="true"-->
+<!--                failover="false"-->
+<!--                misfire="false"-->
+<!--                disabled="true"-->
+<!--                overwrite="true"-->
+<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
+<!--    />-->
+<!--    <job:simple id="SftpToDbByDxTransferDataJob"-->
+<!--                class="com.br.marketing.check.job.SftpToDbByDxTransferDataJob"-->
+<!--                cron="0 0 18 29 9 ? 2050-2050"-->
+<!--                description="sftpDass转化文件数据入库"-->
+<!--                registry-center-ref="regCenter"-->
+<!--                sharding-total-count="1"-->
+<!--                sharding-item-parameters="0=A"-->
+<!--                monitor-execution="true"-->
+<!--                failover="false"-->
+<!--                misfire="false"-->
+<!--                disabled="true"-->
+<!--                overwrite="true"-->
+<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
+<!--    />-->
+<!--    <job:simple id="SftpToDbByDxIbuDataJob"-->
+<!--                class="com.br.marketing.check.job.SftpToDbByDxIbuDataJob"-->
+<!--                cron="0 0 18 29 9 ? 2050-2050"-->
+<!--                description="sftpDassIbu文件数据入库"-->
+<!--                registry-center-ref="regCenter"-->
+<!--                sharding-total-count="1"-->
+<!--                sharding-item-parameters="0=A"-->
+<!--                monitor-execution="true"-->
+<!--                failover="false"-->
+<!--                misfire="false"-->
+<!--                disabled="true"-->
+<!--                overwrite="true"-->
+<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
+<!--    />-->
     <job:simple id="SftpToDbByTwoSevenJob"
                 class="com.br.marketing.check.job.SftpToDbByTwoSevenJob"
                 cron="0 0 18 29 9 ? 2050-2050"
@@ -167,20 +167,20 @@
     <!--                overwrite="true"-->
     <!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
     <!--    />-->
-    <job:simple id="SftpToDbByCommonJob"
-                class="com.br.marketing.check.job.SftpToDbByCommonJob"
-                cron="0 0 18 29 9 ? 2050-2050"
-                description="sftp文件数据入库"
-                registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters="0=A"
-                monitor-execution="true"
-                failover="false"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
+<!--    <job:simple id="SftpToDbByCommonJob"-->
+<!--                class="com.br.marketing.check.job.SftpToDbByCommonJob"-->
+<!--                cron="0 0 18 29 9 ? 2050-2050"-->
+<!--                description="sftp文件数据入库"-->
+<!--                registry-center-ref="regCenter"-->
+<!--                sharding-total-count="1"-->
+<!--                sharding-item-parameters="0=A"-->
+<!--                monitor-execution="true"-->
+<!--                failover="false"-->
+<!--                misfire="false"-->
+<!--                disabled="true"-->
+<!--                overwrite="true"-->
+<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
+<!--    />-->
     <job:simple id="PushHaierJob"
                 class="com.br.marketing.check.job.PushHaierJob"
                 cron="0 0 18 29 9 ? 2050-2050"
@@ -227,20 +227,20 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="TransferFileTaskJob"
-                class="com.br.marketing.check.job.TransferFileTaskJob"
-                cron="0 0 18 29 9 ? 2050-2050"
-                description="转化数据作业"
-                registry-center-ref="regCenter"
-                sharding-total-count="9"
-                sharding-item-parameters="0=A"
-                monitor-execution="true"
-                failover="false"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
+<!--    <job:simple id="TransferFileTaskJob"-->
+<!--                class="com.br.marketing.check.job.TransferFileTaskJob"-->
+<!--                cron="0 0 18 29 9 ? 2050-2050"-->
+<!--                description="转化数据作业"-->
+<!--                registry-center-ref="regCenter"-->
+<!--                sharding-total-count="9"-->
+<!--                sharding-item-parameters="0=A"-->
+<!--                monitor-execution="true"-->
+<!--                failover="false"-->
+<!--                misfire="false"-->
+<!--                disabled="true"-->
+<!--                overwrite="true"-->
+<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
+<!--    />-->
     <job:simple id="ZhongYouTransferToFileTaskJob"
                 class="com.br.marketing.check.job.zhongyou.ZhongYouTransferToFileTaskJob"
                 cron="0 0 18 29 9 ? 2050-2050"
@@ -676,20 +676,20 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="ZhongYouDataPullJob"
-                class="com.br.marketing.check.job.zhongyou.ZhongYouDataPullJob"
-                cron="0 0 18 29 9 ? 2050-2050"
-                description="中邮数据拉取"
-                registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters="0=A"
-                monitor-execution="true"
-                failover="false"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
+<!--    <job:simple id="ZhongYouDataPullJob"-->
+<!--                class="com.br.marketing.check.job.zhongyou.ZhongYouDataPullJob"-->
+<!--                cron="0 0 18 29 9 ? 2050-2050"-->
+<!--                description="中邮数据拉取"-->
+<!--                registry-center-ref="regCenter"-->
+<!--                sharding-total-count="1"-->
+<!--                sharding-item-parameters="0=A"-->
+<!--                monitor-execution="true"-->
+<!--                failover="false"-->
+<!--                misfire="false"-->
+<!--                disabled="true"-->
+<!--                overwrite="true"-->
+<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
+<!--    />-->
     <job:simple id="YiXinTransferToJueCeMakeUpJob"
                 class="com.br.marketing.check.job.yixin.YiXinTransferToJueCeMakeUpJob"
                 cron="0 0 18 29 9 ? 2050-2050"
@@ -877,20 +877,20 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="check-ZhongBangPullFileDataJob"
-                class="com.br.marketing.check.job.zhongbang.ZhongBangPullFileDataJob"
-                cron="0 0 18 29 9 ? 2050-2050"
-                description="众邦财富文件拉取,param格式：{'apiCode':'yyyyMMdd,yyyy-MM-dd HH:mm:ss,yyyy-MM-dd HH:mm:ss'}"
-                registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters="0=A"
-                monitor-execution="true"
-                failover="false"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
+<!--    <job:simple id="check-ZhongBangPullFileDataJob"-->
+<!--                class="com.br.marketing.check.job.zhongbang.ZhongBangPullFileDataJob"-->
+<!--                cron="0 0 18 29 9 ? 2050-2050"-->
+<!--                description="众邦财富文件拉取,param格式：{'apiCode':'yyyyMMdd,yyyy-MM-dd HH:mm:ss,yyyy-MM-dd HH:mm:ss'}"-->
+<!--                registry-center-ref="regCenter"-->
+<!--                sharding-total-count="1"-->
+<!--                sharding-item-parameters="0=A"-->
+<!--                monitor-execution="true"-->
+<!--                failover="false"-->
+<!--                misfire="false"-->
+<!--                disabled="true"-->
+<!--                overwrite="true"-->
+<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
+<!--    />-->
 
     <job:simple id="ZhongBangCaiFuLabelPushJob"
                 class="com.br.marketing.check.job.zhongbang.ZhongBangCaiFuLabelPushJob"
