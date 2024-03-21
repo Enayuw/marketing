@@ -374,7 +374,7 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                 log.error(e.getMessage() + "\n" + dataCountFragmentsMgs, e);
                 platformTransactionManager.rollback(transaction);
                 syncUserList.forEach((TransferSyncReport syncReport) -> {
-                    String key = redisKey + ":" + syncReport.getUserType();
+                    String key = redisKey + syncReport.getUserType();
                     try {
                         redisChgService.del(key);
                     } catch (Exception exception) {

@@ -595,7 +595,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 log.error(e.getMessage() + "\n" + dataCountFragmentsMgs, e);
                 platformTransactionManager.rollback(transaction);
                 userTypeMap.keySet().forEach((String userType) -> {
-                    String key = redisKey + ":" + userType;
+                    String key = redisKey + userType;
                     try {
                         redisChgService.del(key);
                     } catch (Exception exception) {
