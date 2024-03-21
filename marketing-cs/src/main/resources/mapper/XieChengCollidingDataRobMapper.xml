@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.XieChengCollidingDataRobMapper" >
-
+    <select id="getRobCollidingDataList" resultType="com.br.marketing.entity.XieChengCollidingDataRob">
+        SELECT rob.*
+        FROM b_xiecheng_colliding_data_rob rob
+        JOIN b_xiecheng_colliding_data_package pkg ON rob.package_id = pkg.id
+        WHERE pkg.is_delete = 0
+        and pkg.retry_count = 0
+        <![CDATA[ and pkg.colliding_time <= now() ]]>
+        and DATE_FORMAT(rob.push_time, '%Y-%m-%d') != curdate()
+        ORDER BY pkg.priority
+        limit ${limit}
+    </select>
 </mapper>

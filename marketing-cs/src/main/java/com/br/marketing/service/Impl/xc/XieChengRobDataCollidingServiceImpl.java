@@ -2,20 +2,31 @@ package com.br.marketing.service.Impl.xc;
 
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.xiecheng.XieChengService;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
 import com.br.marketing.entity.XieChengCollidingDataRob;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 /**
  * 携程非周期数据撞库相关Service实现
@@ -35,7 +46,12 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     private XieChengCollidingDataRobMapper xieChengCollidingDataRobMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-
+    @Resource
+    private XieChengService xieChengService;
+    @Resource
+    private RabbitMqProducter rabbitMqProducter;
+    @Resource
+    private XieChengCollidingResultHandleService handleService;
 
     @Override
     public void collidingData() {
@@ -47,8 +63,26 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
         Integer limit = Math.min(perMinuteCounts, todayTrueTotalCounts);
         ThreadPoolExecutor xiechengRobCollidingThread =
             BrExecutors.getThreadPool(marketingCommonConfig.getXiechengRobCollidingThread(), marketingCommonConfig.getXiechengRobCollidingThread());
-        List<XieChengCollidingDataRob> xieChengCollidingDataRobList = xieChengCollidingDataRobMapper.getRobCollidingDataList(limit);
-
+        List<XieChengCollidingDataRob> robDataList = xieChengCollidingDataRobMapper.getRobCollidingDataList(limit);
+        Map<String, XieChengCollidingDataRob> cellMap = robDataList.stream().collect(Collectors.toMap(XieChengCollidingDataRob::getCellSha256CodeList,
+                                                                                                      rob -> rob, (existing, replacement) -> replacement));
+        List<CompletableFuture<Result>> futureList = Lists.newArrayList();
+        List<List<XieChengCollidingDataRob>> xieChengCollidingDataListPartition = Lists.partition(robDataList, 50);
+        xieChengCollidingDataListPartition.forEach((List<XieChengCollidingDataRob> robData) -> {
+            CompletableFuture<Result> completableFuture = CompletableFuture.supplyAsync(() -> {
+                List<String> sha256Codes = robData.stream()
+                                                  .map(XieChengCollidingDataRob::getCellSha256CodeList)
+                                                  .collect(Collectors.toList());
+                return xieChengService.pushXieChengSmsCollidingData(sha256Codes);
+            }, xiechengRobCollidingThread);
+            futureList.add(completableFuture);
+        });
+        CompletableFuture<Void> allFutures = CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0]));
+        allFutures.join();
+        List<Result> pushResults = futureList.stream()
+                                             .map(CompletableFuture::join)
+                                             .collect(Collectors.toList());
+        handleService.robDataHandle(pushResults,cellMap);
     }
 
     public Integer getPerMinuteCounts() {

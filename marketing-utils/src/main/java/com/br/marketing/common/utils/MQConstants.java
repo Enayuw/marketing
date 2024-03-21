@@ -161,4 +161,6 @@ public class MQConstants {
     public static final String ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE = "marketing.send.usertype.message.delay.queue";
     // 发送场景消息死信路由键
     public static final String ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE = "marketing.send.usertype.message.dead.queue";
+
+    public static final String ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG = "routing.key.marketing.xiecheng.colliding.log";
 }
