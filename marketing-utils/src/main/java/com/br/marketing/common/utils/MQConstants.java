@@ -18,10 +18,16 @@ public class MQConstants {
     public static final String PUSH_QUEUE_NAME = "pushQueue";
     public static final String CHECK_QUEUE_NAME = "checkQueue";
 
-    //异步处理人员入库的队列
+    // 原始数据上传、转化
     public static final String MARKETING_PRE_USER_RECEIVE = "Marketing_PreUser_Receive";
     public static final String MARKETING_PRE_USER_SHUHERECEIVE = "Marketing_PreUser_ShuHeReceive";
     public static final String MARKETING_TRANSFER_RECEIVE = "Marketing_Transfer_Receive";
+    public static final String MARKETING_PREUSER_RECEIVE_SMALL = "Marketing_PreUser_Receive_Small";
+    public static final String MARKETING_PREUSER_RECEIVE_EMERGENCY = "Marketing_PreUser_Receive_Emergency";
+    public static final String MARKETING_TRANSFER_RECEIVE_SMALL = "Marketing_Transfer_Receive_Small";
+    public static final String MARKETING_TRANSFER_RECEIVE_EMERGENCY = "Marketing_Transfer_Receive_Emergency";
+
+
     public static final String MARKETING_TRANSFER_PUSH_CUSTOMER = "Marketing_Transfer_Push_Customer";
     public static final String MARKETING_TRANSFER_PUSH_BLACK = "Marketing_Transfer_Push_Black";
     public static final String MARKETING_TRANSFER_PUSH_HALUO = "Marketing_Transfer_Push_HaLuo";
@@ -96,9 +102,15 @@ public class MQConstants {
     public static final String PUSH_ROUTING_KEY = "pushRoutingKey";
     public static final String CHECK_ROUTING_KEY = "checkRoutingKey";
 
+    // 原始数据上传、转化
     public static final String ROUTING_KEY_MARKETING_PRE_USER_RECEIVE = "Marketing.PreUser.Receive";
     public static final String ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE = "Marketing.PreUser.ShuHeReceive";
     public static final String ROUTING_KEY_MARKETING_TRANSFER_RECEIVE = "Marketing.Transfer.Receive";
+    public static final String ROUTING_KEY_MARKETING_PREUSER_RECEIVE_SMALL = "Marketing.PreUser.Receive.Small";
+    public static final String ROUTING_KEY_MARKETING_PREUSER_RECEIVE_EMERGENCY = "Marketing.PreUser.Receive.Emergency";
+    public static final String ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_SMALL = "Marketing.Transfer.Receive.Small";
+    public static final String ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_EMERGENCY = "Marketing.Transfer.Receive.Emergency";
+
     public static final String ROUTING_KEY_MARKETING_USER_RECEIVE = "Marketing.User.Receive";
     public static final String ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER = "Marketing.Transfer.Push.Customer";
     public static final String ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK = "Marketing.Transfer.Push.Black";

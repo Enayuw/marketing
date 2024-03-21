@@ -42,6 +42,7 @@ import com.br.marketing.dto.customer.PushCustomerRequestDTO;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
 import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.CustomerQueueEnum;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
@@ -49,6 +50,7 @@ import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.mapper.*;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
+import com.br.marketing.origin.CaffeineCache;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
@@ -118,6 +120,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         errorCodeHm.put("1006", "参数过长");
     }
 
+    @Resource
+    CaffeineCache caffeineCache;
 
     @Resource
     MarketingTaskMapper marketingTaskMapper;
@@ -1013,26 +1017,43 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         //region 写入上传明细MQ
         if (!dbException) {
-            sendUploadMq(apiCode, syncInfoId);
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
         }
         //endregion
 
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 
-    private void sendUploadMq(String apiCode, String syncInfoId) {
+
+    /**
+     * 根据配置表发送到对应MQ
+     * 配置表：b_marketing_customer_routingKey_mapping
+     * @param apiCode
+     * @param defaultRoutingKey 默认路由键
+     * @param infoId 原始数据表id
+     * @param queueEnum 队列类型
+     */
+    private void sendToMqByConfig(String apiCode, String defaultRoutingKey, String infoId, CustomerQueueEnum queueEnum) {
         try {
             long l3 = System.currentTimeMillis();
-            if (marketingCommonConfig.getShuheApiCode().contains(apiCode)) {
-                producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, syncInfoId);
+            // 根据apicode和bizType获取路由键
+            String apiCodeJointBizType = apiCode + "," + queueEnum.getValue();
+            CustomerRoutingKeyConfig routingKeyConfig = caffeineCache.getRountingKey(apiCodeJointBizType);
+            if (null == routingKeyConfig) {
+                producter.send(defaultRoutingKey, infoId);
             } else {
-                producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId);
+                // 大队列不支持优先级
+                if (routingKeyConfig.getQueueType() == 1) {
+                    producter.send(routingKeyConfig.getRoutingKey(), infoId);
+                } else {
+                    producter.send(routingKeyConfig.getRoutingKey(), infoId, routingKeyConfig.getPriority());
+                }
             }
             if (log.isInfoEnabled()) {
-                log.info("MQ推送耗时:{}", (System.currentTimeMillis() - l3));
+                log.info("推送" + queueEnum.getDesc() + "队列耗时:{}", (System.currentTimeMillis() - l3));
             }
         } catch (Exception ex) {
-            log.error(String.format("推送MQ失败syncInfoId【%s】", syncInfoId));
+            log.error("推送" + queueEnum.getDesc() + "队列失败,数据id：{}", infoId);
         }
     }
 
@@ -1398,7 +1419,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         //region 写入上传明细MQ
         if (!dbException) {
-            sendUploadMq(apiCode, syncInfoId);
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
@@ -1503,7 +1524,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         if (!dbException) {
-            producter.send("Marketing.Transfer.Receive", transferInfoId);
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
@@ -1556,7 +1577,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         if (!dbException) {
-            producter.send("Marketing.Transfer.Receive", transferInfoId);
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
@@ -1569,7 +1590,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<String> pushCustomerApiCodes = marketingCommonConfig.getApiCodeOfpushCustomer();
         List<String> haluoApiCodes = marketingCommonConfig.getApiCodeOfpushHaluoByTransfer();
         List<String> universalProcessApiCode = marketingCommonConfig.getUniversalProcessApiCode();
-        Integer soleNum = 20;
+        Integer soleNumTrans = marketingCommonConfig.getSoleNumTrans();
         Boolean isContinue = Boolean.FALSE;
         MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
         TransferFieldProcessFactory transferFieldProcessFactory = transferFiledProcess.getTransferFieldProcessFactory(transferInfo.getApiCode());
@@ -1670,7 +1691,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         List<MarketingPreUserErrorDetailVO> errorBuild = new ArrayList<>();
         Integer errorSize = 0;
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(soleNum, soleNum);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(soleNumTrans, soleNumTrans);
         List<Future<Result<MarketingPreUserErrorDetailVO>>> futures = null;
         try {
             futures = threadPool.invokeAll(list);
