@@ -13,7 +13,7 @@ import com.br.marketing.entity.XieChengCollidingDataRob;
  */
 public interface XieChengRobDataCollidingService {
 
-    void collidingData();
+    void collidingData(List<String> packageIds);
 
     void pushRobCollidingData(List<XieChengCollidingDataRob> robData, AtomicInteger failNum);
 }

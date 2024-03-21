@@ -1,6 +1,6 @@
 package com.br.marketing.xc.job;
 
-import java.util.Random;
+import java.util.List;
 
 import javax.annotation.Resource;
 
@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.google.common.collect.Lists;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,14 +22,8 @@ public class XieChengRobDataCollidingJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        // TODO 增加强制开关和条件开关
-        Boolean strongSwitch = new Random().nextInt(10) % 2 == 0 ? Boolean.FALSE : Boolean.TRUE;
-        Boolean conditionSwitch = new Random().nextInt(10) % 2 == 0 ? Boolean.FALSE : Boolean.TRUE;
-        // 强制开关开启强制撞库，强制开关关闭且条件开关关闭开始撞库
-        if (strongSwitch || conditionSwitch) {
-            xieChengRobDataCollidingService.collidingData();
-        } else {
-            log.info("不进行撞库");
-        }
+        String param = context.getJobParameter();
+        List<String> packageIds = Lists.newArrayList(param.split(","));
+        xieChengRobDataCollidingService.collidingData(packageIds);
     }
 }

@@ -1436,5 +1436,16 @@ public class MarketingCommonConfig {
      * 携程非周期撞库线程池数
      */
     private Integer xiechengRobCollidingThread;
+
+    /**
+     * 携程撞库分钟阈值
+     */
+    private Integer xiechengPerMinuteThreshold;
+
+
+    /**
+     * 携程撞库分页大小
+     */
+    private Integer xiechengCollidingPageSize;
 }
 
