@@ -1,13 +1,23 @@
 package com.br.marketing.mapper;
 
-import com.br.marketing.entity.XieChengCollidingDataRob;
+import java.util.List;
+
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
+import com.br.marketing.entity.XieChengCollidingDataRob;
 
 public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRobMapperBase {
 
-    List<XieChengCollidingDataRob> getRobCollidingDataList(@Param("limit") Integer limit);
+    /**
+     * 分页获取非周期撞库数据
+     *
+     * @param limit 限制
+     * @param packageIds 包id
+     * @return {@link List }<{@link XieChengCollidingDataRob }>
+     * @author senyang.zheng
+     * @date 2024/03/21
+     */
+    List<XieChengCollidingDataRob> getRobCollidingDataList(@Param("limit") Integer limit, @Param("packageIds") List<String> packageIds);
 
     List<XieChengCollidingDataRob> selectDeleteData(@Param("startTime") String startTime, @Param("size") int size);
 

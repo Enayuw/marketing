@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl.xc;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -15,11 +16,11 @@ import org.springframework.stereotype.Service;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.xiecheng.XieChengService;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.XieChengCollidingDataRob;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 
@@ -48,36 +49,34 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     @Resource
     private XieChengService xieChengService;
     @Resource
-    private RabbitMqProducter rabbitMqProducter;
-    @Resource
     private XieChengCollidingResultHandleService handleService;
 
     @Override
-    public void collidingData() {
+    public void collidingData(List<String> packageIds) {
         Integer perMinuteCounts = getPerMinuteCounts();
         Integer todayTrueTotalCounts = xieChengCollidingDataLoopCycleMapper.selectTodayCycleCount();
         // TODO 从广秀提供方法中获取
         Integer totalThreshold = 5000000;
-        Integer limit = Math.min(perMinuteCounts, todayTrueTotalCounts);
-        // TODO 从陈宏配置字段取
-        Integer decrement = 20000;
-        while (limit > 0) {
+        Integer limit = Math.min(perMinuteCounts, totalThreshold - todayTrueTotalCounts);
+        Integer pageSize = marketingCommonConfig.getXiechengCollidingPageSize();
+        // 强制开关开启强制撞库，强制开关关闭且条件开关打开开始撞库
+        while (limit > 0 && (marketingCommonConfig.getXieChengForceOpenSwitch()
+            || Objects.equals("true", redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH)))) {
             ThreadPoolExecutor xiechengRobCollidingThread = BrExecutors.getThreadPool(marketingCommonConfig.getXiechengRobCollidingThread(),
                 marketingCommonConfig.getXiechengRobCollidingThread());
-            List<XieChengCollidingDataRob> robDataList = xieChengCollidingDataRobMapper.getRobCollidingDataList(limit);
+            List<XieChengCollidingDataRob> robDataList = xieChengCollidingDataRobMapper.getRobCollidingDataList(pageSize, packageIds);
             List<List<XieChengCollidingDataRob>> xieChengCollidingDataListPartition = Lists.partition(robDataList, 50);
             xieChengCollidingDataListPartition.forEach((List<XieChengCollidingDataRob> robData) -> CompletableFuture
                 .runAsync(() -> pushRobCollidingData(robData, new AtomicInteger(0)), xiechengRobCollidingThread));
-            limit -= decrement;
+            limit -= pageSize;
         }
-
     }
 
     /**
      * 推送非周期撞库数据
      *
      * @param robData rob数据
-     * @param failNum fail num
+     * @param failNum failNum
      * @author senyang.zheng
      * @date 2024/03/21
      */
@@ -99,7 +98,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             initializeTodayReleaseTime(today);
         }
         String minute = DateUtil.format(LocalDateTime.now(), DatePattern.NORM_DATETIME_MINUTE_PATTERN);
-        return Integer.valueOf(redisChgService.hget(today, minute));
+        return threshold - Integer.valueOf(redisChgService.hget(today, minute));
     }
 
     private void initializeTodayReleaseTime(String today) {
