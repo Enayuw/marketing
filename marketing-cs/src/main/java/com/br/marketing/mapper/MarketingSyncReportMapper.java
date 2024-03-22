@@ -16,14 +16,15 @@ public interface MarketingSyncReportMapper {
     int uploadSyncCounttiflash_(@Param("apiCode") String apiCode, @Param("userType") String userType,
                         @Param("uploadDate") String uploadDate, @Param("status") Integer status);
 
-    String uploadSyncMinAppletTime(@Param("apiCode") String apiCode, @Param("userType") String userType,
-                                   @Param("uploadDate") String uploadDate);
+    String uploadSyncMinAppletTimetiflash_(@Param("apiCode") String apiCode, @Param("userType") String userType,
+                                           @Param("uploadDate") String uploadDate);
 
-    String uploadSyncMaxAppletTime(@Param("apiCode") String apiCode, @Param("userType") String userType,
-                                   @Param("uploadDate") String uploadDate);
+    String uploadSyncMaxAppletTimetiflash_(@Param("apiCode") String apiCode, @Param("userType") String userType,
+                                           @Param("uploadDate") String uploadDate);
 
-    List<String> getAppletDatetikv_(@Param("apiCode") String apiCode, @Param("userType") String userType,
-                                   @Param("startDate") String startDate,@Param("endDate") String endDate);
+    List<String> getAppletDate(@Param("apiCode") String apiCode, @Param("userType") String userType,
+                               @Param("startDate") String startDate, @Param("endDate") String endDate,
+                               @Param("appletDateStart") String appletDateStart);
 
     @AddDataAuth
     List<MarketingSyncReportVO> selectList(Map<String, Object> params);
