@@ -25,7 +25,7 @@ import java.util.concurrent.*;
 public class TableBackupServiceImpl implements TableBackupService{
 
     @Override
-    public void testInsert() {
+    public void testInsert(Date time) {
         for (int i = 3000; i < 100000; i++) {
             String s = i + "";
             String s1 = Md5Utils.cell32(s);
@@ -34,11 +34,11 @@ public class TableBackupServiceImpl implements TableBackupService{
             loopCycle.setDataSourceType("T");
             loopCycle.setCellSha256CodeList(s1);
             loopCycle.setReleaseTime(new Date());
-//            loopCycle.setpushTime()
+            loopCycle.setPushTime(new Date());
             loopCycle.setIsDelete(1);
 //            loopCycle.setExtend("LoopCycle extend");
-            loopCycle.setCreateTime(new Date());
-            loopCycle.setUpdateTime(new Date());
+            loopCycle.setCreateTime(time);
+            loopCycle.setUpdateTime(time);
             loopCycle.setRetryCount(0);
 
             xieChengCollidingDataLoopCycleMapper.insert(loopCycle);
@@ -51,8 +51,8 @@ public class TableBackupServiceImpl implements TableBackupService{
             rob.setPushTime(new Date());
             rob.setIsDelete(1);
 //            rob.setExtend("rob extend");
-            rob.setCreateTime(new Date());
-            rob.setUpdateTime(new Date());
+            rob.setCreateTime(time);
+            rob.setUpdateTime(time);
             xieChengCollidingDataRobMapper.insert(rob);
 
             XieChengCollidingDataLog log = new XieChengCollidingDataLog();
@@ -69,8 +69,8 @@ public class TableBackupServiceImpl implements TableBackupService{
             log.setBusinessCode(00);
             log.setReturnContent("null");
             log.setIsDelete(1);
-            log.setCreateTime(new Date());
-            log.setUpdateTime(new Date());
+            log.setCreateTime(time);
+            log.setUpdateTime(time);
             xieChengCollidingDataLogMapper.insert(log);
 
             XieChengCollidingDataContrast contrast = new XieChengCollidingDataContrast();
@@ -78,8 +78,8 @@ public class TableBackupServiceImpl implements TableBackupService{
             contrast.setCellSha256CodeList(s1);
             contrast.setIsDelete(1);
 //            contrast.setExtend("contrast extend");
-            contrast.setCreateTime(new Date());
-            contrast.setUpdateTime(new Date());
+            contrast.setCreateTime(time);
+            contrast.setUpdateTime(time);
             xieChengCollidingDataContrastMapper.insert(contrast);
         }
 
@@ -156,8 +156,15 @@ public class TableBackupServiceImpl implements TableBackupService{
                 }
             }
         }
-        log.warn("本次job需要备份的xc周期数据量为:{}--{}--{}",count,daysAgo14,limit);
+        log.warn("本次job需要备份的xc周期数据量为:{}--daysAgo14[{}]--limit[{}]",count,daysAgo14,limit);
     }
+    /**
+     * 分批执行周期表备份和删除
+     * @Author yu.xia@brgroup.com
+     * @Date 2024/3/22 11:38
+     * @param loopCycleList list
+     * @return String 无实际意义
+     */
     public String loopCycleBackupAndDelete(List<XieChengCollidingDataLoopCycle> loopCycleList) {
         try {
             int listSize =  loopCycleList.size();
@@ -213,8 +220,15 @@ public class TableBackupServiceImpl implements TableBackupService{
                 }
             }
         }
-        log.warn("本次job需要备份的xc非周期数据量为:{}--{}--{}",count,daysAgo14,limit);
+        log.warn("本次job需要备份的xc非周期数据量为:{}--daysAgo14[{}]--limit[{}]",count,daysAgo14,limit);
     }
+    /**
+     * 分批执行非周期表备份和删除
+     * @Author yu.xia@brgroup.com
+     * @Date 2024/3/22 11:39
+     * @param robList list
+     * @return String 无实际意义
+     */
     public String robBackupAndDelete(List<XieChengCollidingDataRob> robList) {
         try {
             int listSize =  robList.size();
@@ -270,8 +284,15 @@ public class TableBackupServiceImpl implements TableBackupService{
                 }
             }
         }
-        log.warn("本次job需要备份的xc-log数据量为:{}--{}--{}",count,daysAgo14,limit);
+        log.warn("本次job需要备份的xc-log数据量为:{}--daysAgo14[{}]--limit[{}]",count,daysAgo14,limit);
     }
+    /**
+     * 分批执行日志表备份和删除
+     * @Author yu.xia@brgroup.com
+     * @Date 2024/3/22 11:40
+     * @param logList list
+     * @return String 无实际意义
+     */
     public String logBackupAndDelete(List<XieChengCollidingDataLog> logList) {
         try {
             int listSize =  logList.size();
@@ -327,10 +348,16 @@ public class TableBackupServiceImpl implements TableBackupService{
                 }
             }
         }
-        log.warn("本次job需要删除的xc对比数据数据量为:{}--{}--{}",count,nowString,limit);
+        log.warn("本次job需要删除的xc对比数据数据量为:{}--nowString[{}]--limit[{}]",count,nowString,limit);
     }
 
-
+    /**
+     * 分批执行对比表删除
+     * @Author yu.xia@brgroup.com
+     * @Date 2024/3/22 11:41
+     * @param contrastList  list
+     * @return String 无实际意义
+     */
     public String contrastDelete(List<XieChengCollidingDataContrast> contrastList) {
         try {
             int listSize =  contrastList.size();
