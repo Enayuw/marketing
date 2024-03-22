@@ -29,7 +29,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
             // 执行重试撞库
             process();
         } else {
-            // 判断是否需要打开条件开关
+            // 判断是否需要打开条件开关、发送钉钉告警、重试撞库
             // 查询堆积量级是否超限（10w）
             // 查log表是否存在：create_time=当天且business_code=707
             // 查TRUE表release_time=7天后的量级是否超限（500w）
@@ -37,8 +37,8 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
             // 查询条件开启撞库开关（redis）、日志打印开关状态
             // 如开关是开启状态：1.需要关闭，则关闭后发送钉钉告警,return。2.执行重试撞库
             // 如开关是关闭状态：1.需要开启，则开启后执行重试撞库。2.do-nothing
+            service.conditonProcess();
         }
-
     }
 
     // 执行重试撞库

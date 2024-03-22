@@ -70,7 +70,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             List<List<XieChengCollidingDataRob>> xieChengCollidingDataListPartition = Lists.partition(robDataList, 50);
             List<CompletableFuture<Void>> futures = Lists.newArrayList();
             xieChengCollidingDataListPartition.forEach((List<XieChengCollidingDataRob> robData) -> {
-                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> pushRobCollidingData(robData, null), xiechengRobCollidingThread);
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> pushDataAndHandleResult(robData, null), xiechengRobCollidingThread);
                 futures.add(future);
             });
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
@@ -87,7 +87,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
      * @date 2024/03/21
      */
     @Override
-    public void pushRobCollidingData(List<XieChengCollidingDataRob> robData, AtomicInteger failNum) {
+    public void pushDataAndHandleResult(List<XieChengCollidingDataRob> robData, AtomicInteger failNum) {
         Map<String, XieChengCollidingDataRob> cellMap = robData.stream()
             .collect(Collectors.toMap(XieChengCollidingDataRob::getCellSha256CodeList, rob -> rob, (existing, replacement) -> replacement));
         List<String> sha256Codes = robData.stream().map(XieChengCollidingDataRob::getCellSha256CodeList).collect(Collectors.toList());
