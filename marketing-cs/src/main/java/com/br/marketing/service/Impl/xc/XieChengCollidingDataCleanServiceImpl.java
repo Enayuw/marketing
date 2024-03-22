@@ -146,7 +146,6 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
                 if (idLists.isEmpty()) {
                     break;
                 }
-                // 多线程删除非周期表数据
                 List<List<XieChengCollidingDataContrast>> partition = Lists.partition(idLists, 10000);
                 List<Future<Integer>> futureList = new ArrayList<>();
                 for (List<XieChengCollidingDataContrast> p : partition) {

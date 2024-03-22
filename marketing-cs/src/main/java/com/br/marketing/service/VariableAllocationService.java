@@ -1,0 +1,32 @@
+package com.br.marketing.service;
+
+import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.VariableAllocationDTO;
+
+import java.math.BigDecimal;
+
+/**
+ * sftp账号配置业务接口
+ *
+ * @author songjuanjuan
+ * @dateTime 2021/10/27 13:12
+ */
+public interface VariableAllocationService {
+
+    /**
+     * 获取定制化配置
+     * @param dto
+     * @return
+     */
+    PageResultReturn getVariableList(VariableAllocationDTO dto);
+
+    /**
+     * 更新定制化配置
+     * @param id
+     * @param normalQuantity
+     * @param abnormalQuantity
+     * @return
+     */
+    ApiResult<Boolean> updateVariableList(Long id, BigDecimal normalQuantity, BigDecimal abnormalQuantity);
+}
