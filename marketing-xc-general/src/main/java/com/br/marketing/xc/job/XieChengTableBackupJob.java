@@ -51,8 +51,8 @@ public class XieChengTableBackupJob extends AbstractSimpleElasticJob {
         Boolean logSkipFlag = Boolean.FALSE;
         Boolean contrastSkipFlag = Boolean.FALSE;
         LocalDateTime currentTime = LocalDateTime.now();
-        // 获取当前时间
-        String nowString = currentTime.format(YMD);
+//        // 获取当前时间
+//        String nowString = currentTime.minusDays(30).format(YMD);
         // 获取当前时间前14天
         String daysAgo14 = currentTime.minusDays(14).format(YMD);
         if (StringUtils.isNotBlank(jobParameter)) {
@@ -76,7 +76,7 @@ public class XieChengTableBackupJob extends AbstractSimpleElasticJob {
                 }
                 String currentDate = param.getString("currentDate");
                 if(StringUtils.isNotBlank(currentDate)){
-                    nowString = currentDate;
+//                    nowString = currentDate;
                     daysAgo14 = currentDate;
                 }
             }
@@ -97,9 +97,17 @@ public class XieChengTableBackupJob extends AbstractSimpleElasticJob {
         }
         //4.对比表
         if(!contrastSkipFlag){
-            tableBackupService.contrastHandle(nowString,limit);
+            tableBackupService.contrastHandle(daysAgo14,limit);
         }
         log.warn("TableBackupJob-end-{}",uuid);
     }
 
+    public static void main(String[] args) {
+        LocalDateTime currentTime = LocalDateTime.now();
+        // 获取当前时间
+        String nowString = currentTime.format(YMD);
+        // 获取当前时间前14天
+        String daysAgo14 = currentTime.minusDays(14).format(YMD);
+        System.out.println(daysAgo14);
+    }
 }

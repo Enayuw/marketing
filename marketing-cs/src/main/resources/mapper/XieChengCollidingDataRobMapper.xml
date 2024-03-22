@@ -22,8 +22,8 @@
         select *
         from b_xiecheng_colliding_data_rob
         where is_delete = 1
-            <![CDATA[ and update_time < #{startTime}]]>
-        order by update_time asc limit #{size};
+            <![CDATA[ and push_time < #{startTime}]]>
+        order by push_time asc limit #{size};
     </select>
 
     <delete id="deleteByIdList">

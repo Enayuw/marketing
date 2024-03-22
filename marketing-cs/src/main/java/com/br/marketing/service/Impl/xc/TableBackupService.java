@@ -36,9 +36,9 @@ public interface TableBackupService {
      * 对比表
      * @Author yu.xia@brgroup.com
      * @Date 2024/3/21 11:09
-     * @param nowString 查询时间
+     * @param daysAgo14 查询时间
      * @param limit 查询page大小
      */
-    void contrastHandle(String nowString,int limit);
+    void contrastHandle(String daysAgo14,int limit);
 
 }
