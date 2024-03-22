@@ -304,7 +304,8 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
                         for (XieChengCollidingDataLog xieChengCollidingDataLog : xieChengCollidingDataLogs) {
                             List<XieChengCollidingDataPackage> dataPackages = dataPackagesMap.get(xieChengCollidingDataLog.getPackageId());
                             String fileName = "";
-                            String ifCycle = StringUtils.isBlank(xieChengCollidingDataLog.getDataSourceType()) ? "" : xieChengCollidingDataLog.getDataSourceType();
+                            String ifCycle = StringUtils.isBlank(xieChengCollidingDataLog.getDataSourceType()) ?
+                                    "" : xieChengCollidingDataLog.getDataSourceType();
                             if (StringUtils.isNotBlank(ifCycle)){
                                 ifCycle = ifCycle.equals("T") ? "1" : "0";
                             }
@@ -312,11 +313,15 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
                                 fileName = dataPackages.get(0).getPackageName();
                             }
                             StringBuilder sb = new StringBuilder();
-                            sb.append(xieChengCollidingDataLog.getCellSha256CodeList().concat(","));
-                            sb.append((xieChengCollidingDataLog.getResult() == null ? "" : xieChengCollidingDataLog.getResult().toString()).concat(","));
-                            sb.append((StringUtils.isBlank(xieChengCollidingDataLog.getOrgChannel()) ? "" : xieChengCollidingDataLog.getOrgChannel()).concat(","));
-                            sb.append((StringUtils.isBlank(xieChengCollidingDataLog.getMktLevel()) ? "" : xieChengCollidingDataLog.getMktLevel()).concat(","));
-                            sb.append((StringUtils.isBlank(xieChengCollidingDataLog.getInfo()) ? "" : xieChengCollidingDataLog.getInfo()).concat(","));
+                            sb.append(xieChengCollidingDataLog.getCellSha256CodeList()).append(",");
+                            sb.append((xieChengCollidingDataLog.getResult() == null ?
+                                    "" : xieChengCollidingDataLog.getResult().toString()).concat(","));
+                            sb.append((StringUtils.isBlank(xieChengCollidingDataLog.getOrgChannel()) ?
+                                    "" : xieChengCollidingDataLog.getOrgChannel()).concat(","));
+                            sb.append((StringUtils.isBlank(xieChengCollidingDataLog.getMktLevel()) ?
+                                    "" : xieChengCollidingDataLog.getMktLevel()).concat(","));
+                            sb.append((StringUtils.isBlank(xieChengCollidingDataLog.getInfo()) ?
+                                    "" : xieChengCollidingDataLog.getInfo()).concat(","));
                             sb.append(fileName.concat(","));
                             sb.append(ifCycle);
                             sb.append("\r\n");

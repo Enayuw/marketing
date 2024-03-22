@@ -38,9 +38,9 @@ public class RabbitMqConfig {
         @Value("${spring.rabbitmq.yz.password:11}") String yzPassword,
         @Value("${spring.rabbitmq.yz.virtual-host:11}") String yzVirtualHost) {
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
-        String _yzProNm = ClusterEnum.CLUSTER_PROD_C.getName();
-        String _yzSimNm = ClusterEnum.CLUSTER_PROD_D.getName();
-        if (StringUtils.isNotBlank(clusterConfig) && (_yzProNm.equals(clusterConfig) || _yzSimNm.equals(clusterConfig))) {
+        String yzProNm = ClusterEnum.CLUSTER_PROD_C.getName();
+        String yzSimNm = ClusterEnum.CLUSTER_PROD_D.getName();
+        if (StringUtils.isNotBlank(clusterConfig) && (yzProNm.equals(clusterConfig) || yzSimNm.equals(clusterConfig))) {
             connectionFactory.setAddresses(yzAddresses);
             connectionFactory.setUsername(yzUsername);
             connectionFactory.setPassword(yzPassword);

@@ -25,7 +25,7 @@ import java.util.UUID;
 @Slf4j
 public class XieChengTableBackupJob extends AbstractSimpleElasticJob {
 
-    final static DateTimeFormatter ymd = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    final static DateTimeFormatter YMD = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     @Resource
     private TableBackupService tableBackupService;
     /**
@@ -52,9 +52,9 @@ public class XieChengTableBackupJob extends AbstractSimpleElasticJob {
         Boolean contrastSkipFlag = Boolean.FALSE;
         LocalDateTime currentTime = LocalDateTime.now();
         // 获取当前时间
-        String nowString = currentTime.format(ymd);
+        String nowString = currentTime.format(YMD);
         // 获取当前时间前14天
-        String daysAgo14 = currentTime.minusDays(14).format(ymd);
+        String daysAgo14 = currentTime.minusDays(14).format(YMD);
         if (StringUtils.isNotBlank(jobParameter)) {
             JSONObject param = JSON.parseObject(jobParameter);
             if(null != param){
