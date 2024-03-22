@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl.xc;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -20,6 +21,7 @@ import com.br.marketing.entity.XieChengCollidingDataRob;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.google.api.client.util.Lists;
 
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
@@ -57,6 +59,7 @@ public class XieChengCollidingResultHandleService {
         JSONObject resultJson = JSONObject.parseObject(collidingResult.getMessage());
         boolean success = collidingResult.getCode().equals(ResultCode.SUCCESS.getValue());
         JSONArray returnDataList = resultJson.getJSONArray("data");
+        List<XieChengCollidingDataLog> collidingLogs = Lists.newArrayList();
         if (success) {
             for (int i = 0; i < returnDataList.size(); i++) {
                 JSONObject returnData = returnDataList.getJSONObject(i);
@@ -76,16 +79,15 @@ public class XieChengCollidingResultHandleService {
                     xieChengCollidingDataLoopCycle.setUpdateTime(new Date());
                     xieChengCollidingDataLoopCycleMapper.insert(xieChengCollidingDataLoopCycle);
                     // 非周期表中做剔除
-                    robData.setPushTime(new Date());
                     robData.setIsDelete(1);
+                    robData.setPushTime(new Date());
                     xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
                 } else {
                     robData.setPushTime(new Date());
-                    robData.setIsDelete(1);
                     xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
                 }
-                XieChengCollidingDataLog xieChengCollidingDataLog = buildXieChengCollidingDataLog(robData, returnData);
-                pushLogMessage(xieChengCollidingDataLog);
+                collidingLogs.add(buildXieChengCollidingDataLog(robData, returnData));
+                pushLogMessage(collidingLogs);
             }
         } else {
             String msg = resultJson.getString("msg");
@@ -95,16 +97,15 @@ public class XieChengCollidingResultHandleService {
                 robData.setPushTime(new Date());
                 robData.setRetryCount(robData.getRetryCount() + 1);
                 xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
-                XieChengCollidingDataLog xieChengCollidingDataLog = buildFailXieChengCollidingDataLog(robData, msg);
-                pushLogMessage(xieChengCollidingDataLog);
+                collidingLogs.add(buildFailXieChengCollidingDataLog(robData, msg));
+                pushLogMessage(collidingLogs);
             }
         }
-
     }
 
-    private void pushLogMessage(XieChengCollidingDataLog xieChengCollidingDataLog) {
+    private void pushLogMessage(List<XieChengCollidingDataLog> collidingLogs) {
         try {
-            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG, JSONObject.toJSONString(xieChengCollidingDataLog));
+            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG, JSONObject.toJSONString(collidingLogs));
         } catch (Exception e) {
             log.error("推送携程撞库日志消息异常", e);
         }

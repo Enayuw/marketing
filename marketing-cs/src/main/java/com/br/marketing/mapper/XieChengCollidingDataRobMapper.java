@@ -8,16 +8,17 @@ import com.br.marketing.entity.XieChengCollidingDataRob;
 
 public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRobMapperBase {
 
+
     /**
      * 分页获取非周期撞库数据
      *
-     * @param limit 限制
+     * @param pageSize   页面大小
      * @param packageIds 包id
      * @return {@link List }<{@link XieChengCollidingDataRob }>
      * @author senyang.zheng
-     * @date 2024/03/21
+     * @date 2024/03/22
      */
-    List<XieChengCollidingDataRob> getRobCollidingDataList(@Param("limit") Integer limit, @Param("packageIds") List<String> packageIds);
+    List<XieChengCollidingDataRob> getRobCollidingDataList(@Param("pageSize") Integer pageSize, @Param("packageIds") List<String> packageIds);
 
     List<XieChengCollidingDataRob> selectDeleteData(@Param("startTime") String startTime, @Param("size") int size);
 
@@ -37,4 +38,13 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
      * @return
      */
     int saveBatch(List<XieChengCollidingDataRob> xieChengCollidingDataContrastList);
+
+    /**
+     * 批量更新推送时间
+     *
+     * @param robDataList rob数据列表
+     * @author senyang.zheng
+     * @date 2024/03/22
+     */
+    void batchUpdatePushTime(@Param("robDataList") List<XieChengCollidingDataRob> robDataList);
 }

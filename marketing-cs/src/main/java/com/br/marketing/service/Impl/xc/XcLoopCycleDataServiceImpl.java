@@ -1,18 +1,5 @@
 package com.br.marketing.service.Impl.xc;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.xiecheng.XieChengService;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
-import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -23,6 +10,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.xiecheng.XieChengServiceNew;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
+import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
+
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @Description 携程TRUE数据撞库作业实现类
  * @Author hong.chen
@@ -32,7 +35,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
     @Resource
-    private XieChengService xieChengService;
+    private XieChengServiceNew xieChengServiceNew;
     @Resource
     private XieChengCollidingDataLoopCycleMapper dataLoopCycleMapper;
     @Resource
@@ -43,10 +46,10 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
     @Override
     public void pushDataAndHandleResult(List<XieChengCollidingDataLoopCycle> list, AtomicInteger failNum) {
         Map<String, XieChengCollidingDataLoopCycle> collect =
-                list.stream().collect(Collectors.toMap(XieChengCollidingDataLoopCycle::getCellSha256CodeList, Function.identity()));
+            list.stream().collect(Collectors.toMap(XieChengCollidingDataLoopCycle::getCellSha256CodeList, Function.identity()));
 
         List<String> cells = list.stream().map(XieChengCollidingDataLoopCycle::getCellSha256CodeList).collect(Collectors.toList());
-        Result resultInfo = xieChengService.pushXieChengSmsCollidingDataNew(cells);
+        Result resultInfo = xieChengServiceNew.pushXieChengSmsCollidingDataNew(cells);
 
         JSONObject resMap = JSONObject.parseObject(resultInfo.getMessage());
         String httpcode = resMap.getString("httpcode");
@@ -87,7 +90,7 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
                     LocalDateTime releaseTimeDate = LocalDateTime.parse(releaseTime, formatter);
                     Date releaseDate = Date.from(releaseTimeDate.atZone(ZoneId.systemDefault()).toInstant());
                     dto.setReleaseTime(releaseDate);
-//                    dto.setDataSourceType("T");
+                    // dto.setDataSourceType("T");
 
                     dataLoopCycleMapper.updateByPrimaryKeySelective(dto);
                 } else {
@@ -97,7 +100,6 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
                 // 插入log表
                 rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG, returnData.toJSONString());
             }
-
 
         } else {
             failNum.incrementAndGet();

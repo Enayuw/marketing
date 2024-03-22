@@ -16,7 +16,7 @@
         <![CDATA[ and pkg.colliding_time <= now() ]]>
         AND (DATE(rob.push_time) != CURDATE() OR rob.push_time IS NULL)
         ORDER BY pkg.priority
-            limit ${limit}
+            limit ${pageSize}
     </select>
     <select id="selectDeleteData" resultType="com.br.marketing.entity.XieChengCollidingDataRob">
         select *
@@ -48,4 +48,13 @@
              now(), now())
         </foreach>
     </insert>
+
+    <update id="batchUpdatePushTime">
+        update b_xiecheng_colliding_data_rob
+        set push_time = now()
+        where id in
+        <foreach collection="robDataList" item="robData" open="(" separator="," close=")">
+            #{robData.id}
+        </foreach>
+    </update>
 </mapper>

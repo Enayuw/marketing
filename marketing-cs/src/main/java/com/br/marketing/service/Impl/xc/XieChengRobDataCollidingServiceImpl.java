@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -13,7 +14,7 @@ import javax.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.xiecheng.XieChengService;
+import com.br.marketing.client.xiecheng.XieChengServiceNew;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
@@ -46,7 +47,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
-    private XieChengService xieChengService;
+    private XieChengServiceNew xieChengServiceNew;
     @Resource
     private XieChengCollidingResultHandleService handleService;
 
@@ -58,9 +59,8 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
         Integer totalThreshold = 5000000;
         Integer limit = Math.min(perMinuteCounts, totalThreshold - todayTrueTotalCounts);
         Integer pageSize = marketingCommonConfig.getXiechengCollidingPageSize();
-        pageSize = 200;
-        ThreadPoolExecutor xiechengRobCollidingThread = BrExecutors.getThreadPool(marketingCommonConfig.getXiechengRobCollidingThread(),
-                                                                                  marketingCommonConfig.getXiechengRobCollidingThread());
+        ThreadPoolExecutor xiechengRobCollidingThread =
+            BrExecutors.getThreadPool(marketingCommonConfig.getXiechengRobCollidingThread(), marketingCommonConfig.getXiechengRobCollidingThread());
         // 强制开关开启强制撞库，强制开关关闭且条件开关打开开始撞库
         while (limit > 0 && (marketingCommonConfig.getXieChengForceOpenSwitch()
             || Objects.equals("true", redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH)))) {
@@ -68,8 +68,12 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             xiechengRobCollidingThread.setMaximumPoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
             List<XieChengCollidingDataRob> robDataList = xieChengCollidingDataRobMapper.getRobCollidingDataList(pageSize, packageIds);
             List<List<XieChengCollidingDataRob>> xieChengCollidingDataListPartition = Lists.partition(robDataList, 50);
-            xieChengCollidingDataListPartition
-                .forEach((List<XieChengCollidingDataRob> robData) -> xiechengRobCollidingThread.submit(() -> pushRobCollidingData(robData, null)));
+            List<CompletableFuture<Void>> futures = Lists.newArrayList();
+            xieChengCollidingDataListPartition.forEach((List<XieChengCollidingDataRob> robData) -> {
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> pushRobCollidingData(robData, null), xiechengRobCollidingThread);
+                futures.add(future);
+            });
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             limit -= pageSize;
         }
     }
@@ -87,8 +91,13 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
         Map<String, XieChengCollidingDataRob> cellMap = robData.stream()
             .collect(Collectors.toMap(XieChengCollidingDataRob::getCellSha256CodeList, rob -> rob, (existing, replacement) -> replacement));
         List<String> sha256Codes = robData.stream().map(XieChengCollidingDataRob::getCellSha256CodeList).collect(Collectors.toList());
-        Result collidingResult = xieChengService.pushXieChengSmsCollidingDataNew(sha256Codes);
-        handleService.robDataHandle(collidingResult, cellMap, failNum);
+        try {
+            Result collidingResult = xieChengServiceNew.pushXieChengSmsCollidingDataNew(sha256Codes);
+            handleService.robDataHandle(collidingResult, cellMap, failNum);
+        } catch (Exception e) {
+            log.error("携程非周期撞库异常，sha256Codes:{}", sha256Codes, e);
+        }
+
     }
 
     public Integer getPerMinuteCounts() {

@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.xc;
 
+import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Resource;
@@ -22,10 +23,10 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
     private MarketingCommonConfig marketingCommonConfig;
 
     @Override
-    public Result<Boolean> saveXieChengCollidingDataLog(XieChengCollidingDataLog xieChengCollidingDataLog) {
+    public Result<Boolean> saveXieChengCollidingDataLog(List<XieChengCollidingDataLog> collidingLogs) {
         ThreadPoolExecutor executor = BrExecutors.getThreadPool(marketingCommonConfig.getXiechengSaveCollidingLogThread(),
             marketingCommonConfig.getXiechengSaveCollidingLogThread());
-        executor.submit(() -> xieChengCollidingDataLogMapper.insert(xieChengCollidingDataLog));
+        executor.submit(() -> xieChengCollidingDataLogMapper.batchSave(collidingLogs));
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 }
