@@ -12,11 +12,12 @@
                 #{id}
             </foreach>
         </if>
+        AND rob.is_delete = 0
         AND rob.retry_count = 0
         <![CDATA[ and pkg.colliding_time <= now() ]]>
         AND (DATE(rob.push_time) != CURDATE() OR rob.push_time IS NULL)
-        ORDER BY pkg.priority
-            limit ${pageSize}
+        ORDER BY pkg.priority desc
+            limit #{pageSize}
     </select>
     <select id="selectDeleteData" resultType="com.br.marketing.entity.XieChengCollidingDataRob">
         select *

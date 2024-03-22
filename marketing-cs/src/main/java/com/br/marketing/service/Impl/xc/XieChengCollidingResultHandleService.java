@@ -36,6 +36,8 @@ public class XieChengCollidingResultHandleService {
     private XieChengCollidingDataRobMapper xieChengCollidingDataRobMapper;
     @Resource
     private RabbitMqProducter rabbitMqProducter;
+    @Resource
+    private XieChengCollidingResultHandleService xieChengCollidingResultHandleService;
 
     @Transactional(rollbackFor = Exception.class)
     public void cycleDataHandle(XieChengCollidingDataLoopCycle loopCycleDto) {
@@ -54,7 +56,6 @@ public class XieChengCollidingResultHandleService {
         xieChengCollidingDataRobMapper.insert(robDto);
     }
 
-    @Transactional(rollbackFor = Exception.class)
     public void robDataHandle(Result collidingResult, Map<String, XieChengCollidingDataRob> cellMap, AtomicInteger failNum) {
         JSONObject resultJson = JSONObject.parseObject(collidingResult.getMessage());
         boolean success = collidingResult.getCode().equals(ResultCode.SUCCESS.getValue());
@@ -67,23 +68,15 @@ public class XieChengCollidingResultHandleService {
                 Boolean result = returnData.getBoolean("result");
                 XieChengCollidingDataRob robData = cellMap.getOrDefault(cell, new XieChengCollidingDataRob());
                 if (result) {
-                    // 周期表中新增True的数据
-                    XieChengCollidingDataLoopCycle xieChengCollidingDataLoopCycle = new XieChengCollidingDataLoopCycle();
-                    xieChengCollidingDataLoopCycle.setPackageId(cellMap.getOrDefault(cell, new XieChengCollidingDataRob()).getPackageId());
-                    xieChengCollidingDataLoopCycle.setDataSourceType("F");
-                    xieChengCollidingDataLoopCycle.setCellSha256CodeList(returnData.getString("sha256Code"));
-                    xieChengCollidingDataLoopCycle
-                        .setReleaseTime(DateUtil.parse(returnData.getString("releaseTime"), DatePattern.NORM_DATETIME_PATTERN));
-                    xieChengCollidingDataLoopCycle.setPushTime(new Date());
-                    xieChengCollidingDataLoopCycle.setCreateTime(new Date());
-                    xieChengCollidingDataLoopCycle.setUpdateTime(new Date());
-                    xieChengCollidingDataLoopCycleMapper.insert(xieChengCollidingDataLoopCycle);
-                    // 非周期表中做剔除
-                    robData.setIsDelete(1);
-                    robData.setPushTime(new Date());
-                    xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
+                    // 增加try-catch保证50条一批其他正常处理，异常数据单条告警
+                    try {
+                        xieChengCollidingResultHandleService.trueDataDandle(cellMap, cell, returnData, robData);
+                    } catch (Exception e) {
+                        log.error("携程非周期数据撞得True，周期True表存在重复cell:{}", cell);
+                    }
                 } else {
                     robData.setPushTime(new Date());
+                    robData.setRetryCount(0);
                     xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
                 }
                 collidingLogs.add(buildXieChengCollidingDataLog(robData, returnData));
@@ -101,6 +94,26 @@ public class XieChengCollidingResultHandleService {
             }
             pushLogMessage(collidingLogs);
         }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void trueDataDandle(Map<String, XieChengCollidingDataRob> cellMap, String cell, JSONObject returnData, XieChengCollidingDataRob robData) {
+        // 周期表中新增True的数据
+        XieChengCollidingDataLoopCycle xieChengCollidingDataLoopCycle = new XieChengCollidingDataLoopCycle();
+        xieChengCollidingDataLoopCycle.setPackageId(cellMap.getOrDefault(cell, new XieChengCollidingDataRob()).getPackageId());
+        xieChengCollidingDataLoopCycle.setDataSourceType("F");
+        xieChengCollidingDataLoopCycle.setCellSha256CodeList(returnData.getString("sha256Code"));
+        xieChengCollidingDataLoopCycle.setReleaseTime(DateUtil.parse(returnData.getString("releaseTime"), DatePattern.NORM_DATETIME_PATTERN));
+        xieChengCollidingDataLoopCycle.setPushTime(new Date());
+        xieChengCollidingDataLoopCycle.setRetryCount(0);
+        xieChengCollidingDataLoopCycle.setCreateTime(new Date());
+        xieChengCollidingDataLoopCycle.setUpdateTime(new Date());
+        xieChengCollidingDataLoopCycleMapper.insert(xieChengCollidingDataLoopCycle);
+        // 非周期表中做剔除
+        robData.setIsDelete(1);
+        robData.setRetryCount(0);
+        robData.setPushTime(new Date());
+        xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
     }
 
     private void pushLogMessage(List<XieChengCollidingDataLog> collidingLogs) {
