@@ -48,5 +48,5 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
      */
     void batchUpdatePushTime(@Param("robDataList") List<XieChengCollidingDataRob> robDataList);
 
-    List<XieChengCollidingDataRob> selectRobByRetryCount(Long minId, Boolean isLast, Integer pageSize);
+    List<XieChengCollidingDataRob> selectRobByRetryCount(@Param("minId")Long minId, @Param("isLast")Boolean isLast, @Param("pageSize")Integer pageSize);
 }
