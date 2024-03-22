@@ -142,19 +142,19 @@ public class XieChengServiceNew {
                     MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
         }
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("{'msg':'httpCode非200'}");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setDate("{'msg':'httpCode非200'}");
         }
         String content = resMap.get("content");
         JSONObject resultJson = JSONObject.parseObject(content);
         Integer code = resultJson.getInteger("code");
         if (code == 0) {
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(JSON.toJSONString(resMap));
         } else {
             if (code == 707) {
                 shutDownConditionSwitch();
             }
 
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(JSON.toJSONString(resMap));
+            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
         }
 
     }

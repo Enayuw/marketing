@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import com.br.marketing.client.RedisChgService;
@@ -67,6 +68,9 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             xiechengRobCollidingThread.setCorePoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
             xiechengRobCollidingThread.setMaximumPoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
             List<XieChengCollidingDataRob> robDataList = xieChengCollidingDataRobMapper.getRobCollidingDataList(pageSize, packageIds);
+            if (CollectionUtils.isEmpty(robDataList)) {
+                break;
+            }
             List<List<XieChengCollidingDataRob>> xieChengCollidingDataListPartition = Lists.partition(robDataList, 50);
             List<CompletableFuture<Void>> futures = Lists.newArrayList();
             xieChengCollidingDataListPartition.forEach((List<XieChengCollidingDataRob> robData) -> {
@@ -76,6 +80,8 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             limit -= pageSize;
         }
+
+        //TODO 持久化线程池
     }
 
     /**

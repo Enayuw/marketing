@@ -4,9 +4,9 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
-import com.br.marketing.common.utils.StringUtils;
 import org.springframework.stereotype.Component;
 
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;

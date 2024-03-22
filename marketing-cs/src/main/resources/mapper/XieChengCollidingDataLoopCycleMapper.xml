@@ -36,8 +36,7 @@
     <select id="selectTodayCycleCount" resultType="java.lang.Integer">
         select count(*) as counts
         from b_xiecheng_colliding_data_loop_cycle
-        where DATE_FORMAT(release_time, '%Y-%m-%d') = curdate()
-          and DATE_FORMAT(release_time, '%Y-%m-%d') = date_sub(curdate(), interval 7 day)
+        where DATE_FORMAT(push_time, '%Y-%m-%d') = curdate()
           and is_delete = 0;
     </select>
     <select id="selectDeleteData" resultType="com.br.marketing.entity.XieChengCollidingDataLoopCycle">

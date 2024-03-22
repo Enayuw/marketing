@@ -170,8 +170,8 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
         while (true) {
             // 判断强制开启撞库开关
             Boolean forceOpenSwitch = marketingCommonConfig.getXieChengForceOpenSwitch();
-            // todo 广绣提供
-            Boolean conditionSwitch = Boolean.TRUE;
+            String redisSwitch = redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH);
+            Boolean conditionSwitch = "true".equalsIgnoreCase(redisSwitch);
 
             if (forceOpenSwitch || conditionSwitch) {
                 List<XieChengCollidingDataLoopCycle> dataList;
