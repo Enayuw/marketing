@@ -159,7 +159,10 @@ public class XieChengServiceNew {
 
     }
 
-    private void shutDownConditionSwitch() {
+    /**
+     * 关闭条件开关，直至当天23:59:59
+     */
+    public void shutDownConditionSwitch() {
         // 当前日期
         LocalDateTime now = LocalDateTime.now();
         // 当前时间至23:59:59

@@ -4,5 +4,5 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public interface DataCollidingService<T> {
-    void pushDataAndHandleResult(List<T> list, AtomicInteger failNum);
+    void pushDataAndHandleResult(List<T> list);
 }

@@ -1,13 +1,31 @@
 package com.br.marketing.xcloop.job;
 
+import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.xiecheng.XieChengServiceNew;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.XieChengCollidingDataLogExample;
+import com.br.marketing.entity.XieChengCollidingDataLoopCycleExample;
+import com.br.marketing.entity.XieChengCollidingDataRobExample;
+import com.br.marketing.mapper.XieChengCollidingDataLogMapper;
+import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
+import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
 import com.br.marketing.service.Impl.xc.XcExceptionDataRetryService;
+import com.br.marketing.service.Impl.xc.XcLoopCycleDataService;
+import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 
 /**
  * @Description 携程异常重试作业
@@ -21,28 +39,105 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
     MarketingCommonConfig marketingCommonConfig;
     @Resource
     XcExceptionDataRetryService service;
+    @Resource
+    XieChengServiceNew xieChengServiceNew;
+
+    @Autowired
+    RedisChgService redisChgService;
+    @Resource
+    XieChengCollidingDataLoopCycleMapper loopCycleMapper;
+
+    @Resource
+    XieChengCollidingDataRobMapper robMapper;
+
+    @Resource
+    XieChengCollidingDataLogMapper logMapper;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         // 判断强制开启撞库开关
-        if (marketingCommonConfig.getXieChengForceOpenSwitch()) {
+        if (marketingCommonConfig.getXieChengForceOpenSwitch() || canOpenConditionSwitch()) {
             // 执行重试撞库
-            process();
-        } else {
-            // 判断是否需要打开条件开关、发送钉钉告警、重试撞库
-            // 查询堆积量级是否超限（10w）
-            // 查log表是否存在：create_time=当天且business_code=707
-            // 查TRUE表release_time=7天后的量级是否超限（500w）
-
-            // 查询条件开启撞库开关（redis）、日志打印开关状态
-            // 如开关是开启状态：1.需要关闭，则关闭后发送钉钉告警,return。2.执行重试撞库
-            // 如开关是关闭状态：1.需要开启，则开启后执行重试撞库。2.do-nothing
-            service.conditonProcess();
+            service.process();
         }
+//        else {
+//            // 判断是否需要打开条件开关、发送钉钉告警、重试撞库
+//            // 查询堆积量级是否超限（10w）
+//            // 查log表是否存在：create_time=当天且business_code=707
+//            // 查TRUE表release_time=7天后的量级是否超限（500w）
+//
+//            // 查询条件开启撞库开关（redis）、日志打印开关状态
+//            // 如开关是开启状态：1.需要关闭，则关闭后发送钉钉告警,return。2.执行重试撞库
+//            // 如开关是关闭状态：1.需要开启，则开启后执行重试撞库。2.do-nothing
     }
 
-    // 执行重试撞库
-    private void process() {
-        service.process();
+    /**
+     * 校验是否需要开启条件开关
+     * @return
+     */
+    private boolean canOpenConditionSwitch() {
+        if (isShutDownConditionSwitch()) {
+            xieChengServiceNew.shutDownConditionSwitch();
+            return false;
+        }
+
+        redisChgService.set(RedisKeyConstant.XIECHENG_CONDITIONSWITCH, "true");
+        return true;
+    }
+
+
+    // 判断是否需要打开条件开关
+    private boolean isShutDownConditionSwitch() {
+        if (getOverCountOfCode() || getOverCountOfTrue() || getOverCountOfRetry()) {
+            return true;
+        }
+
+        // 可以打开条件开关
+        return false;
+    }
+
+    private boolean getOverCountOfCode() {
+        // 查log表是否存在：create_time=当天且business_code=707
+        // todo createtime 索引
+        Date today = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+        XieChengCollidingDataLogExample logExample = new XieChengCollidingDataLogExample();
+        logExample.createCriteria().andIsDeleteEqualTo(0).andBusinessCodeEqualTo(707).andCreateTimeGreaterThanOrEqualTo(today);
+        int overCount = logMapper.countByExample(logExample);
+        return overCount > 0;
+    }
+
+    private boolean getOverCountOfTrue() {
+        // 查TRUE表当天撞回量级是否超限（500w）
+        // todo 广绣提供
+        Integer trueDataThresholdSize = 5000000;
+
+        LocalDate start = LocalDate.now();
+        LocalDate end = LocalDate.now().plusDays(1);
+        Date pushTimeStart = Date.from(start.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date pushTimeEnd = Date.from(end.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        XieChengCollidingDataLoopCycleExample cycleExample = new XieChengCollidingDataLoopCycleExample();
+        cycleExample.createCriteria().andIsDeleteEqualTo(0).andReleaseTimeGreaterThanOrEqualTo(pushTimeStart).andReleaseTimeLessThan(pushTimeEnd);
+        int trueDataCount = loopCycleMapper.countByExample(cycleExample);
+        return trueDataCount >= trueDataThresholdSize;
+    }
+
+    private boolean getOverCountOfRetry() {
+        // 查询堆积量级是否超限（10w）
+        // todo 广绣提供
+        Integer retryThresholdSize = 100000;
+        LocalDate start = LocalDate.now();
+        LocalDate end = LocalDate.now().plusDays(1);
+        Date pushTimeStart = Date.from(start.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date pushTimeEnd = Date.from(end.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        XieChengCollidingDataLoopCycleExample loopCycleExample = new XieChengCollidingDataLoopCycleExample();
+        loopCycleExample.createCriteria().andIsDeleteEqualTo(0).andRetryCountGreaterThan(0).andPushTimeGreaterThanOrEqualTo(pushTimeStart).andPushTimeLessThan(pushTimeEnd);
+        int cycleCount = loopCycleMapper.countByExample(loopCycleExample);
+
+        XieChengCollidingDataRobExample robExample = new XieChengCollidingDataRobExample();
+        robExample.createCriteria().andIsDeleteEqualTo(0).andRetryCountGreaterThan(0).andPushTimeGreaterThanOrEqualTo(pushTimeStart).andPushTimeLessThan(pushTimeEnd);
+        int robCount = robMapper.countByExample(robExample);
+        return cycleCount + robCount >= retryThresholdSize;
     }
 }
