@@ -94,6 +94,16 @@ public class TableBackupServiceImpl implements TableBackupService{
                 }
             }
         }
+        loopCycleThread.shutdown();
+        try {
+            while (!loopCycleThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("携程周期表备份线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            loopCycleThread.shutdownNow();
+            log.error("携程周期表备份线程池关闭异常！", ex);
+            Thread.currentThread().interrupt();
+        }
         log.warn("本次job需要备份的xc周期数据量为:{}--daysAgo14[{}]--limit[{}]",count,daysAgo14,limit);
     }
     /**
@@ -157,6 +167,16 @@ public class TableBackupServiceImpl implements TableBackupService{
                     log.warn("TimeoutException:",e);
                 }
             }
+        }
+        robThread.shutdown();
+        try {
+            while (!robThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("携程非周期表备份线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            robThread.shutdownNow();
+            log.error("携程非周期表备份线程池关闭异常！", ex);
+            Thread.currentThread().interrupt();
         }
         log.warn("本次job需要备份的xc非周期数据量为:{}--daysAgo14[{}]--limit[{}]",count,daysAgo14,limit);
     }
@@ -222,6 +242,16 @@ public class TableBackupServiceImpl implements TableBackupService{
                 }
             }
         }
+        logThread.shutdown();
+        try {
+            while (!logThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("携程日志表备份线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            logThread.shutdownNow();
+            log.error("携程日志表备份线程池关闭异常！", ex);
+            Thread.currentThread().interrupt();
+        }
         log.warn("本次job需要备份的xc-log数据量为:{}--daysAgo14[{}]--limit[{}]",count,daysAgo14,limit);
     }
     /**
@@ -252,13 +282,13 @@ public class TableBackupServiceImpl implements TableBackupService{
     }
 
     @Override
-    public void contrastHandle(String nowString,int limit) {
+    public void contrastHandle(String daysAgo14,int limit) {
         // 创建撞库线程池
-        ThreadPoolExecutor logThread = BrExecutors.getThreadPool(30, 30, "contrastDelete");
+        ThreadPoolExecutor contrastThread = BrExecutors.getThreadPool(30, 30, "contrastDelete");
         int count = 0;
         while(true){
             List<XieChengCollidingDataContrast> xieChengCollidingDataContrast =
-                    xieChengCollidingDataContrastMapper.selectDeleteData(nowString, limit);
+                    xieChengCollidingDataContrastMapper.selectDeleteData(daysAgo14, limit);
             int size = xieChengCollidingDataContrast.size();
             if(size<1){
                 break;
@@ -268,7 +298,7 @@ public class TableBackupServiceImpl implements TableBackupService{
                     Lists.partition(xieChengCollidingDataContrast, 200);
             List<Future<String>> futureList = new ArrayList<>();
             contrastListPartition.forEach((List<XieChengCollidingDataContrast> p) -> {
-                Future<String> submit = logThread.submit(() -> contrastDelete(p));
+                Future<String> submit = contrastThread.submit(() -> contrastDelete(p));
                 futureList.add(submit);
             });
             // 等待上面执行结束，确保下次循环开始时能正常查询需要备份的数据量
@@ -286,7 +316,17 @@ public class TableBackupServiceImpl implements TableBackupService{
                 }
             }
         }
-        log.warn("本次job需要删除的xc对比数据数据量为:{}--nowString[{}]--limit[{}]",count,nowString,limit);
+        contrastThread.shutdown();
+        try {
+            while (!contrastThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("携程对比表备份线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            contrastThread.shutdownNow();
+            log.error("携程对比表备份线程池关闭异常！", ex);
+            Thread.currentThread().interrupt();
+        }
+        log.warn("本次job需要删除的xc对比数据数据量为:{}--nowString[{}]--limit[{}]",count,daysAgo14,limit);
     }
 
     /**

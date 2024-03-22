@@ -5,8 +5,8 @@
         select *
         from b_xiecheng_colliding_data_log
         where is_delete = 1
-            <![CDATA[ and update_time < #{startTime}]]>
-        order by update_time asc limit #{size};
+            <![CDATA[ and create_time < #{startTime}]]>
+        order by create_time asc limit #{size};
     </select>
 
     <delete id="deleteByIdList">

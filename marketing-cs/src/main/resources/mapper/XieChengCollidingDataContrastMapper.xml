@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.XieChengCollidingDataContrastMapper" >
     <select id="selectDeleteData" resultType="com.br.marketing.entity.XieChengCollidingDataContrast">
         select
-            *
+            id
         from b_xiecheng_colliding_data_contrast
         where is_delete = 1
             <![CDATA[ and update_time < #{startTime}]]>
@@ -16,7 +16,6 @@
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
-        limit #{size};
     </delete>
 
     <select id="temporaryCelltiflash_" resultType="Map">
