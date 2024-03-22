@@ -17,8 +17,7 @@ public class AlarmAppender<E> extends RollingFileAppender<E>  {
             String loggerName = ((LoggingEvent) eventObject).getLoggerName();
             String formattedMessage = ((LoggingEvent) eventObject).getFormattedMessage();
             StringBuilder content=new StringBuilder(formattedMessage);
-            if(throwableProxy!=null) {
-                Throwable throwable = throwableProxy.getThrowable();
+            if(throwableProxy!=null) {                Throwable throwable = throwableProxy.getThrowable();
                 content.append("-----").append(throwable.getMessage());
             }
             try {
