@@ -32,7 +32,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
 @Component
 @Slf4j
 public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
@@ -179,11 +178,8 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
                             sftpClient.rename(srcPath + fileName, srcPath + fileName+"_"+yyyyMMddHHmmss+ ".bak");
                             ArrayList<String> baseHeads = new ArrayList<String>();
 
-                            Function<TxtToDbDTO, Result> function = getFunByFileType(fileType);
-                            sftpToDbByCommonService.actionTxtFile(context
-                                    , localFile
-                                    , fileDbConfig
-                                    ,function);
+                            Function<TxtToDbDTO, Result> function = getFunctionByFileType(fileType);
+                            sftpToDbByCommonService.actionTxtFile(context, localFile, fileDbConfig, function);
                         } catch (Exception e) {
                             log.warn("rename file error ", e);
                             try {
@@ -201,7 +197,7 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
         }
     }
 
-    private Function<TxtToDbDTO, Result> getFunByFileType(String fileType){
+    private Function<TxtToDbDTO, Result> getFunctionByFileType(String fileType){
         log.info("fileType: " + fileType);
         if(StringUtils.isEmpty(fileType)){
             return iTxtToDbService::toDbByCommon;
