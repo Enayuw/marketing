@@ -87,8 +87,8 @@ public class XieChengCollidingResultHandleService {
                     xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
                 }
                 collidingLogs.add(buildXieChengCollidingDataLog(robData, returnData));
-                pushLogMessage(collidingLogs);
             }
+            pushLogMessage(collidingLogs);
         } else {
             String msg = resultJson.getString("msg");
             for (Map.Entry<String, XieChengCollidingDataRob> entry : cellMap.entrySet()) {
@@ -98,8 +98,8 @@ public class XieChengCollidingResultHandleService {
                 robData.setRetryCount(robData.getRetryCount() + 1);
                 xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
                 collidingLogs.add(buildFailXieChengCollidingDataLog(robData, msg));
-                pushLogMessage(collidingLogs);
             }
+            pushLogMessage(collidingLogs);
         }
     }
 

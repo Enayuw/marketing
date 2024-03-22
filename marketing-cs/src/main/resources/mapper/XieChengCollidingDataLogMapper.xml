@@ -33,6 +33,7 @@
              #{item.releaseTime},
              #{item.orgChannel},
              #{item.mktLevel},
+             #{item.info},
              #{item.result},
              #{item.httpCode},
              #{item.businessCode},
