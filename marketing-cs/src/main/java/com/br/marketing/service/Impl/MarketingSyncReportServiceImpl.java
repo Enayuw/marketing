@@ -23,6 +23,7 @@ import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.MarketingSyncReportService;
 import com.br.marketing.service.ValidityPeriodResendRecordService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.MarketingSyncReportNumVO;
 import com.br.marketing.vo.MarketingSyncReportVO;
 import com.github.pagehelper.PageHelper;
@@ -94,6 +95,9 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
 
     @Resource
     private PlatformTransactionManager platformTransactionManager;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public void syncReportProcess(String uploadDate, String jobName) {
@@ -468,7 +472,8 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(false);
-        if (StringUtils.isBlank(dataCountFragmentsMgs)) {
+        boolean statisSwitch = !marketingCommonConfig.getUploadAndTransferDataRealtimeStatisSwitch();
+        if (StringUtils.isBlank(dataCountFragmentsMgs) || statisSwitch) {
             return result;
         }
         ApiDataInfoDTO<UserTypeCollectionDTO> apiDataInfoDTO = JSONObject.parseObject(dataCountFragmentsMgs

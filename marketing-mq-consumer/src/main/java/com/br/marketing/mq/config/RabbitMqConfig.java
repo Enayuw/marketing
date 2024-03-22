@@ -186,7 +186,7 @@ public class RabbitMqConfig {
         //设置线程数
         factory.setConcurrentConsumers(2);
         //最大线程数
-        factory.setMaxConcurrentConsumers(10);
+        factory.setMaxConcurrentConsumers(6);
         factory.setPrefetchCount(2);
         factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
         configurer.configure(factory, connectionFactory);
