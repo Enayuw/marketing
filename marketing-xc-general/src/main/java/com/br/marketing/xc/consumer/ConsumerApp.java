@@ -16,6 +16,8 @@ import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.Impl.xc.XieChengCollidingDataLogService;
 import com.rabbitmq.client.Channel;
 
+import java.io.IOException;
+
 /**
  * rabbitmq 消费端
  *
@@ -41,10 +43,14 @@ public class ConsumerApp {
         exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true"),
         key = MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG)}, containerFactory = "containerFactory")
     public void consumerUniversalTransfer(Channel channel, Message message) {
-        XieChengCollidingDataLog xieChengCollidingDataLog = JSONObject.parseObject(message.getBody(), XieChengCollidingDataLog.class);
         /*消费逻辑*/
-        consumerService.consumerRun(channel, message, xieChengCollidingDataLogService::saveXieChengCollidingDataLog, xieChengCollidingDataLog,
-            MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY);
+        consumerService.consumerRun(channel, message, xieChengCollidingDataLogService::saveXieChengCollidingDataLog,
+            JSONObject.parseObject(message.getBody(), XieChengCollidingDataLog.class), null);
+        try {
+            channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

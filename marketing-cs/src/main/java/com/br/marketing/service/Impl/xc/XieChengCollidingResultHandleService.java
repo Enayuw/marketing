@@ -85,7 +85,7 @@ public class XieChengCollidingResultHandleService {
                     xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
                 }
                 XieChengCollidingDataLog xieChengCollidingDataLog = buildXieChengCollidingDataLog(robData, returnData);
-                rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG, JSONObject.toJSONString(xieChengCollidingDataLog));
+                pushLogMessage(xieChengCollidingDataLog);
             }
         } else {
             String msg = resultJson.getString("msg");
@@ -96,8 +96,17 @@ public class XieChengCollidingResultHandleService {
                 robData.setRetryCount(robData.getRetryCount() + 1);
                 xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
                 XieChengCollidingDataLog xieChengCollidingDataLog = buildFailXieChengCollidingDataLog(robData, msg);
-                rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG, JSONObject.toJSONString(xieChengCollidingDataLog));
+                pushLogMessage(xieChengCollidingDataLog);
             }
+        }
+
+    }
+
+    private void pushLogMessage(XieChengCollidingDataLog xieChengCollidingDataLog) {
+        try {
+            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG, JSONObject.toJSONString(xieChengCollidingDataLog));
+        } catch (Exception e) {
+            log.error("推送携程撞库日志消息异常", e);
         }
 
     }
@@ -138,6 +147,5 @@ public class XieChengCollidingResultHandleService {
         xieChengCollidingDataLog.setUpdateTime(new Date());
         return xieChengCollidingDataLog;
     }
-
 
 }

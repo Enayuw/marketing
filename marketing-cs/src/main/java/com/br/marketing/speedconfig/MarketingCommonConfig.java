@@ -1447,5 +1447,11 @@ public class MarketingCommonConfig {
      * 携程撞库分页大小
      */
     private Integer xiechengCollidingPageSize;
+
+
+    /**
+     * 携程记录撞库日志线程数
+     */
+    private Integer xiechengSaveCollidingLogThread;
 }
 

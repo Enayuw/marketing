@@ -7,6 +7,7 @@ import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFacto
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
@@ -65,6 +66,22 @@ public class RabbitMqConfig {
         factory.setMaxConcurrentConsumers(MQ_LISTENER);
         factory.setPrefetchCount(0);
         factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+        configurer.configure(factory, connectionFactory);
+        return factory;
+    }
+
+    @Bean(name = "universalDataContainerFactory")
+    public SimpleRabbitListenerContainerFactory universalDataContainerFactory(
+        SimpleRabbitListenerContainerFactoryConfigurer configurer,
+        @Qualifier("primaryConnectionFactory") ConnectionFactory connectionFactory) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+        // 预取
+        factory.setPrefetchCount(30);
+        //设置线程数
+        factory.setConcurrentConsumers(2);
+        //最大线程数
+        factory.setMaxConcurrentConsumers(5);
         configurer.configure(factory, connectionFactory);
         return factory;
     }

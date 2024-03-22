@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.XieChengCollidingDataRobMapper" >
+<mapper namespace="com.br.marketing.mapper.XieChengCollidingDataRobMapper">
     <select id="getRobCollidingDataList" resultType="com.br.marketing.entity.XieChengCollidingDataRob">
         SELECT rob.*
         FROM b_xiecheng_colliding_data_rob rob
                  JOIN b_xiecheng_colliding_data_package pkg ON rob.package_id = pkg.id
         WHERE pkg.is_delete = 0
-          and pkg.package_id in
-        <foreach collection="packageIds" item="id" open="(" separator="," close=")">
-            #{id}
-        </foreach>
-        and rob.retry_count = 0
+        <if test="packageIds != null and packageIds.size() > 0">
+            AND rob.package_id IN
+            <foreach collection="packageIds" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        AND rob.retry_count = 0
         <![CDATA[ and pkg.colliding_time <= now() ]]>
-        and DATE_FORMAT(rob.push_time, '%Y-%m-%d') != curdate()
+        AND (DATE(rob.push_time) != CURDATE() OR rob.push_time IS NULL)
         ORDER BY pkg.priority
             limit ${limit}
     </select>
     <select id="selectDeleteData" resultType="com.br.marketing.entity.XieChengCollidingDataRob">
-        select
-            *
+        select *
         from b_xiecheng_colliding_data_rob
         where is_delete = 1
             <![CDATA[ and update_time < #{startTime}]]>
@@ -26,7 +27,8 @@
     </select>
 
     <delete id="deleteByIdList">
-        delete from b_xiecheng_colliding_data_rob
+        delete
+        from b_xiecheng_colliding_data_rob
         where id in
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
@@ -34,17 +36,19 @@
         limit #{size};
     </delete>
     <update id="updateOnBatchToIsDeleted">
-        batch on id limit 500000
-        update b_xiecheng_colliding_data_rob set is_delete = 1 where is_delete =0
+        batch
+        on id limit 500000
+        update b_xiecheng_colliding_data_rob
+        set is_delete = 1
+        where is_delete = 0
     </update>
 
     <insert id="saveBatch" parameterType="list">
-        insert into b_xiecheng_colliding_data_rob (package_id,data_source_type, cell_sha256_code_list,
-        create_time,update_time)values
+        insert into b_xiecheng_colliding_data_rob (package_id, data_source_type, cell_sha256_code_list,
+                                                   create_time, update_time)values
         <foreach collection="list" item="data" separator=",">
-            (#{data.packageId},#{data.dataSourceType}, #{data.cellSha256CodeList},
-            now(),now()
-            )
+            (#{data.packageId}, #{data.dataSourceType}, #{data.cellSha256CodeList},
+             now(), now())
         </foreach>
     </insert>
 </mapper>

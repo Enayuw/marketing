@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.common.utils.StringUtils;
 import org.springframework.stereotype.Component;
 
 import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
@@ -23,7 +24,7 @@ public class XieChengRobDataCollidingJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         String param = context.getJobParameter();
-        List<String> packageIds = Lists.newArrayList(param.split(","));
+        List<String> packageIds = StringUtils.isEmpty(param) ? null : Lists.newArrayList(param.split(","));
         xieChengRobDataCollidingService.collidingData(packageIds);
     }
 }

@@ -1,5 +1,6 @@
 package com.br.marketing.client.xiecheng;
 
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -382,6 +383,7 @@ public class XieChengService {
             dataMap.put("orgChannel","测试orgChannel");
             dataMap.put("mktLevel","测试mktLevel");
             dataMap.put("info","测试info");
+            dataMap.put("releaseTime", DateUtil.formatDateTime(DateUtil.offsetDay(new Date(),7)));
             jsonArray.add(dataMap);
         }
         map.put("data",jsonArray);
