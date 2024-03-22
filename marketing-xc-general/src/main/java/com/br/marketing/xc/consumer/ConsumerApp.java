@@ -1,5 +1,6 @@
 package com.br.marketing.xc.consumer;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -45,8 +46,9 @@ public class ConsumerApp {
         exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true"),
         key = MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG)}, containerFactory = "containerFactory")
     public void consumerMarketingXiechengCollidingLog(Channel channel, Message message) {
+        String messageStr = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
-        List<XieChengCollidingDataLog> collidingDataLogList = JSONArray.parseArray(message.getBody().toString(), XieChengCollidingDataLog.class);
+        List<XieChengCollidingDataLog> collidingDataLogList = JSONArray.parseArray(messageStr, XieChengCollidingDataLog.class);
         consumerService.consumerRun(channel, message, xieChengCollidingDataLogService::saveXieChengCollidingDataLog, collidingDataLogList, null);
     }
 

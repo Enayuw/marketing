@@ -115,7 +115,8 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
      * @param xieChengCollidingCleanThread 处理线程池
      * @param temporaryTable               临时表名
      */
-    private void xieChengCollidingDataContrastProcess(JSONArray filterInfoArray, ThreadPoolExecutor xieChengCollidingCleanThread, String temporaryTable) {
+    private void xieChengCollidingDataContrastProcess(JSONArray filterInfoArray,
+                                                      ThreadPoolExecutor xieChengCollidingCleanThread, String temporaryTable) {
         for (int i = 0; i < filterInfoArray.size(); i++) {
             String filterInfo = filterInfoArray.get(i).toString();
             JSONObject filterInfoJson = JSONObject.parseObject(filterInfo);
@@ -245,7 +246,8 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
      * @param ruleTypeFlag                 规则
      * @param packageId                    包id
      */
-    private void xieChengCollidingDataCleanProcess(ThreadPoolExecutor xieChengCollidingCleanThread, String tableName, String filterScore, Integer ruleTypeFlag, Long packageId) {
+    private void xieChengCollidingDataCleanProcess(ThreadPoolExecutor xieChengCollidingCleanThread,
+                                                   String tableName, String filterScore, Integer ruleTypeFlag, Long packageId) {
         while (true) {
             List<Map<String, String>> cellList = xieChengCollidingDataContrastMapper.temporaryCelltiflash_(tableName, filterScore, 100000);
             if (cellList.isEmpty()) {

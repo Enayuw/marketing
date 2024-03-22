@@ -46,6 +46,9 @@ public class MarketingXcGeneralApplication {
         try {
             Thread.sleep(4500L);
             BrGrpcUtils.shutDown();
+        }catch (InterruptedException e) {
+            log.warn("Interrupted!", e);
+            Thread.currentThread().interrupt();
         } catch (Exception e) {
             log.error("GRPC服务关闭异常", e);
         }
