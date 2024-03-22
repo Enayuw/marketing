@@ -1,7 +1,6 @@
 package com.br.marketing.service.Impl.xc;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.encryption.Md5Utils;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -24,66 +22,6 @@ import java.util.concurrent.*;
 @Slf4j
 public class TableBackupServiceImpl implements TableBackupService{
 
-    @Override
-    public void testInsert(Date time) {
-        for (int i = 3000; i < 100000; i++) {
-            String s = i + "";
-            String s1 = Md5Utils.cell32(s);
-            XieChengCollidingDataLoopCycle loopCycle = new XieChengCollidingDataLoopCycle();
-            loopCycle.setPackageId(Long.valueOf(s));
-            loopCycle.setDataSourceType("T");
-            loopCycle.setCellSha256CodeList(s1);
-            loopCycle.setReleaseTime(new Date());
-            loopCycle.setPushTime(new Date());
-            loopCycle.setIsDelete(1);
-//            loopCycle.setExtend("LoopCycle extend");
-            loopCycle.setCreateTime(time);
-            loopCycle.setUpdateTime(time);
-            loopCycle.setRetryCount(0);
-
-            xieChengCollidingDataLoopCycleMapper.insert(loopCycle);
-
-            XieChengCollidingDataRob rob = new XieChengCollidingDataRob();
-            rob.setPackageId(Long.valueOf(s));
-            rob.setDataSourceType("T");
-            rob.setCellSha256CodeList(s1);
-            rob.setReleaseTime(new Date());
-            rob.setPushTime(new Date());
-            rob.setIsDelete(1);
-//            rob.setExtend("rob extend");
-            rob.setCreateTime(time);
-            rob.setUpdateTime(time);
-            xieChengCollidingDataRobMapper.insert(rob);
-
-            XieChengCollidingDataLog log = new XieChengCollidingDataLog();
-            log.setSmsCollidingDataId(Long.valueOf(i));
-            log.setPackageId(Long.valueOf(i));
-            log.setDataSourceType("T");
-            log.setCellSha256CodeList(s1);
-            log.setReleaseTime("2024-03-20 00:00:00");
-            log.setOrgChannel("xc");
-            log.setMktLevel("重点营销");
-            log.setInfo("后续可再次撞库");
-            log.setResult(Boolean.TRUE);
-            log.setHttpCode(200);
-            log.setBusinessCode(00);
-            log.setReturnContent("null");
-            log.setIsDelete(1);
-            log.setCreateTime(time);
-            log.setUpdateTime(time);
-            xieChengCollidingDataLogMapper.insert(log);
-
-            XieChengCollidingDataContrast contrast = new XieChengCollidingDataContrast();
-            contrast.setRuleTypeFlag(i);
-            contrast.setCellSha256CodeList(s1);
-            contrast.setIsDelete(1);
-//            contrast.setExtend("contrast extend");
-            contrast.setCreateTime(time);
-            contrast.setUpdateTime(time);
-            xieChengCollidingDataContrastMapper.insert(contrast);
-        }
-
-    }
     /**
      * 周期表
      */

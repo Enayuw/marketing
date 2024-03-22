@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl.xc;
 
-import java.util.Date;
 
 /**
  * 携程先关表备份接口
@@ -41,7 +40,5 @@ public interface TableBackupService {
      * @param limit 查询page大小
      */
     void contrastHandle(String nowString,int limit);
-
-    void testInsert(Date time);
 
 }
