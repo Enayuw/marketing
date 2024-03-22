@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper" >
+    <select id="selectCycleDataByReleaseTime" resultType="com.br.marketing.entity.XieChengCollidingDataLoopCycle">
+        select
+        *
+        from b_xiecheng_colliding_data_loop_cycle
+        where is_delete = 0 and retry_count = 0
+        <![CDATA[ and release_time < #{releaseTime}]]>
+        <if test="minId != null and minId>0">
+            and id > #{minId}
+        </if>
+        order by id asc limit 20000;
+    </select>
+
     <select id="selectByRetryCountOfOnceAndTwice" resultType="com.br.marketing.entity.XieChengCollidingDataLoopCycle">
         select
         *

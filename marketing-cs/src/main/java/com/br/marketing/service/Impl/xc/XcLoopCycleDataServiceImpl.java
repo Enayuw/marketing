@@ -1,30 +1,33 @@
 package com.br.marketing.service.Impl.xc;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.xiecheng.XieChengServiceNew;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
+import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-
-import org.springframework.stereotype.Service;
-
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.xiecheng.XieChengServiceNew;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
-import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @Description 携程TRUE数据撞库作业实现类
@@ -42,12 +45,12 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
     private RabbitMqProducter rabbitMqProducter;
     @Resource
     private XieChengCollidingResultHandleService handleService;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+    private final static int PARTATION_SIZE = 50;
 
     @Override
     public void pushDataAndHandleResult(List<XieChengCollidingDataLoopCycle> list, AtomicInteger failNum) {
-        Map<String, XieChengCollidingDataLoopCycle> collect =
-            list.stream().collect(Collectors.toMap(XieChengCollidingDataLoopCycle::getCellSha256CodeList, Function.identity()));
-
         List<String> cells = list.stream().map(XieChengCollidingDataLoopCycle::getCellSha256CodeList).collect(Collectors.toList());
         Result resultInfo = xieChengServiceNew.pushXieChengSmsCollidingDataNew(cells);
 
@@ -57,6 +60,9 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         Integer businessCode = resultJson.getInteger("code");
 
         JSONArray returnDataList = resultJson.getJSONArray("data");
+        // 根据手机号对实体分组
+        Map<String, XieChengCollidingDataLoopCycle> collect =
+                list.stream().collect(Collectors.toMap(XieChengCollidingDataLoopCycle::getCellSha256CodeList, Function.identity()));
         if (ResultCode.SUCCESS.getValue().equals(resultInfo.getCode())) {
             // code==0
             // 更新数据表
@@ -90,7 +96,7 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
                     LocalDateTime releaseTimeDate = LocalDateTime.parse(releaseTime, formatter);
                     Date releaseDate = Date.from(releaseTimeDate.atZone(ZoneId.systemDefault()).toInstant());
                     dto.setReleaseTime(releaseDate);
-                    // dto.setDataSourceType("T");
+//                    dto.setDataSourceType("T");
 
                     dataLoopCycleMapper.updateByPrimaryKeySelective(dto);
                 } else {
@@ -100,6 +106,7 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
                 // 插入log表
                 rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG, returnData.toJSONString());
             }
+
 
         } else {
             failNum.incrementAndGet();
@@ -124,5 +131,57 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
                 rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG, returnData.toJSONString());
             }
         }
+    }
+
+    @Override
+    public void process() {
+        // 创建线程池
+        ThreadPoolExecutor threadPool =
+                BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingThread(),
+                        marketingCommonConfig.getXieChengSmsCollidingThread());
+
+        Long minId = null;
+        AtomicInteger failNum = new AtomicInteger(0);
+        while (true) {
+            // 判断强制开启撞库开关
+            Boolean forceOpenSwitch = marketingCommonConfig.getXieChengForceOpenSwitch();
+            // todo 广绣提供
+            Boolean conditionSwitch = Boolean.TRUE;
+            if (forceOpenSwitch || conditionSwitch) {
+                List<XieChengCollidingDataLoopCycle> list = dataLoopCycleMapper.selectCycleDataByReleaseTime(minId, new Date());
+
+                if (CollectionUtils.isEmpty(list)) {
+                    break;
+                }
+
+                minId = list.get(list.size() - 1).getId();
+
+                // 修改线程池大小
+                modifyThreadPool(threadPool);
+
+                List<List<XieChengCollidingDataLoopCycle>> partitions = Lists.partition(list, PARTATION_SIZE);
+                for (List<XieChengCollidingDataLoopCycle> partition : partitions) {
+                    threadPool.submit(() -> pushDataAndHandleResult(partition, failNum));
+                }
+            }
+        }
+
+        // 关闭线程池
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("携程撞库线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            threadPool.shutdownNow();
+            log.error("日志保存线程池结束异常！", ex);
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private void modifyThreadPool(ThreadPoolExecutor pool) {
+        Integer threadNum = marketingCommonConfig.getXieChengSmsCollidingThread();
+        pool.setCorePoolSize(threadNum);
+        pool.setMaximumPoolSize(threadNum);
     }
 }
