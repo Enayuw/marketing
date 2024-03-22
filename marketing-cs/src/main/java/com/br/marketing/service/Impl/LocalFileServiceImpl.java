@@ -44,6 +44,9 @@ public class LocalFileServiceImpl implements LocalFileService {
         if (StringUtils.isNotEmpty(uploadEndTime)) {
             uploadEndTime = DateUtils.format(addDay(uploadEndTime), "yyyy-MM-dd HH:mm:ss");
         }
+        if(StringUtils.isNotBlank(fileType)){
+            fileType = "'"+fileType.replace(",", "','")+"'";
+        }
         PageHelper.startPage(current, pageSize);
         List<LocalFileVo> localFileList = localFileMapper.selectList(search, apiCode,uploadStartTime,uploadEndTime,fileType);
 
@@ -51,6 +54,9 @@ public class LocalFileServiceImpl implements LocalFileService {
     }
     @Override
     public Integer allCount(String search, String apiCode, String uploadStartTime, String uploadEndTime, String fileType) {
+        if(StringUtils.isNotBlank(fileType)){
+            fileType = "'"+fileType.replace(",", "','")+"'";
+        }
         return localFileMapper.allCount(search,apiCode,uploadStartTime,uploadEndTime,fileType);
     }
     private Date addDay(String date) {

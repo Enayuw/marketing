@@ -38,7 +38,7 @@
         </if>
 
         <if test="fileType!=null and fileType !='' ">
-            and bf.file_type = #{fileType}
+            and bf.file_type in (${fileType})
         </if>
 
         order by bf.create_time desc
@@ -64,7 +64,7 @@
         </if>
 
         <if test="fileType!=null and fileType !='' ">
-            and bf.file_type = #{fileType}
+            and bf.file_type in (${fileType})
         </if>
     </select>
 
