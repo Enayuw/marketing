@@ -34,7 +34,7 @@
         limit #{size};
     </delete>
     <update id="updateOnBatchToIsDeleted">
-        batch on id limit 500000
+        batch on id limit 200000
         update b_xiecheng_colliding_data_rob set is_delete = 1 where is_delete =0
     </update>
 
