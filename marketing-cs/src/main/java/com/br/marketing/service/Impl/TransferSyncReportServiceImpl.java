@@ -268,7 +268,8 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
         Result<Boolean> result = new Result<>();
         result.setDate(false);
         result.setCode(ResultCode.SUCCESS.getValue());
-        if (StringUtils.isBlank(dataCountFragmentsMgs)) {
+        boolean statisSwitch = !marketingCommonConfig.getUploadAndTransferDataRealtimeStatisSwitch();
+        if (StringUtils.isBlank(dataCountFragmentsMgs) || statisSwitch) {
             return result;
         }
         ApiDataInfoDTO<UserTypeCollectionDTO> apiDataInfoDTO = JSONObject.parseObject(dataCountFragmentsMgs
