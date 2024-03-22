@@ -59,7 +59,7 @@ public class XieChengCollidingResultHandleService {
         xieChengCollidingDataRobMapper.insert(robDto);
     }
 
-    public void robDataHandle(Result collidingResult, Map<String, XieChengCollidingDataRob> cellMap, AtomicInteger failNum) {
+    public void robDataHandle(Result collidingResult, Map<String, XieChengCollidingDataRob> cellMap) {
         JSONObject resultJson = JSONObject.parseObject(collidingResult.getMessage());
         boolean success = collidingResult.getCode().equals(ResultCode.SUCCESS.getValue());
         JSONArray returnDataList = resultJson.getJSONArray("data");
@@ -88,7 +88,6 @@ public class XieChengCollidingResultHandleService {
         } else {
             String msg = resultJson.getString("msg");
             for (Map.Entry<String, XieChengCollidingDataRob> entry : cellMap.entrySet()) {
-                failNum.getAndIncrement();
                 XieChengCollidingDataRob robData = entry.getValue();
                 robData.setPushTime(new Date());
                 robData.setRetryCount(robData.getRetryCount() + 1);
