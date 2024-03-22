@@ -91,13 +91,13 @@ public class XieChengServiceNew {
             dataMap.put("sha256Code",s);
             if(i%2==0){
                 dataMap.put("result",true);
+                dataMap.put("releaseTime", DateUtil.formatDateTime(DateUtil.offsetDay(new Date(),7)));
             }else {
                 dataMap.put("result",false);
             }
             dataMap.put("orgChannel","测试orgChannel");
             dataMap.put("mktLevel","测试mktLevel");
             dataMap.put("info","测试info");
-            dataMap.put("releaseTime", DateUtil.formatDateTime(DateUtil.offsetDay(new Date(),7)));
             jsonArray.add(dataMap);
         }
         map.put("data",jsonArray);
