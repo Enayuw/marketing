@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.xc;
 
+
 /**
  * 携程先关表备份接口
  * @Author: yu.xia@brgroup.com
@@ -39,7 +40,5 @@ public interface TableBackupService {
      * @param limit 查询page大小
      */
     void contrastHandle(String nowString,int limit);
-
-    void testInsert();
 
 }

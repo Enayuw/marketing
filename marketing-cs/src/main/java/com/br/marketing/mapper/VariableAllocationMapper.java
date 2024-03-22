@@ -1,47 +1,30 @@
 package com.br.marketing.mapper;
 
-import com.br.marketing.entity.VariableAllocation;
-import com.br.marketing.entity.VariableAllocationExample;
+import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 import com.br.marketing.mysqlInterceptor.AddDataAuth;
+import com.br.marketing.vo.VariableAllocationVO;
 import org.apache.ibatis.annotations.Param;
 
 public interface VariableAllocationMapper extends VariableAllocationMapperBase{
-    int countByExample(VariableAllocationExample example);
-
-    int deleteByExample(VariableAllocationExample example);
-
-    int deleteByPrimaryKey(Integer id);
-
-    int insert(VariableAllocation record);
-
-    int insertSelective(VariableAllocation record);
-
-    List<VariableAllocation> selectByExampleWithBLOBs(VariableAllocationExample example);
-
-    List<VariableAllocation> selectByExample(VariableAllocationExample example);
-
-    VariableAllocation selectByPrimaryKey(Integer id);
-
-    int updateByExampleSelective(@Param("record") VariableAllocation record, @Param("example") VariableAllocationExample example);
-
-    int updateByExampleWithBLOBs(@Param("record") VariableAllocation record, @Param("example") VariableAllocationExample example);
-
-    int updateByExample(@Param("record") VariableAllocation record, @Param("example") VariableAllocationExample example);
-
-    int updateByPrimaryKeySelective(VariableAllocation record);
-
-    int updateByPrimaryKeyWithBLOBs(VariableAllocation record);
-
-    int updateByPrimaryKey(VariableAllocation record);
-
-
     /**
-     * 配置列表
+     * 获取配置参数
      * @param apiCode
      * @return
      */
     @AddDataAuth
-    List<VariableAllocation> getVariableList(@Param("apiCode")String apiCode, @Param("dataType")Integer dataType);
+    List<VariableAllocationVO> getVariableList(@Param("apiCode")String apiCode, @Param("dataType")String dataType);
+
+    /**
+     * 获取true与false的量级
+     * @param releaseTime
+     * @return
+     */
+    @AddDataAuth
+    BigDecimal getVariableAllocationVO(@Param("releaseTime") Date releaseTime);
+
+    int updateByPrimaryMutchKeySelective(VariableAllocationVO allocationVO);
+
 }

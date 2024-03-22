@@ -23,11 +23,24 @@ import java.util.UUID;
   */
 @Component
 @Slf4j
-public class TableBackupJob extends AbstractSimpleElasticJob {
+public class XieChengTableBackupJob extends AbstractSimpleElasticJob {
 
     final static DateTimeFormatter ymd = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     @Resource
     private TableBackupService tableBackupService;
+    /**
+     * 依次执行周期表
+     * job参数：{"loopCycleSkip":true,"robSkip":true,"logSkip":true,"contrastSkip":true,"currentDate":"2024-03-22"}
+     * 详解：
+     * 	"loopCycleSkip": true跳过周期表备份删除, false正常执行不跳过
+     * 	"robSkip": true跳过非周期表备份删除, false正常执行不跳过
+     * 	"logSkip": true跳过日志表备份删除, false正常执行不跳过
+     * 	"contrastSkip": true跳过对比表删除, false正常执行不跳过
+     * 	"currentDate": 执行什么时间（不包括currentDate）之前的数据备份
+     * @Author yu.xia@brgroup.com
+     * @Date 2024/3/22 11:24
+     * @param context job参数
+     */
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         String uuid = UUID.randomUUID().toString();
@@ -41,7 +54,7 @@ public class TableBackupJob extends AbstractSimpleElasticJob {
         // 获取当前时间
         String nowString = currentTime.format(ymd);
         // 获取当前时间前14天
-        String daysAgo14 = currentTime.minusDays(7).format(ymd);
+        String daysAgo14 = currentTime.minusDays(14).format(ymd);
         if (StringUtils.isNotBlank(jobParameter)) {
             JSONObject param = JSON.parseObject(jobParameter);
             if(null != param){
