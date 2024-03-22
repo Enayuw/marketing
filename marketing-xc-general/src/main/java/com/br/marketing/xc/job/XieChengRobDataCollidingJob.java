@@ -1,16 +1,18 @@
 package com.br.marketing.xc.job;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Component;
 
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
-import com.google.common.collect.Lists;
+import com.google.common.base.Splitter;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,7 +26,9 @@ public class XieChengRobDataCollidingJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         String param = context.getJobParameter();
-        List<String> packageIds = StringUtils.isEmpty(param) ? null : Lists.newArrayList(param.split(","));
+        List<Long> packageIds = Optional.ofNullable(param).filter(s -> !s.trim().isEmpty()).map(s -> Splitter.on(",").splitToList(s))
+            .orElseGet(Collections::emptyList).stream().map(Long::parseLong).collect(Collectors.toList());
         xieChengRobDataCollidingService.collidingData(packageIds);
     }
+
 }

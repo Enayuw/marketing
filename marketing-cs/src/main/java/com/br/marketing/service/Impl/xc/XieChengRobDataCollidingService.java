@@ -12,6 +12,6 @@ import com.br.marketing.entity.XieChengCollidingDataRob;
  */
 public interface XieChengRobDataCollidingService extends DataCollidingService<XieChengCollidingDataRob> {
 
-    void collidingData(List<String> packageIds);
+    void collidingData(List<Long> packageIds);
 
 }

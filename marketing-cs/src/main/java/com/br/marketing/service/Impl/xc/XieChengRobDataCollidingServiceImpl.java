@@ -39,6 +39,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataCollidingService {
 
+    public static final ThreadPoolExecutor XIECHENG_ROB_COLLIDING_THREAD = BrExecutors.getThreadPool(20, 20);
+
     @Resource
     private RedisChgService redisChgService;
     @Resource
@@ -53,20 +55,18 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     private XieChengCollidingResultHandleService handleService;
 
     @Override
-    public void collidingData(List<String> packageIds) {
+    public void collidingData(List<Long> packageIds) {
         Integer perMinuteCounts = getPerMinuteCounts();
         Integer todayTrueTotalCounts = xieChengCollidingDataLoopCycleMapper.selectTodayCycleCount();
         // TODO 从广秀提供方法中获取
         Integer totalThreshold = 5000000;
         Integer limit = Math.min(perMinuteCounts, totalThreshold - todayTrueTotalCounts);
         Integer pageSize = marketingCommonConfig.getXiechengCollidingPageSize();
-        ThreadPoolExecutor xiechengRobCollidingThread =
-            BrExecutors.getThreadPool(marketingCommonConfig.getXiechengRobCollidingThread(), marketingCommonConfig.getXiechengRobCollidingThread());
         // 强制开关开启强制撞库，强制开关关闭且条件开关打开开始撞库
         while (limit > 0 && (marketingCommonConfig.getXieChengForceOpenSwitch()
             || Objects.equals("true", redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH)))) {
-            xiechengRobCollidingThread.setCorePoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
-            xiechengRobCollidingThread.setMaximumPoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
+            XIECHENG_ROB_COLLIDING_THREAD.setCorePoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
+            XIECHENG_ROB_COLLIDING_THREAD.setMaximumPoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
             List<XieChengCollidingDataRob> robDataList = xieChengCollidingDataRobMapper.getRobCollidingDataList(pageSize, packageIds);
             if (CollectionUtils.isEmpty(robDataList)) {
                 break;
@@ -74,14 +74,14 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             List<List<XieChengCollidingDataRob>> xieChengCollidingDataListPartition = Lists.partition(robDataList, 50);
             List<CompletableFuture<Void>> futures = Lists.newArrayList();
             xieChengCollidingDataListPartition.forEach((List<XieChengCollidingDataRob> robData) -> {
-                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> pushDataAndHandleResult(robData, null), xiechengRobCollidingThread);
+                CompletableFuture<Void> future =
+                    CompletableFuture.runAsync(() -> pushDataAndHandleResult(robData, new AtomicInteger(0)), XIECHENG_ROB_COLLIDING_THREAD);
                 futures.add(future);
             });
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             limit -= pageSize;
         }
 
-        //TODO 持久化线程池
     }
 
     /**
@@ -108,7 +108,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
 
     public Integer getPerMinuteCounts() {
         // TODO 从广秀提供方法获取
-        Integer threshold = 100000;
+        Integer threshold = marketingCommonConfig.getXiechengPerMinuteThreshold();
         String today = DateUtil.today();
         Long size = redisChgService.hlen(today);
         if (size.equals(0L)) {
