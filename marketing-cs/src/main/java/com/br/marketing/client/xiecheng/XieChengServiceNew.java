@@ -77,7 +77,7 @@ public class XieChengServiceNew {
     private HashMap<String,String> getTestMap(List<String> sha256CodeList){
         JSONObject map = new JSONObject();
         if(marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(2)){
-            map.put("code",9999);
+            map.put("code",707);
             map.put("msg","测试挡板非0异常");
         }else {
             map.put("code",0);
