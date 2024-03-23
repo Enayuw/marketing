@@ -61,7 +61,7 @@
 
     <select id="selectRobByRetryCount" resultType="com.br.marketing.entity.XieChengCollidingDataRob">
         select
-        id, cell_sha256_code_list, package_id
+        *
         from b_xiecheng_colliding_data_rob
         where is_delete = 0
         <if test="isLast != null and isLast">

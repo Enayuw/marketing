@@ -1,10 +1,9 @@
 package com.br.marketing.service.Impl.xc;
 
-import com.br.marketing.client.AlarmApiClient;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.XieChengCollidingDataLogMapper;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -18,8 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -106,8 +103,9 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
         robExample.createCriteria().andRetryCountEqualTo(4);
         int robCount = robMapper.countByExample(robExample);
 
+        int total = loopCount + robCount;
         // 发送钉钉告警
-        sendDingDingAlert("携程最后一次重试撞库失败通知", "重试失败量级：" + loopCount + robCount + "条,需要关注！");
+        sendDingDingAlert("携程最后一次重试撞库失败通知", "重试失败量级:" + total + "条,需要关注！");
     }
 
     private void processByTrue(ThreadPoolExecutor threadPool, Boolean isLast, Integer pageSize) {
@@ -157,7 +155,11 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
         markdown.setText(text);
         DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
         dingDingMarkdownMessage.setMarkdown(markdown);
-        dingDingRobotHookService.sendMessageGroup(marketingCommonConfig.getXieChengGroupAccessToken(),
-                marketingCommonConfig.getXieChengGroupSecret(), dingDingMarkdownMessage, true);
+
+        Map<String, JSONObject> dingDingWebHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+        String token = dingDingWebHookInfo.get("USERTYPE_ADD_SENDUSERTYPEADDDINGDINGMGS").getString("token");
+        String secret = dingDingWebHookInfo.get("USERTYPE_ADD_SENDUSERTYPEADDDINGDINGMGS").getString("secret");
+        dingDingRobotHookService.sendMessageGroup(token,
+                secret, dingDingMarkdownMessage, false);
     }
 }
