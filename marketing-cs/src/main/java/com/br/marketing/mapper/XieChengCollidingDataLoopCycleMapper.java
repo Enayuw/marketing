@@ -22,9 +22,10 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
      */
     int updateBatchByIdToIsDeleted(@Param("ids") List<Long> ids);
 
-    List<XieChengCollidingDataLoopCycle> selectByRetryCountOfOnceAndTwice(Long minId, String tableNameSuffix);
+    List<XieChengCollidingDataLoopCycle> selectCycleByRetryCount(@Param("minId") Long minId, @Param("isLast") Boolean isLast,@Param("pageSize") Integer pageSize);
 
-    List<XieChengCollidingDataLoopCycle> selectByRetryCountOfThreeTimes(Long minId, String tableNameSuffix);
+    List<XieChengCollidingDataLoopCycle> selectCycleDataByReleaseTime(@Param("minId") Long minId, @Param("releaseTime") Date releaseTime,@Param("pageSize") Integer pageSize);
 
-    List<XieChengCollidingDataLoopCycle> selectCycleDataByReleaseTime(Long minId, Date releaseTime);
+    int updateBatchByIdOfRetryCount(@Param("ids") List<Long> ids);
+    int updateBatchByIdOfTrueDataList(List<XieChengCollidingDataLoopCycle> cycles);
 }
