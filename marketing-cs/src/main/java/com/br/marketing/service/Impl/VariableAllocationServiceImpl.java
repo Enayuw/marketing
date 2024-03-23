@@ -130,15 +130,15 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
         if (ObjectUtil.isNotEmpty(variable)){
             String value = variable.getAllocationValue();
             JSONObject json = JSON.parseObject(value);
-            dbTrueNum = json.getInteger("normalQuantity");
-            dbFalseNum = json.getInteger("abnormalQuantity");
+            dbTrueNum = json.getInteger("trueDataThresholdSize");
+            dbFalseNum = json.getInteger("retryThresholdSize");
         }
         String key = RedisKeyConstant.prefix.concat(":").concat(apiCode).concat(":").concat(allocationType);
         if (StringUtil.isNotEmpty(key)){
             String allocationValue = redisChgService.get(key);
             JSONObject jsonObject = JSON.parseObject(allocationValue);
-            normalQuantity = jsonObject.getInteger("normalQuantity");
-            abnormalQuantity = jsonObject.getInteger("abnormalQuantity");
+            normalQuantity = jsonObject.getInteger("trueDataThresholdSize");
+            abnormalQuantity = jsonObject.getInteger("retryThresholdSize");
         } else{
             allocationVO.setNormalQuantity(dbTrueNum);
             allocationVO.setAbnormalQuantity(dbFalseNum);

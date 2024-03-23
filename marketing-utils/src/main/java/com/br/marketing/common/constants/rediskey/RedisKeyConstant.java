@@ -173,4 +173,9 @@ public class RedisKeyConstant {
      * 携程撞库条件开关
      */
     public static final String XIECHENG_CONDITIONSWITCH = prefix.concat("xiecheng:conditionSwitch");
+
+    /**
+     * 携程撞库releaseTime
+     */
+    public static final String XIECHENG_RELEASE_TIME = prefix.concat("xiecheng:releaseTime:");
 }
