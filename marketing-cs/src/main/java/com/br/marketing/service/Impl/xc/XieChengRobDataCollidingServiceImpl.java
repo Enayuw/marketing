@@ -21,6 +21,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.XieChengCollidingDataRob;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
+import com.br.marketing.service.Impl.VariableAllocationServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 
@@ -52,13 +53,14 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     private XieChengServiceNew xieChengServiceNew;
     @Resource
     private XieChengCollidingResultHandleService handleService;
+    @Resource
+    private VariableAllocationServiceImpl variableAllocationService;
 
     @Override
     public void collidingData(List<Long> packageIds) {
         Integer perMinuteCounts = getPerMinuteCounts();
         Integer todayTrueTotalCounts = xieChengCollidingDataLoopCycleMapper.selectTodayCycleCount();
-        // TODO 从广秀提供方法中获取
-        Integer totalThreshold = 5000000;
+        Integer totalThreshold = variableAllocationService.getVariableAllocation().getNormalQuantity();
         Integer limit = Math.min(perMinuteCounts, totalThreshold - todayTrueTotalCounts);
         Integer pageSize = marketingCommonConfig.getXiechengCollidingPageSize();
         // 强制开关开启强制撞库，强制开关关闭且条件开关打开开始撞库
@@ -104,21 +106,21 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     }
 
     public Integer getPerMinuteCounts() {
-        // TODO 从广秀提供方法获取
         Integer threshold = marketingCommonConfig.getXiechengPerMinuteThreshold();
         String today = DateUtil.today();
-        Long size = redisChgService.hlen(today);
+        String key = RedisKeyConstant.XIECHENG_RELEASE_TIME + today;
+        Long size = redisChgService.hlen(key);
         if (size.equals(0L)) {
-            initializeTodayReleaseTime(today);
+            initializeTodayReleaseTime(key);
         }
         String minute = DateUtil.format(LocalDateTime.now(), DatePattern.NORM_DATETIME_MINUTE_PATTERN);
-        String perMinuteCounts = redisChgService.hget(today, minute) == null ? "0" : redisChgService.hget(today, minute);
+        String perMinuteCounts = redisChgService.hget(key, minute) == null ? "0" : redisChgService.hget(key, minute);
         return threshold - Integer.parseInt(perMinuteCounts);
     }
 
-    private void initializeTodayReleaseTime(String today) {
+    public void initializeTodayReleaseTime(String key) {
         List<Map<String, Object>> perMinuteCounts = xieChengCollidingDataLoopCycleMapper.selectPerMinuteCounts();
-        perMinuteCounts.forEach((Map<String, Object> perMinuteCount) -> redisChgService.hset(today, String.valueOf(perMinuteCount.get("releaseTime")),
+        perMinuteCounts.forEach((Map<String, Object> perMinuteCount) -> redisChgService.hset(key, String.valueOf(perMinuteCount.get("releaseTime")),
             String.valueOf(perMinuteCount.get("counts"))));
     }
 }
