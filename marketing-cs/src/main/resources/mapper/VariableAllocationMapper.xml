@@ -266,22 +266,20 @@
     where id = #{id,jdbcType=INTEGER}
   </update>
 
-  <select id="getVariableList" resultType="com.br.marketing.vo.VariableAllocationVO">
+  <select id="getVariableList" resultType="com.br.marketing.entity.VariableAllocation">
     select
     id,
-    api_code                                 as apiCode,
-    allocation_type                          as allocationType,
-    allocation_value -> '$.normalQuantity'   as normalQuantity,
-    allocation_value -> '$.abnormalQuantity' as abnormalQuantity
+    api_code as apiCode,
+    allocation_type as allocationType,
+    allocation_value as allocationValue
     from variable_allocation
-    <where>
-      <if test="apiCode != null" >
-        and api_code = #{apiCode,jdbcType=VARCHAR},
-      </if>
-      <if test="dataType != null" >
-        and allocation_type = #{dataType,jdbcType=VARCHAR},
-      </if>
-    </where>
+    where
+    <if test="apiCode != null">
+      api_code = #{apiCode,jdbcType=VARCHAR}
+    </if>
+    <if test="dataType != null">
+      and allocation_type = #{dataType,jdbcType=VARCHAR}
+    </if>
     order by create_time desc
   </select>
 
@@ -290,8 +288,8 @@
     from b_xiecheng_colliding_data_loop_cycle b
     <where>
       <if test="releaseTime != null" >
-        <![CDATA[ releas567e_time >= CONCAT(date_sub(#{releaseTime}, interval 7 day)) ]]>
-        <![CDATA[ and release_time &lt; date_format(DATE_SUB(#{releaseTime}, INTERVAL 6 day), '%Y-%m-%d 00:00:00')]]>
+        <![CDATA[ release_time >= CONCAT(date_sub(#{releaseTime}, interval 7 day)) ]]>
+        <![CDATA[ and release_time < date_format(DATE_SUB(#{releaseTime}, INTERVAL 6 day), '%Y-%m-%d 00:00:00')]]>
       </if>
     </where>
   </select>
@@ -306,13 +304,13 @@
         allocation_type = #{allocationType,jdbcType=VARCHAR},
       </if>
       <if test="normalQuantity != null" >
-        allocation_value = JSON_SET(allocation_value,'$.normalQuantity', #{normalQuantity,jdbcType=bigint}) ,
+        allocation_value = JSON_SET(allocation_value,'$.normalQuantity', #{normalQuantity}) ,
       </if>
       <if test="abnormalQuantity != null" >
-        allocation_value = JSON_SET(allocation_value,'$.abnormalQuantity', #{abnormalQuantity,jdbcType=bigint}) ,
+        allocation_value = JSON_SET(allocation_value,'$.abnormalQuantity', #{abnormalQuantity}) ,
       </if>
-      <if test="updateTime != null" >
-        update_time = now(),
+      <if test="requestTime != null" >
+        update_time = now()
       </if>
     </set>
     where id = #{id,jdbcType=INTEGER}

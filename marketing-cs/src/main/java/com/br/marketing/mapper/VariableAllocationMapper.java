@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
+import com.br.marketing.entity.VariableAllocation;
 import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import com.br.marketing.vo.VariableAllocationVO;
 import org.apache.ibatis.annotations.Param;
@@ -15,7 +16,7 @@ public interface VariableAllocationMapper extends VariableAllocationMapperBase{
      * @return
      */
     @AddDataAuth
-    List<VariableAllocationVO> getVariableList(@Param("apiCode")String apiCode, @Param("dataType")String dataType);
+    List<VariableAllocation> getVariableList(@Param("apiCode")String apiCode, @Param("dataType")String dataType);
 
     /**
      * 获取true与false的量级
