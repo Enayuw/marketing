@@ -172,26 +172,6 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
 
         Integer pageSize = marketingCommonConfig.getXiechengCollidingPageSize();
         while (true) {
-//            // 获取强制开关
-//            Boolean forceOpenSwitch = marketingCommonConfig.getXieChengForceOpenSwitch();
-//            // 获取条件开关，取不到报警
-//            String redisSwitch;
-//            try {
-//                redisSwitch = redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH);
-//                if (StringUtils.isEmpty(redisSwitch)) {
-//                    // 开关失效截至日期已过，打开条件开关
-//                    redisChgService.set(RedisKeyConstant.XIECHENG_CONDITIONSWITCH, "true");
-//                }
-//            } catch (Exception e) {
-//                log.error("携程TRUE数据撞库，获取redis条件开关失败:" + e.getMessage(), e);
-//                break;
-//            }
-//
-//            Boolean conditionSwitch = "true".equalsIgnoreCase(redisSwitch);
-//            // 终止条件：强制开关关闭 且 条件开关关闭
-//            if (!forceOpenSwitch && !conditionSwitch) {
-//                break;
-//            }
             if (stop()) {
                 break;
             }
