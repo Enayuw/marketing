@@ -94,4 +94,18 @@ public class VariableAllocationVO {
     public void setRequestTime(String requestTime) {
         this.requestTime = requestTime;
     }
+
+    @Override
+    public String toString() {
+        return "VariableAllocationVO{" +
+                "id=" + id +
+                ", apiCode='" + apiCode + '\'' +
+                ", allocationType='" + allocationType + '\'' +
+                ", normalQuantity=" + normalQuantity +
+                ", abnormalQuantity=" + abnormalQuantity +
+                ", releaseTimeNum=" + releaseTimeNum +
+                ", falseNum=" + falseNum +
+                ", requestTime='" + requestTime + '\'' +
+                '}';
+    }
 }
