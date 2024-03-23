@@ -33,6 +33,7 @@ public enum MarketingErrorInfo {
     QUANTITY_ERROR("300008", "数据量过大或者为空"),
     LAST_ERROR("300009", "last非法"),
     TOTAL_ERROR("300010", "total非法"),
+    PARAM_ISNULL_ERROR("300011", "必填参数缺失"),
 
 
     //权限异常
