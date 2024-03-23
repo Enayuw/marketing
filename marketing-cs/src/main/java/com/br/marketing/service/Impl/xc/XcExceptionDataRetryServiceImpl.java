@@ -96,30 +96,18 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
                         marketingCommonConfig.getXieChengSmsCollidingRetryWarnAllTime().get(3));
     }
 
-    // 查retry_count=4
+    // 查retry_count=4，查全表不只查当天
     private void sendAlarmByRetryCountOfFour() {
-        LocalDate start = LocalDate.now();
-        LocalDate end = LocalDate.now().plusDays(1);
-        Date pushTimeStart = Date.from(start.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Date pushTimeEnd = Date.from(end.atStartOfDay(ZoneId.systemDefault()).toInstant());
-
         XieChengCollidingDataLoopCycleExample cycleExample = new XieChengCollidingDataLoopCycleExample();
-        cycleExample.createCriteria().andRetryCountEqualTo(4).andPushTimeGreaterThanOrEqualTo(pushTimeStart).andPushTimeLessThan(pushTimeEnd);
+        cycleExample.createCriteria().andRetryCountEqualTo(4);
         int loopCount = loopCycleMapper.countByExample(cycleExample);
 
         XieChengCollidingDataRobExample robExample = new XieChengCollidingDataRobExample();
-        robExample.createCriteria().andRetryCountEqualTo(4).andPushTimeGreaterThanOrEqualTo(pushTimeStart).andPushTimeLessThan(pushTimeEnd);
+        robExample.createCriteria().andRetryCountEqualTo(4);
         int robCount = robMapper.countByExample(robExample);
 
         // 发送钉钉告警
-        DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
-        markdown.setTitle("携程最后一次重试撞库失败通知");
-        markdown.setText("重试失败量级：" + loopCount + robCount + "条,需要关注！"
-        );
-        DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
-        dingDingMarkdownMessage.setMarkdown(markdown);
-        dingDingRobotHookService.sendMessageGroup(marketingCommonConfig.getXieChengGroupAccessToken(),
-                marketingCommonConfig.getXieChengGroupSecret(), dingDingMarkdownMessage, true);
+        sendDingDingAlert("携程最后一次重试撞库失败通知", "重试失败量级：" + loopCount + robCount + "条,需要关注！");
     }
 
     private void processByTrue(ThreadPoolExecutor threadPool, Boolean isLast, Integer pageSize) {
@@ -160,5 +148,16 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
                 threadPool.submit(() -> robDataCollidingService.pushDataAndHandleResult(partition));
             }
         }
+    }
+
+    @Override
+    public void sendDingDingAlert(String title, String text) {
+        DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
+        markdown.setTitle(title);
+        markdown.setText(text);
+        DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
+        dingDingMarkdownMessage.setMarkdown(markdown);
+        dingDingRobotHookService.sendMessageGroup(marketingCommonConfig.getXieChengGroupAccessToken(),
+                marketingCommonConfig.getXieChengGroupSecret(), dingDingMarkdownMessage, true);
     }
 }

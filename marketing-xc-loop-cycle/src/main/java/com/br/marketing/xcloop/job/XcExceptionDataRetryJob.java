@@ -106,7 +106,12 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         XieChengCollidingDataLogExample logExample = new XieChengCollidingDataLogExample();
         logExample.createCriteria().andIsDeleteEqualTo(0).andBusinessCodeEqualTo(707).andCreateTimeGreaterThanOrEqualTo(today);
         int overCount = logMapper.countByExample(logExample);
-        return overCount > 0;
+
+        boolean b = overCount > 0;
+        if (b) {
+            service.sendDingDingAlert("携程撞库暂停通知", "code返回707");
+        }
+        return b;
     }
 
     private boolean getOverCountOfTrue() {
@@ -122,7 +127,12 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         XieChengCollidingDataLoopCycleExample cycleExample = new XieChengCollidingDataLoopCycleExample();
         cycleExample.createCriteria().andIsDeleteEqualTo(0).andReleaseTimeGreaterThanOrEqualTo(pushTimeStart).andReleaseTimeLessThan(pushTimeEnd);
         int trueDataCount = loopCycleMapper.countByExample(cycleExample);
-        return trueDataCount >= trueDataThresholdSize;
+
+        boolean b = trueDataCount >= trueDataThresholdSize;
+        if (b) {
+            service.sendDingDingAlert("携程撞库暂停通知", "今天撞得总量级已超过设定阈值：" + trueDataThresholdSize);
+        }
+        return b;
     }
 
     private boolean getOverCountOfRetry() {
@@ -141,6 +151,11 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         XieChengCollidingDataRobExample robExample = new XieChengCollidingDataRobExample();
         robExample.createCriteria().andIsDeleteEqualTo(0).andRetryCountGreaterThan(0).andPushTimeGreaterThanOrEqualTo(pushTimeStart).andPushTimeLessThan(pushTimeEnd);
         int robCount = robMapper.countByExample(robExample);
-        return cycleCount + robCount >= retryThresholdSize;
+
+        boolean b = cycleCount + robCount >= retryThresholdSize;
+        if (b) {
+            service.sendDingDingAlert("携程撞库暂停通知", "今天异常重试数据总量级已超过设定阈值：" + retryThresholdSize);
+        }
+        return b;
     }
 }
