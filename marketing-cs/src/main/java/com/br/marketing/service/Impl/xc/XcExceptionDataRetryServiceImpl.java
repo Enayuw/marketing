@@ -104,8 +104,10 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
         int robCount = robMapper.countByExample(robExample);
 
         int total = loopCount + robCount;
-        // 发送钉钉告警
-        sendDingDingAlert("携程最后一次重试撞库失败通知", "重试失败量级:" + total + "条,需要关注！");
+        if (total > 0) {
+            // 发送钉钉告警
+            sendDingDingAlert("携程最后一次重试撞库失败通知", "重试失败量级:" + total + "条,需要关注！");
+        }
     }
 
     private void processByTrue(ThreadPoolExecutor threadPool, Boolean isLast, Integer pageSize) {
