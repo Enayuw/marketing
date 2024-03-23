@@ -33,8 +33,8 @@ import java.util.List;
 /**
  * sftp账号配置业务逻辑实现
  *
- * @author songjuanjuan
- * @dateTime 2021/10/27 13:12
+ * @author guangxiu.li
+ * @dateTime 2024/03/21 13:12
  */
 @Service
 @Slf4j
