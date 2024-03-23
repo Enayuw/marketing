@@ -312,34 +312,36 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
                             if (!dataPackages.isEmpty()) {
                                 fileName = dataPackages.get(0).getPackageName();
                             }
+                            String cellSha256CodeList = xieChengCollidingDataLog.getCellSha256CodeList();
+                            String result = xieChengCollidingDataLog.getResult() == null ?
+                                    "" : xieChengCollidingDataLog.getResult().toString();
+                            String orgChannel = StringUtils.isBlank(xieChengCollidingDataLog.getOrgChannel()) ?
+                                    "" : xieChengCollidingDataLog.getOrgChannel();
+                            String mktLevel = StringUtils.isBlank(xieChengCollidingDataLog.getMktLevel()) ?
+                                    "" : xieChengCollidingDataLog.getMktLevel();
+                            String info = StringUtils.isBlank(xieChengCollidingDataLog.getInfo()) ?
+                                    "" : xieChengCollidingDataLog.getInfo();
                             StringBuilder sb = new StringBuilder();
-                            sb.append(xieChengCollidingDataLog.getCellSha256CodeList()).append(",");
-                            sb.append((xieChengCollidingDataLog.getResult() == null ?
-                                    "" : xieChengCollidingDataLog.getResult().toString()).concat(","));
-                            sb.append((StringUtils.isBlank(xieChengCollidingDataLog.getOrgChannel()) ?
-                                    "" : xieChengCollidingDataLog.getOrgChannel()).concat(","));
-                            sb.append((StringUtils.isBlank(xieChengCollidingDataLog.getMktLevel()) ?
-                                    "" : xieChengCollidingDataLog.getMktLevel()).concat(","));
-                            sb.append((StringUtils.isBlank(xieChengCollidingDataLog.getInfo()) ?
-                                    "" : xieChengCollidingDataLog.getInfo()).concat(","));
-                            sb.append(fileName.concat(","));
-                            sb.append(ifCycle);
-                            sb.append("\r\n");
-                            synchronized (fw) {
-                                fw.append(sb.toString());
-                            }
+                            sb.append(cellSha256CodeList.concat(","))
+                                    .append(result.concat(","))
+                                    .append(orgChannel.concat(","))
+                                    .append(mktLevel.concat(","))
+                                    .append(info.concat(","))
+                                    .append(fileName.concat(","))
+                                    .append(ifCycle)
+                                    .append("\r\n");
+                            fw.append(sb.toString());
                         }
                     } catch (Exception ex) {
                         log.error("携程锁定名单线程错误:" + ex.getMessage(), ex);
                     }
                 });
             }
-
             // 等待所有任务完成
             threadPool.shutdown();
             threadPool.awaitTermination(1, TimeUnit.HOURS);
 
-        } catch (Exception ex) {
+        } catch (InterruptedException ex) {
             log.error(ex.getMessage(), ex);
         } finally {
             TransferFileTask updateTask = new TransferFileTask();

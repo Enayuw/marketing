@@ -65,7 +65,7 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             LocalDateTime currentTime = LocalDateTime.now();
             String now = currentTime.format(formatter);
-            Date date = dto.getRequestTime().equals("") ? outputFormat.parse(now) : outputFormat.parse(dto.getRequestTime());
+            Date date = "".equals(dto.getRequestTime()) ? outputFormat.parse(now) : outputFormat.parse(dto.getRequestTime());
             List<VariableAllocation> variableList = variableAllocationMapper.getVariableList(apiCode, allocationType);
             ArrayList<VariableAllocationVO> arrayList = new ArrayList<>();
             for (VariableAllocation variabl : variableList) {
