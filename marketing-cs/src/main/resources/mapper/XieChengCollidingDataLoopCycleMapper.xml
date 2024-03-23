@@ -73,12 +73,4 @@
             #{id}
         </foreach>
     </update>
-
-    <update id="updateBatchByIdOfTrueDataList" parameterType="java.util.List">
-        <foreach collection="cycles" item="cycle" open="(" separator=";" close=")">
-            update b_xiecheng_colliding_data_loop_cycle
-            set release_time=#{cycle.releaseTime}, retry_count = 0,push_time = #{cycle.pushTime},update_time= #{cycle.updateTime}
-            where id = #{cycle.id}
-        </foreach>
-    </update>
 </mapper>

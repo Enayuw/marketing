@@ -111,7 +111,7 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
     private void trueHandle(JSONArray returnDataList, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
         List<XieChengCollidingDataLoopCycle> trueList =
                 returnDataList.stream().map(t -> (JSONObject) t).filter(t -> t.getBoolean("result").equals(Boolean.TRUE)).map(t -> buildTrueDataDto(t, cellMaps)).collect(Collectors.toList());
-        dataLoopCycleMapper.updateBatchByIdOfTrueDataList(trueList);
+        trueList.forEach(t -> dataLoopCycleMapper.updateByPrimaryKeySelective(t));
     }
 
     private void falseHandle(JSONArray returnDataList, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
