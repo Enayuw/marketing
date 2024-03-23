@@ -219,10 +219,6 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         String redisSwitch = null;
         try {
             redisSwitch = redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH);
-            if (StringUtils.isEmpty(redisSwitch)) {
-                // 开关失效截至日期已过，打开条件开关
-                redisChgService.set(RedisKeyConstant.XIECHENG_CONDITIONSWITCH, "true");
-            }
         } catch (Exception e) {
             log.error("携程TRUE数据撞库，获取redis条件开关失败:" + e.getMessage(), e);
             return true;

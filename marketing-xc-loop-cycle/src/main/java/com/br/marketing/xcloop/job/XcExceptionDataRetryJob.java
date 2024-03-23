@@ -81,7 +81,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
             return false;
         }
 
-        Boolean conditionSwitch = "false".equalsIgnoreCase(redisSwitch);
+        Boolean conditionSwitch = "false".equalsIgnoreCase(redisSwitch) || StringUtils.isEmpty(redisSwitch);
         if (conditionSwitch) {
             redisChgService.set(RedisKeyConstant.XIECHENG_CONDITIONSWITCH, "true");
         }
