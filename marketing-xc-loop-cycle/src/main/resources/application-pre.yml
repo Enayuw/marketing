@@ -178,7 +178,7 @@ spring:
     password: strategy_distribute
     publisher-confirms: true
     publisher-returns: true
-    virtual-host: marketing-test
+    virtual-host: marketing-flow
 cluster:
   flag: k8s-prod-a
 innerSftp:
