@@ -88,7 +88,6 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
      * 推送非周期撞库数据
      *
      * @param robData rob数据
-     * @param failNum failNum
      * @author senyang.zheng
      * @date 2024/03/21
      */
