@@ -3,7 +3,6 @@ package com.br.marketing.service.Impl.xc;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Resource;
 
@@ -113,7 +112,7 @@ public class XieChengCollidingResultHandleService {
         xieChengCollidingDataLoopCycle.setRetryCount(0);
         xieChengCollidingDataLoopCycle.setCreateTime(new Date());
         xieChengCollidingDataLoopCycle.setUpdateTime(new Date());
-        xieChengCollidingDataLoopCycleMapper.insert(xieChengCollidingDataLoopCycle);
+        xieChengCollidingDataLoopCycleMapper.insertSelective(xieChengCollidingDataLoopCycle);
         // 非周期表中做剔除
         robData.setIsDelete(1);
         robData.setRetryCount(0);
