@@ -1,14 +1,15 @@
 package com.br.marketing.mapper;
 
-import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
 import com.br.marketing.entity.VariableAllocation;
 import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import com.br.marketing.vo.VariableAllocationVO;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+@Mapper
 public interface VariableAllocationMapper extends VariableAllocationMapperBase{
     /**
      * 获取配置参数

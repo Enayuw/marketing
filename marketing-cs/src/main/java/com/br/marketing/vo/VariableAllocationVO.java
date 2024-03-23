@@ -2,7 +2,6 @@ package com.br.marketing.vo;
 
 import io.swagger.annotations.ApiModelProperty;
 
-import java.math.BigDecimal;
 
 
 public class VariableAllocationVO {

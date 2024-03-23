@@ -4,8 +4,8 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.VariableAllocationDTO;
 import com.br.marketing.vo.VariableAllocationVO;
+import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 
 /**
  * sftp账号配置业务接口
@@ -13,6 +13,7 @@ import java.math.BigDecimal;
  * @author songjuanjuan
  * @dateTime 2021/10/27 13:12
  */
+@Service
 public interface VariableAllocationService {
 
     /**
