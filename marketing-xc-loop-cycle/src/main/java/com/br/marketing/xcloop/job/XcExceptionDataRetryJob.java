@@ -124,8 +124,9 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         Date pushTimeStart = Date.from(start.atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date pushTimeEnd = Date.from(end.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
+        // pushTime是当天
         XieChengCollidingDataLoopCycleExample cycleExample = new XieChengCollidingDataLoopCycleExample();
-        cycleExample.createCriteria().andIsDeleteEqualTo(0).andReleaseTimeGreaterThanOrEqualTo(pushTimeStart).andReleaseTimeLessThan(pushTimeEnd);
+        cycleExample.createCriteria().andIsDeleteEqualTo(0).andPushTimeGreaterThanOrEqualTo(pushTimeStart).andPushTimeLessThan(pushTimeEnd);
         int trueDataCount = loopCycleMapper.countByExample(cycleExample);
 
         boolean b = trueDataCount >= trueDataThresholdSize;
@@ -136,7 +137,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
     }
 
     private boolean getOverCountOfRetry() {
-        // 查询堆积量级是否超限（10w）
+        // 查询堆积量级是否超限（10w）pushTime是当天
         // todo 广绣提供
         Integer retryThresholdSize = 100000;
         LocalDate start = LocalDate.now();
