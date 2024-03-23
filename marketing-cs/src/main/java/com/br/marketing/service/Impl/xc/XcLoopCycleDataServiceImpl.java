@@ -10,7 +10,6 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
@@ -23,15 +22,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -50,11 +45,11 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
     @Resource
     private XieChengCollidingDataPackageMapper packageMapper;
     @Resource
-    private RabbitMqProducter rabbitMqProducter;
-    @Resource
     private XieChengCollidingResultHandleService handleService;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private XieChengCollidingDataLogService logService;
     @Resource
     private RedisChgService redisChgService;
     private final static int PARTATION_SIZE = 50;
@@ -68,6 +63,7 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
             Result resultInfo = xieChengServiceNew.pushXieChengSmsCollidingDataNew(cells);
             JSONObject resMap = JSONObject.parseObject(resultInfo.getData().toString());
 
+            String httpcode = resMap.getString("httpcode");
             if (ResultCode.FAIL.getValue().equals(resultInfo.getCode())) {
                 // httpcode非200或code非0
                 // 更新TRUE数据表retry_count
@@ -75,15 +71,16 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
                 dataLoopCycleMapper.updateBatchByIdOfRetryCount(ids);
 
                 // 发送mq记录日志
-                String msg = JSONObject.parseObject(resMap.getString("content")).getString("msg");
                 List<XieChengCollidingDataLog> collidingLogs =
-                        list.stream().map(t -> buildFailXieChengCollidingDataLog(t, msg)).collect(Collectors.toList());
+                        list.stream().map(t -> logService.buildFailXieChengCollidingDataLog(t.getId(), t.getPackageId(), t.getDataSourceType(),
+                                t.getCellSha256CodeList(), resMap)).collect(Collectors.toList());
 
-                pushLogMessage(collidingLogs);
+                logService.pushLogMessage(collidingLogs);
                 return;
             }
 
             JSONObject resultJson = JSONObject.parseObject(resMap.getString("content"));
+            Integer businessCode = resultJson.getInteger("code");
             JSONArray returnDataList = resultJson.getJSONArray("data");
             // 根据手机号对实体分组
             Map<String, XieChengCollidingDataLoopCycle> cellMaps =
@@ -99,10 +96,13 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
             // 发送mq记录日志
             List<XieChengCollidingDataLog> collidingLogs =
                     returnDataList.stream().map(t -> (JSONObject) t)
-                            .map(t -> buildXieChengCollidingDataLog(cellMaps.get(t.getString("sha256Code")), t))
+                            .map(t -> logService.buildSuccessXieChengCollidingDataLog(cellMaps.get(t.get("sha256Code")).getId()
+                                    , cellMaps.get(t.get("sha256Code")).getPackageId(), cellMaps.get(t.get("sha256Code")).getDataSourceType()
+                                    , resMap, httpcode,
+                                    businessCode))
                             .collect(Collectors.toList());
 
-            pushLogMessage(collidingLogs);
+            logService.pushLogMessage(collidingLogs);
         } catch (Exception e) {
             log.error("携程TRUE数据撞库,单线程处理异常：" + e.getMessage(), e);
         }
@@ -133,7 +133,7 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         });
     }
 
-    private static XieChengCollidingDataLoopCycle buildTrueDataDto(JSONObject t, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
+    private XieChengCollidingDataLoopCycle buildTrueDataDto(JSONObject t, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
         XieChengCollidingDataLoopCycle dto = new XieChengCollidingDataLoopCycle();
         String sha256Code = t.getString("sha256Code");
         XieChengCollidingDataLoopCycle loopCycle = cellMaps.get(sha256Code);
@@ -150,7 +150,7 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         return dto;
     }
 
-    private static XieChengCollidingDataLoopCycle buildFalseDataDto(JSONObject t, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
+    private XieChengCollidingDataLoopCycle buildFalseDataDto(JSONObject t, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
         XieChengCollidingDataLoopCycle dto = new XieChengCollidingDataLoopCycle();
         String sha256Code = t.getString("sha256Code");
         XieChengCollidingDataLoopCycle loopCycle = cellMaps.get(sha256Code);
@@ -211,57 +211,8 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         pool.setMaximumPoolSize(threadNum);
     }
 
-    // TODO
-    private XieChengCollidingDataLog buildFailXieChengCollidingDataLog(XieChengCollidingDataLoopCycle loopCycle, String msg) {
-        XieChengCollidingDataLog xieChengCollidingDataLog = new XieChengCollidingDataLog();
-        xieChengCollidingDataLog.setSmsCollidingDataId(loopCycle.getId());
-        xieChengCollidingDataLog.setPackageId(loopCycle.getPackageId());
-        xieChengCollidingDataLog.setDataSourceType("T");
-        xieChengCollidingDataLog.setCellSha256CodeList(loopCycle.getCellSha256CodeList());
-        xieChengCollidingDataLog.setReturnContent(msg);
-        xieChengCollidingDataLog.setCreateTime(new Date());
-        xieChengCollidingDataLog.setUpdateTime(new Date());
-        return xieChengCollidingDataLog;
-    }
-
-    // TODO
-    private XieChengCollidingDataLog buildXieChengCollidingDataLog(XieChengCollidingDataLoopCycle loopCycle, JSONObject returnData) {
-        String sha256Code = returnData.getString("sha256Code");
-        Boolean result = returnData.getBoolean("result");
-        String orgChannel = returnData.getString("orgChannel");
-        String mktLevel = returnData.getString("mktLevel");
-        String info = returnData.getString("info");
-        String releaseTime = returnData.getString("releaseTime");
-
-        XieChengCollidingDataLog xieChengCollidingDataLog = new XieChengCollidingDataLog();
-        xieChengCollidingDataLog.setSmsCollidingDataId(loopCycle.getId());
-        xieChengCollidingDataLog.setPackageId(loopCycle.getPackageId());
-        xieChengCollidingDataLog.setDataSourceType("T");
-        xieChengCollidingDataLog.setCellSha256CodeList(sha256Code);
-        xieChengCollidingDataLog.setReleaseTime(releaseTime);
-        xieChengCollidingDataLog.setOrgChannel(orgChannel);
-        xieChengCollidingDataLog.setMktLevel(mktLevel);
-        xieChengCollidingDataLog.setInfo(info);
-        xieChengCollidingDataLog.setResult(result);
-        xieChengCollidingDataLog.setReturnContent(returnData.toJSONString());
-        xieChengCollidingDataLog.setCreateTime(new Date());
-        xieChengCollidingDataLog.setUpdateTime(new Date());
-
-        return xieChengCollidingDataLog;
-    }
-
-    // TODO
-    private void pushLogMessage(List<XieChengCollidingDataLog> collidingLogs) {
-        try {
-            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG, JSONObject.toJSONString(collidingLogs));
-        } catch (Exception e) {
-            log.error("推送携程撞库日志消息异常", e);
-        }
-    }
-
-
     @Override
-    public boolean stop(){
+    public boolean stop() {
         // 获取强制开关
         Boolean forceOpenSwitch = marketingCommonConfig.getXieChengForceOpenSwitch();
         // 获取条件开关，取不到报警
