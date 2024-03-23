@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.math.BigDecimal;
 
 
 /**
@@ -48,12 +47,12 @@ public class VariableAllocationController {
     @ApiOperation(value = "变更配置列表",notes = "变更配置列表")
     @PostMapping("/updateVariableList")
     @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "id", required = true, dataType = "Long")
-            , @ApiImplicitParam(name = "normalQuantity", value = "撞得总量级", required = true, paramType = "query", dataType = "BigDecimal")
-            , @ApiImplicitParam(name = "abnormalQuantity", value = "异常总量级", required = true, paramType = "query", dataType = "BigDecimal")
+            , @ApiImplicitParam(name = "normalQuantity", value = "撞得总量级", required = true, paramType = "query", dataType = "int")
+            , @ApiImplicitParam(name = "abnormalQuantity", value = "异常总量级", required = true, paramType = "query", dataType = "int")
     })
     public ApiResult<Boolean> updateVariableList(@RequestParam Long id
-            , @RequestParam BigDecimal normalQuantity
-            , @RequestParam BigDecimal abnormalQuantity){
+            , @RequestParam int normalQuantity
+            , @RequestParam int abnormalQuantity){
         try {
             //获取用户上下文
             MarketingUserDetail user = ThreadContextInfo.getUser();

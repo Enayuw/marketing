@@ -2,7 +2,6 @@ package com.br.marketing.vo;
 
 import io.swagger.annotations.ApiModelProperty;
 
-import java.math.BigDecimal;
 
 
 public class VariableAllocationVO {
@@ -17,17 +16,17 @@ public class VariableAllocationVO {
     private String allocationType;
 
     @ApiModelProperty(value = "撞得总量级")
-    private BigDecimal normalQuantity;
+    private int normalQuantity;
 
 
     @ApiModelProperty(value = "异常总量级")
-    private BigDecimal abnormalQuantity;
+    private int abnormalQuantity;
 
     @ApiModelProperty(value = "即将撞库量级")
-    private BigDecimal releaseTimeNum;
+    private int releaseTimeNum;
 
     @ApiModelProperty(value = "可补充的量级")
-    private BigDecimal falseNum;
+    private int falseNum;
 
     @ApiModelProperty(value = "请求时间")
     private String requestTime;
@@ -56,35 +55,35 @@ public class VariableAllocationVO {
         this.allocationType = allocationType;
     }
 
-    public BigDecimal getNormalQuantity() {
+    public int getNormalQuantity() {
         return normalQuantity;
     }
 
-    public void setNormalQuantity(BigDecimal normalQuantity) {
+    public void setNormalQuantity(int normalQuantity) {
         this.normalQuantity = normalQuantity;
     }
 
-    public BigDecimal getAbnormalQuantity() {
+    public int getAbnormalQuantity() {
         return abnormalQuantity;
     }
 
-    public void setAbnormalQuantity(BigDecimal abnormalQuantity) {
+    public void setAbnormalQuantity(int abnormalQuantity) {
         this.abnormalQuantity = abnormalQuantity;
     }
 
-    public BigDecimal getReleaseTimeNum() {
+    public int getReleaseTimeNum() {
         return releaseTimeNum;
     }
 
-    public void setReleaseTimeNum(BigDecimal releaseTimeNum) {
+    public void setReleaseTimeNum(int releaseTimeNum) {
         this.releaseTimeNum = releaseTimeNum;
     }
 
-    public BigDecimal getFalseNum() {
+    public int getFalseNum() {
         return falseNum;
     }
 
-    public void setFalseNum(BigDecimal falseNum) {
+    public void setFalseNum(int falseNum) {
         this.falseNum = falseNum;
     }
 

@@ -14,4 +14,6 @@ public interface XieChengRobDataCollidingService extends DataCollidingService<Xi
 
     void collidingData(List<Long> packageIds);
 
+    void initializeTodayReleaseTime(String key);
+
 }

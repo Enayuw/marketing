@@ -3,6 +3,7 @@ package com.br.marketing.mapper;
 import com.br.marketing.entity.XieChengCollidingDataContrast;
 import com.br.marketing.entity.XieChengCollidingDataContrastExample;
 import com.br.marketing.entity.XieChengCollidingDataRob;
+import com.br.marketing.entity.XieChengCollidingDataTemp;
 import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.Param;
 
@@ -22,9 +23,13 @@ public interface XieChengCollidingDataContrastMapper extends XieChengCollidingDa
      * @param xieChengCleanLimitCount 查询量级
      * @return
      */
-    List<Map<String, String>> temporaryCelltiflash_(@Param("tableName") String tableName, @Param("filterScore")
-    String filterScore, @Param("xieChengCleanLimitCount") Integer xieChengCleanLimitCount);
+    List<XieChengCollidingDataTemp> temporaryCelltiflash_(@Param("tableName") String tableName,
+                                                          @Param("filterScore") String filterScore,
+                                                          @Param("xieChengCleanLimitCount") Integer xieChengCleanLimitCount);
+    List<Map<String,String>> temporaryCellCountRepeattiflash_(@Param("tableName") String tableName);
 
+    int temporaryCellCounttiflash_(@Param("tableName") String tableName,
+                                   @Param("filterScore") String filterScore);
     /**
      * 查询周期数据不在对比表的数据
      *
