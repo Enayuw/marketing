@@ -142,7 +142,7 @@ public class XieChengServiceNew {
                     MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
         }
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            return new Result().setCode(ResultCode.FAIL.getValue()).setDate("{'msg':'httpCode非200'}");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
         }
         String content = resMap.get("content");
         JSONObject resultJson = JSONObject.parseObject(content);

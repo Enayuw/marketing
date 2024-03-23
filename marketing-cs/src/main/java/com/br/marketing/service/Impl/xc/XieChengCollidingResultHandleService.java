@@ -61,8 +61,8 @@ public class XieChengCollidingResultHandleService {
         JSONObject resJson = JSONObject.parseObject((String)collidingResult.getData());
         boolean success = collidingResult.getCode().equals(ResultCode.SUCCESS.getValue());
         List<XieChengCollidingDataLog> collidingLogs = Lists.newArrayList();
+        String httpcode = resJson.getString("httpcode");
         if (success) {
-            String httpcode = resJson.getString("httpcode");
             JSONObject contentJson = JSONObject.parseObject(resJson.getString("content"));
             Integer businessCode = contentJson.getInteger("code");
             JSONArray returnDataList = contentJson.getJSONArray("data");
@@ -158,7 +158,6 @@ public class XieChengCollidingResultHandleService {
 
     private XieChengCollidingDataLog buildFailXieChengCollidingDataLog(XieChengCollidingDataRob robData, JSONObject resJson) {
         String httpcode = resJson.getString("httpcode");
-        String msg = resJson.getString("msg");
         XieChengCollidingDataLog xieChengCollidingDataLog = new XieChengCollidingDataLog();
         xieChengCollidingDataLog.setSmsCollidingDataId(robData.getId());
         xieChengCollidingDataLog.setPackageId(robData.getPackageId());
@@ -168,10 +167,9 @@ public class XieChengCollidingResultHandleService {
         if (StringUtils.isNotEmpty(resJson.getString("content"))) {
             JSONObject contentJson = JSONObject.parseObject(resJson.getString("content"));
             Integer businessCode = contentJson.getInteger("code");
-            msg = contentJson.getString("msg");
             xieChengCollidingDataLog.setBusinessCode(businessCode);
         }
-        xieChengCollidingDataLog.setReturnContent(msg);
+        xieChengCollidingDataLog.setReturnContent(resJson.toJSONString());
         xieChengCollidingDataLog.setCreateTime(new Date());
         xieChengCollidingDataLog.setUpdateTime(new Date());
         return xieChengCollidingDataLog;
