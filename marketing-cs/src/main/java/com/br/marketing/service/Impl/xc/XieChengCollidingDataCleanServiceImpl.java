@@ -67,7 +67,7 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
 //        // 对比表数据同周期数据处理逻辑
         xieChengCollidingLoopDataCycleProcess(xieChengCollidingCleanThread, result.loopCycleSwitch);
 //        // 对比表数据同非周期数据处理逻辑
-//        xieChengCollidingRobDataProcess(xieChengCollidingCleanThread, result.robSwitch);
+        xieChengCollidingRobDataProcess(xieChengCollidingCleanThread, result.robSwitch);
 
         try {
             while (!xieChengCollidingCleanThread.awaitTermination(10L, TimeUnit.SECONDS)) {
