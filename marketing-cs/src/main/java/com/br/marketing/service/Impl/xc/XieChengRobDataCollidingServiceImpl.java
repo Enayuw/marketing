@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -74,8 +73,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             List<List<XieChengCollidingDataRob>> xieChengCollidingDataListPartition = Lists.partition(robDataList, 50);
             List<CompletableFuture<Void>> futures = Lists.newArrayList();
             xieChengCollidingDataListPartition.forEach((List<XieChengCollidingDataRob> robData) -> {
-                CompletableFuture<Void> future =
-                    CompletableFuture.runAsync(() -> pushDataAndHandleResult(robData), XIECHENG_ROB_COLLIDING_THREAD);
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> pushDataAndHandleResult(robData), XIECHENG_ROB_COLLIDING_THREAD);
                 futures.add(future);
             });
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
@@ -119,8 +117,8 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     }
 
     private void initializeTodayReleaseTime(String today) {
-        List<Map<String, String>> perMinuteCounts = xieChengCollidingDataLoopCycleMapper.selectPerMinuteCounts();
-        perMinuteCounts.forEach(
-            (Map<String, String> perMinuteCount) -> redisChgService.hset(today, perMinuteCount.get("releaseTime"), perMinuteCount.get("counts")));
+        List<Map<String, Object>> perMinuteCounts = xieChengCollidingDataLoopCycleMapper.selectPerMinuteCounts();
+        perMinuteCounts.forEach((Map<String, Object> perMinuteCount) -> redisChgService.hset(today, String.valueOf(perMinuteCount.get("releaseTime")),
+            String.valueOf(perMinuteCount.get("counts"))));
     }
 }

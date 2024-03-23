@@ -14,14 +14,11 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.XieChengCollidingDataLog;
 import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
 import com.br.marketing.entity.XieChengCollidingDataRob;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.google.api.client.util.Lists;
 
 import cn.hutool.core.date.DatePattern;
@@ -36,9 +33,9 @@ public class XieChengCollidingResultHandleService {
     @Resource
     private XieChengCollidingDataRobMapper xieChengCollidingDataRobMapper;
     @Resource
-    private RabbitMqProducter rabbitMqProducter;
-    @Resource
     private XieChengCollidingResultHandleService xieChengCollidingResultHandleService;
+    @Resource
+    private XieChengCollidingDataLogService xieChengCollidingDataLogService;
 
     @Transactional(rollbackFor = Exception.class)
     public void cycleDataHandle(XieChengCollidingDataLoopCycle loopCycleDto, Long packageId) {
@@ -86,9 +83,10 @@ public class XieChengCollidingResultHandleService {
                     robData.setRetryCount(0);
                     xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
                 }
-                collidingLogs.add(buildXieChengCollidingDataLog(robData, returnData, httpcode, businessCode));
+                collidingLogs.add(xieChengCollidingDataLogService.buildSuccessXieChengCollidingDataLog(robData.getId(), robData.getPackageId(),
+                    robData.getDataSourceType(), returnData, httpcode, businessCode));
             }
-            pushLogMessage(collidingLogs);
+            xieChengCollidingDataLogService.pushLogMessage(collidingLogs);
         } else {
             // 异常没有httpCode和businessCode
             for (Map.Entry<String, XieChengCollidingDataRob> entry : cellMap.entrySet()) {
@@ -96,9 +94,10 @@ public class XieChengCollidingResultHandleService {
                 robData.setPushTime(new Date());
                 robData.setRetryCount(robData.getRetryCount() + 1);
                 xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
-                collidingLogs.add(buildFailXieChengCollidingDataLog(robData, resJson));
+                collidingLogs.add(xieChengCollidingDataLogService.buildFailXieChengCollidingDataLog(robData.getId(), robData.getPackageId(),
+                    robData.getDataSourceType(), robData.getCellSha256CodeList(), resJson));
             }
-            pushLogMessage(collidingLogs);
+            xieChengCollidingDataLogService.pushLogMessage(collidingLogs);
         }
     }
 
@@ -120,61 +119,6 @@ public class XieChengCollidingResultHandleService {
         robData.setRetryCount(0);
         robData.setPushTime(new Date());
         xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
-    }
-
-    private void pushLogMessage(List<XieChengCollidingDataLog> collidingLogs) {
-        try {
-            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG, JSONObject.toJSONString(collidingLogs));
-        } catch (Exception e) {
-            log.error("推送携程撞库日志消息异常", e);
-        }
-
-    }
-
-    private XieChengCollidingDataLog buildXieChengCollidingDataLog(XieChengCollidingDataRob robData, JSONObject returnData, String httpcode,
-        Integer businessCode) {
-        String sha256Code = returnData.getString("sha256Code");
-        Boolean result = returnData.getBoolean("result");
-        String orgChannel = returnData.getString("orgChannel");
-        String mktLevel = returnData.getString("mktLevel");
-        String info = returnData.getString("info");
-        String releaseTime = returnData.getString("releaseTime");
-        XieChengCollidingDataLog xieChengCollidingDataLog = new XieChengCollidingDataLog();
-        xieChengCollidingDataLog.setSmsCollidingDataId(robData.getId());
-        xieChengCollidingDataLog.setPackageId(robData.getPackageId());
-        xieChengCollidingDataLog.setDataSourceType("F");
-        xieChengCollidingDataLog.setCellSha256CodeList(sha256Code);
-        xieChengCollidingDataLog.setReleaseTime(releaseTime);
-        xieChengCollidingDataLog.setOrgChannel(orgChannel);
-        xieChengCollidingDataLog.setHttpCode(Integer.valueOf(httpcode));
-        xieChengCollidingDataLog.setBusinessCode(businessCode);
-        xieChengCollidingDataLog.setMktLevel(mktLevel);
-        xieChengCollidingDataLog.setInfo(info);
-        xieChengCollidingDataLog.setResult(result);
-        xieChengCollidingDataLog.setReturnContent(returnData.toJSONString());
-        xieChengCollidingDataLog.setCreateTime(new Date());
-        xieChengCollidingDataLog.setUpdateTime(new Date());
-
-        return xieChengCollidingDataLog;
-    }
-
-    private XieChengCollidingDataLog buildFailXieChengCollidingDataLog(XieChengCollidingDataRob robData, JSONObject resJson) {
-        String httpcode = resJson.getString("httpcode");
-        XieChengCollidingDataLog xieChengCollidingDataLog = new XieChengCollidingDataLog();
-        xieChengCollidingDataLog.setSmsCollidingDataId(robData.getId());
-        xieChengCollidingDataLog.setPackageId(robData.getPackageId());
-        xieChengCollidingDataLog.setDataSourceType("F");
-        xieChengCollidingDataLog.setCellSha256CodeList(robData.getCellSha256CodeList());
-        xieChengCollidingDataLog.setHttpCode(StringUtils.isEmpty(httpcode) ? null : Integer.valueOf(httpcode));
-        if (StringUtils.isNotEmpty(resJson.getString("content"))) {
-            JSONObject contentJson = JSONObject.parseObject(resJson.getString("content"));
-            Integer businessCode = contentJson.getInteger("code");
-            xieChengCollidingDataLog.setBusinessCode(businessCode);
-        }
-        xieChengCollidingDataLog.setReturnContent(resJson.toJSONString());
-        xieChengCollidingDataLog.setCreateTime(new Date());
-        xieChengCollidingDataLog.setUpdateTime(new Date());
-        return xieChengCollidingDataLog;
     }
 
 }
