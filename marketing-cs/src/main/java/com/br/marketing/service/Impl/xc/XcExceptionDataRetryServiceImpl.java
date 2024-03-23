@@ -162,6 +162,6 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
         String token = dingDingWebHookInfo.get("USERTYPE_ADD_SENDUSERTYPEADDDINGDINGMGS").getString("token");
         String secret = dingDingWebHookInfo.get("USERTYPE_ADD_SENDUSERTYPEADDDINGDINGMGS").getString("secret");
         dingDingRobotHookService.sendMessageGroup(token,
-                secret, dingDingMarkdownMessage, false);
+                secret, dingDingMarkdownMessage, true);
     }
 }
