@@ -283,7 +283,24 @@
     order by create_time desc
   </select>
 
-  <select id="getVariableAllocationVO" resultType="java.math.BigDecimal">
+  <select id="getVariable" resultType="com.br.marketing.entity.VariableAllocation">
+    select
+    id,
+    api_code as apiCode,
+    allocation_type as allocationType,
+    allocation_value as allocationValue
+    from variable_allocation
+    where
+    <if test="apiCode != null">
+      api_code = #{apiCode,jdbcType=VARCHAR}
+    </if>
+    <if test="dataType != null">
+      and allocation_type = #{dataType,jdbcType=VARCHAR}
+    </if>
+    order by create_time desc
+  </select>
+
+  <select id="getVariableAllocationVO" resultType="java.lang.Integer">
     select count(distinct b.cell_sha256_code_list) as releaseTimeNum
     from b_xiecheng_colliding_data_loop_cycle b
     <where>
@@ -303,12 +320,8 @@
       <if test="allocationType != null" >
         allocation_type = #{allocationType,jdbcType=VARCHAR},
       </if>
-      <if test="normalQuantity != null" >
-        allocation_value = JSON_SET(allocation_value,'$.normalQuantity', #{normalQuantity}) ,
-      </if>
-      <if test="abnormalQuantity != null" >
-        allocation_value = JSON_SET(allocation_value,'$.abnormalQuantity', #{abnormalQuantity}) ,
-      </if>
+        allocation_value = JSON_SET(allocation_value,
+        '$.trueDataThresholdSize', #{normalQuantity},'$.retryThresholdSize', #{abnormalQuantity} ) ,
       <if test="requestTime != null" >
         update_time = now()
       </if>

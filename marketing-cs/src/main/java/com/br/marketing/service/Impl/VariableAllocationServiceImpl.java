@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
@@ -13,7 +14,10 @@ import com.br.marketing.service.VariableAllocationService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.VariableAllocationVO;
 import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.util.StringUtil;
+import com.sun.xml.internal.ws.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,10 +75,10 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
                 VariableAllocationVO allocationVO = new VariableAllocationVO();
                 String allocationValue = variabl.getAllocationValue();
                 JSONObject jsonObject = JSON.parseObject(allocationValue);
-                BigDecimal normalQuantity =  jsonObject.getBigDecimal("normalQuantity");
-                BigDecimal abnormalQuantity = jsonObject.getBigDecimal("abnormalQuantity");
-                BigDecimal releaseTimeNum = variableAllocationMapper.getVariableAllocationVO(date);
-                BigDecimal falseNum = normalQuantity.subtract(releaseTimeNum);
+                int normalQuantity =  jsonObject.getInteger("trueDataThresholdSize");
+                int abnormalQuantity = jsonObject.getInteger("retryThresholdSize");
+                int releaseTimeNum = variableAllocationMapper.getVariableAllocationVO(date);
+                int falseNum = normalQuantity - releaseTimeNum;
                 allocationVO.setId(variabl.getId().longValue());
                 allocationVO.setApiCode(variabl.getApiCode());
                 allocationVO.setAllocationType(variabl.getAllocationType());
@@ -95,7 +99,7 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ApiResult<Boolean> updateVariableList(Long id, BigDecimal normalQuantity, BigDecimal abnormalQuantity) {
+    public ApiResult<Boolean> updateVariableList(Long id, int normalQuantity, int abnormalQuantity) {
         //原数据记录
         VariableAllocation data = variableAllocationMapper.selectByPrimaryKey(id.intValue());
         //更新记录
@@ -115,15 +119,37 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
         return new ApiResult<Boolean>().success(true);
     }
 
+
+    @Override
     public VariableAllocationVO getVariableAllocation(){
         VariableAllocationVO allocationVO = new VariableAllocationVO();
-        String key = RedisKeyConstant.prefix.concat(":").concat("3710058").concat(":").concat("携程定制");
-        String allocationValue = redisChgService.get(key);
-        JSONObject jsonObject = JSON.parseObject(allocationValue);
-        BigDecimal normalQuantity = jsonObject.getBigDecimal("normalQuantity");
-        BigDecimal abnormalQuantity = jsonObject.getBigDecimal("abnormalQuantity");
+        String apiCode = "3710058";
+        String allocationType = "携程定制";
+        int dbTrueNum = 5000000;
+        int dbFalseNum = 100000;
+        int normalQuantity = 5000000;
+        int abnormalQuantity = 100000;
+        VariableAllocation variable = variableAllocationMapper.getVariable(apiCode, allocationType);
+        if (ObjectUtil.isNotEmpty(variable)){
+            String value = variable.getAllocationValue();
+            JSONObject json = JSON.parseObject(value);
+            dbTrueNum = json.getInteger("normalQuantity");
+            dbFalseNum = json.getInteger("abnormalQuantity");
+        }
+        String key = RedisKeyConstant.prefix.concat(":").concat(apiCode).concat(":").concat(allocationType);
+        if (StringUtil.isNotEmpty(key)){
+            String allocationValue = redisChgService.get(key);
+            JSONObject jsonObject = JSON.parseObject(allocationValue);
+            normalQuantity = jsonObject.getInteger("normalQuantity");
+            abnormalQuantity = jsonObject.getInteger("abnormalQuantity");
+        } else{
+            allocationVO.setNormalQuantity(dbTrueNum);
+            allocationVO.setAbnormalQuantity(dbFalseNum);
+            return allocationVO;
+        }
         allocationVO.setNormalQuantity(normalQuantity);
         allocationVO.setAbnormalQuantity(abnormalQuantity);
         return allocationVO;
     }
+
 }
