@@ -41,17 +41,20 @@ public class XieChengCollidingResultHandleService {
     private XieChengCollidingResultHandleService xieChengCollidingResultHandleService;
 
     @Transactional(rollbackFor = Exception.class)
-    public void cycleDataHandle(XieChengCollidingDataLoopCycle loopCycleDto) {
+    public void cycleDataHandle(XieChengCollidingDataLoopCycle loopCycleDto, Long packageId) {
         // 更新true数据表
         loopCycleDto.setIsDelete(1);
         xieChengCollidingDataLoopCycleMapper.updateByPrimaryKeySelective(loopCycleDto);
 
         // 插入false数据表
         XieChengCollidingDataRob robDto = new XieChengCollidingDataRob();
-        robDto.setPackageId(loopCycleDto.getPackageId());
+        robDto.setPackageId(packageId);
         robDto.setDataSourceType("T");
         robDto.setCellSha256CodeList(loopCycleDto.getCellSha256CodeList());
         robDto.setPushTime(new Date());
+        robDto.setCreateTime(new Date());
+        robDto.setUpdateTime(new Date());
+
         robDto.setIsDelete(0);
         robDto.setRetryCount(0);
         xieChengCollidingDataRobMapper.insert(robDto);

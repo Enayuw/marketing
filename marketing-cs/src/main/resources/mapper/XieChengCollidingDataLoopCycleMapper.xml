@@ -3,26 +3,31 @@
 <mapper namespace="com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper" >
     <select id="selectCycleDataByReleaseTime" resultType="com.br.marketing.entity.XieChengCollidingDataLoopCycle">
         select
-        *
+        id, cell_sha256_code_list, package_id
         from b_xiecheng_colliding_data_loop_cycle
         where is_delete = 0 and retry_count = 0
         <![CDATA[ and release_time < #{releaseTime}]]>
         <if test="minId != null and minId>0">
             and id > #{minId}
         </if>
-        order by id asc limit 20000;
+        order by release_time,id asc limit #{pageSize};
     </select>
 
-    <select id="selectByRetryCountOfOnceAndTwice" resultType="com.br.marketing.entity.XieChengCollidingDataLoopCycle">
+    <select id="selectCycleByRetryCount" resultType="com.br.marketing.entity.XieChengCollidingDataLoopCycle">
         select
-        *
-        from b_xiecheng_colliding_data_${tableNameSuffix}
+        id, cell_sha256_code_list, package_id
+        from b_xiecheng_colliding_data_loop_cycle
         where is_delete = 0
-        <![CDATA[ and retry_count > 0 and retry_count < 3]]>
+        <if test="isLast != null and isLast">
+            and retry_count = 3
+        </if>
+        <if test="isLast != null and !isLast">
+            <![CDATA[ and retry_count > 0 and retry_count < 3]]>
+        </if>
         <if test="minId != null and minId>0">
             and id > #{minId}
         </if>
-        order by id asc limit 20000;
+        order by id asc limit #{pageSize};
     </select>
 
     <select id="selectPerMinuteCounts" resultType="java.util.Map">
@@ -62,14 +67,18 @@
         </foreach>
     </update>
 
-    <select id="selectByRetryCountOfThreeTimes" resultType="com.br.marketing.entity.XieChengCollidingDataLoopCycle">
-        select
-        *
-        from b_xiecheng_colliding_data_${tableNameSuffix}
-        where is_delete = 0 and retry_count = 3
-        <if test="minId != null and minId>0">
-            and id > #{minId}
-        </if>
-        order by id asc limit 20000;
-    </select>
+    <update id="updateBatchByIdOfRetryCount" parameterType="java.util.List">
+        update b_xiecheng_colliding_data_loop_cycle set retry_count = retry_count + 1,update_time = now() where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="updateBatchByIdOfTrueDataList" parameterType="java.util.List">
+        <foreach collection="cycles" item="cycle" open="(" separator=";" close=")">
+            update b_xiecheng_colliding_data_loop_cycle
+            set release_time=#{cycle.releaseTime}, retry_count = 0,push_time = #{cycle.pushTime},update_time= #{cycle.updateTime}
+            where id = #{cycle.id}
+        </foreach>
+    </update>
 </mapper>
