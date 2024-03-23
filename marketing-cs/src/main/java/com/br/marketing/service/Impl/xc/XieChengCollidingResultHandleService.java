@@ -60,7 +60,7 @@ public class XieChengCollidingResultHandleService {
         xieChengCollidingDataRobMapper.insert(robDto);
     }
 
-    public void robDataHandle(Result collidingResult, Map<String, XieChengCollidingDataRob> cellMap, AtomicInteger failNum) {
+    public void robDataHandle(Result collidingResult, Map<String, XieChengCollidingDataRob> cellMap) {
         JSONObject resJson = JSONObject.parseObject((String)collidingResult.getData());
         boolean success = collidingResult.getCode().equals(ResultCode.SUCCESS.getValue());
         List<XieChengCollidingDataLog> collidingLogs = Lists.newArrayList();
@@ -92,7 +92,6 @@ public class XieChengCollidingResultHandleService {
         } else {
             // 异常没有httpCode和businessCode
             for (Map.Entry<String, XieChengCollidingDataRob> entry : cellMap.entrySet()) {
-                failNum.getAndIncrement();
                 XieChengCollidingDataRob robData = entry.getValue();
                 robData.setPushTime(new Date());
                 robData.setRetryCount(robData.getRetryCount() + 1);

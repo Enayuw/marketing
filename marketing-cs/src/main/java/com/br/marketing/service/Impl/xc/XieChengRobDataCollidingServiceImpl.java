@@ -75,7 +75,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             List<CompletableFuture<Void>> futures = Lists.newArrayList();
             xieChengCollidingDataListPartition.forEach((List<XieChengCollidingDataRob> robData) -> {
                 CompletableFuture<Void> future =
-                    CompletableFuture.runAsync(() -> pushDataAndHandleResult(robData, new AtomicInteger(0)), XIECHENG_ROB_COLLIDING_THREAD);
+                    CompletableFuture.runAsync(() -> pushDataAndHandleResult(robData), XIECHENG_ROB_COLLIDING_THREAD);
                 futures.add(future);
             });
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
@@ -93,13 +93,13 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
      * @date 2024/03/21
      */
     @Override
-    public void pushDataAndHandleResult(List<XieChengCollidingDataRob> robData, AtomicInteger failNum) {
+    public void pushDataAndHandleResult(List<XieChengCollidingDataRob> robData) {
         Map<String, XieChengCollidingDataRob> cellMap = robData.stream()
             .collect(Collectors.toMap(XieChengCollidingDataRob::getCellSha256CodeList, rob -> rob, (existing, replacement) -> replacement));
         List<String> sha256Codes = robData.stream().map(XieChengCollidingDataRob::getCellSha256CodeList).collect(Collectors.toList());
         try {
             Result collidingResult = xieChengServiceNew.pushXieChengSmsCollidingDataNew(sha256Codes);
-            handleService.robDataHandle(collidingResult, cellMap, failNum);
+            handleService.robDataHandle(collidingResult, cellMap);
         } catch (Exception e) {
             log.error("携程非周期撞库异常，sha256Codes:{}", sha256Codes, e);
         }
