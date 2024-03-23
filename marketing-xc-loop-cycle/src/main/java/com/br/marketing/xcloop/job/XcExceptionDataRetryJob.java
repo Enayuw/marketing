@@ -1,6 +1,5 @@
 package com.br.marketing.xcloop.job;
 
-import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.xiecheng.XieChengServiceNew;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -12,10 +11,7 @@ import com.br.marketing.mapper.XieChengCollidingDataLogMapper;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
 import com.br.marketing.service.Impl.xc.XcExceptionDataRetryService;
-import com.br.marketing.service.Impl.xc.XcLoopCycleDataService;
-import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
