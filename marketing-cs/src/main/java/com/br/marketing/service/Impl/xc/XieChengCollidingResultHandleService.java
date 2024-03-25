@@ -53,7 +53,7 @@ public class XieChengCollidingResultHandleService {
 
         robDto.setIsDelete(0);
         robDto.setRetryCount(0);
-        xieChengCollidingDataRobMapper.insert(robDto);
+        xieChengCollidingDataRobMapper.insertSelective(robDto);
     }
 
     public void robDataHandle(Result collidingResult, Map<String, XieChengCollidingDataRob> cellMap) {

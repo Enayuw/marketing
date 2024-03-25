@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl.xc;
 
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
@@ -10,11 +11,9 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataPackageMapper;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +53,10 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
     private RedisChgService redisChgService;
     private final static int PARTATION_SIZE = 50;
 
+    /**
+     * 50条数据一个批次，推送撞库手机号并处理返回结果
+     * @param list
+     */
     @Override
     public void pushDataAndHandleResult(List<XieChengCollidingDataLoopCycle> list) {
         try {
@@ -62,11 +65,11 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
 
             Result resultInfo = xieChengServiceNew.pushXieChengSmsCollidingDataNew(cells);
             JSONObject resMap = JSONObject.parseObject((String) resultInfo.getData());
-
             String httpcode = resMap.getString("httpcode");
+
             if (ResultCode.FAIL.getValue().equals(resultInfo.getCode())) {
                 // httpcode非200或code非0
-                // 更新TRUE数据表retry_count
+                // 更新TRUE数据表retry_count=retry_count+1
                 List<Long> ids = list.stream().map(XieChengCollidingDataLoopCycle::getId).collect(Collectors.toList());
                 dataLoopCycleMapper.updateBatchByIdOfRetryCount(ids);
 
@@ -82,15 +85,21 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
             JSONObject resultJson = JSONObject.parseObject(resMap.getString("content"));
             Integer businessCode = resultJson.getInteger("code");
             JSONArray returnDataList = resultJson.getJSONArray("data");
+
+            if (CollectionUtils.isEmpty(returnDataList)) {
+                log.error("携程TRUE数据撞库，接口返回code为0，但数据为空。resMap：{}", JSON.toJSONString(resMap));
+                return;
+            }
+
             // 根据手机号对实体分组
             Map<String, XieChengCollidingDataLoopCycle> cellMaps =
                     list.stream().collect(Collectors.toMap(XieChengCollidingDataLoopCycle::getCellSha256CodeList, Function.identity(),
                             (t1, t2) -> t1));
 
-            // true数据操作
+            // true数据处理
             trueHandle(returnDataList, cellMaps);
 
-            // false数据操作
+            // false数据处理
             falseHandle(returnDataList, cellMaps);
 
             // 发送mq记录日志
@@ -108,21 +117,28 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         }
     }
 
+    /**
+     * 返回为TRUE的结果处理
+     * @param returnDataList
+     * @param cellMaps
+     */
     private void trueHandle(JSONArray returnDataList, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
         List<XieChengCollidingDataLoopCycle> trueList =
                 returnDataList.stream().map(t -> (JSONObject) t).filter(t -> t.getBoolean("result").equals(Boolean.TRUE)).map(t -> buildTrueDataDto(t, cellMaps)).collect(Collectors.toList());
         trueList.forEach(t -> dataLoopCycleMapper.updateByPrimaryKeySelective(t));
     }
 
+    /**
+     * 返回为FALSE的结果处理
+     * @param returnDataList
+     * @param cellMaps
+     */
     private void falseHandle(JSONArray returnDataList, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
         List<XieChengCollidingDataLoopCycle> falseList =
                 returnDataList.stream().map(t -> (JSONObject) t).filter(t -> t.getBoolean("result").equals(Boolean.FALSE)).map(t -> buildFalseDataDto(t, cellMaps)).collect(Collectors.toList());
 
-        // 查询package表优先级为0
-        XieChengCollidingDataPackageExample packageExample = new XieChengCollidingDataPackageExample();
-        packageExample.createCriteria().andPriorityEqualTo(0);
-        List<XieChengCollidingDataPackage> packages = packageMapper.selectByExample(packageExample);
-        Long packageId = CollectionUtils.isEmpty(packages) ? null : packages.get(0).getId();
+        // 设置packageId为package表优先级为0的id
+        Long packageId = getPackageId();
 
         falseList.forEach(t -> {
             try {
@@ -133,10 +149,23 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         });
     }
 
+    private Long getPackageId() {
+        XieChengCollidingDataPackageExample packageExample = new XieChengCollidingDataPackageExample();
+        packageExample.createCriteria().andPriorityEqualTo(0);
+        List<XieChengCollidingDataPackage> packages = packageMapper.selectByExample(packageExample);
+        Long packageId = CollectionUtils.isEmpty(packages) ? null : packages.get(0).getId();
+        return packageId;
+    }
+
     private XieChengCollidingDataLoopCycle buildTrueDataDto(JSONObject t, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
         XieChengCollidingDataLoopCycle dto = new XieChengCollidingDataLoopCycle();
         String sha256Code = t.getString("sha256Code");
-        XieChengCollidingDataLoopCycle loopCycle = cellMaps.get(sha256Code);
+        XieChengCollidingDataLoopCycle loopCycle = null;
+        try {
+            loopCycle = cellMaps.get(sha256Code);
+        } catch (NullPointerException e) {
+            log.error("携程TRUE数据撞库，返回未知sha256Code：{}，result=true", sha256Code);
+        }
 
         dto.setId(loopCycle.getId());
         // 更新pushTime
@@ -153,7 +182,12 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
     private XieChengCollidingDataLoopCycle buildFalseDataDto(JSONObject t, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
         XieChengCollidingDataLoopCycle dto = new XieChengCollidingDataLoopCycle();
         String sha256Code = t.getString("sha256Code");
-        XieChengCollidingDataLoopCycle loopCycle = cellMaps.get(sha256Code);
+        XieChengCollidingDataLoopCycle loopCycle = null;
+        try {
+            loopCycle = cellMaps.get(sha256Code);
+        } catch (NullPointerException e) {
+            log.error("携程TRUE数据撞库，返回未知sha256Code：{}，result=false", sha256Code);
+        }
 
         dto.setId(loopCycle.getId());
         dto.setCellSha256CodeList(sha256Code);
@@ -167,10 +201,10 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         ThreadPoolExecutor threadPool =
                 BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingThread(),
                         marketingCommonConfig.getXieChengSmsCollidingThread());
+        // 分页大小
+        Integer pageSize = marketingCommonConfig.getXiechengCollidingPageSize();
 
         Long minId = null;
-
-        Integer pageSize = marketingCommonConfig.getXiechengCollidingPageSize();
         while (true) {
             if (stop()) {
                 break;
@@ -205,18 +239,26 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         }
     }
 
+    /**
+     * 修改线程池大小
+     * @param pool
+     */
     private void modifyThreadPool(ThreadPoolExecutor pool) {
         Integer threadNum = marketingCommonConfig.getXieChengSmsCollidingThread();
         pool.setCorePoolSize(threadNum);
         pool.setMaximumPoolSize(threadNum);
     }
 
+    /**
+     * 是否暂停撞库
+     * @return true:是。false:否
+     */
     @Override
     public boolean stop() {
         // 获取强制开关
         Boolean forceOpenSwitch = marketingCommonConfig.getXieChengForceOpenSwitch();
-        // 获取条件开关，取不到报警
-        String redisSwitch = null;
+        // 获取条件开关，异常报警
+        String redisSwitch;
         try {
             redisSwitch = redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH);
         } catch (Exception e) {
