@@ -3,8 +3,8 @@ package com.br.marketing.service;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.VariableAllocationDTO;
+import com.br.marketing.vo.VariableAllocationVO;
 
-import java.math.BigDecimal;
 
 /**
  * sftp账号配置业务接口
@@ -28,5 +28,10 @@ public interface VariableAllocationService {
      * @param abnormalQuantity
      * @return
      */
-    ApiResult<Boolean> updateVariableList(Long id, BigDecimal normalQuantity, BigDecimal abnormalQuantity);
+    ApiResult<Boolean> updateVariableList(Long id, int normalQuantity, int abnormalQuantity);
+
+    /**
+     * 获取携程异常与正常可撞配置
+     */
+    VariableAllocationVO getVariableAllocation();
 }

@@ -18,8 +18,11 @@ import javax.annotation.Resource;
 public class XcLoopCycleDataJob extends AbstractSimpleElasticJob {
     @Resource
     XcLoopCycleDataService service;
+
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
+        long start = System.currentTimeMillis();
         service.process();
+        log.warn("携程TRUE数据撞库作业，单次运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 }

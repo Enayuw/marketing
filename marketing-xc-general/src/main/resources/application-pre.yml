@@ -113,6 +113,30 @@ otherConfig:
     proxy_password: Proxy_br
     proxy_host_zw: 192.168.22.169
 
+spring:
+  rabbitmq:
+    zw:
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
+      username: strategy_distribute
+      password: strategy_distribute
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow
+    yz:
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
+      username: strategy_distribute
+      password: strategy_distribute
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow
+    listener:
+      retry:
+        enabled: true
+        max-attempts: 5
+        initial-interval: 3000
+      acknowledge-mode: manual
+      default-requeue-rejected: false
+      auto-startup: true
 
 api:
   intelligentCustomerService:
@@ -162,14 +186,7 @@ api:
       singKey: 95cc01ec07387a44
       channel: commonUnionCheckUser
       isProxy: true
-spring:
-  rabbitmq:
-    addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
-    username: strategy_distribute
-    password: strategy_distribute
-    publisher-confirms: true
-    publisher-returns: true
-    virtual-host: marketing-test
+
 cluster:
   flag: k8s-prod-a
 innerSftp:

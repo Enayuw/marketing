@@ -77,7 +77,7 @@ public class XieChengServiceNew {
     private HashMap<String,String> getTestMap(List<String> sha256CodeList){
         JSONObject map = new JSONObject();
         if(marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(2)){
-            map.put("code",9999);
+            map.put("code",707);
             map.put("msg","测试挡板非0异常");
         }else {
             map.put("code",0);
@@ -91,13 +91,13 @@ public class XieChengServiceNew {
             dataMap.put("sha256Code",s);
             if(i%2==0){
                 dataMap.put("result",true);
+                dataMap.put("releaseTime", DateUtil.formatDateTime(DateUtil.offsetDay(new Date(),7)));
             }else {
                 dataMap.put("result",false);
             }
             dataMap.put("orgChannel","测试orgChannel");
             dataMap.put("mktLevel","测试mktLevel");
             dataMap.put("info","测试info");
-            dataMap.put("releaseTime", DateUtil.formatDateTime(DateUtil.offsetDay(new Date(),7)));
             jsonArray.add(dataMap);
         }
         map.put("data",jsonArray);
@@ -142,7 +142,7 @@ public class XieChengServiceNew {
                     MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
         }
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            return new Result().setCode(ResultCode.FAIL.getValue()).setDate("{'msg':'httpCode非200'}");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
         }
         String content = resMap.get("content");
         JSONObject resultJson = JSONObject.parseObject(content);
@@ -159,7 +159,10 @@ public class XieChengServiceNew {
 
     }
 
-    private void shutDownConditionSwitch() {
+    /**
+     * 关闭条件开关，直至当天23:59:59
+     */
+    public void shutDownConditionSwitch() {
         // 当前日期
         LocalDateTime now = LocalDateTime.now();
         // 当前时间至23:59:59

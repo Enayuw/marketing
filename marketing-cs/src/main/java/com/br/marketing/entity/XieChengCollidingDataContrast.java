@@ -1,10 +1,7 @@
 package com.br.marketing.entity;
 
-import lombok.Data;
-
 import java.util.Date;
 
-@Data
 public class XieChengCollidingDataContrast {
     /**
      * 
@@ -20,6 +17,11 @@ public class XieChengCollidingDataContrast {
      * 包id
      */
     private Long packageId;
+
+    /**
+     * 
+     */
+    private String batchNumber;
 
     /**
      * 手机号
@@ -68,6 +70,14 @@ public class XieChengCollidingDataContrast {
 
     public void setPackageId(Long packageId) {
         this.packageId = packageId;
+    }
+
+    public String getBatchNumber() {
+        return batchNumber;
+    }
+
+    public void setBatchNumber(String batchNumber) {
+        this.batchNumber = batchNumber == null ? null : batchNumber.trim();
     }
 
     public String getCellSha256CodeList() {

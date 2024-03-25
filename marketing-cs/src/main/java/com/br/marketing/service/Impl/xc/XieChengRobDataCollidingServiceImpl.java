@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -22,6 +21,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.XieChengCollidingDataRob;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
+import com.br.marketing.service.Impl.VariableAllocationServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 
@@ -39,6 +39,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataCollidingService {
 
+    public static final ThreadPoolExecutor XIECHENG_ROB_COLLIDING_THREAD = BrExecutors.getThreadPool(20, 20);
+
     @Resource
     private RedisChgService redisChgService;
     @Resource
@@ -51,22 +53,21 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     private XieChengServiceNew xieChengServiceNew;
     @Resource
     private XieChengCollidingResultHandleService handleService;
+    @Resource
+    private VariableAllocationServiceImpl variableAllocationService;
 
     @Override
-    public void collidingData(List<String> packageIds) {
+    public void collidingData(List<Long> packageIds) {
         Integer perMinuteCounts = getPerMinuteCounts();
         Integer todayTrueTotalCounts = xieChengCollidingDataLoopCycleMapper.selectTodayCycleCount();
-        // TODO 从广秀提供方法中获取
-        Integer totalThreshold = 5000000;
+        Integer totalThreshold = variableAllocationService.getVariableAllocation().getNormalQuantity();
         Integer limit = Math.min(perMinuteCounts, totalThreshold - todayTrueTotalCounts);
         Integer pageSize = marketingCommonConfig.getXiechengCollidingPageSize();
-        ThreadPoolExecutor xiechengRobCollidingThread =
-            BrExecutors.getThreadPool(marketingCommonConfig.getXiechengRobCollidingThread(), marketingCommonConfig.getXiechengRobCollidingThread());
         // 强制开关开启强制撞库，强制开关关闭且条件开关打开开始撞库
         while (limit > 0 && (marketingCommonConfig.getXieChengForceOpenSwitch()
             || Objects.equals("true", redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH)))) {
-            xiechengRobCollidingThread.setCorePoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
-            xiechengRobCollidingThread.setMaximumPoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
+            XIECHENG_ROB_COLLIDING_THREAD.setCorePoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
+            XIECHENG_ROB_COLLIDING_THREAD.setMaximumPoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
             List<XieChengCollidingDataRob> robDataList = xieChengCollidingDataRobMapper.getRobCollidingDataList(pageSize, packageIds);
             if (CollectionUtils.isEmpty(robDataList)) {
                 break;
@@ -74,32 +75,30 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             List<List<XieChengCollidingDataRob>> xieChengCollidingDataListPartition = Lists.partition(robDataList, 50);
             List<CompletableFuture<Void>> futures = Lists.newArrayList();
             xieChengCollidingDataListPartition.forEach((List<XieChengCollidingDataRob> robData) -> {
-                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> pushDataAndHandleResult(robData, null), xiechengRobCollidingThread);
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> pushDataAndHandleResult(robData), XIECHENG_ROB_COLLIDING_THREAD);
                 futures.add(future);
             });
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             limit -= pageSize;
         }
 
-        //TODO 持久化线程池
     }
 
     /**
      * 推送非周期撞库数据
      *
      * @param robData rob数据
-     * @param failNum failNum
      * @author senyang.zheng
      * @date 2024/03/21
      */
     @Override
-    public void pushDataAndHandleResult(List<XieChengCollidingDataRob> robData, AtomicInteger failNum) {
+    public void pushDataAndHandleResult(List<XieChengCollidingDataRob> robData) {
         Map<String, XieChengCollidingDataRob> cellMap = robData.stream()
             .collect(Collectors.toMap(XieChengCollidingDataRob::getCellSha256CodeList, rob -> rob, (existing, replacement) -> replacement));
         List<String> sha256Codes = robData.stream().map(XieChengCollidingDataRob::getCellSha256CodeList).collect(Collectors.toList());
         try {
             Result collidingResult = xieChengServiceNew.pushXieChengSmsCollidingDataNew(sha256Codes);
-            handleService.robDataHandle(collidingResult, cellMap, failNum);
+            handleService.robDataHandle(collidingResult, cellMap);
         } catch (Exception e) {
             log.error("携程非周期撞库异常，sha256Codes:{}", sha256Codes, e);
         }
@@ -107,21 +106,22 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     }
 
     public Integer getPerMinuteCounts() {
-        // TODO 从广秀提供方法获取
-        Integer threshold = 100000;
+        Integer threshold = marketingCommonConfig.getXiechengPerMinuteThreshold();
         String today = DateUtil.today();
-        Long size = redisChgService.hlen(today);
+        String key = RedisKeyConstant.XIECHENG_RELEASE_TIME + today;
+        Long size = redisChgService.hlen(key);
         if (size.equals(0L)) {
-            initializeTodayReleaseTime(today);
+            initializeTodayReleaseTime(key);
         }
         String minute = DateUtil.format(LocalDateTime.now(), DatePattern.NORM_DATETIME_MINUTE_PATTERN);
-        String perMinuteCounts = redisChgService.hget(today, minute) == null ? "0" : redisChgService.hget(today, minute);
+        String perMinuteCounts = redisChgService.hget(key, minute) == null ? "0" : redisChgService.hget(key, minute);
         return threshold - Integer.parseInt(perMinuteCounts);
     }
 
-    private void initializeTodayReleaseTime(String today) {
-        List<Map<String, String>> perMinuteCounts = xieChengCollidingDataLoopCycleMapper.selectPerMinuteCounts();
-        perMinuteCounts.forEach(
-            (Map<String, String> perMinuteCount) -> redisChgService.hset(today, perMinuteCount.get("releaseTime"), perMinuteCount.get("counts")));
+    public void initializeTodayReleaseTime(String key) {
+        List<Map<String, Object>> perMinuteCounts = xieChengCollidingDataLoopCycleMapper.selectPerMinuteCounts();
+        redisChgService.del(key);
+        perMinuteCounts.forEach((Map<String, Object> perMinuteCount) -> redisChgService.hset(key, String.valueOf(perMinuteCount.get("releaseTime")),
+            String.valueOf(perMinuteCount.get("counts"))));
     }
 }

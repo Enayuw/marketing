@@ -3,6 +3,7 @@ package com.br.marketing.mapper;
 import com.br.marketing.entity.XieChengCollidingDataContrast;
 import com.br.marketing.entity.XieChengCollidingDataContrastExample;
 import com.br.marketing.entity.XieChengCollidingDataRob;
+import com.br.marketing.entity.XieChengCollidingDataTemp;
 import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.Param;
 
@@ -22,31 +23,35 @@ public interface XieChengCollidingDataContrastMapper extends XieChengCollidingDa
      * @param xieChengCleanLimitCount 查询量级
      * @return
      */
-    List<Map<String, String>> temporaryCelltiflash_(@Param("tableName") String tableName, @Param("filterScore")
-    String filterScore, @Param("xieChengCleanLimitCount") Integer xieChengCleanLimitCount);
+    List<XieChengCollidingDataTemp> temporaryCelltiflash_(@Param("tableName") String tableName,
+                                                          @Param("filterScore") String filterScore,
+                                                          @Param("xieChengCleanLimitCount") Integer xieChengCleanLimitCount);
+    List<Map<String,String>> temporaryCellCountRepeattiflash_(@Param("tableName") String tableName);
 
+    int temporaryCellCounttiflash_(@Param("tableName") String tableName,
+                                   @Param("filterScore") String filterScore);
     /**
      * 查询周期数据不在对比表的数据
      *
-     * @param xieChengContrastCount
+     * @param xieChengCleanCount
      * @return
      */
-    List<Long> loopCycleCelltiflash_(@Param("xieChengContrastCount") Integer xieChengContrastCount);
+    List<Long> loopCycleCelltiflash_(@Param("xieChengCleanCount") Integer xieChengCleanCount);
 
     /**
      * 查询对比表数据不在非周期表中的数据
-     * @param xieChengContrastCount
+     * @param xieChengCleanCount
      * @return
      */
-    List<XieChengCollidingDataContrast> robCelltiflash_(@Param("xieChengContrastCount") Integer xieChengContrastCount);
+    List<XieChengCollidingDataContrast> robCelltiflash_(@Param("xieChengCleanCount") Integer xieChengCleanCount);
 
     /**
      * 周期数据满足条件的数据查询
      *
-     * @param xieChengContrastCount
+     * @param xieChengCleanCount
      * @return
      */
-    List<Long> loopCycleCellExisttiflash_(@Param("xieChengContrastCount") Integer xieChengContrastCount);
+    List<Long> loopCycleCellExisttiflash_(@Param("xieChengCleanCount") Integer xieChengCleanCount);
 
 
     /**

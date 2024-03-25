@@ -2,10 +2,15 @@ package com.br.marketing.service.Impl.xc;
 
 import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
 public interface XcLoopCycleDataService extends DataCollidingService<XieChengCollidingDataLoopCycle>{
-//    void pushDataAndHandleResult(List<XieChengCollidingDataLoopCycle> list, AtomicInteger failNum);
+    /**
+     * TRUE数据撞库方法
+     */
     void process();
+
+    /**
+     * 是否开启撞库
+     * @return
+     */
+    boolean canStart();
 }

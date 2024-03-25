@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingDataLoopCycleMapperBase {
-    List<Map<String, String>> selectPerMinuteCounts();
+    List<Map<String, Object>> selectPerMinuteCounts();
 
     Integer selectTodayCycleCount();
 
@@ -22,9 +22,31 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
      */
     int updateBatchByIdToIsDeleted(@Param("ids") List<Long> ids);
 
-    List<XieChengCollidingDataLoopCycle> selectByRetryCountOfOnceAndTwice(Long minId, String tableNameSuffix);
+    /**
+     * 查询正常重试数据：is_delete = 0 and retry_count > 0 and retry_count < 3
+     * 查询兜底重试数据：is_delete = 0 and retry_count = 3
+     * @param minId
+     * @param isLast
+     * @param pageSize
+     * @return
+     */
+    List<XieChengCollidingDataLoopCycle> selectCycleByRetryCount(@Param("minId") Long minId
+            , @Param("isLast") Boolean isLast,@Param("pageSize") Integer pageSize);
 
-    List<XieChengCollidingDataLoopCycle> selectByRetryCountOfThreeTimes(Long minId, String tableNameSuffix);
+    /**
+     * 查询待撞数据：is_delete = 0 and retry_count = 0 and release_time<now()
+     * @param minId
+     * @param releaseTime
+     * @param pageSize
+     * @return
+     */
+    List<XieChengCollidingDataLoopCycle> selectCycleDataByReleaseTime(@Param("minId") Long minId, @Param("releaseTime") Date releaseTime
+            ,@Param("pageSize") Integer pageSize);
 
-    List<XieChengCollidingDataLoopCycle> selectCycleDataByReleaseTime(Long minId, Date releaseTime);
+    /**
+     * 更新重试次数：retry_count = retry_count + 1,update_time = now(),push_time = now()
+     * @param ids
+     * @return
+     */
+    int updateBatchByIdOfRetryCount(@Param("ids") List<Long> ids);
 }

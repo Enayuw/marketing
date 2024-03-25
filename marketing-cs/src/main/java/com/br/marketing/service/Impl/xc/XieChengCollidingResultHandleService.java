@@ -3,7 +3,6 @@ package com.br.marketing.service.Impl.xc;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Resource;
 
@@ -14,13 +13,11 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.entity.XieChengCollidingDataLog;
 import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
 import com.br.marketing.entity.XieChengCollidingDataRob;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.google.api.client.util.Lists;
 
 import cn.hutool.core.date.DatePattern;
@@ -35,42 +32,49 @@ public class XieChengCollidingResultHandleService {
     @Resource
     private XieChengCollidingDataRobMapper xieChengCollidingDataRobMapper;
     @Resource
-    private RabbitMqProducter rabbitMqProducter;
-    @Resource
     private XieChengCollidingResultHandleService xieChengCollidingResultHandleService;
+    @Resource
+    private XieChengCollidingDataLogService xieChengCollidingDataLogService;
 
     @Transactional(rollbackFor = Exception.class)
-    public void cycleDataHandle(XieChengCollidingDataLoopCycle loopCycleDto) {
+    public void cycleDataHandle(XieChengCollidingDataLoopCycle loopCycleDto, Long packageId) {
         // 更新true数据表
         loopCycleDto.setIsDelete(1);
+        loopCycleDto.setPushTime(new Date());
         xieChengCollidingDataLoopCycleMapper.updateByPrimaryKeySelective(loopCycleDto);
 
         // 插入false数据表
         XieChengCollidingDataRob robDto = new XieChengCollidingDataRob();
-        robDto.setPackageId(loopCycleDto.getPackageId());
+        robDto.setPackageId(packageId);
         robDto.setDataSourceType("T");
         robDto.setCellSha256CodeList(loopCycleDto.getCellSha256CodeList());
         robDto.setPushTime(new Date());
+        robDto.setCreateTime(new Date());
+        robDto.setUpdateTime(new Date());
+
         robDto.setIsDelete(0);
         robDto.setRetryCount(0);
-        xieChengCollidingDataRobMapper.insert(robDto);
+        xieChengCollidingDataRobMapper.insertSelective(robDto);
     }
 
-    public void robDataHandle(Result collidingResult, Map<String, XieChengCollidingDataRob> cellMap, AtomicInteger failNum) {
-        JSONObject resultJson = JSONObject.parseObject(collidingResult.getMessage());
+    public void robDataHandle(Result collidingResult, Map<String, XieChengCollidingDataRob> cellMap) {
+        JSONObject resJson = JSONObject.parseObject((String)collidingResult.getData());
         boolean success = collidingResult.getCode().equals(ResultCode.SUCCESS.getValue());
-        JSONArray returnDataList = resultJson.getJSONArray("data");
         List<XieChengCollidingDataLog> collidingLogs = Lists.newArrayList();
+        String httpcode = resJson.getString("httpcode");
         if (success) {
+            JSONObject contentJson = JSONObject.parseObject(resJson.getString("content"));
+            Integer businessCode = contentJson.getInteger("code");
+            JSONArray returnDataList = contentJson.getJSONArray("data");
             for (int i = 0; i < returnDataList.size(); i++) {
                 JSONObject returnData = returnDataList.getJSONObject(i);
                 String cell = returnData.getString("sha256Code");
                 Boolean result = returnData.getBoolean("result");
                 XieChengCollidingDataRob robData = cellMap.getOrDefault(cell, new XieChengCollidingDataRob());
                 if (result) {
-                    // 增加try-catch保证50条一批其他正常处理，异常数据单条告警
+                    // 增加try-catch保证50条一批其他数据正常处理，异常数据单条告警
                     try {
-                        xieChengCollidingResultHandleService.trueDataDandle(cellMap, cell, returnData, robData);
+                        xieChengCollidingResultHandleService.trueDataHandle(cellMap, cell, returnData, robData);
                     } catch (Exception e) {
                         log.error("携程非周期数据撞得True，周期True表存在重复cell:{}", cell);
                     }
@@ -79,25 +83,26 @@ public class XieChengCollidingResultHandleService {
                     robData.setRetryCount(0);
                     xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
                 }
-                collidingLogs.add(buildXieChengCollidingDataLog(robData, returnData));
+                collidingLogs.add(xieChengCollidingDataLogService.buildSuccessXieChengCollidingDataLog(robData.getId(), robData.getPackageId(),
+                    robData.getDataSourceType(), returnData, httpcode, businessCode));
             }
-            pushLogMessage(collidingLogs);
+            xieChengCollidingDataLogService.pushLogMessage(collidingLogs);
         } else {
-            String msg = resultJson.getString("msg");
+            // 异常没有httpCode和businessCode
             for (Map.Entry<String, XieChengCollidingDataRob> entry : cellMap.entrySet()) {
-                failNum.getAndIncrement();
                 XieChengCollidingDataRob robData = entry.getValue();
                 robData.setPushTime(new Date());
                 robData.setRetryCount(robData.getRetryCount() + 1);
                 xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
-                collidingLogs.add(buildFailXieChengCollidingDataLog(robData, msg));
+                collidingLogs.add(xieChengCollidingDataLogService.buildFailXieChengCollidingDataLog(robData.getId(), robData.getPackageId(),
+                    robData.getDataSourceType(), robData.getCellSha256CodeList(), resJson));
             }
-            pushLogMessage(collidingLogs);
+            xieChengCollidingDataLogService.pushLogMessage(collidingLogs);
         }
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void trueDataDandle(Map<String, XieChengCollidingDataRob> cellMap, String cell, JSONObject returnData, XieChengCollidingDataRob robData) {
+    public void trueDataHandle(Map<String, XieChengCollidingDataRob> cellMap, String cell, JSONObject returnData, XieChengCollidingDataRob robData) {
         // 周期表中新增True的数据
         XieChengCollidingDataLoopCycle xieChengCollidingDataLoopCycle = new XieChengCollidingDataLoopCycle();
         xieChengCollidingDataLoopCycle.setPackageId(cellMap.getOrDefault(cell, new XieChengCollidingDataRob()).getPackageId());
@@ -108,58 +113,12 @@ public class XieChengCollidingResultHandleService {
         xieChengCollidingDataLoopCycle.setRetryCount(0);
         xieChengCollidingDataLoopCycle.setCreateTime(new Date());
         xieChengCollidingDataLoopCycle.setUpdateTime(new Date());
-        xieChengCollidingDataLoopCycleMapper.insert(xieChengCollidingDataLoopCycle);
+        xieChengCollidingDataLoopCycleMapper.insertSelective(xieChengCollidingDataLoopCycle);
         // 非周期表中做剔除
         robData.setIsDelete(1);
         robData.setRetryCount(0);
         robData.setPushTime(new Date());
         xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
-    }
-
-    private void pushLogMessage(List<XieChengCollidingDataLog> collidingLogs) {
-        try {
-            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG, JSONObject.toJSONString(collidingLogs));
-        } catch (Exception e) {
-            log.error("推送携程撞库日志消息异常", e);
-        }
-
-    }
-
-    private XieChengCollidingDataLog buildXieChengCollidingDataLog(XieChengCollidingDataRob robData, JSONObject returnData) {
-        String sha256Code = returnData.getString("sha256Code");
-        Boolean result = returnData.getBoolean("result");
-        String orgChannel = returnData.getString("orgChannel");
-        String mktLevel = returnData.getString("mktLevel");
-        String info = returnData.getString("info");
-        String releaseTime = returnData.getString("releaseTime");
-
-        XieChengCollidingDataLog xieChengCollidingDataLog = new XieChengCollidingDataLog();
-        xieChengCollidingDataLog.setSmsCollidingDataId(robData.getId());
-        xieChengCollidingDataLog.setPackageId(robData.getPackageId());
-        xieChengCollidingDataLog.setDataSourceType("F");
-        xieChengCollidingDataLog.setCellSha256CodeList(sha256Code);
-        xieChengCollidingDataLog.setReleaseTime(releaseTime);
-        xieChengCollidingDataLog.setOrgChannel(orgChannel);
-        xieChengCollidingDataLog.setMktLevel(mktLevel);
-        xieChengCollidingDataLog.setInfo(info);
-        xieChengCollidingDataLog.setResult(result);
-        xieChengCollidingDataLog.setReturnContent(returnData.toJSONString());
-        xieChengCollidingDataLog.setCreateTime(new Date());
-        xieChengCollidingDataLog.setUpdateTime(new Date());
-
-        return xieChengCollidingDataLog;
-    }
-
-    private XieChengCollidingDataLog buildFailXieChengCollidingDataLog(XieChengCollidingDataRob robData, String msg) {
-        XieChengCollidingDataLog xieChengCollidingDataLog = new XieChengCollidingDataLog();
-        xieChengCollidingDataLog.setSmsCollidingDataId(robData.getId());
-        xieChengCollidingDataLog.setPackageId(robData.getPackageId());
-        xieChengCollidingDataLog.setDataSourceType("F");
-        xieChengCollidingDataLog.setCellSha256CodeList(robData.getCellSha256CodeList());
-        xieChengCollidingDataLog.setReturnContent(msg);
-        xieChengCollidingDataLog.setCreateTime(new Date());
-        xieChengCollidingDataLog.setUpdateTime(new Date());
-        return xieChengCollidingDataLog;
     }
 
 }
