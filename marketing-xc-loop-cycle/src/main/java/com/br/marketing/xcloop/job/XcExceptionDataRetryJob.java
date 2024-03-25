@@ -106,7 +106,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
 
         boolean b = overCount > 0;
         if (b) {
-            String msg = "携程撞库暂停通知!code返回707";
+            String msg = "携程撞库暂停通知:code返回707";
             service.sendDingDingAlert("携程撞库暂停通知", msg);
             log.error(msg);
         }
@@ -130,7 +130,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
 
         boolean b = trueDataCount >= trueDataThresholdSize;
         if (b) {
-            String msg = "携程撞库暂停通知!今天撞得总量级已超过设定阈值：" + trueDataThresholdSize;
+            String msg = "携程撞库暂停通知:今天撞得总量级已超过设定阈值：" + trueDataThresholdSize;
             service.sendDingDingAlert("携程撞库暂停通知", msg);
             log.error(msg);
         }
@@ -156,7 +156,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
 
         boolean b = cycleCount + robCount >= retryThresholdSize;
         if (b) {
-            String msg = "携程撞库暂停通知!今天异常数据堆积总量级已超过设定阈值：" + retryThresholdSize;
+            String msg = "携程撞库暂停通知:今天异常数据堆积总量级已超过设定阈值：" + retryThresholdSize;
             service.sendDingDingAlert("携程撞库暂停通知", msg);
             log.error(msg);
         }

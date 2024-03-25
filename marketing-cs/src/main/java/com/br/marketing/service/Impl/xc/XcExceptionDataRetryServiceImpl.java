@@ -106,7 +106,7 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
         int total = loopCount + robCount;
         if (total > 0) {
             // 发送钉钉告警
-            String msg = "携程最后一次重试撞库失败通知!重试失败量级:" + total + "条,需要关注！";
+            String msg = "携程最后一次重试撞库失败通知。重试失败量级:" + total + "条,需要关注！";
             sendDingDingAlert("携程最后一次重试撞库失败通知", msg);
             log.error(msg);
         }
