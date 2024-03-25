@@ -40,26 +40,26 @@
     <select id="loopCycleCelltiflash_" resultType="java.lang.Long">
         select a.id  from  b_xiecheng_colliding_data_loop_cycle a left join b_xiecheng_colliding_data_contrast b
                     on a.cell_sha256_code_list  = b.cell_sha256_code_list and b.is_delete = 0
-                   where   b.id is null and a.is_delete =0    limit #{xieChengContrastCount}
+                   where   b.id is null and a.is_delete =0    limit #{xieChengCleanCount}
     </select>
     <select id="loopCycleCellExisttiflash_" resultType="java.lang.Long">
         select  b.id from  b_xiecheng_colliding_data_loop_cycle a  join b_xiecheng_colliding_data_contrast b
                                                                           on a.cell_sha256_code_list  = b.cell_sha256_code_list and b.is_delete = 0
-        where a.is_delete =0 limit #{xieChengContrastCount}
+        where a.is_delete =0 limit #{xieChengCleanCount}
     </select>
-    <select id="robCelltiflash_" resultType="com.br.marketing.entity.XieChengCollidingDataContrast">
-        select  a.cell_sha256_code_list,a.package_id from  b_xiecheng_colliding_data_contrast a left  join b_xiecheng_colliding_data_rob b
+    <select id="robCelltiflash_" resultType="java.lang.Long">
+        select a.* from  b_xiecheng_colliding_data_contrast a left   join b_xiecheng_colliding_data_rob b
                                                                         on a.cell_sha256_code_list  = b.cell_sha256_code_list and b.is_delete = 0
-        where a.is_delete =0 and b.id is null limit #{xieChengContrastCount}
+        where a.is_delete =0 limit #{xieChengCleanCount}
     </select>
 
     <insert id="saveBatch" parameterType="list">
         insert into b_xiecheng_colliding_data_contrast (rule_type_flag, cell_sha256_code_list,batch_number,package_id,
-        create_time,update_time)values
+        create_time,update_time,extend)values
         <foreach collection="list" item="data" separator=",">
             (#{data.ruleTypeFlag}, #{data.cellSha256CodeList,jdbcType=BIGINT},
              #{data.batchNumber},#{data.packageId},
-            now(),now()
+            now(),now(),#{data.extend}
             )
         </foreach>
     </insert>

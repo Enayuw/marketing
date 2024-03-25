@@ -17,26 +17,28 @@ import javax.annotation.Resource;
  * @Classname XieChengCollidingDataCleanJob
  * @Description 携程数据清洗流程job
  * @Date 2022/2/16 10:02 AM
- * {
- *     "temporary_table": "临时表名",
- *     "filter_info": [
- *         {
- *             "filter_score": "过滤分数表达式",
- *             "colliding_time": "撞库时间",
- *             "package_name": "包名称",
- *             "priority": "优先级"
- *         },
- *         {
- *             "filter_score": "过滤分数表达式",
- *             "package_name": "包名称",
- *              "colliding_time": "撞库时间",
- *             "priority": "优先级"
+ *  {
+ *       "temporary_table": "临时表名",
+ *       "filter_score":"过滤分数表达式",
+ *       "loop_cycle_switch": "是否处理周期数据：true 处理，false:不处理",
+ *       "rob_switch": "是否处理非周期数据：true 处理，false:不处理",
+ *       "package_rule_info": [
+ *           {
+ *               "split_filter_score": "拆包分数表达式",
+ *               "colliding_time": "撞库时间",
+ *               "package_name": "包名称",
+ *               "priority": "优先级"
+ *           },
+ *           {
+ *               "split_filter_score": "拆包分数表达式",
+ *               "package_name": "包名称",
+ *                "colliding_time": "撞库时间",
+ *               "priority": "优先级"
  *
- *         }
- *     ],
- *      "loop_cycle_switch": "是否处理周期数据：true 处理，false:不处理",
- *       "rob_switch": "是否处理非周期数据：true 处理，false:不处理"
- * }
+ *           }
+ *       ]
+ *
+ *   }
  */
 @Component
 @Slf4j

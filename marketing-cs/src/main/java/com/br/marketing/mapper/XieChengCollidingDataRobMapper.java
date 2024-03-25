@@ -23,12 +23,14 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
 
     int deleteByIdList(@Param("ids") List<Long> ids, @Param("size") int size);
 
+
+
+    List<Long> robCelltiflash_( @Param("xieChengCleanCount") int xieChengCleanCount);
     /**
-     * 批量删除非周期数据
-     *
-     * @return
+     * 根据id批量更新is_deleted = 1
+     * @param ids
      */
-    void updateOnBatchToIsDeleted();
+    int updateBatchByIdToIsDeleted(@Param("ids") List<Long> ids);
 
     /**
      * 非周期表数据批量保存
