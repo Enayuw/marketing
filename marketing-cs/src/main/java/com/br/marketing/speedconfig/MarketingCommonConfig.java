@@ -1453,5 +1453,20 @@ public class MarketingCommonConfig {
      * 携程记录撞库日志线程数
      */
     private Integer xiechengSaveCollidingLogThread;
+
+    /**
+     * 携程数据清洗线程数
+     */
+    private Integer xieChengCleanThreadCount;
+    /**
+     * 携程数据清洗limit 量级
+     */
+    private Integer xieChengCleanLimitCount;
+
+    /**
+     * 清洗暂停开关 true 开启清洗  false 关闭 清洗
+     */
+    private Boolean xieChengCleanSwitch;
+
 }
 

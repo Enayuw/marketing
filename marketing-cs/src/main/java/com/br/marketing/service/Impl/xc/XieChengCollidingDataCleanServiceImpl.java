@@ -11,6 +11,7 @@ import com.br.marketing.mapper.XieChengCollidingDataContrastMapper;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataPackageMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
@@ -40,7 +41,11 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
     @Resource
     private XieChengCollidingDataRobMapper xieChengCollidingDataRobMapper;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
+
+    private final static Integer PARTITIONCOUNT = 10000;
     /**
      * 主流程
      *
@@ -50,7 +55,8 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
     public void process(String jobParameter) {
 
         ThreadPoolExecutor xieChengCollidingCleanThread =
-                BrExecutors.getThreadPool(50, 50);
+                BrExecutors.getThreadPool(marketingCommonConfig.getXieChengCleanThreadCount(),
+                        marketingCommonConfig.getXieChengCleanThreadCount());
 
         // 解析job 参数
         ParameterToJson result = getParameterToJson(jobParameter);
@@ -166,12 +172,13 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
     }
 
     private void splitRobData(ThreadPoolExecutor xieChengCollidingCleanThread) {
-        while (true) {
-            List<XieChengCollidingDataContrast> idLists = xieChengCollidingDataContrastMapper.robCelltiflash_(100000);
+       while(marketingCommonConfig.getXieChengCleanSwitch()) {
+            setThreadCount(xieChengCollidingCleanThread);
+            List<XieChengCollidingDataContrast> idLists = xieChengCollidingDataContrastMapper.robCelltiflash_(marketingCommonConfig.getXieChengCleanLimitCount());
             if (idLists.isEmpty()) {
                 break;
             }
-            List<List<XieChengCollidingDataContrast>> partition = Lists.partition(idLists, 10000);
+            List<List<XieChengCollidingDataContrast>> partition = Lists.partition(idLists, PARTITIONCOUNT);
             List<Future<Integer>> futureList = new ArrayList<>();
             for (List<XieChengCollidingDataContrast> p : partition) {
                 Future<Integer> submit = xieChengCollidingCleanThread.submit(() -> saveRobData(p));
@@ -182,12 +189,13 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
     }
 
     private void deleteRobData(ThreadPoolExecutor xieChengCollidingCleanThread) {
-        while (true) {
-            List<Long> idLists = xieChengCollidingDataRobMapper.robCelltiflash_(100000);
+       while(marketingCommonConfig.getXieChengCleanSwitch()) {
+            setThreadCount(xieChengCollidingCleanThread);
+            List<Long> idLists = xieChengCollidingDataRobMapper.robCelltiflash_(marketingCommonConfig.getXieChengCleanLimitCount());
             if (idLists.isEmpty()) {
                 break;
             }
-            List<List<Long>> partition = Lists.partition(idLists, 10000);
+            List<List<Long>> partition = Lists.partition(idLists, PARTITIONCOUNT);
             List<Future<Integer>> futureList = new ArrayList<>();
             for (List<Long> p : partition) {
                 Future<Integer> submit = xieChengCollidingCleanThread.submit(() -> deleteRobData(p));
@@ -215,19 +223,20 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
     /**
      * 对比数据处理
      *
-     * @param xieChengCollidingCleanLoopCycleThread 线程池
+     * @param xieChengCollidingCleanThread 线程池
      */
-    private void doContrastWork(ThreadPoolExecutor xieChengCollidingCleanLoopCycleThread) {
-        while (true) {
-            List<Long> idLists = xieChengCollidingDataContrastMapper.loopCycleCellExisttiflash_(100000);
+    private void doContrastWork(ThreadPoolExecutor xieChengCollidingCleanThread) {
+       while(marketingCommonConfig.getXieChengCleanSwitch()) {
+            setThreadCount(xieChengCollidingCleanThread);
+            List<Long> idLists = xieChengCollidingDataContrastMapper.loopCycleCellExisttiflash_(marketingCommonConfig.getXieChengCleanLimitCount());
             if (idLists.isEmpty()) {
                 break;
             }
             // 多线程删除对比表
-            List<List<Long>> partition = Lists.partition(idLists, 10000);
+            List<List<Long>> partition = Lists.partition(idLists, PARTITIONCOUNT);
             List<Future<Integer>> futureList = new ArrayList<>();
             for (List<Long> p : partition) {
-                Future<Integer> submit = xieChengCollidingCleanLoopCycleThread.submit(() -> deleteContrastData(p));
+                Future<Integer> submit = xieChengCollidingCleanThread.submit(() -> deleteContrastData(p));
                 futureList.add(submit);
             }
             futureFinish(futureList);
@@ -237,19 +246,20 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
     /**
      * 周期数据处理
      *
-     * @param xieChengCollidingCleanLoopCycleThread 线程池
+     * @param xieChengCollidingCleanThread 线程池
      */
-    private void doLoopCycleWork(ThreadPoolExecutor xieChengCollidingCleanLoopCycleThread) {
-        while (true) {
-            List<Long> idLists = xieChengCollidingDataContrastMapper.loopCycleCelltiflash_(100000);
+    private void doLoopCycleWork(ThreadPoolExecutor xieChengCollidingCleanThread) {
+       while(marketingCommonConfig.getXieChengCleanSwitch()) {
+            setThreadCount(xieChengCollidingCleanThread);
+            List<Long> idLists = xieChengCollidingDataContrastMapper.loopCycleCelltiflash_(marketingCommonConfig.getXieChengCleanLimitCount());
             if (idLists.isEmpty()) {
                 break;
             }
             // 多线程删除周期表
-            List<List<Long>> partition = Lists.partition(idLists, 10000);
+            List<List<Long>> partition = Lists.partition(idLists, PARTITIONCOUNT);
             List<Future<Integer>> futureList = new ArrayList<>();
             for (List<Long> p : partition) {
-                Future<Integer> submit = xieChengCollidingCleanLoopCycleThread.submit(() -> deleteLoopCycleData(p));
+                Future<Integer> submit = xieChengCollidingCleanThread.submit(() -> deleteLoopCycleData(p));
                 futureList.add(submit);
             }
             futureFinish(futureList);
@@ -287,13 +297,15 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
      */
     private void xieChengCollidingDataCleanProcess(ThreadPoolExecutor xieChengCollidingCleanThread,
                                                    String tableName, String filterScore, Integer ruleTypeFlag, Long packageId, String splitFilterScore) {
-        while (true) {
-            List<XieChengCollidingDataTemp> cellList = xieChengCollidingDataContrastMapper.temporaryCelltiflash_(tableName, filterScore, 100000);
+       while(marketingCommonConfig.getXieChengCleanSwitch()) {
+            setThreadCount(xieChengCollidingCleanThread);
+            List<XieChengCollidingDataTemp> cellList = xieChengCollidingDataContrastMapper.temporaryCelltiflash_(
+                    tableName, filterScore, marketingCommonConfig.getXieChengCleanLimitCount());
             if (cellList.isEmpty()) {
                 break;
             }
             // 多线程插入对比表
-            List<List<XieChengCollidingDataTemp>> partition = Lists.partition(cellList, 10000);
+            List<List<XieChengCollidingDataTemp>> partition = Lists.partition(cellList, PARTITIONCOUNT);
             List<Future<Integer>> futureList = new ArrayList<>();
             for (List<XieChengCollidingDataTemp> p : partition) {
                 Future<Integer> submit = xieChengCollidingCleanThread.submit(() -> saveDataContrast(p, ruleTypeFlag, packageId, splitFilterScore));
@@ -301,6 +313,11 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
             }
             futureFinish(futureList);
         }
+    }
+
+    private void setThreadCount(ThreadPoolExecutor xieChengCollidingCleanThread) {
+        xieChengCollidingCleanThread.setMaximumPoolSize(marketingCommonConfig.getXieChengCleanThreadCount());
+        xieChengCollidingCleanThread.setCorePoolSize(marketingCommonConfig.getXieChengCleanThreadCount());
     }
 
 
