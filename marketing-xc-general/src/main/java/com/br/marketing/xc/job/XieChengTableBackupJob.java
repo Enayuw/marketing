@@ -102,12 +102,4 @@ public class XieChengTableBackupJob extends AbstractSimpleElasticJob {
         log.warn("TableBackupJob-end-{}",uuid);
     }
 
-    public static void main(String[] args) {
-        LocalDateTime currentTime = LocalDateTime.now();
-        // 获取当前时间
-        String nowString = currentTime.format(YMD);
-        // 获取当前时间前14天
-        String daysAgo14 = currentTime.minusDays(14).format(YMD);
-        System.out.println(daysAgo14);
-    }
 }
