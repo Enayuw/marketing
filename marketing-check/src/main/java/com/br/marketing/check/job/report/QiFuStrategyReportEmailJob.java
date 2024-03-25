@@ -1,5 +1,5 @@
 package com.br.marketing.check.job.report;
-
+/*
 import com.alibaba.excel.EasyExcel;
 import com.br.marketing.check.service.email.IMailService;
 import com.br.marketing.entity.QifuStrategyReportData;
@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
  * @author zhen.Li1
  * @dateTime 2024/03/23 14:07
  */
+/*
 @Component
 @Slf4j
 public class QiFuStrategyReportEmailJob extends AbstractSimpleElasticJob {
@@ -67,3 +68,4 @@ public class QiFuStrategyReportEmailJob extends AbstractSimpleElasticJob {
 
     }
 }
+*/

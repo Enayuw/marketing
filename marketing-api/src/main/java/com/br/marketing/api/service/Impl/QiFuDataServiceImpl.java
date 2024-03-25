@@ -20,9 +20,8 @@ import static com.br.marketing.common.constants.MarketingErrorInfo.SUCCESS;
 
 
 /**
- * @author zhen.Li1
- * @date 2024/3/22 17:57
- * @desc: 360 策略效果数据报表
+ * This is a Javadoc comment
+ * @param <T> the parameter of the class
  */
 @Service
 @Slf4j
@@ -31,6 +30,7 @@ public class QiFuDataServiceImpl implements QiFuDataService {
 
     @Autowired
     private QifuStrategyReportDataMapper qifuStrategyReportDataMapper;
+
 
     @Override
     public ApiNoDataResult strategyReportData(String apiCode, String jsonData) {
@@ -49,7 +49,7 @@ public class QiFuDataServiceImpl implements QiFuDataService {
 
         List deltaParamCheckList = Lists.newArrayList(reportData.getDeltaApplySubmitRate(), reportData.getDeltaApplySubmitCount(),
                 reportData.getDeltaCreditSuccessCount(), reportData.getDeltaCreditSuccessRate());
-        if (reportData.getGroupName().equals("实验组")) {
+        if ("实验组".equals(reportData.getGroupName())) {
             boolean deltaParamNull = deltaParamCheckList.stream().anyMatch(param -> StringUtils.isEmpty(param));
             if (deltaParamNull) {
                 return new ApiNoDataResult().setCode(MarketingErrorInfo.PARAM_ISNULL_ERROR.getErrorCode()).
