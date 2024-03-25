@@ -188,7 +188,11 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
 
         String token = marketingCommonConfig.getXieChengGroupAccessToken();
         String secret = marketingCommonConfig.getXieChengGroupSecret();
-        dingDingRobotHookService.sendMessageGroup(token,
-                secret, dingDingMarkdownMessage, true);
+        try {
+            dingDingRobotHookService.sendMessageGroup(token,
+                    secret, dingDingMarkdownMessage, true);
+        } catch (Exception e) {
+            log.error(text+" 发送钉钉消息失败:"+e.getMessage(),e);
+        }
     }
 }
