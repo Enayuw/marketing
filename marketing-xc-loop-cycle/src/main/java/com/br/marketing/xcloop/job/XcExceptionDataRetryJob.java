@@ -57,7 +57,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
             // 执行重试撞库
             service.process();
         }
-        log.warn("携程异常重试作业，单次运行耗时：{}", System.currentTimeMillis() - start);
+        log.warn("携程异常重试作业，单次运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 
     /**

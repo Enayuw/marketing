@@ -23,6 +23,6 @@ public class XcLoopCycleDataJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         long start = System.currentTimeMillis();
         service.process();
-        log.warn("携程TRUE数据撞库作业，单次运行耗时：{}", System.currentTimeMillis() - start);
+        log.warn("携程TRUE数据撞库作业，单次运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 }
