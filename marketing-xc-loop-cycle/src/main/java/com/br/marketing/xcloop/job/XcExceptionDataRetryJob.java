@@ -10,6 +10,7 @@ import com.br.marketing.entity.XieChengCollidingDataRobExample;
 import com.br.marketing.mapper.XieChengCollidingDataLogMapper;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
+import com.br.marketing.service.Impl.VariableAllocationServiceImpl;
 import com.br.marketing.service.Impl.xc.XcExceptionDataRetryService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -48,6 +49,8 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
 
     @Resource
     XieChengCollidingDataLogMapper logMapper;
+    @Resource
+    private VariableAllocationServiceImpl variableAllocationService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
@@ -88,7 +91,10 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
     }
 
 
-    // 判断是否需要打开条件开关
+    /**
+     * 判断是否需要打开条件开关
+     * @return true:是，false：否
+     */
     private boolean isShutDownConditionSwitch() {
         if (hasOverCountOfCode() || isOverCountOfTrue() || isOverCountOfRetry()) {
             return true;
@@ -98,8 +104,11 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         return false;
     }
 
+    /**
+     * 查log表是否存在：create_time=当天且business_code=707
+     * @return true:是，false：否
+     */
     private boolean hasOverCountOfCode() {
-        // 查log表是否存在：create_time=当天且business_code=707
         Date today = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
         XieChengCollidingDataLogExample logExample = new XieChengCollidingDataLogExample();
         logExample.createCriteria().andIsDeleteEqualTo(0)
@@ -116,10 +125,12 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         return b;
     }
 
+    /**
+     * 查TRUE表当天撞回量级是否超限（500w）
+     * @return true:是，false：否
+     */
     private boolean isOverCountOfTrue() {
-        // 查TRUE表当天撞回量级是否超限（500w）
-        // todo 广绣提供
-        Integer trueDataThresholdSize = 5000000;
+        Integer trueDataThresholdSize = variableAllocationService.getVariableAllocation().getNormalQuantity();
 
         LocalDate start = LocalDate.now();
         LocalDate end = LocalDate.now().plusDays(1);
@@ -142,10 +153,12 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         return b;
     }
 
+    /**
+     * 查询堆积量级是否超限（10w）pushTime是当天
+     * @return true:是，false：否
+     */
     private boolean isOverCountOfRetry() {
-        // 查询堆积量级是否超限（10w）pushTime是当天
-        // todo 广绣提供
-        Integer retryThresholdSize = 100000;
+        Integer retryThresholdSize = variableAllocationService.getVariableAllocation().getAbnormalQuantity();
         LocalDate start = LocalDate.now();
         LocalDate end = LocalDate.now().plusDays(1);
         Date pushTimeStart = Date.from(start.atStartOfDay(ZoneId.systemDefault()).toInstant());

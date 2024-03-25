@@ -92,7 +92,9 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
                         marketingCommonConfig.getXieChengSmsCollidingRetryWarnAllTime().get(3));
     }
 
-    // 查retry_count=4，查全表不只查当天
+    /**
+     * 查retry_count=4，查全表不只查当天
+     */
     private void sendAlarmByRetryCountOfFour() {
         XieChengCollidingDataLoopCycleExample cycleExample = new XieChengCollidingDataLoopCycleExample();
         cycleExample.createCriteria().andRetryCountEqualTo(4);
