@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
@@ -106,14 +107,18 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
 
     /**
      * 查log表是否存在：create_time=当天且business_code=707
+     * 从当天00:10开始查询，防止日志记录mq跨天消费
      * @return true:是，false：否
      */
     private boolean hasOverCountOfCode() {
-        Date today = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+        // 获取当天的00:10
+        LocalDateTime localDateTime = LocalDate.now().atTime(0, 10, 0);
+        Date createTimeStart = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+
         XieChengCollidingDataLogExample logExample = new XieChengCollidingDataLogExample();
         logExample.createCriteria().andIsDeleteEqualTo(0)
                 .andBusinessCodeEqualTo(707)
-                .andCreateTimeGreaterThanOrEqualTo(today);
+                .andCreateTimeGreaterThanOrEqualTo(createTimeStart);
         int overCount = logMapper.countByExample(logExample);
 
         boolean b = overCount > 0;

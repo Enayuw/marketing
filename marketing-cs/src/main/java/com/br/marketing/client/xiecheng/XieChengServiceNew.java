@@ -169,6 +169,10 @@ public class XieChengServiceNew {
         LocalDateTime endOfDay = now.with(LocalTime.MAX);
         // 计算当前时间至23:59:59的秒数
         int secondsUntilEndOfDay = (int)ChronoUnit.SECONDS.between(now, endOfDay);
-        redisChgService.setex(RedisKeyConstant.XIECHENG_CONDITIONSWITCH, "false",secondsUntilEndOfDay);
+        try {
+            redisChgService.setex(RedisKeyConstant.XIECHENG_CONDITIONSWITCH, "false",secondsUntilEndOfDay);
+        } catch (Exception e) {
+            log.error("携程数据撞库，关闭redis条件开关失败:" + e.getMessage(), e);
+        }
     }
 }
