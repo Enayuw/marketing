@@ -51,11 +51,13 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
+        long start = System.currentTimeMillis();
         // 判断强制开启撞库开关
         if (marketingCommonConfig.getXieChengForceOpenSwitch() || canOpenConditionSwitch()) {
             // 执行重试撞库
             service.process();
         }
+        log.warn("携程异常重试作业，单次运行耗时：{}", System.currentTimeMillis() - start);
     }
 
     /**
