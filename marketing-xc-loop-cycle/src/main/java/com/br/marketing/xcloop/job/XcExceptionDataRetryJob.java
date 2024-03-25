@@ -130,6 +130,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         if (b) {
             String msg = "携程撞库暂停通知!今天撞得总量级已超过设定阈值：" + trueDataThresholdSize;
             service.sendDingDingAlert("携程撞库暂停通知", msg);
+            log.error(msg);
         }
         return b;
     }
@@ -155,6 +156,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         if (b) {
             String msg = "携程撞库暂停通知!今天异常数据堆积总量级已超过设定阈值：" + retryThresholdSize;
             service.sendDingDingAlert("携程撞库暂停通知", msg);
+            log.error(msg);
         }
         return b;
     }
