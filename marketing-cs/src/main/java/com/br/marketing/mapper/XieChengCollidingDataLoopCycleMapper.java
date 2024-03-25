@@ -30,7 +30,8 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
      * @param pageSize
      * @return
      */
-    List<XieChengCollidingDataLoopCycle> selectCycleByRetryCount(@Param("minId") Long minId, @Param("isLast") Boolean isLast,@Param("pageSize") Integer pageSize);
+    List<XieChengCollidingDataLoopCycle> selectCycleByRetryCount(@Param("minId") Long minId
+            , @Param("isLast") Boolean isLast,@Param("pageSize") Integer pageSize);
 
     /**
      * 查询待撞数据：is_delete = 0 and retry_count = 0 and release_time<now()
@@ -39,7 +40,8 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
      * @param pageSize
      * @return
      */
-    List<XieChengCollidingDataLoopCycle> selectCycleDataByReleaseTime(@Param("minId") Long minId, @Param("releaseTime") Date releaseTime,@Param("pageSize") Integer pageSize);
+    List<XieChengCollidingDataLoopCycle> selectCycleDataByReleaseTime(@Param("minId") Long minId, @Param("releaseTime") Date releaseTime
+            ,@Param("pageSize") Integer pageSize);
 
     /**
      * 更新重试次数：retry_count = retry_count + 1,update_time = now(),push_time = now()
