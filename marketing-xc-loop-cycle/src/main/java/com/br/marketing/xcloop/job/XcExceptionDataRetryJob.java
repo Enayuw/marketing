@@ -97,7 +97,6 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
 
     private boolean getOverCountOfCode() {
         // 查log表是否存在：create_time=当天且business_code=707
-        // todo createtime 索引
         Date today = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
         XieChengCollidingDataLogExample logExample = new XieChengCollidingDataLogExample();
         logExample.createCriteria().andIsDeleteEqualTo(0).andBusinessCodeEqualTo(707).andCreateTimeGreaterThanOrEqualTo(today);
@@ -105,7 +104,9 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
 
         boolean b = overCount > 0;
         if (b) {
-            service.sendDingDingAlert("携程撞库暂停通知", "code返回707");
+            String msg = "携程撞库暂停通知!code返回707";
+            service.sendDingDingAlert("携程撞库暂停通知", msg);
+            log.error(msg);
         }
         return b;
     }
@@ -127,7 +128,8 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
 
         boolean b = trueDataCount >= trueDataThresholdSize;
         if (b) {
-            service.sendDingDingAlert("携程撞库暂停通知", "今天撞得总量级已超过设定阈值：" + trueDataThresholdSize);
+            String msg = "携程撞库暂停通知!今天撞得总量级已超过设定阈值：" + trueDataThresholdSize;
+            service.sendDingDingAlert("携程撞库暂停通知", msg);
         }
         return b;
     }
@@ -151,7 +153,8 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
 
         boolean b = cycleCount + robCount >= retryThresholdSize;
         if (b) {
-            service.sendDingDingAlert("携程撞库暂停通知", "今天异常重试数据总量级已超过设定阈值：" + retryThresholdSize);
+            String msg = "携程撞库暂停通知!今天异常数据堆积总量级已超过设定阈值：" + retryThresholdSize;
+            service.sendDingDingAlert("携程撞库暂停通知", msg);
         }
         return b;
     }
