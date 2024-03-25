@@ -174,7 +174,8 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
     private void splitRobData(ThreadPoolExecutor xieChengCollidingCleanThread) {
        while(marketingCommonConfig.getXieChengCleanSwitch()) {
             setThreadCount(xieChengCollidingCleanThread);
-            List<XieChengCollidingDataContrast> idLists = xieChengCollidingDataContrastMapper.robCelltiflash_(marketingCommonConfig.getXieChengCleanLimitCount());
+            List<XieChengCollidingDataContrast> idLists =
+                    xieChengCollidingDataContrastMapper.robCelltiflash_(marketingCommonConfig.getXieChengCleanLimitCount());
             if (idLists.isEmpty()) {
                 break;
             }
@@ -299,8 +300,8 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
                                                    String tableName, String filterScore, Integer ruleTypeFlag, Long packageId, String splitFilterScore) {
        while(marketingCommonConfig.getXieChengCleanSwitch()) {
             setThreadCount(xieChengCollidingCleanThread);
-            List<XieChengCollidingDataTemp> cellList = xieChengCollidingDataContrastMapper.temporaryCelltiflash_(
-                    tableName, filterScore, marketingCommonConfig.getXieChengCleanLimitCount());
+            List<XieChengCollidingDataTemp> cellList = xieChengCollidingDataContrastMapper.temporaryCelltiflash_(tableName, filterScore,
+                    marketingCommonConfig.getXieChengCleanLimitCount());
             if (cellList.isEmpty()) {
                 break;
             }
