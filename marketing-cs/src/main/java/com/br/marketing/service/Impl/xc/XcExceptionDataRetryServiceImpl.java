@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl.xc;
 
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
@@ -112,12 +111,15 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
         }
     }
 
+    /**
+     * 处理TRUE表数据重试
+     * @param threadPool
+     * @param isLast
+     * @param pageSize
+     */
     private void processByTrue(ThreadPoolExecutor threadPool, Boolean isLast, Integer pageSize) {
         Long minId = null;
-        while (true) {
-            if (cycleDataService.stop()) {
-                break;
-            }
+        while (cycleDataService.canStart()) {
             List<XieChengCollidingDataLoopCycle> dataList = loopCycleMapper.selectCycleByRetryCount(minId, isLast, pageSize);
             if (CollectionUtils.isEmpty(dataList)) {
                 break;
@@ -132,12 +134,15 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
         }
     }
 
+    /**
+     * 处理FALSE表数据重试
+     * @param threadPool
+     * @param isLast
+     * @param pageSize
+     */
     private void processByFalse(ThreadPoolExecutor threadPool, Boolean isLast, Integer pageSize) {
         Long minId = null;
-        while (true) {
-            if (cycleDataService.stop()) {
-                break;
-            }
+        while (cycleDataService.canStart()) {
             List<XieChengCollidingDataRob> dataList = robMapper.selectRobByRetryCount(minId, isLast, pageSize);
             if (CollectionUtils.isEmpty(dataList)) {
                 break;

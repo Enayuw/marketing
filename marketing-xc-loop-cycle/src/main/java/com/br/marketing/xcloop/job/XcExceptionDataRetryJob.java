@@ -74,8 +74,9 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         String redisSwitch;
         try {
             redisSwitch = redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH);
+            log.warn("携程异常数据重试撞库，条件开关状态：{}", redisSwitch);
         } catch (Exception e) {
-            log.error("携程TRUE数据撞库，获取redis条件开关失败:" + e.getMessage(), e);
+            log.error("携程异常数据重试撞库，获取redis条件开关失败:" + e.getMessage(), e);
             return false;
         }
 

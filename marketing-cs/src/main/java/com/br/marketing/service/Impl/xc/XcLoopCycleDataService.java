@@ -9,8 +9,8 @@ public interface XcLoopCycleDataService extends DataCollidingService<XieChengCol
     void process();
 
     /**
-     * 是否暂停撞库
+     * 是否开启撞库
      * @return
      */
-    boolean stop();
+    boolean canStart();
 }

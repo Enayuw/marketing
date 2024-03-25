@@ -205,11 +205,7 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         Integer pageSize = marketingCommonConfig.getXiechengCollidingPageSize();
 
         Long minId = null;
-        while (true) {
-            if (stop()) {
-                break;
-            }
-
+        while (canStart()) {
             List<XieChengCollidingDataLoopCycle> list = dataLoopCycleMapper.selectCycleDataByReleaseTime(minId, new Date(), pageSize);
             if (CollectionUtils.isEmpty(list)) {
                 break;
@@ -250,11 +246,11 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
     }
 
     /**
-     * 是否暂停撞库
+     * 是否开启撞库
      * @return true:是。false:否
      */
     @Override
-    public boolean stop() {
+    public boolean canStart() {
         // 获取强制开关
         Boolean forceOpenSwitch = marketingCommonConfig.getXieChengForceOpenSwitch();
         // 获取条件开关，异常报警
@@ -263,12 +259,12 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
             redisSwitch = redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH);
         } catch (Exception e) {
             log.error("携程TRUE数据撞库，获取redis条件开关失败:" + e.getMessage(), e);
-            return true;
+            return false;
         }
 
         Boolean conditionSwitch = "true".equalsIgnoreCase(redisSwitch);
         // 终止条件：强制开关关闭 且 条件开关关闭
-        if (!forceOpenSwitch && !conditionSwitch) {
+        if (forceOpenSwitch || conditionSwitch) {
             return true;
         }
 
