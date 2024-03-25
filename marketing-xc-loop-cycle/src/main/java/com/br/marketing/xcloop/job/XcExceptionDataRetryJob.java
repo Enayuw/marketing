@@ -90,7 +90,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
 
     // 判断是否需要打开条件开关
     private boolean isShutDownConditionSwitch() {
-        if (getOverCountOfCode() || getOverCountOfTrue() || getOverCountOfRetry()) {
+        if (hasOverCountOfCode() || isOverCountOfTrue() || isOverCountOfRetry()) {
             return true;
         }
 
@@ -98,11 +98,13 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         return false;
     }
 
-    private boolean getOverCountOfCode() {
+    private boolean hasOverCountOfCode() {
         // 查log表是否存在：create_time=当天且business_code=707
         Date today = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
         XieChengCollidingDataLogExample logExample = new XieChengCollidingDataLogExample();
-        logExample.createCriteria().andIsDeleteEqualTo(0).andBusinessCodeEqualTo(707).andCreateTimeGreaterThanOrEqualTo(today);
+        logExample.createCriteria().andIsDeleteEqualTo(0)
+                .andBusinessCodeEqualTo(707)
+                .andCreateTimeGreaterThanOrEqualTo(today);
         int overCount = logMapper.countByExample(logExample);
 
         boolean b = overCount > 0;
@@ -114,7 +116,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         return b;
     }
 
-    private boolean getOverCountOfTrue() {
+    private boolean isOverCountOfTrue() {
         // 查TRUE表当天撞回量级是否超限（500w）
         // todo 广绣提供
         Integer trueDataThresholdSize = 5000000;
@@ -126,7 +128,9 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
 
         // pushTime是当天
         XieChengCollidingDataLoopCycleExample cycleExample = new XieChengCollidingDataLoopCycleExample();
-        cycleExample.createCriteria().andIsDeleteEqualTo(0).andPushTimeGreaterThanOrEqualTo(pushTimeStart).andPushTimeLessThan(pushTimeEnd);
+        cycleExample.createCriteria()
+                .andIsDeleteEqualTo(0)
+                .andPushTimeGreaterThanOrEqualTo(pushTimeStart).andPushTimeLessThan(pushTimeEnd);
         int trueDataCount = loopCycleMapper.countByExample(cycleExample);
 
         boolean b = trueDataCount >= trueDataThresholdSize;
@@ -138,7 +142,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         return b;
     }
 
-    private boolean getOverCountOfRetry() {
+    private boolean isOverCountOfRetry() {
         // 查询堆积量级是否超限（10w）pushTime是当天
         // todo 广绣提供
         Integer retryThresholdSize = 100000;
@@ -148,11 +152,15 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         Date pushTimeEnd = Date.from(end.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
         XieChengCollidingDataLoopCycleExample loopCycleExample = new XieChengCollidingDataLoopCycleExample();
-        loopCycleExample.createCriteria().andIsDeleteEqualTo(0).andRetryCountGreaterThan(0).andPushTimeGreaterThanOrEqualTo(pushTimeStart).andPushTimeLessThan(pushTimeEnd);
+        loopCycleExample.createCriteria().andIsDeleteEqualTo(0)
+                .andRetryCountGreaterThan(0)
+                .andPushTimeGreaterThanOrEqualTo(pushTimeStart).andPushTimeLessThan(pushTimeEnd);
         int cycleCount = loopCycleMapper.countByExample(loopCycleExample);
 
         XieChengCollidingDataRobExample robExample = new XieChengCollidingDataRobExample();
-        robExample.createCriteria().andIsDeleteEqualTo(0).andRetryCountGreaterThan(0).andPushTimeGreaterThanOrEqualTo(pushTimeStart).andPushTimeLessThan(pushTimeEnd);
+        robExample.createCriteria().andIsDeleteEqualTo(0)
+                .andRetryCountGreaterThan(0)
+                .andPushTimeGreaterThanOrEqualTo(pushTimeStart).andPushTimeLessThan(pushTimeEnd);
         int robCount = robMapper.countByExample(robExample);
 
         boolean b = cycleCount + robCount >= retryThresholdSize;

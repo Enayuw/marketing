@@ -124,8 +124,10 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
      */
     private void trueHandle(JSONArray returnDataList, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
         List<XieChengCollidingDataLoopCycle> trueList =
-                returnDataList.stream().map(t -> (JSONObject) t).filter(t -> t.getBoolean("result").equals(Boolean.TRUE)).map(t -> buildTrueDataDto(t, cellMaps)).collect(Collectors.toList());
-        trueList.forEach(t -> dataLoopCycleMapper.updateByPrimaryKeySelective(t));
+                returnDataList.stream().map(t -> (JSONObject) t)
+                        .filter(t -> t.getBoolean("result").equals(Boolean.TRUE))
+                        .map(t -> buildTrueDataDto(t, cellMaps)).collect(Collectors.toList());
+        trueList.forEach((XieChengCollidingDataLoopCycle t) -> dataLoopCycleMapper.updateByPrimaryKeySelective(t));
     }
 
     /**
@@ -135,12 +137,14 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
      */
     private void falseHandle(JSONArray returnDataList, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
         List<XieChengCollidingDataLoopCycle> falseList =
-                returnDataList.stream().map(t -> (JSONObject) t).filter(t -> t.getBoolean("result").equals(Boolean.FALSE)).map(t -> buildFalseDataDto(t, cellMaps)).collect(Collectors.toList());
+                returnDataList.stream().map(t -> (JSONObject) t)
+                        .filter(t -> t.getBoolean("result").equals(Boolean.FALSE))
+                        .map(t -> buildFalseDataDto(t, cellMaps)).collect(Collectors.toList());
 
         // 设置packageId为package表优先级为0的id
         Long packageId = getPackageId();
 
-        falseList.forEach(t -> {
+        falseList.forEach((XieChengCollidingDataLoopCycle t) -> {
             try {
                 handleService.cycleDataHandle(t, packageId);
             } catch (Exception e) {
@@ -160,11 +164,10 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
     private XieChengCollidingDataLoopCycle buildTrueDataDto(JSONObject t, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
         XieChengCollidingDataLoopCycle dto = new XieChengCollidingDataLoopCycle();
         String sha256Code = t.getString("sha256Code");
-        XieChengCollidingDataLoopCycle loopCycle = null;
-        try {
-            loopCycle = cellMaps.get(sha256Code);
-        } catch (NullPointerException e) {
+        XieChengCollidingDataLoopCycle loopCycle = cellMaps.get(sha256Code);
+        if (loopCycle == null) {
             log.error("携程TRUE数据撞库，返回未知sha256Code：{}，result=true", sha256Code);
+            return new XieChengCollidingDataLoopCycle();
         }
 
         dto.setId(loopCycle.getId());
@@ -182,11 +185,10 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
     private XieChengCollidingDataLoopCycle buildFalseDataDto(JSONObject t, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
         XieChengCollidingDataLoopCycle dto = new XieChengCollidingDataLoopCycle();
         String sha256Code = t.getString("sha256Code");
-        XieChengCollidingDataLoopCycle loopCycle = null;
-        try {
-            loopCycle = cellMaps.get(sha256Code);
-        } catch (NullPointerException e) {
+        XieChengCollidingDataLoopCycle loopCycle = cellMaps.get(sha256Code);
+        if (loopCycle == null) {
             log.error("携程TRUE数据撞库，返回未知sha256Code：{}，result=false", sha256Code);
+            return new XieChengCollidingDataLoopCycle();
         }
 
         dto.setId(loopCycle.getId());

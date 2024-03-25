@@ -48,6 +48,7 @@ public class MarketingXcLoopCycleApplication {
             Thread.sleep(4500L);
             BrGrpcUtils.shutDown();
         } catch (Exception e) {
+            Thread.currentThread().interrupt();
             log.error("GRPC服务关闭异常", e);
         }
     }
