@@ -40,6 +40,7 @@ public class XieChengCollidingResultHandleService {
     public void cycleDataHandle(XieChengCollidingDataLoopCycle loopCycleDto, Long packageId) {
         // 更新true数据表
         loopCycleDto.setIsDelete(1);
+        loopCycleDto.setPushTime(new Date());
         xieChengCollidingDataLoopCycleMapper.updateByPrimaryKeySelective(loopCycleDto);
 
         // 插入false数据表

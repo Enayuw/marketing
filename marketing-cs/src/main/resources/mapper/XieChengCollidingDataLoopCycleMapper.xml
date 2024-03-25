@@ -68,7 +68,7 @@
     </update>
 
     <update id="updateBatchByIdOfRetryCount" parameterType="java.util.List">
-        update b_xiecheng_colliding_data_loop_cycle set retry_count = retry_count + 1,update_time = now() where id in
+        update b_xiecheng_colliding_data_loop_cycle set retry_count = retry_count + 1,update_time = now(),push_time = now() where id in
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>

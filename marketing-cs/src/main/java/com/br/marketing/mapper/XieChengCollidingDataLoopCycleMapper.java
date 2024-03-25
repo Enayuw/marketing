@@ -42,7 +42,7 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
     List<XieChengCollidingDataLoopCycle> selectCycleDataByReleaseTime(@Param("minId") Long minId, @Param("releaseTime") Date releaseTime,@Param("pageSize") Integer pageSize);
 
     /**
-     * 更新重试次数
+     * 更新重试次数：retry_count = retry_count + 1,update_time = now(),push_time = now()
      * @param ids
      * @return
      */
