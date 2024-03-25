@@ -120,6 +120,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
 
     public void initializeTodayReleaseTime(String key) {
         List<Map<String, Object>> perMinuteCounts = xieChengCollidingDataLoopCycleMapper.selectPerMinuteCounts();
+        redisChgService.del(key);
         perMinuteCounts.forEach((Map<String, Object> perMinuteCount) -> redisChgService.hset(key, String.valueOf(perMinuteCount.get("releaseTime")),
             String.valueOf(perMinuteCount.get("counts"))));
     }
