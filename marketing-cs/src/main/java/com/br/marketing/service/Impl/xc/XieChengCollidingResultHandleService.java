@@ -81,6 +81,7 @@ public class XieChengCollidingResultHandleService {
                 } else {
                     robData.setPushTime(new Date());
                     robData.setRetryCount(0);
+                    robData.setUpdateTime(new Date());
                     xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
                 }
                 collidingLogs.add(xieChengCollidingDataLogService.buildSuccessXieChengCollidingDataLog(robData.getId(), robData.getPackageId(),
@@ -118,6 +119,7 @@ public class XieChengCollidingResultHandleService {
         robData.setIsDelete(1);
         robData.setRetryCount(0);
         robData.setPushTime(new Date());
+        robData.setUpdateTime(new Date());
         xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
     }
 
