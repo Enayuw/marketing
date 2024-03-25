@@ -52,11 +52,14 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
                 BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingRetryThread(),
                         marketingCommonConfig.getXieChengSmsCollidingRetryThread());
 
+        // 分页大小
         Integer pageSize = marketingCommonConfig.getXiechengCollidingPageSize();
-        // 先撞重试次数1和2的数据。先撞TRUE 再撞FALSE
+
+        // 先撞重试次数1和2的数据。先撞TRUE 再撞FALSE。
         processByTrue(threadPool, false, pageSize);
         processByFalse(threadPool, false, pageSize);
-        // 再撞重试次数3的数据。先撞TRUE 再撞FALSE
+
+        // 到时间再撞重试次数3的数据。先撞TRUE 再撞FALSE。
         if (isLastTime()) {
             processByTrue(threadPool, true, pageSize);
             processByFalse(threadPool, true, pageSize);
@@ -90,6 +93,16 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
                 TimeUtils.timeCompare(
                         marketingCommonConfig.getXieChengSmsCollidingRetryWarnAllTime().get(2),
                         marketingCommonConfig.getXieChengSmsCollidingRetryWarnAllTime().get(3));
+    }
+
+    /**
+     * 修改线程池大小
+     * @param pool
+     */
+    private void modifyThreadPool(ThreadPoolExecutor pool) {
+        Integer threadNum = marketingCommonConfig.getXieChengSmsCollidingRetryThread();
+        pool.setCorePoolSize(threadNum);
+        pool.setMaximumPoolSize(threadNum);
     }
 
     /**
@@ -128,6 +141,9 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
             }
             minId = dataList.get(dataList.size() - 1).getId();
 
+            // 修改线程池大小
+            modifyThreadPool(threadPool);
+
             // 分组
             List<List<XieChengCollidingDataLoopCycle>> partitions = Lists.partition(dataList, PARTATIONNUM);
             for (List<XieChengCollidingDataLoopCycle> partition : partitions) {
@@ -150,6 +166,9 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
                 break;
             }
             minId = dataList.get(dataList.size() - 1).getId();
+
+            // 修改线程池大小
+            modifyThreadPool(threadPool);
 
             // 分组
             List<List<XieChengCollidingDataRob>> partitions = Lists.partition(dataList, PARTATIONNUM);
