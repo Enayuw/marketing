@@ -30,27 +30,26 @@
                                ) a  where a.rn >1
     </select>
 
-    <select id="temporaryCellCounttiflash_" resultType="java.lang.Integer">
-        select count(1) from  ${tableName} a left join b_xiecheng_colliding_data_contrast b
-                                                   on a.cell  = b.cell_sha256_code_list and b.is_delete = 0 where ${filterScore}
-                                                                                                              and b.id is null
-
-    </select>
-
     <select id="loopCycleCelltiflash_" resultType="java.lang.Long">
         select a.id  from  b_xiecheng_colliding_data_loop_cycle a left join b_xiecheng_colliding_data_contrast b
                     on a.cell_sha256_code_list  = b.cell_sha256_code_list and b.is_delete = 0
                    where   b.id is null and a.is_delete =0    limit #{xieChengCleanCount}
     </select>
     <select id="loopCycleCellExisttiflash_" resultType="java.lang.Long">
-        select  b.id from  b_xiecheng_colliding_data_loop_cycle a  join b_xiecheng_colliding_data_contrast b
+        select  a.id from  b_xiecheng_colliding_data_rob a  join b_xiecheng_colliding_data_loop_cycle b
                                                                           on a.cell_sha256_code_list  = b.cell_sha256_code_list and b.is_delete = 0
         where a.is_delete =0 limit #{xieChengCleanCount}
     </select>
-    <select id="robCelltiflash_" resultType="java.lang.Long">
+    <select id="contrastExistCelltiflash_" resultType="java.lang.Long">
+            select a.id from  b_xiecheng_colliding_data_contrast a   join b_xiecheng_colliding_data_rob b
+                                                                              on a.cell_sha256_code_list  = b.cell_sha256_code_list and b.is_delete = 0
+            where a.is_delete =0 limit #{xieChengCleanCount}
+    </select>
+
+    <select id="robCelltiflash_" resultType="com.br.marketing.entity.XieChengCollidingDataContrast">
         select a.* from  b_xiecheng_colliding_data_contrast a left   join b_xiecheng_colliding_data_rob b
                                                                         on a.cell_sha256_code_list  = b.cell_sha256_code_list and b.is_delete = 0
-        where a.is_delete =0 limit #{xieChengCleanCount}
+        where a.is_delete =0 and b.id is null limit #{xieChengCleanCount}
     </select>
 
     <insert id="saveBatch" parameterType="list">

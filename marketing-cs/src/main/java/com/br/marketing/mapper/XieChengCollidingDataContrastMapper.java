@@ -28,8 +28,6 @@ public interface XieChengCollidingDataContrastMapper extends XieChengCollidingDa
                                                           @Param("xieChengCleanLimitCount") Integer xieChengCleanLimitCount);
     List<Map<String,String>> temporaryCellCountRepeattiflash_(@Param("tableName") String tableName);
 
-    int temporaryCellCounttiflash_(@Param("tableName") String tableName,
-                                   @Param("filterScore") String filterScore);
     /**
      * 查询周期数据不在对比表的数据
      *
@@ -52,6 +50,14 @@ public interface XieChengCollidingDataContrastMapper extends XieChengCollidingDa
      * @return
      */
     List<Long> loopCycleCellExisttiflash_(@Param("xieChengCleanCount") Integer xieChengCleanCount);
+
+    /**
+     * 查询对比表中存在false 的数据
+     *
+     * @param xieChengCleanCount
+     * @return
+     */
+    List<Long> contrastExistCelltiflash_(@Param("xieChengCleanCount") Integer xieChengCleanCount);
 
 
     /**

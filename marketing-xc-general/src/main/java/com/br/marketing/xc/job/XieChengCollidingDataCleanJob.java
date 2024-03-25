@@ -19,7 +19,6 @@ import javax.annotation.Resource;
  * @Date 2022/2/16 10:02 AM
  *  {
  *       "temporary_table": "临时表名",
- *       "filter_score":"过滤分数表达式",
  *       "loop_cycle_switch": "是否处理周期数据：true 处理，false:不处理",
  *       "rob_switch": "是否处理非周期数据：true 处理，false:不处理",
  *       "package_rule_info": [
@@ -62,9 +61,11 @@ public class XieChengCollidingDataCleanJob extends AbstractSimpleElasticJob {
         //  4.1= 将非周期中的数据做删除处理，将非周期中的package_id 做删除处理
         //  4.2= 将对比表中的数据插入到非周期表中，并同时生成package 信息
         String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
+        log.warn("携程清洗开始：{}",System.currentTimeMillis());
         if (StringUtils.isNotBlank(jobParameter)) {
             xieChengCollidingDataCleanService.process(jobParameter);
         }
+        log.warn("携程清洗结束:{}",System.currentTimeMillis());
     }
 }
 
