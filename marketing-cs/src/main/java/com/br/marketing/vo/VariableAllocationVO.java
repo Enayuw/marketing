@@ -15,6 +15,9 @@ public class VariableAllocationVO {
     @ApiModelProperty(value = "配置类型")
     private String allocationType;
 
+    @ApiModelProperty(value = "配置值")
+    private String allocationValue;
+
     @ApiModelProperty(value = "撞得总量级")
     private Integer normalQuantity;
 
@@ -55,35 +58,43 @@ public class VariableAllocationVO {
         this.allocationType = allocationType;
     }
 
-    public int getNormalQuantity() {
+    public String getAllocationValue() {
+        return allocationValue;
+    }
+
+    public void setAllocationValue(String allocationValue) {
+        this.allocationValue = allocationValue;
+    }
+
+    public Integer getNormalQuantity() {
         return normalQuantity;
     }
 
-    public void setNormalQuantity(int normalQuantity) {
+    public void setNormalQuantity(Integer normalQuantity) {
         this.normalQuantity = normalQuantity;
     }
 
-    public int getAbnormalQuantity() {
+    public Integer getAbnormalQuantity() {
         return abnormalQuantity;
     }
 
-    public void setAbnormalQuantity(int abnormalQuantity) {
+    public void setAbnormalQuantity(Integer abnormalQuantity) {
         this.abnormalQuantity = abnormalQuantity;
     }
 
-    public int getReleaseTimeNum() {
+    public Integer getReleaseTimeNum() {
         return releaseTimeNum;
     }
 
-    public void setReleaseTimeNum(int releaseTimeNum) {
+    public void setReleaseTimeNum(Integer releaseTimeNum) {
         this.releaseTimeNum = releaseTimeNum;
     }
 
-    public int getFalseNum() {
+    public Integer getFalseNum() {
         return falseNum;
     }
 
-    public void setFalseNum(int falseNum) {
+    public void setFalseNum(Integer falseNum) {
         this.falseNum = falseNum;
     }
 
@@ -101,6 +112,7 @@ public class VariableAllocationVO {
                 "id=" + id +
                 ", apiCode='" + apiCode + '\'' +
                 ", allocationType='" + allocationType + '\'' +
+                ", allocationValue='" + allocationValue + '\'' +
                 ", normalQuantity=" + normalQuantity +
                 ", abnormalQuantity=" + abnormalQuantity +
                 ", releaseTimeNum=" + releaseTimeNum +
