@@ -56,38 +56,35 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
 
 
     @Override
-    public PageResultReturn getVariableList(VariableAllocationDTO dto) {
-        PageHelper.startPage(dto.getCurrent(), dto.getSize());
+    public VariableAllocationVO getVariableList(VariableAllocationDTO dto) {
         String apiCode = dto.getApiCode();
         String allocationType = dto.getAllocationType();
         try {
-            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            // 格式化当前日期时间
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             LocalDateTime currentTime = LocalDateTime.now();
-            String now = currentTime.format(formatter);
-            Date date = "".equals(dto.getRequestTime()) ? outputFormat.parse(now) : outputFormat.parse(dto.getRequestTime());
-            List<VariableAllocation> variableList = variableAllocationMapper.getVariableList(apiCode, allocationType);
-            ArrayList<VariableAllocationVO> arrayList = new ArrayList<>();
-            for (VariableAllocation variabl : variableList) {
-                VariableAllocationVO allocationVO = new VariableAllocationVO();
-                String allocationValue = variabl.getAllocationValue();
+            String nowTime = currentTime.format(formatter);
+            LocalDateTime time = LocalDateTime.parse(dto.getRequestTime(), formatter);
+            String requestTime = time.format(formatter);
+            String date = "".equals(dto.getRequestTime()) ? nowTime : requestTime;
+
+            VariableAllocation variableList = variableAllocationMapper.getVariableList(apiCode, allocationType);
+            VariableAllocationVO allocationVO = new VariableAllocationVO();
+            if (ObjectUtil.isNotEmpty(variableList)) {
+                String allocationValue = variableList.getAllocationValue();
                 JSONObject jsonObject = JSON.parseObject(allocationValue);
                 int normalQuantity =  jsonObject.getInteger("trueDataThresholdSize");
                 int abnormalQuantity = jsonObject.getInteger("retryThresholdSize");
                 int releaseTimeNum = variableAllocationMapper.getVariableAllocationVO(date);
                 int falseNum = normalQuantity - releaseTimeNum;
-                allocationVO.setId(variabl.getId().longValue());
-                allocationVO.setApiCode(variabl.getApiCode());
-                allocationVO.setAllocationType(variabl.getAllocationType());
+                allocationVO.setId(variableList.getId().longValue());
+                allocationVO.setApiCode(variableList.getApiCode());
+                allocationVO.setAllocationType(variableList.getAllocationType());
                 allocationVO.setNormalQuantity(normalQuantity);
                 allocationVO.setAbnormalQuantity(abnormalQuantity);
                 allocationVO.setReleaseTimeNum(releaseTimeNum);
                 allocationVO.setFalseNum(falseNum);
-                arrayList.add(allocationVO);
             }
-
-            return PageResultReturn.setPageResult(arrayList, dto.getCurrent(), dto.getSize());
+            return allocationVO;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

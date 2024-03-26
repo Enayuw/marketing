@@ -19,7 +19,7 @@ public interface VariableAllocationService {
      * @param dto
      * @return
      */
-    PageResultReturn getVariableList(VariableAllocationDTO dto);
+    VariableAllocationVO getVariableList(VariableAllocationDTO dto);
 
     /**
      * 更新定制化配置

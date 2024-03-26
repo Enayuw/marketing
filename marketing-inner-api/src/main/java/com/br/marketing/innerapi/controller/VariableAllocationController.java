@@ -36,12 +36,8 @@ public class VariableAllocationController {
     @PostMapping("/getVariableList")
     @ApiOperation(value = "配置列表", notes = "配置列表", httpMethod = "GET")
     @AddDataAuthBusiness
-    public ApiResult<PageResultReturn> getVariableList(@RequestBody VariableAllocationDTO dto) {
-        PageResultReturn listPage = variableAllocationService.getVariableList(dto);
-        if (listPage != null) {
-            return new ApiResult<PageResultReturn>().success(listPage);
-        }
-        return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
+    public ApiResult<VariableAllocationVO> getVariableList(@RequestBody VariableAllocationDTO dto) {
+        return new ApiResult<VariableAllocationVO>().success(variableAllocationService.getVariableList(dto));
     }
 
 
