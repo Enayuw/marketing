@@ -75,42 +75,42 @@ datasource:
 #      filters: stat,wall,log4j2
 #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
 logging:
-    level:
-        com.br.off.mapper: debug
-    file: ./logs/core.log
-    root: INFO
+  level:
+    com.br.off.mapper: debug
+  file: ./logs/core.log
+  root: INFO
 otherConfig:
   huaXiangInterface:
-        getReport: http://CLOUD-HX-RIBBON/huaxiang/v1/get_report
+    getReport: http://CLOUD-HX-RIBBON/huaxiang/v1/get_report
   sanxiangzhiliInterface:
-        sanxiang_url: http://zh-service/v1/getData
-        haina_url: http://HAINA-SERVICE/query
+    sanxiang_url: http://zh-service/v1/getData
+    haina_url: http://HAINA-SERVICE/query
   alarm:
-        secretKey: f72b7def3d3c5e2d93d4c0f3be664f21
-        mails: xinke.liu@100credit.com,guang.chen@100credit.com,runtong.yuan@100credit.com
-        appName: loan-warning
-        outsideSecretKey: d4a52dd442b2983f499b05ec37c5b7f9
-        outsideAppName: loan-warning-outside
+    secretKey: f72b7def3d3c5e2d93d4c0f3be664f21
+    mails: xinke.liu@100credit.com,guang.chen@100credit.com,runtong.yuan@100credit.com
+    appName: loan-warning
+    outsideSecretKey: d4a52dd442b2983f499b05ec37c5b7f9
+    outsideAppName: loan-warning-outside
   userCenter:
-        appName: loan-strategy
-        appSecretKey: 7357430aa11febfe81d45945c02706b3
+    appName: loan-strategy
+    appSecretKey: 7357430aa11febfe81d45945c02706b3
   warning:
-        pageSize: 5000
-        apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
-        path: /opt/data/inloan/download/warning/
-        ftpHost: 10.100.188.120
-        ftpPort: 21
-        ftpUsername: dev_web
-        ftpPwd: 0tMKa8jf@8zg
-        sftpHost: brsftp3.brapp.com
-        sftpPort: 9999
-        sftpUser: loan_warning
-        sftpPwd: 2lT57nWUlel0FxkNDHlK@_2020.11.03
-        email:
-          notice: nengwu.qu@100credit.com,chunliu.le@100credit.com,qianqian.cao@100credit.com,xinke.liu@100credit.com
+    pageSize: 5000
+    apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
+    path: /opt/data/inloan/download/warning/
+    ftpHost: 10.100.188.120
+    ftpPort: 21
+    ftpUsername: dev_web
+    ftpPwd: 0tMKa8jf@8zg
+    sftpHost: brsftp3.brapp.com
+    sftpPort: 9999
+    sftpUser: loan_warning
+    sftpPwd: 2lT57nWUlel0FxkNDHlK@_2020.11.03
+    email:
+      notice: nengwu.qu@100credit.com,chunliu.le@100credit.com,qianqian.cao@100credit.com,xinke.liu@100credit.com
   encodeMapping:
-        appName: loan-warning
-        appSecretKey: a938d0e974746651a11ddcdbcea31404
+    appName: loan-warning
+    appSecretKey: a938d0e974746651a11ddcdbcea31404
 
 api:
   dass:

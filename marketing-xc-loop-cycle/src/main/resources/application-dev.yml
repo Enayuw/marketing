@@ -3,54 +3,54 @@ sharding:
     datasource:
       names: ds0
       ds0:
-         url: jdbc:mysql://192.168.162.192:3306/test_loan?useUnicode=true&characterEncoding=UTF-8
-         username: rule_service
-         password: rule_service_2015-09-10
-         type: com.alibaba.druid.pool.DruidDataSource
-         driver-class-name: com.mysql.jdbc.Driver
-         filters: stat
-         maxActive: 300
-         initialSize: 1
-         maxWait: 60000
-         minIdle: 1
-         timeBetweenEvictionRunsMillis: 60000
-         minEvictableIdleTimeMillis: 300000
-         validationQuery: select 'x'
-         testWhileIdle: true
-         testOnBorrow: false
-         testOnReturn: false
-         poolPreparedStatements: true
-         maxOpenPreparedStatements: 20
+        url: jdbc:mysql://192.168.162.192:3306/test_loan?useUnicode=true&characterEncoding=UTF-8
+        username: rule_service
+        password: rule_service_2015-09-10
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.jdbc.Driver
+        filters: stat
+        maxActive: 300
+        initialSize: 1
+        maxWait: 60000
+        minIdle: 1
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: select 'x'
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxOpenPreparedStatements: 20
   config:
-        sharding:
-          props:
-            sql.show: true
+    sharding:
+      props:
+        sql.show: true
 logging:
-    level:
-        com.br.off.mapper: debug
-    file: ./logs/core.log
-    root: INFO
+  level:
+    com.br.off.mapper: debug
+  file: ./logs/core.log
+  root: INFO
 otherConfig:
   alarm:
-        secretKey: 412a281869db3e152d5a276ad444fade
-        mails: xinke.liu@100credit.com,guang.chen@100credit.com,runtong.yuan@100credit.com
-        sendCode: 66618706
+    secretKey: 412a281869db3e152d5a276ad444fade
+    mails: xinke.liu@100credit.com,guang.chen@100credit.com,runtong.yuan@100credit.com
+    sendCode: 66618706
   userCenter:
-        appName: loan-strategy
-        appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
+    appName: loan-strategy
+    appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
   warning:
-        pageSize: 5000
-        apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
-        path: /Users/chao.z/Desktop/
-        ftpHost: 10.100.123.65
-        ftpPort: 21
-        ftpUsername: dev-controller
-        ftpPwd: 9PdaRcMRphcNctRy
-        email:
-          notice: nengwu.qu@100credit.com,chunliu.le@100credit.com,qianqian.cao@100credit.com,xinke.liu@100credit.com
+    pageSize: 5000
+    apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
+    path: /Users/chao.z/Desktop/
+    ftpHost: 10.100.123.65
+    ftpPort: 21
+    ftpUsername: dev-controller
+    ftpPwd: 9PdaRcMRphcNctRy
+    email:
+      notice: nengwu.qu@100credit.com,chunliu.le@100credit.com,qianqian.cao@100credit.com,xinke.liu@100credit.com
   encodeMapping:
-        appName: loan-warning
-        appSecretKey: f15a1421ac95a284683688af14688b72
+    appName: loan-warning
+    appSecretKey: f15a1421ac95a284683688af14688b72
 cluster:
   flag: k8s-prod-a
 api:
@@ -86,6 +86,18 @@ api:
     source: BaiRong_C01
     channel: commonOutAdMonitor
     isProxy: false
+    smsColliding:
+      openUrl: https://cgcallback-fat.ctripqa.com/nemoweb/ad/common/unionCheckUser.do
+      appId: bairong001
+      appIdVt: test002
+      keyVt: 6b219b9e71fdb2d2
+      ivVt: 5e7b6c07d3edbc01
+      signKeyVt: b8845b4cb1f16471
+      key: f3df6f62f0527bf0
+      iv: 3b2dac323465b024
+      singKey: 95cc01ec07387a44
+      channel: commonUnionCheckUser
+      isProxy: true
   zhongAn:
     baseUrl: https://finance-gateway-test.diandian.com.cn
     api: ${api.zhongAn.baseUrl}/fcpGateway
@@ -119,9 +131,8 @@ api:
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置
-#elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
-NAMESPACE: warning-job
+NAMESPACE: marketing-local-job
 BASE_SLEEP_TIME_MILLISECONDS: 1000
 MAX_SLEEP_TIME_MILLISECONDS: 3000
 MAX_RETRIES: 3
