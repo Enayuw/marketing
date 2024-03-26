@@ -112,7 +112,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
      */
     private boolean hasOverCountOfCode() {
         // 获取当天的00:10
-        LocalDateTime localDateTime = LocalDate.now().atTime(0, 10, 0);
+        LocalDateTime localDateTime = LocalDate.now().atTime(1, 0, 0);
         Date createTimeStart = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
 
         XieChengCollidingDataLogExample logExample = new XieChengCollidingDataLogExample();
@@ -143,6 +143,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         Date pushTimeEnd = Date.from(end.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
         // pushTime是当天
+        // todo release_time七天后
         XieChengCollidingDataLoopCycleExample cycleExample = new XieChengCollidingDataLoopCycleExample();
         cycleExample.createCriteria()
                 .andIsDeleteEqualTo(0)
