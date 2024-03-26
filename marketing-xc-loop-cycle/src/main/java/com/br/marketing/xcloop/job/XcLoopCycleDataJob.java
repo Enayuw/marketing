@@ -10,6 +10,7 @@ import javax.annotation.Resource;
 
 /**
  * @Description 携程TRUE数据作业
+ * 技术方案地址：https://c.100credit.cn/pages/viewpage.action?pageId=151477608
  * @Author hong.chen
  * @CreateTime 2024/03/20
  */
