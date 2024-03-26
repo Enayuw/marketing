@@ -509,12 +509,28 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                    @Param("periodRangeList") List<PeriodRange> periodRangeList, @Param("custNum") String custNum);
 
     List<MarketingTransferSyncUser> getTransferSyncUserByPage(@Param("tCid") String tCid,
-                                                               @Param("apiCode") String apiCode,
-                                                               @Param("requestStartDate") String requestStartDate,
-                                                               @Param("requestEndDate") String requestEndDate,
-                                                               @Param("indexId") Long indexId,
-                                                               @Param("querySql") String querySql);
+                                                              @Param("apiCode") String apiCode,
+                                                              @Param("requestStartDate") String requestStartDate,
+                                                              @Param("requestEndDate") String requestEndDate,
+                                                              @Param("indexId") Long indexId,
+                                                              @Param("querySql") String querySql);
 
+    /**
+     * 2024-03-08 9:29
+     * 根据请求批次号获取批次号内的全部数据
+     *
+     * @param apiCode     code
+     * @param tCid        tCid
+     * @param requestDate 上传时间
+     * @param requestId   请求批次号
+     * @param userTypeSet 场景集合
+     * @return List
+     */
+    List<TransferSyncReport> selectTransferSyncReportByRequestIdCount(@Param("apiCode") String apiCode
+            , @Param("tCid") String tCid
+            , @Param("requestId") String requestId
+            , @Param("userTypeSet") Set<String> userTypeSet
+            , @Param("requestDate") String requestDate);
 
 
 }

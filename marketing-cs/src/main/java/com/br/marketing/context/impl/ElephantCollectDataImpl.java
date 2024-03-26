@@ -1,6 +1,6 @@
 package com.br.marketing.context.impl;
 
-import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.RuleNecessaryData;
@@ -26,7 +26,7 @@ public class ElephantCollectDataImpl extends CommonMethodHandlerService{
         if (!transmitFacts.isEmpty() && transmitFacts.get(0) instanceof MarketingTransferSyncUser) {
             ElephantRuleNecessaryData ruleNecessaryData = new ElephantRuleNecessaryData();
             List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
-            ruleNecessaryData.setSyncUserValidityPeriodMap(customerSyncUserValidityPeriod(transferList, context.getApiCode()));
+            ruleNecessaryData.setSyncUserValidityPeriodMap(newCustomerSyncUserValidityPeriod(transferList, context.getApiCode()));
             context.setRuleNecessaryData(ruleNecessaryData);
         }
     }
@@ -46,7 +46,7 @@ public class ElephantCollectDataImpl extends CommonMethodHandlerService{
         /**
          * 客户上传表信息
          */
-        private  Map<String, SyncUserValidityPeriodBO>  syncUserValidityPeriodMap;
+        private  Map<String, SyncUserValidityPeriodsBO>  syncUserValidityPeriodMap;
 
     }
 }

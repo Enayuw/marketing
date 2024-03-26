@@ -7,7 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * redis客户端
@@ -75,6 +78,23 @@ public class RedisChgService {
         long size = marketingRedisClient.del(key);
         return size;
     }
+
+    /**
+     * 2024-03-21 16:37
+     * 批量删除key
+     *
+     * @param keys key集合
+     * @return 删除成功量级
+     */
+    public long del(String... keys) throws Exception {
+        try {
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.del(keys);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
     /**
      * INCR命令用于由一个递增key的整数值。如果该key不存在，返回1
      *
@@ -158,14 +178,27 @@ public class RedisChgService {
         return result;
     }
 
-    public List<KeyValue<String, String>> hmget(String hkey,String... key){
+    public List<KeyValue<String, String>> hmget(String hkey, String... key) {
         BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         return marketingRedisClient.hmget(hkey, key);
+    }
+
+    /**
+     * 2024-03-12 13:48
+     * 返回哈希表中，所有的字段和值
+     *
+     * @param hkey hash key
+     * @return 字段名(field name), 字段的值(value)
+     */
+    public Map<String, Object> hgetall(String hkey) {
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.hgetall(hkey);
     }
 
 
     /**
      * 给hash赋值一个key和value
+     *
      * @param hkey
      * @param key
      * @param value
@@ -176,13 +209,27 @@ public class RedisChgService {
         return marketingRedisClient.hset(hkey, key, value);
     }
 
-    public String hset(String hkey, HashMap<String,String> map) {
+    public String hset(String hkey, HashMap<String, String> map) {
         BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         return marketingRedisClient.hmset(hkey, map);
     }
 
     /**
+     * 2024-03-12 11:40
+     * hash 根据key批量添加field-value (字段-值)
+     *
+     * @param hkey hash key
+     * @param map  field-value (字段-值)
+     * @return 命令执行成功，返回 OK
+     */
+    public boolean hmset(String hkey, Map<String, String> map) {
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return "OK".equals(marketingRedisClient.hmset(hkey, map));
+    }
+
+    /**
      * 删除hash中的key
+     *
      * @param hkey
      * @param key
      * @return

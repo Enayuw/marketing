@@ -2,18 +2,16 @@ package com.br.marketing.check.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
+import com.br.marketing.check.service.OrangePushDassService;
 import com.br.marketing.check.service.OriginPeriodPredicateGetDataService;
 import com.br.marketing.check.service.OriginPeriodPredicateService;
-import com.br.marketing.check.service.OrangePushDassService;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserCell;
-import com.br.marketing.entity.MarketingTransferSyncUserExample;
-import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.DataDistributeDetailLogMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
@@ -24,6 +22,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.ArtificialBatchRealTimeDataHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -110,8 +109,8 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             List<MarketingTransferSyncUser> juZiRuleDataList = new ArrayList<>();
             // 获取需要处理的数据  a,b,c,d 4种情况。
             for (int i = 0; i < originPeriodPredicateGetDataServices.size(); i++) {
-                juZiRuleDataList = originPeriodPredicateGetDataServices.get(i).getJuZiRuleData(status, tcid,apiCode, minId);
-                if(juZiRuleDataList.size() > 0) break;
+                juZiRuleDataList = originPeriodPredicateGetDataServices.get(i).getJuZiRuleData(status, tcid, apiCode, minId);
+                if (juZiRuleDataList.size() > 0) break;
             }
             if (juZiRuleDataList.size() == 0) {
                 ruleContinue = Boolean.FALSE;
@@ -119,11 +118,23 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
             }
             minId = juZiRuleDataList.get(juZiRuleDataList.size() - 1).getId() + 1;
 
+            Set<String> custNumSet = juZiRuleDataList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
+                    transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSet, apiCode, null);
             // 1. 获取有效期内的最新的数据
-            List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists =
-                    juZiRuleDataList.stream().map(jz -> transferDataValidityPeriodService.getNewValidityPeriodTransferData(jz,null))
-                    .collect(Collectors.toList()).stream().filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+            List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists = new ArrayList<>();
+            juZiRuleDataList.forEach((MarketingTransferSyncUser jz) -> {
+                SyncUserValidityPeriodsBO userValidityPeriodsBO = validityPeriodsByCustNum.get(jz.getCustNum());
+                if (userValidityPeriodsBO != null) {
+                    MarketingSyncUser marketingSyncUser = userValidityPeriodsBO.getSyncUsers().get(0);
+                    MarketingTransferSyncUserCell marketingTransferSyncUserCell = new MarketingTransferSyncUserCell();
+                    BeanUtils.copyProperties(jz, marketingTransferSyncUserCell);
+                    marketingTransferSyncUserCell.setCell(marketingSyncUser.getCell());
+                    marketingTransferSyncUserCell.setTaskId(marketingSyncUser.getCusBatch());
+                    marketingTransferSyncUserCell.setUserType(marketingSyncUser.getUserType());
+                    marketingTransferSyncUserCellLists.add(marketingTransferSyncUserCell);
+                }
+            });
 
             // 2. 批次内去重
             Set<MarketingTransferSyncUserCell> marketingTransferSyncUserCellSet = new TreeSet<>(Comparator.comparing(MarketingTransferSyncUserCell::getCell));
@@ -132,9 +143,15 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
 
             // 3. 情况b 和 c 要做剔除 < 1000
             if ("b".equals(status) || "c".equals(status)) {
-                marketingTransferSyncUserCellSet.removeIf(m ->
-                        marketingTransferSyncUserMapper.getValidityPeriodData(tcid,apiCode,m.getCustNum())
-                                .stream().anyMatch(d -> transferDataValidityPeriodService.isValidityPeriod(d,null)));
+                marketingTransferSyncUserCellSet.removeIf((MarketingTransferSyncUserCell m) -> {
+                            List<MarketingTransferSyncUser> transferSyncUserList =
+                                    marketingTransferSyncUserMapper.getValidityPeriodData(tcid, apiCode, m.getCustNum());
+                            Set<String> numSet = transferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+                            Map<String, SyncUserValidityPeriodsBO> validityPeriodsBoMap =
+                                    transferDataValidityPeriodService.getValidityPeriodsByCustNum(numSet, apiCode, null);
+                            return validityPeriodsBoMap.get(m.getCustNum()) != null;
+                        }
+                );
             }
 
             if (marketingTransferSyncUserCellSet.size() > 0) {
@@ -153,11 +170,12 @@ public class OrangePushDassServiceImpl implements OrangePushDassService {
 
                 // 5. 推送daas 、 决策
                 if (marketingTransferSyncUserCellSet.size() > 0) {
-                    juZiPeriodPredicateServiceList.forEach(juZiPeriodPredicateService -> juZiPeriodPredicateService.transferDataPeriod(apiCode,status, marketingTransferSyncUserCellSet));
+                    juZiPeriodPredicateServiceList.forEach(juZiPeriodPredicateService -> juZiPeriodPredicateService.transferDataPeriod(apiCode, status, marketingTransferSyncUserCellSet));
                 }
             }
         }
-}
+
+    }
 
 
     /**

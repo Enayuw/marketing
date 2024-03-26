@@ -2,6 +2,7 @@ package com.br.marketing.api.controller;
 
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.marketing.api.service.QiFuDataService;
 import com.br.marketing.aspect.ReqLogAnnotation;
 import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.service.RequestInterfaceLogService;
@@ -29,6 +30,10 @@ public class MarketingValidityPeriod {
     @Resource
     private ValidityPeriodDataService validityPeriodDataService;
 
+    @Resource
+    private QiFuDataService qiFuDataService;
+
+
 
 
     /**
@@ -46,4 +51,21 @@ public class MarketingValidityPeriod {
         ApiNoDataResult apiNoDataResult = validityPeriodDataService.marketingValidityPeriod(apiCode, jsonData);
         return apiNoDataResult;
     }
+
+
+    /**
+     * 360策略效果数据报表-接口
+     * @param apiCode apiCode
+     * @param jsonData jsonData
+     * @return ApiNoDataResult
+     */
+    @ApiOperation(value = "360策略效果数据报表接口")
+    @PostMapping("/strategyReport")
+    @ReqLogAnnotation()
+    public ApiNoDataResult strategyReport(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
+        log.warn("360策略效果数据报表接口入参：{},{}",apiCode,jsonData);
+        ApiNoDataResult apiNoDataResult = qiFuDataService.strategyReportData(apiCode, jsonData);
+        return apiNoDataResult;
+    }
+
 }

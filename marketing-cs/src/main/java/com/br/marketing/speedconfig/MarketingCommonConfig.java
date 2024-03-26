@@ -49,9 +49,14 @@ public class MarketingCommonConfig {
     private List<String> apiCodeOfRecordTaskTime;
 
     /**
-     * 去重线程数
+     * 原始上传消费端入库线程数
      */
     private Integer soleNum;
+
+    /**
+     * 原始转化消费端入库线程数
+     */
+    private Integer soleNumTrans;
 
     /**
      * 萨摩耶场景
@@ -805,11 +810,11 @@ public class MarketingCommonConfig {
      * 滴滴准入重试次数
      */
     private Integer didiAllowRetryNum;
-
-    /**
-     * 滴滴有效期天数
-     */
-    private Long didiValidDays;
+//
+//    /**
+//     * 滴滴有效期天数
+//     */
+//    private Long didiValidDays;
 
     /**
      * 推送客服黑名单apiCode(一对多分发)
@@ -1379,6 +1384,12 @@ public class MarketingCommonConfig {
      */
     private Map<String, JSONObject> dingDingWebHookInfo = new ConcurrentHashMap<>();
 
+    /**
+     * apiCode自动生成场景与统计控制
+     * ["3","4"]
+     */
+    private Set<String> userTypeAndSumRealtimeApiCodeStartsWith = new HashSet<>(Arrays.asList("3", "4"));
+
 
     /**
      * 得物撞库limit 数量降级的量级
@@ -1425,6 +1436,12 @@ public class MarketingCommonConfig {
      */
     private Set<String> shuHeNonBlackListApiCodeSet = new HashSet<>(
             Arrays.asList("3710071", "3710051", "3710023", "3710128", "3710117", "3710123", "7410785"));
+
+    /**
+     * 2024-03-22 16:11
+     * 上传和转化实时统计开关，false 关闭实时统计，true 开启实时统计
+     */
+    private Boolean uploadAndTransferDataRealtimeStatisSwitch = false;
 
     /**
      * 携程强制开启撞库开关

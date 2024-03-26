@@ -18,10 +18,16 @@ public class MQConstants {
     public static final String PUSH_QUEUE_NAME = "pushQueue";
     public static final String CHECK_QUEUE_NAME = "checkQueue";
 
-    //异步处理人员入库的队列
+    // 原始数据上传、转化
     public static final String MARKETING_PRE_USER_RECEIVE = "Marketing_PreUser_Receive";
     public static final String MARKETING_PRE_USER_SHUHERECEIVE = "Marketing_PreUser_ShuHeReceive";
     public static final String MARKETING_TRANSFER_RECEIVE = "Marketing_Transfer_Receive";
+    public static final String MARKETING_PREUSER_RECEIVE_SMALL = "Marketing_PreUser_Receive_Small";
+    public static final String MARKETING_PREUSER_RECEIVE_EMERGENCY = "Marketing_PreUser_Receive_Emergency";
+    public static final String MARKETING_TRANSFER_RECEIVE_SMALL = "Marketing_Transfer_Receive_Small";
+    public static final String MARKETING_TRANSFER_RECEIVE_EMERGENCY = "Marketing_Transfer_Receive_Emergency";
+
+
     public static final String MARKETING_TRANSFER_PUSH_CUSTOMER = "Marketing_Transfer_Push_Customer";
     public static final String MARKETING_TRANSFER_PUSH_BLACK = "Marketing_Transfer_Push_Black";
     public static final String MARKETING_TRANSFER_PUSH_HALUO = "Marketing_Transfer_Push_HaLuo";
@@ -81,12 +87,18 @@ public class MQConstants {
 
     public static final String MARKETING_TEST_QUEUE_Two = "Marketing_Test_Queue_Two";
 
-    // 标准接口接收场景字典收集队列
-    public static final String MARKETING_STANDARD_API_USERTYPE_COLLECTION = "marketing_standard_api_usertype_collection";
+    // 上传接口接收场景字典收集队列
+    public static final String MARKETING_UPLOAD_API_USERTYPE_COLLECTION = "marketing_upload_api_usertype_collection";
+    // 转化接口接收场景字典收集队列
+    public static final String MARKETING_TRANSFER_API_USERTYPE_COLLECTION = "marketing_transfer_api_usertype_collection";
     // 发送场景消息延迟队列
     public static final String MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE = "marketing_send_usertype_message_delay_queue";
     // 发送场景消息死信队列
     public static final String MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE = "marketing_send_usertype_message_dead_queue";
+    // 上传接口接收数据量级碎片队列
+    public static final String MARKETING_UPLOAD_API_DATA_COUNT_FRAGMENTS = "marketing_upload_api_data_count_fragments";
+    // 转化接口接收数据量级碎片队列
+    public static final String MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS = "marketing_transfer_api_data_count_fragments";
 
     public static final String MARKETING_XIECHENG_COLLIDING_LOG_QUEUE = "marketing_xiecheng_colliding_log_queue";
 
@@ -98,9 +110,15 @@ public class MQConstants {
     public static final String PUSH_ROUTING_KEY = "pushRoutingKey";
     public static final String CHECK_ROUTING_KEY = "checkRoutingKey";
 
+    // 原始数据上传、转化
     public static final String ROUTING_KEY_MARKETING_PRE_USER_RECEIVE = "Marketing.PreUser.Receive";
     public static final String ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE = "Marketing.PreUser.ShuHeReceive";
     public static final String ROUTING_KEY_MARKETING_TRANSFER_RECEIVE = "Marketing.Transfer.Receive";
+    public static final String ROUTING_KEY_MARKETING_PREUSER_RECEIVE_SMALL = "Marketing.PreUser.Receive.Small";
+    public static final String ROUTING_KEY_MARKETING_PREUSER_RECEIVE_EMERGENCY = "Marketing.PreUser.Receive.Emergency";
+    public static final String ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_SMALL = "Marketing.Transfer.Receive.Small";
+    public static final String ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_EMERGENCY = "Marketing.Transfer.Receive.Emergency";
+
     public static final String ROUTING_KEY_MARKETING_USER_RECEIVE = "Marketing.User.Receive";
     public static final String ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER = "Marketing.Transfer.Push.Customer";
     public static final String ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK = "Marketing.Transfer.Push.Black";
@@ -157,12 +175,21 @@ public class MQConstants {
 
     public static final String ROUTING_KEY_MARKETING_TEST_QUEUE_Two = "Marketing.Test.Queue.Two";
 
-    // 标准接口接收场景字典收集路由键
-    public static final String ROUTING_KEY_MARKETING_STANDARD_API_USERTYPE_COLLECTION = "marketing.standard.api.usertype.collection";
+    // 上传接口接收场景字典收集与数据量级碎片路由键
+    public static final String ROUTING_KEY_MARKETING_UPLOAD_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS
+            = "marketing.upload.api.usertype.collection.count.fragments";
+    // 转化接口接收场景字典收集与数据量级碎片路由键
+    public static final String ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS
+            = "marketing.transfer.api.usertype.collection.count.fragments";
     // 发送场景消息延迟路由键
     public static final String ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE = "marketing.send.usertype.message.delay.queue";
     // 发送场景消息死信路由键
     public static final String ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE = "marketing.send.usertype.message.dead.queue";
+    // 上传场景字典收集、据量级碎片绑定key
+    public static final String BINDING_KEY_MARKETING_UPLOAD_API_COLLECTION_FRAGMENTS = "marketing.upload.api.*.collection.*.fragments";
+    // 转化场景字典收集、据量级碎片绑定key
+    public static final String BINDING_KEY_MARKETING_TRANSFER_API_COLLECTION_FRAGMENTS = "marketing.transfer.api.*.collection.*.fragments";
+
 
     public static final String ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG = "marketing.xiecheng.colliding.log";
 }
