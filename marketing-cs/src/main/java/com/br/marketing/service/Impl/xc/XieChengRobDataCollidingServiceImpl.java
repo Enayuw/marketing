@@ -68,7 +68,6 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             || Objects.equals("true", redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH)))) {
             XIECHENG_ROB_COLLIDING_THREAD.setCorePoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
             XIECHENG_ROB_COLLIDING_THREAD.setMaximumPoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
-            pageSize = Math.min(pageSize, limit);
             List<XieChengCollidingDataRob> robDataList = xieChengCollidingDataRobMapper.getRobCollidingDataList(pageSize, packageIds);
             if (CollectionUtils.isEmpty(robDataList)) {
                 break;
@@ -121,7 +120,10 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
 
     public void initializeTodayReleaseTime(String key) {
         List<Map<String, Object>> perMinuteCounts = xieChengCollidingDataLoopCycleMapper.selectPerMinuteCounts();
+        // 初始化剔除当天和昨天的key
         redisChgService.del(key);
+        String yesKey = RedisKeyConstant.XIECHENG_RELEASE_TIME + DateUtil.formatDate(DateUtil.yesterday());
+        redisChgService.del(yesKey);
         perMinuteCounts.forEach((Map<String, Object> perMinuteCount) -> redisChgService.hset(key, String.valueOf(perMinuteCount.get("releaseTime")),
             String.valueOf(perMinuteCount.get("counts"))));
     }
