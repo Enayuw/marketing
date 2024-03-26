@@ -68,6 +68,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             || Objects.equals("true", redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH)))) {
             XIECHENG_ROB_COLLIDING_THREAD.setCorePoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
             XIECHENG_ROB_COLLIDING_THREAD.setMaximumPoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
+            pageSize = Math.min(pageSize, limit);
             List<XieChengCollidingDataRob> robDataList = xieChengCollidingDataRobMapper.getRobCollidingDataList(pageSize, packageIds);
             if (CollectionUtils.isEmpty(robDataList)) {
                 break;

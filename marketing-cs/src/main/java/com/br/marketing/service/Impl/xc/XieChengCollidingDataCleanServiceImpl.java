@@ -3,7 +3,11 @@ package com.br.marketing.service.Impl.xc;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.XieChengCollidingDataContrast;
+import com.br.marketing.entity.XieChengCollidingDataPackage;
+import com.br.marketing.entity.XieChengCollidingDataPackageExample;
+import com.br.marketing.entity.XieChengCollidingDataRob;
+import com.br.marketing.entity.XieChengCollidingDataTemp;
 import com.br.marketing.mapper.XieChengCollidingDataContrastMapper;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataPackageMapper;
@@ -11,7 +15,6 @@ import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
-import org.osgi.service.log.LogEntry;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +25,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Service
 @Slf4j
@@ -59,7 +66,9 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
 
         // 参数解析
         ParameterToJson result = getParameter(jobParameter);
-        if (result == null) return;
+        if (result == null) {
+            return;
+        }
 
         // 清洗主流程
         processWork(result, xieChengCollidingCleanThread);
@@ -300,7 +309,8 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
         try {
             while (marketingCommonConfig.getXieChengCleanSwitch()) {
                 setThreadCount(xieChengCollidingCleanThread);
-                List<Long> idLists = xieChengCollidingDataContrastMapper.loopCycleCellExisttiflash_(marketingCommonConfig.getXieChengCleanLimitCount());
+                List<Long> idLists = xieChengCollidingDataContrastMapper
+                        .loopCycleCellExisttiflash_(marketingCommonConfig.getXieChengCleanLimitCount());
                 if (idLists.isEmpty()) {
                     break;
                 }
@@ -378,7 +388,8 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
         try {
             while (marketingCommonConfig.getXieChengCleanSwitch()) {
                 setThreadCount(xieChengCollidingCleanThread);
-                List<XieChengCollidingDataTemp> cellList = xieChengCollidingDataContrastMapper.temporaryCelltiflash_(tableName, splitFilterScore,
+                List<XieChengCollidingDataTemp> cellList = xieChengCollidingDataContrastMapper
+                        .temporaryCelltiflash_(tableName, splitFilterScore,
                         marketingCommonConfig.getXieChengCleanLimitCount());
                 if (cellList.isEmpty()) {
                     break;
@@ -387,7 +398,8 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
                 List<List<XieChengCollidingDataTemp>> partition = Lists.partition(cellList, PARTITIONCOUNT);
                 List<Future<Integer>> futureList = new ArrayList<>();
                 for (List<XieChengCollidingDataTemp> p : partition) {
-                    Future<Integer> submit = xieChengCollidingCleanThread.submit(() -> saveDataContrast(p, ruleTypeFlag, packageId, splitFilterScore));
+                    Future<Integer> submit = xieChengCollidingCleanThread
+                            .submit(() -> saveDataContrast(p, ruleTypeFlag, packageId, splitFilterScore));
                     futureList.add(submit);
                 }
                 futureFinish(futureList);
