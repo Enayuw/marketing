@@ -8,6 +8,7 @@ import com.br.marketing.dto.VariableAllocationDTO;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.VariableAllocationService;
+import com.br.marketing.vo.VariableAllocationVO;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,5 +62,11 @@ public class VariableAllocationController {
             log.error(ex.getMessage(),ex);
             return new ApiResult<Boolean>().fail(false,ServiceResultEnum.FAILED);
         }
+    }
+
+    @ApiOperation(value = "获取配置",notes = "获取配置")
+    @PostMapping("/getVariableAllocation")
+    public VariableAllocationVO getVariableAllocation(){
+            return variableAllocationService.getVariableAllocation();
     }
 }

@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.VariableAllocationDTO;
 import com.br.marketing.entity.VariableAllocation;
@@ -131,8 +132,8 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
         int normalQuantity = 5000000;
         int abnormalQuantity = 100000;
         String key = RedisKeyConstant.prefix.concat(":").concat(apiCode).concat(":").concat(allocationType);
-        if (StringUtil.isNotEmpty(key)){
-            String allocationValue = redisChgService.get(key);
+        String allocationValue = redisChgService.get(key);
+        if (StringUtil.isNotEmpty(key) && StringUtil.isNotEmpty(allocationValue)){
             JSONObject jsonObject = JSON.parseObject(allocationValue);
             normalQuantity = jsonObject.getInteger("trueDataThresholdSize");
             abnormalQuantity = jsonObject.getInteger("retryThresholdSize");
