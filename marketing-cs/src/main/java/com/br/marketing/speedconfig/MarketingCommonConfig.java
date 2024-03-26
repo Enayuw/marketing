@@ -1442,5 +1442,64 @@ public class MarketingCommonConfig {
      * 上传和转化实时统计开关，false 关闭实时统计，true 开启实时统计
      */
     private Boolean uploadAndTransferDataRealtimeStatisSwitch = false;
+
+    /**
+     * 携程强制开启撞库开关
+     * true 打开，false 关闭
+     */
+    private Boolean xieChengForceOpenSwitch;
+
+    /**
+     * 携程非周期撞库线程池数
+     */
+    private Integer xiechengRobCollidingThread;
+
+    /**
+     * 携程撞库分钟阈值
+     */
+    private Integer xiechengPerMinuteThreshold;
+
+
+    /**
+     * 携程撞库分页大小
+     */
+    private Integer xiechengCollidingPageSize;
+
+
+    /**
+     * 携程记录撞库日志线程数
+     */
+    private Integer xiechengSaveCollidingLogThread;
+
+    /**
+     * 携程数据清洗线程数
+     */
+    private Integer xieChengCleanThreadCount;
+    /**
+     * 携程数据清洗limit 量级
+     */
+    private Integer xieChengCleanLimitCount;
+
+    /**
+     * 清洗暂停开关 true 开启清洗  false 关闭 清洗
+     */
+    private Boolean xieChengCleanSwitch;
+
+    /**
+     * 携程定制化配置ApiCode
+     */
+    private String xieChengDingZhiApiCode;
+
+    /**
+     * 携程转化数据提取apiCode集合
+     */
+    private List<String> XieChengTwoTransferApiCodes;
+
+
+    /**
+     * 携程转化数据提取执行时间,携程撞库提取时间
+     */
+    private List<String> XieChengTwoTransferExecuteTime;
+
 }
 
