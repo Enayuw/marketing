@@ -15,6 +15,7 @@ import com.br.marketing.service.Impl.xc.XcExceptionDataRetryService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -58,7 +59,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         long start = System.currentTimeMillis();
         // 判断强制开启撞库开关
-        if (marketingCommonConfig.getXieChengForceOpenSwitch() || canOpenConditionSwitch()) {
+        if (marketingCommonConfig.getXieChengForceOpenSwitch() || canOpenConditionSwitchAndExecute()) {
             // 执行重试撞库
             service.process();
         }
@@ -66,16 +67,75 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
     }
 
     /**
-     * 校验是否需要开启条件开关
-     * @return
+     * 获取撞库暂停code码和暂停通知
+     * code码含义：0:需要开启条件开关，1~3:需要关闭条件开关
+     * 1:返回707，2:撞得量级超限，3:重试堆积量级超限
      */
-    private boolean canOpenConditionSwitch() {
-        if (isShutDownConditionSwitch()) {
-            xieChengServiceNew.shutDownConditionSwitch();
-            return false;
+    private Pair<Integer, String> getCodeAndMsg() {
+        // 查log表是否存在：create_time=当天且business_code=707
+        // 从当天01:00开始查询，防止日志记录mq跨天消费
+        LocalDateTime localDateTime = LocalDate.now().atTime(1, 0, 0);
+        Date createTimeStart = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+        XieChengCollidingDataLogExample logExample = new XieChengCollidingDataLogExample();
+        logExample.createCriteria().andIsDeleteEqualTo(0)
+                .andBusinessCodeEqualTo(707)
+                .andCreateTimeGreaterThanOrEqualTo(createTimeStart);
+        int overCount = logMapper.countByExample(logExample);
+        boolean a = overCount > 0;
+        if (a) {
+            String msg = "携程撞库暂停通知:code返回707";
+            return new Pair<>(1, msg);
         }
 
-        // 获取条件开关，取不到报警
+        // 查TRUE表当天撞回量级是否超限（500w）
+        Integer trueDataThresholdSize = variableAllocationService.getVariableAllocation().getNormalQuantity();
+        LocalDate start = LocalDate.now().plusDays(7);
+        LocalDate end = LocalDate.now().plusDays(8);
+        Date releaseDateStart = Date.from(start.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date releaseDateEnd = Date.from(end.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        // release_time大于第七天，小于第八天
+        XieChengCollidingDataLoopCycleExample cycleExample = new XieChengCollidingDataLoopCycleExample();
+        cycleExample.createCriteria()
+                .andIsDeleteEqualTo(0)
+                .andReleaseTimeGreaterThanOrEqualTo(releaseDateStart).andReleaseTimeLessThan(releaseDateEnd);
+        int trueDataCount = loopCycleMapper.countByExample(cycleExample);
+        boolean b = trueDataCount >= trueDataThresholdSize;
+        if (b) {
+            String msg = "携程撞库暂停通知:今天撞得总量级" + trueDataCount + ",已超过设定阈值" + trueDataThresholdSize;
+            return new Pair<>(2, msg);
+        }
+
+        // 查询堆积量级是否超限（10w）pushTime是当天
+        Integer retryThresholdSize = variableAllocationService.getVariableAllocation().getAbnormalQuantity();
+        LocalDate pushDateStart = LocalDate.now();
+        LocalDate pushDateEnd = LocalDate.now().plusDays(1);
+        Date pushTimeStart = Date.from(pushDateStart.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date pushTimeEnd = Date.from(pushDateEnd.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        XieChengCollidingDataLoopCycleExample loopCycleExample = new XieChengCollidingDataLoopCycleExample();
+        loopCycleExample.createCriteria().andIsDeleteEqualTo(0)
+                .andRetryCountGreaterThan(0)
+                .andPushTimeGreaterThanOrEqualTo(pushTimeStart).andPushTimeLessThan(pushTimeEnd);
+        int cycleCount = loopCycleMapper.countByExample(loopCycleExample);
+        XieChengCollidingDataRobExample robExample = new XieChengCollidingDataRobExample();
+        robExample.createCriteria().andIsDeleteEqualTo(0)
+                .andRetryCountGreaterThan(0)
+                .andPushTimeGreaterThanOrEqualTo(pushTimeStart).andPushTimeLessThan(pushTimeEnd);
+        int robCount = robMapper.countByExample(robExample);
+        int count = cycleCount + robCount;
+        boolean c = count >= retryThresholdSize;
+        if (c) {
+            String msg = "携程撞库暂停通知:今天异常数据堆积总量级" + count + "已超过设定阈值" + retryThresholdSize;
+            return new Pair<>(3, msg);
+        }
+
+        return new Pair<>(0, null);
+    }
+
+    /**
+     * 校验是否需要开启条件开关并执行撞库
+     * @return true:是，false：否
+     */
+    private boolean canOpenConditionSwitchAndExecute() {
         String redisSwitch;
         try {
             redisSwitch = redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH);
@@ -85,109 +145,34 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
             return false;
         }
 
-        Boolean conditionSwitch = "false".equalsIgnoreCase(redisSwitch) || StringUtils.isEmpty(redisSwitch);
-        if (conditionSwitch) {
-            redisChgService.set(RedisKeyConstant.XIECHENG_CONDITIONSWITCH, "true");
-        }
-        return true;
-    }
-
-
-    /**
-     * 判断是否需要关闭条件开关
-     * @return true:是，false：否
-     */
-    private boolean isShutDownConditionSwitch() {
-        if (hasOverCountOfCode() || isOverCountOfTrue() || isOverCountOfRetry()) {
+        if (StringUtils.isEmpty(redisSwitch)) {
             return true;
         }
 
-        // 可以打开条件开关
-        return false;
+        Pair<Integer, String> pair = getCodeAndMsg();
+        Integer code = pair.getKey();
+        String msg = pair.getValue();
+        if ("false".equalsIgnoreCase(redisSwitch) && code == 0) {
+            // 开关是关闭状态且需要开启条件开关
+            redisChgService.set(RedisKeyConstant.XIECHENG_CONDITIONSWITCH, "true");
+            return true;
+        } else if ("true".equalsIgnoreCase(redisSwitch) && code > 0) {
+            // 开关是开启状态且需要关闭条件开关
+            shutDownConditionSwitchAndAlert(msg);
+            return false;
+        } else {
+            return code == 0;
+        }
     }
 
     /**
-     * 查log表是否存在：create_time=当天且business_code=707
-     * 从当天01:00开始查询，防止日志记录mq跨天消费
-     * @return true:是，false：否
+     * 关闭条件开关并发送钉钉告警
+     * @param msg
      */
-    private boolean hasOverCountOfCode() {
-        // 获取当天的01:00
-        LocalDateTime localDateTime = LocalDate.now().atTime(1, 0, 0);
-        Date createTimeStart = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-
-        XieChengCollidingDataLogExample logExample = new XieChengCollidingDataLogExample();
-        logExample.createCriteria().andIsDeleteEqualTo(0)
-                .andBusinessCodeEqualTo(707)
-                .andCreateTimeGreaterThanOrEqualTo(createTimeStart);
-        int overCount = logMapper.countByExample(logExample);
-
-        boolean b = overCount > 0;
-        if (b) {
-            String msg = "携程撞库暂停通知:code返回707";
-            service.sendDingDingAlert("携程撞库暂停通知", msg);
-            log.error(msg);
-        }
-        return b;
-    }
-
-    /**
-     * 查TRUE表当天撞回量级是否超限（500w）
-     * @return true:是，false：否
-     */
-    private boolean isOverCountOfTrue() {
-        Integer trueDataThresholdSize = variableAllocationService.getVariableAllocation().getNormalQuantity();
-        LocalDate start = LocalDate.now().plusDays(7);
-        LocalDate end = LocalDate.now().plusDays(8);
-        Date releaseDateStart = Date.from(start.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Date releaseDateEnd = Date.from(end.atStartOfDay(ZoneId.systemDefault()).toInstant());
-
-        // release_time大于第七天，小于第八天
-        XieChengCollidingDataLoopCycleExample cycleExample = new XieChengCollidingDataLoopCycleExample();
-        cycleExample.createCriteria()
-                .andIsDeleteEqualTo(0)
-                .andReleaseTimeGreaterThanOrEqualTo(releaseDateStart).andReleaseTimeLessThan(releaseDateEnd);
-        int trueDataCount = loopCycleMapper.countByExample(cycleExample);
-
-        boolean b = trueDataCount >= trueDataThresholdSize;
-        if (b) {
-            String msg = "携程撞库暂停通知:今天撞得总量级" + trueDataCount + ",已超过设定阈值" + trueDataThresholdSize;
-            service.sendDingDingAlert("携程撞库暂停通知", msg);
-            log.error(msg);
-        }
-        return b;
-    }
-
-    /**
-     * 查询堆积量级是否超限（10w）pushTime是当天
-     * @return true:是，false：否
-     */
-    private boolean isOverCountOfRetry() {
-        Integer retryThresholdSize = variableAllocationService.getVariableAllocation().getAbnormalQuantity();
-        LocalDate start = LocalDate.now();
-        LocalDate end = LocalDate.now().plusDays(1);
-        Date pushTimeStart = Date.from(start.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Date pushTimeEnd = Date.from(end.atStartOfDay(ZoneId.systemDefault()).toInstant());
-
-        XieChengCollidingDataLoopCycleExample loopCycleExample = new XieChengCollidingDataLoopCycleExample();
-        loopCycleExample.createCriteria().andIsDeleteEqualTo(0)
-                .andRetryCountGreaterThan(0)
-                .andPushTimeGreaterThanOrEqualTo(pushTimeStart).andPushTimeLessThan(pushTimeEnd);
-        int cycleCount = loopCycleMapper.countByExample(loopCycleExample);
-
-        XieChengCollidingDataRobExample robExample = new XieChengCollidingDataRobExample();
-        robExample.createCriteria().andIsDeleteEqualTo(0)
-                .andRetryCountGreaterThan(0)
-                .andPushTimeGreaterThanOrEqualTo(pushTimeStart).andPushTimeLessThan(pushTimeEnd);
-        int robCount = robMapper.countByExample(robExample);
-
-        int count = cycleCount + robCount;
-        boolean b = count >= retryThresholdSize;
-        if (b) {
-            String msg = "携程撞库暂停通知:今天异常数据堆积总量级" + count + "已超过设定阈值" + retryThresholdSize;
-            service.sendDingDingAlert("携程撞库暂停通知", msg);
-            log.error(msg);
-        }
-        return b;
+    private void shutDownConditionSwitchAndAlert(String msg) {
+        // 关闭条件开关
+        xieChengServiceNew.shutDownConditionSwitch();
+        // 钉钉告警
+        service.sendDingDingAlert("携程撞库暂停通知", msg);
     }
 }
