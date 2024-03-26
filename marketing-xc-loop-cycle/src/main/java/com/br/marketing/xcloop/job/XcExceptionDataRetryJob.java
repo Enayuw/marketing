@@ -27,6 +27,7 @@ import java.util.Date;
 
 /**
  * @Description 携程异常重试作业
+ * 技术方案地址：https://c.100credit.cn/pages/viewpage.action?pageId=151477608
  * @Author hong.chen
  * @CreateTime 2024/03/20
  */
@@ -107,7 +108,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
 
     /**
      * 查log表是否存在：create_time=当天且business_code=707
-     * 从当天00:10开始查询，防止日志记录mq跨天消费
+     * 从当天01:00开始查询，防止日志记录mq跨天消费
      * @return true:是，false：否
      */
     private boolean hasOverCountOfCode() {
@@ -136,18 +137,16 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
      */
     private boolean isOverCountOfTrue() {
         Integer trueDataThresholdSize = variableAllocationService.getVariableAllocation().getNormalQuantity();
+        LocalDate start = LocalDate.now().plusDays(7);
+        LocalDate end = LocalDate.now().plusDays(8);
+        Date releaseDateStart = Date.from(start.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date releaseDateEnd = Date.from(end.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-        LocalDate start = LocalDate.now();
-        LocalDate end = LocalDate.now().plusDays(1);
-        Date pushTimeStart = Date.from(start.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Date pushTimeEnd = Date.from(end.atStartOfDay(ZoneId.systemDefault()).toInstant());
-
-        // pushTime是当天
-        // todo release_time七天后
+        // release_time大于第七天，小于第八天
         XieChengCollidingDataLoopCycleExample cycleExample = new XieChengCollidingDataLoopCycleExample();
         cycleExample.createCriteria()
                 .andIsDeleteEqualTo(0)
-                .andPushTimeGreaterThanOrEqualTo(pushTimeStart).andPushTimeLessThan(pushTimeEnd);
+                .andReleaseTimeGreaterThanOrEqualTo(releaseDateStart).andReleaseTimeLessThan(releaseDateEnd);
         int trueDataCount = loopCycleMapper.countByExample(cycleExample);
 
         boolean b = trueDataCount >= trueDataThresholdSize;
