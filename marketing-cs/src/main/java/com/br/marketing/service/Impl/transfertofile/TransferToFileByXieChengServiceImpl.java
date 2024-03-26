@@ -343,6 +343,7 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
 
         } catch (InterruptedException ex) {
             log.error(ex.getMessage(), ex);
+            Thread.currentThread().interrupt();
         } finally {
             TransferFileTask updateTask = new TransferFileTask();
             updateTask.setId(transferFileTask.getId());
