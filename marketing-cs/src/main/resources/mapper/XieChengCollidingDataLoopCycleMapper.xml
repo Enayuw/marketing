@@ -6,7 +6,7 @@
         id, cell_sha256_code_list, package_id
         from b_xiecheng_colliding_data_loop_cycle
         where is_delete = 0 and retry_count = 0
-        <![CDATA[ and release_time < #{releaseTime}]]>
+        <![CDATA[ and release_time > #{startDate} and release_time < #{endDate}]]>
         <if test="minId != null and minId>0">
             and id > #{minId}
         </if>

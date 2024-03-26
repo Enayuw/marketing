@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -208,7 +210,12 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
 
         Long minId = null;
         while (canStart()) {
-            List<XieChengCollidingDataLoopCycle> list = dataLoopCycleMapper.selectCycleDataByReleaseTime(minId, new Date(), pageSize);
+            // 开始时间：当天前一天的23:00
+            Date startDate = Date.from(LocalDate.now().minusDays(1).atTime(23, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+            // 结束时间：当前时间
+            Date endDate = new Date();
+
+            List<XieChengCollidingDataLoopCycle> list = dataLoopCycleMapper.selectCycleDataByReleaseTime(minId, startDate, endDate, pageSize);
             if (CollectionUtils.isEmpty(list)) {
                 break;
             }

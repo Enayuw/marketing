@@ -112,7 +112,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
      * @return true:是，false：否
      */
     private boolean hasOverCountOfCode() {
-        // 获取当天的00:10
+        // 获取当天的01:00
         LocalDateTime localDateTime = LocalDate.now().atTime(1, 0, 0);
         Date createTimeStart = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
 
