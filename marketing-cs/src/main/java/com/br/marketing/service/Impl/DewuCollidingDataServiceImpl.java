@@ -12,11 +12,14 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
+import com.br.marketing.dto.dewu.DewuPushQueryQuantityDTO;
+import com.br.marketing.dto.tongcheng.TongChengUndoQueryQuantityDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.DewuCollidingDataLogMapper;
 import com.br.marketing.mapper.DewuCollidingDataMapper;
 import com.br.marketing.mapper.DewuCollidingDataUploadSyncMapper;
 import com.br.marketing.service.DewuCollidingDataService;
+import com.br.marketing.service.LocalFileService;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.HaierCollidingDataToSyncVO;
@@ -26,9 +29,11 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -57,6 +62,9 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
 
     @Resource
     private PushInfoService pushInfoService;
+
+    @Resource
+    LocalFileService localFileService;
 
     @Override
     public void collidingDataProcess(Long localFileId) {
@@ -145,6 +153,9 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
             log.error("得物推送上传api接口线程池关闭！异常", ex);
             Thread.currentThread().interrupt();
         }
+
+        // refreshLocalFile
+        refreshLocalFile();
 
     }
 
@@ -322,5 +333,23 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
             log.error("得物撞库程序前置处理异常,{}",dewuCollidingDataList,e);
         }
         return collidingDataMobileList;
+    }
+
+    /**
+     * 已确认，每个localId每天只执行1次，刷新逻辑为直接更新PushNumber字段
+     * 后续业务有变更，需要更新此方法
+     */
+    private void refreshLocalFile(){
+        DewuPushQueryQuantityDTO params = new DewuPushQueryQuantityDTO();
+        params.setPushStatus(2);
+        String curTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        params.setStartTime(curTimeStr);
+
+        List<Map<String, Object>> quantityList = dewuCollidingDataUploadSyncMapper.queryQuantityGroupByLocalId(params);
+        if(quantityList == null || quantityList.size() < 1){
+            log.error("得物推送上传-推送量级更新异常");
+            return;
+        }
+        localFileService.refreshPushNumber(quantityList);
     }
 }

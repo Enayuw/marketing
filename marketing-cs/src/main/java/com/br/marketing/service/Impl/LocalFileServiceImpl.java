@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl;
 import com.br.common.util.DateUtils;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.entity.LocalFile;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.service.LocalFileService;
 import com.br.marketing.vo.LocalFileVo;
@@ -15,6 +16,7 @@ import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 文件接口实现
@@ -71,5 +73,20 @@ public class LocalFileServiceImpl implements LocalFileService {
             log.error("date:{} is error", date, e);
         }
         return time;
+    }
+
+    @Override
+    public void refreshPushNumber(List<Map<String, Object>> quantityList){
+        for (Map<String, Object> map : quantityList) {
+            Long localId = Long.parseLong(String.valueOf(map.get("localId")));
+            Integer quantity = Integer.parseInt(String.valueOf(map.get("quantity")));
+            if(quantity == null || quantity<1){
+                continue;
+            }
+            LocalFile localFile = new LocalFile();
+            localFile.setId(localId);
+            localFile.setPushNumber(quantity);
+            localFileMapper.updateByPrimaryKeySelective(localFile);
+        }
     }
 }

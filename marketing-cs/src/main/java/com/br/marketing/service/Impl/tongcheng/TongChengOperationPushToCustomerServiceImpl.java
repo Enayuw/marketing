@@ -6,8 +6,11 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.dto.tongcheng.TongChengPushQueryQuantityDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.TongChengAgentMapper;
+import com.br.marketing.service.LocalFileService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -37,6 +42,9 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
 
     @Autowired
     TongChengAgentMktClient tongChengAgentMktClient;
+
+    @Resource
+    LocalFileService localFileService;
 
     private static final int BATCH_SIZE = 2000;
 
@@ -75,6 +83,9 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
             log.error(ex.getMessage(), ex);
             Thread.currentThread().interrupt();
         }
+
+        // refreshLocalFile
+        refreshLocalFile(apiCode);
     }
 
 
@@ -181,6 +192,26 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
             record.setDataMessage(message);
             tongChengAgentMapper.updateByExampleSelective(record, updateExample);
         }
+    }
+
+    /**
+     * 已确认，每个localId每天只执行1次，刷新逻辑为直接更新PushNumber字段
+     * 后续业务有变更，需要更新此方法
+     */
+    private void refreshLocalFile(String apiCode){
+        TongChengPushQueryQuantityDTO params = new TongChengPushQueryQuantityDTO();
+        params.setApiCode(apiCode);
+        params.setPushStatus(2);
+        params.setStatus(1);
+        String curTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        params.setStartTime(curTimeStr);
+
+        List<Map<String, Object>> quantityList = tongChengAgentMapper.queryQuantityGroupByLocalId(params);
+        if(quantityList == null || quantityList.size() < 1){
+            log.error("同程集团迁移可营销名单推送客户-推送量级更新异常");
+            return;
+        }
+        localFileService.refreshPushNumber(quantityList);
     }
 
 }

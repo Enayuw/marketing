@@ -8,11 +8,14 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.dto.tongcheng.TongChengPushQueryQuantityDTO;
+import com.br.marketing.dto.tongcheng.TongChengUndoQueryQuantityDTO;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.TongChengUndoData;
 import com.br.marketing.entity.TongChengUndoDataExample;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.TongChengUndoDataMapper;
+import com.br.marketing.service.LocalFileService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +42,9 @@ import java.util.stream.Collectors;
 public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndoListPushToCustomerService {
     @Resource
     LocalFileMapper localFileMapper;
+
+    @Resource
+    LocalFileService localFileService;
 
     @Resource
     MarketingCommonConfig marketingCommonConfig;
@@ -62,6 +70,7 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
                 pool.setMaximumPoolSize(marketingCommonConfig.getTongChengUndoThreadNum());
             }
 
+            // local_id = #{localId}  and status =1 正常 and push_status =1 未推送  2000
             List<TongChengUndoData> tongChengUndoDataList = tongChengUndoDataMapper.tongChengUndoDataPage(localFile.getId(), minId);
             if (tongChengUndoDataList.size() <= 0) {
                 isContiue = Boolean.FALSE;
@@ -159,5 +168,25 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
                 log.error(ex.getMessage(), ex);
             }
         }
+    }
+
+    /**
+     * 已确认，每个localId每天只执行1次，刷新逻辑为直接更新PushNumber字段
+     * 后续业务有变更，需要更新此方法
+     */
+    @Override
+    public void refreshLocalFile(){
+        TongChengUndoQueryQuantityDTO params = new TongChengUndoQueryQuantityDTO();
+        params.setPushStatus(2);
+        params.setStatus(1);
+        String curTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        params.setStartTime(curTimeStr);
+
+        List<Map<String, Object>> quantityList = tongChengUndoDataMapper.queryQuantityGroupByLocalId(params);
+        if(quantityList == null || quantityList.size() < 1){
+            log.error("同程不运营名单推送客户-推送量级更新异常");
+            return;
+        }
+        localFileService.refreshPushNumber(quantityList);
     }
 }

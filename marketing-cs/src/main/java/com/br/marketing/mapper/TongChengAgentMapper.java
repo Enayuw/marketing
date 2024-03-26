@@ -1,8 +1,11 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.dto.tongcheng.TongChengPushQueryQuantityDTO;
 import com.br.marketing.entity.TongChengAgent;
 import com.br.marketing.entity.TongChengAgentExample;
 import java.util.List;
+import java.util.Map;
+
 import org.apache.ibatis.annotations.Param;
 
 public interface TongChengAgentMapper {
@@ -29,5 +32,7 @@ public interface TongChengAgentMapper {
     int updateByPrimaryKey(TongChengAgent record);
 
     List<TongChengAgent> tongChengGroupOperationDataPage(@Param("minId") Long minId, @Param("apiCode") String apiCode, @Param("num") int num);
+
+    List<Map<String, Object>> queryQuantityGroupByLocalId(TongChengPushQueryQuantityDTO queryParams);
 
 }

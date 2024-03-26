@@ -59,6 +59,9 @@ public class TongChengUndoListPushToCustomerJob extends AbstractSimpleElasticJob
                     log.error("同程不运营名单推送客户JOB异常，localFIleId：{}", localFile.getId(), e);
                 }
             }
+
+            //refreshLocalFile
+            service.refreshLocalFile();
         });
     }
 }
