@@ -101,7 +101,11 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
         VariableAllocation data = variableAllocationMapper.selectByPrimaryKey(id.intValue());
         //更新记录
         VariableAllocationVO allocationVO = new VariableAllocationVO();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("trueDataThresholdSize", normalQuantity);
+        jsonObject.put("retryThresholdSize", abnormalQuantity);
         allocationVO.setId(id);
+        allocationVO.setAllocationValue(jsonObject.toString());
         allocationVO.setNormalQuantity(normalQuantity);
         allocationVO.setAbnormalQuantity(abnormalQuantity);
         allocationVO.setRequestTime(LocalDate.now().toString());
@@ -126,6 +130,16 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
         int dbFalseNum = 100000;
         int normalQuantity = 5000000;
         int abnormalQuantity = 100000;
+        String key = RedisKeyConstant.prefix.concat(":").concat(apiCode).concat(":").concat(allocationType);
+        if (StringUtil.isNotEmpty(key)){
+            String allocationValue = redisChgService.get(key);
+            JSONObject jsonObject = JSON.parseObject(allocationValue);
+            normalQuantity = jsonObject.getInteger("trueDataThresholdSize");
+            abnormalQuantity = jsonObject.getInteger("retryThresholdSize");
+            allocationVO.setNormalQuantity(normalQuantity);
+            allocationVO.setAbnormalQuantity(abnormalQuantity);
+            return allocationVO;
+        }
         VariableAllocation variable = variableAllocationMapper.getVariable(apiCode, allocationType);
         if (ObjectUtil.isNotEmpty(variable)){
             String value = variable.getAllocationValue();
@@ -133,20 +147,10 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
             dbTrueNum = json.getInteger("trueDataThresholdSize");
             dbFalseNum = json.getInteger("retryThresholdSize");
         }
-        String key = RedisKeyConstant.prefix.concat(":").concat(apiCode).concat(":").concat(allocationType);
-        if (StringUtil.isNotEmpty(key)){
-            String allocationValue = redisChgService.get(key);
-            JSONObject jsonObject = JSON.parseObject(allocationValue);
-            normalQuantity = jsonObject.getInteger("trueDataThresholdSize");
-            abnormalQuantity = jsonObject.getInteger("retryThresholdSize");
-        } else{
-            allocationVO.setNormalQuantity(dbTrueNum);
-            allocationVO.setAbnormalQuantity(dbFalseNum);
-            return allocationVO;
-        }
-        allocationVO.setNormalQuantity(normalQuantity);
-        allocationVO.setAbnormalQuantity(abnormalQuantity);
+        allocationVO.setNormalQuantity(dbTrueNum);
+        allocationVO.setAbnormalQuantity(dbFalseNum);
         return allocationVO;
+
     }
 
 }

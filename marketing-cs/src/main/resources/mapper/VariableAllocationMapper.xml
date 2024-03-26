@@ -320,8 +320,9 @@
       <if test="allocationType != null" >
         allocation_type = #{allocationType,jdbcType=VARCHAR},
       </if>
-        allocation_value = JSON_SET(allocation_value,
-        '$.trueDataThresholdSize', #{normalQuantity},'$.retryThresholdSize', #{abnormalQuantity} ) ,
+      <if test="allocationValue != null" >
+        allocation_value = #{allocationValue,jdbcType=VARCHAR},
+      </if>
       <if test="requestTime != null" >
         update_time = now()
       </if>

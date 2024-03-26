@@ -59,7 +59,7 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
 
         // 参数解析
         ParameterToJson result = getParameter(jobParameter);
-        if (result == null) return;
+        if (result == null) {return;}
 
         // 清洗主流程
         processWork(result, xieChengCollidingCleanThread);
