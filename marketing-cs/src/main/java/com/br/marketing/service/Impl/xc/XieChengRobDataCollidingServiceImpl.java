@@ -61,13 +61,13 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
         Integer perMinuteCounts = getPerMinuteCounts();
         Integer todayTrueTotalCounts = xieChengCollidingDataLoopCycleMapper.selectTodayCycleCount();
         Integer totalThreshold = variableAllocationService.getVariableAllocation().getNormalQuantity();
-        Integer limit = Math.min(perMinuteCounts, totalThreshold - todayTrueTotalCounts);
-        Integer pageSize = marketingCommonConfig.getXiechengCollidingPageSize();
+        int limit = Math.min(perMinuteCounts, totalThreshold - todayTrueTotalCounts);
         // 强制开关开启强制撞库，强制开关关闭且条件开关打开开始撞库
         while (limit > 0 && (marketingCommonConfig.getXieChengForceOpenSwitch()
             || Objects.equals("true", redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH)))) {
             XIECHENG_ROB_COLLIDING_THREAD.setCorePoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
             XIECHENG_ROB_COLLIDING_THREAD.setMaximumPoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
+            int pageSize = Math.min(marketingCommonConfig.getXiechengCollidingPageSize(), limit);
             List<XieChengCollidingDataRob> robDataList = xieChengCollidingDataRobMapper.getRobCollidingDataList(pageSize, packageIds);
             if (CollectionUtils.isEmpty(robDataList)) {
                 break;
