@@ -67,9 +67,9 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
 
     final static String XIECHENG_ZK_FILE = "callbackresult_";
 
-    final static DateTimeFormatter ymd = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    final static DateTimeFormatter YYYY_MM_DD = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    final static DateTimeFormatter ymdShort = DateTimeFormatter.ofPattern("yyyyMMdd");
+    final static DateTimeFormatter YYYYMMDD = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     @Override
     public String isMyParam(String apiCode, String jobParameter) {
@@ -110,11 +110,11 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
             }
         }
 
-        String _zkexecute = ZK_EXECUTE_TIME;
+        String zkexecute = ZK_EXECUTE_TIME;
         if (marketingCommonConfig.getXieChengTransferExecuteTime() != null && marketingCommonConfig.getXieChengTransferExecuteTime().size() > 1) {
-            _zkexecute = " " + marketingCommonConfig.getXieChengTransferExecuteTime().get(1);
+            zkexecute = " " + marketingCommonConfig.getXieChengTransferExecuteTime().get(1);
         }
-        Date executeTimeByZk = DateHelper.getDatePlusHourMinuteSecond(now, _zkexecute);
+        Date executeTimeByZk = DateHelper.getDatePlusHourMinuteSecond(now, zkexecute);
         if (now.after(executeTimeByZk)) {
             String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
@@ -144,9 +144,11 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
 
     @Override
     public Result actionTransferToFile(TransferFileTask transferFileTask, String jobParameter) {
-        if (new Integer(1).equals(transferFileTask.getFileType())) {
+        Integer one = new Integer(1);
+        Integer two = new Integer(2);
+        if (one.equals(transferFileTask.getFileType())) {
             return actionTransfer(transferFileTask, jobParameter);
-        } else if (new Integer(2).equals(transferFileTask.getFileType())) {
+        } else if (two.equals(transferFileTask.getFileType())) {
             return actionZk(transferFileTask, jobParameter);
         } else {
             return new Result().setCode(ResultCode.SUCCESS.getValue());
@@ -154,9 +156,11 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
     }
 
     private Result actionTransfer(TransferFileTask transferFileTask, String jobParameter) {
+        String requestDate = StringUtils.isBlank(jobParameter)
+                ? LocalDate.now().toString() : jobParameter;
         log.warn("携程转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
-        String recordDate = transferFileTask.getStartDate();//yyyyMMdd
+        String recordDate = transferFileTask.getStartDate();
         String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
@@ -210,11 +214,11 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
                     }
                 }
                 StringBuilder sb = new StringBuilder();
-                sb.append(cell.concat(","));
-                sb.append(convType.concat(","));
-                sb.append(transferFilterData.getRequestTime().concat(","));
-                sb.append(isBlack);
-                sb.append("\r\n");
+                sb.append(cell.concat(","))
+                        .append(convType.concat(","))
+                        .append(transferFilterData.getRequestTime().concat(","))
+                        .append(isBlack)
+                        .append("\r\n");
                 fw.append(sb.toString());
             }
             totalSize = totalSize + data.size();
@@ -236,9 +240,11 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
     }
 
     private Result actionZk(TransferFileTask transferFileTask, String jobParameter) {
+        String requestDate = StringUtils.isBlank(jobParameter)
+                ? LocalDate.now().toString() : jobParameter;
         log.warn("携程锁定结果数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
-        String recordDate = transferFileTask.getStartDate();//yyyyMMdd
+        String recordDate = transferFileTask.getStartDate();
         String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
@@ -269,8 +275,8 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100);
 
         try {
-            String sDateStr = LocalDate.parse(transferFileTask.getStartDate(), ymdShort).minusDays(1L).format(ymd).concat(" 06:00:00");
-            String eDateStr = LocalDate.parse(transferFileTask.getStartDate(), ymdShort).format(ymd).concat(" 09:00:00");
+            String sDateStr = LocalDate.parse(transferFileTask.getStartDate(), YYYYMMDD).minusDays(1L).format(YYYY_MM_DD).concat(" 06:00:00");
+            String eDateStr = LocalDate.parse(transferFileTask.getStartDate(), YYYYMMDD).format(YYYY_MM_DD).concat(" 09:00:00");
             Date sDate = DateHelper.parseDate(sDateStr);
             Date eDate = DateHelper.parseDate(eDateStr);
             Long minId = null;
