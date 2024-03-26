@@ -124,7 +124,7 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
     @Override
     public VariableAllocationVO getVariableAllocation(){
         VariableAllocationVO allocationVO = new VariableAllocationVO();
-        String apiCode = "3710058";
+        String apiCode = marketingCommonConfig.getXieChengDingZhiApiCode();
         String allocationType = "携程定制";
         int dbTrueNum = 5000000;
         int dbFalseNum = 100000;

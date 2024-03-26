@@ -1468,5 +1468,10 @@ public class MarketingCommonConfig {
      */
     private Boolean xieChengCleanSwitch;
 
+    /**
+     * 携程定制化配置ApiCode
+     */
+    private String xieChengDingZhiApiCode;
+
 }
 
