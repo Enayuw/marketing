@@ -398,7 +398,8 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
                 List<List<XieChengCollidingDataTemp>> partition = Lists.partition(cellList, PARTITIONCOUNT);
                 List<Future<Integer>> futureList = new ArrayList<>();
                 for (List<XieChengCollidingDataTemp> p : partition) {
-                    Future<Integer> submit = xieChengCollidingCleanThread.submit(() -> saveDataContrast(p, ruleTypeFlag, packageId, splitFilterScore));
+                    Future<Integer> submit = xieChengCollidingCleanThread
+                            .submit(() -> saveDataContrast(p, ruleTypeFlag, packageId, splitFilterScore));
                     futureList.add(submit);
                 }
                 futureFinish(futureList);
