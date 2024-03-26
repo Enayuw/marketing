@@ -146,8 +146,8 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
 
     @Override
     public Result actionTransferToFile(TransferFileTask transferFileTask, String jobParameter) {
-        Integer one = new Integer(1);
-        Integer two = new Integer(2);
+        Integer one = Integer.valueOf(1);
+        Integer two = Integer.valueOf(2);
         if (one.equals(transferFileTask.getFileType())) {
             return actionTransfer(transferFileTask, jobParameter);
         } else if (two.equals(transferFileTask.getFileType())) {
