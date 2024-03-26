@@ -82,8 +82,9 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
         Date now = new Date();
         //可配置
         String execute = EXECUTE_TIME;
-        if (marketingCommonConfig.getXieChengTransferExecuteTime() != null && marketingCommonConfig.getXieChengTransferExecuteTime().size() > 0) {
-            execute = " " + marketingCommonConfig.getXieChengTransferExecuteTime().get(0);
+        if (marketingCommonConfig.getXieChengTwoTransferExecuteTime() != null
+                && marketingCommonConfig.getXieChengTwoTransferExecuteTime().size() > 0) {
+            execute = " " + marketingCommonConfig.getXieChengTwoTransferExecuteTime().get(0);
         }
         Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, execute);
         if (now.after(executeTime)) {
@@ -111,8 +112,9 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
         }
 
         String zkexecute = ZK_EXECUTE_TIME;
-        if (marketingCommonConfig.getXieChengTransferExecuteTime() != null && marketingCommonConfig.getXieChengTransferExecuteTime().size() > 1) {
-            zkexecute = " " + marketingCommonConfig.getXieChengTransferExecuteTime().get(1);
+        if (marketingCommonConfig.getXieChengTwoTransferExecuteTime() != null
+                && marketingCommonConfig.getXieChengTwoTransferExecuteTime().size() > 1) {
+            zkexecute = " " + marketingCommonConfig.getXieChengTwoTransferExecuteTime().get(1);
         }
         Date executeTimeByZk = DateHelper.getDatePlusHourMinuteSecond(now, zkexecute);
         if (now.after(executeTimeByZk)) {

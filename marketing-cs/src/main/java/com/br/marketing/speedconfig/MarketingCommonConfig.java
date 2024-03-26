@@ -1490,5 +1490,16 @@ public class MarketingCommonConfig {
      */
     private String xieChengDingZhiApiCode;
 
+    /**
+     * 携程转化数据提取apiCode集合
+     */
+    private List<String> XieChengTwoTransferApiCodes;
+
+
+    /**
+     * 携程转化数据提取执行时间,携程撞库提取时间
+     */
+    private List<String> XieChengTwoTransferExecuteTime;
+
 }
 
