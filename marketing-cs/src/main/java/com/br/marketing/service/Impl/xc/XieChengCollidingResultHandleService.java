@@ -32,7 +32,7 @@ public class XieChengCollidingResultHandleService {
     @Resource
     private XieChengCollidingDataRobMapper xieChengCollidingDataRobMapper;
     @Resource
-    private XieChengCollidingResultHandleService xieChengCollidingResultHandleService;
+    private XieChengCollidingResultHandleService resultHandleService;
     @Resource
     private XieChengCollidingDataLogService xieChengCollidingDataLogService;
 
@@ -74,7 +74,7 @@ public class XieChengCollidingResultHandleService {
                 if (result) {
                     // 增加try-catch保证50条一批其他数据正常处理，异常数据单条告警
                     try {
-                        xieChengCollidingResultHandleService.trueDataHandle(cellMap, cell, returnData, robData);
+                        resultHandleService.trueDataHandle(cellMap, cell, returnData, robData);
                     } catch (Exception e) {
                         log.error("携程非周期数据撞得True，周期True表存在重复cell:{}", cell);
                     }
