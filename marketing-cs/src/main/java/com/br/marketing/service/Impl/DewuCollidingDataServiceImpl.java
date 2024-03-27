@@ -347,7 +347,6 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
 
         List<Map<String, Object>> quantityList = dewuCollidingDataUploadSyncMapper.queryQuantityGroupByLocalId(params);
         if(quantityList == null || quantityList.size() < 1){
-            log.error("得物推送上传-推送量级更新异常");
             return;
         }
         localFileService.refreshPushNumber(quantityList);

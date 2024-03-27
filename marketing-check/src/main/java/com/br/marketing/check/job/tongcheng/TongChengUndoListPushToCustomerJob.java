@@ -27,7 +27,7 @@ public class TongChengUndoListPushToCustomerJob extends AbstractSimpleElasticJob
     @Resource
     private LocalFileMapper localFileMapper;
 
-    @Autowired
+    @Resource
     TongChengUndoListPushToCustomerService service;
 
     @Resource

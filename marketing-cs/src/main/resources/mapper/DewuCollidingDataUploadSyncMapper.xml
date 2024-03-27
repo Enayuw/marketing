@@ -46,7 +46,7 @@
     where
       and push_status = #{pushStatus}
       and update_time >= #{startTime}
-      and is_delete = 0
+      and is_deleted = 0
     group by
       local_id
   </select>

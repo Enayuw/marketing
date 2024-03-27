@@ -90,6 +90,7 @@ public class LocalFileServiceImpl implements LocalFileService {
             localFile.setId(localId);
             localFile.setPushNumber(quantity);
             localFileMapper.updateByPrimaryKeySelective(localFile);
+            log.warn("更新推送量级，localId: {}, quantity: {}", localId,  quantity);
         }
     }
 }

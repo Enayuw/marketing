@@ -208,7 +208,6 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
 
         List<Map<String, Object>> quantityList = tongChengAgentMapper.queryQuantityGroupByLocalId(params);
         if(quantityList == null || quantityList.size() < 1){
-            log.error("同程集团迁移可营销名单推送客户-推送量级更新异常");
             return;
         }
         localFileService.refreshPushNumber(quantityList);

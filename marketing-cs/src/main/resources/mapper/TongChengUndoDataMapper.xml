@@ -22,7 +22,6 @@
           and push_status = #{pushStatus}
           and status = #{status}
           and update_time >= #{startTime}
-          and is_delete = 0
         group by
             local_id
     </select>
