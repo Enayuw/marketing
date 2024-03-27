@@ -6,8 +6,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.VariableAllocationDTO;
 import com.br.marketing.entity.VariableAllocation;
 import com.br.marketing.mapper.VariableAllocationMapper;
@@ -15,7 +13,6 @@ import com.br.marketing.service.Impl.xc.XcExceptionDataRetryService;
 import com.br.marketing.service.VariableAllocationService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.VariableAllocationVO;
-import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 
 /**
  * sftp账号配置业务逻辑实现
@@ -160,6 +153,7 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
             if (ObjectUtil.isNotEmpty(vo)){
                 redisChgService.del(key);
                 redisChgService.setex(key,vo.getAllocationValue(),5*60);
+                return vo;
             }
         } catch (Exception e) {
             log.error("获取携程定制配置redis异常{}", e);
@@ -168,7 +162,6 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
                 return vo;
             }
         }
-
         //数值为0报警
         String msg = "获取撞得总量级和异常报警量级为空";
         xcExceptionDataRetryService.sendDingDingAlert("获取携程定制配置异常！", msg);
@@ -176,7 +169,7 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
     }
 
     private VariableAllocationVO getVariableAllocationVO(VariableAllocationVO allocationVO, String apiCode) {
-        VariableAllocation variable = variableAllocationMapper.getVariable(apiCode, TYPE);
+        VariableAllocation variable = variableAllocationMapper.getVariable(apiCode, XIECHENG_TYPE);
         if (ObjectUtil.isNotEmpty(variable)) {
             String value = variable.getAllocationValue();
             JSONObject json = JSON.parseObject(value);
