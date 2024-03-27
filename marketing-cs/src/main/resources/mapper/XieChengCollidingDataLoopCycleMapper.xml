@@ -10,7 +10,7 @@
         <if test="minId != null and minId>0">
             and id > #{minId}
         </if>
-        order by release_time,id asc limit #{pageSize};
+        order by id limit #{pageSize};
     </select>
 
     <select id="selectCycleByRetryCount" resultType="com.br.marketing.entity.XieChengCollidingDataLoopCycle">
