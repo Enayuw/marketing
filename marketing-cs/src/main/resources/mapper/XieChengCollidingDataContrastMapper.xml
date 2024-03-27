@@ -32,7 +32,7 @@
 
     <select id="loopCycleCelltiflash_" resultType="java.lang.Long">
         select a.id  from  b_xiecheng_colliding_data_loop_cycle a left join b_xiecheng_colliding_data_contrast b
-                    on a.cell_sha256_code_list  = b.cell_sha256_code_list and b.is_delete = 0
+                    on a.cell_sha256_code_list  = b.cell_sha256_code_list and b.is_delete = 0 and b.local_id is null
                    where   b.id is null and a.is_delete =0    limit #{xieChengCleanCount}
     </select>
     <select id="loopCycleCellExisttiflash_" resultType="java.lang.Long">
