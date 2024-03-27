@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
@@ -24,11 +25,13 @@ public class XiechengPushImpl {
     @Resource
     private RabbitMqProducter producter;
 
-    public void pushXieCheng(){
+    public void pushXieCheng(String date){
         Long id = null;
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10);
         Boolean status = Boolean.TRUE;
-        String date = "2023-11-20";
+        if (StringUtils.isBlank(date)) {
+            date = "2024-03-26";
+        }
         while (status){
             List<XieChengData> xieChengData = xieChengDataMapper.selectXieChengCall(date, id);
             if(xieChengData.size()<=0){
