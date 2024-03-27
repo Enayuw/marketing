@@ -18,6 +18,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -64,7 +65,7 @@ public class QiFuStrategyReportEmailJob extends AbstractSimpleElasticJob {
             marketingEmailSendConfigExample.createCriteria().andApiCodeEqualTo(apiCode)
                     .andSubjectEqualTo(EmailSubjectEnum.QIFU_STRATEGYREPORT_SUNJECT.getValue()).andIsDelEqualTo(1);
             List<MarketingEmailSendConfig> sendConfigList = marketingEmailSendConfigMapper.selectByExample(marketingEmailSendConfigExample);
-            if (Objects.isNull(sendConfigList)) {
+            if (CollectionUtils.isEmpty(sendConfigList)) {
                 log.warn("360策略效果数据-邮件配置为空");
                 return;
             }
@@ -82,7 +83,7 @@ public class QiFuStrategyReportEmailJob extends AbstractSimpleElasticJob {
                         BeanUtils.copyProperties(reportData, reportExcelModel);
                         return reportExcelModel;
                     }).collect(Collectors.toList());
-            if (Objects.isNull(reportExcelModelList)) {
+            if (CollectionUtils.isEmpty(reportExcelModelList)) {
                 log.error("360策略效果数据未传输，请检查");
             }
             EasyExcel.write(excelFilePath, QiFuStrategyReportExcelModel.class).sheet(EmailSubjectEnum.QIFU_STRATEGYREPORT_SUNJECT.getDesc()).
