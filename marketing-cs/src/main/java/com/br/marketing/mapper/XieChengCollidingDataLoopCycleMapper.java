@@ -20,7 +20,7 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
      * 根据id批量更新is_deleted = 1
      * @param ids
      */
-    int updateBatchByIdToIsDeleted(@Param("ids") List<Long> ids);
+    int updateBatchByIdToIsDeleted(@Param("ids") List<Long> ids,@Param("rollbackFlag") String rollbackFlag);
 
     /**
      * 查询正常重试数据：is_delete = 0 and retry_count > 0 and retry_count < 3
@@ -41,7 +41,8 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
      * @param pageSize
      * @return
      */
-    List<XieChengCollidingDataLoopCycle> selectCycleDataByReleaseTime(@Param("minId") Long minId, @Param("startDate") Date startDate, @Param("endDate") Date endDate
+    List<XieChengCollidingDataLoopCycle> selectCycleDataByReleaseTime(@Param("minId") Long minId
+            , @Param("startDate") Date startDate, @Param("endDate") Date endDate
             ,@Param("pageSize") Integer pageSize);
 
     /**
