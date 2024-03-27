@@ -30,17 +30,15 @@ public class XieChengRobDataCollidingJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-
         XieChengCollidingDataPackageExample example = new XieChengCollidingDataPackageExample();
         example.createCriteria().andCollidingTimeLessThanOrEqualTo(new Date()).andIsDeleteEqualTo(0);
-        example.setOrderByClause("priority desc");
-        List<XieChengCollidingDataPackage> xieChengCollidingDataPackages = xieChengCollidingDataPackageMapper.selectByExample(example);
-        List<Long> packageIds = xieChengCollidingDataPackages.stream().map(XieChengCollidingDataPackage::getId).collect(Collectors.toList());
         String param = context.getJobParameter();
         if (StringUtils.isNotEmpty(param)) {
-            packageIds = Splitter.on(",").splitToList(param).stream().map(Long::parseLong).collect(Collectors.toList());
+            example.createCriteria().andIdIn(Splitter.on(",").splitToList(param).stream().map(Long::parseLong).collect(Collectors.toList()));
         }
-        xieChengRobDataCollidingService.collidingData(packageIds);
+        example.setOrderByClause("priority desc");
+        List<XieChengCollidingDataPackage> xieChengCollidingDataPackages = xieChengCollidingDataPackageMapper.selectByExample(example);
+        xieChengRobDataCollidingService.collidingData(xieChengCollidingDataPackages);
     }
 
 }

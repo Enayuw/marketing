@@ -18,6 +18,7 @@ import com.br.marketing.client.xiecheng.XieChengServiceNew;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.entity.XieChengCollidingDataPackage;
 import com.br.marketing.entity.XieChengCollidingDataRob;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
@@ -57,8 +58,8 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     private VariableAllocationServiceImpl variableAllocationService;
 
     @Override
-    public void collidingData(List<Long> packageIds) {
-        for (Long packageId : packageIds) {
+    public void collidingData(List<XieChengCollidingDataPackage> packageIds) {
+        for (XieChengCollidingDataPackage xieChengCollidingDataPackage : packageIds) {
             Integer perMinuteCounts = getPerMinuteCounts();
             Integer todayTrueTotalCounts = xieChengCollidingDataLoopCycleMapper.selectTodayCycleCount();
             Integer totalThreshold = variableAllocationService.getVariableAllocation().getNormalQuantity();
@@ -69,7 +70,8 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
                 XIECHENG_ROB_COLLIDING_THREAD.setCorePoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
                 XIECHENG_ROB_COLLIDING_THREAD.setMaximumPoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
                 int pageSize = Math.min(marketingCommonConfig.getXiechengCollidingPageSize(), limit);
-                List<XieChengCollidingDataRob> robDataList = xieChengCollidingDataRobMapper.getRobCollidingDataList(pageSize, packageId);
+                List<XieChengCollidingDataRob> robDataList =
+                    xieChengCollidingDataRobMapper.getRobCollidingDataList(pageSize, xieChengCollidingDataPackage.getId());
                 if (CollectionUtils.isEmpty(robDataList)) {
                     break;
                 }
