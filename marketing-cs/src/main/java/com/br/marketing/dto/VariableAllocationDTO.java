@@ -15,11 +15,9 @@ public class VariableAllocationDTO {
     @ApiModelProperty(value = "请求时间")
     private String requestTime;
 
-    @ApiModelProperty(value = "页号")
-    private Integer current;
+    @ApiModelProperty(value = "请求结束时间")
+    private String requestEndTime;
 
-    @ApiModelProperty(value = "页大小")
-    private Integer size;
 
     public String getApiCode() {
         return apiCode;
@@ -45,19 +43,12 @@ public class VariableAllocationDTO {
         this.requestTime = requestTime;
     }
 
-    public Integer getCurrent() {
-        return current;
+    public String getRequestEndTime() {
+        return requestEndTime;
     }
 
-    public void setCurrent(Integer current) {
-        this.current = current;
+    public void setRequestEndTime(String requestEndTime) {
+        this.requestEndTime = requestEndTime;
     }
 
-    public Integer getSize() {
-        return size;
-    }
-
-    public void setSize(Integer size) {
-        this.size = size;
-    }
 }

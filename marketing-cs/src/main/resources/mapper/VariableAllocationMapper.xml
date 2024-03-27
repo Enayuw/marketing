@@ -305,8 +305,8 @@
     from b_xiecheng_colliding_data_loop_cycle b
     <where>
       <if test="releaseTime != null" >
-        <![CDATA[ release_time >= CONCAT(date_sub(#{releaseTime}, interval 7 day)) ]]>
-        <![CDATA[ and release_time < date_format(DATE_SUB(#{releaseTime}, INTERVAL 6 day), '%Y-%m-%d 00:00:00')]]>
+        <![CDATA[ release_time >= #{releaseTime} ]]>
+        <![CDATA[ and release_time < #{requestEndTime}]]>
       </if>
     </where>
   </select>

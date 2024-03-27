@@ -34,6 +34,9 @@ public class VariableAllocationVO {
     @ApiModelProperty(value = "请求时间")
     private String requestTime;
 
+    @ApiModelProperty(value = "请求结束时间")
+    private String requestEndTime;
+
     public Long getId() {
         return id;
     }
@@ -106,6 +109,14 @@ public class VariableAllocationVO {
         this.requestTime = requestTime;
     }
 
+    public String getRequestEndTime() {
+        return requestEndTime;
+    }
+
+    public void setRequestEndTime(String requestEndTime) {
+        this.requestEndTime = requestEndTime;
+    }
+
     @Override
     public String toString() {
         return "VariableAllocationVO{" +
@@ -117,7 +128,8 @@ public class VariableAllocationVO {
                 ", abnormalQuantity=" + abnormalQuantity +
                 ", releaseTimeNum=" + releaseTimeNum +
                 ", falseNum=" + falseNum +
-                ", requestTime='" + requestTime + '\'' +
+                ", requestTime='" + requestTime +
+                ", requestTime='" + requestEndTime + '\'' +
                 '}';
     }
 }
