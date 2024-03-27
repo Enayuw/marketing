@@ -76,11 +76,14 @@ public class LocalFileServiceImpl implements LocalFileService {
     }
 
     @Override
-    public void refreshPushNumber(List<Map<String, Object>> quantityList){
+    public void refreshPushNumber(List<Map<String, Object>> quantityList) {
+        if (quantityList == null || quantityList.size() < 1) {
+            return;
+        }
         for (Map<String, Object> map : quantityList) {
             Long localId = Long.parseLong(String.valueOf(map.get("localId")));
             Integer quantity = Integer.parseInt(String.valueOf(map.get("quantity")));
-            if(quantity == null || quantity<1){
+            if (quantity == null || quantity < 1) {
                 continue;
             }
             LocalFile localFile = new LocalFile();
