@@ -288,6 +288,8 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
                 dataExample.setOrderByClause("id asc limit 2000");
                 XieChengCollidingDataLogExample.Criteria criteria = dataExample.createCriteria();
                 criteria.andIsDeleteEqualTo(0)
+                        .andHttpCodeEqualTo(200)
+                        .andBusinessCodeEqualTo(0)
                         .andCreateTimeGreaterThanOrEqualTo(sDate)
                         .andCreateTimeLessThan(eDate);
                 if (minId != null) {
