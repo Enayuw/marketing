@@ -84,11 +84,12 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         boolean a = overCount > 0;
         if (a) {
             // 查log表是否存在：create_time=当天且business_code=707且extend.isAlerted=true
-            XieChengCollidingDataLog alertedLog = logMapper.selectByAlerted(createTimeStart);
+            XieChengCollidingDataLog alertedLog = logMapper.selectByOverCountAlerted(createTimeStart);
 
             // 未发送过钉钉告警：设置isAlert，发钉钉
             if (alertedLog == null) {
-                updateByAlert(alertedLog);
+                XieChengCollidingDataLog dataLog = logMapper.selectByOverCount(createTimeStart);
+                updateByAlert(dataLog);
                 String msg = "携程撞库暂停通知:code返回707";
                 return new Pair<>(1, msg);
             }

@@ -43,11 +43,19 @@
         </foreach>
     </insert>
 
-    <select id="selectByAlerted" resultType="com.br.marketing.entity.XieChengCollidingDataLog">
+    <select id="selectByOverCountAlerted" resultType="com.br.marketing.entity.XieChengCollidingDataLog">
         select *
         from b_xiecheng_colliding_data_log
         where is_delete = 0 and business_code = 707
           and extend -> '$.isAlerted' = true
+            <![CDATA[ and create_time >= #{createTimeStart}]]>
+        limit 1;
+    </select>
+
+    <select id="selectByOverCount" resultType="com.br.marketing.entity.XieChengCollidingDataLog">
+        select *
+        from b_xiecheng_colliding_data_log
+        where is_delete = 0 and business_code = 707
             <![CDATA[ and create_time >= #{createTimeStart}]]>
         order by create_time asc limit 1;
     </select>
