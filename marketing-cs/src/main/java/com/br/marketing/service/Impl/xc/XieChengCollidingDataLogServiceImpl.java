@@ -41,7 +41,7 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
     @Resource
     private RabbitMqProducter rabbitMqProducter;
 
-    public static final ThreadPoolExecutor XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL = BrExecutors.getThreadPool(20, 20);
+    public static final ThreadPoolExecutor XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL = BrExecutors.getThreadPool(50, 50);
 
     /**
      * 构造撞库正常log
