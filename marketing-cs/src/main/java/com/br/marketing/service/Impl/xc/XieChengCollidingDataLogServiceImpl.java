@@ -136,11 +136,7 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
     public Result<Boolean> saveXieChengCollidingDataLog(List<XieChengCollidingDataLog> collidingLogs) {
         XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL.setMaximumPoolSize(marketingCommonConfig.getXiechengSaveCollidingLogThread());
         XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL.setCorePoolSize(marketingCommonConfig.getXiechengSaveCollidingLogThread());
-        List<CompletableFuture<Void>> futures = Lists.newArrayList();
-        CompletableFuture<Void> future =
-            CompletableFuture.runAsync(() -> xieChengCollidingDataLogMapper.batchSave(collidingLogs), XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL);
-        futures.add(future);
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL.submit(() -> xieChengCollidingDataLogMapper.batchSave(collidingLogs));
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 }
