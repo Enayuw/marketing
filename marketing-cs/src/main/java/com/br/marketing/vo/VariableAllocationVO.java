@@ -1,9 +1,12 @@
 package com.br.marketing.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
+import java.util.Date;
 
-
+@Data
 public class VariableAllocationVO {
 
     @ApiModelProperty(value = "任务流水号")
@@ -21,7 +24,6 @@ public class VariableAllocationVO {
     @ApiModelProperty(value = "撞得总量级")
     private Integer normalQuantity;
 
-
     @ApiModelProperty(value = "异常总量级")
     private Integer abnormalQuantity;
 
@@ -32,90 +34,12 @@ public class VariableAllocationVO {
     private Integer falseNum;
 
     @ApiModelProperty(value = "请求时间")
-    private String requestTime;
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date requestTime;
 
     @ApiModelProperty(value = "请求结束时间")
-    private String requestEndTime;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getApiCode() {
-        return apiCode;
-    }
-
-    public void setApiCode(String apiCode) {
-        this.apiCode = apiCode;
-    }
-
-    public String getAllocationType() {
-        return allocationType;
-    }
-
-    public void setAllocationType(String allocationType) {
-        this.allocationType = allocationType;
-    }
-
-    public String getAllocationValue() {
-        return allocationValue;
-    }
-
-    public void setAllocationValue(String allocationValue) {
-        this.allocationValue = allocationValue;
-    }
-
-    public Integer getNormalQuantity() {
-        return normalQuantity;
-    }
-
-    public void setNormalQuantity(Integer normalQuantity) {
-        this.normalQuantity = normalQuantity;
-    }
-
-    public Integer getAbnormalQuantity() {
-        return abnormalQuantity;
-    }
-
-    public void setAbnormalQuantity(Integer abnormalQuantity) {
-        this.abnormalQuantity = abnormalQuantity;
-    }
-
-    public Integer getReleaseTimeNum() {
-        return releaseTimeNum;
-    }
-
-    public void setReleaseTimeNum(Integer releaseTimeNum) {
-        this.releaseTimeNum = releaseTimeNum;
-    }
-
-    public Integer getFalseNum() {
-        return falseNum;
-    }
-
-    public void setFalseNum(Integer falseNum) {
-        this.falseNum = falseNum;
-    }
-
-    public String getRequestTime() {
-        return requestTime;
-    }
-
-    public void setRequestTime(String requestTime) {
-        this.requestTime = requestTime;
-    }
-
-    public String getRequestEndTime() {
-        return requestEndTime;
-    }
-
-    public void setRequestEndTime(String requestEndTime) {
-        this.requestEndTime = requestEndTime;
-    }
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date requestEndTime;
 
     @Override
     public String toString() {
