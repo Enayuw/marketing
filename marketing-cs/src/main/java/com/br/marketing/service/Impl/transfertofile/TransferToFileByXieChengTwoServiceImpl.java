@@ -282,8 +282,9 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
             Date sDate = DateHelper.parseDate(sDateStr);
             Date eDate = DateHelper.parseDate(eDateStr);
             Long minId = null;
+            Boolean isContiue = Boolean.TRUE;
 
-            while (true) {
+            while (isContiue) {
                 XieChengCollidingDataLogExample dataExample = new XieChengCollidingDataLogExample();
                 dataExample.setOrderByClause("id asc limit 2000");
                 XieChengCollidingDataLogExample.Criteria criteria = dataExample.createCriteria();
@@ -297,8 +298,9 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
                 }
 
                 List<XieChengCollidingDataLog> xieChengCollidingDataLogs = xieChengCollidingDataLogMapper.selectByExample(dataExample);
-                if (xieChengCollidingDataLogs.isEmpty()) {
-                    break;
+                if (xieChengCollidingDataLogs.size() <= 0) {
+                    isContiue = Boolean.FALSE;
+                    continue;
                 }
 
                 List<Long> packageIds = xieChengCollidingDataLogs.stream()
@@ -360,17 +362,18 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
         } catch (InterruptedException ex) {
             log.error(ex.getMessage(), ex);
             Thread.currentThread().interrupt();
-        } finally {
-            TransferFileTask updateTask = new TransferFileTask();
-            updateTask.setId(transferFileTask.getId());
-            updateTask.setStatus(2);
-            updateTask.setFileName(transferFileTask.getFileName());
-            updateTask.setFilePath(transferFileTask.getFilePath());
-            updateTask.setTaskNumber(num);
-            transferFileTaskMapper.updateByPrimaryKeySelective(updateTask);
-
-            log.warn("携程锁定结果数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, num);
         }
+
+        TransferFileTask updateTask = new TransferFileTask();
+        updateTask.setId(transferFileTask.getId());
+        updateTask.setStatus(2);
+        updateTask.setFileName(transferFileTask.getFileName());
+        updateTask.setFilePath(transferFileTask.getFilePath());
+        updateTask.setTaskNumber(num);
+        transferFileTaskMapper.updateByPrimaryKeySelective(updateTask);
+
+        log.warn("携程锁定结果数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, num);
+
     }
 
 
