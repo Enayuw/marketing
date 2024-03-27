@@ -180,7 +180,7 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
             TongChengUndoQueryQuantityDTO params = new TongChengUndoQueryQuantityDTO();
             params.setPushStatus(2);
             params.setStatus(1);
-            String curTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            String curTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd 00:00:00"));
             params.setStartTime(curTimeStr);
 
             List<Map<String, Object>> quantityList = tongChengUndoDataMapper.queryQuantityGroupByLocalId(params);

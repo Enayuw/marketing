@@ -343,7 +343,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
         try {
             DewuPushQueryQuantityDTO params = new DewuPushQueryQuantityDTO();
             params.setPushStatus(2);
-            String curTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            String curTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd 00:00:00"));
             params.setStartTime(curTimeStr);
 
             List<Map<String, Object>> quantityList = dewuCollidingDataUploadSyncMapper.queryQuantityGroupByLocalId(params);
