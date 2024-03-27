@@ -274,12 +274,8 @@
     allocation_value as allocationValue
     from variable_allocation
     where
-    <if test="apiCode != null">
       api_code = #{apiCode,jdbcType=VARCHAR}
-    </if>
-    <if test="dataType != null">
       and allocation_type = #{dataType,jdbcType=VARCHAR}
-    </if>
     order by create_time desc
   </select>
 
@@ -301,14 +297,13 @@
   </select>
 
   <select id="getVariableAllocationVO" resultType="com.br.marketing.vo.VariableAllocationVO">
-    select count(distinct b.cell_sha256_code_list) as releaseTimeNum
-         ,max(release_time) as requestEndTime
-         ,min(release_time) as requestTime
-    from b_xiecheng_colliding_data_loop_cycle b
+    select count(cell_sha256_code_list) as releaseTimeNum
+    ,max(release_time) as requestEndTime
+    ,min(release_time) as requestTime
+    from b_xiecheng_colliding_data_loop_cycle
     <where>
-      <if test="releaseTime != null" >
-        DATE_FORMAT(release_time, '%Y-%m-%d') = #{releaseTime}
-      </if>
+      DATE_FORMAT(release_time, '%Y-%m-%d') = #{releaseTime}
+      and is_delete = 0
     </where>
   </select>
 
