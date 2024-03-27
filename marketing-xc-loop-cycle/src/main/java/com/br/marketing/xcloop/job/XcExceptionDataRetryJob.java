@@ -124,7 +124,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         Integer retryThresholdSize = variableAllocationService.getVariableAllocation().getAbnormalQuantity();
         if (retryThresholdSize == null) {
             log.error("携程异常数据重试撞库,获取当天异常堆积阈值失败");
-            return new Pair<>(-2, "获取当天异常堆积阈值失败");
+            return new Pair<>(-2, "携程异常数据重试撞库暂停通知:获取当天异常堆积阈值失败");
         }
         LocalDate pushDateStart = LocalDate.now();
         LocalDate pushDateEnd = LocalDate.now().plusDays(1);
