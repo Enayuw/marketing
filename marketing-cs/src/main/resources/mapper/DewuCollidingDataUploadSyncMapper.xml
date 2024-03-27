@@ -44,7 +44,7 @@
     from
       b_dewu_colliding_data_upload_sync
     where
-      and push_status = #{pushStatus}
+      push_status = #{pushStatus}
       and update_time >= #{startTime}
       and is_deleted = 0
     group by

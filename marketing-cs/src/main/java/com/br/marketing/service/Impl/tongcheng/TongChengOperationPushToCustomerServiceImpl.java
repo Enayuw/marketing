@@ -199,18 +199,22 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
      * 后续业务有变更，需要更新此方法
      */
     private void refreshLocalFile(String apiCode){
-        TongChengPushQueryQuantityDTO params = new TongChengPushQueryQuantityDTO();
-        params.setApiCode(apiCode);
-        params.setPushStatus(2);
-        params.setStatus(1);
-        String curTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        params.setStartTime(curTimeStr);
+        try {
+            TongChengPushQueryQuantityDTO params = new TongChengPushQueryQuantityDTO();
+            params.setApiCode(apiCode);
+            params.setPushStatus(2);
+            params.setStatus(1);
+            String curTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            params.setStartTime(curTimeStr);
 
-        List<Map<String, Object>> quantityList = tongChengAgentMapper.queryQuantityGroupByLocalId(params);
-        if(quantityList == null || quantityList.size() < 1){
-            return;
+            List<Map<String, Object>> quantityList = tongChengAgentMapper.queryQuantityGroupByLocalId(params);
+            if(quantityList == null || quantityList.size() < 1){
+                return;
+            }
+            localFileService.refreshPushNumber(quantityList);
+        }catch (Exception e){
+            log.warn("更新推送量级异常", e);
         }
-        localFileService.refreshPushNumber(quantityList);
     }
 
 }

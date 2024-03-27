@@ -19,7 +19,7 @@
         from
             b_tongcheng_undo_data
         where
-          and push_status = #{pushStatus}
+          push_status = #{pushStatus}
           and status = #{status}
           and update_time >= #{startTime}
         group by

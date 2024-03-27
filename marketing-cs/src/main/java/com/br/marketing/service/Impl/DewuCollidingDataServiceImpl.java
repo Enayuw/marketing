@@ -340,15 +340,19 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
      * 后续业务有变更，需要更新此方法
      */
     private void refreshLocalFile(){
-        DewuPushQueryQuantityDTO params = new DewuPushQueryQuantityDTO();
-        params.setPushStatus(2);
-        String curTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        params.setStartTime(curTimeStr);
+        try {
+            DewuPushQueryQuantityDTO params = new DewuPushQueryQuantityDTO();
+            params.setPushStatus(2);
+            String curTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            params.setStartTime(curTimeStr);
 
-        List<Map<String, Object>> quantityList = dewuCollidingDataUploadSyncMapper.queryQuantityGroupByLocalId(params);
-        if(quantityList == null || quantityList.size() < 1){
-            return;
+            List<Map<String, Object>> quantityList = dewuCollidingDataUploadSyncMapper.queryQuantityGroupByLocalId(params);
+            if(quantityList == null || quantityList.size() < 1){
+                return;
+            }
+            localFileService.refreshPushNumber(quantityList);
+        }catch (Exception e){
+            log.warn("更新推送量级异常", e);
         }
-        localFileService.refreshPushNumber(quantityList);
     }
 }

@@ -176,16 +176,20 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
      */
     @Override
     public void refreshLocalFile(){
-        TongChengUndoQueryQuantityDTO params = new TongChengUndoQueryQuantityDTO();
-        params.setPushStatus(2);
-        params.setStatus(1);
-        String curTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        params.setStartTime(curTimeStr);
+        try{
+            TongChengUndoQueryQuantityDTO params = new TongChengUndoQueryQuantityDTO();
+            params.setPushStatus(2);
+            params.setStatus(1);
+            String curTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            params.setStartTime(curTimeStr);
 
-        List<Map<String, Object>> quantityList = tongChengUndoDataMapper.queryQuantityGroupByLocalId(params);
-        if(quantityList == null || quantityList.size() < 1){
-            return;
+            List<Map<String, Object>> quantityList = tongChengUndoDataMapper.queryQuantityGroupByLocalId(params);
+            if(quantityList == null || quantityList.size() < 1){
+                return;
+            }
+            localFileService.refreshPushNumber(quantityList);
+        }catch (Exception e){
+            log.warn("更新推送量级异常", e);
         }
-        localFileService.refreshPushNumber(quantityList);
     }
 }
