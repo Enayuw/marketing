@@ -71,7 +71,7 @@ public class QiFuStrategyReportEmailJob extends AbstractSimpleElasticJob {
                     .andCreateTimeGreaterThan(Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()));
             List<QifuStrategyReportData> reportDataList = qifuStrategyReportDataMapper.selectByExample(qifuStrategyReportDataExample);
             List<QiFuStrategyReportExcelModel> reportExcelModelList = reportDataList.stream()
-                    .map(reportData -> {
+                    .map((QifuStrategyReportData reportData) -> {
                         QiFuStrategyReportExcelModel reportExcelModel = new QiFuStrategyReportExcelModel();
                         BeanUtils.copyProperties(reportData, reportExcelModel);
                         return reportExcelModel;

@@ -933,7 +933,7 @@
 
     <job:simple id="QiFuStrategyReportEmailJob"
                 class="com.br.marketing.check.job.report.QiFuStrategyReportEmailJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0 10 * * ?"
                 description="360策略效果数据发送Email任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
