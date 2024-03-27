@@ -14,5 +14,6 @@ public interface XieChengCollidingDataLogMapper extends XieChengCollidingDataLog
 
     void batchSave(@Param("collidingLogs") List<XieChengCollidingDataLog> collidingLogs);
 
-    XieChengCollidingDataLog selectByAlerted(@Param("createTimeStart") Date createTimeStart);
+    XieChengCollidingDataLog selectByOverCountAlerted(@Param("createTimeStart") Date createTimeStart);
+    XieChengCollidingDataLog selectByOverCount(@Param("createTimeStart") Date createTimeStart);
 }
