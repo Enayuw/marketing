@@ -79,7 +79,7 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
 
     private ThreadPoolExecutor getThreadPoolExecutor() {
         return BrExecutors.getThreadPool(marketingCommonConfig.getXieChengCleanThreadCount(),
-                        marketingCommonConfig.getXieChengCleanThreadCount());
+                marketingCommonConfig.getXieChengCleanThreadCount());
     }
 
     private ParameterToJson getParameter(String jobParameter) {
@@ -110,10 +110,18 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
     }
 
     private void processWork(ParameterToJson result, ThreadPoolExecutor xieChengCollidingCleanThread) {
+        Boolean loopCycleSwitch = result.loopCycleSwitch;
+        if (loopCycleSwitch) {
+            String temporaryTable = result.temporaryTable;
+            String loopCycleFilterScore = result.loopCycleFilterScore;
+            xieChengCollidingDataCleanProcess(xieChengCollidingCleanThread,
+                    temporaryTable, 0, null, loopCycleFilterScore);
+            // 对比表数据同周期数据处理逻辑
+            xieChengCollidingLoopDataCycleProcess(xieChengCollidingCleanThread, result);
+        }
         // 跑分数据存入对比表
-        xieChengCollidingDataContrastProcess(result,xieChengCollidingCleanThread );
-        // 对比表数据同周期数据处理逻辑
-        xieChengCollidingLoopDataCycleProcess(xieChengCollidingCleanThread, result);
+        xieChengCollidingDataContrastProcess(result, xieChengCollidingCleanThread);
+
         // 对比表数据同非周期数据处理逻辑
         xieChengCollidingRobDataProcess(xieChengCollidingCleanThread, result);
     }
@@ -133,7 +141,7 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
             JSONArray packageRuleInfo = parseJson.getJSONArray("package_rule_info");
             Boolean loopCycleSwitch = parseJson.getBoolean("loop_cycle_switch");
             Boolean robSwitch = parseJson.getBoolean("rob_switch");
-            return new ParameterToJson(temporaryTable,loopCycleFilterScore,rollbackFlag, packageRuleInfo, loopCycleSwitch, robSwitch);
+            return new ParameterToJson(temporaryTable, loopCycleFilterScore, rollbackFlag, packageRuleInfo, loopCycleSwitch, robSwitch);
         } catch (Exception e) {
             log.error("携程清洗job参数异常：{}", jobParameter);
         }
@@ -148,7 +156,7 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
         public final Boolean loopCycleSwitch;
         public final Boolean robSwitch;
 
-        public ParameterToJson(String temporaryTable,String  loopCycleFilterScore,String rollbackFlag,
+        public ParameterToJson(String temporaryTable, String loopCycleFilterScore, String rollbackFlag,
                                JSONArray packageRuleInfo, Boolean loopCycleSwitch, Boolean robSwitch
         ) {
             this.temporaryTable = temporaryTable;
@@ -182,9 +190,9 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
                 Long packageId = getPackageId(packageName, priority, collidingTime, splitFilterScore);
                 // 携程数据清洗进入到对比表
                 xieChengCollidingDataCleanProcess(xieChengCollidingCleanThread,
-                        temporaryTable, i + 1, packageId, splitFilterScore,loopCycleFilterScore);
-            }catch (Exception e){
-                log.error("携程清洗job‘参数处理异常",e);
+                        temporaryTable, i + 1, packageId, splitFilterScore);
+            } catch (Exception e) {
+                log.error("携程清洗job‘参数处理异常", e);
             }
 
         }
@@ -211,12 +219,13 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
      * 携程撞库数据非周期表数据处理流程
      *
      * @param xieChengCollidingCleanThread 线程池
-     * @param robSwitch                    开关
      */
-    private void xieChengCollidingRobDataProcess(ThreadPoolExecutor xieChengCollidingCleanThread, Boolean robSwitch,String  rollbackFlag) {
+    private void xieChengCollidingRobDataProcess(ThreadPoolExecutor xieChengCollidingCleanThread, ParameterToJson result) {
+        Boolean robSwitch = result.robSwitch;
+        String rollbackFlag = result.rollbackFlag;
         if (robSwitch) {
             // 删除非周期表中的数据
-            deleteRobData(xieChengCollidingCleanThread,rollbackFlag);
+            deleteRobData(xieChengCollidingCleanThread, rollbackFlag);
             // 拆分非周期数据
             splitRobData(xieChengCollidingCleanThread);
             // 删除对比表中的数据
@@ -242,11 +251,12 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
                 }
                 futureFinish(futureList);
             }
-        }catch (Exception e){
-            log.error("携程清洗job非周期数据存储异常",e);
+        } catch (Exception e) {
+            log.error("携程清洗job非周期数据存储异常", e);
         }
 
     }
+
     private void deleteContrastData(ThreadPoolExecutor xieChengCollidingCleanThread) {
         try {
             while (marketingCommonConfig.getXieChengCleanSwitch()) {
@@ -264,12 +274,13 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
                 }
                 futureFinish(futureList);
             }
-        }catch (Exception e){
-            log.error("携程清洗job非周期数据删除对比表异常",e);
+        } catch (Exception e) {
+            log.error("携程清洗job非周期数据删除对比表异常", e);
         }
 
     }
-    private void deleteRobData(ThreadPoolExecutor xieChengCollidingCleanThread,String  rollbackFlag) {
+
+    private void deleteRobData(ThreadPoolExecutor xieChengCollidingCleanThread, String rollbackFlag) {
         try {
             while (marketingCommonConfig.getXieChengCleanSwitch()) {
                 setThreadCount(xieChengCollidingCleanThread);
@@ -280,13 +291,13 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
                 List<List<Long>> partition = Lists.partition(idLists, PARTITIONCOUNT);
                 List<Future<Integer>> futureList = new ArrayList<>();
                 for (List<Long> p : partition) {
-                    Future<Integer> submit = xieChengCollidingCleanThread.submit(() -> deleteRobData(p,rollbackFlag));
+                    Future<Integer> submit = xieChengCollidingCleanThread.submit(() -> deleteRobData(p, rollbackFlag));
                     futureList.add(submit);
                 }
                 futureFinish(futureList);
             }
-        }catch (Exception e){
-            log.error("携程清洗job删除非周期表数据异常",e);
+        } catch (Exception e) {
+            log.error("携程清洗job删除非周期表数据异常", e);
         }
 
     }
@@ -295,13 +306,14 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
      * 携程周期数据处理流程
      *
      * @param xieChengCollidingCleanThread 线程池
-     * @param loopCycleSwitch              开关
      */
-    private void xieChengCollidingLoopDataCycleProcess(ThreadPoolExecutor xieChengCollidingCleanThread, Boolean loopCycleSwitch,String rollbackFlag) {
+    private void xieChengCollidingLoopDataCycleProcess(ThreadPoolExecutor xieChengCollidingCleanThread, ParameterToJson result) {
+        Boolean loopCycleSwitch = result.loopCycleSwitch;
+        String rollbackFlag = result.rollbackFlag;
         if (loopCycleSwitch) {
             // 周期表内不符合分值条件的数据要删除掉
-            doLoopCycleWork(xieChengCollidingCleanThread,rollbackFlag);
-            // 对比表内符合分值条件且数据是true的数据删除掉
+            doLoopCycleWork(xieChengCollidingCleanThread, rollbackFlag);
+            // 删除对比表内不符合分值的数据
             doContrastWork(xieChengCollidingCleanThread);
         }
     }
@@ -329,8 +341,8 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
                 }
                 futureFinish(futureList);
             }
-        }catch (Exception e){
-            log.error("携程清洗job周期True删除对比表异常",e);
+        } catch (Exception e) {
+            log.error("携程清洗job周期True删除对比表异常", e);
         }
 
     }
@@ -340,7 +352,7 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
      *
      * @param xieChengCollidingCleanThread 线程池
      */
-    private void doLoopCycleWork(ThreadPoolExecutor xieChengCollidingCleanThread,String rollbackFlag) {
+    private void doLoopCycleWork(ThreadPoolExecutor xieChengCollidingCleanThread, String rollbackFlag) {
         try {
             while (marketingCommonConfig.getXieChengCleanSwitch()) {
                 setThreadCount(xieChengCollidingCleanThread);
@@ -352,13 +364,13 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
                 List<List<Long>> partition = Lists.partition(idLists, PARTITIONCOUNT);
                 List<Future<Integer>> futureList = new ArrayList<>();
                 for (List<Long> p : partition) {
-                    Future<Integer> submit = xieChengCollidingCleanThread.submit(() -> deleteLoopCycleData(p,rollbackFlag));
+                    Future<Integer> submit = xieChengCollidingCleanThread.submit(() -> deleteLoopCycleData(p, rollbackFlag));
                     futureList.add(submit);
                 }
                 futureFinish(futureList);
             }
-        }catch (Exception e){
-            log.error("携程清洗job周期True表数据处理异常",e);
+        } catch (Exception e) {
+            log.error("携程清洗job周期True表数据处理异常", e);
         }
 
     }
@@ -371,7 +383,7 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
     private static void futureFinish(List<Future<Integer>> futureList) {
         for (Future<Integer> stringFuture : futureList) {
             try {
-                stringFuture.get(30,TimeUnit.SECONDS);
+                stringFuture.get(30, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 log.warn("InterruptedException:", e);
                 Thread.currentThread().interrupt();
@@ -391,36 +403,27 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
      */
     private void xieChengCollidingDataCleanProcess(ThreadPoolExecutor xieChengCollidingCleanThread,
                                                    String tableName, Integer ruleTypeFlag, Long packageId,
-                                                   String splitFilterScore,String loopCycleFilterScore) {
+                                                   String score) {
         try {
             while (marketingCommonConfig.getXieChengCleanSwitch()) {
                 setThreadCount(xieChengCollidingCleanThread);
-                String scoreFilter = loopCycleFilterScore;
-                List<XieChengCollidingDataTemp> cellList = getCellList(tableName, scoreFilter);
-                Long  indexPackage = 0L;
+                List<XieChengCollidingDataTemp> cellList = getCellList(tableName, score);
                 if (cellList.isEmpty()) {
-                    indexPackage = packageId;
-                    scoreFilter = splitFilterScore;
-                     cellList = getCellList(tableName, scoreFilter);
-                    if (cellList.isEmpty()) {
-                        break;
-                    }
+                    break;
                 }
 
                 // 多线程插入对比表
                 List<List<XieChengCollidingDataTemp>> partition = Lists.partition(cellList, PARTITIONCOUNT);
                 List<Future<Integer>> futureList = new ArrayList<>();
                 for (List<XieChengCollidingDataTemp> p : partition) {
-                    String score =  scoreFilter;
-                   Long packageIdNull = indexPackage;
                     Future<Integer> submit = xieChengCollidingCleanThread
-                            .submit(() -> saveDataContrast(p, ruleTypeFlag, packageIdNull, score));
+                            .submit(() -> saveDataContrast(p, ruleTypeFlag, packageId, score));
                     futureList.add(submit);
                 }
                 futureFinish(futureList);
             }
-        }catch (Exception e){
-            log.error("携程清洗job对比表操作异常",e);
+        } catch (Exception e) {
+            log.error("携程清洗job对比表操作异常", e);
         }
 
     }
@@ -440,15 +443,15 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
     private int saveDataContrast(List<XieChengCollidingDataTemp> p, Integer ruleTypeFlag, Long packageId, String splitFilterScore) {
         List<XieChengCollidingDataContrast> xieChengCollidingDataContrastList = new ArrayList<>();
         try {
-        for (XieChengCollidingDataTemp xt : p) {
-            XieChengCollidingDataContrast xieChengCollidingDataContrast = new XieChengCollidingDataContrast();
-            xieChengCollidingDataContrast.setRuleTypeFlag(ruleTypeFlag);
-            xieChengCollidingDataContrast.setCellSha256CodeList(xt.getCell());
-            xieChengCollidingDataContrast.setPackageId(packageId);
-            xieChengCollidingDataContrast.setBatchNumber(xt.getBatchNumber());
-            xieChengCollidingDataContrast.setExtend(splitFilterScore);
-            xieChengCollidingDataContrastList.add(xieChengCollidingDataContrast);
-        }
+            for (XieChengCollidingDataTemp xt : p) {
+                XieChengCollidingDataContrast xieChengCollidingDataContrast = new XieChengCollidingDataContrast();
+                xieChengCollidingDataContrast.setRuleTypeFlag(ruleTypeFlag);
+                xieChengCollidingDataContrast.setCellSha256CodeList(xt.getCell());
+                xieChengCollidingDataContrast.setPackageId(packageId);
+                xieChengCollidingDataContrast.setBatchNumber(xt.getBatchNumber());
+                xieChengCollidingDataContrast.setExtend(splitFilterScore);
+                xieChengCollidingDataContrastList.add(xieChengCollidingDataContrast);
+            }
             xieChengCollidingDataContrastMapper.saveBatch(xieChengCollidingDataContrastList);
         } catch (DuplicateKeyException keyException) {
             log.warn("携程清洗job保存对比表数据异常");
@@ -468,18 +471,18 @@ public class XieChengCollidingDataCleanServiceImpl implements XieChengCollidingD
             }
             xieChengCollidingDataRobMapper.saveBatch(xieChengCollidingDataContrastList);
         } catch (Exception e) {
-            log.warn("携程数据清洗有重复数据",e);
+            log.warn("携程数据清洗有重复数据", e);
         }
         return 0;
     }
 
-    private int deleteRobData(List<Long> ids,String rollbackFlag) {
+    private int deleteRobData(List<Long> ids, String rollbackFlag) {
         // 删除非周期表内所有数据
-        return xieChengCollidingDataRobMapper.updateBatchByIdToIsDeleted(ids,rollbackFlag);
+        return xieChengCollidingDataRobMapper.updateBatchByIdToIsDeleted(ids, rollbackFlag);
     }
 
-    private int deleteLoopCycleData(List<Long> ids,String rollbackFlag) {
-        return xieChengCollidingDataLoopCycleMapper.updateBatchByIdToIsDeleted(ids,rollbackFlag);
+    private int deleteLoopCycleData(List<Long> ids, String rollbackFlag) {
+        return xieChengCollidingDataLoopCycleMapper.updateBatchByIdToIsDeleted(ids, rollbackFlag);
     }
 
     private int deleteContrastData(List<Long> ids) {
