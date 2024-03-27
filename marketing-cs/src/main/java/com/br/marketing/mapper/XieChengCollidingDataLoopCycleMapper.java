@@ -41,7 +41,8 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
      * @param pageSize
      * @return
      */
-    List<XieChengCollidingDataLoopCycle> selectCycleDataByReleaseTime(@Param("minId") Long minId, @Param("startDate") Date startDate, @Param("endDate") Date endDate
+    List<XieChengCollidingDataLoopCycle> selectCycleDataByReleaseTime(@Param("minId") Long minId
+            , @Param("startDate") Date startDate, @Param("endDate") Date endDate
             ,@Param("pageSize") Integer pageSize);
 
     /**
