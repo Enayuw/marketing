@@ -15,6 +15,7 @@
     <result column="http_code" property="httpCode" jdbcType="INTEGER" />
     <result column="business_code" property="businessCode" jdbcType="INTEGER" />
     <result column="return_content" property="returnContent" jdbcType="VARCHAR" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -78,9 +79,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, sms_colliding_data_id, package_id, data_source_type, cell_sha256_code_list, release_time, 
-    org_channel, mkt_level, info, `result`, http_code, business_code, return_content, 
-    is_delete, create_time, update_time
+    id, sms_colliding_data_id, package_id, data_source_type, cell_sha256_code_list, release_time,
+    org_channel, mkt_level, info, `result`, http_code, business_code, return_content,
+    extend, is_delete, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.XieChengCollidingDataLogExample" >
     select
@@ -97,7 +98,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_xiecheng_colliding_data_log
     where id = #{id,jdbcType=BIGINT}
@@ -116,18 +117,18 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_xiecheng_colliding_data_log (sms_colliding_data_id, package_id, data_source_type, 
-      cell_sha256_code_list, release_time, org_channel, 
-      mkt_level, info, `result`, 
-      http_code, business_code, return_content, 
-      is_delete, create_time, update_time
-      )
-    values (#{smsCollidingDataId,jdbcType=BIGINT}, #{packageId,jdbcType=BIGINT}, #{dataSourceType,jdbcType=VARCHAR}, 
-      #{cellSha256CodeList,jdbcType=VARCHAR}, #{releaseTime,jdbcType=VARCHAR}, #{orgChannel,jdbcType=VARCHAR}, 
-      #{mktLevel,jdbcType=VARCHAR}, #{info,jdbcType=VARCHAR}, #{result,jdbcType=BIT}, 
-      #{httpCode,jdbcType=INTEGER}, #{businessCode,jdbcType=INTEGER}, #{returnContent,jdbcType=VARCHAR}, 
-      #{isDelete,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+    insert into b_xiecheng_colliding_data_log (sms_colliding_data_id, package_id, data_source_type,
+    cell_sha256_code_list, release_time, org_channel,
+    mkt_level, info, `result`,
+    http_code, business_code, return_content,
+    extend, is_delete, create_time,
+    update_time)
+    values (#{smsCollidingDataId,jdbcType=BIGINT}, #{packageId,jdbcType=BIGINT}, #{dataSourceType,jdbcType=VARCHAR},
+    #{cellSha256CodeList,jdbcType=VARCHAR}, #{releaseTime,jdbcType=VARCHAR}, #{orgChannel,jdbcType=VARCHAR},
+    #{mktLevel,jdbcType=VARCHAR}, #{info,jdbcType=VARCHAR}, #{result,jdbcType=BIT},
+    #{httpCode,jdbcType=INTEGER}, #{businessCode,jdbcType=INTEGER}, #{returnContent,jdbcType=VARCHAR},
+    #{extend,jdbcType=VARCHAR}, #{isDelete,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.XieChengCollidingDataLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -170,6 +171,9 @@
       </if>
       <if test="returnContent != null" >
         return_content,
+      </if>
+      <if test="extend != null" >
+        extend,
       </if>
       <if test="isDelete != null" >
         is_delete,
@@ -217,6 +221,9 @@
       </if>
       <if test="returnContent != null" >
         #{returnContent,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
       </if>
       <if test="isDelete != null" >
         #{isDelete,jdbcType=INTEGER},
@@ -277,6 +284,9 @@
       <if test="record.returnContent != null" >
         return_content = #{record.returnContent,jdbcType=VARCHAR},
       </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
       <if test="record.isDelete != null" >
         is_delete = #{record.isDelete,jdbcType=INTEGER},
       </if>
@@ -294,21 +304,22 @@
   <update id="updateByExample" parameterType="map" >
     update b_xiecheng_colliding_data_log
     set id = #{record.id,jdbcType=BIGINT},
-      sms_colliding_data_id = #{record.smsCollidingDataId,jdbcType=BIGINT},
-      package_id = #{record.packageId,jdbcType=BIGINT},
-      data_source_type = #{record.dataSourceType,jdbcType=VARCHAR},
-      cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
-      release_time = #{record.releaseTime,jdbcType=VARCHAR},
-      org_channel = #{record.orgChannel,jdbcType=VARCHAR},
-      mkt_level = #{record.mktLevel,jdbcType=VARCHAR},
-      info = #{record.info,jdbcType=VARCHAR},
-      `result` = #{record.result,jdbcType=BIT},
-      http_code = #{record.httpCode,jdbcType=INTEGER},
-      business_code = #{record.businessCode,jdbcType=INTEGER},
-      return_content = #{record.returnContent,jdbcType=VARCHAR},
-      is_delete = #{record.isDelete,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    sms_colliding_data_id = #{record.smsCollidingDataId,jdbcType=BIGINT},
+    package_id = #{record.packageId,jdbcType=BIGINT},
+    data_source_type = #{record.dataSourceType,jdbcType=VARCHAR},
+    cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
+    release_time = #{record.releaseTime,jdbcType=VARCHAR},
+    org_channel = #{record.orgChannel,jdbcType=VARCHAR},
+    mkt_level = #{record.mktLevel,jdbcType=VARCHAR},
+    info = #{record.info,jdbcType=VARCHAR},
+    `result` = #{record.result,jdbcType=BIT},
+    http_code = #{record.httpCode,jdbcType=INTEGER},
+    business_code = #{record.businessCode,jdbcType=INTEGER},
+    return_content = #{record.returnContent,jdbcType=VARCHAR},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    is_delete = #{record.isDelete,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -352,6 +363,9 @@
       <if test="returnContent != null" >
         return_content = #{returnContent,jdbcType=VARCHAR},
       </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
       <if test="isDelete != null" >
         is_delete = #{isDelete,jdbcType=INTEGER},
       </if>
@@ -367,20 +381,21 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XieChengCollidingDataLog" >
     update b_xiecheng_colliding_data_log
     set sms_colliding_data_id = #{smsCollidingDataId,jdbcType=BIGINT},
-      package_id = #{packageId,jdbcType=BIGINT},
-      data_source_type = #{dataSourceType,jdbcType=VARCHAR},
-      cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
-      release_time = #{releaseTime,jdbcType=VARCHAR},
-      org_channel = #{orgChannel,jdbcType=VARCHAR},
-      mkt_level = #{mktLevel,jdbcType=VARCHAR},
-      info = #{info,jdbcType=VARCHAR},
-      `result` = #{result,jdbcType=BIT},
-      http_code = #{httpCode,jdbcType=INTEGER},
-      business_code = #{businessCode,jdbcType=INTEGER},
-      return_content = #{returnContent,jdbcType=VARCHAR},
-      is_delete = #{isDelete,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        package_id = #{packageId,jdbcType=BIGINT},
+        data_source_type = #{dataSourceType,jdbcType=VARCHAR},
+        cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
+        release_time = #{releaseTime,jdbcType=VARCHAR},
+        org_channel = #{orgChannel,jdbcType=VARCHAR},
+        mkt_level = #{mktLevel,jdbcType=VARCHAR},
+        info = #{info,jdbcType=VARCHAR},
+        `result` = #{result,jdbcType=BIT},
+        http_code = #{httpCode,jdbcType=INTEGER},
+        business_code = #{businessCode,jdbcType=INTEGER},
+        return_content = #{returnContent,jdbcType=VARCHAR},
+        extend = #{extend,jdbcType=VARCHAR},
+        is_delete = #{isDelete,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

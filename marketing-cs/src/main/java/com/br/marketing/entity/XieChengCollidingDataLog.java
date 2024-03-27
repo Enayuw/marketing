@@ -72,6 +72,11 @@ public class XieChengCollidingDataLog {
     private String returnContent;
 
     /**
+     * 扩展字段
+     */
+    private String extend;
+
+    /**
      * 状态 0-正常1 删除
      */
     private Integer isDelete;
@@ -188,6 +193,14 @@ public class XieChengCollidingDataLog {
 
     public void setReturnContent(String returnContent) {
         this.returnContent = returnContent == null ? null : returnContent.trim();
+    }
+
+    public String getExtend() {
+        return extend;
+    }
+
+    public void setExtend(String extend) {
+        this.extend = extend == null ? null : extend.trim();
     }
 
     public Integer getIsDelete() {
