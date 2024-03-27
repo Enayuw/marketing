@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
@@ -12,4 +13,6 @@ public interface XieChengCollidingDataLogMapper extends XieChengCollidingDataLog
     int deleteByIdList(@Param("ids") List<Long> ids, @Param("size") int size);
 
     void batchSave(@Param("collidingLogs") List<XieChengCollidingDataLog> collidingLogs);
+
+    XieChengCollidingDataLog selectByAlerted(@Param("createTimeStart") Date createTimeStart);
 }

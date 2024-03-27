@@ -1,9 +1,11 @@
 package com.br.marketing.xcloop.job;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.xiecheng.XieChengServiceNew;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.XieChengCollidingDataLog;
 import com.br.marketing.entity.XieChengCollidingDataLogExample;
 import com.br.marketing.entity.XieChengCollidingDataLoopCycleExample;
 import com.br.marketing.entity.XieChengCollidingDataRobExample;
@@ -46,10 +48,8 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
     RedisChgService redisChgService;
     @Resource
     XieChengCollidingDataLoopCycleMapper loopCycleMapper;
-
     @Resource
     XieChengCollidingDataRobMapper robMapper;
-
     @Resource
     XieChengCollidingDataLogMapper logMapper;
     @Resource
@@ -68,8 +68,8 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
 
     /**
      * 获取撞库暂停code码和暂停通知
-     * code码含义：0:需要开启条件开关，1~3:需要关闭条件开关
-     * 1:返回707，2:撞得量级超限，3:重试堆积量级超限
+     * code码含义：0:需要开启条件开关，-1和1~3:需要关闭条件开关
+     * -1:返回707且已发送过告警，1:返回707且未发送过告警，2:撞得量级超限，3:重试堆积量级超限
      */
     private Pair<Integer, String> getCodeAndMsg() {
         // 查log表是否存在：create_time=当天且business_code=707
@@ -83,8 +83,18 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         int overCount = logMapper.countByExample(logExample);
         boolean a = overCount > 0;
         if (a) {
-            String msg = "携程撞库暂停通知:code返回707";
-            return new Pair<>(1, msg);
+            // 查log表是否存在：create_time=当天且business_code=707且extend.isAlerted=true
+            XieChengCollidingDataLog alertedLog = logMapper.selectByAlerted(createTimeStart);
+
+            // 未发送过钉钉告警：设置isAlert，发钉钉
+            if (alertedLog == null) {
+                updateByAlert(alertedLog);
+                String msg = "携程撞库暂停通知:code返回707";
+                return new Pair<>(1, msg);
+            }
+
+            // 已发过707钉钉告警：关闭条件开关
+            return new Pair<>(-1, null);
         }
 
         // 查TRUE表当天撞回量级是否超限（500w）
@@ -132,6 +142,19 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
     }
 
     /**
+     * 发钉钉告警前更新extend.isAlerted=true
+     * @param alertedLog
+     */
+    private void updateByAlert(XieChengCollidingDataLog alertedLog) {
+        XieChengCollidingDataLog log = new XieChengCollidingDataLog();
+        log.setId(alertedLog.getId());
+        JSONObject json = new JSONObject();
+        json.put("isAlerted", true);
+        log.setExtend(json.toJSONString());
+        logMapper.updateByPrimaryKeySelective(log);
+    }
+
+    /**
      * 校验是否需要开启条件开关并执行撞库
      * @return true:是，false：否
      */
@@ -152,11 +175,23 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         Pair<Integer, String> pair = getCodeAndMsg();
         Integer code = pair.getKey();
         String msg = pair.getValue();
+        if (code == -1) {
+            // 已发送过707告警：关闭条件开关
+            xieChengServiceNew.shutDownConditionSwitch();
+            return false;
+        }
+
+        if (code == 1) {
+            // 未发送过707告警：关闭条件开关并发送钉钉告警
+            shutDownConditionSwitchAndAlert(msg);
+            return false;
+        }
+
         if ("false".equalsIgnoreCase(redisSwitch) && code == 0) {
             // 开关是关闭状态且需要开启条件开关
             redisChgService.set(RedisKeyConstant.XIECHENG_CONDITIONSWITCH, "true");
             return true;
-        } else if ("true".equalsIgnoreCase(redisSwitch) && code > 0) {
+        } else if ("true".equalsIgnoreCase(redisSwitch) && code > 1) {
             // 开关是开启状态且需要关闭条件开关
             shutDownConditionSwitchAndAlert(msg);
             return false;
