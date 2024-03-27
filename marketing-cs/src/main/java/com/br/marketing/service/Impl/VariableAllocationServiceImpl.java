@@ -102,11 +102,11 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
             xcExceptionDataRetryService.sendDingDingAlert("携程定制化配置异常！", msg);
         }
         //原数据记录
-        VariableAllocation data = variableAllocationMapper.selectByPrimaryKey(id.intValue());
-        JSONObject json = JSON.parseObject(data.getAllocationValue());
-        int trueDataThresholdSize =  json.getInteger("trueDataThresholdSize");
-        int retryThresholdSize = json.getInteger("retryThresholdSize");
-        if (normalQuantity == trueDataThresholdSize && abnormalQuantity == retryThresholdSize ) {
+        VariableAllocation originData = variableAllocationMapper.selectByPrimaryKey(id.intValue());
+        JSONObject originJson = JSON.parseObject(originData.getAllocationValue());
+        int originTrueDataThresholdSize =  originJson.getInteger("trueDataThresholdSize");
+        int originRetryThresholdSize = originJson.getInteger("retryThresholdSize");
+        if (normalQuantity == originTrueDataThresholdSize && abnormalQuantity == originRetryThresholdSize ) {
             return new ApiResult<Boolean>().success(true,"修改前后数据一致");
         }
         //更新记录
@@ -119,10 +119,10 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
         int i = variableAllocationMapper.updateByPrimaryMutchKeySelective(allocationVO);
         VariableAllocation newData = variableAllocationMapper.selectByPrimaryKey(id.intValue());
         if (i > 0 ){
-            entityOptService.writeOptLog(id, newData, data);
+            entityOptService.writeOptLog(id, newData, originData);
             // 将数据保存到 Redis
-            if (XIECHENG_TYPE.equals(data.getAllocationType())){
-                String key = RedisKeyConstant.prefix.concat(":").concat(data.getApiCode()).concat(":").concat(TYPE);
+            if (XIECHENG_TYPE.equals(originData.getAllocationType())){
+                String key = RedisKeyConstant.prefix.concat(":").concat(originData.getApiCode()).concat(":").concat(TYPE);
                 try {
                     redisChgService.del(key);
                     redisChgService.setex(key, newData.getAllocationValue(), 5*60);
