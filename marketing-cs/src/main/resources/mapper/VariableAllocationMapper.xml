@@ -300,13 +300,14 @@
     order by create_time desc
   </select>
 
-  <select id="getVariableAllocationVO" resultType="java.lang.Integer">
+  <select id="getVariableAllocationVO" resultType="com.br.marketing.vo.VariableAllocationVO">
     select count(distinct b.cell_sha256_code_list) as releaseTimeNum
+         ,max(release_time) as requestEndTime
+         ,min(release_time) as requestTime
     from b_xiecheng_colliding_data_loop_cycle b
     <where>
       <if test="releaseTime != null" >
-        <![CDATA[ release_time >= #{releaseTime} ]]>
-        <![CDATA[ and release_time < #{requestEndTime}]]>
+        DATE_FORMAT(release_time, '%Y-%m-%d') = #{releaseTime}
       </if>
     </where>
   </select>
@@ -322,9 +323,6 @@
       </if>
       <if test="allocationValue != null" >
         allocation_value = #{allocationValue,jdbcType=VARCHAR},
-      </if>
-      <if test="requestTime != null" >
-        update_time = now()
       </if>
     </set>
     where id = #{id,jdbcType=INTEGER}

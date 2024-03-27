@@ -32,7 +32,7 @@ public interface VariableAllocationMapper extends VariableAllocationMapperBase{
      * @return
      */
     @AddDataAuth
-    int getVariableAllocationVO(@Param("releaseTime") String releaseTime, @Param("requestEndTime") String requestEndTime);
+    VariableAllocationVO getVariableAllocationVO(@Param("releaseTime") String releaseTime, @Param("requestEndTime") String requestEndTime);
 
     int updateByPrimaryMutchKeySelective(VariableAllocationVO allocationVO);
 

@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -64,8 +65,8 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
         try {
             LocalDate now = LocalDate.now();
             LocalDate tomorrow = LocalDate.now().plusDays(1);
-            String date = "".equals(dto.getRequestTime()) ? now.toString() : dto.getRequestTime();
-            String endDate = "".equals(dto.getRequestEndTime()) ? tomorrow.toString() : dto.getRequestEndTime();
+            String requestTime = "".equals(dto.getRequestTime()) ? now.toString() : dto.getRequestTime();
+            String requestEndTime = "".equals(dto.getRequestEndTime()) ? tomorrow.toString() : dto.getRequestEndTime();
 
             VariableAllocation variableList = variableAllocationMapper.getVariableList(apiCode, allocationType);
             VariableAllocationVO allocationVO = new VariableAllocationVO();
@@ -74,23 +75,18 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
                 JSONObject jsonObject = JSON.parseObject(allocationValue);
                 int normalQuantity =  jsonObject.getInteger("trueDataThresholdSize");
                 int abnormalQuantity = jsonObject.getInteger("retryThresholdSize");
-                int releaseTimeNum = variableAllocationMapper.getVariableAllocationVO(date,endDate);
+                VariableAllocationVO vo = variableAllocationMapper.getVariableAllocationVO(requestTime,requestEndTime);
+                int releaseTimeNum = vo.getReleaseTimeNum();
                 int falseNum = normalQuantity - releaseTimeNum;
+                allocationVO.setId(variableList.getId().longValue());
                 allocationVO.setApiCode(variableList.getApiCode());
                 allocationVO.setAllocationType(variableList.getAllocationType());
                 allocationVO.setNormalQuantity(normalQuantity);
                 allocationVO.setAbnormalQuantity(abnormalQuantity);
                 allocationVO.setReleaseTimeNum(releaseTimeNum);
                 allocationVO.setFalseNum(falseNum);
-                allocationVO.setRequestTime(date);
-                allocationVO.setRequestEndTime(endDate);
-            } else {
-                allocationVO.setNormalQuantity(Integer.valueOf(0));
-                allocationVO.setAbnormalQuantity(Integer.valueOf(0));
-                allocationVO.setReleaseTimeNum(Integer.valueOf(0));
-                allocationVO.setFalseNum(Integer.valueOf(0));
-                allocationVO.setRequestTime(date);
-                allocationVO.setRequestEndTime(endDate);
+                allocationVO.setRequestTime(vo.getRequestTime());
+                allocationVO.setRequestEndTime(vo.getRequestEndTime());
             }
             return allocationVO;
         } catch (Exception e) {
@@ -114,7 +110,7 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
         int trueDataThresholdSize =  json.getInteger("trueDataThresholdSize");
         int retryThresholdSize = json.getInteger("retryThresholdSize");
         if (normalQuantity == trueDataThresholdSize && abnormalQuantity == retryThresholdSize ) {
-            return new ApiResult<Boolean>().success(true);
+            return new ApiResult<Boolean>().success(true,"修改前后数据一致");
         }
         //更新记录
         VariableAllocationVO allocationVO = new VariableAllocationVO();
@@ -123,17 +119,15 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
         jsonObject.put("retryThresholdSize", abnormalQuantity);
         allocationVO.setId(id);
         allocationVO.setAllocationValue(jsonObject.toString());
-        allocationVO.setNormalQuantity(normalQuantity);
-        allocationVO.setAbnormalQuantity(abnormalQuantity);
-        allocationVO.setRequestTime(LocalDate.now().toString());
         int i = variableAllocationMapper.updateByPrimaryMutchKeySelective(allocationVO);
         VariableAllocation newData = variableAllocationMapper.selectByPrimaryKey(id.intValue());
-        if (i>=0){
+        if (i > 0){
             entityOptService.writeOptLog(id, newData, data);
             // 将数据保存到 Redis
             if (XIECHENG_TYPE.equals(data.getAllocationType())){
                 String key = RedisKeyConstant.prefix.concat(":").concat(data.getApiCode()).concat(":").concat(TYPE);
                 try {
+                    redisChgService.del(key);
                     redisChgService.set(key, newData.getAllocationValue());
                 } catch (Exception e) {
                     log.warn("获取配置接口更新redis异常{}", e);
@@ -167,6 +161,7 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
             dbTrueNum = json.getInteger("trueDataThresholdSize");
             dbFalseNum = json.getInteger("retryThresholdSize");
             try {
+                redisChgService.del(key);
                 redisChgService.set(key, value);
             } catch (Exception e) {
                 log.warn("获取配置接口更新redis异常{}", e);
@@ -176,7 +171,6 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
             }
         }
         //数值为0报警
-
         String msg = "获取撞得总量级和异常报警量级为0";
         xcExceptionDataRetryService.sendDingDingAlert("获取携程定制化配置异常！", msg);
         return allocationVO;
