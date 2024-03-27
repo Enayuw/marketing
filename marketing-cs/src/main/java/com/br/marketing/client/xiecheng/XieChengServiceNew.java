@@ -154,12 +154,30 @@ public class XieChengServiceNew {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(JSON.toJSONString(resMap));
         } else {
             if (code == 707) {
-                shutDownConditionSwitchAndAlert("携程撞库暂停通知:code返回707");
+                shutDown("携程撞库暂停通知:code返回707");
             }
 
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
         }
 
+    }
+
+    /**
+     * 关闭条件开关并发送钉钉告警
+     * @param msg
+     */
+    public void shutDown(String msg) {
+        String redisSwitch;
+        try {
+            redisSwitch = redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH);
+        } catch (Exception e) {
+            log.error("携程TRUE数据撞库，获取redis条件开关失败:" + e.getMessage(), e);
+            return;
+        }
+
+        if ("true".equalsIgnoreCase(redisSwitch)) {
+            shutDownConditionSwitchAndAlert(msg);
+        }
     }
 
     /**
