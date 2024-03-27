@@ -82,7 +82,7 @@ public class XieChengCollidingResultHandleService {
                     robData.setPushTime(new Date());
                     robData.setRetryCount(0);
                     robData.setUpdateTime(new Date());
-                    xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
+                    xieChengCollidingDataRobMapper.updateByPrimaryKeySelective(robData);
                 }
                 collidingLogs.add(xieChengCollidingDataLogService.buildSuccessXieChengCollidingDataLog(robData.getId(), robData.getPackageId(),
                     robData.getDataSourceType(), returnData, httpcode, businessCode));
@@ -94,7 +94,7 @@ public class XieChengCollidingResultHandleService {
                 XieChengCollidingDataRob robData = entry.getValue();
                 robData.setPushTime(new Date());
                 robData.setRetryCount(robData.getRetryCount() + 1);
-                xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
+                xieChengCollidingDataRobMapper.updateByPrimaryKeySelective(robData);
                 collidingLogs.add(xieChengCollidingDataLogService.buildFailXieChengCollidingDataLog(robData.getId(), robData.getPackageId(),
                     robData.getDataSourceType(), robData.getCellSha256CodeList(), resJson));
             }
@@ -120,7 +120,7 @@ public class XieChengCollidingResultHandleService {
         robData.setRetryCount(0);
         robData.setPushTime(new Date());
         robData.setUpdateTime(new Date());
-        xieChengCollidingDataRobMapper.updateByPrimaryKey(robData);
+        xieChengCollidingDataRobMapper.updateByPrimaryKeySelective(robData);
     }
 
 }
