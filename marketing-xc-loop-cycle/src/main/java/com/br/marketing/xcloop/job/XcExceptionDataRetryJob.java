@@ -100,6 +100,10 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
 
         // 查TRUE表当天撞回量级是否超限（500w）
         Integer trueDataThresholdSize = variableAllocationService.getVariableAllocation().getNormalQuantity();
+        if (trueDataThresholdSize == null) {
+            log.error("携程异常数据重试撞库,获取当天撞回阈值失败");
+            return new Pair<>(-2, "获取当天撞回阈值失败");
+        }
         LocalDate start = LocalDate.now().plusDays(7);
         LocalDate end = LocalDate.now().plusDays(8);
         Date releaseDateStart = Date.from(start.atStartOfDay(ZoneId.systemDefault()).toInstant());
@@ -118,6 +122,10 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
 
         // 查询堆积量级是否超限（10w）pushTime是当天
         Integer retryThresholdSize = variableAllocationService.getVariableAllocation().getAbnormalQuantity();
+        if (retryThresholdSize == null) {
+            log.error("携程异常数据重试撞库,获取当天异常堆积阈值失败");
+            return new Pair<>(-2, "获取当天异常堆积阈值失败");
+        }
         LocalDate pushDateStart = LocalDate.now();
         LocalDate pushDateEnd = LocalDate.now().plusDays(1);
         Date pushTimeStart = Date.from(pushDateStart.atStartOfDay(ZoneId.systemDefault()).toInstant());
@@ -176,6 +184,12 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         Pair<Integer, String> pair = getCodeAndMsg();
         Integer code = pair.getKey();
         String msg = pair.getValue();
+        if (code == -2) {
+            // 钉钉告警
+            service.sendDingDingAlert("携程异常数据重试撞库暂停通知", msg);
+            return false;
+        }
+
         if (code == -1) {
             // 已发送过707告警：关闭条件开关
             xieChengServiceNew.shutDownConditionSwitch();
