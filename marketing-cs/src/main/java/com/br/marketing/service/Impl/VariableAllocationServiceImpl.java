@@ -60,8 +60,8 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
 
     @Override
     public VariableAllocationVO getVariableList(VariableAllocationDTO dto) {
-        String apiCode = dto.getApiCode();
-        String allocationType = dto.getAllocationType();
+        String apiCode = marketingCommonConfig.getXieChengDingZhiApiCode();
+        String allocationType = XIECHENG_TYPE;
         try {
             LocalDate now = LocalDate.now();
             String requestTime = "".equals(dto.getRequestTime()) ? now.toString() : dto.getRequestTime();
