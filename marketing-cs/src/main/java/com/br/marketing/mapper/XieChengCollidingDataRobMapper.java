@@ -30,7 +30,7 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
      * 根据id批量更新is_deleted = 1
      * @param ids
      */
-    int updateBatchByIdToIsDeleted(@Param("ids") List<Long> ids);
+    int updateBatchByIdToIsDeleted(@Param("ids") List<Long> ids,@Param("rollbackFlag") String rollbackFlag);
 
     /**
      * 非周期表数据批量保存
