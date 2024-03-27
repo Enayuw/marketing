@@ -30,7 +30,7 @@
         order by id asc limit #{pageSize};
     </select>
 
-    <select id="selectPerMinuteCounts" resultType="java.util.Map">
+    <select id="selectPerMinuteCountstiflash_" resultType="java.util.Map">
         select DATE_FORMAT(release_time, '%Y-%m-%d %H:%i') as releaseTime, count(*) as counts
         from b_xiecheng_colliding_data_loop_cycle
         where DATE_FORMAT(release_time, '%Y-%m-%d') = curdate()

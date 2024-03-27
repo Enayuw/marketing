@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingDataLoopCycleMapperBase {
-    List<Map<String, Object>> selectPerMinuteCounts();
+    List<Map<String, Object>> selectPerMinuteCountstiflash_();
 
     Integer selectTodayCycleCount();
 
