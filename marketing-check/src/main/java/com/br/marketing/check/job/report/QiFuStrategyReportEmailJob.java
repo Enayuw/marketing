@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -62,8 +63,13 @@ public class QiFuStrategyReportEmailJob extends AbstractSimpleElasticJob {
             MarketingEmailSendConfigExample marketingEmailSendConfigExample = new MarketingEmailSendConfigExample();
             marketingEmailSendConfigExample.createCriteria().andApiCodeEqualTo(apiCode)
                     .andSubjectEqualTo(EmailSubjectEnum.QIFU_STRATEGYREPORT_SUNJECT.getValue()).andIsDelEqualTo(1);
-            MarketingEmailSendConfig sendConfig = marketingEmailSendConfigMapper.selectByExample(marketingEmailSendConfigExample).get(0);
-            String subject = EmailSubjectEnum.QIFU_STRATEGYREPORT_SUNJECT.getDesc()+"_"+LocalDate.now().toString();
+            List<MarketingEmailSendConfig> sendConfigList = marketingEmailSendConfigMapper.selectByExample(marketingEmailSendConfigExample);
+            if (Objects.isNull(sendConfigList)) {
+                log.warn("360策略效果数据-邮件配置为空");
+                return;
+            }
+            MarketingEmailSendConfig sendConfig = sendConfigList.get(0);
+            String subject = EmailSubjectEnum.QIFU_STRATEGYREPORT_SUNJECT.getDesc() + "_" + LocalDate.now().toString();
             // 生成文件
             String excelFilePath = tempFilePath + sendConfig.getAttachmentFileName();
             QifuStrategyReportDataExample qifuStrategyReportDataExample = new QifuStrategyReportDataExample();
@@ -76,16 +82,16 @@ public class QiFuStrategyReportEmailJob extends AbstractSimpleElasticJob {
                         BeanUtils.copyProperties(reportData, reportExcelModel);
                         return reportExcelModel;
                     }).collect(Collectors.toList());
-
+            if (Objects.isNull(reportExcelModelList)) {
+                log.error("360策略效果数据未传输，请检查");
+            }
             EasyExcel.write(excelFilePath, QiFuStrategyReportExcelModel.class).sheet(EmailSubjectEnum.QIFU_STRATEGYREPORT_SUNJECT.getDesc()).
                     doWrite(reportExcelModelList);
             //发送Email
             mailService.sendAttachmentsMail(sendConfig.getReceiverUser(), subject, subject + ": 策略效果数据报表"
-                    , excelFilePath,sendConfig.getAttachmentFileName());
-
+                    , excelFilePath, sendConfig.getAttachmentFileName());
         } catch (Exception e) {
             log.error("360 策略效果数据发送Email失败{}", e);
         }
-
     }
 }
