@@ -6,6 +6,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Resource;
 
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -72,7 +73,7 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
         xieChengCollidingDataLog.setMktLevel(mktLevel);
         xieChengCollidingDataLog.setInfo(info);
         xieChengCollidingDataLog.setResult(result);
-        xieChengCollidingDataLog.setReturnContent(returnData.toJSONString());
+        xieChengCollidingDataLog.setReturnContent(returnData.toString(SerializerFeature.WriteMapNullValue));
         xieChengCollidingDataLog.setCreateTime(new Date());
         xieChengCollidingDataLog.setUpdateTime(new Date());
         return xieChengCollidingDataLog;
@@ -105,7 +106,7 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
             Integer businessCode = contentJson.getInteger("code");
             xieChengCollidingDataLog.setBusinessCode(businessCode);
         }
-        xieChengCollidingDataLog.setReturnContent(resJson.toJSONString());
+        xieChengCollidingDataLog.setReturnContent(resJson.toString(SerializerFeature.WriteMapNullValue));
         xieChengCollidingDataLog.setCreateTime(new Date());
         xieChengCollidingDataLog.setUpdateTime(new Date());
         return xieChengCollidingDataLog;
