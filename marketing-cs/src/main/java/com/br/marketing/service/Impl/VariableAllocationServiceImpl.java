@@ -153,6 +153,7 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
             if (ObjectUtil.isNotEmpty(vo)){
                 redisChgService.del(key);
                 redisChgService.setex(key,vo.getAllocationValue(),5*60);
+                return vo;
             }
         } catch (Exception e) {
             log.error("获取携程定制配置redis异常{}", e);
@@ -161,7 +162,6 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
                 return vo;
             }
         }
-
         //数值为0报警
         String msg = "获取撞得总量级和异常报警量级为空";
         xcExceptionDataRetryService.sendDingDingAlert("获取携程定制配置异常！", msg);
@@ -169,7 +169,7 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
     }
 
     private VariableAllocationVO getVariableAllocationVO(VariableAllocationVO allocationVO, String apiCode) {
-        VariableAllocation variable = variableAllocationMapper.getVariable(apiCode, TYPE);
+        VariableAllocation variable = variableAllocationMapper.getVariable(apiCode, XIECHENG_TYPE);
         if (ObjectUtil.isNotEmpty(variable)) {
             String value = variable.getAllocationValue();
             JSONObject json = JSON.parseObject(value);
