@@ -158,10 +158,21 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
             return true;
         } else if ("true".equalsIgnoreCase(redisSwitch) && code > 0) {
             // 开关是开启状态且需要关闭条件开关
-            xieChengServiceNew.shutDownConditionSwitchAndAlert(msg);
+            shutDownConditionSwitchAndAlert(msg);
             return false;
         } else {
             return code == 0;
         }
+    }
+
+    /**
+     * 关闭条件开关并发送钉钉告警
+     * @param msg
+     */
+    private void shutDownConditionSwitchAndAlert(String msg) {
+        // 关闭条件开关
+        xieChengServiceNew.shutDownConditionSwitch();
+        // 钉钉告警
+        service.sendDingDingAlert("携程撞库暂停通知", msg);
     }
 }
