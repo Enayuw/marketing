@@ -119,7 +119,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     }
 
     public void initializeTodayReleaseTime(String key) {
-        List<Map<String, Object>> perMinuteCounts = xieChengCollidingDataLoopCycleMapper.selectPerMinuteCounts();
+        List<Map<String, Object>> perMinuteCounts = xieChengCollidingDataLoopCycleMapper.selectPerMinuteCountstiflash_();
         // 初始化剔除当天和昨天的key
         redisChgService.del(key);
         String yesKey = RedisKeyConstant.XIECHENG_RELEASE_TIME + DateUtil.formatDate(DateUtil.yesterday());

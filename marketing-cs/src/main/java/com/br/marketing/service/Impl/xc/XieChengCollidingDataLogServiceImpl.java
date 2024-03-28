@@ -2,15 +2,15 @@ package com.br.marketing.service.Impl.xc;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Resource;
 
-import com.br.marketing.rabbitmq.RabbitMqProducter;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
@@ -18,7 +18,11 @@ import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.XieChengCollidingDataLog;
 import com.br.marketing.mapper.XieChengCollidingDataLogMapper;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Lists;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 撞库日志相关service
@@ -37,6 +41,7 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
     @Resource
     private RabbitMqProducter rabbitMqProducter;
 
+    public static final ThreadPoolExecutor XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL = BrExecutors.getThreadPool(50, 50);
 
     /**
      * 构造撞库正常log
@@ -72,7 +77,7 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
         xieChengCollidingDataLog.setMktLevel(mktLevel);
         xieChengCollidingDataLog.setInfo(info);
         xieChengCollidingDataLog.setResult(result);
-        xieChengCollidingDataLog.setReturnContent(returnData.toJSONString());
+        xieChengCollidingDataLog.setReturnContent(returnData.toString(SerializerFeature.WriteMapNullValue));
         xieChengCollidingDataLog.setCreateTime(new Date());
         xieChengCollidingDataLog.setUpdateTime(new Date());
         return xieChengCollidingDataLog;
@@ -81,11 +86,11 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
     /**
      * 构建失败谢程碰撞数据日志
      *
-     * @param id                 id
-     * @param packageId          packageId
-     * @param dataSourceType     数据源类型 T True数据,F False数据
+     * @param id id
+     * @param packageId packageId
+     * @param dataSourceType 数据源类型 T True数据,F False数据
      * @param cellSha256CodeList 手机号
-     * @param resJson            res json
+     * @param resJson res json
      * @return {@link XieChengCollidingDataLog }
      * @author senyang.zheng
      * @date 2024/03/23
@@ -105,7 +110,7 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
             Integer businessCode = contentJson.getInteger("code");
             xieChengCollidingDataLog.setBusinessCode(businessCode);
         }
-        xieChengCollidingDataLog.setReturnContent(resJson.toJSONString());
+        xieChengCollidingDataLog.setReturnContent(resJson.toString(SerializerFeature.WriteMapNullValue));
         xieChengCollidingDataLog.setCreateTime(new Date());
         xieChengCollidingDataLog.setUpdateTime(new Date());
         return xieChengCollidingDataLog;
@@ -129,9 +134,9 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
 
     @Override
     public Result<Boolean> saveXieChengCollidingDataLog(List<XieChengCollidingDataLog> collidingLogs) {
-        ThreadPoolExecutor executor = BrExecutors.getThreadPool(marketingCommonConfig.getXiechengSaveCollidingLogThread(),
-            marketingCommonConfig.getXiechengSaveCollidingLogThread());
-        executor.submit(() -> xieChengCollidingDataLogMapper.batchSave(collidingLogs));
+        XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL.setMaximumPoolSize(marketingCommonConfig.getXiechengSaveCollidingLogThread());
+        XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL.setCorePoolSize(marketingCommonConfig.getXiechengSaveCollidingLogThread());
+        XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL.submit(() -> xieChengCollidingDataLogMapper.batchSave(collidingLogs));
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 }

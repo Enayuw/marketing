@@ -6,15 +6,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.VariableAllocationDTO;
 import com.br.marketing.entity.VariableAllocation;
 import com.br.marketing.mapper.VariableAllocationMapper;
+import com.br.marketing.service.Impl.xc.XcExceptionDataRetryService;
 import com.br.marketing.service.VariableAllocationService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.VariableAllocationVO;
-import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 
 /**
  * sftp账号配置业务逻辑实现
@@ -51,43 +42,43 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
     @Autowired
     EntityOptServiceImpl entityOptService;
 
+    @Autowired
+    XcExceptionDataRetryService xcExceptionDataRetryService;
+
     @Resource
     private RedisChgService redisChgService;
 
+    final static String TYPE = "xiechengdingzhi";
+    final static String XIECHENG_TYPE = "携程定制";;
 
     @Override
-    public PageResultReturn getVariableList(VariableAllocationDTO dto) {
-        PageHelper.startPage(dto.getCurrent(), dto.getSize());
-        String apiCode = dto.getApiCode();
-        String allocationType = dto.getAllocationType();
+    public VariableAllocationVO getVariableList(VariableAllocationDTO dto) {
+        String apiCode = marketingCommonConfig.getXieChengDingZhiApiCode();
+        String allocationType = XIECHENG_TYPE;
         try {
-            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            // 格式化当前日期时间
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            LocalDateTime currentTime = LocalDateTime.now();
-            String now = currentTime.format(formatter);
-            Date date = "".equals(dto.getRequestTime()) ? outputFormat.parse(now) : outputFormat.parse(dto.getRequestTime());
-            List<VariableAllocation> variableList = variableAllocationMapper.getVariableList(apiCode, allocationType);
-            ArrayList<VariableAllocationVO> arrayList = new ArrayList<>();
-            for (VariableAllocation variabl : variableList) {
-                VariableAllocationVO allocationVO = new VariableAllocationVO();
-                String allocationValue = variabl.getAllocationValue();
+            LocalDate now = LocalDate.now();
+            String requestTime = "".equals(dto.getRequestTime()) ? now.toString() : dto.getRequestTime();
+            VariableAllocation variableList = variableAllocationMapper.getVariableList(apiCode, allocationType);
+            VariableAllocationVO allocationVO = new VariableAllocationVO();
+            if (ObjectUtil.isNotEmpty(variableList)) {
+                String allocationValue = variableList.getAllocationValue();
                 JSONObject jsonObject = JSON.parseObject(allocationValue);
                 int normalQuantity =  jsonObject.getInteger("trueDataThresholdSize");
                 int abnormalQuantity = jsonObject.getInteger("retryThresholdSize");
-                int releaseTimeNum = variableAllocationMapper.getVariableAllocationVO(date);
+                VariableAllocationVO vo = variableAllocationMapper.getVariableAllocationVO(requestTime);
+                int releaseTimeNum = vo.getReleaseTimeNum();
                 int falseNum = normalQuantity - releaseTimeNum;
-                allocationVO.setId(variabl.getId().longValue());
-                allocationVO.setApiCode(variabl.getApiCode());
-                allocationVO.setAllocationType(variabl.getAllocationType());
+                allocationVO.setId(variableList.getId().longValue());
+                allocationVO.setApiCode(variableList.getApiCode());
+                allocationVO.setAllocationType(variableList.getAllocationType());
                 allocationVO.setNormalQuantity(normalQuantity);
                 allocationVO.setAbnormalQuantity(abnormalQuantity);
                 allocationVO.setReleaseTimeNum(releaseTimeNum);
                 allocationVO.setFalseNum(falseNum);
-                arrayList.add(allocationVO);
+                allocationVO.setRequestTime(vo.getRequestTime());
+                allocationVO.setRequestEndTime(vo.getRequestEndTime());
             }
-
-            return PageResultReturn.setPageResult(arrayList, dto.getCurrent(), dto.getSize());
+            return allocationVO;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -98,8 +89,19 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ApiResult<Boolean> updateVariableList(Long id, int normalQuantity, int abnormalQuantity) {
+        //数值为0报警
+        if (normalQuantity == 0 || abnormalQuantity == 0){
+            String msg = "携程总量级: " + normalQuantity + ",异常报警量级:" + abnormalQuantity;
+            xcExceptionDataRetryService.sendDingDingAlert("携程定制化配置异常！", msg);
+        }
         //原数据记录
-        VariableAllocation data = variableAllocationMapper.selectByPrimaryKey(id.intValue());
+        VariableAllocation originData = variableAllocationMapper.selectByPrimaryKey(id.intValue());
+        JSONObject originJson = JSON.parseObject(originData.getAllocationValue());
+        int originTrueDataThresholdSize =  originJson.getInteger("trueDataThresholdSize");
+        int originRetryThresholdSize = originJson.getInteger("retryThresholdSize");
+        if (normalQuantity == originTrueDataThresholdSize && abnormalQuantity == originRetryThresholdSize ) {
+            return new ApiResult<Boolean>().success(true,"修改前后数据一致");
+        }
         //更新记录
         VariableAllocationVO allocationVO = new VariableAllocationVO();
         JSONObject jsonObject = new JSONObject();
@@ -107,18 +109,25 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
         jsonObject.put("retryThresholdSize", abnormalQuantity);
         allocationVO.setId(id);
         allocationVO.setAllocationValue(jsonObject.toString());
-        allocationVO.setNormalQuantity(normalQuantity);
-        allocationVO.setAbnormalQuantity(abnormalQuantity);
-        allocationVO.setRequestTime(LocalDate.now().toString());
         int i = variableAllocationMapper.updateByPrimaryMutchKeySelective(allocationVO);
         VariableAllocation newData = variableAllocationMapper.selectByPrimaryKey(id.intValue());
-        if (i>=0){
-            entityOptService.writeOptLog(id, newData, data);
+        if (i > 0 ){
+            entityOptService.writeOptLog(id, newData, originData);
             // 将数据保存到 Redis
-            String key = RedisKeyConstant.prefix.concat(":").concat(data.getApiCode()).concat(":").concat(data.getAllocationType());
-            redisChgService.set(key, newData.getAllocationValue());
+            if (XIECHENG_TYPE.equals(originData.getAllocationType())){
+                String key = RedisKeyConstant.prefix.concat(":").concat(originData.getApiCode()).concat(":").concat(TYPE);
+                try {
+                    redisChgService.del(key);
+                    redisChgService.setex(key, newData.getAllocationValue(), 5*60);
+                    return new ApiResult<Boolean>().success(true);
+                } catch (Exception e) {
+                    log.error("获取携程定制配置接口更新redis异常{}", e);
+                    return new ApiResult<Boolean>().fail(false,"更新携程定制配置redis异常");
+                }
+            }
+            return new ApiResult<Boolean>().fail(false, "更新携程定制配置");
         }
-        return new ApiResult<Boolean>().success(true);
+        return new ApiResult<Boolean>().fail(false, "更新配置失败");
     }
 
 
@@ -126,32 +135,51 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
     public VariableAllocationVO getVariableAllocation(){
         VariableAllocationVO allocationVO = new VariableAllocationVO();
         String apiCode = marketingCommonConfig.getXieChengDingZhiApiCode();
-        String allocationType = "携程定制";
-        int dbTrueNum = 5000000;
-        int dbFalseNum = 100000;
-        int normalQuantity = 5000000;
-        int abnormalQuantity = 100000;
-        String key = RedisKeyConstant.prefix.concat(":").concat(apiCode).concat(":").concat(allocationType);
-        String allocationValue = redisChgService.get(key);
-        if (StringUtil.isNotEmpty(key) && StringUtil.isNotEmpty(allocationValue)){
-            JSONObject jsonObject = JSON.parseObject(allocationValue);
-            normalQuantity = jsonObject.getInteger("trueDataThresholdSize");
-            abnormalQuantity = jsonObject.getInteger("retryThresholdSize");
-            allocationVO.setNormalQuantity(normalQuantity);
-            allocationVO.setAbnormalQuantity(abnormalQuantity);
-            return allocationVO;
+        int normalQuantity, abnormalQuantity;
+        // 读取 Redis缓存中的数据
+        String key = RedisKeyConstant.prefix.concat(":").concat(apiCode).concat(":").concat(TYPE);
+        String allocationValue = null;
+        try {
+            allocationValue = redisChgService.get(key);
+            if (StringUtil.isNotEmpty(allocationValue)){
+                JSONObject jsonObject = JSON.parseObject(allocationValue);
+                normalQuantity = jsonObject.getInteger("trueDataThresholdSize");
+                abnormalQuantity = jsonObject.getInteger("retryThresholdSize");
+                allocationVO.setNormalQuantity(normalQuantity);
+                allocationVO.setAbnormalQuantity(abnormalQuantity);
+                return allocationVO;
+            }
+            VariableAllocationVO vo = getVariableAllocationVO(allocationVO, apiCode);
+            if (ObjectUtil.isNotEmpty(vo)){
+                redisChgService.del(key);
+                redisChgService.setex(key,vo.getAllocationValue(),5*60);
+                return vo;
+            }
+        } catch (Exception e) {
+            log.error("获取携程定制配置redis异常{}", e);
+            VariableAllocationVO vo = getVariableAllocationVO(allocationVO, apiCode);
+            if (vo != null){
+                return vo;
+            }
         }
-        VariableAllocation variable = variableAllocationMapper.getVariable(apiCode, allocationType);
-        if (ObjectUtil.isNotEmpty(variable)){
+        //数值为0报警
+        String msg = "获取撞得总量级和异常报警量级为空";
+        xcExceptionDataRetryService.sendDingDingAlert("获取携程定制配置异常！", msg);
+        return allocationVO;
+    }
+
+    private VariableAllocationVO getVariableAllocationVO(VariableAllocationVO allocationVO, String apiCode) {
+        VariableAllocation variable = variableAllocationMapper.getVariable(apiCode, XIECHENG_TYPE);
+        if (ObjectUtil.isNotEmpty(variable)) {
             String value = variable.getAllocationValue();
             JSONObject json = JSON.parseObject(value);
-            dbTrueNum = json.getInteger("trueDataThresholdSize");
-            dbFalseNum = json.getInteger("retryThresholdSize");
+            int dbTrueNum = json.getInteger("trueDataThresholdSize");
+            int dbFalseNum = json.getInteger("retryThresholdSize");
+            allocationVO.setNormalQuantity(dbTrueNum);
+            allocationVO.setAbnormalQuantity(dbFalseNum);
+            return allocationVO;
         }
-        allocationVO.setNormalQuantity(dbTrueNum);
-        allocationVO.setAbnormalQuantity(dbFalseNum);
-        return allocationVO;
-
+        return null;
     }
 
 }

@@ -40,7 +40,7 @@
     />
     <job:simple id="XieChengTableBackupJob"
                 class="com.br.marketing.xc.job.XieChengTableBackupJob"
-                cron="0 0 4 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="携程数据备份"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

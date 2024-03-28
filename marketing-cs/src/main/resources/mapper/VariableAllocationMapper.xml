@@ -274,12 +274,8 @@
     allocation_value as allocationValue
     from variable_allocation
     where
-    <if test="apiCode != null">
       api_code = #{apiCode,jdbcType=VARCHAR}
-    </if>
-    <if test="dataType != null">
       and allocation_type = #{dataType,jdbcType=VARCHAR}
-    </if>
     order by create_time desc
   </select>
 
@@ -300,14 +296,14 @@
     order by create_time desc
   </select>
 
-  <select id="getVariableAllocationVO" resultType="java.lang.Integer">
-    select count(distinct b.cell_sha256_code_list) as releaseTimeNum
-    from b_xiecheng_colliding_data_loop_cycle b
+  <select id="getVariableAllocationVO" resultType="com.br.marketing.vo.VariableAllocationVO">
+    select count(cell_sha256_code_list) as releaseTimeNum
+    ,max(release_time) as requestEndTime
+    ,min(release_time) as requestTime
+    from b_xiecheng_colliding_data_loop_cycle
     <where>
-      <if test="releaseTime != null" >
-        <![CDATA[ release_time >= CONCAT(date_sub(#{releaseTime}, interval 7 day)) ]]>
-        <![CDATA[ and release_time < date_format(DATE_SUB(#{releaseTime}, INTERVAL 6 day), '%Y-%m-%d 00:00:00')]]>
-      </if>
+      DATE_FORMAT(release_time, '%Y-%m-%d') = #{releaseTime}
+      and is_delete = 0
     </where>
   </select>
 
@@ -322,9 +318,6 @@
       </if>
       <if test="allocationValue != null" >
         allocation_value = #{allocationValue,jdbcType=VARCHAR},
-      </if>
-      <if test="requestTime != null" >
-        update_time = now()
       </if>
     </set>
     where id = #{id,jdbcType=INTEGER}
