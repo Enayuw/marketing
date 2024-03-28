@@ -6,11 +6,11 @@
         id, cell_sha256_code_list, package_id
         from b_xiecheng_colliding_data_loop_cycle
         where is_delete = 0 and retry_count = 0
-        <![CDATA[ and release_time < #{releaseTime}]]>
+        <![CDATA[ and release_time > #{startDate} and release_time < #{endDate}]]>
         <if test="minId != null and minId>0">
             and id > #{minId}
         </if>
-        order by release_time,id asc limit #{pageSize};
+        order by id limit #{pageSize};
     </select>
 
     <select id="selectCycleByRetryCount" resultType="com.br.marketing.entity.XieChengCollidingDataLoopCycle">
@@ -30,7 +30,7 @@
         order by id asc limit #{pageSize};
     </select>
 
-    <select id="selectPerMinuteCounts" resultType="java.util.Map">
+    <select id="selectPerMinuteCountstiflash_" resultType="java.util.Map">
         select DATE_FORMAT(release_time, '%Y-%m-%d %H:%i') as releaseTime, count(*) as counts
         from b_xiecheng_colliding_data_loop_cycle
         where DATE_FORMAT(release_time, '%Y-%m-%d') = curdate()
@@ -42,8 +42,8 @@
     <select id="selectTodayCycleCount" resultType="java.lang.Integer">
         select count(*) as counts
         from b_xiecheng_colliding_data_loop_cycle
-        where DATE_FORMAT(release_time, '%Y-%m-%d') = curdate()
-           OR DATE_FORMAT(release_time, '%Y-%m-%d') = date_add(curdate(), interval 7 day)
+        where (DATE_FORMAT(release_time, '%Y-%m-%d') = curdate()
+           OR DATE_FORMAT(release_time, '%Y-%m-%d') = date_add(curdate(), interval 7 day))
             and is_delete = 0;
     </select>
     <select id="selectDeleteData" resultType="com.br.marketing.entity.XieChengCollidingDataLoopCycle">
@@ -63,7 +63,8 @@
         </foreach>
     </delete>
     <update id="updateBatchByIdToIsDeleted">
-        update b_xiecheng_colliding_data_loop_cycle set is_delete = 1,update_time = now() where id in
+        update b_xiecheng_colliding_data_loop_cycle set is_delete = 1,update_time = now() ,
+                                                        extend = #{rollbackFlag} where id in
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>

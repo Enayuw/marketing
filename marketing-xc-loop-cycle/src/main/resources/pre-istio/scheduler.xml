@@ -26,7 +26,7 @@
 
     <job:simple id="XcExceptionDataRetryJob"
                 class="com.br.marketing.xcloop.job.XcExceptionDataRetryJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/1 * * * ?"
                 description="携程异常重试作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -40,7 +40,7 @@
     />
     <job:simple id="XcLoopCycleDataJob"
                 class="com.br.marketing.xcloop.job.XcLoopCycleDataJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/1 * * * ?"
                 description="携程TRUE数据撞库作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

@@ -17,7 +17,7 @@ public interface VariableAllocationMapper extends VariableAllocationMapperBase{
      * @return
      */
     @AddDataAuth
-    List<VariableAllocation> getVariableList(@Param("apiCode")String apiCode, @Param("dataType")String dataType);
+    VariableAllocation getVariableList(@Param("apiCode")String apiCode, @Param("dataType")String dataType);
 
     /**
      * 获取配置参数
@@ -32,7 +32,7 @@ public interface VariableAllocationMapper extends VariableAllocationMapperBase{
      * @return
      */
     @AddDataAuth
-    int getVariableAllocationVO(@Param("releaseTime") Date releaseTime);
+    VariableAllocationVO getVariableAllocationVO(@Param("releaseTime") String releaseTime);
 
     int updateByPrimaryMutchKeySelective(VariableAllocationVO allocationVO);
 

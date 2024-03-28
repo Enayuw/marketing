@@ -323,7 +323,7 @@
         retry_count = #{retryCount,jdbcType=INTEGER},
       </if>
       <if test="extend != null" >
-        extend = #{extend,jdbcType=LONGVARCHAR},
+        extend = #{extend,jdbcType=VARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}

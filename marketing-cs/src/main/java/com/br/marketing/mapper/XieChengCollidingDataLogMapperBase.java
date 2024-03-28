@@ -2,9 +2,8 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.XieChengCollidingDataLog;
 import com.br.marketing.entity.XieChengCollidingDataLogExample;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 
 public interface XieChengCollidingDataLogMapperBase {
     int countByExample(XieChengCollidingDataLogExample example);

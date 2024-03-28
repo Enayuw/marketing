@@ -19,7 +19,9 @@ import javax.annotation.Resource;
  * @Date 2022/2/16 10:02 AM
  *  {
  *       "temporary_table": "临时表名",
+ *       "rollback_flag": "操作标识",
  *       "loop_cycle_switch": "是否处理周期数据：true 处理，false:不处理",
+ *       "loop_cycle_filter_score": "true 过滤表达式",
  *       "rob_switch": "是否处理非周期数据：true 处理，false:不处理",
  *       "package_rule_info": [
  *           {

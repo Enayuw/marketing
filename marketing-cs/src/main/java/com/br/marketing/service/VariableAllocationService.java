@@ -1,7 +1,6 @@
 package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.ApiResult;
-import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.VariableAllocationDTO;
 import com.br.marketing.vo.VariableAllocationVO;
 
@@ -19,7 +18,7 @@ public interface VariableAllocationService {
      * @param dto
      * @return
      */
-    PageResultReturn getVariableList(VariableAllocationDTO dto);
+    VariableAllocationVO getVariableList(VariableAllocationDTO dto);
 
     /**
      * 更新定制化配置

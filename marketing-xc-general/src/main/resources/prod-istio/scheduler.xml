@@ -54,7 +54,7 @@
     />
     <job:simple id="XieChengRobDataCollidingJob"
                 class="com.br.marketing.xc.job.XieChengRobDataCollidingJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/1 19-23 * * ?"
                 description="携程非周期数据撞库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
