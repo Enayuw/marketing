@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.XieChengCollidingDataRobMapper">
     <select id="getRobCollidingDataList" resultType="com.br.marketing.entity.XieChengCollidingDataRob">
-        SELECT rob.id, rob.cell_sha256_code_list, rob.package_id
+        SELECT rob.id, rob.cell_sha256_code_list,rob.package_id,rob.retry_count
         FROM b_xiecheng_colliding_data_rob rob
                  JOIN b_xiecheng_colliding_data_package pkg ON rob.package_id = pkg.id
         WHERE pkg.is_delete = 0
