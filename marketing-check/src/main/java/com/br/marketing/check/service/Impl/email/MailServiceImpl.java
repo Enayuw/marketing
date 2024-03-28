@@ -1,5 +1,5 @@
 package com.br.marketing.check.service.Impl.email;
-/*
+
 import com.br.marketing.check.service.email.IMailService;
 import com.br.marketing.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -18,22 +18,17 @@ import java.io.File;
 /**
  *
  */
-/*
 @Slf4j
 @Service
 public class MailServiceImpl implements IMailService {
-    */
-/**
+    /**
      * Spring Boot 提供了一个发送邮件的简单抽象，使用的是下面这个接口，这里直接注入即可使用
-     *//*
-
+     */
     @Autowired
     private JavaMailSender mailSender;
-    */
-/**
+    /**
      * 配置文件中我的qq邮箱
-     *//*
-
+     */
     @Value("${spring.mail.username}")
     private String from;
 
@@ -196,4 +191,3 @@ public class MailServiceImpl implements IMailService {
         }
     }
 }
-*/
