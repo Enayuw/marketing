@@ -100,6 +100,8 @@ public class MQConstants {
     // 转化接口接收数据量级碎片队列
     public static final String MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS = "marketing_transfer_api_data_count_fragments";
 
+    public static final String MARKETING_XIECHENG_COLLIDING_LOG_QUEUE = "marketing_xiecheng_colliding_log_queue";
+
 
     /**
      * routingkey
@@ -188,4 +190,6 @@ public class MQConstants {
     // 转化场景字典收集、据量级碎片绑定key
     public static final String BINDING_KEY_MARKETING_TRANSFER_API_COLLECTION_FRAGMENTS = "marketing.transfer.api.*.collection.*.fragments";
 
+
+    public static final String ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG = "marketing.xiecheng.colliding.log";
 }

@@ -23,6 +23,7 @@ import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.MarketingSyncReportService;
 import com.br.marketing.service.ValidityPeriodResendRecordService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.MarketingSyncReportNumVO;
 import com.br.marketing.vo.MarketingSyncReportVO;
 import com.github.pagehelper.PageHelper;
@@ -95,6 +96,9 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     @Resource
     private PlatformTransactionManager platformTransactionManager;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     @Override
     public void syncReportProcess(String uploadDate, String jobName) {
         this.doSyncReportProcess(uploadDate, null, jobName);
@@ -123,7 +127,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             //1.获取所有客户
             customers.add(customerMapper.getCustomerByApiCode(apiCodes));
         } else {
-            customers = customerMapper.getAllCustomer();
+            customers = customerMapper.getAllCustomerByResentlySyncInfotikv_();
         }
         Map<String, Set<String>> userTypeMap = getUserTypeMap();
         CountDownLatch countDownLatch = new CountDownLatch(customers.size());
@@ -144,11 +148,15 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                         Set<String> userTypeList = userTypeMap.getOrDefault(apiCode, Collections.emptySet());
                         //获取场景
                         if (!userTypeList.isEmpty()) {
+                            long start = System.currentTimeMillis();
                             for (String userType : userTypeList) {
                                 String createStartDate = uploadDate;
                                 String createEndDate = LocalDate.parse(uploadDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                                         .plusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                                List<String> appletDateList = syncReportMapper.getAppletDatetikv_(apiCode, userType, createStartDate, createEndDate);
+                                String appletDateStart = LocalDate.parse(uploadDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                                        .minusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                                List<String> appletDateList = syncReportMapper.getAppletDate(apiCode, userType, createStartDate, createEndDate
+                                        , appletDateStart);
                                 for (String appletDate : appletDateList) {
                                     //上传开始时间
                                     String appletBeginTime = getAppletTime(apiCode, userType, appletDate, Boolean.TRUE);
@@ -200,6 +208,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                 }
 
                             }
+                            log.warn("上传记录更新耗时：{}s" ,(System.currentTimeMillis() - start) / 1000);
                         }
                     }
                 } catch (Exception e) {
@@ -249,9 +258,9 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
      */
     private String getAppletTime(String apiCode, String userType, String uploadDate, Boolean flag) {
         if (flag) {
-            return syncReportMapper.uploadSyncMinAppletTime(apiCode, userType, uploadDate);
+            return syncReportMapper.uploadSyncMinAppletTimetiflash_(apiCode, userType, uploadDate);
         } else {
-            return syncReportMapper.uploadSyncMaxAppletTime(apiCode, userType, uploadDate);
+            return syncReportMapper.uploadSyncMaxAppletTimetiflash_(apiCode, userType, uploadDate);
         }
     }
 
@@ -468,7 +477,8 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(false);
-        if (StringUtils.isBlank(dataCountFragmentsMgs)) {
+        boolean statisSwitch = !marketingCommonConfig.getUploadAndTransferDataRealtimeStatisSwitch();
+        if (StringUtils.isBlank(dataCountFragmentsMgs) || statisSwitch) {
             return result;
         }
         ApiDataInfoDTO<UserTypeCollectionDTO> apiDataInfoDTO = JSONObject.parseObject(dataCountFragmentsMgs

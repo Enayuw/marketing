@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper" >
+    <select id="selectCycleDataByReleaseTime" resultType="com.br.marketing.entity.XieChengCollidingDataLoopCycle">
+        select
+        id, cell_sha256_code_list, package_id
+        from b_xiecheng_colliding_data_loop_cycle
+        where is_delete = 0 and retry_count = 0
+        <![CDATA[ and release_time < #{releaseTime}]]>
+        <if test="minId != null and minId>0">
+            and id > #{minId}
+        </if>
+        order by release_time,id asc limit #{pageSize};
+    </select>
+
+    <select id="selectCycleByRetryCount" resultType="com.br.marketing.entity.XieChengCollidingDataLoopCycle">
+        select
+        id, cell_sha256_code_list, package_id
+        from b_xiecheng_colliding_data_loop_cycle
+        where is_delete = 0
+        <if test="isLast != null and isLast">
+            and retry_count = 3
+        </if>
+        <if test="isLast != null and !isLast">
+            <![CDATA[ and retry_count > 0 and retry_count < 3]]>
+        </if>
+        <if test="minId != null and minId>0">
+            and id > #{minId}
+        </if>
+        order by id asc limit #{pageSize};
+    </select>
+
+    <select id="selectPerMinuteCounts" resultType="java.util.Map">
+        select DATE_FORMAT(release_time, '%Y-%m-%d %H:%i') as releaseTime, count(*) as counts
+        from b_xiecheng_colliding_data_loop_cycle
+        where DATE_FORMAT(release_time, '%Y-%m-%d') = curdate()
+          and is_delete = 0
+        group by DATE_FORMAT(release_time, '%Y-%m-%d %H:%i')
+        order by DATE_FORMAT(release_time, '%Y-%m-%d %H:%i');
+    </select>
+
+    <select id="selectTodayCycleCount" resultType="java.lang.Integer">
+        select count(*) as counts
+        from b_xiecheng_colliding_data_loop_cycle
+        where DATE_FORMAT(release_time, '%Y-%m-%d') = curdate()
+           OR DATE_FORMAT(release_time, '%Y-%m-%d') = date_add(curdate(), interval 7 day)
+            and is_delete = 0;
+    </select>
+    <select id="selectDeleteData" resultType="com.br.marketing.entity.XieChengCollidingDataLoopCycle">
+        select
+            *
+        from b_xiecheng_colliding_data_loop_cycle
+        where is_delete = 1
+            <![CDATA[ and push_time < #{startTime}]]>
+        limit #{size};
+    </select>
+
+    <delete id="deleteByIdList">
+        delete from b_xiecheng_colliding_data_loop_cycle
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <update id="updateBatchByIdToIsDeleted">
+        update b_xiecheng_colliding_data_loop_cycle set is_delete = 1,update_time = now() where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="updateBatchByIdOfRetryCount" parameterType="java.util.List">
+        update b_xiecheng_colliding_data_loop_cycle set retry_count = retry_count + 1,update_time = now(),push_time = now() where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+</mapper>

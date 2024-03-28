@@ -152,6 +152,20 @@ public class RedisChgService {
         return marketingRedisClient.hkeys(hkey);
     }
 
+
+    /**
+     * 获取hash的长度
+     *
+     * @param hkey hkey
+     * @return {@link Integer }
+     * @author senyang.zheng
+     * @date 2024/03/20
+     */
+    public Long hlen(String hkey) {
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.hlen(hkey);
+    }
+
     /**
      * 获取该hash中key的值
      * @param hkey
