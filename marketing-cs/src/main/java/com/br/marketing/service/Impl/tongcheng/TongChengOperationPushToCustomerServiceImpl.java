@@ -7,8 +7,8 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.tongcheng.TongChengPushQueryQuantityDTO;
-import com.br.marketing.entity.*;
-import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.entity.TongChengAgent;
+import com.br.marketing.entity.TongChengAgentExample;
 import com.br.marketing.mapper.TongChengAgentMapper;
 import com.br.marketing.service.LocalFileService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -53,6 +53,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5);
         Long minId = null;
         int num = marketingCommonConfig.getTongChengGroupOperationNum();
+        boolean hasCollectedDate = false;
         while (true) {
             try {
                 if (marketingCommonConfig.getTongChengGroupOperationThreadNum() != null) {
@@ -63,6 +64,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                 if (tongchengAgentList.size() <= 0) {
                     break;
                 }
+                hasCollectedDate = true;
                 minId = tongchengAgentList.get(tongchengAgentList.size() - 1).getId();
                 List<List<TongChengAgent>> partition = Lists.partition(tongchengAgentList, BATCH_SIZE);
                 partition.forEach((List<TongChengAgent> p) -> {
@@ -85,7 +87,9 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
         }
 
         // refreshLocalFile
-        refreshLocalFile(apiCode);
+        if(hasCollectedDate) {
+            refreshLocalFile(apiCode);
+        }
     }
 
 

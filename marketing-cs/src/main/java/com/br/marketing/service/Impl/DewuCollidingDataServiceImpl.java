@@ -129,6 +129,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                 BrExecutors.getThreadPool(marketingCommonConfig.getDeWuCollidingDataUploadSyncThread()
                         , marketingCommonConfig.getDeWuCollidingDataUploadSyncThread());
 
+        boolean hasCollectedData = false;
         while (true) {
             String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             DewuCollidingDataUploadSyncExample dcuse = new DewuCollidingDataUploadSyncExample();
@@ -139,6 +140,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
             if (dewuCollidingDataUploadSyncList.size() == 0) {
                 break;
             }
+            hasCollectedData = true;
             List<Long> ids = dewuCollidingDataUploadSyncList.stream().map(DewuCollidingDataUploadSync::getId).collect(Collectors.toList());
             dewuCollidingDataUploadSyncMapper.updateBatchById(ids, 1);
             deWuCollidingDataUploadSyncThread.execute(() -> pushCollidingDataUploadSync(dewuCollidingDataUploadSyncList));
@@ -155,7 +157,9 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
         }
 
         // refreshLocalFile
-        refreshLocalFile();
+        if(hasCollectedData) {
+            refreshLocalFile();
+        }
 
     }
 

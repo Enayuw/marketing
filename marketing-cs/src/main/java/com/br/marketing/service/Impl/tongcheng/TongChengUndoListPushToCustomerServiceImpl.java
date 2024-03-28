@@ -8,7 +8,6 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.dto.tongcheng.TongChengPushQueryQuantityDTO;
 import com.br.marketing.dto.tongcheng.TongChengUndoQueryQuantityDTO;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.TongChengUndoData;
@@ -175,11 +174,12 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
      * 后续业务有变更，需要更新此方法
      */
     @Override
-    public void refreshLocalFile(){
+    public void refreshLocalFile(List<Long> localIdList){
         try{
             TongChengUndoQueryQuantityDTO params = new TongChengUndoQueryQuantityDTO();
             params.setPushStatus(2);
             params.setStatus(1);
+            params.setLocalIdList(localIdList);
             String curTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd 00:00:00"));
             params.setStartTime(curTimeStr);
 

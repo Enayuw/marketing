@@ -9,12 +9,12 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 同程不运营名单推送客户JOB
@@ -61,7 +61,8 @@ public class TongChengUndoListPushToCustomerJob extends AbstractSimpleElasticJob
             }
 
             //refreshLocalFile
-            service.refreshLocalFile();
+            List<Long> localIdList = localFiles.stream().map(LocalFile::getId).collect(Collectors.toList());
+            service.refreshLocalFile(localIdList);
         });
     }
 }
