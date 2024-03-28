@@ -2,7 +2,6 @@ package com.br.marketing.service.Impl.xc;
 
 import java.util.List;
 
-import com.br.marketing.entity.XieChengCollidingDataPackage;
 import com.br.marketing.entity.XieChengCollidingDataRob;
 
 /**

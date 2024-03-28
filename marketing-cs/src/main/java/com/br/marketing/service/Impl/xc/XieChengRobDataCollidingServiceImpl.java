@@ -81,6 +81,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             limit -= pageSize;
         }
+
     }
 
     /**
