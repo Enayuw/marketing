@@ -14,7 +14,7 @@ import lombok.Data;
 @ContentRowHeight(20)
 @HeadRowHeight(20)
 @ColumnWidth(25)
-public class QiFuStrategyReportExcelModel {
+public class QiFuStrategyReportExcelModel extends BaseRowModel {
 
 
     @ExcelProperty(value = "月份", index = 0)

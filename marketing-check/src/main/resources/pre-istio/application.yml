@@ -18,7 +18,7 @@ spring:
     threadNamePrefix: ThreadPool-Common
     # 线程池所生产的线程名前缀
   mail:
-    host: 10.0.110.117
+    host: mail.brgroup.com
     port: 25
     username: marketing-br@brgroup.com
     password: 1S9D9ocaNwk#
