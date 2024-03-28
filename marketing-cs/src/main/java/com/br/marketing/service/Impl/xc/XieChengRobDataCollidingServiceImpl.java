@@ -18,7 +18,6 @@ import com.br.marketing.client.xiecheng.XieChengServiceNew;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.XieChengCollidingDataPackage;
 import com.br.marketing.entity.XieChengCollidingDataRob;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
@@ -58,33 +57,29 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     private VariableAllocationServiceImpl variableAllocationService;
 
     @Override
-    public void collidingData(List<XieChengCollidingDataPackage> packageIds) {
-        for (XieChengCollidingDataPackage xieChengCollidingDataPackage : packageIds) {
-            Integer perMinuteCounts = getPerMinuteCounts();
-            Integer todayTrueTotalCounts = xieChengCollidingDataLoopCycleMapper.selectTodayCycleCount();
-            Integer totalThreshold = variableAllocationService.getVariableAllocation().getNormalQuantity();
-            int limit = Math.min(perMinuteCounts, totalThreshold - todayTrueTotalCounts);
-            // 强制开关开启强制撞库，强制开关关闭且条件开关打开开始撞库
-            while (limit > 0 && (marketingCommonConfig.getXieChengForceOpenSwitch()
-                || Objects.equals("true", redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH)))) {
-                XIECHENG_ROB_COLLIDING_THREAD.setCorePoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
-                XIECHENG_ROB_COLLIDING_THREAD.setMaximumPoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
-                int pageSize = Math.min(marketingCommonConfig.getXiechengCollidingPageSize(), limit);
-                List<XieChengCollidingDataRob> robDataList =
-                    xieChengCollidingDataRobMapper.getRobCollidingDataList(pageSize, xieChengCollidingDataPackage.getId());
-                if (CollectionUtils.isEmpty(robDataList)) {
-                    break;
-                }
-                List<List<XieChengCollidingDataRob>> xieChengCollidingDataListPartition = Lists.partition(robDataList, 50);
-                List<CompletableFuture<Void>> futures = Lists.newArrayList();
-                xieChengCollidingDataListPartition.forEach((List<XieChengCollidingDataRob> robData) -> {
-                    CompletableFuture<Void> future =
-                        CompletableFuture.runAsync(() -> pushDataAndHandleResult(robData), XIECHENG_ROB_COLLIDING_THREAD);
-                    futures.add(future);
-                });
-                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-                limit -= pageSize;
+    public void collidingData(List<Long> packageIds) {
+        Integer perMinuteCounts = getPerMinuteCounts();
+        Integer todayTrueTotalCounts = xieChengCollidingDataLoopCycleMapper.selectTodayCycleCount();
+        Integer totalThreshold = variableAllocationService.getVariableAllocation().getNormalQuantity();
+        int limit = Math.min(perMinuteCounts, totalThreshold - todayTrueTotalCounts);
+        // 强制开关开启强制撞库，强制开关关闭且条件开关打开开始撞库
+        while (limit > 0 && (marketingCommonConfig.getXieChengForceOpenSwitch()
+            || Objects.equals("true", redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH)))) {
+            XIECHENG_ROB_COLLIDING_THREAD.setCorePoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
+            XIECHENG_ROB_COLLIDING_THREAD.setMaximumPoolSize(marketingCommonConfig.getXiechengRobCollidingThread());
+            int pageSize = Math.min(marketingCommonConfig.getXiechengCollidingPageSize(), limit);
+            List<XieChengCollidingDataRob> robDataList = xieChengCollidingDataRobMapper.getRobCollidingDataList(pageSize, packageIds);
+            if (CollectionUtils.isEmpty(robDataList)) {
+                break;
             }
+            List<List<XieChengCollidingDataRob>> xieChengCollidingDataListPartition = Lists.partition(robDataList, 50);
+            List<CompletableFuture<Void>> futures = Lists.newArrayList();
+            xieChengCollidingDataListPartition.forEach((List<XieChengCollidingDataRob> robData) -> {
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> pushDataAndHandleResult(robData), XIECHENG_ROB_COLLIDING_THREAD);
+                futures.add(future);
+            });
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            limit -= pageSize;
         }
     }
 

@@ -17,7 +17,7 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
      * @author senyang.zheng
      * @date 2024/03/22
      */
-    List<XieChengCollidingDataRob> getRobCollidingDataList(@Param("pageSize") Integer pageSize, @Param("packageId") Long packageIds);
+    List<XieChengCollidingDataRob> getRobCollidingDataList(@Param("pageSize") Integer pageSize, @Param("packageIds") List<Long> packageIds);
 
     List<XieChengCollidingDataRob> selectDeleteData(@Param("startTime") String startTime, @Param("size") int size);
 

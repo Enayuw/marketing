@@ -2,13 +2,22 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.XieChengCollidingDataRobMapper">
     <select id="getRobCollidingDataList" resultType="com.br.marketing.entity.XieChengCollidingDataRob">
-        SELECT id, cell_sha256_code_list, package_id
-        FROM b_xiecheng_colliding_data_rob
-        where is_delete = 0
-          AND retry_count = 0
-          and package_id = #{packageId}
-          AND (DATE (push_time) != CURDATE() OR push_time IS NULL)
-            limit #{pageSize}
+        SELECT rob.id, rob.cell_sha256_code_list, rob.package_id
+        FROM b_xiecheng_colliding_data_rob rob
+        JOIN b_xiecheng_colliding_data_package pkg ON rob.package_id = pkg.id
+        WHERE pkg.is_delete = 0
+        <if test="packageIds != null and packageIds.size() > 0">
+            AND rob.package_id IN
+            <foreach collection="packageIds" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        AND rob.is_delete = 0
+        AND rob.retry_count = 0
+        <![CDATA[ and pkg.colliding_time <= now() ]]>
+        AND (DATE(rob.push_time) != CURDATE() OR rob.push_time IS NULL)
+        ORDER BY pkg.priority desc
+        limit #{pageSize}
     </select>
     <select id="selectDeleteData" resultType="com.br.marketing.entity.XieChengCollidingDataRob">
         select *
