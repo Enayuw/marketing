@@ -26,9 +26,6 @@ spring:
 server:
   port: 19707
 
-#邮件下载临时目录
-temp_file_path: /opt/data/inloan/
-
 mybatis:
   mapper-locations: mapper/*.xml
   configuration:

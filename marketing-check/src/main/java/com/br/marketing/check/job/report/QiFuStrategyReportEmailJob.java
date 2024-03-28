@@ -10,21 +10,21 @@ import com.br.marketing.entity.QifuStrategyReportDataExample;
 import com.br.marketing.entity.excel.QiFuStrategyReportExcelModel;
 import com.br.marketing.mapper.MarketingEmailSendConfigMapper;
 import com.br.marketing.mapper.QifuStrategyReportDataMapper;
+import com.br.marketing.service.SyncConfigService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -46,8 +46,9 @@ public class QiFuStrategyReportEmailJob extends AbstractSimpleElasticJob {
     @Autowired
     private IMailService mailService;
 
-    @Value("${temp_file_path}")
-    private String tempFilePath;
+    @Autowired
+    SyncConfigService syncConfigService;
+
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
@@ -72,7 +73,12 @@ public class QiFuStrategyReportEmailJob extends AbstractSimpleElasticJob {
             MarketingEmailSendConfig sendConfig = sendConfigList.get(0);
             String subject = EmailSubjectEnum.QIFU_STRATEGYREPORT_SUNJECT.getDesc() + "_" + LocalDate.now().toString();
             // 生成文件
-            String excelFilePath = tempFilePath + sendConfig.getAttachmentFileName();
+            String excelPath = syncConfigService.getPath().concat("excel/").concat("360/").concat(apiCode).concat("/");
+            File excelDic = new File(excelPath);
+            if (!excelDic.exists()) {
+                excelDic.mkdirs();
+            }
+            String excelFilePath = excelPath + sendConfig.getAttachmentFileName();
             QifuStrategyReportDataExample qifuStrategyReportDataExample = new QifuStrategyReportDataExample();
             qifuStrategyReportDataExample.createCriteria().andApiCodeEqualTo(apiCode)
                     .andCreateTimeGreaterThan(Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()));
