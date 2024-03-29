@@ -187,6 +187,7 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
             if(quantityList == null || quantityList.size() < 1){
                 return;
             }
+
             localFileService.refreshPushNumber(quantityList);
         }catch (Exception e){
             log.warn("更新推送量级异常", e);
