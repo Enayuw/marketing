@@ -269,7 +269,7 @@
   <select id="getVariableList" resultType="com.br.marketing.entity.VariableAllocation">
     select
     id,
-    api_code as apiCode,
+    api_code ,
     allocation_type as allocationType,
     allocation_value as allocationValue
     from variable_allocation

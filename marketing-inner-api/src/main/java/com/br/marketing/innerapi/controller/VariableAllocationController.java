@@ -39,7 +39,7 @@ public class VariableAllocationController {
     VariableAllocationService variableAllocationService;
 
     @PostMapping("/getVariableList")
-    @ApiOperation(value = "配置列表", notes = "配置列表", httpMethod = "GET")
+    @ApiOperation(value = "配置列表", notes = "配置列表")
     @AddDataAuthBusiness
     public ApiResult<VariableAllocationVO> getVariableList(@RequestBody VariableAllocationDTO dto) {
         return new ApiResult<VariableAllocationVO>().success(variableAllocationService.getVariableList(dto));
