@@ -5,7 +5,8 @@ import lombok.Data;
 @Data
 public class DewuPushQueryQuantityDTO {
 
+    private Long localId;
     private Integer pushStatus;
-    private String startTime;
+    private Integer startTime;
 }
 
