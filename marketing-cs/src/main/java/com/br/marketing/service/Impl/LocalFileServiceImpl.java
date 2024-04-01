@@ -76,7 +76,7 @@ public class LocalFileServiceImpl implements LocalFileService {
     }
 
     @Override
-    public void refreshPushNumber(List<Map<String, Object>> quantityList) {
+    public void refreshPushNumber(List<Map<String, Object>> quantityList, Date pushStartTime, Date pushEndTime) {
         if (quantityList == null || quantityList.size() < 1) {
             return;
         }
@@ -89,6 +89,8 @@ public class LocalFileServiceImpl implements LocalFileService {
             LocalFile localFile = new LocalFile();
             localFile.setId(localId);
             localFile.setPushNumber(quantity);
+            localFile.setPushStartTime(pushStartTime);
+            localFile.setPushEndTime(pushEndTime);
             localFileMapper.updateByPrimaryKeySelective(localFile);
             log.warn("更新推送量级，localId: {}, quantity: {}", localId,  quantity);
         }

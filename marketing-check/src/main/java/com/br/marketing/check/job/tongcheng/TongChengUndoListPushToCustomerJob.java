@@ -14,7 +14,6 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 同程不运营名单推送客户JOB
@@ -59,10 +58,6 @@ public class TongChengUndoListPushToCustomerJob extends AbstractSimpleElasticJob
                     log.error("同程不运营名单推送客户JOB异常，localFIleId：{}", localFile.getId(), e);
                 }
             }
-
-            //refreshLocalFile
-            List<Long> localIdList = localFiles.stream().map(LocalFile::getId).collect(Collectors.toList());
-            service.refreshLocalFile(localIdList);
         });
     }
 }

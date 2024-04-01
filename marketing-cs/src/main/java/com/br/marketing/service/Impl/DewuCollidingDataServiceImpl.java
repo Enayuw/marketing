@@ -28,10 +28,7 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
@@ -70,6 +67,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                 BrExecutors.getThreadPool(marketingCommonConfig.getDeWuCollidingThread(), marketingCommonConfig.getDeWuCollidingThread());
 
         boolean hasCollectedDate = false;
+        Date pushStartTime = new Date();
         while (marketingCommonConfig.getDeWuCollidingSwitch()) {
             deWuCollidingThread.setCorePoolSize(marketingCommonConfig.getDeWuCollidingThread());
             deWuCollidingThread.setMaximumPoolSize(marketingCommonConfig.getDeWuCollidingThread());
@@ -110,6 +108,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                 }
             }
         }
+        Date pushEndTime = new Date();
         deWuCollidingThread.shutdown();
         try {
             while (!deWuCollidingThread.awaitTermination(10L, TimeUnit.SECONDS)) {
@@ -123,7 +122,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
 
         // refreshLocalFile
         if(hasCollectedDate) {
-            refreshLocalFile(localFileId);
+            refreshLocalFile(localFileId, pushStartTime, pushEndTime);
         }
     }
 
@@ -339,7 +338,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
      * 已确认，每个localId每天只执行1次，刷新逻辑为直接更新PushNumber字段
      * 后续业务有变更，需要更新此方法
      */
-    private void refreshLocalFile(Long localFileId){
+    private void refreshLocalFile(Long localFileId, Date pushStartTime, Date pushEndTime){
         try {
             DewuPushQueryQuantityDTO params = new DewuPushQueryQuantityDTO();
             params.setLocalId(localFileId);
@@ -352,7 +351,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
             if(quantityList == null || quantityList.size() < 1){
                 return;
             }
-            localFileService.refreshPushNumber(quantityList);
+            localFileService.refreshPushNumber(quantityList, pushStartTime, pushEndTime);
         }catch (Exception e){
             log.warn("更新推送量级异常", e);
         }

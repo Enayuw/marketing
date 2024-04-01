@@ -43,9 +43,6 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
     LocalFileMapper localFileMapper;
 
     @Resource
-    LocalFileService localFileService;
-
-    @Resource
     MarketingCommonConfig marketingCommonConfig;
 
     @Resource
@@ -166,31 +163,6 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
-        }
-    }
-
-    /**
-     * 已确认，每个localId每天只执行1次，刷新逻辑为直接更新PushNumber字段
-     * 后续业务有变更，需要更新此方法
-     */
-    @Override
-    public void refreshLocalFile(List<Long> localIdList){
-        try{
-            TongChengUndoQueryQuantityDTO params = new TongChengUndoQueryQuantityDTO();
-            params.setPushStatus(2);
-            params.setStatus(1);
-            params.setLocalIdList(localIdList);
-            String curTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd 00:00:00"));
-            params.setStartTime(curTimeStr);
-
-            List<Map<String, Object>> quantityList = tongChengUndoDataMapper.queryQuantityGroupByLocalId(params);
-            if(quantityList == null || quantityList.size() < 1){
-                return;
-            }
-
-            localFileService.refreshPushNumber(quantityList);
-        }catch (Exception e){
-            log.warn("更新推送量级异常", e);
         }
     }
 }

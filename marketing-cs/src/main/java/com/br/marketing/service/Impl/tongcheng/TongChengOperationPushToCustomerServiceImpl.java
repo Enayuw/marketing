@@ -54,6 +54,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
         Long minId = null;
         int num = marketingCommonConfig.getTongChengGroupOperationNum();
         boolean hasCollectedDate = false;
+        Date pushStartTime = new Date();
         while (true) {
             try {
                 if (marketingCommonConfig.getTongChengGroupOperationThreadNum() != null) {
@@ -74,7 +75,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                 log.error("同程集团运营名单捞取异常！", e);
             }
         }
-
+        Date pushEndTime = new Date();
         try {
             pool.shutdown();
             while (!pool.awaitTermination(5L, TimeUnit.SECONDS)) {
@@ -88,7 +89,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
 
         // refreshLocalFile
         if(hasCollectedDate) {
-            refreshLocalFile(apiCode);
+            refreshLocalFile(apiCode, pushStartTime, pushEndTime);
         }
     }
 
@@ -202,7 +203,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
      * 已确认，每个localId每天只执行1次，刷新逻辑为直接更新PushNumber字段
      * 后续业务有变更，需要更新此方法
      */
-    private void refreshLocalFile(String apiCode){
+    private void refreshLocalFile(String apiCode, Date pushStartTime, Date pushEndTime){
         try {
             TongChengPushQueryQuantityDTO params = new TongChengPushQueryQuantityDTO();
             params.setApiCode(apiCode);
@@ -215,7 +216,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
             if(quantityList == null || quantityList.size() < 1){
                 return;
             }
-            localFileService.refreshPushNumber(quantityList);
+            localFileService.refreshPushNumber(quantityList, pushStartTime, pushEndTime);
         }catch (Exception e){
             log.warn("更新推送量级异常", e);
         }
