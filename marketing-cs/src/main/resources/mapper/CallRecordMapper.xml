@@ -29,4 +29,17 @@
         </foreach>
         group by case_num having count(*)>0
     </select>
+
+    <select id="getOutboundCounttikv_" resultType="java.lang.Integer">
+        select count(distinct a.case_num)
+        from b_call_record as a left join b_marketing_transfer_sync_#{cid} as b
+        on a.case_num = b.cust_num
+        where b.request_data = #{requestData}
+        <if test="convType != null and convType!=''">
+            and b.reserve_field1 -> '$.convType'=#{convType}
+        </if>
+        <if test="lineName != null and lineName!=''">
+            and a.line_name != #{lineName}
+        </if>
+    </select>
 </mapper>

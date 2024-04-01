@@ -25,6 +25,7 @@
     <result column="intention_grade" property="intentionGrade" jdbcType="VARCHAR" />
     <result column="tag_list" property="tagList" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="line_name" property="lineName" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -85,10 +86,10 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, cid, api_code, call_back_type, task_name, task_id, case_num, case_status, dial_count, 
-    session_id, call_start_time, call_connect_time, call_end_time, dialog_turn, call_status, 
-    is_connect, call_dialog, user_properties, dial_rounds, recording_path, intention_grade, 
-    tag_list, create_time
+    id, cid, api_code, call_back_type, task_name, task_id, case_num, case_status, dial_count,
+    session_id, call_start_time, call_connect_time, call_end_time, dialog_turn, call_status,
+    is_connect, call_dialog, user_properties, dial_rounds, recording_path, intention_grade,
+    tag_list, create_time, line_name
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CallRecordExample" >
     select
@@ -105,7 +106,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_call_record
     where id = #{id,jdbcType=BIGINT}
@@ -124,22 +125,22 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_call_record (cid, api_code, call_back_type, 
-      task_name, task_id, case_num, 
-      case_status, dial_count, session_id, 
-      call_start_time, call_connect_time, call_end_time, 
-      dialog_turn, call_status, is_connect, 
-      call_dialog, user_properties, dial_rounds, 
-      recording_path, intention_grade, tag_list, 
-      create_time)
-    values (#{cid,jdbcType=INTEGER}, #{apiCode,jdbcType=VARCHAR}, #{callBackType,jdbcType=INTEGER}, 
-      #{taskName,jdbcType=VARCHAR}, #{taskId,jdbcType=INTEGER}, #{caseNum,jdbcType=VARCHAR}, 
-      #{caseStatus,jdbcType=INTEGER}, #{dialCount,jdbcType=INTEGER}, #{sessionId,jdbcType=VARCHAR}, 
-      #{callStartTime,jdbcType=TIMESTAMP}, #{callConnectTime,jdbcType=TIMESTAMP}, #{callEndTime,jdbcType=TIMESTAMP}, 
-      #{dialogTurn,jdbcType=INTEGER}, #{callStatus,jdbcType=INTEGER}, #{isConnect,jdbcType=INTEGER}, 
-      #{callDialog,jdbcType=VARCHAR}, #{userProperties,jdbcType=VARCHAR}, #{dialRounds,jdbcType=INTEGER}, 
-      #{recordingPath,jdbcType=VARCHAR}, #{intentionGrade,jdbcType=VARCHAR}, #{tagList,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP})
+    insert into b_call_record (cid, api_code, call_back_type,
+    task_name, task_id, case_num,
+    case_status, dial_count, session_id,
+    call_start_time, call_connect_time, call_end_time,
+    dialog_turn, call_status, is_connect,
+    call_dialog, user_properties, dial_rounds,
+    recording_path, intention_grade, tag_list,
+    create_time, line_name)
+    values (#{cid,jdbcType=INTEGER}, #{apiCode,jdbcType=VARCHAR}, #{callBackType,jdbcType=INTEGER},
+    #{taskName,jdbcType=VARCHAR}, #{taskId,jdbcType=INTEGER}, #{caseNum,jdbcType=VARCHAR},
+    #{caseStatus,jdbcType=INTEGER}, #{dialCount,jdbcType=INTEGER}, #{sessionId,jdbcType=VARCHAR},
+    #{callStartTime,jdbcType=TIMESTAMP}, #{callConnectTime,jdbcType=TIMESTAMP}, #{callEndTime,jdbcType=TIMESTAMP},
+    #{dialogTurn,jdbcType=INTEGER}, #{callStatus,jdbcType=INTEGER}, #{isConnect,jdbcType=INTEGER},
+    #{callDialog,jdbcType=VARCHAR}, #{userProperties,jdbcType=VARCHAR}, #{dialRounds,jdbcType=INTEGER},
+    #{recordingPath,jdbcType=VARCHAR}, #{intentionGrade,jdbcType=VARCHAR}, #{tagList,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP}, #{lineName,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CallRecord" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -213,6 +214,9 @@
       <if test="createTime != null" >
         create_time,
       </if>
+      <if test="lineName != null" >
+        line_name,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="cid != null" >
@@ -280,6 +284,9 @@
       </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="lineName != null" >
+        #{lineName,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -361,6 +368,9 @@
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.lineName != null" >
+        line_name = #{record.lineName,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -369,28 +379,29 @@
   <update id="updateByExample" parameterType="map" >
     update b_call_record
     set id = #{record.id,jdbcType=BIGINT},
-      cid = #{record.cid,jdbcType=INTEGER},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      call_back_type = #{record.callBackType,jdbcType=INTEGER},
-      task_name = #{record.taskName,jdbcType=VARCHAR},
-      task_id = #{record.taskId,jdbcType=INTEGER},
-      case_num = #{record.caseNum,jdbcType=VARCHAR},
-      case_status = #{record.caseStatus,jdbcType=INTEGER},
-      dial_count = #{record.dialCount,jdbcType=INTEGER},
-      session_id = #{record.sessionId,jdbcType=VARCHAR},
-      call_start_time = #{record.callStartTime,jdbcType=TIMESTAMP},
-      call_connect_time = #{record.callConnectTime,jdbcType=TIMESTAMP},
-      call_end_time = #{record.callEndTime,jdbcType=TIMESTAMP},
-      dialog_turn = #{record.dialogTurn,jdbcType=INTEGER},
-      call_status = #{record.callStatus,jdbcType=INTEGER},
-      is_connect = #{record.isConnect,jdbcType=INTEGER},
-      call_dialog = #{record.callDialog,jdbcType=VARCHAR},
-      user_properties = #{record.userProperties,jdbcType=VARCHAR},
-      dial_rounds = #{record.dialRounds,jdbcType=INTEGER},
-      recording_path = #{record.recordingPath,jdbcType=VARCHAR},
-      intention_grade = #{record.intentionGrade,jdbcType=VARCHAR},
-      tag_list = #{record.tagList,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP}
+    cid = #{record.cid,jdbcType=INTEGER},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    call_back_type = #{record.callBackType,jdbcType=INTEGER},
+    task_name = #{record.taskName,jdbcType=VARCHAR},
+    task_id = #{record.taskId,jdbcType=INTEGER},
+    case_num = #{record.caseNum,jdbcType=VARCHAR},
+    case_status = #{record.caseStatus,jdbcType=INTEGER},
+    dial_count = #{record.dialCount,jdbcType=INTEGER},
+    session_id = #{record.sessionId,jdbcType=VARCHAR},
+    call_start_time = #{record.callStartTime,jdbcType=TIMESTAMP},
+    call_connect_time = #{record.callConnectTime,jdbcType=TIMESTAMP},
+    call_end_time = #{record.callEndTime,jdbcType=TIMESTAMP},
+    dialog_turn = #{record.dialogTurn,jdbcType=INTEGER},
+    call_status = #{record.callStatus,jdbcType=INTEGER},
+    is_connect = #{record.isConnect,jdbcType=INTEGER},
+    call_dialog = #{record.callDialog,jdbcType=VARCHAR},
+    user_properties = #{record.userProperties,jdbcType=VARCHAR},
+    dial_rounds = #{record.dialRounds,jdbcType=INTEGER},
+    recording_path = #{record.recordingPath,jdbcType=VARCHAR},
+    intention_grade = #{record.intentionGrade,jdbcType=VARCHAR},
+    tag_list = #{record.tagList,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    line_name = #{record.lineName,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -464,33 +475,37 @@
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="lineName != null" >
+        line_name = #{lineName,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CallRecord" >
     update b_call_record
     set cid = #{cid,jdbcType=INTEGER},
-      api_code = #{apiCode,jdbcType=VARCHAR},
-      call_back_type = #{callBackType,jdbcType=INTEGER},
-      task_name = #{taskName,jdbcType=VARCHAR},
-      task_id = #{taskId,jdbcType=INTEGER},
-      case_num = #{caseNum,jdbcType=VARCHAR},
-      case_status = #{caseStatus,jdbcType=INTEGER},
-      dial_count = #{dialCount,jdbcType=INTEGER},
-      session_id = #{sessionId,jdbcType=VARCHAR},
-      call_start_time = #{callStartTime,jdbcType=TIMESTAMP},
-      call_connect_time = #{callConnectTime,jdbcType=TIMESTAMP},
-      call_end_time = #{callEndTime,jdbcType=TIMESTAMP},
-      dialog_turn = #{dialogTurn,jdbcType=INTEGER},
-      call_status = #{callStatus,jdbcType=INTEGER},
-      is_connect = #{isConnect,jdbcType=INTEGER},
-      call_dialog = #{callDialog,jdbcType=VARCHAR},
-      user_properties = #{userProperties,jdbcType=VARCHAR},
-      dial_rounds = #{dialRounds,jdbcType=INTEGER},
-      recording_path = #{recordingPath,jdbcType=VARCHAR},
-      intention_grade = #{intentionGrade,jdbcType=VARCHAR},
-      tag_list = #{tagList,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP}
+        api_code = #{apiCode,jdbcType=VARCHAR},
+        call_back_type = #{callBackType,jdbcType=INTEGER},
+        task_name = #{taskName,jdbcType=VARCHAR},
+        task_id = #{taskId,jdbcType=INTEGER},
+        case_num = #{caseNum,jdbcType=VARCHAR},
+        case_status = #{caseStatus,jdbcType=INTEGER},
+        dial_count = #{dialCount,jdbcType=INTEGER},
+        session_id = #{sessionId,jdbcType=VARCHAR},
+        call_start_time = #{callStartTime,jdbcType=TIMESTAMP},
+        call_connect_time = #{callConnectTime,jdbcType=TIMESTAMP},
+        call_end_time = #{callEndTime,jdbcType=TIMESTAMP},
+        dialog_turn = #{dialogTurn,jdbcType=INTEGER},
+        call_status = #{callStatus,jdbcType=INTEGER},
+        is_connect = #{isConnect,jdbcType=INTEGER},
+        call_dialog = #{callDialog,jdbcType=VARCHAR},
+        user_properties = #{userProperties,jdbcType=VARCHAR},
+        dial_rounds = #{dialRounds,jdbcType=INTEGER},
+        recording_path = #{recordingPath,jdbcType=VARCHAR},
+        intention_grade = #{intentionGrade,jdbcType=VARCHAR},
+        tag_list = #{tagList,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        line_name = #{lineName,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

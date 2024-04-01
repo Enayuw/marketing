@@ -55,4 +55,13 @@
     order by id limit 5000;
   </select>
 
+  <select id="getUploadCounttikv_" resultType="java.lang.Integer">
+    select count(distinct a.sha256_tel)
+    from b_xiecheng_data as a left join b_marketing_transfer_sync_#{cid} as b
+    on a.sha256_tel = b.cust_num where b.request_data =#{requestData}
+    <if test="convType != null and convType!=''">
+      and b.reserve_field1 ->'$.convType'=#{convType}
+    </if>
+  </select>
+
 </mapper>
