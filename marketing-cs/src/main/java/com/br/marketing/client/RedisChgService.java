@@ -184,6 +184,18 @@ public class RedisChgService {
     }
 
     /**
+     * 获取该hash中key的值
+     * @param hkey hash key
+     * @param key  key值
+     * @param num  增加数值
+     * @return
+     */
+    public Long hincrby(String hkey, String key ,long num) {
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        Long result = marketingRedisClient.hincrby(hkey, key,num);
+        return result;
+    }
+    /**
      * 2024-03-12 13:48
      * 返回哈希表中，所有的字段和值
      *

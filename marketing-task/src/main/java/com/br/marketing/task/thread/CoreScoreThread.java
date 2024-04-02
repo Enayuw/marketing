@@ -160,8 +160,8 @@ public class CoreScoreThread implements Callable<String> {
                         jsonData.put("extData", extData);
                     }
                     param.put("jsonData", jsonData.toString());
-                    String resultStr = HxUtil.getReport(customer, jsonData, meal, firstTime, url);
-                    dealResult(resultStr, fw, apiCode, blu);
+                    String resultStr = HxUtil.getReport(customer, jsonData, meal, firstTime, url,noflagproductlist, flagProductList);
+                    dealResult(resultStr, fw, apiCode, blu, isRetry);
                 }
             }
             if (errorList.size() > 0) {
@@ -190,9 +190,10 @@ public class CoreScoreThread implements Callable<String> {
      *
      * @param s
      */
-    private void dealResult(String s, Writer fw, String apiCode, MarketingSyncUser blu) throws IOException {
+    private void dealResult(String s, Writer fw, String apiCode, MarketingSyncUser blu,Boolean isRetry) throws IOException {
         try {
-            if (VaildHxResultUtil.isPass(s, meal, apiCode, redisChgService, blu, errorList, noflagproductlist, flagProductList)) {
+            if (VaildHxResultUtil.isPass(s, meal, apiCode, redisChgService, blu, errorList, noflagproductlist, flagProductList, marketingTask,
+                    isRetry)) {
                 //跑分请求监控统计
                 try {
                     BrCounter.count(PrometheusMonitorUtils.COUNT_CORE_SCORE_API_METRIC_NAME, apiCode, blu.getUserType());

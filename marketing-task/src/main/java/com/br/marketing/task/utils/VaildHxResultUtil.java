@@ -3,10 +3,12 @@ package com.br.marketing.task.utils;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.MarketingUser;
 import com.br.marketing.exception.HxResultRuntimeException;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +30,7 @@ public class VaildHxResultUtil {
      */
     public static boolean isPass(String hxResult, JSONObject meal, String apiCode,
                                  RedisChgService redisChgService, MarketingUser lu
-            , List<MarketingUser> errorList,List<String> noflagproductlist,List<String> flagProductList){
+            , List<MarketingUser> errorList, List<String> noflagproductlist, List<String> flagProductList){
         boolean result=true;
         /**
          * 为空的情况一般是网络异常，重试之后也是异常，所以这种情况也需要加入到重新处理的文件中
@@ -113,13 +115,18 @@ public class VaildHxResultUtil {
      * @return 校验是否通过
      */
     public static boolean isPass(String hxResult, JSONObject meal, String apiCode,
-                                 RedisChgService redisChgService, MarketingSyncUser lu
-            , List<MarketingSyncUser> errorList,List<String> noflagproductlist,List<String> flagProductList){
+                                 RedisChgService redisChgService, MarketingSyncUser lu, List<MarketingSyncUser> errorList,
+                                 List<String> noflagproductlist,List<String> flagProductList,MarketingTask marketingTask,Boolean isRetry){
         boolean result=true;
+        String errorResultKey = RedisKeyConstant.TASKSCORE_HXRESULTERROR.concat(":").concat(apiCode).concat(":").concat(marketingTask.getId().
+                toString());
+        String errorMessage ="";
         /**
          * 为空的情况一般是网络异常，重试之后也是异常，所以这种情况也需要加入到重新处理的文件中
          */
         if(StringUtils.isEmpty(hxResult)){
+            errorMessage = "画像返回结果为空";
+            errorResultHandler(redisChgService, isRetry, errorResultKey, errorMessage);
             errorList.add(lu);
             log.error("hxResult isEmpty");
             return false;
@@ -133,6 +140,9 @@ public class VaildHxResultUtil {
             HxResultRuntimeException hxResultRuntimeException = new HxResultRuntimeException(
                     String.format("【紧急报警】【%s】智能营销平台-%s \001 您好:  【%s】%s，请及时跟进",
                             apiCode, codeMessage, apiCode, codeMessage + "-" + code));
+            errorMessage = "画像返回错误信息code="+code;
+            errorResultHandler(redisChgService,isRetry,errorResultKey,errorMessage);
+            errorList.add(lu);
             log.error("hxResult code error",hxResultRuntimeException);
             return false;
         }
@@ -157,7 +167,11 @@ public class VaildHxResultUtil {
                 }
             }
             if("100002".equals(resultJson.getString("code"))&&!StringUtils.isNotBlank(string)){
-                continue;
+                errorMessage = "画像返回code码为100002,且所有flag产品标识为空";
+                errorResultHandler(redisChgService, isRetry, errorResultKey, errorMessage);
+                errorList.add(lu);
+                result=false;
+                break;
             }
             if(!"0".equals(string)&&!"1".equals(string)){
                 /**
@@ -168,12 +182,16 @@ public class VaildHxResultUtil {
                     if("ScoreData".equals(key)){
                         continue;
                     }else{
+                        errorMessage = "画像返回flag为空,且产品名称不是ScoreData";
+                        errorResultHandler(redisChgService, isRetry, errorResultKey, errorMessage);
                         errorList.add(lu);
                         result=false;
                     }
                 }
 
                 if("99".equals(string)){
+                    errorMessage = "画像返回flag为99";
+                    errorResultHandler(redisChgService, isRetry, errorResultKey, errorMessage);
                     errorList.add(lu);
                     result=false;
                 }
@@ -190,5 +208,25 @@ public class VaildHxResultUtil {
             }
         }
         return result;
+    }
+
+    /**
+     * 画像结果返回异常统计
+     * @param redisChgService
+     * @param isRetry 是否为重试
+     * @param key 异常统计key
+     * @param errorMessage 异常信息
+     */
+    private static void errorResultHandler(RedisChgService redisChgService, Boolean isRetry, String key, String errorMessage) {
+        //非重试，跳过
+        if (!isRetry) {
+            return;
+        }
+        try {
+            redisChgService.hincrby(key, errorMessage, 1);
+        } catch (Exception e) {
+            log.error("跑分画像异常结果统计redis异常", e.getMessage());
+        }
+
     }
 }

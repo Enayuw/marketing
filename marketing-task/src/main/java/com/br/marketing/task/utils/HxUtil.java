@@ -13,6 +13,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
+import java.util.Set;
+
 /**
  * Created by Bairong on 2020/4/16.
  */
@@ -101,7 +104,8 @@ public class HxUtil {
         return result;
     }
 
-    public static String getReport(MarketingCustomer customer, JSONObject jsonData, JSONObject jsonMeal, boolean firstTime, String url) {
+    public static String getReport(MarketingCustomer customer, JSONObject jsonData, JSONObject jsonMeal, boolean firstTime, String url,
+                                   List<String> noflagproductlist, List<String> flagProductList) {
         log.info("jsonData:{},jsonMeal:{},url:{}", jsonData, jsonMeal, url);
         HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.add("Pinpoint-Sampled", "s0");
@@ -144,8 +148,8 @@ public class HxUtil {
             extDataJson.put("isRepair", jsonData.getString("isRepair"));
         }
         JSONObject extData = jsonData.getJSONObject("extData");
-        if(extData !=null){
-            extData.keySet().forEach(t->extDataJson.put(t,extData.get(t)));
+        if (extData != null) {
+            extData.keySet().forEach(t -> extDataJson.put(t, extData.get(t)));
         }
         //渠道标识 计费需要
         extDataJson.put("channelType", jsonData.getString("userType"));
@@ -173,6 +177,8 @@ public class HxUtil {
         String result = "";
         try {
             result = restTemplate.postForObject(url, requestEntity, String.class);
+            //调用画像结果重试
+            handlerResult(result,url,requestEntity,noflagproductlist,jsonMeal,flagProductList);
         } catch (Exception e) {
             log.warn(" 画像错误 ---api_code={}---重试", customer.getApiCode(), e);
             try {
@@ -184,6 +190,80 @@ public class HxUtil {
         }
         log.info("画像结果 --- {}", result);
         return result;
+    }
+
+    /**
+     * 调用画像结果重试处理
+     *
+     * @param result 画像的结果
+     */
+    private static void handlerResult(String result, String url, HttpEntity<MultiValueMap> requestEntity, List<String> noflagproductlist,
+                                      JSONObject jsonMeal, List<String> flagProductList) {
+        //重试三次
+        for (int i = 0; i < 3; i++) {
+            if (isRetry(result, jsonMeal, noflagproductlist, flagProductList)) {
+                result = restTemplate.postForObject(url, requestEntity, String.class);
+            } else {
+                return;
+            }
+        }
+    }
+
+    private static Boolean isRetry(String hxResult, JSONObject jsonMeal, List<String> noflagproductlist, List<String> flagProductList) {
+        //返回空，需要重试
+        if (StringUtils.isEmpty(hxResult)) {
+            log.error("hxResult isEmpty");
+            return true;
+        }
+        ;
+        JSONObject resultJson = JSONObject.parseObject(hxResult);
+        //非00且非100002 重试
+        if (!"00".equals(resultJson.getString("code"))
+                && !"100002".equals(resultJson.getString("code"))) {
+            return true;
+        }
+        Set<String> strings = jsonMeal.keySet();
+        for (String key : strings) {
+            if (noflagproductlist.contains(key.toLowerCase())) {
+                continue;
+            }
+            String flag = "";
+            String s = Constants.flagMap.get(key.toLowerCase());
+            String string = "";
+            if (StringUtils.isNotBlank(s)) {
+                flag = "flag_" + s;
+                string = resultJson.getString(flag);
+            } else {
+                if (flagProductList.contains(key)) {
+                    flag = "flag_score";
+                    string = resultJson.getString(flag);
+                } else {
+                    flag = "flag_" + key.toLowerCase();
+                    string = resultJson.getString(flag);
+                }
+            }
+            if ("100002".equals(resultJson.getString("code")) && StringUtils.isBlank(string)) {
+                return true;
+            }
+            if (!"0".equals(string) && !"1".equals(string)) {
+                /**
+                 * ScoreData未命中时不返回flag
+                 * 需要特殊处理
+                 */
+                if (StringUtils.isEmpty(string)) {
+                    if ("ScoreData".equals(key)) {
+                        continue;
+                    } else {
+                        return true;
+                    }
+                }
+
+                if ("99".equals(string)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public static String hauXiangFlat(String json) {
