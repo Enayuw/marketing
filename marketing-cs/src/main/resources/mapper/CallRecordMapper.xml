@@ -35,6 +35,10 @@
         from b_call_record as a left join b_marketing_transfer_sync_#{cid} as b
         on a.case_num = b.cust_num
         where b.request_data = #{requestData}
+        <if test="apiCode != null and apiCode!=''">
+            and b.api_code = #{apiCode}
+            and a.api_code = #{apiCode}
+        </if>
         <if test="convType != null and convType!=''">
             and b.reserve_field1 -> '$.convType'=#{convType}
         </if>

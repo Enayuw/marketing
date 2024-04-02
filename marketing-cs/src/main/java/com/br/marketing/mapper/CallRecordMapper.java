@@ -19,11 +19,14 @@ public interface CallRecordMapper extends CallRecordMapperBase {
 
     /**
      * 携程百万量级转化统计报表数据获取 外呼相关量级
-     * @param requestData requestData
+     * @param cid cid
+     * @param apiCode apiCode
+     * @param requestData T-1
      * @param convType  convType
      * @param lineName  线路名称
      * @return Integer
      */
-    Integer getOutboundCounttikv_(@Param("cid") Long cid, @Param("requestData") String requestData, @Param("convType") String convType,
+    Integer getOutboundCounttikv_(@Param("cid") Long cid, @Param("apiCode") String apiCode,
+                                  @Param("requestData") String requestData, @Param("convType") String convType,
                                   @Param("lineName") String lineName);
 }

@@ -36,6 +36,7 @@ import java.util.UUID;
 @Slf4j
 public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
     final static DateTimeFormatter YMD = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     @Resource
     private IMailService iMailService;
     @Resource
@@ -49,8 +50,9 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
 
     /**
      * job参数：
-     *  apiCode,cid,resultData,skipSendEmail
-     *  3710058,643,2023-04-02,true (一次传一组)
+     * 说明： apiCode,cid,resultData(T),skipSendEmail (参数整体一次传一组)
+     * 样例1： 3710058,643,2024-04-02,true (单独生成某个apiCode和对应cid的 T-1 数据,不发送邮件)
+     * 样例2： 3710058,643,2024-04-01,false (每月月末触发job，生成每月的报表并发邮件)
      * @Author yu.xia@brgroup.com
      * @Date 2024/4/1 20:42
      * @param context
@@ -63,6 +65,7 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
         String apiCode = "3710058";
         Long cid = 643L;
         String resultData="";
+        // 是否跳过生成Excel和发送邮件 判断标识
         String skipSendEmail = "false";
         if(StringUtils.isNotBlank(jobParameter)){
             String[] split = jobParameter.split(",");
@@ -71,6 +74,7 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
             resultData = split[2];
             skipSendEmail = split[3];
         }
+//        String emailRecipient = "yu.xia@brgroup.com";
         String emailRecipient = "yu.xia@brgroup.com,bin.huang@brgroup.com";
 //        String emailRecipient = "mmg@brgroup.com,yu.xia@brgroup.com,bin.huang@brgroup.com";
         // 路径
@@ -81,10 +85,15 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
         // 邮件主题
         String subject = "携程百万量级转化_";
         LocalDate today = LocalDate.now();
-        String requestData = today.minusDays(1L).format(YMD);
         if(StringUtils.isNotBlank(resultData)){
-            requestData = resultData;
+            try {
+                // 使用parse方法将字符串转换为LocalDate
+                today = LocalDate.parse(resultData, formatter);
+            } catch (Exception e) {
+                log.error("携程百万量级job参数处理出错-jobParameter[{}]--",jobParameter,e);
+            }
         }
+        String requestData = today.minusDays(1L).format(YMD);
         LocalDate firstDayOfMonth = today.with(TemporalAdjusters.firstDayOfMonth());
         String firstDayString;
         if (today.equals(firstDayOfMonth)) {
@@ -120,7 +129,7 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
                 xieChengStatisticsReporService.createExcel(xieChengStatisticsReports, excelFilePath, fileName);
                 //4.邮件发送
                 iMailService.sendAttachmentsMail(emailRecipient,subject+requestData,
-                        "dear all: 携程百万量级转化统计报表，详见附件", excelPath);
+                        "dear all: <br/>        "+apiCode+"-携程百万量级转化统计报表，详见附件", excelPath);
             }
         }catch (Exception e){
             log.error("携程百万量级转化统计报表处理异常:requestData[{}]firstDayString[{}]--", requestData, firstDayString, e);
@@ -134,7 +143,6 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
                 } catch (Exception e) {
                     log.error("携程百万量级转化统计[{}]Files.delete error--", excelPath, e);
                 }
-                log.error("携程百万报表删除文件{}不存在", excelPath);
             }
         }
         log.warn("TableBackupJob-end-{}apiCode[{}]cid[{}]requestData[{}]skipSendEmail[{}]",

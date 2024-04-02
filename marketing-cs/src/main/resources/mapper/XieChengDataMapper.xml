@@ -61,6 +61,10 @@
     on a.sha256_tel = b.cust_num
     where b.request_data =#{requestData}
       and a.push_status = 2 and a.status = 1
+    <if test="apiCode != null and apiCode!=''">
+      and b.api_code = #{apiCode}
+      and a.api_code = #{apiCode}
+    </if>
     <if test="convType != null and convType!=''">
       and b.reserve_field1 ->'$.convType'=#{convType}
     </if>

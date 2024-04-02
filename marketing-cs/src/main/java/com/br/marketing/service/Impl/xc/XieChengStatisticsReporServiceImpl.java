@@ -36,46 +36,59 @@ public class XieChengStatisticsReporServiceImpl implements XieChengStatisticsRep
     @Override
     public String getUploadCountAndInsert(String apiCode, Long cid, String requestData){
         XieChengStatisticsReportExample xieChengStatisticsReportExample = new XieChengStatisticsReportExample();
-        xieChengStatisticsReportExample.createCriteria().andApiCodeEqualTo(apiCode).andReportTimeEqualTo(requestData);
+        xieChengStatisticsReportExample.createCriteria()
+                .andIsDeleteEqualTo(0)
+                .andApiCodeEqualTo(apiCode)
+                .andReportTimeEqualTo(requestData);
         xieChengStatisticsReportExample.setOrderByClause(" create_time desc ");
         List<XieChengStatisticsReport> reportsList = xieChengStatisticsReportMapper.selectByExample(xieChengStatisticsReportExample);
         // 上报量级
-        Integer uploadCount = xieChengDataMapper.getUploadCounttikv_(cid, requestData, "");
+        Integer uploadCount = xieChengDataMapper.getUploadCounttikv_(cid, apiCode, requestData, "");
         // 上报进入首页量级
-        Integer reportedHomePageCount = xieChengDataMapper.getUploadCounttikv_(cid, requestData, "214");
+        Integer reportedHomePageCount = xieChengDataMapper.getUploadCounttikv_(cid, apiCode, requestData, "214");
         // 上报进件发起量级
-        Integer reportedInitiateCount = xieChengDataMapper.getUploadCounttikv_(cid, requestData, "108");
+        Integer reportedInitiateCount = xieChengDataMapper.getUploadCounttikv_(cid, apiCode, requestData, "108");
         // 上报进件成功量级
-        Integer reportedSuccessCount = xieChengDataMapper.getUploadCounttikv_(cid, requestData, "107");
+        Integer reportedSuccessCount = xieChengDataMapper.getUploadCounttikv_(cid, apiCode, requestData, "107");
         // 上报授信量级
-        Integer reportedCreditCount = xieChengDataMapper.getUploadCounttikv_(cid, requestData, "105");
+        Integer reportedCreditCount = xieChengDataMapper.getUploadCounttikv_(cid, apiCode, requestData, "105");
         // 上报提现量级
-        Integer reportedDrawingsCount = xieChengDataMapper.getUploadCounttikv_(cid, requestData, "106");
+        Integer reportedDrawingsCount = xieChengDataMapper.getUploadCounttikv_(cid, apiCode, requestData, "106");
         // 上报百万量级授信量
-        BigDecimal dividendUpload = new BigDecimal(uploadCount);
-        BigDecimal divisorUpload = new BigDecimal(reportedCreditCount);
-        BigDecimal multiplier = new BigDecimal("1000000");
+        BigDecimal reportedMillionCreditCount;
         // 设置小数点后的精度和舍入模式，保留两位小数
         int scale = 2;
         // 四舍五入
         RoundingMode roundingMode = RoundingMode.HALF_UP;
-        BigDecimal reportedMillionCreditCount = dividendUpload.multiply(multiplier).divide(divisorUpload, scale, roundingMode);
+        BigDecimal multiplier = new BigDecimal("1000000");
+        if(0 == reportedCreditCount){
+            reportedMillionCreditCount = new BigDecimal(0);
+        }else{
+            BigDecimal dividendUpload = new BigDecimal(uploadCount);
+            BigDecimal divisorUpload = new BigDecimal(reportedCreditCount);
+            reportedMillionCreditCount = dividendUpload.multiply(multiplier).divide(divisorUpload, scale, roundingMode);
+        }
         // 外呼量级
-        Integer outboundCount = callRecordMapper.getOutboundCounttikv_(cid, requestData, "","HZL挡板");
+        Integer outboundCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, "","HZL挡板");
         // 外呼进入首页量级
-        Integer outboundHomePageCount = callRecordMapper.getOutboundCounttikv_(cid, requestData, "214","HZL挡板");
+        Integer outboundHomePageCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, "214","HZL挡板");
         // 外呼进件发起量级
-        Integer outboundInitiateCount = callRecordMapper.getOutboundCounttikv_(cid, requestData, "108","HZL挡板");
+        Integer outboundInitiateCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, "108","HZL挡板");
         // 外呼进件成功量级
-        Integer outboundSuccessCount = callRecordMapper.getOutboundCounttikv_(cid, requestData, "107","HZL挡板");
+        Integer outboundSuccessCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, "107","HZL挡板");
         // 外呼授信量级
-        Integer outboundCreditCount = callRecordMapper.getOutboundCounttikv_(cid, requestData, "105","HZL挡板");
+        Integer outboundCreditCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, "105","HZL挡板");
         // 外呼提现量级
-        Integer outboundDrawingsCount = callRecordMapper.getOutboundCounttikv_(cid, requestData, "106","HZL挡板");
+        Integer outboundDrawingsCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, "106","HZL挡板");
         // 外呼百万量级授信量
-        BigDecimal dividendOutbound = new BigDecimal(outboundCreditCount);
-        BigDecimal divisorOutbound = new BigDecimal(outboundCount);
-        BigDecimal outboundMillionCreditCount = dividendOutbound.multiply(multiplier).divide(divisorOutbound, scale, roundingMode);
+        BigDecimal outboundMillionCreditCount;
+        if(0 == outboundCount){
+            outboundMillionCreditCount = new BigDecimal(0);
+        }else{
+            BigDecimal dividendOutbound = new BigDecimal(outboundCreditCount);
+            BigDecimal divisorOutbound = new BigDecimal(outboundCount);
+            outboundMillionCreditCount = dividendOutbound.multiply(multiplier).divide(divisorOutbound, scale, roundingMode);
+        }
         XieChengStatisticsReport xieChengStatisticsReport = new XieChengStatisticsReport();
         xieChengStatisticsReport.setApiCode(apiCode);
         xieChengStatisticsReport.setReportTime(requestData);
@@ -94,6 +107,7 @@ public class XieChengStatisticsReporServiceImpl implements XieChengStatisticsRep
         xieChengStatisticsReport.setOutboundDrawingsCount(outboundDrawingsCount.toString());
         xieChengStatisticsReport.setOutboundMillionCreditCount(outboundMillionCreditCount.toString());
         xieChengStatisticsReport.setCreateTime(new Date());
+        xieChengStatisticsReport.setUpdateTime(new Date());
         xieChengStatisticsReport.setIsDelete(0);
         // 查询 requestData 是否已经生成过了？生成过覆盖，没有生成就新增
         if(reportsList.size()>0){
@@ -110,6 +124,7 @@ public class XieChengStatisticsReporServiceImpl implements XieChengStatisticsRep
         XieChengStatisticsReportExample xieChengStatisticsReportExample = new XieChengStatisticsReportExample();
         xieChengStatisticsReportExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
+                .andIsDeleteEqualTo(0)
                 .andReportTimeBetween(firstDayString,requestData);
         List<XieChengStatisticsReport> xieChengStatisticsReports =
                 xieChengStatisticsReportMapper.selectByExample(xieChengStatisticsReportExample);
