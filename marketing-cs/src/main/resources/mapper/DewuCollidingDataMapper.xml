@@ -28,13 +28,21 @@
 
   <select id="queryQuantityGroupByLocalId" parameterType="com.br.marketing.dto.dewu.DewuPushQueryQuantityDTO" resultType="Map">
     select
-        count(*) as quantity,
-        local_id as localId
-    from
-        b_dewu_colliding_data
-    where
-        local_id = #{localId}
-        and push_status = #{pushStatus}
-        and is_deleted = 0
+      a.localId,
+      ifnull(b.quantity, 0) as quantity
+    from (select #{localId} as localId) as a
+           left join
+         (
+           select
+             count(*) as quantity,
+             local_id as localId
+           from
+             b_dewu_colliding_data
+           where
+             local_id = #{localId}
+             and push_status = #{pushStatus}
+             and is_deleted = 0
+         )as b
+         on a.localId = b.localId
   </select>
 </mapper>
