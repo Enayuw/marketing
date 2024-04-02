@@ -60,7 +60,6 @@ public class XieChengStatisticsReporServiceImpl implements XieChengStatisticsRep
         // 四舍五入
         RoundingMode roundingMode = RoundingMode.HALF_UP;
         BigDecimal reportedMillionCreditCount = dividendUpload.multiply(multiplier).divide(divisorUpload, scale, roundingMode);
-//        Integer reportedMillionCreditCount = uploadCount==0 ? 0 : reportedCreditCount/uploadCount * 1000000;
         // 外呼量级
         Integer outboundCount = callRecordMapper.getOutboundCounttikv_(cid, requestData, "","HZL挡板");
         // 外呼进入首页量级
@@ -77,7 +76,6 @@ public class XieChengStatisticsReporServiceImpl implements XieChengStatisticsRep
         BigDecimal dividendOutbound = new BigDecimal(outboundCreditCount);
         BigDecimal divisorOutbound = new BigDecimal(outboundCount);
         BigDecimal outboundMillionCreditCount = dividendOutbound.multiply(multiplier).divide(divisorOutbound, scale, roundingMode);
-//        Integer outboundMillionCreditCount = outboundCount==0 ? 0 : outboundCreditCount/outboundCount * 1000000;
         XieChengStatisticsReport xieChengStatisticsReport = new XieChengStatisticsReport();
         xieChengStatisticsReport.setApiCode(apiCode);
         xieChengStatisticsReport.setReportTime(requestData);
@@ -129,67 +127,6 @@ public class XieChengStatisticsReporServiceImpl implements XieChengStatisticsRep
         EasyExcel.write(excelFilePath+fileName, XieChengStatisticsReportExcelModel.class)
                 .sheet("携程百万量级转化统计")
                 .doWrite(excelModelList);
-    }
-
-    public static void main(String[] args) {
-        // 上报百万量级授信量
-        BigDecimal dividendUpload = new BigDecimal("100");
-        BigDecimal divisorUpload = new BigDecimal("1000000000");
-        BigDecimal multiplier = new BigDecimal("1000000");
-        // 设置小数点后的精度和舍入模式，保留两位小数
-        int scale = 2;
-        // 四舍五入
-        RoundingMode roundingMode = RoundingMode.HALF_UP;
-        BigDecimal reportedMillionCreditCount = dividendUpload.multiply(multiplier).divide(divisorUpload, scale, roundingMode);
-        System.out.println(reportedMillionCreditCount.toString());
-
-
-        // 外呼百万量级授信量
-        BigDecimal dividendOutbound = new BigDecimal("200");
-        BigDecimal divisorOutbound = new BigDecimal(1000000000);
-        BigDecimal outboundMillionCreditCount = dividendOutbound.multiply(multiplier).divide(divisorOutbound, scale, roundingMode);
-        System.out.println(outboundMillionCreditCount.toString());
-//        String uuid = UUID.randomUUID().toString();
-//        log.warn("XieChengStatisticsReportJob-start-{}",uuid);
-//        String excelFilePath = "D:\\test\\1.xlsx";
-//        try{
-//            List<XieChengStatisticsReport> xieChengStatisticsReportsList = new ArrayList<>();
-//            for (int i = 0; i < 10; i++) {
-//                XieChengStatisticsReport xieChengStatisticsReport = new XieChengStatisticsReport();
-//                xieChengStatisticsReport.setReportTime("2024-04-0"+i);
-//                xieChengStatisticsReport.setUploadCount(i+"");
-//                xieChengStatisticsReport.setReportedHomePageCount(i+"");
-//                xieChengStatisticsReport.setReportedInitiateCount(i+"");
-//                xieChengStatisticsReport.setReportedSuccessCount(i+"");
-//                xieChengStatisticsReport.setReportedCreditCount(i+"");
-//                xieChengStatisticsReport.setReportedDrawingsCount(i+"");
-//                xieChengStatisticsReport.setReportedMillionCreditCount(i+"");
-//                xieChengStatisticsReport.setOutboundCount(i+"");
-//                xieChengStatisticsReport.setOutboundHomePageCount(i+"");
-//                xieChengStatisticsReport.setOutboundInitiateCount(i+"");
-//                xieChengStatisticsReport.setOutboundSuccessCount(i+"");
-//                xieChengStatisticsReport.setOutboundCreditCount(i+"");
-//                xieChengStatisticsReport.setOutboundDrawingsCount(i+"");
-//                xieChengStatisticsReport.setOutboundMillionCreditCount(i+"");
-//                xieChengStatisticsReportsList.add(xieChengStatisticsReport);
-//            }
-//            List<XieChengStatisticsReportExcelModel> excelModelList = xieChengStatisticsReportsList.stream()
-//                    .map((XieChengStatisticsReport reportData) -> {
-//                        XieChengStatisticsReportExcelModel excelModel = new XieChengStatisticsReportExcelModel();
-//                        BeanUtils.copyProperties(reportData, excelModel);
-//                        return excelModel;
-//                    }).collect(Collectors.toList());
-//            EasyExcel.write(excelFilePath, XieChengStatisticsReportExcelModel.class).sheet("携程百万量级转化统计").
-//                    doWrite(excelModelList);
-//        }catch (Exception e){
-//            log.error("携程百万量级转化统计报表处理异常:--", e);
-//        }finally {
-//            File file = new File(excelFilePath);
-//            if(file.exists()){
-//                file.delete();
-//            }
-//        }
-//        log.warn("XieChengStatisticsReportJob-end-{}",uuid);
     }
 
 }

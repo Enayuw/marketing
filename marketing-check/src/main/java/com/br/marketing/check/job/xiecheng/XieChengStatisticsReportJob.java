@@ -15,6 +15,9 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
@@ -32,7 +35,7 @@ import java.util.UUID;
 @Component
 @Slf4j
 public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
-    final static DateTimeFormatter ymd = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    final static DateTimeFormatter YMD = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     @Resource
     private IMailService iMailService;
     @Resource
@@ -78,7 +81,7 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
         // 邮件主题
         String subject = "携程百万量级转化_";
         LocalDate today = LocalDate.now();
-        String requestData = today.minusDays(1L).format(ymd);
+        String requestData = today.minusDays(1L).format(YMD);
         if(StringUtils.isNotBlank(resultData)){
             requestData = resultData;
         }
@@ -86,10 +89,10 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
         String firstDayString;
         if (today.equals(firstDayOfMonth)) {
             // 今天是本月的第一天
-            firstDayString = firstDayOfMonth.minusMonths(1L).format(ymd);
+            firstDayString = firstDayOfMonth.minusMonths(1L).format(YMD);
         } else {
             // 不是本月的第一天
-            firstDayString = firstDayOfMonth.format(ymd);
+            firstDayString = firstDayOfMonth.format(YMD);
         }
 
         MarketingEmailSendConfigExample marketingEmailSendConfigExample = new MarketingEmailSendConfigExample();
@@ -105,6 +108,7 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
         }else{
             fileName = requestData+subject+".xlsx";
         }
+        String excelPath = excelFilePath + fileName;
         try{
             //1.执行sql查询前一天的数据，并写入数据库表 b_xiecheng_statistics_report 中
             xieChengStatisticsReporService.getUploadCountAndInsert(apiCode, cid, requestData);
@@ -116,15 +120,21 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
                 xieChengStatisticsReporService.createExcel(xieChengStatisticsReports, excelFilePath, fileName);
                 //4.邮件发送
                 iMailService.sendAttachmentsMail(emailRecipient,subject+requestData,
-                        "dear all: 携程百万量级转化统计报表，详见附件",excelFilePath+fileName);
+                        "dear all: 携程百万量级转化统计报表，详见附件", excelPath);
             }
         }catch (Exception e){
             log.error("携程百万量级转化统计报表处理异常:requestData[{}]firstDayString[{}]--", requestData, firstDayString, e);
         }finally {
-            File file = new File(excelFilePath+fileName);
             //5.删除Excel
-            if("false".equalsIgnoreCase(skipSendEmail) && !file.delete()){
-                log.error("携程百万报表删除文件{}不存在",excelFilePath+fileName);
+            if("false".equalsIgnoreCase(skipSendEmail)){
+                try {
+                    File file = new File(excelPath);
+                    Path path = file.toPath();
+                    Files.deleteIfExists(path);
+                } catch (Exception e) {
+                    log.error("携程百万量级转化统计[{}]Files.delete error--", excelPath, e);
+                }
+                log.error("携程百万报表删除文件{}不存在", excelPath);
             }
         }
         log.warn("TableBackupJob-end-{}apiCode[{}]cid[{}]requestData[{}]skipSendEmail[{}]",
