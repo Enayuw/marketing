@@ -59,68 +59,39 @@ public class XieChengStatisticsReportExcelModel extends BaseRowModel {
     private String reportedDrawingsCount;
 
     /**
-     * 上报百万量级授信量
-     */
-    @ExcelProperty(value = "上报百万量级授信量", index = 7)
-    private String reportedMillionCreditCount;
-
-    /**
      * 外呼量级
      */
-    @ExcelProperty(value = "外呼量级", index = 8)
+    @ExcelProperty(value = "外呼量级", index = 7)
     private String outboundCount;
 
     /**
      * 外呼进入首页量级
      */
-    @ExcelProperty(value = "外呼进入首页量级", index = 9)
+    @ExcelProperty(value = "外呼进入首页量级", index = 8)
     private String outboundHomePageCount;
 
     /**
      * 外呼进件发起量级
      */
-    @ExcelProperty(value = "外呼进件发起量级", index = 10)
+    @ExcelProperty(value = "外呼进件发起量级", index = 9)
     private String outboundInitiateCount;
 
     /**
      * 外呼进件成功量级
      */
-    @ExcelProperty(value = "外呼进件成功量级", index = 11)
+    @ExcelProperty(value = "外呼进件成功量级", index = 10)
     private String outboundSuccessCount;
 
     /**
      * 外呼授信量级
      */
-    @ExcelProperty(value = "外呼授信量级", index = 12)
+    @ExcelProperty(value = "外呼授信量级", index = 11)
     private String outboundCreditCount;
 
     /**
      * 外呼提现量级
      */
-    @ExcelProperty(value = "外呼提现量级", index = 13)
+    @ExcelProperty(value = "外呼提现量级", index = 12)
     private String outboundDrawingsCount;
 
-    /**
-     * 外呼百万量级授信量
-     */
-    @ExcelProperty(value = "外呼百万量级授信量", index = 14)
-    private String outboundMillionCreditCount;
-
-//    public XieChengStatisticsReportExcelModel(XieChengStatisticsReport report){
-//        this.reportTime = report.getReportTime();
-//        this.uploadCount = report.getUploadCount();
-//        this.reportedHomePageCount = report.getReportedHomePageCount();
-//        this.reportedInitiateCount = report.getReportedInitiateCount();
-//        this.reportedSuccessCount = report.getReportedSuccessCount();
-//        this.reportedCreditCount = report.getReportedCreditCount();
-//        this.reportedDrawingsCount = report.getReportedDrawingsCount();
-//        this.reportedMillionCreditCount = report.getReportedMillionCreditCount();
-//        this.outboundCount = report.getOutboundCount();
-//        this.outboundHomePageCount = report.getOutboundHomePageCount();
-//        this.outboundInitiateCount = report.getOutboundInitiateCount();
-//        this.outboundSuccessCount = report.getOutboundSuccessCount();
-//        this.outboundCreditCount = report.getOutboundCreditCount();
-//        this.outboundDrawingsCount = report.getOutboundDrawingsCount();
-//        this.outboundMillionCreditCount = report.getOutboundMillionCreditCount();
-//    }
 }

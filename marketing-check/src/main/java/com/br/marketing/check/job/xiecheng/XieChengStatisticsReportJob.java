@@ -149,7 +149,7 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
                 }
             }
         }
-        log.warn("TableBackupJob-end-{}apiCode[{}]cid[{}]requestData[{}]skipSendEmail[{}]",
+        log.warn("XieChengStatisticsReportJob-end-{}apiCode[{}]cid[{}]requestData[{}]skipSendEmail[{}]",
                 uuid,apiCode,cid,requestData,skipSendEmail);
     }
 }

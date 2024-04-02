@@ -54,20 +54,7 @@ public class XieChengStatisticsReporServiceImpl implements XieChengStatisticsRep
         Integer reportedCreditCount = xieChengDataMapper.getUploadCounttikv_(cid, apiCode, requestData, "105");
         // 上报提现量级
         Integer reportedDrawingsCount = xieChengDataMapper.getUploadCounttikv_(cid, apiCode, requestData, "106");
-        // 上报百万量级授信量
-        BigDecimal reportedMillionCreditCount;
-        // 设置小数点后的精度和舍入模式，保留两位小数
-        int scale = 2;
-        // 四舍五入
-        RoundingMode roundingMode = RoundingMode.HALF_UP;
-        BigDecimal multiplier = new BigDecimal("1000000");
-        if(0 == reportedCreditCount){
-            reportedMillionCreditCount = new BigDecimal(0);
-        }else{
-            BigDecimal dividendUpload = new BigDecimal(uploadCount);
-            BigDecimal divisorUpload = new BigDecimal(reportedCreditCount);
-            reportedMillionCreditCount = dividendUpload.multiply(multiplier).divide(divisorUpload, scale, roundingMode);
-        }
+        // 上报百万量级授信量 经过讨论取消了
         // 外呼量级
         Integer outboundCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, "","HZL挡板");
         // 外呼进入首页量级
@@ -80,15 +67,7 @@ public class XieChengStatisticsReporServiceImpl implements XieChengStatisticsRep
         Integer outboundCreditCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, "105","HZL挡板");
         // 外呼提现量级
         Integer outboundDrawingsCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, "106","HZL挡板");
-        // 外呼百万量级授信量
-        BigDecimal outboundMillionCreditCount;
-        if(0 == outboundCount){
-            outboundMillionCreditCount = new BigDecimal(0);
-        }else{
-            BigDecimal dividendOutbound = new BigDecimal(outboundCreditCount);
-            BigDecimal divisorOutbound = new BigDecimal(outboundCount);
-            outboundMillionCreditCount = dividendOutbound.multiply(multiplier).divide(divisorOutbound, scale, roundingMode);
-        }
+        // 外呼百万量级授信量 经过讨论取消了
         XieChengStatisticsReport xieChengStatisticsReport = new XieChengStatisticsReport();
         xieChengStatisticsReport.setApiCode(apiCode);
         xieChengStatisticsReport.setReportTime(requestData);
@@ -98,14 +77,14 @@ public class XieChengStatisticsReporServiceImpl implements XieChengStatisticsRep
         xieChengStatisticsReport.setReportedSuccessCount(reportedSuccessCount.toString());
         xieChengStatisticsReport.setReportedCreditCount(reportedCreditCount.toString());
         xieChengStatisticsReport.setReportedDrawingsCount(reportedDrawingsCount.toString());
-        xieChengStatisticsReport.setReportedMillionCreditCount(reportedMillionCreditCount.toString());
+//        xieChengStatisticsReport.setReportedMillionCreditCount(reportedMillionCreditCount.toString());
         xieChengStatisticsReport.setOutboundCount(outboundCount.toString());
         xieChengStatisticsReport.setOutboundHomePageCount(outboundHomePageCount.toString());
         xieChengStatisticsReport.setOutboundInitiateCount(outboundInitiateCount.toString());
         xieChengStatisticsReport.setOutboundSuccessCount(outboundSuccessCount.toString());
         xieChengStatisticsReport.setOutboundCreditCount(outboundCreditCount.toString());
         xieChengStatisticsReport.setOutboundDrawingsCount(outboundDrawingsCount.toString());
-        xieChengStatisticsReport.setOutboundMillionCreditCount(outboundMillionCreditCount.toString());
+//        xieChengStatisticsReport.setOutboundMillionCreditCount(outboundMillionCreditCount.toString());
         xieChengStatisticsReport.setCreateTime(new Date());
         xieChengStatisticsReport.setUpdateTime(new Date());
         xieChengStatisticsReport.setIsDelete(0);
