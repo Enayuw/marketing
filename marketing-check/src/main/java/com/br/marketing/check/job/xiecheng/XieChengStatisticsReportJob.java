@@ -11,7 +11,6 @@ import com.br.marketing.service.SyncConfigService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -46,7 +45,9 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
     SyncConfigService syncConfigService;
 
     /**
-     * job参数：3710058,643 (一次传一组)
+     * job参数：
+     *  apiCode,cid,resultData,skipSendEmail
+     *  3710058,643,2023-04-02,true (一次传一组)
      * @Author yu.xia@brgroup.com
      * @Date 2024/4/1 20:42
      * @param context
@@ -58,10 +59,14 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
         log.warn("XieChengStatisticsReportJob-start-{}-jobParam:[{}]",uuid,jobParameter);
         String apiCode = "3710058";
         Long cid = 643L;
+        String resultData="";
+        String skipSendEmail = "false";
         if(StringUtils.isNotBlank(jobParameter)){
             String[] split = jobParameter.split(",");
             apiCode = split[0];
             cid = Long.valueOf(split[1]);
+            resultData = split[2];
+            skipSendEmail = split[3];
         }
         String emailRecipient = "yu.xia@brgroup.com,bin.huang@brgroup.com";
 //        String emailRecipient = "mmg@brgroup.com,yu.xia@brgroup.com,bin.huang@brgroup.com";
@@ -74,6 +79,9 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
         String subject = "携程百万量级转化_";
         LocalDate today = LocalDate.now();
         String requestData = today.minusDays(1L).format(ymd);
+        if(StringUtils.isNotBlank(resultData)){
+            requestData = resultData;
+        }
         LocalDate firstDayOfMonth = today.with(TemporalAdjusters.firstDayOfMonth());
         String firstDayString;
         if (today.equals(firstDayOfMonth)) {
@@ -100,23 +108,26 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
         try{
             //1.执行sql查询前一天的数据，并写入数据库表 b_xiecheng_statistics_report 中
             xieChengStatisticsReporService.getUploadCountAndInsert(apiCode, cid, requestData);
-            //2.读取数据库中的数据
-            List<XieChengStatisticsReport> xieChengStatisticsReports =
-                    xieChengStatisticsReporService.queryStatisticsReporDate(apiCode, firstDayString, requestData);
-            //3.数据写入Excel
-            xieChengStatisticsReporService.createExcel(xieChengStatisticsReports, excelFilePath, fileName);
-            //4.邮件发送
-            iMailService.sendAttachmentsMail(emailRecipient,subject+requestData,
-                    "dear all: 携程百万量级转化统计报表，详见附件",excelFilePath+fileName);
+            if("false".equalsIgnoreCase(skipSendEmail)){
+                //2.读取数据库中的数据
+                List<XieChengStatisticsReport> xieChengStatisticsReports =
+                        xieChengStatisticsReporService.queryStatisticsReporDate(apiCode, firstDayString, requestData);
+                //3.数据写入Excel
+                xieChengStatisticsReporService.createExcel(xieChengStatisticsReports, excelFilePath, fileName);
+                //4.邮件发送
+                iMailService.sendAttachmentsMail(emailRecipient,subject+requestData,
+                        "dear all: 携程百万量级转化统计报表，详见附件",excelFilePath+fileName);
+            }
         }catch (Exception e){
             log.error("携程百万量级转化统计报表处理异常:requestData[{}]firstDayString[{}]--", requestData, firstDayString, e);
         }finally {
             File file = new File(excelFilePath+fileName);
-            if(file.exists()){
-                //5.删除Excel
-                file.delete();
+            //5.删除Excel
+            if("false".equalsIgnoreCase(skipSendEmail) && !file.delete()){
+                log.error("携程百万报表删除文件{}不存在",excelFilePath+fileName);
             }
         }
-        log.warn("TableBackupJob-end-{}",uuid);
+        log.warn("TableBackupJob-end-{}apiCode[{}]cid[{}]requestData[{}]skipSendEmail[{}]",
+                uuid,apiCode,cid,requestData,skipSendEmail);
     }
 }
