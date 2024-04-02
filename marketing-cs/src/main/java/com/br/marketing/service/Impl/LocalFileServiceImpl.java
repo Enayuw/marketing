@@ -83,7 +83,7 @@ public class LocalFileServiceImpl implements LocalFileService {
         for (Map<String, Object> map : quantityList) {
             Long localId = Long.parseLong(String.valueOf(map.get("localId")));
             Integer quantity = Integer.parseInt(String.valueOf(map.get("quantity")));
-            if (quantity == null || quantity < 1) {
+            if (quantity == null || quantity < 0) {
                 continue;
             }
             LocalFile localFile = new LocalFile();

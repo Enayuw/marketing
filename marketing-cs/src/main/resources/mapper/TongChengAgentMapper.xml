@@ -378,6 +378,18 @@
     order by id asc limit #{num};
   </select>
 
+  <select id="queryLocalFileIdList" parameterType="com.br.marketing.dto.tongcheng.TongChengPushQueryQuantityDTO" resultType="Long">
+    select
+      local_id as localId
+    from
+      b_tongcheng_agent_mtk_data
+    where
+      api_code = #{apiCode}
+      and update_time >= #{startTime}
+    group by
+      local_id
+  </select>
+
   <select id="queryQuantityGroupByLocalId" parameterType="com.br.marketing.dto.tongcheng.TongChengPushQueryQuantityDTO" resultType="Map">
     select
       count(*) as quantity,

@@ -347,9 +347,16 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
             int pushDate = Integer.parseInt(curTimeStr);
             params.setStartTime(pushDate);
 
-            List<Map<String, Object>> quantityList = dewuCollidingDataMapper.queryQuantityGroupByLocalId(params);
-            if(quantityList == null || quantityList.size() < 1){
-                return;
+            List<Map<String, Object>> queryQuantityList = dewuCollidingDataMapper.queryQuantityGroupByLocalId(params);
+            List<Map<String, Object>> quantityList = new ArrayList<>();
+            if(queryQuantityList == null || queryQuantityList.size() < 1
+                    || "0".equals(String.valueOf(queryQuantityList.get(0).get("quantity")))) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("localId", localFileId);
+                map.put("quantity", 0L);
+                quantityList.add(map);
+            }else{
+                quantityList.add(queryQuantityList.get(0));
             }
             localFileService.refreshPushNumber(quantityList, pushStartTime, pushEndTime);
         }catch (Exception e){

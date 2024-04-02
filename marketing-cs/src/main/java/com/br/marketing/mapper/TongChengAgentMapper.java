@@ -34,5 +34,6 @@ public interface TongChengAgentMapper {
     List<TongChengAgent> tongChengGroupOperationDataPage(@Param("minId") Long minId, @Param("apiCode") String apiCode, @Param("num") int num);
 
     List<Map<String, Object>> queryQuantityGroupByLocalId(TongChengPushQueryQuantityDTO params);
+    List<Long> queryLocalFileIdList(TongChengPushQueryQuantityDTO params);
 
 }

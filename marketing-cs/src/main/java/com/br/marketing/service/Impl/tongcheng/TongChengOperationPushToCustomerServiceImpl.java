@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
  * @author guangxiu.li
@@ -212,9 +213,30 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
             String curTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd 00:00:00"));
             params.setStartTime(curTimeStr);
 
-            List<Map<String, Object>> quantityList = tongChengAgentMapper.queryQuantityGroupByLocalId(params);
-            if(quantityList == null || quantityList.size() < 1){
+            List<Long> localIdList = tongChengAgentMapper.queryLocalFileIdList(params);
+            if(localIdList == null || localIdList.size() < 1){
                 return;
+            }
+
+            List<Map<String, Object>> queryQuantityList = tongChengAgentMapper.queryQuantityGroupByLocalId(params);
+            if(queryQuantityList == null || queryQuantityList.size() < 1){
+                queryQuantityList = new ArrayList<Map<String, Object>>();
+            }
+            Map<String, Long> localIdToQuantityMap = queryQuantityList.stream().collect(Collectors.toMap(
+                    (data1) -> String.valueOf(data1.get("localId")),
+                    (data2) -> Long.parseLong(String.valueOf(data2.get("quantity")))
+            ));
+
+            List<Map<String, Object>> quantityList = new ArrayList<>();
+            for(Long localId :localIdList){
+                Map<String, Object> map = new HashMap<>();
+                map.put("localId", localId);
+                if (localIdToQuantityMap.get(String.valueOf(localId)) != null) {
+                    map.put("quantity", localIdToQuantityMap.get(String.valueOf(localId)));
+                } else {
+                    map.put("quantity", 0L);
+                }
+                quantityList.add(map);
             }
             localFileService.refreshPushNumber(quantityList, pushStartTime, pushEndTime);
         }catch (Exception e){
