@@ -80,6 +80,10 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
         // 路径
 //        String excelFilePath = "D:\\test\\";
         String excelFilePath = syncConfigService.getPath().concat("excel/").concat("xc/").concat(apiCode).concat("/");
+        File excelDic = new File(excelFilePath);
+        if (!excelDic.exists()) {
+            excelDic.mkdirs();
+        }
         // excel文件名
         String fileName;
         // 邮件主题
