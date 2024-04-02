@@ -35,9 +35,6 @@
     where
         local_id = #{localId}
         and push_status = #{pushStatus}
-        and push_date = #{startTime}
         and is_deleted = 0
-    group by
-        local_id
   </select>
 </mapper>
