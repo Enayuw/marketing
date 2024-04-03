@@ -251,9 +251,9 @@ public class TaskScoreServiceImpl {
                 String contentHeld = apiCode + "_" + LocalDate.now().toString() + "跑分结果统计异常\n";
                 String content = "跑分总量级:" + task.getTaskNumber() + "\n";
                 Map<String, Object> resultMap = redisChgService.hgetall(errorResultKey);
-                resultMap.forEach((message, num) -> {
-                    content.concat(message).concat(":").concat(num.toString()).concat("\n");
-                });
+                for (Map.Entry<String, Object> entry : resultMap.entrySet()) {
+                    content = content.concat(entry.getKey()).concat(":").concat(entry.getValue().toString()).concat("\n");
+                }
                 dingDingRobotHookService.sendDingDingTextMessage(contentHeld + content, map);
             }
             //region 任务状态表和任务记录表的更新
@@ -292,7 +292,8 @@ public class TaskScoreServiceImpl {
                 sendContent(content, "跑分暂停", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
             }
             //endregion
-
+            //删除告警统计的redis-key
+            redisChgService.del(errorResultKey);
             thread.interrupt();
             removeZk(task);
         } catch (Exception e) {

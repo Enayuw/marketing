@@ -203,13 +203,14 @@ public class HxUtil {
         for (int i = 0; i < 3; i++) {
             if (isRetry(result, jsonMeal, noflagproductlist, flagProductList)) {
                 result = restTemplate.postForObject(url, requestEntity, String.class);
+                log.warn("调用画像重试结果result={}", result);
             } else {
                 return;
             }
         }
     }
 
-    private static Boolean isRetry(String hxResult, JSONObject jsonMeal, List<String> noflagproductlist, List<String> flagProductList) {
+    public static Boolean isRetry(String hxResult, JSONObject jsonMeal, List<String> noflagproductlist, List<String> flagProductList) {
         //返回空，需要重试
         if (StringUtils.isEmpty(hxResult)) {
             log.error("hxResult isEmpty");
