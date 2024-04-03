@@ -91,13 +91,13 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
         LocalDate today = LocalDate.now();
         if(StringUtils.isNotBlank(resultData)){
             try {
-                // 使用parse方法将字符串转换为LocalDate
                 today = LocalDate.parse(resultData, formatter);
             } catch (Exception e) {
                 log.error("携程百万量级job参数处理出错-jobParameter[{}]--",jobParameter,e);
             }
         }
         String requestData = today.minusDays(1L).format(YMD);
+        String endData = today.format(YMD);
         LocalDate firstDayOfMonth = today.with(TemporalAdjusters.firstDayOfMonth());
         String firstDayString;
         if (today.equals(firstDayOfMonth)) {
@@ -124,7 +124,7 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
         String excelPath = excelFilePath + fileName;
         try{
             //1.执行sql查询前一天的数据，并写入数据库表 b_xiecheng_statistics_report 中
-            xieChengStatisticsReporService.getUploadCountAndInsert(apiCode, cid, requestData);
+            xieChengStatisticsReporService.getUploadCountAndInsert(apiCode, cid, requestData, endData);
             if("false".equalsIgnoreCase(skipSendEmail)){
                 //2.读取数据库中的数据
                 List<XieChengStatisticsReport> xieChengStatisticsReports =

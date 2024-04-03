@@ -16,9 +16,10 @@ public interface XieChengStatisticsReporService  {
      * @param apiCode apiCode
      * @param cid cid
      * @param requestData T-1
+     * @param endData T
      * @return String
      */
-    String getUploadCountAndInsert(String apiCode, Long cid, String requestData);
+    String getUploadCountAndInsert(String apiCode, Long cid, String requestData, String endData);
 
     /**
      *

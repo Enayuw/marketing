@@ -25,9 +25,22 @@ public interface XieChengDataMapper extends XieChengDataMapperBase{
      * @param cid cid
      * @param apiCode apiCode
      * @param requestData T-1
+     * @param endData T
+     * @param convType convType
+     * @return Integer
+     */
+    Integer getXieChengDataCounttikv_(@Param("cid")Long cid, @Param("apiCode")String apiCode,
+                                      @Param("requestData") String requestData, @Param("endData") String endData,
+                                      @Param("convType") String convType);
+    /**
+     * 携程百万量级转化统计报表数据获取 上报相关量级
+     * @param cid cid
+     * @param apiCode apiCode
+     * @param requestData T-1
      * @param convType convType
      * @return Integer
      */
     Integer getUploadCounttikv_(@Param("cid")Long cid, @Param("apiCode")String apiCode,
-                                @Param("requestData") String requestData, @Param("convType") String convType);
+                                @Param("requestData") String requestData, @Param("endData") String endData,
+                                @Param("convType") String convType);
 }

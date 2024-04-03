@@ -30,11 +30,24 @@
         group by case_num having count(*)>0
     </select>
 
+    <select id="getCallRecordCounttikv_" resultType="java.lang.Integer">
+        select count(distinct case_num)
+        from b_call_record
+        where <![CDATA[ create_time >=#{requestData} and create_time < #{endData} ]]>
+        <if test="apiCode != null and apiCode!=''">
+            and api_code = #{apiCode}
+        </if>
+        <if test="lineName != null and lineName!=''">
+            and line_name != #{lineName}
+        </if>
+    </select>
+
     <select id="getOutboundCounttikv_" resultType="java.lang.Integer">
         select count(distinct a.case_num)
         from b_call_record as a left join b_marketing_transfer_sync_#{cid} as b
         on a.case_num = b.cust_num
         where b.request_data = #{requestData}
+          and <![CDATA[ a.create_time >=#{requestData} and a.create_time < #{endData} ]]>
         <if test="apiCode != null and apiCode!=''">
             and b.api_code = #{apiCode}
             and a.api_code = #{apiCode}
