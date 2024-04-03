@@ -4,6 +4,8 @@ import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
@@ -120,6 +122,7 @@ public class XieChengServiceNew {
      * @param sha256CodeList
      * @return
      */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d,0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result pushXieChengSmsCollidingDataNew(List<String> sha256CodeList) {
         /**
          * data 组装

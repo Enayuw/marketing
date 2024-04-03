@@ -5,6 +5,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.HxResultErrorCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -136,7 +137,7 @@ public class VaildHxResultUtil {
         if(!"00".equals(resultJson.getString("code"))
                 &&!"100002".equals(resultJson.getString("code"))){
             String code = resultJson.getString("code");
-            String codeMessage="画像code异常";
+            String codeMessage="画像code异常"+":"+ HxResultErrorCodeEnum.getByCode(code);
             HxResultRuntimeException hxResultRuntimeException = new HxResultRuntimeException(
                     String.format("【紧急报警】【%s】智能营销平台-%s \001 您好:  【%s】%s，请及时跟进",
                             apiCode, codeMessage, apiCode, codeMessage + "-" + code));
@@ -197,7 +198,7 @@ public class VaildHxResultUtil {
                 }
                 HxResultRuntimeException hxResultRuntimeException = new HxResultRuntimeException(
                         String.format("【紧急报警】【%s】智能营销平台-数据产品flag异常\001 您好:【%s】数据产品异常-%s--%s，请及时跟进"
-                                ,apiCode,apiCode,flag,string));
+                                ,apiCode,apiCode,flag,string+":"+HxResultErrorCodeEnum.getByCode(string)));
                 log.warn("hxResult product flag error",hxResultRuntimeException);
                 String title = String.format("【紧急报警】【%s】智能营销平台-数据产品flag异常", apiCode);
                 log.warn(AlertLog.buildWarnMessage(("99".equals(string)||"98".equals(string))
