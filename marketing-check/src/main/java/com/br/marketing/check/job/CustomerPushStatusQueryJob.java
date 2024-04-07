@@ -4,6 +4,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.entity.CustomerInfoPushMainExample;
+import com.br.marketing.enums.PushRuleStatusEnum;
 import com.br.marketing.mapper.CustomerInfoPushMainMapper;
 import com.br.marketing.service.PushRuleService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -35,13 +36,13 @@ public class CustomerPushStatusQueryJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         log.info(TITLE + "start");
         long start = System.currentTimeMillis();
-        processToBeConfirmList();
+        processToBeConfirmedList();
         long end = System.currentTimeMillis();
         log.info(TITLE + "end, 耗时{}ms", end-start);
     }
 
-    private void processToBeConfirmList() {
-        Integer status = 2;
+    private void processToBeConfirmedList() {
+        Integer status = PushRuleStatusEnum.TO_BE_CONFIRMED.getValue();
         String keyPrefix = RedisKeyConstant.CUSTOMER_PUSH_STATUS_QUERY_LOCK;
 
         CustomerInfoPushMainExample example = new CustomerInfoPushMainExample();
