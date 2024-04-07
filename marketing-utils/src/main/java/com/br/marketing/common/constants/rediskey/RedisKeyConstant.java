@@ -150,6 +150,17 @@ public class RedisKeyConstant {
     public static final String USERTYPE_DICT = prefix.concat("usertype:dict:");
 
     /**
+     * 2023-12-22 15:21
+     * 异步数据统计
+     */
+    public static final String ASYNC_COUNT = prefix.concat("async:count:");
+    /**
+     * 2023-12-22 15:21
+     * 异步数据统计
+     */
+    public static final String CUSTOMER_INFO = prefix.concat("customer:info:");
+
+    /**
      * 众安撞库 cell 今日缓存
      */
     public static final String ZHONGAN_ZK_CELL_TODAY = prefix.concat("zhongan:zk:cell:");
@@ -175,4 +186,14 @@ public class RedisKeyConstant {
      * 客户信息推送状态查询
      */
     public static final String CUSTOMER_PUSH_STATUS_QUERY_LOCK = prefix.concat("customerPushStatusQuery:pushMainLock");
+
+    /**
+     * 携程撞库条件开关
+     */
+    public static final String XIECHENG_CONDITIONSWITCH = prefix.concat("xiecheng:conditionSwitch");
+
+    /**
+     * 携程撞库releaseTime
+     */
+    public static final String XIECHENG_RELEASE_TIME = prefix.concat("xiecheng:releaseTime:");
 }

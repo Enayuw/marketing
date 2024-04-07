@@ -1,5 +1,6 @@
 package com.br.marketing.service;
 
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 
 import java.util.Map;
@@ -67,11 +68,23 @@ public interface MarketingSyncReportService {
 
     /**
      * 修改有效期记录
+     *
      * @param id
      * @param validStartDate
      * @param validEndDate
      * @return
      */
     boolean updateById(Long id, String validStartDate, String validEndDate);
+
+
+    /**
+     * 准实时数据计数碎片统计（上传）
+     *
+     * @param dataCountFragmentsMgs 碎片消息
+     * @return 消费结果
+     * @author Guo Zeqiang
+     * @dateTime 2024-03-06 15:47
+     */
+    Result<Boolean> nearRealtimeDataCountFragmentsStatis(String dataCountFragmentsMgs);
 
 }

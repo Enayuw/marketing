@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.CustomerRoutingKeyConfigMapper">
+    <select id="getCustomerRoutingKeyConfig" parameterType="string" resultType="com.br.marketing.entity.CustomerRoutingKeyConfig">
+        select config.routing_key, config.queue_name, config.queue_type, mapping.priority
+        from b_marketing_customer_routingKey_config config
+                 join b_marketing_customer_routingKey_mapping mapping on config.id = mapping.config_id
+        where mapping.api_code = #{apiCode} and config.biz_type = #{bizType}
+          and mapping.is_delete = 0 limit 1
+    </select>
+</mapper>

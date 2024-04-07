@@ -979,4 +979,21 @@
             order by id asc limit 2000;
         </where>
     </select>
+
+    <select id="selectTransferSyncReportByRequestIdCount" resultType="com.br.marketing.entity.TransferSyncReport">
+        select count(*) as dataCount, user_type as userType, id
+        , max(create_time) as appletEndTime
+        , min(create_time) as appletBeginTime
+        from b_marketing_transfer_sync_${tCid}
+        where api_code = '${apiCode}'
+        AND request_data = '${requestDate}'
+        AND request_id = '${requestId}'
+        <if test="userTypeSet != null">
+            and user_type in
+            <foreach collection="userTypeSet" open="(" close=")" separator="," item="userType">
+                '${userType}'
+            </foreach>
+        </if>
+        group by user_type
+    </select>
 </mapper>

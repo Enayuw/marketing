@@ -6,6 +6,7 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingSyncReport;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.TransferSyncReportService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +36,9 @@ public class TransferSyncReportController {
 
     @Resource
     private TransferSyncReportService transferSyncReportService;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @GetMapping("getReportList")
     @ApiOperation(value = "客户转化数据统计报表列表", notes = "客户转化数据统计报表列表", httpMethod = "GET")
@@ -87,8 +91,11 @@ public class TransferSyncReportController {
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
     public ApiResult<Boolean> triggerTaskUploadSyncReportJob(@RequestParam(required = false) String dateStr) {
         try {
-            transferSyncReportService.reportProcess(new HashSet<>(Collections.singletonList(StringUtils.isBlank(dateStr)
-                    ? LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) : dateStr)));
+            boolean statisSwitch = !marketingCommonConfig.getUploadAndTransferDataRealtimeStatisSwitch();
+            if (statisSwitch) {
+                transferSyncReportService.reportProcess(new HashSet<>(Collections.singletonList(StringUtils.isBlank(dateStr)
+                        ? LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) : dateStr)));
+            }
             return new ApiResult<Boolean>().success(Boolean.TRUE);
         } catch (Exception e) {
             log.warn("手动执行转化数据统计报表任务异常");
