@@ -99,6 +99,11 @@ public class RedisKeyConstant {
     public static final String dributeDataSloeLock = prefix.concat("dributeData");
 
     /**
+     * 推送众安分发数据日志锁
+     */
+    public static final String PUSH_ZHONGAN_DISTRIBUTE_DATA_SLOE_LOCK = prefix.concat("zhongan:dributeData:cell");
+
+    /**
      * 榕树推送人工Ibu手机号加锁  key
      */
     public static final String pushRongShuDaasIbuKey = prefix.concat("rongshu:pushdaasibu:cell");
@@ -136,6 +141,28 @@ public class RedisKeyConstant {
      */
     public static final String CUSTOMER_FIELD_KEY = prefix.concat("customer:field:");
 
+    /**
+     * 2023-12-22 15:21
+     * 场景字典
+     */
+    public static final String USERTYPE_DICT = prefix.concat("usertype:dict:");
+
+    /**
+     * 2023-12-22 15:21
+     * 异步数据统计
+     */
+    public static final String ASYNC_COUNT = prefix.concat("async:count:");
+    /**
+     * 2023-12-22 15:21
+     * 异步数据统计
+     */
+    public static final String CUSTOMER_INFO = prefix.concat("customer:info:");
+
+    /**
+     * 众安撞库 cell 今日缓存
+     */
+    public static final String ZHONGAN_ZK_CELL_TODAY = prefix.concat("zhongan:zk:cell:");
+
 
     /**
      * 转化数据提取任务锁
@@ -147,4 +174,19 @@ public class RedisKeyConstant {
     public static final String SCORE_TO_CUSTOMER_CONFIG_KEY = prefix.concat("scorePushConfig");
 
     public static final String SCORE_TO_CUSTOMER_FILE_KEY = prefix.concat("scoreCallFileId");
+
+    /**
+     * 得物撞库所
+     */
+    public static final String PUSH_DEWU_COLLIDING_DATA_LOCK = prefix.concat("dewu:pushDewuCollidingDataLock");
+
+    /**
+     * 携程撞库条件开关
+     */
+    public static final String XIECHENG_CONDITIONSWITCH = prefix.concat("xiecheng:conditionSwitch");
+
+    /**
+     * 携程撞库releaseTime
+     */
+    public static final String XIECHENG_RELEASE_TIME = prefix.concat("xiecheng:releaseTime:");
 }

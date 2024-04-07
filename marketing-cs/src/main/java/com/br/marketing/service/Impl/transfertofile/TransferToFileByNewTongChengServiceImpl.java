@@ -107,7 +107,7 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
             String dateyyyymmddStr = isParam ? myParam.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
-            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(dateyyyymmddStr)
+            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(date)
                     .andFileTypeEqualTo(1);
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
             if (CollectionUtils.isEmpty(transferFileTasks)) {
@@ -177,7 +177,7 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
         LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
         LocalDate startDate = localDate.minusDays(31);
         LocalDate endDate = localDate;
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
         String appletDate = localDate.minusDays(1).toString();
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50, 1);
         List<MarketingDataValidConfig> validityDataByApiCode = marketingDataValidConfigMapper.getValidityDataByApiCode(apiCode, appletDate);

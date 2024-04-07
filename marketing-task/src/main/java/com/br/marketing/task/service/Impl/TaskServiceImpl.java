@@ -110,7 +110,7 @@ public class TaskServiceImpl implements ITaskService {
             MarketingCustomerExample customerExample = new MarketingCustomerExample();
             customerExample.createCriteria().andApiCodeEqualTo(datum.getApiCode()).andStatusEqualTo(new Byte("1"));
             List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
-            if(marketingCustomers.size()<0){
+            if(marketingCustomers.size()<=0){
                 continue;
             }
             MarketingCustomer customer = marketingCustomers.get(0);

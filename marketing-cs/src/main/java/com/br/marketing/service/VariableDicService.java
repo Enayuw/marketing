@@ -1,6 +1,7 @@
 package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.vo.CustomerSelectVO;
@@ -60,4 +61,22 @@ public interface VariableDicService {
      * @return
      */
     //ApiResult<Boolean> delete(Integer id);
+
+    /**
+     * 2023-07-07 15:18
+     * 批量新增场景，已存在的场景不再添加
+     *
+     * @param msgStr 场景集合json字符串
+     * @return Boolean
+     */
+    Result<Boolean> batchAddUserTypeVariableDicTry(String msgStr);
+
+    /**
+     * 2023-07-07 15:18
+     * 延迟发送的消息主键
+     *
+     * @param redisKey 消息
+     * @return Boolean
+     */
+    Result<Boolean> delaySendUserTypeMessage(String redisKey);
 }

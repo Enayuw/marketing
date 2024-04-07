@@ -13,5 +13,13 @@
 		FROM
 		b_marketing_customer where api_code=#{apiCode}
 	</select>
+	<select id="getAllCustomerByResentlySyncInfotikv_" resultType="com.br.marketing.entity.Customer">
+		SELECT t1.*
+		FROM b_marketing_customer t1
+				 inner join (select api_code, row_number() over (partition by api_code order by create_time) as num
+							 from b_marketing_sync_info
+							 where create_time >= date_sub(curdate(), interval 1 day)) t2 on t1.api_code = t2.api_code and t2.num = 1
+		order by t1.sort desc;
+	</select>
 
 </mapper>

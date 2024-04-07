@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.bo.SaveReachDeleteRecordReqBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.bo.ZaMarketDataBO;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
@@ -63,6 +64,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.DiDiAllowReqDTO;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -377,12 +379,12 @@ public class MethodRetryHandlerService {
             }
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        if (("00".equals(reqBlackPhoneVO.getCode()) && (!CollectionUtils.isEmpty(reqBlackPhoneVO.getData())))
-                || "9999".equals(reqBlackPhoneVO.getCode())) {
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue())
-                    .setDate("9999".equals(reqBlackPhoneVO.getCode()) ? "9999" : "部分成功");
-        }
-        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(reqBlackPhoneVO.getCode());
+//        if (("00".equals(reqBlackPhoneVO.getCode()) && (!CollectionUtils.isEmpty(reqBlackPhoneVO.getData())))
+//                || "9999".equals(reqBlackPhoneVO.getCode())) {
+//            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue())
+//                    .setDate("9999".equals(reqBlackPhoneVO.getCode()) ? "9999" : "部分成功");
+//        }
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(reqBlackPhoneVO.getCode());
     }
 
     /**
@@ -668,6 +670,16 @@ public class MethodRetryHandlerService {
     public Result callPolicyData(PolicyRetryByRuleDTO dto, Integer retry) {
         List<Long> ids = dto.getIds();
         PushMarketingUserDTO pushMarketingUserDTO = dto.getPushMarketingUserDTO();
+        //重试
+        try {
+            if (ObjectUtils.equals(retry,1)) {
+                JSONObject jsonObject = (JSONObject) dto.getPushMarketingUserDTO().getJsonData();
+                PushMarketingUserTaskInfoDTO taskInfoDTO = JSONObject.toJavaObject(jsonObject, PushMarketingUserTaskInfoDTO.class);
+                pushMarketingUserDTO.setJsonData(taskInfoDTO);
+            }
+        } catch (Exception e) {
+            log.error("决策重试接口类型转化失败", e.getMessage());
+        }
         Long infoId = dto.getInfoId();
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -691,6 +703,16 @@ public class MethodRetryHandlerService {
     public Result callPolicyDataYiXinToJueCe(PolicyRetryByRuleDTO dto, Integer retry) {
         List<Long> ids = dto.getIds();
         PushMarketingUserDTO pushMarketingUserDTO = dto.getPushMarketingUserDTO();
+        //重试
+        try {
+            if (ObjectUtils.equals(retry,1)) {
+                JSONObject jsonObject = (JSONObject) dto.getPushMarketingUserDTO().getJsonData();
+                PushMarketingUserTaskInfoDTO taskInfoDTO = JSONObject.toJavaObject(jsonObject, PushMarketingUserTaskInfoDTO.class);
+                pushMarketingUserDTO.setJsonData(taskInfoDTO);
+            }
+        } catch (Exception e) {
+            log.error("决策重试接口类型转化失败", e.getMessage());
+        }
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             DataCompare dataCompare = new DataCompare(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(), null);
@@ -711,6 +733,17 @@ public class MethodRetryHandlerService {
     @RetryMethod(retryNowNum = 1, isOrNoDbRetry = true)
     public Result<?> callZhongAnData(ZaMarketDataBO bo, Integer retry) {
         Result<Object> result = new Result<>();
+
+        // 众安明细推送Mock挡板，1：开启，0：关闭
+        String zhongAnPushMock = marketingCommonConfig.getZhongAnPushMock();
+        JSONObject jo = JSONObject.parseObject(zhongAnPushMock);
+        if("1".equals(jo.getString("pushSwitch"))){
+            log.warn("【众安锁定名单推送】"+"挡板开启, {}", JSONObject.toJSONString(jo));
+            updatePushStatus(bo, 2, null);
+            result.setCode(ResultCode.SUCCESS.getValue());
+            return result;
+        }
+
         Result<?> zhongAnResult = zhongAnClient.pushDetail(bo.getDataDTO());
         switch (zhongAnResult.getCode()) {
             case 500:
@@ -898,9 +931,12 @@ public class MethodRetryHandlerService {
                 marketingTransferSyncUser.setRequestData(LocalDate.now().toString());
                 marketingTransferSyncUser.setCustNum(custNum);
                 // 判断是否有效
-                MarketingSyncUser newValidityPeriodData = transferDataValidityPeriodService.getMarketingSyncUserDidi(marketingTransferSyncUser, null);
-                if (newValidityPeriodData != null) {
-                    updateDidiCallRecord.setCell(newValidityPeriodData.getCell());
+                Map<String, SyncUserValidityPeriodsBO> validityPeriodsBOMap = transferDataValidityPeriodService
+                        .getValidityPeriodsByCustNum(Collections.singleton(custNum), apiCode, null);
+                SyncUserValidityPeriodsBO bo = validityPeriodsBOMap.get(custNum);
+                if (bo != null) {
+                    List<MarketingSyncUser> syncUsers = bo.getSyncUsers();
+                    updateDidiCallRecord.setCell(syncUsers.get(0).getCell());
                     // 调接口推送
                     DiDiReqVO diDiReqVO = new DiDiReqVO();
                     diDiReqVO.setMediaName(meidaName);

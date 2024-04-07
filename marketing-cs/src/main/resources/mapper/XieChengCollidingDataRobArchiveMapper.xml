@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XieChengCollidingDataRobArchiveMapper" >
+    <insert id="saveBatch" parameterType="list">
+        insert into b_xiecheng_colliding_data_rob_archive (package_id, data_source_type,
+        cell_sha256_code_list,release_time,push_time,is_delete, extend,create_time,update_time,retry_count)values
+        <foreach collection="list" item="data" separator=",">
+            (#{data.packageId,jdbcType=BIGINT},
+            #{data.dataSourceType,jdbcType=VARCHAR},
+            #{data.cellSha256CodeList,jdbcType=VARCHAR},
+            #{data.releaseTime,jdbcType=TIMESTAMP},
+            #{data.pushTime,jdbcType=TIMESTAMP},
+            #{data.isDelete,jdbcType=INTEGER},
+            #{data.extend,jdbcType=LONGVARCHAR},
+            #{data.createTime,jdbcType=TIMESTAMP},
+            #{data.updateTime,jdbcType=TIMESTAMP},
+            #{data.retryCount,jdbcType=TIMESTAMP}
+            )
+        </foreach>
+    </insert>
+</mapper>

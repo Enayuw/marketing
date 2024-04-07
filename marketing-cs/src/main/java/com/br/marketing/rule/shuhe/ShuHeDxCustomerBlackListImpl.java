@@ -6,6 +6,7 @@ import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.robotaiapi.input.BlackDetailDTO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.mapper.ShuheBlackPhoneRecordMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -33,6 +35,9 @@ public class ShuHeDxCustomerBlackListImpl implements AssembleData<BlackDetailDTO
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private ShuheBlackPhoneRecordMapper shuheBlackPhoneRecordMapper;
 
 
     @Override
@@ -100,6 +105,13 @@ public class ShuHeDxCustomerBlackListImpl implements AssembleData<BlackDetailDTO
                     bool1 = callEndTim.isAfter(todayDate) || callEndTim.isEqual(todayDate);
                 }
                 bool3 = "Y".equals(isBlack);
+                if (marketingCommonConfig.getShuHeNonBlackListApiCodeSet().contains(transfer.getApiCode())) {
+                    String cell = jsonObject.getString("cell");
+                    int i = shuheBlackPhoneRecordMapper.countTmpNonBlackListByCell(cell);
+                    if (i > 0) {
+                        return false;
+                    }
+                }
             }
         }
         return bool1 || bool2 || bool3;
