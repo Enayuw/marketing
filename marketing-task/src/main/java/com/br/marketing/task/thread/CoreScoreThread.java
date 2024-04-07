@@ -160,7 +160,7 @@ public class CoreScoreThread implements Callable<String> {
                         jsonData.put("extData", extData);
                     }
                     param.put("jsonData", jsonData.toString());
-                    String resultStr = HxUtil.getReport(customer, jsonData, meal, firstTime, url,noflagproductlist, flagProductList);
+                    String resultStr = HxUtil.getReport(customer, jsonData, meal, url,noflagproductlist, flagProductList);
                     dealResult(resultStr, fw, apiCode, blu, isRetry);
                 }
             }

@@ -104,7 +104,7 @@ public class HxUtil {
         return result;
     }
 
-    public static String getReport(MarketingCustomer customer, JSONObject jsonData, JSONObject jsonMeal, boolean firstTime, String url,
+    public static String getReport(MarketingCustomer customer, JSONObject jsonData, JSONObject jsonMeal, String url,
                                    List<String> noflagproductlist, List<String> flagProductList) {
         log.info("jsonData:{},jsonMeal:{},url:{}", jsonData, jsonMeal, url);
         HttpHeaders requestHeaders = new HttpHeaders();
