@@ -190,10 +190,13 @@ public class RedisChgService {
      * @param num  增加数值
      * @return
      */
-    public Long hincrby(String hkey, String key ,long num) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        Long result = marketingRedisClient.hincrby(hkey, key,num);
-        return result;
+    public Long hincrby(String hkey, String key, long num) {
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.hincrby(hkey, key, num);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
     /**
      * 2024-03-12 13:48
