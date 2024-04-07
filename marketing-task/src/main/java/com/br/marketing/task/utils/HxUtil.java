@@ -178,7 +178,7 @@ public class HxUtil {
         try {
             result = restTemplate.postForObject(url, requestEntity, String.class);
             //调用画像结果重试
-            handlerResult(result,url,requestEntity,noflagproductlist,jsonMeal,flagProductList);
+            result = handlerResult(result,url,requestEntity,noflagproductlist,jsonMeal,flagProductList);
         } catch (Exception e) {
             log.warn(" 画像错误 ---api_code={}---重试", customer.getApiCode(), e);
             try {
@@ -197,7 +197,7 @@ public class HxUtil {
      *
      * @param result 画像的结果
      */
-    private static void handlerResult(String result, String url, HttpEntity<MultiValueMap> requestEntity, List<String> noflagproductlist,
+    private static String handlerResult(String result, String url, HttpEntity<MultiValueMap> requestEntity, List<String> noflagproductlist,
                                       JSONObject jsonMeal, List<String> flagProductList) {
         //重试三次
         for (int i = 0; i < 3; i++) {
@@ -205,9 +205,10 @@ public class HxUtil {
                 result = restTemplate.postForObject(url, requestEntity, String.class);
                 log.warn("调用画像重试结果result={}", result);
             } else {
-                return;
+                return result;
             }
         }
+        return result;
     }
 
     public static Boolean isRetry(String hxResult, JSONObject jsonMeal, List<String> noflagproductlist, List<String> flagProductList) {
