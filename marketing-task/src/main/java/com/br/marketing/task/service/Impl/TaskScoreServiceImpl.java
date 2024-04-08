@@ -248,11 +248,11 @@ public class TaskScoreServiceImpl {
                 if (CollectionUtils.isEmpty(map)) {
                     log.error("跑分结果异常告警统计，钉钉配置未配置，请检查");
                 }
-                String contentHeld = apiCode + "_" + LocalDate.now().toString() + "跑分结果统计异常\n";
+                String contentHeld = apiCode + "_" + LocalDate.now().toString()+"_任务Id="+task.getId()+"_" + "跑分结果异常统计\n";
                 String content = "跑分总量级:" + task.getTaskNumber() + "\n";
                 Map<String, Object> resultMap = redisChgService.hgetall(errorResultKey);
                 for (Map.Entry<String, Object> entry : resultMap.entrySet()) {
-                    content = content.concat(entry.getKey()).concat(":").concat(entry.getValue().toString()).concat("\n");
+                    content = content.concat(entry.getKey()).concat(": ").concat(entry.getValue().toString()).concat("条 \n");
                 }
                 dingDingRobotHookService.sendDingDingTextMessage(contentHeld + content, map);
             }
