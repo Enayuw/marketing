@@ -110,7 +110,8 @@ public class IntelligentCustomerServiceClient {
                 result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
                 return result;
             }
-            if ("00".equals(jsonObject.getString("code"))) {
+            if ("00".equals(jsonObject.getString("code"))
+                    || "900031".equals(jsonObject.getString("code"))) {
                 result.setCode(ResultCode.SUCCESS.getValue());
                 try {
                     //监控
