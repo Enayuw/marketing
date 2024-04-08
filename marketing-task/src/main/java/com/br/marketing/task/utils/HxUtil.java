@@ -1,16 +1,23 @@
 package com.br.marketing.task.utils;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.HxResultErrorCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.Customer;
 import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.exception.HxResultRuntimeException;
 import com.br.marketing.task.Scheduler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -201,27 +208,39 @@ public class HxUtil {
                                       JSONObject jsonMeal, List<String> flagProductList) {
         //重试三次
         for (int i = 0; i < 3; i++) {
-            if (isRetry(result, jsonMeal, noflagproductlist, flagProductList)) {
+            if (isRetry(result, jsonMeal, noflagproductlist, flagProductList,null,null,null,null,null,
+                    null)) {
                 result = restTemplate.postForObject(url, requestEntity, String.class);
                 log.warn("调用画像重试结果result={}", result);
             } else {
                 return result;
             }
         }
+        //最终结果处理
         return result;
     }
 
-    public static Boolean isRetry(String hxResult, JSONObject jsonMeal, List<String> noflagproductlist, List<String> flagProductList) {
+    public static Boolean isRetry(String hxResult, JSONObject jsonMeal, List<String> noflagproductlist, List<String> flagProductList, String apiCode,
+                                  List<MarketingSyncUser> errorList, MarketingTask marketingTask, Boolean isRetry, MarketingSyncUser lu,
+                                  RedisChgService redisChgService) {
+        String errorResultKey = RedisKeyConstant.TASKSCORE_HXRESULTERROR.concat(":").concat(apiCode).concat(":").concat(marketingTask.getId().
+                toString());
+        String errorMessage = "";
         //返回空，需要重试
         if (StringUtils.isEmpty(hxResult)) {
-            log.error("hxResult isEmpty");
+            //最终结果处理
+            errorMessage = "画像返回结果为空";
+            resultHandler(lu, marketingTask, redisChgService, isRetry, errorResultKey, errorMessage, errorList);
             return true;
         }
-        ;
+
         JSONObject resultJson = JSONObject.parseObject(hxResult);
         //非00且非100002 重试
         if (!"00".equals(resultJson.getString("code"))
                 && !"100002".equals(resultJson.getString("code"))) {
+            String code = resultJson.getString("code");
+            errorMessage = "画像返回错误信息code=" + "-" + HxResultErrorCodeEnum.getByCode(code);
+            resultHandler(lu, marketingTask, redisChgService, isRetry, errorResultKey, errorMessage, errorList);
             return true;
         }
         Set<String> strings = jsonMeal.keySet();
@@ -245,6 +264,8 @@ public class HxUtil {
                 }
             }
             if ("100002".equals(resultJson.getString("code")) && StringUtils.isBlank(string)) {
+                errorMessage = "画像返回code码为100002,且所有flag产品标识为空";
+                resultHandler(lu, marketingTask, redisChgService, isRetry, errorResultKey, errorMessage, errorList);
                 return true;
             }
             if (!"0".equals(string) && !"1".equals(string)) {
@@ -256,16 +277,53 @@ public class HxUtil {
                     if ("ScoreData".equals(key)) {
                         continue;
                     } else {
+                        errorMessage = "画像返回flag为空,且产品名称不是ScoreData";
+                        resultHandler(lu, marketingTask, redisChgService, isRetry, errorResultKey, errorMessage, errorList);
                         return true;
                     }
                 }
-
                 if ("99".equals(string)) {
+                        errorMessage = "画像返回flag为99";
+                        resultHandler(lu, marketingTask, redisChgService, isRetry, errorResultKey, errorMessage, errorList);
                     return true;
                 }
             }
         }
         return false;
+    }
+
+    private static void resultHandler(MarketingSyncUser lu, MarketingTask marketingTask, RedisChgService redisChgService, Boolean isRetry,
+                                     String errorResultKey, String errorMessage, List<MarketingSyncUser> errorList) {
+        //非最终结果处理，return
+        if (ObjectUtils.isEmpty(lu)) {
+            return;
+        }
+        log.error(String.format("【紧急报警】【%s】智能营销平台-%s \001 您好:  【%s】%s，请及时跟进",
+                marketingTask.getApiCode(), errorMessage, marketingTask.getApiCode(), errorMessage));
+
+        errorResultHandler(redisChgService, isRetry, errorResultKey, errorMessage);
+        errorList.add(lu);
+
+    }
+
+    /**
+     * 画像结果返回异常统计
+     * @param redisChgService
+     * @param isRetry 是否为重试
+     * @param key 异常统计key
+     * @param errorMessage 异常信息
+     */
+    private static void errorResultHandler(RedisChgService redisChgService, Boolean isRetry, String key, String errorMessage) {
+        //非重试，跳过
+        if (!isRetry) {
+            return;
+        }
+        try {
+            redisChgService.hincrby(key, errorMessage, 1);
+        } catch (Exception e) {
+            log.error("跑分画像异常结果统计redis异常", e.getMessage());
+        }
+
     }
 
     public static String hauXiangFlat(String json) {
