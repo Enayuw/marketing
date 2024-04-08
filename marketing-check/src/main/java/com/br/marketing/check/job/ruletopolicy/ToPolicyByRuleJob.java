@@ -1,4 +1,4 @@
-package com.br.marketing.check.job;
+package com.br.marketing.check.job.ruletopolicy;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;

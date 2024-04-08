@@ -458,7 +458,7 @@
     />
 
     <job:simple id="ToPolicyByRuleJob"
-                class="com.br.marketing.check.job.ToPolicyByRuleJob"
+                class="com.br.marketing.check.job.ruletopolicy.ToPolicyByRuleJob"
                 cron="0 0/5 * * * ? "
                 description="规则中心推送决策任务"
                 registry-center-ref="regCenter"
