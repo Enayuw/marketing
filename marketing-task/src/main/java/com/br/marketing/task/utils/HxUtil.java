@@ -223,14 +223,13 @@ public class HxUtil {
     public static Boolean isRetry(String hxResult, JSONObject jsonMeal, List<String> noflagproductlist, List<String> flagProductList, String apiCode,
                                   List<MarketingSyncUser> errorList, MarketingTask marketingTask, Boolean isRetry, MarketingSyncUser lu,
                                   RedisChgService redisChgService) {
-        String errorResultKey = RedisKeyConstant.TASKSCORE_HXRESULTERROR.concat(":").concat(apiCode).concat(":").concat(marketingTask.getId().
-                toString());
+
         String errorMessage = "";
         //返回空，需要重试
         if (StringUtils.isEmpty(hxResult)) {
             //最终结果处理
             errorMessage = "画像返回结果为空";
-            resultHandler(lu, marketingTask, redisChgService, isRetry, errorResultKey, errorMessage, errorList);
+            resultHandler(lu, marketingTask, redisChgService, isRetry, errorMessage, errorList);
             return true;
         }
 
@@ -240,7 +239,7 @@ public class HxUtil {
                 && !"100002".equals(resultJson.getString("code"))) {
             String code = resultJson.getString("code");
             errorMessage = "画像返回错误信息code=" + "-" + HxResultErrorCodeEnum.getByCode(code);
-            resultHandler(lu, marketingTask, redisChgService, isRetry, errorResultKey, errorMessage, errorList);
+            resultHandler(lu, marketingTask, redisChgService, isRetry, errorMessage, errorList);
             return true;
         }
         Set<String> strings = jsonMeal.keySet();
@@ -265,7 +264,7 @@ public class HxUtil {
             }
             if ("100002".equals(resultJson.getString("code")) && StringUtils.isBlank(string)) {
                 errorMessage = "画像返回code码为100002,且所有flag产品标识为空";
-                resultHandler(lu, marketingTask, redisChgService, isRetry, errorResultKey, errorMessage, errorList);
+                resultHandler(lu, marketingTask, redisChgService, isRetry, errorMessage, errorList);
                 return true;
             }
             if (!"0".equals(string) && !"1".equals(string)) {
@@ -278,13 +277,13 @@ public class HxUtil {
                         continue;
                     } else {
                         errorMessage = "画像返回flag为空,且产品名称不是ScoreData";
-                        resultHandler(lu, marketingTask, redisChgService, isRetry, errorResultKey, errorMessage, errorList);
+                        resultHandler(lu, marketingTask, redisChgService, isRetry, errorMessage, errorList);
                         return true;
                     }
                 }
                 if ("99".equals(string)) {
-                        errorMessage = "画像返回flag为99";
-                        resultHandler(lu, marketingTask, redisChgService, isRetry, errorResultKey, errorMessage, errorList);
+                    errorMessage = "画像返回flag为99";
+                    resultHandler(lu, marketingTask, redisChgService, isRetry, errorMessage, errorList);
                     return true;
                 }
             }
@@ -292,8 +291,8 @@ public class HxUtil {
         return false;
     }
 
-    private static void resultHandler(MarketingSyncUser lu, MarketingTask marketingTask, RedisChgService redisChgService, Boolean isRetry,
-                                     String errorResultKey, String errorMessage, List<MarketingSyncUser> errorList) {
+    public static void resultHandler(MarketingSyncUser lu, MarketingTask marketingTask, RedisChgService redisChgService, Boolean isRetry,
+                                     String errorMessage, List<MarketingSyncUser> errorList) {
         //非最终结果处理，return
         if (ObjectUtils.isEmpty(lu)) {
             return;
@@ -301,7 +300,7 @@ public class HxUtil {
         log.error(String.format("【紧急报警】【%s】智能营销平台-%s \001 您好:  【%s】%s，请及时跟进",
                 marketingTask.getApiCode(), errorMessage, marketingTask.getApiCode(), errorMessage));
 
-        errorResultHandler(redisChgService, isRetry, errorResultKey, errorMessage);
+        errorResultHandler(redisChgService, isRetry, marketingTask, errorMessage);
         errorList.add(lu);
 
     }
@@ -310,16 +309,18 @@ public class HxUtil {
      * 画像结果返回异常统计
      * @param redisChgService
      * @param isRetry 是否为重试
-     * @param key 异常统计key
+     * @param marketingTask 异常统计key 任务
      * @param errorMessage 异常信息
      */
-    private static void errorResultHandler(RedisChgService redisChgService, Boolean isRetry, String key, String errorMessage) {
+    private static void errorResultHandler(RedisChgService redisChgService, Boolean isRetry, MarketingTask marketingTask, String errorMessage) {
         //非重试，跳过
         if (!isRetry) {
             return;
         }
+        String errorResultKey = RedisKeyConstant.TASKSCORE_HXRESULTERROR.concat(":").concat(marketingTask.getApiCode()).concat(":").concat
+                (marketingTask.getId().toString());
         try {
-            redisChgService.hincrby(key, errorMessage, 1);
+            redisChgService.hincrby(errorResultKey, errorMessage, 1);
         } catch (Exception e) {
             log.error("跑分画像异常结果统计redis异常", e.getMessage());
         }
