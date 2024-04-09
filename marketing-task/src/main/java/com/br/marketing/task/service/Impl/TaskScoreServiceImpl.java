@@ -248,7 +248,7 @@ public class TaskScoreServiceImpl {
                 if (CollectionUtils.isEmpty(map)) {
                     log.error("跑分结果异常告警统计，钉钉配置未配置，请检查");
                 }
-                String contentHeld = apiCode + "_" + LocalDate.now().toString()+"_任务Id="+task.getId()+"_" + "跑分结果异常统计\n";
+                String contentHeld = apiCode + "_" + LocalDate.now().toString()+"_任务编号="+task.getBatchNumber()+"_" + "跑分结果异常统计\n";
                 String content = "跑分总量级:" + task.getTaskNumber() + "\n";
                 Map<String, Object> resultMap = redisChgService.hgetall(errorResultKey);
                 for (Map.Entry<String, Object> entry : resultMap.entrySet()) {
@@ -318,6 +318,7 @@ public class TaskScoreServiceImpl {
         } else {
             noflagproductlist.add("mappingcust");
             noflagproductlist.add("mappingcust1");
+            noflagproductlist.add("mappingcust2");
             noflagproductlist.add("mappingcust3");
         }
         List<String> flagproductlist = new ArrayList<>();
@@ -534,6 +535,7 @@ public class TaskScoreServiceImpl {
             } else {
                 noflagproductlist.add("mappingcust");
                 noflagproductlist.add("mappingcust1");
+                noflagproductlist.add("mappingcust2");
                 noflagproductlist.add("mappingcust3");
             }
             List<String> flagproductlist = new ArrayList<>();

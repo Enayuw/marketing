@@ -1,8 +1,10 @@
 package com.br.marketing.task.utils;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.HxResultErrorCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
@@ -211,7 +213,7 @@ public class HxUtil {
             if (isRetry(result, jsonMeal, noflagproductlist, flagProductList,null,null,null,null,null,
                     null)) {
                 result = restTemplate.postForObject(url, requestEntity, String.class);
-                log.warn("调用画像重试结果result={}", result);
+                log.warn("调用画像重试结果，第{}次,result={}", i, result);
             } else {
                 return result;
             }
@@ -297,9 +299,12 @@ public class HxUtil {
         if (ObjectUtils.isEmpty(lu)) {
             return;
         }
-        log.error(String.format("【紧急报警】【%s】智能营销平台-%s \001 您好:  【%s】%s，请及时跟进",
-                marketingTask.getApiCode(), errorMessage, marketingTask.getApiCode(), errorMessage));
+        String message = String.format("【紧急报警】【%s】智能营销平台-%s \001 您好:  【%s】%s，请及时跟进",
+                marketingTask.getApiCode(), errorMessage, marketingTask.getApiCode(), errorMessage);
 
+        String title = String.format("【紧急报警】【%s】智能营销平台-跑分异常", marketingTask.getApiCode());
+        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_HUAX.getCode(), message, title));
+        //结果统计
         errorResultHandler(redisChgService, isRetry, marketingTask, errorMessage);
         errorList.add(lu);
 
