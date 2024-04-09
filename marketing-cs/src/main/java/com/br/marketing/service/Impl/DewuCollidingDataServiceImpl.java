@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
@@ -12,24 +11,24 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
+import com.br.marketing.dto.dewu.DewuPushQueryQuantityDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.DewuCollidingDataLogMapper;
 import com.br.marketing.mapper.DewuCollidingDataMapper;
 import com.br.marketing.mapper.DewuCollidingDataUploadSyncMapper;
 import com.br.marketing.service.DewuCollidingDataService;
+import com.br.marketing.service.LocalFileService;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.vo.HaierCollidingDataToSyncVO;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
@@ -58,12 +57,17 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
     @Resource
     private PushInfoService pushInfoService;
 
+    @Resource
+    LocalFileService localFileService;
+
     @Override
     public void collidingDataProcess(Long localFileId) {
         // 创建撞库线程池
         ThreadPoolExecutor deWuCollidingThread =
                 BrExecutors.getThreadPool(marketingCommonConfig.getDeWuCollidingThread(), marketingCommonConfig.getDeWuCollidingThread());
 
+        boolean hasCollectedDate = false;
+        Date pushStartTime = new Date();
         while (marketingCommonConfig.getDeWuCollidingSwitch()) {
             deWuCollidingThread.setCorePoolSize(marketingCommonConfig.getDeWuCollidingThread());
             deWuCollidingThread.setMaximumPoolSize(marketingCommonConfig.getDeWuCollidingThread());
@@ -81,6 +85,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
             if (dewuCollidingDataList.size() == 0) {
                 break;
             }
+            hasCollectedDate = true;
             // 主要是为了判断异步执行是否完成（返回结果目前并没有实际意义）
             List<Future<String>> futureList = new ArrayList<>();
             List<List<DewuCollidingData>> dewuCollidingDataListPartition = Lists.partition(dewuCollidingDataList, 200);
@@ -103,6 +108,7 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
                 }
             }
         }
+        Date pushEndTime = new Date();
         deWuCollidingThread.shutdown();
         try {
             while (!deWuCollidingThread.awaitTermination(10L, TimeUnit.SECONDS)) {
@@ -112,6 +118,11 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
             deWuCollidingThread.shutdownNow();
             log.error("得物撞库线程池关闭异常！", ex);
             Thread.currentThread().interrupt();
+        }
+
+        // refreshLocalFile
+        if(hasCollectedDate) {
+            refreshLocalFile(localFileId, pushStartTime, pushEndTime);
         }
     }
 
@@ -145,7 +156,6 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
             log.error("得物推送上传api接口线程池关闭！异常", ex);
             Thread.currentThread().interrupt();
         }
-
     }
 
     private void pushCollidingDataUploadSync(List<DewuCollidingDataUploadSync> dewuCollidingDataUploadSyncList) {
@@ -322,5 +332,35 @@ public class DewuCollidingDataServiceImpl implements DewuCollidingDataService {
             log.error("得物撞库程序前置处理异常,{}",dewuCollidingDataList,e);
         }
         return collidingDataMobileList;
+    }
+
+    /**
+     * 已确认，每个localId每天只执行1次，刷新逻辑为直接更新PushNumber字段
+     * 后续业务有变更，需要更新此方法
+     */
+    private void refreshLocalFile(Long localFileId, Date pushStartTime, Date pushEndTime){
+        try {
+            DewuPushQueryQuantityDTO params = new DewuPushQueryQuantityDTO();
+            params.setLocalId(localFileId);
+            params.setPushStatus(2);
+            String curTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            int pushDate = Integer.parseInt(curTimeStr);
+            params.setStartTime(pushDate);
+
+            List<Map<String, Object>> queryQuantityList = dewuCollidingDataMapper.queryQuantityGroupByLocalId(params);
+            List<Map<String, Object>> quantityList = new ArrayList<>();
+            if(queryQuantityList == null || queryQuantityList.size() < 1
+                    || "0".equals(String.valueOf(queryQuantityList.get(0).get("quantity")))) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("localId", localFileId);
+                map.put("quantity", 0L);
+                quantityList.add(map);
+            }else{
+                quantityList.add(queryQuantityList.get(0));
+            }
+            localFileService.refreshPushNumber(quantityList, pushStartTime, pushEndTime);
+        }catch (Exception e){
+            log.warn("更新推送量级异常", e);
+        }
     }
 }

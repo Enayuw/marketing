@@ -62,6 +62,7 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
                 pool.setMaximumPoolSize(marketingCommonConfig.getTongChengUndoThreadNum());
             }
 
+            // local_id = #{localId}  and status =1 正常 and push_status =1 未推送  2000
             List<TongChengUndoData> tongChengUndoDataList = tongChengUndoDataMapper.tongChengUndoDataPage(localFile.getId(), minId);
             if (tongChengUndoDataList.size() <= 0) {
                 isContiue = Boolean.FALSE;

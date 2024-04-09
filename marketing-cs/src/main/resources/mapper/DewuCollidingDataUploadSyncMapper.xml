@@ -36,4 +36,18 @@
     </foreach>
     and is_deleted = 0
   </update>
+
+  <select id="queryQuantityGroupByLocalId" parameterType="com.br.marketing.dto.dewu.DewuPushQueryQuantityDTO" resultType="Map">
+    select
+      count(*) as quantity,
+      local_id as localId
+    from
+      b_dewu_colliding_data_upload_sync
+    where
+      push_status = #{pushStatus}
+      and update_time >= #{startTime}
+      and is_deleted = 0
+    group by
+      local_id
+  </select>
 </mapper>
