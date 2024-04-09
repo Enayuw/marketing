@@ -22,6 +22,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -210,8 +211,8 @@ public class HxUtil {
                                       JSONObject jsonMeal, List<String> flagProductList) {
         //重试三次
         for (int i = 0; i < 3; i++) {
-            if (isRetry(result, jsonMeal, noflagproductlist, flagProductList,null,null,null,null,null,
-                    null)) {
+            if (isRetry(result, jsonMeal, noflagproductlist, flagProductList,new ArrayList<>(),new MarketingTask(),false,
+                    new MarketingSyncUser(), new RedisChgService())) {
                 result = restTemplate.postForObject(url, requestEntity, String.class);
                 log.warn("调用画像重试结果，第{}次,result={}", i, result);
             } else {
@@ -222,7 +223,7 @@ public class HxUtil {
         return result;
     }
 
-    public static Boolean isRetry(String hxResult, JSONObject jsonMeal, List<String> noflagproductlist, List<String> flagProductList, String apiCode,
+    public static Boolean isRetry(String hxResult, JSONObject jsonMeal, List<String> noflagproductlist, List<String> flagProductList,
                                   List<MarketingSyncUser> errorList, MarketingTask marketingTask, Boolean isRetry, MarketingSyncUser lu,
                                   RedisChgService redisChgService) {
 
@@ -240,7 +241,7 @@ public class HxUtil {
         if (!"00".equals(resultJson.getString("code"))
                 && !"100002".equals(resultJson.getString("code"))) {
             String code = resultJson.getString("code");
-            errorMessage = "画像返回错误信息code=" + "-" + HxResultErrorCodeEnum.getByCode(code);
+            errorMessage = "画像返回错误信息code=" +code + "-" + HxResultErrorCodeEnum.getByCode(code);
             resultHandler(lu, marketingTask, redisChgService, isRetry, errorMessage, errorList);
             return true;
         }

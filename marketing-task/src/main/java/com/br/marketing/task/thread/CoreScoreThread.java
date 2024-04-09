@@ -193,7 +193,7 @@ public class CoreScoreThread implements Callable<String> {
     private void dealResult(String s, Writer fw, String apiCode, MarketingSyncUser blu,Boolean isRetry) throws IOException {
         try {
             //最终结果判断处理
-            if (!HxUtil.isRetry(s, meal, noflagproductlist,flagProductList,apiCode, errorList,marketingTask,isRetry,blu,redisChgService)) {
+            if (!HxUtil.isRetry(s, meal, noflagproductlist,flagProductList, errorList,marketingTask,isRetry,blu,redisChgService)) {
                 //跑分请求监控统计
                 try {
                     BrCounter.count(PrometheusMonitorUtils.COUNT_CORE_SCORE_API_METRIC_NAME, apiCode, blu.getUserType());
