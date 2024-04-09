@@ -50,7 +50,7 @@
         select count(distinct a.case_num)
         from b_call_record as a
         left join b_xiecheng_data as b on a.case_num = b.sha256_tel
-        left join b_marketing_transfer_sync_643 as c on b.sha256_tel = c.cust_num
+        left join b_marketing_transfer_sync_#{cid} as c on b.sha256_tel = c.cust_num
         where <![CDATA[ a.create_time >=#{requestData} and a.create_time < #{endData} ]]>
           and <![CDATA[ b.create_time >=#{requestData} and b.create_time < #{endData} ]]>
           and b.push_status = 2 and b.status = 1
