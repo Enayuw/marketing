@@ -15,5 +15,8 @@ public enum DingDingAlarmFunctionEnum {
      * 场景自动添加，通知
      */
     USERTYPE_ADD_SENDUSERTYPEADDDINGDINGMGS,
+    //跑分结果异常告警
+    TASKSCORE_HXRESULT_ERROR_MESSAGE,
+
     ;
 }

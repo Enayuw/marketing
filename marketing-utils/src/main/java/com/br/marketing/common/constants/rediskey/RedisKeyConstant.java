@@ -57,6 +57,8 @@ public class RedisKeyConstant {
 
     public static final String offLineLock = prefix.concat("offlinecallback");
 
+    public static final String TASKSCORE_HXRESULTERROR = prefix.concat("taskscore:hxresult:error");
+
     /**
      * 2022/9/1 17:02
      * 数禾订制上传接口，字段缓存key
