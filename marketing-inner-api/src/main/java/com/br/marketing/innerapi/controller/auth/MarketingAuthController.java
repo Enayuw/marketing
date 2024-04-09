@@ -34,12 +34,10 @@ public class MarketingAuthController {
     @Resource
     private MarketingUserInfoService marketingUserInfoService;
     @PostMapping(value = "/login")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<MarketingUserDetail> login(HttpServletRequest request, LoginReqObj reqObj) {
         return marketingUserInfoService.login(request,reqObj);
     }
     @PostMapping("/updatePassword")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> updatePassword(HttpServletRequest request, PasswordReq passwordReq) {
         return  marketingUserInfoService.updatePassword(passwordReq);
 
@@ -50,7 +48,6 @@ public class MarketingAuthController {
      *
      */
     @GetMapping
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<MarketingUserDetail> auth(HttpServletRequest request) {
       return marketingUserInfoService.auth(request);
     }
@@ -59,7 +56,6 @@ public class MarketingAuthController {
      *
      */
     @GetMapping(value = "/loginOut")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> loginOut(HttpServletRequest request) {
        return  marketingUserInfoService.logOut(request);
     }

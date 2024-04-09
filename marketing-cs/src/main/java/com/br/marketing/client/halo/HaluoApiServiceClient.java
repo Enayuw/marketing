@@ -1,6 +1,8 @@
 package com.br.marketing.client.halo;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.halo.input.ReqHaluoApiDTO;
 import com.br.marketing.client.halo.send.PublicParamsConstants;
@@ -43,6 +45,7 @@ public class HaluoApiServiceClient {
      * @return Result
      */
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<String> postHaluoOpenApi(ReqHaluoApiDTO reqHaluoApiDTO) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         Map paramsMap = new HashMap();

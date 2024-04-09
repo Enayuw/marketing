@@ -46,7 +46,6 @@ public class MarketingUserInfoController {
      *
      */
     @GetMapping("/getAllRole")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<List<MarketingRole>> getAllRole() {
         List<MarketingRole> marketingRoles = marketingRoleService.selectRoleList();
         return new ApiResult<List<MarketingRole>>().success(marketingRoles);
@@ -56,7 +55,6 @@ public class MarketingUserInfoController {
      * 查看用户列表
      */
     @GetMapping("/list")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<PageResultReturn>  list(String key, Integer current, Integer size) {
         PageResultReturn listPage = marketingUserInfoService.selectList(key, current, size);
         if (listPage != null) {
@@ -70,7 +68,6 @@ public class MarketingUserInfoController {
      *
      */
     @GetMapping("/save")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> insert(HttpServletRequest request, MarketingUserInfo user) {
         MarketingUserDetail userDetail = ThreadContextInfo.getUser();
         return marketingUserInfoService.save(userDetail, user);
@@ -81,7 +78,6 @@ public class MarketingUserInfoController {
      *
      */
     @GetMapping("/checkName")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> checkName(String username) {
         return new ApiResult<Boolean>().success(marketingUserInfoService.checkUserName(username));
     }
@@ -91,7 +87,6 @@ public class MarketingUserInfoController {
      *
      */
     @GetMapping("/delete")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> delete(String ids) {
         return marketingUserInfoService.delete(ids);
     }
@@ -101,7 +96,6 @@ public class MarketingUserInfoController {
      *
      */
     @GetMapping("/update")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> update(HttpServletRequest request, MarketingUserInfo user) {
         MarketingUserDetail userDetail = ThreadContextInfo.getUser();
         return marketingUserInfoService.updateMarketingUserInfo(userDetail, user);
@@ -112,7 +106,6 @@ public class MarketingUserInfoController {
      *
      */
     @GetMapping("/getById")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<MarketingUserInfo> getUserById(Integer id) {
         return new ApiResult<MarketingUserInfo>().success(marketingUserInfoService.getById(id));
     }
@@ -122,7 +115,6 @@ public class MarketingUserInfoController {
      *
      */
     @PostMapping("/ajaxCheckOldPwd")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> ajaxCheckOldPwd(HttpServletRequest request, PasswordReq passwordReq) {
         MarketingUserDetail userDetail = ThreadContextInfo.getUser();
         if (StringUtils.isNotBlank(passwordReq.getOldPassword())) {
@@ -140,7 +132,6 @@ public class MarketingUserInfoController {
      *
      */
     @PostMapping("/updatePassword")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> updatePassword(HttpServletRequest request, PasswordReq passwordReq) {
         MarketingUserDetail userDetail = ThreadContextInfo.getUser();
         if (StringUtils.isNotBlank(passwordReq.getNewPassword()) && StringUtils.isNotBlank(passwordReq.getOldPassword())) {
@@ -159,7 +150,6 @@ public class MarketingUserInfoController {
      *
      */
     @GetMapping("/updateByUserId")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> updateByUserId(HttpServletRequest request, MarketingUserInfo user) {
         return marketingUserInfoService.updateMarketingUserInfoApiCodes( user);
     }

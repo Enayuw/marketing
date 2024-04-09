@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.yiqianbao.input.RequestYqbDTO;
 import com.br.marketing.client.yiqianbao.input.YqbDetailVo;
@@ -54,6 +56,7 @@ public class YiQianBaoService {
     public static final List<String> RESULT_CODE = Lists.newArrayList("000000", "465001", "465002", "465003", "465004", "465005", "465999");
 
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<ResponseYqbDTO> pushMarketingData(YqbDetailVo yqbDetailVo) {
         try {
             log.warn("壹钱包明文参数 para={}", JSON.toJSONString(yqbDetailVo));

@@ -37,7 +37,6 @@ public class MarketingResourceController {
      *
      */
     @GetMapping("/save")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> save(MarketingResource resource) {
         if (this.checkAuthority(resource.getAuthority())) {
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.AUTH_FAILED_ERROR_HEADER);
@@ -50,7 +49,6 @@ public class MarketingResourceController {
      *
      */
     @GetMapping("/delete")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> delete(Integer resourceId) {
         marketingResourceService.deleteResource(resourceId);
         return new ApiResult<Boolean>().success(true);
@@ -60,7 +58,6 @@ public class MarketingResourceController {
      *
      */
     @GetMapping("/update")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> update(MarketingResource resource) {
         if (this.checkAuthority(resource.getAuthority())) {
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.AUTH_FAILED_ERROR_HEADER);
@@ -70,7 +67,6 @@ public class MarketingResourceController {
     }
 
     @GetMapping("/getResourceTree")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<ResourceTreeBean> getAllResourceById(Integer resourceId) {
         if (resourceId != null) {
             List<ResourceTreeBean> resourceTree = marketingResourceService.getResourcesById(resourceId);
@@ -87,7 +83,6 @@ public class MarketingResourceController {
      * 获取资源树信息
      */
     @GetMapping("/getById")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<MarketingResource> getResourceById(Integer resourceId) {
         return new ApiResult<MarketingResource>().success(marketingResourceService.selectById(resourceId));
     }
