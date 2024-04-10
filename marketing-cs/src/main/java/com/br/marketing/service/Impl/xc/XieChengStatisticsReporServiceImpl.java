@@ -103,7 +103,7 @@ public class XieChengStatisticsReporServiceImpl implements XieChengStatisticsRep
                 .andApiCodeEqualTo(apiCode)
                 .andIsDeleteEqualTo(0)
                 .andReportTimeBetween(firstDayString,requestData);
-        xieChengStatisticsReportExample.setOrderByClause(" report_time asc");
+        xieChengStatisticsReportExample.setOrderByClause(" report_time desc");
         List<XieChengStatisticsReport> xieChengStatisticsReports =
                 xieChengStatisticsReportMapper.selectByExample(xieChengStatisticsReportExample);
         return xieChengStatisticsReports;

@@ -117,9 +117,9 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
         if(sendConfigList.size()>0){
             MarketingEmailSendConfig marketingEmailSendConfig = sendConfigList.get(0);
             emailRecipient = marketingEmailSendConfig.getReceiverUser();
-            fileName = requestData+marketingEmailSendConfig.getAttachmentFileName();
+            fileName = endData+marketingEmailSendConfig.getAttachmentFileName();
         }else{
-            fileName = requestData+subject+".xlsx";
+            fileName = endData+subject+".xlsx";
         }
         String excelPath = excelFilePath + fileName;
         try{
@@ -132,7 +132,7 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
                 //3.数据写入Excel
                 xieChengStatisticsReporService.createExcel(xieChengStatisticsReports, excelFilePath, fileName);
                 //4.邮件发送
-                iMailService.sendAttachmentsMail(emailRecipient,subject+requestData,
+                iMailService.sendAttachmentsMail(emailRecipient,subject+endData,
                         "dear all: <br/>        "+apiCode+"-携程百万量级转化统计报表，详见附件", excelPath);
             }
         }catch (Exception e){
