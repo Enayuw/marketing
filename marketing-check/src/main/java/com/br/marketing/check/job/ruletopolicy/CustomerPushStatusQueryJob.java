@@ -56,14 +56,18 @@ public class CustomerPushStatusQueryJob extends AbstractSimpleElasticJob {
             Long mainId = customerInfoPushMain.getId();
             String key = keyPrefix.concat(String.format(":%s", mainId));
             log.info(TITLE + "key: {}", key);
-            UUID uuid = UUID.randomUUID();
+            String lockValue = UUID.randomUUID().toString();
             try {
-                redisChgService.lock(key, uuid.toString(), 600000L);
+                boolean acquire = redisChgService.lock(key, lockValue, 600000L);
+                if(!acquire){
+                    log.warn(TITLE + "processToBeConfirmedList获取锁失败");
+                    return;
+                }
                 pushRuleService.getCustomerStatus(customerInfoPushMain);
-                redisChgService.unlock(key, uuid.toString());
+                redisChgService.unlock(key, lockValue);
             } catch (Exception e) {
-                redisChgService.unlock(key, uuid.toString());
-                log.warn(TITLE + "processToBeConfirmList error", e);
+                redisChgService.unlock(key, lockValue);
+                log.warn(TITLE + "processToBeConfirmedList error", e);
             }
         }
     }
