@@ -2,6 +2,8 @@ package com.br.marketing.client.twosevenservice;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.twosevenservice.intput.RequestSevenDTO;
 import com.br.marketing.client.twosevenservice.output.ResponseSevenZDTO;
@@ -28,6 +30,7 @@ public class TwoSevenService {
     @Autowired
     HttpProxyClient httpProxyClient;
 
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<ResponseSevenZDTO> requestTransferStatus(RequestSevenDTO dto,String extendInfo){
         try {
             dto.setUserName("1078");

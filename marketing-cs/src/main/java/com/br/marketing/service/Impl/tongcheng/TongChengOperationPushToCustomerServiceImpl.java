@@ -6,8 +6,11 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.*;
+import com.br.marketing.dto.tongcheng.TongChengPushQueryQuantityDTO;
+import com.br.marketing.entity.TongChengAgent;
+import com.br.marketing.entity.TongChengAgentExample;
 import com.br.marketing.mapper.TongChengAgentMapper;
+import com.br.marketing.service.LocalFileService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -15,8 +18,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
  * @author guangxiu.li
@@ -38,6 +44,9 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
     @Autowired
     TongChengAgentMktClient tongChengAgentMktClient;
 
+    @Resource
+    LocalFileService localFileService;
+
     private static final int BATCH_SIZE = 2000;
 
     @Override
@@ -45,6 +54,8 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5);
         Long minId = null;
         int num = marketingCommonConfig.getTongChengGroupOperationNum();
+        boolean hasCollectedDate = false;
+        Date pushStartTime = new Date();
         while (true) {
             try {
                 if (marketingCommonConfig.getTongChengGroupOperationThreadNum() != null) {
@@ -55,6 +66,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                 if (tongchengAgentList.size() <= 0) {
                     break;
                 }
+                hasCollectedDate = true;
                 minId = tongchengAgentList.get(tongchengAgentList.size() - 1).getId();
                 List<List<TongChengAgent>> partition = Lists.partition(tongchengAgentList, BATCH_SIZE);
                 partition.forEach((List<TongChengAgent> p) -> {
@@ -64,7 +76,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
                 log.error("同程集团运营名单捞取异常！", e);
             }
         }
-
+        Date pushEndTime = new Date();
         try {
             pool.shutdown();
             while (!pool.awaitTermination(5L, TimeUnit.SECONDS)) {
@@ -74,6 +86,11 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
             pool.shutdownNow();
             log.error(ex.getMessage(), ex);
             Thread.currentThread().interrupt();
+        }
+
+        // refreshLocalFile
+        if(hasCollectedDate) {
+            refreshLocalFile(apiCode, pushStartTime, pushEndTime);
         }
     }
 
@@ -180,6 +197,50 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
             record.setPushStatus(status);
             record.setDataMessage(message);
             tongChengAgentMapper.updateByExampleSelective(record, updateExample);
+        }
+    }
+
+    /**
+     * 已确认，每个localId每天只执行1次，刷新逻辑为直接更新PushNumber字段
+     * 后续业务有变更，需要更新此方法
+     */
+    private void refreshLocalFile(String apiCode, Date pushStartTime, Date pushEndTime){
+        try {
+            TongChengPushQueryQuantityDTO params = new TongChengPushQueryQuantityDTO();
+            params.setApiCode(apiCode);
+            params.setPushStatus(2);
+            params.setStatus(1);
+            String curTimeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd 00:00:00"));
+            params.setStartTime(curTimeStr);
+
+            List<Long> localIdList = tongChengAgentMapper.queryLocalFileIdList(params);
+            if(localIdList == null || localIdList.size() < 1){
+                return;
+            }
+
+            List<Map<String, Object>> queryQuantityList = tongChengAgentMapper.queryQuantityGroupByLocalId(params);
+            if(queryQuantityList == null || queryQuantityList.size() < 1){
+                queryQuantityList = new ArrayList<Map<String, Object>>();
+            }
+            Map<String, Long> localIdToQuantityMap = queryQuantityList.stream().collect(Collectors.toMap(
+                    (data1) -> String.valueOf(data1.get("localId")),
+                    (data2) -> Long.parseLong(String.valueOf(data2.get("quantity")))
+            ));
+
+            List<Map<String, Object>> quantityList = new ArrayList<>();
+            for(Long localId :localIdList){
+                Map<String, Object> map = new HashMap<>();
+                map.put("localId", localId);
+                if (localIdToQuantityMap.get(String.valueOf(localId)) != null) {
+                    map.put("quantity", localIdToQuantityMap.get(String.valueOf(localId)));
+                } else {
+                    map.put("quantity", 0L);
+                }
+                quantityList.add(map);
+            }
+            localFileService.refreshPushNumber(quantityList, pushStartTime, pushEndTime);
+        }catch (Exception e){
+            log.warn("更新推送量级异常", e);
         }
     }
 

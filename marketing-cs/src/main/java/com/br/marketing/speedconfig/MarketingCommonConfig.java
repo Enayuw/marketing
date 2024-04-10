@@ -5,11 +5,13 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.JobPushDecisionParameterBO;
 import com.br.marketing.enums.CustomerPushDecisionActionEnum;
+import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.speed.client.common.annotations.SpeedFile;
 import lombok.Data;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Configuration
 @SpeedFile(filename = "marketingcommon.properties", topic = "marketing")
@@ -47,9 +49,14 @@ public class MarketingCommonConfig {
     private List<String> apiCodeOfRecordTaskTime;
 
     /**
-     * 去重线程数
+     * 原始上传消费端入库线程数
      */
     private Integer soleNum;
+
+    /**
+     * 原始转化消费端入库线程数
+     */
+    private Integer soleNumTrans;
 
     /**
      * 萨摩耶场景
@@ -495,6 +502,26 @@ public class MarketingCommonConfig {
     private Integer xieChengSmsCollidingThread;
 
     /**
+     * 携程短信撞库线程数重试
+     */
+    private Integer xieChengSmsCollidingRetryThread;
+
+    /**
+     * 携程短信撞库报警量级
+     */
+    private Integer xieChengSmsCollidingRetryWarnCount;
+
+    /**
+     * 携程短信撞库报警量级
+     */
+    private List<String> xieChengSmsCollidingRetryWarnAllTime;
+
+    /**
+     * 携程短信撞库挡板及异常 [true,true]
+     */
+    private List<Boolean> xieChengSmsCollidingRetrySwitch;
+
+    /**
      * 携程短信撞库线程数Version2
      */
     private Integer xieChengSmsCollidingThreadVt;
@@ -741,6 +768,11 @@ public class MarketingCommonConfig {
      */
     private HashMap<String, JSONObject> zhongAnDetailPush;
 
+    /**
+     * 众安明细推送Mock挡板  1: 开启, 0: 关闭
+     * {"pushSwitch":"1","retCode":"1"}
+     */
+    private String zhongAnPushMock;
 
     /**
      * 永辉化数据提取apiCode
@@ -778,11 +810,11 @@ public class MarketingCommonConfig {
      * 滴滴准入重试次数
      */
     private Integer didiAllowRetryNum;
-
-    /**
-     * 滴滴有效期天数
-     */
-    private Long didiValidDays;
+//
+//    /**
+//     * 滴滴有效期天数
+//     */
+//    private Long didiValidDays;
 
     /**
      * 推送客服黑名单apiCode(一对多分发)
@@ -1306,6 +1338,168 @@ public class MarketingCommonConfig {
      */
     private Map<String, List<String>> shuHeUserTypeAndApiCodeMappingMap = new HashMap<>();
 
+    /**
+    * 携程撞库异常量级钉钉通知accessToken
+     */
+    private String xieChengGroupAccessToken;
+
+    /**
+     * 携程撞库异常量级钉钉通知Secret
+     */
+    private String xieChengGroupSecret;
+
+    /**
+     * 得物撞库开关
+     * true 开启撞库  false  暂停撞库
+     */
+    private Boolean deWuCollidingSwitch;
+
+    /**
+     * 得物撞库线程池数
+     */
+    private Integer deWuCollidingThread;
+
+    /**
+     * 得物撞库数据上传线程池数
+     */
+    private Integer deWuCollidingDataUploadSyncThread;
+
+    /**
+     * 得物撞库apiCode
+     */
+    private String deWuCollidingAiCode;
+
+    /**
+     * 得物停止撞库量级
+     */
+    private Integer deWuCollidingStopCount;
+
+    /**
+     * 2024-03-01 15:12
+     * 业务名称_函数名 参考{@link DingDingAlarmFunctionEnum}
+     * 钉钉告警机器人WebHook信息token与secret(密钥);
+     * startTime：允许告警的开始时间，endTime：允许告警的结束时间，闭区间，格式: hh:mm:dd;
+     * at：需要@的人
+     * {"业务名称_函数名":{"token":"token","secret":"secret","startTime":"startTime","endTime":"endTime","at":["cell"]}}
+     */
+    private Map<String, JSONObject> dingDingWebHookInfo = new ConcurrentHashMap<>();
+
+    /**
+     * apiCode自动生成场景与统计控制
+     * ["3","4"]
+     */
+    private Set<String> userTypeAndSumRealtimeApiCodeStartsWith = new HashSet<>(Arrays.asList("3", "4"));
+
+
+    /**
+     * 得物撞库limit 数量降级的量级
+     */
+    private Integer deWuCollidingStopThresholdCount;
+
+    /**
+     *  得物撞库url地址
+     */
+
+    private String deWuCollidingUrl;
+    /**
+     * 得物撞库appId
+     */
+    private String deWuAppId;
+    /**
+     * 得物撞库一次性从基表中获取数据量
+     */
+    private int deWuCollidingLimit = 10000;
+    /**
+     * 得物mock数据开关["开关","httpcode","code","status"],
+     * 样例：
+     *   deWuCollidingMockSwitch=["true","200","200","1"] 开启挡板，并且得到网络响应200,数据中code=200,status=1的样例数据
+     * 详解：
+     *   开关:
+     *     "true":开启挡板,使用测试数据
+     *     "false"关闭挡板,使用真实调用客户的返回结果
+     *   httpcode:
+     *     "200":返回httpcode=200的mock数据
+     *     "500":返回httpcode=500的mock数据
+     *     "1001":返回httpcode=1001的mock数据
+     *   code:
+     *     "200":返回code=200的mock数据
+     *     "401":返回code=401的签名认证失败的mock数据
+     *   status:
+     *     "0":status=0的mock数据
+     *     "1":status=1的mock数据
+     */
+    private List<String> deWuCollidingMockSwitch;
+
+    /**
+     * 2024-03-13 22:06
+     * 数禾非黑名单判断生效apicode集合
+     */
+    private Set<String> shuHeNonBlackListApiCodeSet = new HashSet<>(
+            Arrays.asList("3710071", "3710051", "3710023", "3710128", "3710117", "3710123", "7410785"));
+
+    /**
+     * 2024-03-22 16:11
+     * 上传和转化实时统计开关，false 关闭实时统计，true 开启实时统计
+     */
+    private Boolean uploadAndTransferDataRealtimeStatisSwitch = false;
+
+    /**
+     * 携程强制开启撞库开关
+     * true 打开，false 关闭
+     */
+    private Boolean xieChengForceOpenSwitch;
+
+    /**
+     * 携程非周期撞库线程池数
+     */
+    private Integer xiechengRobCollidingThread;
+
+    /**
+     * 携程撞库分钟阈值
+     */
+    private Integer xiechengPerMinuteThreshold;
+
+
+    /**
+     * 携程撞库分页大小
+     */
+    private Integer xiechengCollidingPageSize;
+
+
+    /**
+     * 携程记录撞库日志线程数
+     */
+    private Integer xiechengSaveCollidingLogThread;
+
+    /**
+     * 携程数据清洗线程数
+     */
+    private Integer xieChengCleanThreadCount;
+    /**
+     * 携程数据清洗limit 量级
+     */
+    private Integer xieChengCleanLimitCount;
+
+    /**
+     * 清洗暂停开关 true 开启清洗  false 关闭 清洗
+     */
+    private Boolean xieChengCleanSwitch;
+
+    /**
+     * 携程定制化配置ApiCode
+     */
+    private String xieChengDingZhiApiCode;
+
+    /**
+     * 携程转化数据提取apiCode集合
+     */
+    private List<String> XieChengTwoTransferApiCodes;
+
+
+    /**
+     * 携程转化数据提取执行时间,携程撞库提取时间
+     */
+    private List<String> XieChengTwoTransferExecuteTime;
 
 }
 

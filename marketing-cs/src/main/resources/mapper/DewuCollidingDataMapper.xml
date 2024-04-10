@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.DewuCollidingDataMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.DewuCollidingData" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="local_id" property="localId" jdbcType="BIGINT" />
+    <result column="mobile" property="mobile" jdbcType="VARCHAR" />
+    <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
+    <result column="push_date" property="pushDate" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="is_deleted" property="isDeleted" jdbcType="INTEGER" />
+    <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="create_date" property="createDate" jdbcType="INTEGER" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.DewuCollidingData" extends="BaseResultMap" >
+    <result column="extend" property="extend" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <update id="updateBatchById">
+    update b_dewu_colliding_data set push_status = #{pushStatus},update_time = now() ,push_date = #{pushDate} where id in
+    <foreach collection="ids" item="id" open="(" separator="," close=")">
+      #{id}
+    </foreach>
+    and is_deleted = 0
+  </update>
+
+  <select id="queryQuantityGroupByLocalId" parameterType="com.br.marketing.dto.dewu.DewuPushQueryQuantityDTO" resultType="Map">
+    select
+        count(*) as quantity,
+        local_id as localId
+    from
+        b_dewu_colliding_data
+    where
+        local_id = #{localId}
+        and push_status = #{pushStatus}
+        and is_deleted = 0
+  </select>
+</mapper>

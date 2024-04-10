@@ -1,0 +1,150 @@
+sharding:
+  jdbc:
+    datasource:
+      names: ds0
+      ds0:
+        url: jdbc:mysql://192.168.162.192:3306/test_loan?useUnicode=true&characterEncoding=UTF-8
+        username: rule_service
+        password: rule_service_2015-09-10
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.jdbc.Driver
+        filters: stat
+        maxActive: 300
+        initialSize: 1
+        maxWait: 60000
+        minIdle: 1
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: select 'x'
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxOpenPreparedStatements: 20
+  config:
+    sharding:
+      props:
+        sql.show: true
+logging:
+  level:
+    com.br.off.mapper: debug
+  file: ./logs/core.log
+  root: INFO
+otherConfig:
+  alarm:
+    secretKey: 412a281869db3e152d5a276ad444fade
+    mails: xinke.liu@100credit.com,guang.chen@100credit.com,runtong.yuan@100credit.com
+    sendCode: 66618706
+  userCenter:
+    appName: loan-strategy
+    appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
+  warning:
+    pageSize: 5000
+    apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
+    path: /Users/chao.z/Desktop/
+    ftpHost: 10.100.123.65
+    ftpPort: 21
+    ftpUsername: dev-controller
+    ftpPwd: 9PdaRcMRphcNctRy
+    email:
+      notice: nengwu.qu@100credit.com,chunliu.le@100credit.com,qianqian.cao@100credit.com,xinke.liu@100credit.com
+  encodeMapping:
+    appName: loan-warning
+    appSecretKey: f15a1421ac95a284683688af14688b72
+cluster:
+  flag: k8s-prod-a
+api:
+  dass:
+    baseUrl: http://testdaas.huiyunai.com
+    postHermesUserData: ${api.dass.baseUrl}/csos-daas/call/postHermesUserData
+    aeskey: ovksl39fcl13m9dF
+    SecretKey: MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJ4W9Hw1Kb6g0RevKSeKqriBCup3x8V2G2J63imkypbtPV+RJjq4eCqcd7s2FI/9eTSMw17675Ey9MkKndIckvpxT1iCtUnuRbg1ICtZ127t65GhOPchBzWHoC+rG56Rw4NhpsvpIGC1y4EUx26TyNop7HRekKwosAnnl6QDWBEdAgMBAAECgYAkX7W7CmRjdw8E+wlmDrK/JvnC/vJZDZa5bvnE7SSr20Qew//ezOjhLQUjbwsGIlUL8UNWjDgo2WeXBjlPycFLP8YN/+gUPR/bfftUY4cTnWzAAKKyUJBeyt3SqaeYcUhW3aUCUlaVAb8ZdyIu4WlHYHhlkSoXrDRvnqlJmyj8wQJBAMzApuvsJDZIX6qvMGR6YTvqPIsl47+qIlk7iTUfwbjGz5zlFtu4IRd+ZVdHlncg5arrl+lOw33rkHhxtnV8jO0CQQDFqGsIPk4Nnwsx9XtCCrYePvgydzEAT1nr4gBUkXbvavMyJKsQWI5AXUAInNuqxRvNfjh3GMaWstIsMQJyDj7xAkEAglL1bCEIA40ZZ1jO4oWKskorcx4Q0oQGDOn6MVgfQ+83YlPmsr+GQJ/w/RbRzM2hoaMHNDcv80wmzqMCUdGPGQJAKIHuhX73UhVRHwj3HL7DOgmfpgAFW9HnVM85UBuLq19YveMD59KuPISf1eQHpMTGgOOoQMgkEshNCF9259cBkQJBAKIlpXnTHvv2M96B7w7T1RYVvjke4LLpCbAVd8fBciOdFLmMh0+FThxGWijgfow1XYaPrU0DlfLpkfLrgk3LWUQ=
+  twoSeven:
+    baseUrl: http://8.129.19.178:8888
+    zhuangku: ${api.twoSeven.baseUrl}/zhuangku
+    isProxy: 1
+  marketing:
+    baseUrl: http://k8s.brapp.com/compass-api/api/marketing-api
+    transferUrl: ${api.marketing.baseUrl}/marketingTransferData/receiveTransferDataSync
+    uploadUrl: ${api.marketing.baseUrl}/marketingUserPre/receiveMarketingPreUser
+  halo:
+    openUrl: https://fat-hello-openapi.hellobike.com/openapi
+    appKey: hellobikefinance-bwYuIVvO
+    secret: b3392af427b6449e94269433bdf5fb58
+    method: hello.finance.loan.marketing.callback
+    isProxy: false
+  xiecheng:
+    openUrl: https://cgcallback-fat.ctripqa.com/nemoweb/ad/common/outAdMonitor.do
+    appId: bairong001
+    appIdVt: test002
+    keyVt: 6b219b9e71fdb2d2
+    ivVt: 5e7b6c07d3edbc01
+    signKeyVt: b8845b4cb1f16471
+    key: f3df6f62f0527bf0
+    iv: 3b2dac323465b024
+    singKey: 95cc01ec07387a44
+    source: BaiRong_C01
+    channel: commonOutAdMonitor
+    isProxy: false
+    smsColliding:
+      openUrl: https://cgcallback-fat.ctripqa.com/nemoweb/ad/common/unionCheckUser.do
+      appId: bairong001
+      appIdVt: test002
+      keyVt: 6b219b9e71fdb2d2
+      ivVt: 5e7b6c07d3edbc01
+      signKeyVt: b8845b4cb1f16471
+      key: f3df6f62f0527bf0
+      iv: 3b2dac323465b024
+      singKey: 95cc01ec07387a44
+      channel: commonUnionCheckUser
+      isProxy: true
+  zhongAn:
+    baseUrl: https://finance-gateway-test.diandian.com.cn
+    api: ${api.zhongAn.baseUrl}/fcpGateway
+    isProxy: false
+    rsapKey: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCVuaxc7ZznPdvsH0nhd2eQ/uhu/LewJqUVMvdYUKwXPxzGBUz8cVKyltwpMJ03uMPx+RStWnkWcmCSeQdqiw27FtaPELOxxQQc06OGBXfp5R86MKp2+bkdPRSkpUKK2X8vCyiopQojBXbaVzRUwjPPsQAsDinCGkSUirWETxfCxwIDAQAB
+    xdCode: 07brdyy01
+    bxCode: 3360001
+  didi:
+    baseUrl: https://admarketing-manhattan.xiaojukeji.com
+    smsUrl: ${api.didi.baseUrl}/crow/collision/bairong
+    reachUrl: ${api.didi.baseUrl}/crow/user/success/bairong
+    jmassSUrl: ${api.didi.baseUrl}/model/sample/bairong
+    failedUrl: ${api.didi.baseUrl}/crow/faileduser/mediaName
+    token: DK&SgWl!fZ%WVSXe
+    scas: "0001"
+    channelId: 3140738836439875
+    channelIdMap: "{bairong:'3140738836439875',bairongA:'3140738898634899'}"
+    isProxy: false
+  qifu:
+    baseUri: https://stg1-gws-bps-web.daikuan.360.cn
+    saveReachDeleteRecordUrl: ${api.qifu.baseUri}/api/gws/bps/gateway/agent/operation/agentOperationSaveReachDeleteRecord
+    qifuPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwQAaMvE6+7Wy+rf6jfW8OEKhGSmmg6LaiSLaTui3lBA4V4eqfQEpLfL8dGYYcakiH6CUAMPZ0jqNEN/En3Mtfclhr8903m/xG3IOUxhbqiVZBZmQ8esG6nP8MHsFWK2hMHN20xh0qKN6hg0BHQIIkbbnZjN9FGD/hz1t4NJvwIHxqJC+I3pRkCrC+SPWH5djzQdhYczgpyGwNqrGpg5dPibZJ+/qw15Va0vDBMp8cGad+Njcw5n7QcxBvSpViTYl704+wyohX36bF1CkrtfV6z1JnDqR+9KtEaRpfnUC/eh7gvltDbl/vTfeZLuShLs+/csgVshVIXEpL8g9uC0XOQIDAQAB"
+    brPrivateKey: "MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDdAO5CXKe5ugLICKdPeAXE7/4V484BPYdZVMoexCoWN7vwFV1dW8AyjsOYvvMOYSd/MOCqE0sK4CN/Tf857nalMqA5oU+MIEUkbb+KyXFXpNFi/LLi8FGGHQgTQFAS+Tikz1sHtYg3W8G7wQJsTDKXGQ7dEH9pJv3RbGZzQnTlzj/1brJ8uDGXYmKVPr2MbuOmtzCzzd9O0cPO1fEVwpnJbAUfQxZleMUL21OpkmTjqIBQfANf/24DjbJelZjRUA7YIR42XpxGXWeOlXR1D3jzIN0lguacwy+en3JvhbC62E6f04rzqs3TThlKxH4cjFZjOPvoGml2Z43S1k46lPjtAgMBAAECggEBANTyjKFM/iArZ3qvO+eK0qRMSxt0gY8YZk5hMNAsXBFEasaPD4NhYPRWM4n+k9yLKK+ZvSCjrm8wQYPs97wuVgwfl9tv32I5xeWwChwEtj2pBkjHDOc2gJclah6CnaVqlnXXhvMKq9ILi8UJ2PfZA/YrovLHbr03YOJl/OGaa2DxbIyDQsz8LH/4o7QLaRkAkwZw3egd/jepSB9hZwZ8NghkpqbSnRokjH+Rfx9b8uQ/MIqIfDXD8gMCALV+JFjG60mP/yGYS9xb1pHiW07M3QphYo8IV+X1YCnJ1nt7FrAQaPUIe+/zJhFsBM7EN6hX4RdqTacnpKZ0IfEOn/jU9YECgYEA9DLxbNPaAm5HnBA0tD7euFokyP9td8+EVhjeMPCZqPlVnWDm3c9bdrAWQbtwyMA0gvkcELtgFnPf0ICuV2FCKaTPtPa6C73ZR5ElBWkJ/pSbyYw8YGvN98Nh8xbEVqippN5Ypp8vQrZAT5A/qoekq0kYTS7Ymgqj7pq3xIPfHUUCgYEA568H8/qyhmrna84pAQf9gz3ln6EQWm/RfdOi+v42ZdL6sjmpHfT0VYaBuxc54D6OvhvPSoYizhZaHLuDnioaGwkDgducA057EIumDgn2Fvw1mUfcKymGngk4Z5GiWsFqJ66yO5X7ci/4JaD9rG8sKI0JKkhfhL0EyrzgWIykg4kCgYEAvy0eus9EDsEdSL2bNT0/Cd5wi/cEUVbhyLGhSXkjIxlIAHR7aU1L0qhaVE2VJ2Tp91tksGiw+gLvRoFne7sFnCqN/aNm1YhkkVW9QPYRv//B0tD595aOYhjRFwlM3ncekJcNmixnSHf78w3/+dZFgV8xKkOxiS8pVcREeBGxW20CgYBAbLuZbK0YE8ImiD1+u+oTBLNFoFQb0dw/UQqRIP+fcPulc8NDQUpwPeb1T5AYe0zWMIWEA6jKBg0o0DvZT3vS6L7A7YCEqt4ty6dxX/O+kIOXDBR9LB7y8z1sD2NGOWJ7hmipiRtStWQbkpj3yjJNVGqoB1gIYUdj2QHJndJhgQKBgQDTkCUFF0CgiBWUIyI96RkaSW/9/+3PAFojgHrbp93RLsW18j+YVZOyvQshhmNjlhEs2cONLYdNl5kPEi4yt/f8TrFbKBSgBlO0t9u0z0tAo+xfpocTzmYCw1eDnkXWxzZLwBSsB3Vkt7GJb11Uee7HW4MjHOTXuUvdQ8Alg+NXqw=="
+    brPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3QDuQlynuboCyAinT3gFxO/+FePOAT2HWVTKHsQqFje78BVdXVvAMo7DmL7zDmEnfzDgqhNLCuAjf03/Oe52pTKgOaFPjCBFJG2/islxV6TRYvyy4vBRhh0IE0BQEvk4pM9bB7WIN1vBu8ECbEwylxkO3RB/aSb90Wxmc0J05c4/9W6yfLgxl2JilT69jG7jprcws83fTtHDztXxFcKZyWwFH0MWZXjFC9tTqZJk46iAUHwDX/9uA42yXpWY0VAO2CEeNl6cRl1njpV0dQ948yDdJYLmnMMvnp9yb4WwuthOn9OK86rN004ZSsR+HIxWYzj76BppdmeN0tZOOpT47QIDAQAB"
+    isProxy: false
+  tongchengAgentMkt:
+    baseUrl: https://mns.qa.lylend.com
+    address: ${api.tongchengAgentMkt.baseUrl}/api/cep/agent/mkt/baiRong
+    secretKey: JhcwsW4ArsdJ8kjcXQnW734ydF7brpMZywg3T9MXRNAwqTcSW3UasDTFAUheAV24
+    isProxy: false
+innerSftp:
+  uploadpath: /UploadFiles/marketing/
+#elastic-job配置
+SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
+NAMESPACE: marketing-local-job
+BASE_SLEEP_TIME_MILLISECONDS: 1000
+MAX_SLEEP_TIME_MILLISECONDS: 3000
+MAX_RETRIES: 3
+NESTED_PORT: -1
+NESTED_DATA_DIR: target/test_zk_data/
+corn:
+  closeDateAlarmJob: 00 00 10 * * ?
+  sftpDeleteMonitorJob: 00 0/2 00-23 * * ?
+  ftpDeleteMonitorJob: 00 0/2 00-23 * * ?
+  finishPutJob: 00 00 10 * * ?
+  ftpToDbJob: 00 0/2 00-23 * * ?
+  sftpToDbJob: 00 0/2 00-23 * * ?
+  monitoringExpirationAlarmJob: 00 00 10 * * ?
+  progressReportJob: 00 00 09 * * ?
+  reportJob: 00 00 18 * * ?

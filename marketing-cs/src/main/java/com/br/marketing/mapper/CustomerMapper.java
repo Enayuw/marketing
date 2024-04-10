@@ -12,4 +12,10 @@ import java.util.List;
 public interface CustomerMapper {
     List<Customer> getAllCustomer();
     Customer getCustomerByApiCode(String apiCode);
+
+    /**
+     * 查询T-1日至今有上传数据的客户列表
+     * @return
+     */
+    List<Customer> getAllCustomerByResentlySyncInfotikv_();
 }

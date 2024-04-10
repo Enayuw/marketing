@@ -3,6 +3,8 @@ package com.br.marketing.client.intelligentcustomerservice;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.counter.BrCounter;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
 import com.br.marketing.client.intelligentcustomerservice.output.PolicyResultByTaskIdsDTO;
@@ -53,8 +55,8 @@ public class IntelligentCustomerServiceClient {
     @Autowired
     ThreadPoolExecutor interfaceLogDbpool;
 
-
-    public Result<Integer> pushUser(PushMarketingUserDTO dto, Long mId, String pushBatch, Integer pushNum) {
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    public Result<Integer> pushRuleCenterToPolicy(PushMarketingUserDTO dto, Long mId, String pushBatch, Integer pushNum) {
         dto.setPlatApiCode(customerServiceApiCode);
         Result result = new Result();
         CustomerInfoPushLog log = new CustomerInfoPushLog();
@@ -98,6 +100,7 @@ public class IntelligentCustomerServiceClient {
         return result;
     }
 
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result pushUser(PushMarketingUserDTO dto) {
         Result result = new Result();
         dto.setPlatApiCode(customerServiceApiCode);
@@ -112,10 +115,10 @@ public class IntelligentCustomerServiceClient {
             if ("00".equals(jsonObject.getString("code"))) {
                 result.setCode(ResultCode.SUCCESS.getValue());
                 try {
+                    //监控
                     PushMarketingUserTaskInfoDTO taskInfoDTO = (PushMarketingUserTaskInfoDTO) dto.getJsonData();
-                //调用数量监控
-                BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME,dto.getApiCode(),"policy-api",
-                        taskInfoDTO.getData().size());
+                    BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME, dto.getApiCode(), "policy-api",
+                            taskInfoDTO.getData().size());
                 } catch (Exception ex) {
                     logger.error("推送决策接口统计异常" + ex.getMessage(), ex);
                 }

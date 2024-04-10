@@ -7,7 +7,9 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
@@ -373,7 +375,12 @@ public class TimeUtils {
             return false;
         }
     }
-
+    public static boolean timeCompare(String startTime,String endTime){
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
+        LocalTime localStartTime = LocalTime.parse(startTime,dtf);
+        LocalTime localEndTime = LocalTime.parse(endTime,dtf);
+        return LocalTime.now().isAfter(localStartTime) && LocalTime.now().isBefore(localEndTime);
+    }
     //7883
     public static void main(String[] args) {
         System.out.println(getRemainSecondsOneDay(new Date()));

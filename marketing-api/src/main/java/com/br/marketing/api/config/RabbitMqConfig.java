@@ -48,9 +48,8 @@ public class RabbitMqConfig {
     }
 
     /**
-     * marketing 营销平台接受预处理人员队列
-     *
-     * @return
+     * marketing 原始上传数据大队列
+     * @return Queue
      */
     @Bean(name = MQConstants.MARKETING_PRE_USER_RECEIVE)
     public Queue preUserQueue() {
@@ -58,13 +57,54 @@ public class RabbitMqConfig {
     }
 
     /**
-     * 绑定——营销平台接受预处理人员队列
-     *
-     * @return
+     * 绑定原始上传数据大队列
+     * @return Binding
      */
     @Bean
     public Binding preUserBinding() {
         return BindingBuilder.bind(preUserQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE);
+    }
+
+    /**
+     * marketing 原始上传数据小队列
+     * @return Queue
+     */
+    @Bean(name = MQConstants.MARKETING_PREUSER_RECEIVE_SMALL)
+    public Queue preUserQueueSmall() {
+        Map<String, Object> args = new HashMap<>();
+        // 设置队列的最大优先级为10
+        args.put("x-max-priority", 10);
+        return new Queue(MQConstants.MARKETING_PREUSER_RECEIVE_SMALL, true, false, false, args);
+    }
+
+    /**
+     * 绑定原始上传数据小队列
+     * @return Binding
+     */
+    @Bean
+    public Binding preUserSmallBinding() {
+        return BindingBuilder.bind(preUserQueueSmall()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PREUSER_RECEIVE_SMALL);
+    }
+
+    /**
+     * marketing 原始上传数据应急队列
+     * @return Queue
+     */
+    @Bean(name = MQConstants.MARKETING_PREUSER_RECEIVE_EMERGENCY)
+    public Queue preUserQueueEmergency() {
+        Map<String, Object> args = new HashMap<>();
+        // 设置队列的最大优先级为10
+        args.put("x-max-priority", 10);
+        return new Queue(MQConstants.MARKETING_PREUSER_RECEIVE_EMERGENCY, true, false, false, args);
+    }
+
+    /**
+     * 绑定原始上传数据应急队列
+     * @return Binding
+     */
+    @Bean
+    public Binding preUserEmergencyBinding() {
+        return BindingBuilder.bind(preUserQueueEmergency()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_PREUSER_RECEIVE_EMERGENCY);
     }
 
     /**
@@ -88,9 +128,8 @@ public class RabbitMqConfig {
     }
 
     /**
-     * marketing 转化数据队列
-     *
-     * @return
+     * marketing 原始转化数据大队列
+     * @return Queue
      */
     @Bean(name = MQConstants.MARKETING_TRANSFER_RECEIVE)
     public Queue transferQueue() {
@@ -98,13 +137,54 @@ public class RabbitMqConfig {
     }
 
     /**
-     * 绑定——转化数据队列
-     *
-     * @return
+     * 绑定原始转化数据大队列
+     * @return Binding
      */
     @Bean
     public Binding transferBinding() {
         return BindingBuilder.bind(transferQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE);
+    }
+
+    /**
+     * marketing 原始转化数据小队列
+     * @return Queue
+     */
+    @Bean(name = MQConstants.MARKETING_TRANSFER_RECEIVE_SMALL)
+    public Queue transferQueueSmall() {
+        Map<String, Object> args = new HashMap<>();
+        // 设置队列的最大优先级为10
+        args.put("x-max-priority", 10);
+        return new Queue(MQConstants.MARKETING_TRANSFER_RECEIVE_SMALL, true, false, false, args);
+    }
+
+    /**
+     * 绑定原始转化数据小队列
+     * @return Binding
+     */
+    @Bean
+    public Binding transferSmallBinding() {
+        return BindingBuilder.bind(transferQueueSmall()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_SMALL);
+    }
+
+    /**
+     * marketing 原始转化数据应急队列
+     * @return Queue
+     */
+    @Bean(name = MQConstants.MARKETING_TRANSFER_RECEIVE_EMERGENCY)
+    public Queue transferQueueEmergency() {
+        Map<String, Object> args = new HashMap<>();
+        // 设置队列的最大优先级为10
+        args.put("x-max-priority", 10);
+        return new Queue(MQConstants.MARKETING_TRANSFER_RECEIVE_EMERGENCY, true, false, false, args);
+    }
+
+    /**
+     * 绑定原始转化数据应急队列
+     * @return Binding
+     */
+    @Bean
+    public Binding transferEmergencyBinding() {
+        return BindingBuilder.bind(transferQueueEmergency()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_EMERGENCY);
     }
 
     /**
@@ -125,6 +205,106 @@ public class RabbitMqConfig {
     @Bean
     public Binding transferPushCustomerBinding() {
         return BindingBuilder.bind(transferPushCustomerQueue()).to(gateExchange()).with(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER);
+    }
+
+    /**
+     * 上传接口接收场景字典收集队列
+     *
+     * @return Queue 持久化队列
+     */
+    @Bean(name = MQConstants.MARKETING_UPLOAD_API_USERTYPE_COLLECTION)
+    public Queue uploadUsertypeCollectionQueue() {
+        return QueueBuilder.durable(MQConstants.MARKETING_UPLOAD_API_USERTYPE_COLLECTION).build();
+    }
+
+    /**
+     * 上传接口接收场景字典收集队列绑定普通交换机
+     *
+     * @param delayQueue   场景字典收集队列
+     * @param gateExchange 主题交换机
+     * @return Queue 持久化队列
+     */
+    @Bean
+    public Binding uploadUsertypeCollectionQueueBindingGateExchange(
+            @Qualifier(MQConstants.MARKETING_UPLOAD_API_USERTYPE_COLLECTION) Queue delayQueue
+            , @Qualifier(MQConstants.MARKETINGEXCHANGER_NAME) TopicExchange gateExchange) {
+        return BindingBuilder.bind(delayQueue).to(gateExchange).with(
+                MQConstants.BINDING_KEY_MARKETING_UPLOAD_API_COLLECTION_FRAGMENTS);
+    }
+
+    /**
+     * 转化接口接收场景字典收集队列
+     *
+     * @return Queue 持久化队列
+     */
+    @Bean(name = MQConstants.MARKETING_TRANSFER_API_USERTYPE_COLLECTION)
+    public Queue transferUsertypeCollectionQueue() {
+        return QueueBuilder.durable(MQConstants.MARKETING_TRANSFER_API_USERTYPE_COLLECTION).build();
+    }
+
+    /**
+     * 转化接口接收场景字典收集队列绑定普通交换机
+     *
+     * @param delayQueue   场景字典收集队列
+     * @param gateExchange 主题交换机
+     * @return Queue 持久化队列
+     */
+    @Bean
+    public Binding transferUsertypeCollectionQueueBindingGateExchange(
+            @Qualifier(MQConstants.MARKETING_TRANSFER_API_USERTYPE_COLLECTION) Queue delayQueue
+            , @Qualifier(MQConstants.MARKETINGEXCHANGER_NAME) TopicExchange gateExchange) {
+        return BindingBuilder.bind(delayQueue).to(gateExchange).with(
+                MQConstants.BINDING_KEY_MARKETING_TRANSFER_API_COLLECTION_FRAGMENTS);
+    }
+
+    /**
+     * 上传接口接收数据量级碎片队列
+     *
+     * @return 持久化队列
+     */
+    @Bean(name = MQConstants.MARKETING_UPLOAD_API_DATA_COUNT_FRAGMENTS)
+    public Queue uploadDataCountFragmentsQueue() {
+        return QueueBuilder.durable(MQConstants.MARKETING_UPLOAD_API_DATA_COUNT_FRAGMENTS).build();
+    }
+
+    /**
+     * 上传接口接收数据量级碎片队列绑定普通交换机
+     *
+     * @param delayQueue   数据量级碎片队列
+     * @param gateExchange 普通交换机
+     * @return 绑定关系
+     */
+    @Bean
+    public Binding uploadDataCountFragmentsQueueBindingGateExchange(
+            @Qualifier(MQConstants.MARKETING_UPLOAD_API_DATA_COUNT_FRAGMENTS) Queue delayQueue
+            , @Qualifier(MQConstants.MARKETINGEXCHANGER_NAME) TopicExchange gateExchange) {
+        return BindingBuilder.bind(delayQueue).to(gateExchange).with(
+                MQConstants.BINDING_KEY_MARKETING_UPLOAD_API_COLLECTION_FRAGMENTS);
+    }
+
+    /**
+     * 转化接口接收数据量级碎片队列
+     *
+     * @return 持久化队列
+     */
+    @Bean(name = MQConstants.MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS)
+    public Queue transferDataCountFragmentsQueue() {
+        return QueueBuilder.durable(MQConstants.MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS).build();
+    }
+
+    /**
+     * 转化接口接收数据量级碎片队列绑定普通交换机
+     *
+     * @param delayQueue   数据量级碎片队列
+     * @param gateExchange 普通交换机
+     * @return 绑定关系
+     */
+    @Bean
+    public Binding transferDataCountFragmentsQueueBindingGateExchange(
+            @Qualifier(MQConstants.MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS) Queue delayQueue
+            , @Qualifier(MQConstants.MARKETINGEXCHANGER_NAME) TopicExchange gateExchange) {
+        return BindingBuilder.bind(delayQueue).to(gateExchange).with(
+                MQConstants.BINDING_KEY_MARKETING_TRANSFER_API_COLLECTION_FRAGMENTS);
     }
 
     @Bean

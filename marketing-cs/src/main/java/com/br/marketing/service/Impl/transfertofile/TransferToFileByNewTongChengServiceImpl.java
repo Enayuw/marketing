@@ -177,7 +177,7 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
         LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
         LocalDate startDate = localDate.minusDays(31);
         LocalDate endDate = localDate;
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
         String appletDate = localDate.minusDays(1).toString();
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50, 1);
         List<MarketingDataValidConfig> validityDataByApiCode = marketingDataValidConfigMapper.getValidityDataByApiCode(apiCode, appletDate);

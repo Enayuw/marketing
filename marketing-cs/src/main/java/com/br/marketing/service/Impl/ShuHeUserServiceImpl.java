@@ -270,13 +270,18 @@ public class ShuHeUserServiceImpl {
         caseShuheUser.setReserveField2(requestId);
         transferSyncUser.setRequestId(requestId);
         // 5、数据落前置库
-        if(createTime!=null){
+        if (createTime != null) {
             caseShuheUser.setCreateTime(createTime);
         }
         caseShuheUserMapper.insertSelective(caseShuheUser);
         // 6、转化信息入转化标准库
-        Long id = saveTransferNew(apiCode, caseShuheUser, transferSyncUser,createTime);
-        res.put("transferInfoId",id);
+        Long id = saveTransferNew(apiCode, caseShuheUser, transferSyncUser, createTime);
+        res.put("transferInfoId", id);
+        res.put("userType", transferSyncUser.getUserType());
+        res.put("id", transferSyncUser.getId());
+        res.put("cid", transferSyncUser.getCid());
+        res.put("createTime", transferSyncUser.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         return res;
     }
 
@@ -346,7 +351,7 @@ public class ShuHeUserServiceImpl {
 
     void sendAlarmMgs(String title, String error, AlarmApiClient alarmClient) {
         try {
-            alarmClient.sendAlarm(error, title, AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());
+            alarmClient.sendAlarm(error, title, AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode());
         } catch (Exception ignored) {
 
         }

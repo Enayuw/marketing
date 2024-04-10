@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XieChengCollidingDataLogArchiveMapper" >
+    <insert id="saveBatch" parameterType="list">
+        insert into b_xiecheng_colliding_data_log_archive (
+            sms_colliding_data_id,
+            package_id,
+            data_source_type,
+            cell_sha256_code_list,
+            release_time,
+            org_channel,
+            mkt_level,
+            info,
+            result,
+            http_code,
+            business_code,
+            return_content,
+            is_delete,
+            create_time,
+            update_time)
+        values
+        <foreach collection="list" item="data" separator=",">
+            (#{data.smsCollidingDataId,jdbcType=BIGINT},
+            #{data.packageId,jdbcType=BIGINT},
+            #{data.dataSourceType,jdbcType=VARCHAR},
+            #{data.cellSha256CodeList,jdbcType=VARCHAR},
+            #{data.releaseTime,jdbcType=VARCHAR},
+            #{data.orgChannel,jdbcType=VARCHAR},
+            #{data.mktLevel,jdbcType=VARCHAR},
+            #{data.info,jdbcType=VARCHAR},
+            #{data.result,jdbcType=BIT},
+            #{data.httpCode,jdbcType=INTEGER},
+            #{data.businessCode,jdbcType=INTEGER},
+            #{data.returnContent,jdbcType=VARCHAR},
+            #{data.isDelete,jdbcType=INTEGER},
+            #{data.createTime,jdbcType=TIMESTAMP},
+            #{data.updateTime,jdbcType=TIMESTAMP}
+            )
+        </foreach>
+    </insert>
+</mapper>

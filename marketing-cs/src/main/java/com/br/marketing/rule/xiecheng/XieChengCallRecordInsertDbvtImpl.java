@@ -28,6 +28,7 @@ import java.util.*;
 
 /**
  * 通话明细推送携程(3710090/3710091)
+ *
  * @author chenh
  * @dateTime 2023/09/15 16:50
  */
@@ -42,6 +43,9 @@ public class XieChengCallRecordInsertDbvtImpl implements AssembleData<XieChengDa
     MarketingCommonConfig marketingCommonConfig;
     @Resource
     private XieChengJudgeConvTypeService xieChengJudgeConvTypeService;
+
+    private List<Integer> callStatusFail = Arrays.asList(13, 15);
+
 
     @Override
     public XieChengDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -109,6 +113,10 @@ public class XieChengCallRecordInsertDbvtImpl implements AssembleData<XieChengDa
         Integer isDelay = mqFact.getIsDelay();
         if (transmitFact instanceof CallRecordBO) {
             CallRecordBO bo = (CallRecordBO) transmitFact;
+            if (bo.getDetail() != null && callStatusFail.contains(bo.getDetail().getCallStatus())) {
+                keepRecord(bo, String.format("CallStatus状态是：%d", bo.getDetail().getCallStatus()));
+                return false;
+            }
             // 是延迟队列且没有106：剔除
             if (isDelay != null && isDelay == 1) {
                 List<XieChengJudgeConvTypeValue> xieChengJudgeConvType = xieChengJudgeConvTypeService.getJudgeConvType(context.getApiCode(),
@@ -123,7 +131,7 @@ public class XieChengCallRecordInsertDbvtImpl implements AssembleData<XieChengDa
                 if (!hasApplySuccess) {
                     log.warn("携程通话明细数据推送客户接口，有效期内命中convType110且一小时内没有命中106，该数据不推送客户接口。custNum：{}", bo.getCaseNum());
                     // 剔除数据也记录到表：b_xiecheng_data
-                    keepRecord(bo);
+                    keepRecord(bo, "有效期内命中convType110且一小时内没有命中106");
                     return false;
                 }
             }
@@ -133,7 +141,7 @@ public class XieChengCallRecordInsertDbvtImpl implements AssembleData<XieChengDa
         return false;
     }
 
-    private void keepRecord(CallRecordBO bo) {
+    private void keepRecord(CallRecordBO bo, String errorMsg) {
         XieChengData xieChengData = new XieChengData();
         xieChengData.setApiCode(bo.getApiCode());
         xieChengData.setActionType("IVR");
@@ -145,7 +153,7 @@ public class XieChengCallRecordInsertDbvtImpl implements AssembleData<XieChengDa
         xieChengData.setPushStatus(1);
         xieChengData.setType("1");
 
-        xieChengData.setDataMessage("有效期内命中convType110且一小时内没有命中106");
+        xieChengData.setDataMessage(errorMsg);
         xieChengData.setStatus(2);
         xieChengDataMapper.insertSelective(xieChengData);
     }

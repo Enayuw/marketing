@@ -1,9 +1,12 @@
 package com.br.marketing.webhook.dingding.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.webhook.dingding.msgtype.AbstractRobotSendRequest;
+import com.br.marketing.webhook.dingding.msgtype.At;
+import com.br.marketing.webhook.dingding.msgtype.DingDingTextMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
@@ -20,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 钉钉自定义机器人发送消息
@@ -127,5 +131,31 @@ public class DingDingRobotHookServiceImpl implements DingDingRobotHookService {
             return;
         }
         apiResult.success(response.get("content"), ServiceResultEnum.SUCCESS);
+    }
+
+
+    /**
+     * 2024-03-05 17:47
+     * 发送钉钉文本消息
+     * @param content 消息内容
+     * @param sendMgsInfoMap speed配置见：dingDingWebHookInfo
+     */
+    @Override
+    public void sendDingDingTextMessage(String content, Map<String, Object> sendMgsInfoMap) {
+        DingDingTextMessage dingDingTextMessage = new DingDingTextMessage();
+        DingDingTextMessage.Text text = new DingDingTextMessage.Text();
+        dingDingTextMessage.setText(text);
+        JSONArray ats = (JSONArray) sendMgsInfoMap.get("at");
+        if (ats != null) {
+            At at = new At();
+            at.setAtMobiles(ats.toJavaList(String.class));
+            dingDingTextMessage.setAt(at);
+        }
+        text.setContent(content);
+        log.warn(dingDingTextMessage.toString());
+        // 发送实时消息
+        sendMessageGroup(sendMgsInfoMap.get("token").toString()
+                , sendMgsInfoMap.get("secret").toString()
+                , dingDingTextMessage);
     }
 }

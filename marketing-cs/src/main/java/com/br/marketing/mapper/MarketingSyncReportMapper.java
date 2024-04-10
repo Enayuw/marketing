@@ -16,14 +16,15 @@ public interface MarketingSyncReportMapper {
     int uploadSyncCounttiflash_(@Param("apiCode") String apiCode, @Param("userType") String userType,
                         @Param("uploadDate") String uploadDate, @Param("status") Integer status);
 
-    String uploadSyncMinAppletTime(@Param("apiCode") String apiCode, @Param("userType") String userType,
-                                   @Param("uploadDate") String uploadDate);
+    String uploadSyncMinAppletTimetiflash_(@Param("apiCode") String apiCode, @Param("userType") String userType,
+                                           @Param("uploadDate") String uploadDate);
 
-    String uploadSyncMaxAppletTime(@Param("apiCode") String apiCode, @Param("userType") String userType,
-                                   @Param("uploadDate") String uploadDate);
+    String uploadSyncMaxAppletTimetiflash_(@Param("apiCode") String apiCode, @Param("userType") String userType,
+                                           @Param("uploadDate") String uploadDate);
 
-    List<String> getAppletDatetikv_(@Param("apiCode") String apiCode, @Param("userType") String userType,
-                                   @Param("startDate") String startDate,@Param("endDate") String endDate);
+    List<String> getAppletDate(@Param("apiCode") String apiCode, @Param("userType") String userType,
+                               @Param("startDate") String startDate, @Param("endDate") String endDate,
+                               @Param("appletDateStart") String appletDateStart);
 
     @AddDataAuth
     List<MarketingSyncReportVO> selectList(Map<String, Object> params);
@@ -74,12 +75,22 @@ public interface MarketingSyncReportMapper {
      * @param appletDate
      * @return
      */
-    MarketingDataValidConfig selectValidData(@Param("apiCode")String apiCode ,@Param("userType")String userType ,@Param("appletDate")String appletDate);
+    MarketingDataValidConfig selectValidData(@Param("apiCode") String apiCode, @Param("userType") String userType, @Param("appletDate") String appletDate);
 
     /**
      * 修改有效期记录数据
+     *
      * @param config
      * @return
      */
-    Integer updateById(@Param("config")MarketingDataValidConfig config);
+    Integer updateById(@Param("config") MarketingDataValidConfig config);
+
+    /**
+     * 2024-03-08 9:29
+     * 获取数据量级
+     *
+     * @param example 条件
+     * @return list
+     */
+    List<MarketingSyncReport> selectNumberByExample(MarketingSyncReportExample example);
 }

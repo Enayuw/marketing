@@ -1,6 +1,8 @@
 package com.br.marketing.client.didi;
 
 import com.alibaba.fastjson.JSON;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.didi.input.*;
 import com.br.marketing.client.didi.output.DiDiFailUserVO;
@@ -75,6 +77,7 @@ public class DiDiClient {
      *
      * @return
      */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<DiDiResponseTO> pushSmsTrafficAccess(DiDiReqVO smsReqVO) {
 
 //        if("4422e2da50db10f8375baf36b19c4113".equals(smsReqVO.getCustMobileMd5())||"a9cd0a1156768417143d154c2f181c06".equals(smsReqVO.getCustMobileMd5())){
@@ -214,6 +217,7 @@ public class DiDiClient {
      * @param diDiReachBO 业务封装
      * @return DiDiResponseTO
      */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<DiDiResponseTO> pushReachSuccess(DiDiReachBO diDiReachBO) {
         Result<DiDiResponseTO> result = new Result<>();
         try {
@@ -283,6 +287,7 @@ public class DiDiClient {
      *
      * @return
      */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d,0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<DiDiJMassResponseTO> pushJMASS(DiDiReqVO smsReqVO) {
         try {
             String url = jmassSUrl.replace("mediaName", smsReqVO.getMediaName());
@@ -363,8 +368,7 @@ public class DiDiClient {
 //    }
 
 
-
-
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<DiDiFailUserVO> failUser(DiDiReqVO smsReqVO) {
         try {
             // 获取是否记录日志

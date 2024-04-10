@@ -4,6 +4,8 @@ import cn.hutool.core.thread.ThreadUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.xiecheng.intput.AdReqDTO;
 import com.br.marketing.common.annoation.RetryMethod;
@@ -160,6 +162,7 @@ public class XieChengService {
 
 
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result pushXieChengData(AdReqDTO xieChengData) {
 
         /**
@@ -235,6 +238,7 @@ public class XieChengService {
      * desc：携程短信退订接口
      */
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result sendSmsQuitData(SmsQuitReq smsQuitReq) {
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         Map<String,String> config = marketingCommonConfig.getXieChengSmsQuitConfig().get(smsQuitReq.getApiCode());
@@ -287,11 +291,16 @@ public class XieChengService {
         retMap.put("channel", smsCollidingChannel);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingKey, smsCollidingIv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingSingKey));
-//        HashMap<String, String> resMap = getTestMap(sha256CodeList);
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
+        HashMap<String, String> resMap = new HashMap<>();
+        if(marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(0)){
+         resMap = getTestMap(sha256CodeList);
+        }else {
+          resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy,
+                    MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
+        }
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.error("携程短信撞库接口httpcode非200异常，重试");
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            log.error("携程短信撞库接口httpcode非200异常");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("{'msg':'httpCode非200'}");
         }
         String content = resMap.get("content");
         JSONObject resultJson = JSONObject.parseObject(content);
@@ -299,7 +308,7 @@ public class XieChengService {
         if (code == 0) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
         } else {
-            log.error("携程短信撞库接口请求返回code 非0异常，无重试，需要是手动处理。");
+            log.error("携程短信撞库接口请求返回code 非0异常");
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
         }
 
@@ -312,6 +321,7 @@ public class XieChengService {
      * @return
      */
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<String> pushXieChengSmsCollidingDataVt(List<String> sha256CodeList) {
         /*
           data 组装
@@ -353,8 +363,14 @@ public class XieChengService {
 
     private HashMap<String,String> getTestMap(List<String> sha256CodeList){
         JSONObject map = new JSONObject();
-        map.put("code",0);
-        map.put("msg","success");
+        if(marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(2)){
+            map.put("code",9999);
+            map.put("msg","测试挡板非0异常");
+        }else {
+            map.put("code",0);
+            map.put("msg","success");
+        }
+
         JSONArray jsonArray = new JSONArray();
         for(int i=0;i<sha256CodeList.size();i++){
             JSONObject dataMap = new JSONObject();
@@ -372,7 +388,12 @@ public class XieChengService {
         }
         map.put("data",jsonArray);
         HashMap<String, String> resMap = new HashMap<>();
-        resMap.put("httpcode","200");
+        if(marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(1)){
+            resMap.put("httpcode","201");
+        }else {
+            resMap.put("httpcode","200");
+        }
+
         resMap.put("content",map.toString());
         return resMap;
 
