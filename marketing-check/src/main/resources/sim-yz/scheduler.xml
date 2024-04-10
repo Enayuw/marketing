@@ -968,7 +968,7 @@
 
     <job:simple id="CustomerPushStatusQueryJob"
                 class="com.br.marketing.check.job.ruletopolicy.CustomerPushStatusQueryJob"
-                cron="0 0/5 * * * ? "
+                cron="0 0/1 * * * ? "
                 description="规则中心推送决策结果查询"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
