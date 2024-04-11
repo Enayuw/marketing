@@ -46,24 +46,35 @@ public class CustomerPushStatusQueryJob extends AbstractSimpleElasticJob {
         String keyPrefix = RedisKeyConstant.CUSTOMER_PUSH_STATUS_QUERY_LOCK;
 
         CustomerInfoPushMainExample example = new CustomerInfoPushMainExample();
+        example.setOrderByClause("id limit 2000");
+        Long id = 0L;
         example.createCriteria().andMStatusEqualTo(status);
-        List<CustomerInfoPushMain> customerInfoPushMains = customerInfoPushMainMapper.selectByExample(example);
-        if (customerInfoPushMains == null || customerInfoPushMains.size() < 1) {
-            log.info(TITLE + "无待确认数据");
-            return;
-        }
-        for (CustomerInfoPushMain customerInfoPushMain : customerInfoPushMains) {
-            Long mainId = customerInfoPushMain.getId();
-            String key = keyPrefix.concat(String.format(":%s", mainId));
-            log.info(TITLE + "key: {}", key);
-            UUID uuid = UUID.randomUUID();
-            try {
-                redisChgService.lock(key, uuid.toString(), 600000L);
-                pushRuleService.getCustomerStatus(customerInfoPushMain);
-                redisChgService.unlock(key, uuid.toString());
-            } catch (Exception e) {
-                redisChgService.unlock(key, uuid.toString());
-                log.warn(TITLE + "processToBeConfirmList error", e);
+        for(;;) {
+            example.createCriteria().andIdGreaterThan(id);
+            List<CustomerInfoPushMain> customerInfoPushMains = customerInfoPushMainMapper.selectByExample(example);
+            if (customerInfoPushMains == null || customerInfoPushMains.size() < 1) {
+                break;
+            }
+            CustomerInfoPushMain last = customerInfoPushMains.get(customerInfoPushMains.size() - 1);
+            id = last.getId();
+            for (CustomerInfoPushMain customerInfoPushMain : customerInfoPushMains) {
+                Long mainId = customerInfoPushMain.getId();
+                String key = keyPrefix.concat(String.format(":%s", mainId));
+                log.info(TITLE + "key: {}", key);
+                String lockValue = UUID.randomUUID().toString();
+                try {
+                    boolean acquire = redisChgService.lock(key, lockValue, 600000L);
+                    if (!acquire) {
+                        log.warn(TITLE + "processToBeConfirmedList获取锁失败, {}", mainId);
+                        return;
+                    }
+                    log.warn(TITLE + "processToBeConfirmedList获取锁成功, {}", mainId);
+                    pushRuleService.getCustomerStatus(customerInfoPushMain);
+                    redisChgService.unlock(key, lockValue);
+                } catch (Exception e) {
+                    redisChgService.unlock(key, lockValue);
+                    log.warn(TITLE + "processToBeConfirmedList error", e);
+                }
             }
         }
     }
