@@ -21,6 +21,8 @@ import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.ResponseCustomDTO;
+import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
+import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.dto.shuhe.Response2ShuheDTO;
 import com.br.marketing.dto.shuhe.ResponseShuheDTO;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
@@ -221,7 +223,27 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 .concat("@" + System.currentTimeMillis()).concat("#" + random.nextInt(10000)));
         Map res = null;
         try {
-            res = shuHeUserService.saveShTransferData(apiCode, jsonData, requestId, responseShuheDTO,null);
+            res = shuHeUserService.saveShTransferData(apiCode, jsonData, requestId, responseShuheDTO, null);
+            Set<String> startsWith = marketingCommonConfig.getUserTypeAndSumRealtimeApiCodeStartsWith();
+            Object userType = res.get("userType");
+            Object id = res.get("id");
+            if (userType != null && StringUtils.hasText(userType.toString()) && id != null
+                    && Long.parseLong(id.toString()) > 0 && startsWith.stream().anyMatch(apiCode::startsWith)) {
+                try {
+                    ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
+                    dataInfoDTO.setApiCode(apiCode);
+                    dataInfoDTO.setCid(res.get("cid").toString());
+                    dataInfoDTO.setRawDataSaveTimeStr(res.get("createTime").toString());
+                    dataInfoDTO.setArgList(Collections.singletonList(new UserTypeCollectionDTO(userType.toString())));
+                    dataInfoDTO.setRequestId(requestId);
+                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS
+                            , JSONObject.toJSONString(dataInfoDTO.addTransferMsgSource()));
+                } catch (Exception e) {
+                    log.error("数禾转化定制接口推送场景信息到队列失败,发送队列"
+                            + MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS + ",消息内容:" + msg
+                            + "\n" + e.getMessage(), e);
+                }
+            }
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);
             ProductPulsarProducer producer = null;

@@ -1221,12 +1221,13 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         Map<String, SyncUserValidityPeriodsBO> resultMap = new ConcurrentHashMap<>(2048);
         //统一时间格式
         final String requestDateStr = switchDateStr(requestDateObj);
-        //获取有效期配置不分页
+        //获取有效期配置不分页  apiCode + bizDate + userType
         List<MarketingDataValidConfig> configList = getDataValidConfig(apiCode, requestDateStr, Sets.newHashSet(userType), null, null);
         if (CollectionUtil.isEmpty(configList)) {
             return resultMap;
         }
         //包含请求日期的T,T （范围）模式的配置记录不为空则查询所有符合的上传数据
+        // apiCode + cellSet + (applet_date, user_type)
         List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserByCellAndAppletDateList(apiCode, configList, cellSet);
         //根据自定义Key组装有效期数据
         buildValidityPeriodsInfoByKeyMapper(MarketingSyncUser::getCell, syncUserList, configList, resultMap);
@@ -1237,10 +1238,13 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
                                                      List<MarketingSyncUser> syncUserList,
                                                      List<MarketingDataValidConfig> configList,
                                                      Map<String, SyncUserValidityPeriodsBO> resultMap) {
+        // key: cell, value: List<MarketingSyncUser>>
         Map<String, List<MarketingSyncUser>> custNumMap = syncUserList.stream().collect(Collectors.groupingBy(keyMapper));
+        // key: UserType + appletDate, value: MarketingDataValidConfig
         Map<String, MarketingDataValidConfig> configMap =
                 configList.stream().collect(Collectors.toMap(config -> config.getUserType() + config.getAppletDate(), Function.identity(),
                         BinaryOperator.maxBy(Comparator.comparing(c -> c.getUpdateTime() == null ? c.getCreateTime() : c.getUpdateTime()))));
+        // key: cell, value: SyncUserValidityPeriodsBO
         custNumMap.forEach((key, value) -> resultMap.put(key, buildSyncUserValidityPeriodsBO(value, configMap)));
     }
 

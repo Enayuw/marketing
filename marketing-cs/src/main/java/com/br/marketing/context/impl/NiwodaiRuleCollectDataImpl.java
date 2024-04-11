@@ -1,6 +1,6 @@
 package com.br.marketing.context.impl;
 
-import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.RuleNecessaryData;
@@ -30,7 +30,7 @@ public class NiwodaiRuleCollectDataImpl extends CommonMethodHandlerService {
             NiwodaiRuleNecessaryData data = new NiwodaiRuleNecessaryData();
             context.setRuleNecessaryData(data);
             List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
-            Map<String, SyncUserValidityPeriodBO> boMap = customerSyncUserValidityPeriod(transferList, context.getApiCode());
+            Map<String, SyncUserValidityPeriodsBO> boMap = newCustomerSyncUserValidityPeriod(transferList, context.getApiCode());
             data.setSyncUserValidityPeriodMap(boMap);
         }
     }
@@ -50,7 +50,7 @@ public class NiwodaiRuleCollectDataImpl extends CommonMethodHandlerService {
         private String inversionStatus;
 
 
-        private Map<String, SyncUserValidityPeriodBO> syncUserValidityPeriodMap;
+        private Map<String, SyncUserValidityPeriodsBO> syncUserValidityPeriodMap;
 
     }
 

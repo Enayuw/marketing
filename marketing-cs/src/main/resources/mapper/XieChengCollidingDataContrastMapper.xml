@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XieChengCollidingDataContrastMapper" >
+    <select id="selectDeleteData" resultType="com.br.marketing.entity.XieChengCollidingDataContrast">
+        select
+            id
+        from b_xiecheng_colliding_data_contrast
+        where is_delete = 1
+            <![CDATA[ and update_time < #{startTime}]]>
+        order by update_time asc limit #{size};
+    </select>
+
+    <delete id="deleteByIdList">
+        delete from b_xiecheng_colliding_data_contrast
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="temporaryCelltiflash_" resultType="com.br.marketing.entity.XieChengCollidingDataTemp">
+        select a.*  from  ${tableName} a left join b_xiecheng_colliding_data_contrast b
+                         on a.cell  = b.cell_sha256_code_list and b.is_delete = 0 where ${filterScore}
+                                                                                     and b.id is null
+        limit #{xieChengCleanLimitCount}
+    </select>
+    <select id="temporaryCellCountRepeattiflash_" resultType="java.util.HashMap">
+        select cell ,rn   from (
+                                   select cell ,row_number() over(partition by cell ) as rn from ${tableName}
+                               ) a  where a.rn >1
+    </select>
+
+    <select id="loopCycleCelltiflash_" resultType="java.lang.Long">
+        select a.id  from  b_xiecheng_colliding_data_loop_cycle a left join b_xiecheng_colliding_data_contrast b
+                    on a.cell_sha256_code_list  = b.cell_sha256_code_list and b.is_delete = 0 and b.local_id is null
+                   where   b.id is null and a.is_delete =0    limit #{xieChengCleanCount}
+    </select>
+    <select id="loopCycleCellExisttiflash_" resultType="java.lang.Long">
+        select  a.id from  b_xiecheng_colliding_data_rob a  join b_xiecheng_colliding_data_loop_cycle b
+                                                                          on a.cell_sha256_code_list  = b.cell_sha256_code_list and b.is_delete = 0
+        where a.is_delete =0 limit #{xieChengCleanCount}
+    </select>
+    <select id="contrastExistCelltiflash_" resultType="java.lang.Long">
+            select a.id from  b_xiecheng_colliding_data_contrast a   join b_xiecheng_colliding_data_rob b
+                                                                              on a.cell_sha256_code_list  = b.cell_sha256_code_list and b.is_delete = 0
+            where a.is_delete =0 limit #{xieChengCleanCount}
+    </select>
+
+    <select id="robCelltiflash_" resultType="com.br.marketing.entity.XieChengCollidingDataContrast">
+        select a.* from  b_xiecheng_colliding_data_contrast a left   join b_xiecheng_colliding_data_rob b
+                                                                        on a.cell_sha256_code_list  = b.cell_sha256_code_list and b.is_delete = 0
+        where a.is_delete =0 and b.id is null limit #{xieChengCleanCount}
+    </select>
+
+    <insert id="saveBatch" parameterType="list">
+        insert into b_xiecheng_colliding_data_contrast (rule_type_flag, cell_sha256_code_list,batch_number,package_id,
+        create_time,update_time,extend)values
+        <foreach collection="list" item="data" separator=",">
+            (#{data.ruleTypeFlag}, #{data.cellSha256CodeList,jdbcType=BIGINT},
+             #{data.batchNumber},#{data.packageId},
+            now(),now(),#{data.extend}
+            )
+        </foreach>
+    </insert>
+    <update id="updateBatchByIdToIsDeleted">
+        update b_xiecheng_colliding_data_contrast set is_delete = 1,update_time = now() where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+</mapper>

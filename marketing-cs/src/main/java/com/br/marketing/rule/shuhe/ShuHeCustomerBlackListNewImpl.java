@@ -71,7 +71,7 @@ public class ShuHeCustomerBlackListNewImpl implements AssembleData<BlackDetailDT
                 if (shuHeContext.isContinueJudgeRule()) {
                     String push = isPush(transfer);
                     log.warn("***数禾推客服黑名单V3，判断结果={}",push);
-                    if(!"".equals(push)){
+                    if (!"".equals(push) && shuHeContext.getNonBlackListCount() == 0) {
                         //推--》设为false
                         bool = Boolean.TRUE;
                         shuHeContext.setContinueJudgeRule(false);

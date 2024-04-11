@@ -60,6 +60,21 @@ public class RabbitMqProducter {
     }
 
     /**
+     * 发送mq信息(支持优先级)
+     * @param routeKey
+     * @param message
+     * @param priority 消息优先级
+     */
+    public void send(String routeKey,String message, Integer priority){
+        CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(),message);
+        rabbitTemplate.convertAndSend(exchange,routeKey,message,(Message arg0) -> {
+            arg0.getMessageProperties().setContentEncoding("UTF-8");
+            arg0.getMessageProperties().setPriority(priority);
+            return arg0;
+        },correlationData);
+    }
+
+    /**
      * 发送mq信息
      * @param routeKey
      * @param message

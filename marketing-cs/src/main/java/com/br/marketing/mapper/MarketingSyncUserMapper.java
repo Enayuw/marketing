@@ -304,4 +304,19 @@ public interface MarketingSyncUserMapper {
     List<MarketingSyncUser> getSyncUserByCustNumAndTaskIdsList(@Param("apiCode") String apiCode,
                                                                @Param("configList") List<MarketingCustomizeDataValidConfig> configList,
                                                                @Param("custNumSet") Set<String> custNumSet);
+
+
+    /**
+     * 2024-03-08 9:29
+     * 根据请求批次号获取批次号内的全部数据
+     *
+     * @param apiCode      code
+     * @param appletDate   上传时间
+     * @param requestBatch 请求批次号
+     * @param userTypeSet  场景集合
+     */
+    List<MarketingSyncUser> selectSyncUserByRequestBatchList(@Param("apiCode") String apiCode
+            , @Param("requestBatch") String requestBatch
+            , @Param("userTypeSet") Set<String> userTypeSet
+            , @Param("appletDate") String appletDate);
 }

@@ -20,6 +20,7 @@ import com.br.marketing.mapper.MarketingValidityChangeMapper;
 import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IPeriodOfValidityService;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.VariableDicService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CustomerSelectVO;
@@ -47,8 +48,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -92,8 +91,8 @@ public class VariableDicServiceImpl implements VariableDicService {
     @Resource
     private TransactionTemplate transactionTemplate;
 
-    private final static Lock LOCK = new ReentrantLock();
-
+    @Resource
+    private MarketingDataValidConfigDefaultMapper validConfigDefaultMapper;
 
     @Override
     public List<VariableDicSelectVO> findListByCidAndApiCode(String cid, String apiCode) {
@@ -190,7 +189,15 @@ public class VariableDicServiceImpl implements VariableDicService {
                 validityChangeMapper.updateMarketingDataValidConfigDefault(validConfigDefault);
                 entityOptService.writeOptLog(dataValidConfigDefault.getId(), validConfigDefault, dataValidConfigDefault);
             } else {
-                log.warn("该apiCode={} , userType={}维度不存在代运营默认有效期配置", apiCode, userType);
+                MarketingDataValidConfigDefault configDefault = new MarketingDataValidConfigDefault();
+                configDefault.setApiCode(apiCode);
+                configDefault.setUserType(userType);
+                configDefault.setValidDaysDefault(Integer.valueOf(vo.getValidDaysDefault()));
+                configDefault.setCreateTime(data.getCreateTime());
+                configDefault.setUpdateTime(new Date());
+                configDefault.setIsDel(1);
+                validConfigDefaultMapper.insertSelective(configDefault);
+                entityOptService.writeOptLog(configDefault.getId(), configDefault, null);
             }
 
         }
@@ -222,10 +229,9 @@ public class VariableDicServiceImpl implements VariableDicService {
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(false);
-        if (!StringUtils.hasText(msgStr)) {
+        if (StringUtils.isEmpty(msgStr)) {
             return result;
         }
-        LOCK.lock();
         try {
             ApiDataInfoDTO<UserTypeCollectionDTO> apiDataInfoDTO = JSONObject.parseObject(msgStr
                     , new TypeReference<ApiDataInfoDTO<UserTypeCollectionDTO>>() {
@@ -233,6 +239,10 @@ public class VariableDicServiceImpl implements VariableDicService {
             String apiCode = apiDataInfoDTO.getApiCode();
             if (StringUtils.isEmpty(apiCode)) {
                 log.error("未获取到apiCode，消息内容：{}", msgStr);
+                return result;
+            }
+            if (CollectionUtils.isEmpty(apiDataInfoDTO.getArgList())) {
+                log.warn("场景内容新增中，新增数量为0，消息内容：{}", msgStr);
                 return result;
             }
             String cId = StringUtils.hasText(apiDataInfoDTO.getCid()) ? apiDataInfoDTO.getCid()
@@ -265,7 +275,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                     if (isError) {
                         variableDicExample.setOrderByClause("id for update");
                     }
-                    transactionTemplate.execute((TransactionStatus status) -> {
+                    VariableDic dic = transactionTemplate.execute((TransactionStatus status) -> {
                         int count = variableDicMapper.countByExample(variableDicExample);
                         if (count < 1) {
                             LocalDateTime parseTime = LocalDateTime.parse(apiDataInfoDTO.getRawDataSaveTimeStr()
@@ -281,19 +291,21 @@ public class VariableDicServiceImpl implements VariableDicService {
                             variableDic.setCid(cId);
                             variableDic.setApiCode(apiCode);
                             variableDic.setFieldValueSource(apiDataInfoDTO.getMsgSource());
-                            int i = variableDicMapper.insertSelective(variableDic);
-                            if (i > 0) {
-                                // 发送告警通知
-                                sendUserTypeAddDingDingMgs(localDateTime, apiCode, userType);
-                            } else {
-                                log.error("自动化场景维护入库失败,cid:{},apiCode:{},userType:{},上传时间:{},数据来源:{}"
-                                        , cId, apiCode, userType, apiDataInfoDTO.getRawDataSaveTimeStr()
-                                        , apiDataInfoDTO.getMsgSource());
-                            }
+                            variableDicMapper.insertSelective(variableDic);
                             return variableDic;
                         }
                         return null;
                     });
+                    if (dic != null) {
+                        if (dic.getId() != null && dic.getId() > 0) {
+                            // 发送告警通知
+                            sendUserTypeAddDingDingMgs(localDateTime, apiCode, userType, String.valueOf(dic.getId()));
+                        } else {
+                            log.error("自动化场景维护入库失败,cid:{},apiCode:{},userType:{},上传时间:{},数据来源:{}"
+                                    , cId, apiCode, userType, apiDataInfoDTO.getRawDataSaveTimeStr()
+                                    , apiDataInfoDTO.getMsgSource());
+                        }
+                    }
                 }
                 // 生成有效期
                 createValidDateConfig(apiDataInfoDTO, apiDataInfoDTO.getRawDataSaveTimeStr(), collectionDTO, apiCode
@@ -301,9 +313,6 @@ public class VariableDicServiceImpl implements VariableDicService {
             }
         } catch (Exception e) {
             log.error(e.getMessage() + "\n" + msgStr, e);
-            result.setCode(ResultCode.FAIL.getValue());
-        } finally {
-            LOCK.unlock();
         }
         return result;
     }
@@ -316,12 +325,12 @@ public class VariableDicServiceImpl implements VariableDicService {
      * @param apiCode       客户编号
      * @param userType      场景
      */
-    private void sendUserTypeAddDingDingMgs(LocalDateTime localDateTime, String apiCode, String userType) {
+    private void sendUserTypeAddDingDingMgs(LocalDateTime localDateTime, String apiCode, String userType, String id) {
         try {
             Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
             Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.USERTYPE_ADD_SENDUSERTYPEADDDINGDINGMGS
                     .toString());
-            if (CollectionUtils.isEmpty(map)) {
+            if (CollectionUtils.isEmpty(map) || apiCode.startsWith("7")) {
                 return;
             }
             // 添加新增场景通知信息
@@ -346,6 +355,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                     ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate().plusDays(1)
                             .atTime(endParse).atZone(ZoneId.systemDefault()));
                 }
+                redisChgService.lock(key.concat(":lock"), id);
                 Boolean exists = redisChgService.exists(key);
                 if (!exists) {
                     // 不存在添加延迟队列
@@ -358,6 +368,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                     // 设置过期时间
                     redisChgService.expire(key, 3600 * 25);
                 }
+                redisChgService.unlock(key.concat(":lock"), id);
                 return;
             }
             // 当开始startTime在endTime之前时表示在startTime与endTime闭区间内实时发送，区间外定时发送
@@ -372,6 +383,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                         .isAfter(localTime) ? 0 : 1;
                 String key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:" + day + ":").concat(startParse.toString())
                         .concat(":").concat(localDateTime.toLocalDate().format(DateTimeFormatter.BASIC_ISO_DATE));
+                redisChgService.lock(key.concat(":lock"), id);
                 Boolean exists = redisChgService.exists(key);
                 if (!exists) {
                     // 不存在添加延迟队列
@@ -385,6 +397,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                     // 设置过期时间
                     redisChgService.expire(key, 3600 * 25);
                 }
+                redisChgService.unlock(key.concat(":lock"), id);
             }
         } catch (Exception e) {
             log.error(e.getMessage() + "\napiCode:" + apiCode + ";userType:" + userType, e);
@@ -405,7 +418,7 @@ public class VariableDicServiceImpl implements VariableDicService {
      */
     private void createValidDateConfig(ApiDataInfoDTO<UserTypeCollectionDTO> apiDataInfoDTO, String dateTimeStr
             , UserTypeCollectionDTO collectionDTO, String apiCode, String userType) {
-        if (apiDataInfoDTO.isUploadMsgSource() && collectionDTO.getStatus() == MonitorTypeEnum.STATUS_2.getTypeCode()) {
+        if (apiDataInfoDTO.uploadMsgSource() && collectionDTO.getStatus() == MonitorTypeEnum.STATUS_2.getTypeCode()) {
             return;
         }
         Set<String> apiCodes = marketingCommonConfig.getNonConfigValidDefaultApiCodes();
@@ -473,35 +486,41 @@ public class VariableDicServiceImpl implements VariableDicService {
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(false);
-        if (StringUtils.hasText(redisKey)) {
+        if (StringUtils.isEmpty(redisKey)) {
             return result;
         }
         Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
         Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.USERTYPE_ADD_SENDUSERTYPEADDDINGDINGMGS
                 .toString());
         if (CollectionUtils.isEmpty(map)) {
+            log.warn("场景告警redis主键：{}", redisKey);
             return result;
         }
-        Set<String> userTypeSet = redisChgService.smembers(redisKey);
-        if (CollectionUtils.isEmpty(userTypeSet)) {
-            return result;
-        }
-        String contentHeld = "apiCode  userType\n";
-        String content = "";
-        int count = 0;
-        for (String mgs : userTypeSet) {
-            count++;
-            content = content.concat(mgs).concat("\n");
-            if (count >= 100) {
-                count = 0;
+        try {
+            Set<String> userTypeSet = redisChgService.smembers(redisKey);
+            if (CollectionUtils.isEmpty(userTypeSet)) {
+                log.warn("场景告警redis主键{}中不存在内容！", redisKey);
+                return result;
+            }
+            String contentHeld = "apiCode  userType\n";
+            String content = "";
+            int count = 0;
+            for (String mgs : userTypeSet) {
+                count++;
+                content = content.concat(mgs).concat("\n");
+                if (count >= 100) {
+                    count = 0;
+                    sendDingDingTextMessage(contentHeld + content, map);
+                }
+            }
+            if (count > 0) {
                 sendDingDingTextMessage(contentHeld + content, map);
             }
+            // 清理
+            redisChgService.delBigSet(redisKey, 500);
+        } catch (Exception e) {
+            log.error(e.getMessage() + "\n" + redisKey, e);
         }
-        if (count > 0) {
-            sendDingDingTextMessage(contentHeld + content, map);
-        }
-        // 清理
-        redisChgService.delBigSet(redisKey, 500);
         return result;
     }
 
