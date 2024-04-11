@@ -719,8 +719,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
 
         //region push mq
-        producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY
-                , customerInfoPushMain.getId().toString());
+//        producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY
+//                , customerInfoPushMain.getId().toString());
         //endregion
 
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
