@@ -28,6 +28,12 @@
             <if test="cell != null">
                 cell,
             </if>
+            <if test="cellMd5 != null" >
+                cell_md5,
+            </if>
+            <if test="cellSha256 != null" >
+                cell_sha256,
+            </if>
             <if test="groupType != null">
                 group_type,
             </if>
@@ -92,6 +98,12 @@
             </if>
             <if test="cell != null">
                 #{cell,jdbcType=VARCHAR},
+            </if>
+            <if test="cellMd5 != null" >
+                #{cellMd5,jdbcType=VARCHAR},
+            </if>
+            <if test="cellSha256 != null" >
+                #{cellSha256,jdbcType=VARCHAR},
             </if>
             <if test="groupType != null">
                 #{groupType,jdbcType=VARCHAR},

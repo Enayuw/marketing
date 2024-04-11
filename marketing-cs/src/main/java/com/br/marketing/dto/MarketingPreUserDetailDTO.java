@@ -16,6 +16,10 @@ public class MarketingPreUserDetailDTO implements Serializable {
     @NotEmpty(message = "cell必传")
     private String cell;
 
+    private String cellMd5;
+
+    private String cellSha256;
+
     @ApiModelProperty(value = "身份证号")
     private String id;
 

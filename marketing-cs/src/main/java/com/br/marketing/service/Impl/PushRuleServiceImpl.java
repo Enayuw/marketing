@@ -2083,6 +2083,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (!userValidator.validatePhone(content)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_3.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
+            }else{
+
             }
             user.setCell(BrCipherMaker.getInstance().encode(content));
         }
