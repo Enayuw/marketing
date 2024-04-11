@@ -29,4 +29,42 @@
         </foreach>
         group by case_num having count(*)>0
     </select>
+
+    <select id="getCallRecordCounttikv_" resultType="java.lang.Integer">
+        select count(distinct a.case_num)
+        from b_call_record as a
+        left join b_xiecheng_data as b on a.case_num = b.sha256_tel
+        where <![CDATA[ a.create_time >=#{requestData} and a.create_time < #{endData} ]]>
+        and <![CDATA[ b.create_time >=#{requestData} and b.create_time < #{endData} ]]>
+        and b.push_status = 2 and b.status = 1
+        <if test="apiCode != null and apiCode!=''">
+            and b.api_code = #{apiCode}
+            and a.api_code = #{apiCode}
+        </if>
+        <if test="lineName != null and lineName!=''">
+            and (a.line_name != #{lineName} or a.line_name is null)
+        </if>
+    </select>
+
+    <select id="getOutboundCounttikv_" resultType="java.lang.Integer">
+        select count(distinct a.case_num)
+        from b_call_record as a
+        left join b_xiecheng_data as b on a.case_num = b.sha256_tel
+        left join b_marketing_transfer_sync_#{cid} as c on b.sha256_tel = c.cust_num
+        where <![CDATA[ a.create_time >=#{requestData} and a.create_time < #{endData} ]]>
+          and <![CDATA[ b.create_time >=#{requestData} and b.create_time < #{endData} ]]>
+          and b.push_status = 2 and b.status = 1
+          and c.request_data = #{requestData}
+        <if test="convType != null and convType!=''">
+            and c.reserve_field1 -> '$.convType'=#{convType}
+        </if>
+        <if test="lineName != null and lineName!=''">
+            and (a.line_name != #{lineName} or a.line_name is null)
+        </if>
+        <if test="apiCode != null and apiCode!=''">
+            and c.api_code = #{apiCode}
+            and b.api_code = #{apiCode}
+            and a.api_code = #{apiCode}
+        </if>
+    </select>
 </mapper>
