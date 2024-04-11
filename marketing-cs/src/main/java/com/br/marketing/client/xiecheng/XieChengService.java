@@ -1,6 +1,5 @@
 package com.br.marketing.client.xiecheng;
 
-import cn.hutool.core.thread.ThreadUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -11,19 +10,19 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.ThirdAdOuterReq;
-import com.br.marketing.entity.XieChengData;
 import com.br.marketing.entity.XieChengSmsCollidingReq;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.velocity.runtime.directive.Foreach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * 携程处理
@@ -176,6 +175,13 @@ public class XieChengService {
         String sKey = "1".equals(xieChengData.getConditionKey()) ? singKey : config.getString("singKey");
         String sourceVt = config.getString("source");
         if ("1".equals(xieChengData.getConditionKey())) {
+            try {
+                JSONObject extend = JSONObject.parseObject(xieChengData.getExtend());
+                source = extend.getString("source");
+            } catch (Exception e) {
+                log.error("携程广告上报接口，source字段解析异常",e);
+            }
+
             thirdAdOuterReq = new ThirdAdOuterReq(
                     timestemp,
                     source,
