@@ -177,7 +177,7 @@ public class XieChengService {
         if ("1".equals(xieChengData.getConditionKey())) {
             try {
                 JSONObject extend = JSONObject.parseObject(xieChengData.getExtend());
-                source = extend.getString("source");
+                source = StringUtils.isEmpty(extend.getString("source")) ? source : extend.getString("source");
             } catch (Exception e) {
                 log.error("携程广告上报接口，source字段解析异常", e);
             }
