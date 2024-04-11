@@ -179,7 +179,7 @@ public class XieChengService {
                 JSONObject extend = JSONObject.parseObject(xieChengData.getExtend());
                 source = extend.getString("source");
             } catch (Exception e) {
-                log.error("携程广告上报接口，source字段解析异常",e);
+                log.error("携程广告上报接口，source字段解析异常", e);
             }
 
             thirdAdOuterReq = new ThirdAdOuterReq(
