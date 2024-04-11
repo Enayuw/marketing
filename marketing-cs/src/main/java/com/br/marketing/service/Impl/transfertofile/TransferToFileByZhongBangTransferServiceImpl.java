@@ -1,13 +1,17 @@
 package com.br.marketing.service.Impl.transfertofile;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.TransferFileTask;
+import com.br.marketing.entity.TransferFileTaskExample;
 import com.br.marketing.enums.ThreeKeyEncryptEnum;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
@@ -67,7 +71,8 @@ public class TransferToFileByZhongBangTransferServiceImpl implements ITransferTo
 
 
     private final static String TABLE_HEAD_TRANSFER = "custNum,cell,firstName,userType,ifRegister,registerTime,ifLogin," +
-            "loginTime,ifApply,applyDt,applyResult,applyTime,refuseTime,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount";
+            "loginTime,ifApply,applyDt,applyResult,applyTime,refuseTime,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount" +
+            "applyLoan,applyLoanTime,isLock,isBlack";
 
     final static String EXECUTE_TIME = "10:00:00";
 
@@ -246,6 +251,22 @@ public class TransferToFileByZhongBangTransferServiceImpl implements ITransferTo
                             ? transferFilterData.getLentAmount() : "";
                     String unlentAmount = StringUtils.isNotEmpty(transferFilterData.getUnlentAmount())
                             ? transferFilterData.getUnlentAmount() : "";
+                    JSONObject jo = JSONObject.parseObject(transferFilterData.getReserveField1());
+
+                    String applyLoan = "";
+                    String applyLoanTime = "";
+                    String isLock = "";
+                    String isBlack = "";
+                    if (jo != null) {
+                        applyLoan = StringUtils.isNotEmpty(jo.getString("applyLoan"))
+                                ? jo.getString("applyLoan") : "";
+                        applyLoanTime = StringUtils.isNotEmpty(jo.getString("applyLoanTime"))
+                                ? jo.getString("applyLoanTime") : "";
+                        isLock = StringUtils.isNotEmpty(jo.getString("isLock"))
+                                ? jo.getString("isLock") : "";
+                        isBlack = StringUtils.isNotEmpty(jo.getString("isBlack"))
+                                ? jo.getString("isBlack") : "";
+                    }
                     sb.append(custNum.concat(","))
                             .append(cell.concat(","))
                             .append(firstName.concat(","))
@@ -264,7 +285,11 @@ public class TransferToFileByZhongBangTransferServiceImpl implements ITransferTo
                             .append(ifLent.concat(","))
                             .append(lentTime.concat(","))
                             .append(lentAmount.concat(","))
-                            .append(unlentAmount)
+                            .append(unlentAmount.concat(","))
+                            .append(applyLoan.concat(","))
+                            .append(applyLoanTime.concat(","))
+                            .append(isLock.concat(","))
+                            .append(isBlack)
                             .append("\r\n");
                     try {
                         fw.append(sb.toString());
