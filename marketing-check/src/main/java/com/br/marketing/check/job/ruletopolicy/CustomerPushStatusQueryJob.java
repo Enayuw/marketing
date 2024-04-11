@@ -66,7 +66,7 @@ public class CustomerPushStatusQueryJob extends AbstractSimpleElasticJob {
                     boolean acquire = redisChgService.lock(key, lockValue, 600000L);
                     if (!acquire) {
                         log.warn(TITLE + "processToBeConfirmedList获取锁失败, {}", mainId);
-                        return;
+                        continue;
                     }
                     log.warn(TITLE + "processToBeConfirmedList获取锁成功, {}", mainId);
                     pushRuleService.getCustomerStatus(customerInfoPushMain);
