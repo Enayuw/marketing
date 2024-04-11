@@ -297,7 +297,8 @@ public class HxUtil {
     public static void resultHandler(MarketingSyncUser lu, MarketingTask marketingTask, RedisChgService redisChgService, Boolean isRetry,
                                      String errorMessage, List<MarketingSyncUser> errorList) {
         //非最终结果处理，return
-        if (ObjectUtils.isEmpty(lu)) {
+        //根据传参，lu实体不为空
+        if (lu.getId() == null) {
             return;
         }
         String message = String.format("【紧急报警】【%s】智能营销平台-%s \001 您好:  【%s】%s，请及时跟进",
