@@ -4,6 +4,7 @@ import com.alibaba.fastjson.*;
 import com.br.arch.geo.pulsar.ProductPulsarClientManager;
 import com.br.arch.geo.pulsar.ProductPulsarProducer;
 import com.br.cloud.counter.BrCounter;
+import com.br.common.encryption.Md5Utils;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
@@ -2084,7 +2085,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_3.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }else{
-
+                user.setCellMd5(DigestUtils.md5DigestAsHex(content.getBytes()));
+                user.setCellSha256(Sha256Util.getSHA256Encrypt(content));
             }
             user.setCell(BrCipherMaker.getInstance().encode(content));
         }

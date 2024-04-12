@@ -165,4 +165,9 @@
         where api_code = '${apiCode}'
           and status = 1
     </select>
+    <select id="getApiCodeByZs" resultType="java.lang.String">
+        select api_code
+        from b_marketing_customer
+        where api_code like '3%' or api_code like '4%'
+    </select>
 </mapper>
