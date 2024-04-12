@@ -4,21 +4,18 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
-import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.entity.TransferFileTaskExample;
-import com.br.marketing.mapper.MarketingDataValidConfigDefaultMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.SyncConfigService;
-import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,12 +97,6 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
     @Autowired
     SyncConfigService syncConfigService;
 
-    @Resource
-    private TransferDataValidityPeriodService validityPeriodService;
-
-    @Resource
-    private MarketingDataValidConfigDefaultMapper validConfigDefaultMapper;
-
     private final static String EXTENSION = ".txt";
     private final static String TABLE_HEADER = "apicode,taskid,usertype,custNum,cell,is_turn,is_black" +
             ",loginTime,clc_usr_lst_app_sta_tim,clc_usr_iso_pho_tim,clc_usr_iso_idt_tim,clc_usr_iso_crd_tim" +
@@ -113,7 +104,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
 
     private final static String TABLE_HEADER_CUFUJIE = "apicode,taskid,groupType,cust_num,cell,is_turn,is_black" +
             ",clc_usr_lst_app_sta_tim,clc_usr_lst_non_dcp_trs_tim,off_usr_lst_ord_tim_all,clc_usr_avl_lmt_lv0" +
-            ",clc_usr_adt_lmt_lv0,createtime,clc_usr_lst_ord_tim_all_wizard,clc_usr_adt_lmt_fst_all,clc_usr_lst_adt_apy_tim_hvy";
+            ",clc_usr_adt_lmt_lv0,clc_usr_adt_tim_rcn_lon_wo_asset_label,createtime";
 
     private final static String TABLE_HEADER_CHONGSHEN = "apicode,taskid,usertype,custNum,cell,is_turn,is_black," +
             "clc_usr_max_dx_rrt_end,clc_usr_lst_app_sta_tim,clc_usr_iso_pho_tim,clc_usr_iso_idt_tim" +
@@ -196,9 +187,6 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
         if (LocalTime.now().isAfter(startTime) && userTypes.size() > 0) {
             // 将配置中的有效期处理成天
             Map<String, Integer> dataExtractMap = dataExtractDateHandle(shuHeTransferDataExtractMap, userTypes);
-            //获取自动化配置的有效期配置存入内存
-
-
             userTypes.forEach(userType -> {
                 TransferFileTask transferFileTask = new TransferFileTask();
                 long contextId = System.currentTimeMillis();
@@ -209,7 +197,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 if (appointTime != null) {
                     // 指定日期
                     fileName = getFileName(userType, apiCode, appointTime.format(DateTimeFormatter.BASIC_ISO_DATE).concat("_")
-                        .concat(dateYyyyMmDdStr), EXTENSION);
+                            .concat(dateYyyyMmDdStr), EXTENSION);
                 } else {
                     // 前一天
                     fileName = getFileName(userType, apiCode, dateYyyyMmDdStr, EXTENSION);
@@ -410,35 +398,16 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
             if (creatTime == null) {
                 continue;
             }
-            // 加入判断，如果是促复借，使用新版有效期判断
-            if ("促复借".equals(userType)){
-                LocalDate localDate = LocalDate.now().minusDays(1L);
-                String requestData = localDate.toString();
-                Set<String> set = list.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-                //判断转化数据是否在有效期内
-                Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService
-                        .getValidityPeriodsByCustNumAndUserType(set, userType, apiCode, requestData);
-                SyncUserValidityPeriodsBO boMap = validityPeriodsByCustNum.get(transferSyncUser.getCustNum());
-                if (boMap == null) {
-                    log.warn("{}不满足案件编号“有效期内”条件", transferSyncUser.getCustNum());
-                    continue;
-                }
+            Boolean periodOfValidity = iMarketingSyncUserService.isPeriodOfValidity(
+                    Date.from(appointTime == null
+                            ? LocalDateTime.now().minusDays(1).atZone(ZoneId.systemDefault()).toInstant()
+                            : appointTime.atZone(ZoneId.systemDefault()).toInstant())
+                    , transferFileTask.getFileType(), (Date) creatTime);
+            if (periodOfValidity) {
                 transferFileTask.setTaskNumber(transferFileTask.getTaskNumber() + 1);
                 String sb = f.apply(transferSyncUser, creatTimeMap);
                 writer.write(sb);
                 writer.flush();
-            } else{
-                Boolean periodOfValidity = iMarketingSyncUserService.isPeriodOfValidity(
-                        Date.from(appointTime == null
-                                ? LocalDateTime.now().minusDays(1).atZone(ZoneId.systemDefault()).toInstant()
-                                : appointTime.atZone(ZoneId.systemDefault()).toInstant())
-                        , transferFileTask.getFileType(), (Date) creatTime);
-                if (periodOfValidity) {
-                    transferFileTask.setTaskNumber(transferFileTask.getTaskNumber() + 1);
-                    String sb = f.apply(transferSyncUser, creatTimeMap);
-                    writer.write(sb);
-                    writer.flush();
-                }
             }
         }
     }
@@ -481,14 +450,10 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 getOrDefault(json, "clc_usr_adt_lmt_lv0")
                 + separator +
+                getOrDefault(json, "clc_usr_adt_tim_rcn_lon_wo_asset_label")
+                + separator +
                 (ObjectUtils.isEmpty(transfer.getCreateTime()) ? defaultValue
                         : DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"))
-                + separator +
-                getOrDefault(json, "clc_usr_lst_ord_tim_all_wizard")
-                + separator +
-                getOrDefault(json, "clc_usr_adt_lmt_fst_all")
-                + separator +
-                getOrDefault(json, "clc_usr_lst_adt_apy_tim_hvy")
                 + "\r\n";
     }
 

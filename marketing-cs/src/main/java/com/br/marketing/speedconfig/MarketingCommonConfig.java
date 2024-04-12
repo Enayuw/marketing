@@ -1501,5 +1501,14 @@ public class MarketingCommonConfig {
      */
     private List<String> XieChengTwoTransferExecuteTime;
 
+    /**
+     * 数禾促复借转化数据提取数据提取apicode集合
+     */
+    private List<String> ShuHeCuFuJieTransferFileApiCodes;
+
+    /**
+     * 数禾促复借转化数据提取执行时间
+     */
+    private String ShuHeCuFuJieTransferFileExecuteTime;
 }
 
