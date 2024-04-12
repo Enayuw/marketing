@@ -180,7 +180,7 @@ public class XieChengService {
                 JSONObject extend = JSONObject.parseObject(xieChengData.getExtend());
                 String sourceStr = extend.getString("source");
                 if (StringUtils.isEmpty(sourceStr)) {
-                    log.error("携程广告上报接口，source为空:{}", sourceStr);
+                    log.warn("携程广告上报接口，source为空:{}，置为默认值:{}", sourceStr, source);
                 } else {
                     extendSource = sourceStr;
                 }
