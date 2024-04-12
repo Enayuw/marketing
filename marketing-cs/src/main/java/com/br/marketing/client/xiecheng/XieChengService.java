@@ -175,10 +175,15 @@ public class XieChengService {
         String sKey = "1".equals(xieChengData.getConditionKey()) ? singKey : config.getString("singKey");
         String sourceVt = config.getString("source");
         if ("1".equals(xieChengData.getConditionKey())) {
-            String extendSource = "";
+            String extendSource = source;
             try {
                 JSONObject extend = JSONObject.parseObject(xieChengData.getExtend());
-                extendSource = StringUtils.isEmpty(extend.getString("source")) ? source : extend.getString("source");
+                String sourceStr = extend.getString("source");
+                if (StringUtils.isEmpty(sourceStr)) {
+                    log.error("携程广告上报接口，source为空:{}", sourceStr);
+                } else {
+                    extendSource = sourceStr;
+                }
             } catch (Exception e) {
                 log.error("携程广告上报接口，source字段解析异常:{}", xieChengData.getExtend(), e);
             }
