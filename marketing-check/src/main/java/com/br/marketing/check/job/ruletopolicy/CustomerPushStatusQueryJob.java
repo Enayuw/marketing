@@ -47,10 +47,10 @@ public class CustomerPushStatusQueryJob extends AbstractSimpleElasticJob {
 
         CustomerInfoPushMainExample example = new CustomerInfoPushMainExample();
         example.setOrderByClause("id limit 2000");
+        CustomerInfoPushMainExample.Criteria criteria = example.createCriteria().andMStatusEqualTo(status);
         Long id = 0L;
-        example.createCriteria().andMStatusEqualTo(status);
         for(;;) {
-            example.createCriteria().andIdGreaterThan(id);
+            criteria.andIdGreaterThan(id);
             List<CustomerInfoPushMain> customerInfoPushMains = customerInfoPushMainMapper.selectByExample(example);
             if (customerInfoPushMains == null || customerInfoPushMains.size() < 1) {
                 break;
