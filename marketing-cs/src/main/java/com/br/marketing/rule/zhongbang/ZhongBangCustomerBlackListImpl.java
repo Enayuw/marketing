@@ -47,6 +47,16 @@ public class ZhongBangCustomerBlackListImpl implements AssembleData<BlackDetailD
             return false;
         }
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+
+        ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData zhongBangContext =
+                (ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData) context.getRuleNecessaryData();
+        Map<String, SyncUserValidityPeriodsBO> customerMap = zhongBangContext.getCustomerMap();
+        SyncUserValidityPeriodsBO userValidityPeriodsBO = customerMap.get(transfer.getCustNum());
+
+        if (userValidityPeriodsBO == null) {
+            return false;
+        }
+
         JSONObject jo = JSONObject.parseObject(transfer.getReserveField1());
         if (jo == null) {
             return false;
