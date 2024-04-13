@@ -1,5 +1,6 @@
 package com.br.marketing.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 
@@ -48,6 +49,7 @@ public interface MarketingSyncReportService {
      */
     PageResultReturn getReportList(int current, int size, String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes, String userTypes);
 
+
     /**
      * 客户上传数据统计报表总计
      * @param cidOrName
@@ -59,6 +61,18 @@ public interface MarketingSyncReportService {
      */
     Map getReportListTotal(String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes, String userTypes);
 
+    /**
+     * 客户上传数据统计报表列表
+     * @param cidOrName
+     * @param appletTimeStart
+     * @param appletTimeEnd
+     * @param apiCodes
+     * @param userTypes
+     * @param cell
+     * @return
+     */
+    JSONArray getReportByCell(String cidOrName, String appletTimeStart,
+                              String appletTimeEnd, String apiCodes, String userTypes, String cell);
 
     /**
      * 根据上传日期和apicode进行删除统计

@@ -838,4 +838,37 @@
         order by user_type,create_time;
     </select>
 
+    <select id="selectSyncUserByCelltikvs" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select applet_date,api_code,user_type
+        from b_marketing_sync_#{apiCode}
+        where (cell=#{cell} or cell_md5=#{cell} or cell_sha256=#{cell})
+          <![CDATA[ and applet_date>=#{appletTimeStart} and applet_date<=#{appletTimeEnd} ]]>
+          and status=1 and is_repeat!=3
+          <if test="userTypeList != null and userTypeList.size()>0">
+              and user_type in
+              <foreach collection="userTypeList" item="item" open="(" separator="," close=")">
+                  #{item}
+              </foreach>
+          </if>
+        group by applet_date,api_code,user_type
+        order by applet_date desc;
+    </select>
+<!--    <select id="selectSyncUserByCelltikvs" resultType="com.br.marketing.entity.MarketingSyncUser">-->
+<!--        select * from-->
+<!--        <foreach collection="apiCodeList" open="(" close=")" separator=" union all " item="apiCode">-->
+<!--            select applet_date,api_code,user_type-->
+<!--            from b_marketing_sync_#{apiCode}-->
+<!--            where (cell=#{cell} or cell_md5=#{cell} or cell_sha256=#{cell})-->
+<!--            <![CDATA[ and applet_date>=#{appletTimeStart} and applet_date<=#{appletTimeEnd} ]]>-->
+<!--            and status=1 and is_repeat!=3-->
+<!--            <if test="userTypeList != null and userTypeList.size()>0">-->
+<!--                and user_type in-->
+<!--                <foreach collection="userTypeList" item="item" open="(" separator="," close=")">-->
+<!--                    #{item}-->
+<!--                </foreach>-->
+<!--            </if>-->
+<!--        </foreach>-->
+<!--        group by applet_date,api_code,user_type-->
+<!--        order by applet_date desc;-->
+<!--    </select>-->
 </mapper>

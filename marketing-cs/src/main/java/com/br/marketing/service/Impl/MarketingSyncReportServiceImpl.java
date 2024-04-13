@@ -6,7 +6,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.common.mask.DataMask;
+import com.br.common.mask.SensitiveType;
 import com.br.common.util.DateUtils;
+import com.br.common.validator.CellUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -46,6 +49,7 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -92,6 +96,9 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
 
     @Resource
     private MarketingCustomerService marketingCustomerService;
+
+    @Resource
+    private MarketingCustomerMapper marketingCustomerMapper;
 
     @Resource
     private PlatformTransactionManager platformTransactionManager;
@@ -405,6 +412,74 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         map.put("normalNumTotal", normalNumTotal);
         map.put("duplicateRemovalNumTotal", duplicateRemovalNumTotal);
         return map;
+    }
+
+    @Override
+    public JSONArray getReportByCell(String cidOrName, String appletTimeStart,
+                                     String appletTimeEnd, String apiCodes, String userTypes, String cell){
+        List<String> apiCodeList = new ArrayList<>();
+        if(apiCodes != null && !"".equals(apiCodes)){
+            String[] split = apiCodes.split(",");
+            for(String item : split){
+                apiCodeList.add(item);
+            }
+        }
+        List<String> userTypeList = new ArrayList<>();
+        if(userTypes != null && !"".equals(userTypes)){
+            String[] split = userTypes.split(",");
+            for(String item : split){
+                userTypeList.add(item);
+            }
+        }
+        // 1. 通过 apiCodes 获取客户信息,并将结果填充到响应中
+        MarketingCustomerExample example = new MarketingCustomerExample();
+        example.createCriteria().andStatusEqualTo((byte) 1).andApiCodeIn(apiCodeList);
+        List<MarketingCustomer> list = marketingCustomerMapper.selectByExample(example);
+        Map<String, MarketingCustomer> customerMap = list.stream()
+                .collect(Collectors.toMap(MarketingCustomer::getApiCode, Function.identity()));
+
+        // 2. 明文 cell 需要log加密
+        if(CellUtils.isValidateCell(cell)){
+            cell = DataMask.mask(cell, SensitiveType.LogMask, "");
+        }
+        // 3. 根据 apiCodes,cell 查询结果
+        JSONArray resultArray = new JSONArray();
+        List<MarketingSyncUser> syncUserListAllApiCode = new ArrayList<>();
+        for (int i = 0; i < apiCodeList.size(); i++) {
+            String apiCode = apiCodeList.get(i);
+            List<MarketingSyncUser> syncUsersList = marketingSyncUserMapper.selectSyncUserByCelltikvs(appletTimeStart
+                    , appletTimeEnd, apiCode, userTypeList, cell);
+            syncUserListAllApiCode.addAll(syncUsersList);
+        }
+        syncUserListAllApiCode.stream().sorted(Comparator.comparing(MarketingSyncUser::getAppletDate)).collect(Collectors.toList());
+        syncUserListAllApiCode.forEach(t->{
+            String apiCode = t.getApiCode();
+            MarketingCustomer marketingCustomer = customerMap.get(apiCode);
+            JSONObject result = new JSONObject();
+            result.put("cid",marketingCustomer.getCid());
+            result.put("apiCode",apiCode);
+            result.put("shortName",marketingCustomer.getShortName());
+            result.put("appletDate",t.getAppletDate());
+            result.put("userType",t.getUserType());
+            resultArray.add(result);
+        });
+
+
+//        List<MarketingSyncUser> syncUsersList = marketingSyncUserMapper.selectSyncUserByCelltikvs(appletTimeStart
+//                , appletTimeEnd, apiCodeList, userTypeList, cell);
+//        for (int i = 0; i < syncUsersList.size(); i++) {
+//            MarketingSyncUser marketingSyncUser = syncUsersList.get(i);
+//            JSONObject result = new JSONObject();
+//            String apiCode = marketingSyncUser.getApiCode();
+//            MarketingCustomer marketingCustomer = customerMap.get(apiCode);
+//            result.put("cid",marketingCustomer.getCid());
+//            result.put("apiCode",apiCode);
+//            result.put("shortName",marketingCustomer.getShortName());
+//            result.put("appletDate",marketingSyncUser.getAppletDate());
+//            result.put("userType",marketingSyncUser.getUserType());
+//            resultArray.add(result);
+//        }
+        return resultArray;
     }
 
     private Date addDay(String date, Integer addDays, String format) {

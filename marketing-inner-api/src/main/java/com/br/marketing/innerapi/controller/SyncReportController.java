@@ -1,5 +1,7 @@
 package com.br.marketing.innerapi.controller;
 
+import com.alibaba.fastjson.JSONArray;
+import com.br.common.util.StringUtils;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
@@ -122,6 +124,24 @@ public class SyncReportController {
             log.error(ex.getMessage(), ex);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
+    }
+
+    @PostMapping("/getReportByCell")
+    public ApiResult<JSONArray> getReportByCell(@RequestParam(required = false) String cidOrName
+            , @RequestParam(required = false) String appletTimeStart
+            , @RequestParam(required = false) String appletTimeEnd
+            , @RequestParam String apiCodes
+            , @RequestParam(required = false) String userTypes
+            , @RequestParam String cell) {
+        if(StringUtils.isBlank(apiCodes) || StringUtils.isBlank(cell)){
+            return new ApiResult<JSONArray>().fail(ServiceResultEnum.SUCCESS_1);
+        }
+        JSONArray cellList = marketingSyncReportService.getReportByCell(cidOrName,
+                appletTimeStart,appletTimeEnd,apiCodes,userTypes,cell);
+        if (cellList != null) {
+            return new ApiResult<JSONArray>().success(cellList);
+        }
+        return new ApiResult<JSONArray>().fail(ServiceResultEnum.FAILED);
     }
 
 }

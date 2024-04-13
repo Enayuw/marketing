@@ -319,4 +319,23 @@ public interface MarketingSyncUserMapper {
             , @Param("requestBatch") String requestBatch
             , @Param("userTypeSet") Set<String> userTypeSet
             , @Param("appletDate") String appletDate);
+
+
+    /**
+     * 通过条件获取cell在不同apiCode对应表中的数据
+     * @Author yu.xia@brgroup.com
+     * @Date 2024/4/13 11:50
+     * @param appletTimeStart
+     * @param appletTimeEnd
+     * @param apiCode
+     * @param userTypeList
+     * @param cell
+     * @return List<MarketingSyncUser>
+     */
+    List<MarketingSyncUser> selectSyncUserByCelltikvs(@Param("appletTimeStart") String appletTimeStart
+            , @Param("appletTimeEnd") String appletTimeEnd
+            , @Param("apiCode") String apiCode
+            , @Param("userTypeList") List<String> userTypeList
+            , @Param("cell") String cell);
+
 }
