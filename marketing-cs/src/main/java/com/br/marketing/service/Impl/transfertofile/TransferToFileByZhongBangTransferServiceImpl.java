@@ -72,7 +72,7 @@ public class TransferToFileByZhongBangTransferServiceImpl implements ITransferTo
 
 
     private final static String TABLE_HEAD_TRANSFER = "custNum,cell,firstName,userType,ifRegister,registerTime,ifLogin," +
-            "loginTime,ifApply,applyDt,applyResult,applyTime,refuseTime,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount" +
+            "loginTime,ifApply,applyDt,applyResult,applyTime,refuseTime,auditTime,auditAmount,ifLent,lentTime,lentAmount,unlentAmount," +
             "applyLoan,applyLoanTime,isLock,isBlack";
 
     final static String EXECUTE_TIME = "10:00:00";
@@ -174,11 +174,9 @@ public class TransferToFileByZhongBangTransferServiceImpl implements ITransferTo
     public void writeZhongBangTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
         Long start = System.currentTimeMillis();
         String tCId = tableCreateService.getTcId(apiCode);
-        Integer page = 0;
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
-        LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
-        String requestData = localDate.toString();
+
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50, 1);
 
         List<MarketingDataValidConfig> configList = validityPeriodService
@@ -195,7 +193,7 @@ public class TransferToFileByZhongBangTransferServiceImpl implements ITransferTo
             syncUser.settCid(tCId);
             syncUser.setApiCode(apiCode);
             syncUser.setRequestData(curDateStr);
-
+            Integer page = 0;
             Integer pageSize = dynamicParameterService.getPageSize(null);
             for (; ; ) {
                 List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
