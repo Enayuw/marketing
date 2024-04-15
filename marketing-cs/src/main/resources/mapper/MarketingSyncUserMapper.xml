@@ -747,6 +747,9 @@
     <update id="updateStatus">
         update b_marketing_sync_${apiCode} set  status = 2,fail_type = concat(ifnull(fail_type,''),',营销失败数据') where cust_num = #{custNum} and applet_date = #{appletDate} and status=1
     </update>
+    <update id="updateSqlByNoDestikv_">
+        ${updateSql}
+    </update>
 
     <select id="findCusBatchByAppletDatePage" resultType="java.lang.String">
         select cus_batch
@@ -848,6 +851,22 @@
             </foreach>
         </if>
         order by user_type,create_time;
+    </select>
+
+    <select id="existUploadTable" resultType="java.lang.Integer">
+        select 1
+        from ${tableNm} limit 1
+    </select>
+
+    <select id="noDesUploadByMinId" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select id,cell
+        from b_marketing_sync_${apiCode}
+        where
+            cell_md5 is null and status = 1
+            <if test="id != null and id >0">
+             and id > #{minId}
+            </if>
+        order by id asc limit 2000
     </select>
 
 </mapper>

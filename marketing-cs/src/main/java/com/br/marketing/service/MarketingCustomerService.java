@@ -85,5 +85,6 @@ public interface MarketingCustomerService {
      * 获取所有正式的apiCode
      * @return
      */
-    List<String> getApiCodeByProd();
+    List<String> getApiCodeByProd(List<String> apiCodePrefix);
+
 }

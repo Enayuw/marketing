@@ -1501,5 +1501,15 @@ public class MarketingCommonConfig {
      */
     private List<String> XieChengTwoTransferExecuteTime;
 
+    /**
+     * 修复cell的apiCode前缀集合
+     */
+    private List<String> updateCellApiCodePrefix;
+
+    /**
+     * 无解密清洗配置
+     */
+    private String noDesCleanConfig;
+
 }
 

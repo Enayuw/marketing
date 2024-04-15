@@ -238,8 +238,9 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
     }
 
     @Override
-    public List<String> getApiCodeByProd() {
-        List<String> apiCodeByZs = marketingCustomerMapper.getApiCodeByZs();
+    public List<String> getApiCodeByProd(List<String> apiCodePrefix) {
+        List<String> apiCodeByZs = marketingCustomerMapper.getApiCodeByZs(apiCodePrefix);
         return apiCodeByZs;
     }
+
 }
