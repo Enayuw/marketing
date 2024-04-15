@@ -200,8 +200,12 @@ public class RedisChgService {
      * @date 2024/03/20
      */
     public Long hlen(String hkey) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        return marketingRedisClient.hlen(hkey);
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.hlen(hkey);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -232,6 +236,7 @@ public class RedisChgService {
 
     /**
      * 获取该hash中key的值
+     *
      * @param hkey hash key
      * @param key  key值
      * @param num  增加数值
@@ -245,6 +250,7 @@ public class RedisChgService {
             throw new RuntimeException(e);
         }
     }
+
     /**
      * 2024-03-12 13:48
      * 返回哈希表中，所有的字段和值
@@ -253,8 +259,12 @@ public class RedisChgService {
      * @return 字段名(field name), 字段的值(value)
      */
     public Map<String, Object> hgetall(String hkey) {
-        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        return marketingRedisClient.hgetall(hkey);
+        try {
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.hgetall(hkey);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -293,8 +303,12 @@ public class RedisChgService {
      * @return 命令执行成功，返回 OK
      */
     public boolean hmset(String hkey, Map<String, String> map) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        return "OK".equals(marketingRedisClient.hmset(hkey, map));
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return "OK".equals(marketingRedisClient.hmset(hkey, map));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

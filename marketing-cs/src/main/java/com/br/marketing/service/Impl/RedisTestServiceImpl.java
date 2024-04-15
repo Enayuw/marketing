@@ -10,6 +10,7 @@ import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.brgroup.redis.BrRedisClients;
 import com.brgroup.redis.client.BrRedisClient;
+import io.lettuce.core.KeyValue;
 import io.lettuce.core.ScanArgs;
 import io.lettuce.core.ScanCursor;
 import io.lettuce.core.ValueScanCursor;
@@ -18,10 +19,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -47,6 +45,12 @@ public class RedisTestServiceImpl {
             String key9 = applicationName.concat(":juman9");
             String key10 = applicationName.concat(":juman10");
             String key11 = applicationName.concat(":juman11");
+            String key12 = applicationName.concat(":juman12");
+            String key13 = applicationName.concat(":juman13");
+            String key14 = applicationName.concat(":juman14");
+            String key15 = applicationName.concat(":juman15");
+            String key16 = applicationName.concat(":juman16");
+            String key17 = applicationName.concat(":juman17");
             try {
                 set(key1);
             } catch (Exception exception) {
@@ -135,6 +139,36 @@ public class RedisTestServiceImpl {
                 delBigSet(key11);
             } catch (Exception ex) {
             }
+            try {
+                dels(key12);
+            } catch (Exception ex) {
+
+            }
+            try {
+                hlen(key13);
+            } catch (Exception ex) {
+
+            }
+            try {
+                hmget(key14);
+            } catch (Exception ex) {
+
+            }
+            try {
+                hincrby(key15);
+            } catch (Exception ex) {
+
+            }
+            try {
+                hgetall(key16);
+            } catch (Exception ex) {
+
+            }
+            try {
+                hmset(key17);
+            } catch (Exception ex) {
+
+            }
 
         } else if (new Integer(2).equals(redisOpt)) {
             String applicationName = ContainerContext.applicationContext.getId();
@@ -149,6 +183,12 @@ public class RedisTestServiceImpl {
             String key9 = applicationName.concat(":juman9");
             String key10 = applicationName.concat(":juman10");
             String key11 = applicationName.concat(":juman11");
+            String key12 = applicationName.concat(":juman12");
+            String key13 = applicationName.concat(":juman13");
+            String key14 = applicationName.concat(":juman14");
+            String key15 = applicationName.concat(":juman15");
+            String key16 = applicationName.concat(":juman16");
+            String key17 = applicationName.concat(":juman17");
             try {
                 del(key1);
             } catch (Exception ex) {
@@ -193,7 +233,36 @@ public class RedisTestServiceImpl {
                 del(key11);
             } catch (Exception ex) {
             }
+            try{
+                del(key12);
+            }catch (Exception ex){
 
+            }
+            try{
+                del(key13);
+            }catch (Exception ex){
+
+            }
+            try{
+                del(key14);
+            }catch (Exception ex){
+
+            }
+            try{
+                del(key15);
+            }catch (Exception ex){
+
+            }
+            try{
+                del(key16);
+            }catch (Exception ex){
+
+            }
+            try{
+                del(key17);
+            }catch (Exception ex){
+
+            }
         }
     }
 
@@ -239,6 +308,21 @@ public class RedisTestServiceImpl {
         log.warn("测试del：" + (redisChgService.get(key) == null ? "不存在" : "存在"));
     }
 
+    /**
+     * todo 新增redis 待验证
+     *
+     * @param keys
+     */
+    private void dels(String keys) {
+        try {
+            redisChgService.set(keys,"123");
+            redisChgService.set(keys+1,"123");
+            redisChgService.del(keys,keys+1);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        log.warn("测试delsssss：" + (redisChgService.get(keys) == null ? "不存在" : "存在"));
+    }
 
     private void incr(String key) {
         redisChgService.incr(key);
@@ -275,12 +359,80 @@ public class RedisTestServiceImpl {
         log.warn("测试hkeys：" + JSON.toJSONString(juman7));
     }
 
-
-    private void hget(String key) {
-        String hget = redisChgService.hget(key, "key1");
-        log.warn("测试hget：" + hget);
+    /**
+     * todo 新增redis 待验证
+     *
+     * @param hkey
+     */
+    private void hlen(String hkey) {
+        HashMap<String, String> map = new HashMap<>();
+        map.put("key1", "key1");
+        map.put("key2", "key2");
+        redisChgService.hset(hkey,map);
+        Long hlen = redisChgService.hlen(hkey);
+        log.warn("测试hlen：" + hlen.toString());
     }
 
+    private void hget(String key) {
+        HashMap<String, String> map = new HashMap<>();
+        map.put("key1", "key1");
+        map.put("key2", "key2");
+        redisChgService.hset(key,map);
+        String hget = redisChgService.hget(key, "key1");
+        log.warn("测试hget：" + hget.toString());
+    }
+
+    /**
+     * todo 新增redis 待验证
+     *
+     * @param hmget
+     */
+    private void hmget(String key) {
+        HashMap<String, String> map = new HashMap<>();
+        map.put("key1", "key1");
+        map.put("key2", "key2");
+        redisChgService.hset(key,map);
+        List<KeyValue<String, String>> key1 = redisChgService.hmget(key, "key1","key2");
+        log.warn("测试hmget：" + key1.toString());
+    }
+
+    /**
+     * todo 新增redis 待验证
+     *
+     * @param hincrby
+     */
+    private void hincrby(String key) {
+        redisChgService.hincrby(key, "key1", 10);
+        log.warn("测试hincrby：" + redisChgService.hget(key, "key1"));
+    }
+
+    /**
+     * todo 新增redis 待验证
+     *
+     * @param hkey
+     */
+    private void hgetall(String hkey) {
+        HashMap<String, String> map = new HashMap<>();
+        map.put("key1", "key1");
+        map.put("key2", "key2");
+        redisChgService.hset(hkey, map);
+        Map<String, Object> hgetall = redisChgService.hgetall(hkey);
+        log.warn("测试hgetall：" + hgetall.toString());
+    }
+
+    /**
+     * todo 新增redis 待验证
+     *
+     * @param hkey
+     */
+    private void hmset(String hkey) {
+        HashMap<String, String> map = new HashMap<>();
+        map.put("key1", "key1");
+        map.put("key2", "key2");
+        redisChgService.hmset(hkey, map);
+        Map<String, Object> hgetall = redisChgService.hgetall(hkey);
+        log.warn("测试hmset：" + hgetall.toString());
+    }
 
     private void hset(String key) {
         Boolean hset = redisChgService.hset(key, "key2", "v2");
@@ -379,17 +531,17 @@ public class RedisTestServiceImpl {
         Long juman11 = 0L;
         for (int i = 0; i < 200; i++) {
             ArrayList<String> strings = new ArrayList<>();
-            strings.add("1"+i);
-            strings.add("2"+i);
-            strings.add("3"+i);
-            strings.add("4"+i);
-            strings.add("5"+i);
-            strings.add("6"+i);
-            strings.add("7"+i);
-            strings.add("8"+i);
-            strings.add("9"+i);
-            strings.add("10"+i);
-            strings.add("11"+i);
+            strings.add("1" + i);
+            strings.add("2" + i);
+            strings.add("3" + i);
+            strings.add("4" + i);
+            strings.add("5" + i);
+            strings.add("6" + i);
+            strings.add("7" + i);
+            strings.add("8" + i);
+            strings.add("9" + i);
+            strings.add("10" + i);
+            strings.add("11" + i);
             juman11 += redisChgService.sadd(key, strings);
         }
         Set<String> juman111 = redisChgService.smembers(key);
@@ -398,17 +550,17 @@ public class RedisTestServiceImpl {
         log.warn("delBigSet：添加set结果：" + juman11.toString() + ",获取大key结果：" + juman112.toString());
         for (int i = 0; i < 200; i++) {
             ArrayList<String> strings1 = new ArrayList<>();
-            strings1.add("1"+i);
-            strings1.add("2"+i);
-            strings1.add("3"+i);
-            strings1.add("4"+i);
-            strings1.add("5"+i);
-            strings1.add("6"+i);
-            strings1.add("7"+i);
-            strings1.add("8"+i);
-            strings1.add("9"+i);
-            strings1.add("10"+i);
-            strings1.add("11"+i);
+            strings1.add("1" + i);
+            strings1.add("2" + i);
+            strings1.add("3" + i);
+            strings1.add("4" + i);
+            strings1.add("5" + i);
+            strings1.add("6" + i);
+            strings1.add("7" + i);
+            strings1.add("8" + i);
+            strings1.add("9" + i);
+            strings1.add("10" + i);
+            strings1.add("11" + i);
             redisChgService.sadd(key, strings1);
         }
 
@@ -442,9 +594,9 @@ public class RedisTestServiceImpl {
     }
 
 
-    public Result<Boolean> testConsumer(String msg){
+    public Result<Boolean> testConsumer(String msg) {
         String decode = RpcClientProxy.decode(msg, "cell", "sha", "");
-        System.out.println("消费成功---------"+decode);
+        System.out.println("消费成功---------" + decode);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 }
