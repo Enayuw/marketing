@@ -242,23 +242,21 @@ public class TransferToFileByShuHeCuFuJieServiceImpl implements ITransferToFileS
                         log.warn("{}不满足案件编号“有效期内”条件", custNum);
                         continue;
                     }
-                    MarketingSyncUser marketingSyncUser = boMap.getSyncUsers().get(0);
-                    if (StringUtils.isNotEmpty(marketingSyncUser.getReserveField1())) {
-                        taskId = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("taskId");
-                        String cellLog = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("cell");
+                    if (StringUtils.isNotEmpty(transferFilterData.getReserveField1())) {
+                        taskId = JSON.parseObject(transferFilterData.getReserveField1()).getString("taskId");
+                        String cellLog = JSON.parseObject(transferFilterData.getReserveField1()).getString("cell");
                         cell = Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(cellLog));
-                        isTurn = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("is_turn");
-                        isBlack = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("is_black");
-                        clcUsrLstAppStaTim = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("clc_usr_lst_app_sta_tim");
-                        clcUsrLstNonCcpTrsTim = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("clc_usr_lst_non_dcp_trs_tim");
-                        offUsrLstOrdTimAll = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("off_usr_lst_ord_tim_all");
-                        clcUsrAvlLmtLv0 = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("clc_usr_avl_lmt_lv0");
-                        clcUsrAdtLmtLv0 = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("clc_usr_adt_lmt_lv0");
-                        clcUsrLstOrdTimAllWizard = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("clc_usr_lst_ord_tim_all_wizard");
-                        clcUsrAdtLmtFstAll = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("clc_usr_adt_lmt_fst_all");
-                        clcUsrLstAdtApyTimHvy = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("clc_usr_lst_adt_apy_tim_hvy");
+                        isTurn = JSON.parseObject(transferFilterData.getReserveField1()).getString("is_turn");
+                        isBlack = JSON.parseObject(transferFilterData.getReserveField1()).getString("is_black");
+                        clcUsrLstAppStaTim = JSON.parseObject(transferFilterData.getReserveField1()).getString("clc_usr_lst_app_sta_tim");
+                        clcUsrLstNonCcpTrsTim = JSON.parseObject(transferFilterData.getReserveField1()).getString("clc_usr_lst_non_dcp_trs_tim");
+                        offUsrLstOrdTimAll = JSON.parseObject(transferFilterData.getReserveField1()).getString("off_usr_lst_ord_tim_all");
+                        clcUsrAvlLmtLv0 = JSON.parseObject(transferFilterData.getReserveField1()).getString("clc_usr_avl_lmt_lv0");
+                        clcUsrAdtLmtLv0 = JSON.parseObject(transferFilterData.getReserveField1()).getString("clc_usr_adt_lmt_lv0");
+                        clcUsrLstOrdTimAllWizard = JSON.parseObject(transferFilterData.getReserveField1()).getString("clc_usr_lst_ord_tim_all_wizard");
+                        clcUsrAdtLmtFstAll = JSON.parseObject(transferFilterData.getReserveField1()).getString("clc_usr_adt_lmt_fst_all");
+                        clcUsrLstAdtApyTimHvy = JSON.parseObject(transferFilterData.getReserveField1()).getString("clc_usr_lst_adt_apy_tim_hvy");
                     }
-                    StringBuilder sb = new StringBuilder();
                     taskId = StringUtils.isNotEmpty(taskId) ? taskId : "";
                     String userType = StringUtils.isNotEmpty(transferFilterData.getUserType()) ? transferFilterData.getUserType() : "";
                     custNum = StringUtils.isNotEmpty(transferFilterData.getCustNum()) ? transferFilterData.getCustNum() : "";
@@ -275,7 +273,8 @@ public class TransferToFileByShuHeCuFuJieServiceImpl implements ITransferToFileS
                     clcUsrLstOrdTimAllWizard = StringUtils.isNotEmpty(clcUsrLstOrdTimAllWizard) ? clcUsrLstOrdTimAllWizard : "";
                     clcUsrAdtLmtFstAll = StringUtils.isNotEmpty(clcUsrAdtLmtFstAll) ? clcUsrAdtLmtFstAll : "";
                     clcUsrLstAdtApyTimHvy = StringUtils.isNotEmpty(clcUsrLstAdtApyTimHvy) ? clcUsrLstAdtApyTimHvy : "";
-                    sb.append(transferFilterData.getApiCode().contains(","))
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(transferFilterData.getApiCode().concat(","))
                             .append(taskId.concat(","))
                             .append(userType.concat(","))
                             .append(custNum.concat(","))
