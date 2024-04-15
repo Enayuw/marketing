@@ -133,7 +133,11 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                     CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                     boolean boolCuFuJie = iUserType instanceof CuFuJie;
                     boolean boolPeriod;
-                    if (boolCuFuJie) {
+                    if (boolCuFuJie && ("3710043".equals(context.getApiCode()) || "7410799".equals(context.getApiCode()))) {
+                        /* 2024-04-12 13:50 需求：
+                         * title：D20240408数禾促复借数据有效期变更-3710043
+                         * url：https://c.100credit.cn/pages/viewpage.action?pageId=155694311
+                         */
                         LocalDate localDate = StringUtils.hasText(transfer.getRequestData()) ? LocalDate.parse(
                                 transfer.getRequestData()).minusDays(1) : transfer.getCreateTime().toInstant()
                                 .atZone(ZoneId.systemDefault()).toLocalDate();
