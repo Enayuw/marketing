@@ -31,6 +31,7 @@ public class ZhongBangCustomerBlackListImpl implements AssembleData<BlackDetailD
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData zhongBangContext =
                 (ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData) context.getRuleNecessaryData();
+
         Map<String, SyncUserValidityPeriodsBO> customerMap = zhongBangContext.getCustomerMap();
         SyncUserValidityPeriodsBO userValidityPeriodsBO = customerMap.get(transfer.getCustNum());
 
