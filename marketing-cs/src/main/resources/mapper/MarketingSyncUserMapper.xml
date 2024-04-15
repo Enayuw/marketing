@@ -858,15 +858,15 @@
         from ${tableNm} limit 1
     </select>
 
-    <select id="noDesUploadByMinId" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select id,cell
+    <select id="noDesUploadByMinIdtikv_" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select `id`,`cell`
         from b_marketing_sync_${apiCode}
         where
             cell_md5 is null and status = 1
-            <if test="id != null and id >0">
-             and id > #{minId}
+            <if test="minId != null and minId >0">
+             and `id` > #{minId}
             </if>
-        order by id asc limit 2000
+        order by `id` asc limit 2000
     </select>
 
 </mapper>

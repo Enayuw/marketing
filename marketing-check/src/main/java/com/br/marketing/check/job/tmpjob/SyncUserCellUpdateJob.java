@@ -51,7 +51,7 @@ public class SyncUserCellUpdateJob extends AbstractSimpleElasticJob {
                 if (!iMarketingSyncUserService.existUploadTable(code)) {
                     continue;
                 }
-            }catch (Exception ex){
+            } catch (Exception ex) {
                 continue;
             }
             JSONObject noDesCleanConfig = JSONObject.parseObject(marketingCommonConfig.getNoDesCleanConfig());
@@ -67,11 +67,11 @@ public class SyncUserCellUpdateJob extends AbstractSimpleElasticJob {
                     continue;
                 }
                 JSONObject updateConfig = JSONObject.parseObject(marketingCommonConfig.getNoDesCleanConfig());
-                if(updateConfig != null && updateConfig.getBoolean("isPause")){
+                if (updateConfig != null && updateConfig.getBoolean("isPause")) {
                     mark = Boolean.FALSE;
                     continue;
                 }
-
+                minId = marketingSyncUsers.get(marketingSyncUsers.size() - 1).getId();
                 if (updateConfig != null && updateConfig.getInteger("threadSize") != threadSize) {
                     threadSize = updateConfig.getInteger("threadSize");
                     threadPool.setCorePoolSize(threadSize);
@@ -101,14 +101,14 @@ public class SyncUserCellUpdateJob extends AbstractSimpleElasticJob {
                                 shaSql.append(" cell_sha256=( case id ");
                                 whereSql.append(" where id in ( ");
                                 for (MarketingSyncUser syncUser : syncUsers) {
-                                    updateSql.append(String.format(" when %d then '%s' "
+                                    md5Sql.append(String.format(" when %d then '%s' "
                                             , syncUser.getId(), syncUser.getCellMd5()));
-                                    updateSql.append(String.format(" when %d then '%s' "
+                                    shaSql.append(String.format(" when %d then '%s' "
                                             , syncUser.getId(), syncUser.getCellSha256()));
                                     whereSql.append(String.format(" %d,", syncUser.getId()));
                                 }
-                                md5Sql.append(" )");
-                                shaSql.append(" )");
+                                md5Sql.append(" end )");
+                                shaSql.append(" end )");
                                 String whereSqlStr = whereSql.toString().substring(0, whereSql.toString().length() - 1).concat(" )");
                                 String updateSqlStr = updateSql.append(md5Sql).append(",").append(shaSql).append(whereSqlStr).toString();
                                 logSql = updateSqlStr;

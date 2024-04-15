@@ -322,7 +322,7 @@ public interface MarketingSyncUserMapper {
 
     Integer existUploadTable(@Param("tableNm") String tableNm);
 
-    List<MarketingSyncUser> noDesUploadByMinId(@Param("apiCode") String apiCode,@Param("minId") Long minId);
+    List<MarketingSyncUser> noDesUploadByMinIdtikv_(@Param("apiCode") String apiCode, @Param("minId") Long minId);
 
     Integer updateSqlByNoDestikv_(@Param("updateSql") String updateSql);
 }

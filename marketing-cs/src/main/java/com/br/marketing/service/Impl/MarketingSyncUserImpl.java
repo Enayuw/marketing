@@ -263,8 +263,7 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
 
     @Override
     public List<MarketingSyncUser> noDesUploadByMinId(String apiCode,Long minId) {
-
-        List<MarketingSyncUser> marketingSyncUsers = marketingSyncUserMapper.noDesUploadByMinId(apiCode, minId);
+        List<MarketingSyncUser> marketingSyncUsers = marketingSyncUserMapper.noDesUploadByMinIdtikv_(apiCode, minId);
         return marketingSyncUsers;
     }
 
