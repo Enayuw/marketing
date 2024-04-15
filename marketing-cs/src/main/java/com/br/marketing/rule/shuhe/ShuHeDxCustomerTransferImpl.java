@@ -37,12 +37,12 @@ import java.util.Map;
 public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData> {
 
     /**
-     * 2024-04-15 15:48
+     * 2024-04-16 10:48
      * 已转化
      */
     private final static String HAS_TRANSFER = "0";
     /**
-     * 2024-04-15 15:47
+     * 2024-04-16 10:47
      * 已失效
      */
     private final static String HAS_EXPIRE = "2";
@@ -55,6 +55,7 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
         JSONObject reserveFieldObject = JSONObject.parseObject(transfer.getReserveField1());
         String usrForbidCallEndTim = reserveFieldObject.getString("usr_forbid_call_end_tim");
         if (StringUtils.hasText(usrForbidCallEndTim)) {
+            // usr_forbid_call_end_tim字段只要有值就赋值已失效
             conversionData.setInversionStatus(HAS_EXPIRE);
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(
                     DateHelper.LINE_DATE_COLON_TIME_FORMAT);
@@ -65,6 +66,7 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 try {
+                    // 兼容时间格式错误情况，默认到当天结束
                     conversionData.setExpireDate(LocalDate.parse(usrForbidCallEndTim)
                             .atTime(23, 59, 59).atZone(ZoneId.systemDefault()).format(dateTimeFormatter));
                 } catch (Exception ignored) {
