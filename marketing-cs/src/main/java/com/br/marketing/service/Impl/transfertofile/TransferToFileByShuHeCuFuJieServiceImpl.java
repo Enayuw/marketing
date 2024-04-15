@@ -243,9 +243,6 @@ public class TransferToFileByShuHeCuFuJieServiceImpl implements ITransferToFileS
                         continue;
                     }
                     MarketingSyncUser marketingSyncUser = boMap.getSyncUsers().get(0);
-                    if (StringUtils.isNotEmpty(marketingSyncUser.getCell())){
-
-                    }
                     if (StringUtils.isNotEmpty(marketingSyncUser.getReserveField1())) {
                         taskId = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("taskId");
                         String cellLog = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("cell");
@@ -262,12 +259,22 @@ public class TransferToFileByShuHeCuFuJieServiceImpl implements ITransferToFileS
                         clcUsrLstAdtApyTimHvy = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("clc_usr_lst_adt_apy_tim_hvy");
                     }
                     StringBuilder sb = new StringBuilder();
-                    custNum = StringUtils.isNotEmpty(transferFilterData.getCustNum())
-                            ? transferFilterData.getCustNum() : "";
-                    String userType = StringUtils.isNotEmpty(transferFilterData.getUserType())
-                            ? transferFilterData.getUserType() : "";
+                    taskId = StringUtils.isNotEmpty(taskId) ? taskId : "";
+                    String userType = StringUtils.isNotEmpty(transferFilterData.getUserType()) ? transferFilterData.getUserType() : "";
+                    custNum = StringUtils.isNotEmpty(transferFilterData.getCustNum()) ? transferFilterData.getCustNum() : "";
+                    cell = StringUtils.isNotEmpty(cell) ? cell : "";
+                    isTurn = StringUtils.isNotEmpty(isTurn) ? isTurn : "";
+                    isBlack = StringUtils.isNotEmpty(isBlack) ? isBlack : "";
+                    clcUsrLstAppStaTim = StringUtils.isNotEmpty(clcUsrLstAppStaTim) ? clcUsrLstAppStaTim : "";
+                    clcUsrLstNonCcpTrsTim = StringUtils.isNotEmpty(clcUsrLstNonCcpTrsTim) ? clcUsrLstNonCcpTrsTim : "";
+                    offUsrLstOrdTimAll = StringUtils.isNotEmpty(offUsrLstOrdTimAll) ? offUsrLstOrdTimAll : "";
+                    clcUsrAvlLmtLv0 = StringUtils.isNotEmpty(clcUsrAvlLmtLv0) ? clcUsrAvlLmtLv0 : "";
+                    clcUsrAdtLmtLv0 = StringUtils.isNotEmpty(clcUsrAdtLmtLv0) ? clcUsrAdtLmtLv0 : "";
                     String createTime = StringUtils.isNotEmpty(transferFilterData.getCreateTime())
                             ? DateUtils.format(transferFilterData.getCreateTime(), "yyyy-MM-dd HH:mm:ss") : "";
+                    clcUsrLstOrdTimAllWizard = StringUtils.isNotEmpty(clcUsrLstOrdTimAllWizard) ? clcUsrLstOrdTimAllWizard : "";
+                    clcUsrAdtLmtFstAll = StringUtils.isNotEmpty(clcUsrAdtLmtFstAll) ? clcUsrAdtLmtFstAll : "";
+                    clcUsrLstAdtApyTimHvy = StringUtils.isNotEmpty(clcUsrLstAdtApyTimHvy) ? clcUsrLstAdtApyTimHvy : "";
                     sb.append(transferFilterData.getApiCode().contains(","))
                             .append(taskId.concat(","))
                             .append(userType.concat(","))
