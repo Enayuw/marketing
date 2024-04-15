@@ -14,19 +14,15 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.constants.PulsarTopic;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.exception.BusinessException;
-import com.br.marketing.common.exception.CommonException;
-import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.ResponseCustomDTO;
+import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
+import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.dto.shuhe.Response2ShuheDTO;
 import com.br.marketing.dto.shuhe.ResponseShuheDTO;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
@@ -45,11 +41,11 @@ import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.ITransferSyncUserService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ApiFieldCheckUtils;
 import com.br.marketing.util.ShuHeAESencUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -66,7 +62,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -99,51 +94,15 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
     private AlarmApiClient alarmClient;
-    @Value("${otherConfig.alarm.secretKey:00}")
-    private String secretKey;
-    @Value("${otherConfig.alarm.appName:00}")
-    private String appName;
+
 
     private static final ThreadPoolExecutor BR_EXECUTORS = BrExecutors.getThreadPool(1, 2);
     private final String title = "数禾转化数据定制化清洗入库";
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final DateTimeFormatter yyMMddHH = DateTimeFormatter.ofPattern("yyMMdd");
-    private static final Set<String> FIELD_SET = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     @Autowired
     ShuHeUserServiceImpl shuHeUserService;
-
-    static {
-        // D20220824数禾定制版上传接口改造一期 初始化字段 2022-9-1 16:49:53
-        FIELD_SET.addAll(Arrays.asList(
-                "listInfo"
-                , "templateCode"
-                , "extraInfo"
-                , "templateName"
-                , "outboundFrequency"
-                , "operatingCycle"
-                , "mobile"
-                , "orderId"
-                , "bizId"
-                , "varData"
-                , "bizType"
-                , "name"
-                , "identificationNo"
-                , "clc_usr_adt_tim_rcn_lon"
-                , "clc_usr_adt_lmt_fst_all"
-                , "clc_usr_adt_lmt_lv0"
-                , "clc_usr_hvy_max_3_avl_lmt"
-                , "clc_usr_lst_app_sta_tim"
-                , "clc_usr_lst_non_dcp_trs_tim"
-                , "clc_usr_new_adt_rat_btr"
-                , "clc_usr_new_adt_rat_csh"
-                , "clc_usr_new_adt_rat_hgl"
-                , "off_usr_last_adjlmt_add_lmt"
-                , "off_usr_lsh_out_day_flg"
-                , "off_usr_lst_adj_lmt_tim_micro_all"
-                , "off_usr_lst_ord_tim_all"
-        ));
-    }
 
 
     @Override
@@ -264,7 +223,27 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 .concat("@" + System.currentTimeMillis()).concat("#" + random.nextInt(10000)));
         Map res = null;
         try {
-            res = shuHeUserService.saveShTransferData(apiCode, jsonData, requestId, responseShuheDTO,null);
+            res = shuHeUserService.saveShTransferData(apiCode, jsonData, requestId, responseShuheDTO, null);
+            Set<String> startsWith = marketingCommonConfig.getUserTypeAndSumRealtimeApiCodeStartsWith();
+            Object userType = res.get("userType");
+            Object id = res.get("id");
+            if (userType != null && StringUtils.hasText(userType.toString()) && id != null
+                    && Long.parseLong(id.toString()) > 0 && startsWith.stream().anyMatch(apiCode::startsWith)) {
+                try {
+                    ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
+                    dataInfoDTO.setApiCode(apiCode);
+                    dataInfoDTO.setCid(res.get("cid").toString());
+                    dataInfoDTO.setRawDataSaveTimeStr(res.get("createTime").toString());
+                    dataInfoDTO.setArgList(Collections.singletonList(new UserTypeCollectionDTO(userType.toString())));
+                    dataInfoDTO.setRequestId(requestId);
+                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS
+                            , JSONObject.toJSONString(dataInfoDTO.addTransferMsgSource()));
+                } catch (Exception e) {
+                    log.error("数禾转化定制接口推送场景信息到队列失败,发送队列"
+                            + MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS + ",消息内容:" + msg
+                            + "\n" + e.getMessage(), e);
+                }
+            }
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);
             ProductPulsarProducer producer = null;
@@ -278,7 +257,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 String jsonString = jsonObject.toJSONString();
                 byte[] message = jsonString.getBytes();
                 producer.send(message);
-                log.warn(String.format("写入Pulsar 主题:%s 数据:%s",PulsarTopic.transferShTopic,jsonString));
+                log.warn(String.format("写入Pulsar 主题:%s requestId:%s",PulsarTopic.transferShTopic,requestId));
             } catch (PulsarClientException e) {
                 responseShuheDTO.failed();
             }
@@ -526,6 +505,12 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             exceptionSave(shuheUploadData, response2ShuheDTO, e);
             return response2ShuheDTO;
         }
+        if (marketingCommonConfig.getShuheDxApiCodes().contains(apiCode) && !JSONObject.isValidObject(uploadDataDTO.getString("taskCode"))) {
+            response2ShuheDTO.failed(",taskCode非JSON结构");
+            log.error("数禾上传数据定制化接口taskCode非JSON结构,taskCode:{}",uploadDataDTO.getString("taskCode"));
+            exceptionSave(shuheUploadData, response2ShuheDTO, null);
+            return response2ShuheDTO;
+        }
         final JSONArray listInfo = uploadDataDTO.getJSONArray("listInfo");
         if (requiredCheck(listInfo, response2ShuheDTO)) {
             exceptionSave(shuheUploadData, response2ShuheDTO, null);
@@ -564,7 +549,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         if(infoId!=null){
             producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, infoId.toString());
         }
-        BR_EXECUTORS.execute(() -> checkField(uploadDataDTO, listInfo));
+        BR_EXECUTORS.execute(() -> checkField(uploadDataDTO, listInfo, apiCode, requestId));
         return response2ShuheDTO.success();
     }
 
@@ -780,13 +765,18 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     }
 
     /**
-     * 2022/9/1 10:45
-     * 新增字段检查
+     * 2023-12-25 10:56
+     * 数禾上传数据检查字段
+     *
+     * @param uploadDataDTO 上传数据外层
+     * @param listInfo      上传数据内层
+     * @param apiCode       客户编号
+     * @param requestId     请求流水号
      */
-    private void checkField(JSONObject uploadDataDTO, JSONArray listInfo) {
+    private void checkField(JSONObject uploadDataDTO, JSONArray listInfo, String apiCode
+            , String requestId) {
         try {
             Set<String> keySet = new HashSet<>(uploadDataDTO.keySet());
-            StringBuilder fieldStr = new StringBuilder();
             int size = listInfo.size();
             for (int i = 0; i < size; i++) {
                 JSONObject info = listInfo.getJSONObject(i);
@@ -796,25 +786,8 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                     keySet.addAll(varData.keySet());
                 }
             }
-            String separator = "、";
-            for (String key : keySet) {
-                if (FIELD_SET.add(key)) {
-                    Long aLong = redisChgService.saddMember(RedisKeyConstant.shuHeUploadDataFieldKey, key);
-                    if (aLong == 1) {
-                        fieldStr.append(fieldStr.length() > 0 ? separator : "\n").append(key);
-                    }
-                }
-            }
-            if (fieldStr.length() > 0) {
-                alarmClient.sendAlarm("本次请求发现新增字段："
-                                .concat(fieldStr.toString())
-                                .concat("\n请及时与客户沟通确认^_^"), "数禾上传数据接口字段新增检查",
-                                AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
-                Long rSum = redisChgService.scard(RedisKeyConstant.shuHeUploadDataFieldKey);
-                if (rSum == null || rSum < FIELD_SET.size()) {
-                    redisChgService.sadd(RedisKeyConstant.shuHeUploadDataFieldKey, new ArrayList<>(FIELD_SET));
-                }
-            }
+            ApiFieldCheckUtils.checkField(keySet, redisChgService, apiCode, "上海数禾"
+                    , "receiveShuHeUploadData", requestId);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -825,7 +798,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
      * 2022/8/30 16:24
      * 流水号生成规则：
      * 1.年取倒数2位+月（两位）+日（两位）+apicode取倒数4位+纳秒倒数3~8位（共6位）+3位随机数
-     * 2.流水线长：2+2+2+4+6+3
+     * 2.流水号长：2+2+2+4+6+3
      * eg:
      * 2208300004377960345
      */

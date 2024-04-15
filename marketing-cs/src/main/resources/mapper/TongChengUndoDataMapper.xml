@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TongChengUndoDataMapper" >
+    <select id="tongChengUndoDataPage" resultType="com.br.marketing.entity.TongChengUndoData">
+         select * from
+         b_tongcheng_undo_data
+         where
+         <if test="minId != null and minId >0">
+             id > #{minId} and
+         </if>
+         local_id = #{localId}  and status =1 and push_status =1
+         order by id asc limit 2000;
+     </select>
+
+    <select id="queryQuantityGroupByLocalId" parameterType="com.br.marketing.dto.tongcheng.TongChengUndoQueryQuantityDTO" resultType="Map">
+        select
+            count(*) as quantity,
+            local_id as localId
+        from
+            b_tongcheng_undo_data
+        where
+            push_status = #{pushStatus}
+            and status = #{status}
+            <if test="localIdList != null and localIdList.size() > 0">
+                and local_id in
+                <foreach collection = 'localIdList' item='localId' open='(' close=')' separator=','>
+                      #{localId}
+                </foreach>
+            </if>
+            and update_time >= #{startTime}
+        group by
+            local_id
+    </select>
+</mapper>

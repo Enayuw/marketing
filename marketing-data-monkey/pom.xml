@@ -6,6 +6,7 @@
         <artifactId>marketing</artifactId>
         <groupId>com.br.marketing</groupId>
         <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>marketing-data-monkey</artifactId>
@@ -60,11 +61,6 @@
             <artifactId>asm</artifactId>
             <version>1.0.2</version>
         </dependency>
-        <dependency>
-            <groupId>com.br.mom</groupId>
-            <artifactId>broker_layer_api</artifactId>
-            <version>3.0.1</version>
-        </dependency>
         <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
@@ -85,7 +81,6 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
                 <includes>
-                    <include>**/*.ObjectPrxHelperBase</include>
                     <include>mapper/**</include>
                     <include>**/*.yml</include>
                     <include>**/*.xml</include>
@@ -108,6 +103,7 @@
                 </executions>
                 <configuration>
                     <mainClass>com.br.marketing.monkey.MarketingDataMonkeyApplication</mainClass>
+                    <includeSystemScope>true</includeSystemScope>
                 </configuration>
             </plugin>
         </plugins>

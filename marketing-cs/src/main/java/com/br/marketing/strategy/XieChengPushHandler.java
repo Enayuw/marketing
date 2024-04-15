@@ -18,7 +18,7 @@ import java.util.List;
 import static com.br.marketing.common.utils.MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE;
 
 /**
- * 推送携程
+ * 推送携程(3710058/3710078)
  *
  * @author Guo Zeqiang
  * @dateTime 2022/12/1 16:53

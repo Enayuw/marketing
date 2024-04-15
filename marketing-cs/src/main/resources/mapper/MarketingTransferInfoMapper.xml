@@ -1,4 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.MarketingTransferInfoMapper" >
+<mapper namespace="com.br.marketing.mapper.MarketingTransferInfoMapper">
+    <select id="getMarketingTransferInfoIdByValidPeriodRange" resultType="com.br.marketing.entity.MarketingTransferInfo">
+        SELECT id
+        FROM b_marketing_transfer_info
+        WHERE api_code = #{apiCode}
+        <![CDATA[
+          AND create_time >= #{validStartDate}
+          AND create_time <= #{validEndDate}
+        ]]>
+        order by create_time,id
+        LIMIT ${page * pageSize}, ${pageSize}
+    </select>
+
+
+    <select id="getTransferUnresolvedCount" resultType="java.lang.Integer">
+        select count(id)
+        from b_marketing_transfer_info
+        where api_code = #{apiCode}
+           <![CDATA[ AND create_time >= #{startDate} and create_time < #{endDate} ]]>
+          and status = 1
+    </select>
 </mapper>

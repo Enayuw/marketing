@@ -1,6 +1,5 @@
 package com.br.marketing.mapper;
 
-import com.br.marketing.entity.MarketingTransfer;
 import com.br.marketing.entity.MarketingTransferCell;
 import com.br.marketing.entity.MarketingTransferInfo;
 import org.apache.ibatis.annotations.Param;
@@ -43,4 +42,14 @@ public interface MarketingTransferInfoMapper extends MarketingTransferInfoMapper
 
     @Select("SELECT request_id FROM b_marketing_transfer_info WHERE  api_code=#{apiCode} and create_time >= #{createTime} and last=#{last} limit 1")
     String  countByApiCodAndLastOne(@Param("apiCode") String apiCode, @Param("createTime") String createTime, @Param("last") String last);
+
+    List<MarketingTransferInfo> getMarketingTransferInfoIdByValidPeriodRange(@Param("apiCode") String apiCode,
+                                                                             @Param("validStartDate") String validStartDate,
+                                                                             @Param("validEndDate") String validEndDate,
+                                                                             @Param("page") int page,
+                                                                             @Param("pageSize") int pageSize);
+
+
+    int getTransferUnresolvedCount(@Param("apiCode") String apiCode, @Param("startDate") String startDate,@Param("endDate") String endDate);
+
 }

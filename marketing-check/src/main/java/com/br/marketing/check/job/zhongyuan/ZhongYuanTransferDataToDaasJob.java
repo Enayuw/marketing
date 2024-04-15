@@ -89,7 +89,7 @@ public class ZhongYuanTransferDataToDaasJob extends AbstractSimpleElasticJob {
             endDate = LocalDate.parse(split[1], DateTimeFormatter.ofPattern("yyyy-MM-dd")).toString();
         }
         List<MarketingTransferSyncUser> marketingTransferSyncUserList =
-                zhongYuanService.getMarketingTransferSyncUserListWithValidityPeriod(tcId, apiCode, indexId, startDate, endDate);
+                zhongYuanService.getMarketingTransferSyncUserListWithValidityPeriodNoRegisterTime(tcId, apiCode, indexId, startDate, endDate);
         if (marketingTransferSyncUserList.isEmpty()) {
             return null;
         }
@@ -149,8 +149,5 @@ public class ZhongYuanTransferDataToDaasJob extends AbstractSimpleElasticJob {
     private void threadDoProcess(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
         // 推daas
         zhongYuanService.zhongYuanTransferDataToDaas(marketingTransferSyncUserList);
-
-        // 推客服转化
-        zhongYuanService.zhongYuanTransferDataToCustomerFilter(marketingTransferSyncUserList);
     }
 }

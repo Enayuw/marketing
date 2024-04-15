@@ -1,42 +1,34 @@
 package com.br.marketing.push.service.impl;
 
-import com.br.common.util.BrCipherMaker;
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.push.PushApplication;
-import com.br.marketing.push.service.PushFinishService;
-import com.br.marketing.push.service.PushService;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
-import com.br.marketing.common.constants.RegexConstants;
-import com.br.marketing.common.utils.file.MyFileUtil;
-import com.br.marketing.enums.ScoreStatusEnum;
-import com.br.marketing.es.bean.MarketingCondition;
-import com.br.marketing.es.service.MarketingHistoryEsService;
-import com.br.marketing.es.util.UuidUtils;
-import com.br.marketing.rpcclient.RpcClientProxy;
-import com.br.marketing.service.MarketingTaskService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
-
-import java.text.ParseException;
-import java.util.*;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.FtpClient;
 import com.br.marketing.client.bi.BiApiClient;
 import com.br.marketing.client.bi.input.OffLineScoreDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.RegexConstants;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.common.utils.file.ZipUtils;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.ScoreStatusEnum;
+import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
+import com.br.marketing.es.service.MarketingHistoryEsService;
+import com.br.marketing.es.util.UuidUtils;
 import com.br.marketing.mapper.*;
+import com.br.marketing.push.service.PushFinishService;
+import com.br.marketing.push.service.PushService;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.IProductResultSimpleService;
+import com.br.marketing.service.MarketingTaskService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +39,9 @@ import javax.annotation.Resource;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -91,9 +85,6 @@ public class MergeWithMessageServiceImpl {
     private String ftpUsername;
     @Value("${otherConfig.warning.ftpPwd:00}")
     private String ftpPwd;
-
-    @Autowired
-    DecodeClient decodeClient;
 
     @Autowired
     MarketingHistoryEsService marketingHistoryEsService;
@@ -472,10 +463,24 @@ public class MergeWithMessageServiceImpl {
                     String version = jo.getString("version");
                     marketingCondition.setCode(code);
                     marketingCondition.setVersion(version);
-                    marketingCondition.setDValue(StringUtils.isNotBlank(s) ? Double.valueOf(s) : 0);
+                    if (StringUtils.isNotBlank(s)) {
+                        if(Pattern.compile(RegexConstants.Numeric).matcher(s).matches()){
+                            marketingCondition.setDValue(Double.valueOf(s));
+                        }
+                        Long date = DateHelper.strToMill(s);
+                        if(date !=null){
+                            marketingCondition.setLValue(date);
+                        }
+                    }
                 } else {
-                    if (StringUtils.isNotBlank(s) && Pattern.compile(RegexConstants.Numeric).matcher(s).matches()) {
-                        marketingCondition.setDValue(Double.valueOf(s));
+                    if (StringUtils.isNotBlank(s)) {
+                        if(Pattern.compile(RegexConstants.Numeric).matcher(s).matches()){
+                            marketingCondition.setDValue(Double.valueOf(s));
+                        }
+                        Long date = DateHelper.strToMill(s);
+                        if(date !=null){
+                            marketingCondition.setLValue(date);
+                        }
                     }
                 }
                 conditions.add(marketingCondition);
@@ -494,7 +499,17 @@ public class MergeWithMessageServiceImpl {
                 }
                 MarketingCondition marketingCondition = new MarketingCondition();
                 marketingCondition.setFieldKey(baseField);
-                marketingCondition.setStrValue(row.get(baseField.toLowerCase()));
+                String s = row.get(baseField.toLowerCase());
+                marketingCondition.setStrValue(s);
+                if (StringUtils.isNotBlank(s)) {
+                    if(Pattern.compile(RegexConstants.Numeric).matcher(s).matches()){
+                        marketingCondition.setDValue(Double.valueOf(s));
+                    }
+                    Long date = DateHelper.strToMill(s);
+                    if(date !=null){
+                        marketingCondition.setLValue(date);
+                    }
+                }
                 conditions.add(marketingCondition);
             }
             //endregion

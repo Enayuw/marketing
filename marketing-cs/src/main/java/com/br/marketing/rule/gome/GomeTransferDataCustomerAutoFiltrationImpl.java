@@ -4,8 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
-import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -28,8 +29,8 @@ import java.util.Map;
 
 
 /**
- * 小象转化数据自动过滤推客服
- *
+ * 国美转化数据自动过滤推客服（迭代至V3）
+ * https://c.100credit.cn/pages/viewpage.action?pageId=130959325（2023-10-19）
  * @author GuangChao.Zhang
  * @version 1.0
  * @Date 2023/3/23 17:52
@@ -38,15 +39,13 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<ConversionData> {
-
-
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(
             DateHelper.LINE_DATE_COLON_TIME_FORMAT);
-
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+        log.warn("国美推客服转化,apicode={}", transfer.getApiCode());
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(transfer.getCid());
@@ -58,16 +57,28 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
         GomeRuleCollectDataImpl.GomeRuleNecessaryData data =
                 (GomeRuleCollectDataImpl.GomeRuleNecessaryData) context.getRuleNecessaryData();
         conversionData.setInversionStatus("0");
-        Map<String, SyncUserValidityPeriodBO> syncUserValidityPeriodMap = data.getSyncUserValidityPeriodMap();
-        SyncUserValidityPeriodBO bo = syncUserValidityPeriodMap.get(transfer.getCustNum());
-        conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
-        PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
-        conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
-        // 有效期设置
+
+        Map<String, SyncUserValidityPeriodsBO> syncUserValidityPeriodMap = data.getSyncUserValidityPeriodMap();
+        SyncUserValidityPeriodsBO bo = syncUserValidityPeriodMap.get(transfer.getCustNum());
+        if (bo == null) {
+            return null;
+        }
+        conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUsers().get(0).getCell()));
+
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
+
+        // 去重参数设置
         conversionData.setInitId(transfer.getId());
+        PeriodOfValidityBO periodOfValidityBO = bo.getBuilders().get(0).addDateString().addOfDayTimeStrString().builder();
+        // 手机号维度去重
+        conversionData.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
+        conversionData.setSoleType(-1);
+        conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
+        conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
+        // 生效截止时间
+        conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
 
         return conversionData;
     }
@@ -78,34 +89,24 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             GomeRuleCollectDataImpl.GomeRuleNecessaryData ruleNecessaryData =
                     (GomeRuleCollectDataImpl.GomeRuleNecessaryData) context.getRuleNecessaryData();
-            if (ruleNecessaryData.getSyncUserValidityPeriodMap().get(transfer.getCustNum()) != null) {
-                return actionD(transfer);
+            if (ruleNecessaryData.getSyncUserValidityPeriodMap().get(transfer.getCustNum()) == null) {
+                return false;
+            }
+
+            if ("1".equals(transfer.getIfApply())) {
+                return true;
+            }
+
+            String reserveField1 = transfer.getReserveField1();
+            if (StringUtils.isNotEmpty(reserveField1)) {
+                String applyLoan = JSON.parseObject(reserveField1).getString("applyLoan");
+                return ("1").equals(applyLoan);
             }
         }
+
         return false;
     }
 
-    /**
-     * 情况a
-     *
-     * @param transfer 转化数据
-     * @return bool
-     */
-    private boolean actionA(MarketingTransferSyncUser transfer) {
-        return ("1").equals(transfer.getIfApply()) && ("0").equals(transfer.getApplyResult());
-    }
-
-    private boolean actionB(MarketingTransferSyncUser transfer) {
-        String applyLoan = JSON.parseObject(transfer.getReserveField1()).getString("applyLoan");
-        return ("1".equals(applyLoan) && "0".equals(transfer.getIfLent()));
-    }
-
-    private boolean actionC(MarketingTransferSyncUser transfer) {
-        return StringUtils.isNotEmpty(transfer.getUnlentAmount()) && Double.parseDouble(transfer.getUnlentAmount()) >= 0;
-    }
-    private boolean actionD(MarketingTransferSyncUser transfer) {
-        return ("1").equals(transfer.getIfApply());
-    }
     @Override
     public String label() {
         return "Gome_TransferData_Customer_Auto_Filtration";
@@ -113,7 +114,7 @@ public class GomeTransferDataCustomerAutoFiltrationImpl implements AssembleData<
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE.getCode();
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.Impl.ConsumerService;
+import com.br.marketing.service.Impl.RedisTestServiceImpl;
 import com.br.marketing.service.XieChengSmsPushToTransferService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.PushRuleService;
@@ -43,6 +44,9 @@ public class ConsumerApp {
 
     @Autowired
     XieChengSmsPushToTransferService xieChengSmsPushToTransferService;
+
+    @Autowired
+    RedisTestServiceImpl redisTestService;
 
     /**
      * 延迟消费 获取推送客服中心数据状态
@@ -132,35 +136,7 @@ public class ConsumerApp {
         consumerService.consumerRun(channel, message, pushDataService::pushSftpToDbData, o, "");
     }
 
-    /**
-     * 消费 携程消费
-     *
-     * @param channel 通道
-     * @param message 消息体
-     */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, durable = "true")
-            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
-            , key = MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)}, containerFactory = "concurrentContainerFactory")
-    public void xieChengToDb(Channel channel, Message message) {
-        String mes  = new String(message.getBody(), StandardCharsets.UTF_8);
-        /*消费逻辑*/
-        consumerService.consumerRun(channel, message, pushDataService::pushXieChengToDbData, mes, null);
-    }
 
-    ///**
-    // * 消费 携程短信撞库消费
-    // *
-    // * @param channel 通道
-    // * @param message 消息体
-    // */
-    //@RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGSMSCOLLIDINGRECEIVE, durable = "true")
-    //        , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
-    //        , key = MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGSMSCOLLIDINGRECEIVE)}, containerFactory = "containerFactory")
-    //public void xieChengSmsCollidingToDb(Channel channel, Message message) {
-    //    String mes  = new String(message.getBody(), StandardCharsets.UTF_8);
-    //    /*消费逻辑*/
-    //    consumerService.consumerRun(channel, message, pushDataService::pushXieChengSmsCollidingToDbData, mes, null);
-    //}
     /**
      * 推送dass转化
      *
@@ -204,5 +180,36 @@ public class ConsumerApp {
     public void consumerXiechengSmsCollidingVtUser(Channel channel, Message message) {
         String o = new String(message.getBody(), StandardCharsets.UTF_8);
         consumerService.consumerRun(channel, message, xieChengSmsPushToTransferService::consumerXiechengSmsCollidingVtUser, o, null);
+    }
+
+    /**
+     * 消费 携程消费
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+//    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, durable = "true")
+//            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
+//            , key = MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)}, containerFactory = "concurrentContainerFactory")
+//    public void xieChengToDb(Channel channel, Message message) {
+//        String mes  = new String(message.getBody(), StandardCharsets.UTF_8);
+//        /*消费逻辑*/
+//        consumerService.consumerRun(channel, message, pushDataService::pushXieChengToDbData, mes, null);
+//    }
+
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_TEST_QUEUE_ONE, durable = "true")
+            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_TEST_QUEUE_ONE)}, containerFactory = "containerFactory")
+    public void consumerTestOne(Channel channel, Message message) {
+        String o = new String(message.getBody(), StandardCharsets.UTF_8);
+        consumerService.consumerRun(channel, message, redisTestService::testConsumer, o, null);
+    }
+
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_TEST_QUEUE_Two, durable = "true")
+            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_TEST_QUEUE_Two)}, containerFactory = "containerFactory")
+    public void consumerTestTwo(Channel channel, Message message) {
+        String o = new String(message.getBody(), StandardCharsets.UTF_8);
+        consumerService.consumerRun(channel, message, redisTestService::testConsumer, o, null);
     }
 }

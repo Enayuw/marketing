@@ -1,29 +1,20 @@
 package com.br.marketing.check.service.Impl;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.check.CkeckApplication;
-import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.RetryDetailLog;
 import com.br.marketing.entity.RetryMainLog;
-import com.br.marketing.entity.RetryMainLogExample;
 import com.br.marketing.mapper.RetryDetailLogMapper;
 import com.br.marketing.mapper.RetryMainLogMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.lang.reflect.*;
-import java.util.ArrayList;
+import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 

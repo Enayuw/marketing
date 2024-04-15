@@ -1,9 +1,10 @@
 package com.br.marketing.client.xiecheng;
 
-import cn.hutool.core.thread.ThreadUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.xiecheng.intput.AdReqDTO;
 import com.br.marketing.common.annoation.RetryMethod;
@@ -11,21 +12,19 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.ThirdAdOuterReq;
-import com.br.marketing.entity.XieChengData;
 import com.br.marketing.entity.XieChengSmsCollidingReq;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.velocity.runtime.directive.Foreach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 携程处理
@@ -162,6 +161,7 @@ public class XieChengService {
 
 
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result pushXieChengData(AdReqDTO xieChengData) {
 
         /**
@@ -178,9 +178,22 @@ public class XieChengService {
         String sKey = "1".equals(xieChengData.getConditionKey()) ? singKey : config.getString("singKey");
         String sourceVt = config.getString("source");
         if ("1".equals(xieChengData.getConditionKey())) {
+            String extendSource = source;
+            try {
+                JSONObject extend = JSONObject.parseObject(xieChengData.getExtend());
+                String sourceStr = extend.getString("source");
+                if (StringUtils.isEmpty(sourceStr)) {
+                    log.warn("携程广告上报接口，source为空:{}，置为默认值:{}", sourceStr, source);
+                } else {
+                    extendSource = sourceStr;
+                }
+            } catch (Exception e) {
+                log.error("携程广告上报接口，source字段解析异常:{}", xieChengData.getExtend(), e);
+            }
+
             thirdAdOuterReq = new ThirdAdOuterReq(
                     timestemp,
-                    source,
+                    extendSource,
                     xieChengData.getClickId(),
                     xieChengData.getActionType(),
                     deviceInfo.toString()
@@ -237,15 +250,21 @@ public class XieChengService {
      * desc：携程短信退订接口
      */
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result sendSmsQuitData(SmsQuitReq smsQuitReq) {
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
+        Map<String,String> config = marketingCommonConfig.getXieChengSmsQuitConfig().get(smsQuitReq.getApiCode());
         Map<String, Object> retMap = Maps.newHashMap();
-        retMap.put("appId", smsQuitAppId);
+        retMap.put("appId", Objects.isNull(config.get("appId"))?smsQuitAppId: config.get("appId"));
         retMap.put("timestamp", timestemp);
         retMap.put("channel", smsQuitChannel);
-        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(smsQuitReq), smsQuitKey, smsQuitIv));
-        retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsQuitSingKey));
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsQuitOpenUrl, smsQuitIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, "", httpProxyClient.isLogStore(XIECHENGSMSQUIT).get(0), httpProxyClient.isLogStore(XIECHENGSMSQUIT).get(1));
+        retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(smsQuitReq),
+                Objects.isNull(config.get("aesKey"))?smsQuitKey: config.get("aesKey"),
+                Objects.isNull(config.get("aesIv"))?smsQuitIv: config.get("aesIv")));
+        retMap.put("sign", FinanceAESUtils.signLocal(retMap, Objects.isNull(config.get("signKey"))?smsQuitSingKey: config.get("signKey")));
+        List<Boolean> logStore = httpProxyClient.isLogStore(XIECHENGSMSQUIT);
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsQuitOpenUrl, smsQuitIsProxy,
+                MediaType.APPLICATION_JSON_UTF8_VALUE, "", logStore.get(0), logStore.get(1));
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.error("携程短信退订接口-请求参数:{};返回:{}", JSON.toJSONString(resMap), JSON.toJSONString(resMap));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
@@ -284,19 +303,24 @@ public class XieChengService {
         retMap.put("channel", smsCollidingChannel);
         retMap.put("data", FinanceAESUtils.encryptStr(JSON.toJSONString(xieChengSmsCollidingReq), smsCollidingKey, smsCollidingIv));
         retMap.put("sign", FinanceAESUtils.signLocal(retMap, smsCollidingSingKey));
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
+        HashMap<String, String> resMap = new HashMap<>();
+        if(marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(0)){
+         resMap = getTestMap(sha256CodeList);
+        }else {
+          resMap = httpProxyClient.sendByCodeWithLog(retMap, smsCollidingOpenUrl, smsCollidingIsProxy,
+                    MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(xieChengSmsCollidingReq), true, false);
+        }
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.error("携程短信撞库接口httpcode非200异常，重试");
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            log.error("携程短信撞库接口httpcode非200异常");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("{'msg':'httpCode非200'}");
         }
         String content = resMap.get("content");
-        //String content = "{\"code\":702,\"msg\":\"测试效率\",\"data\":[{\"md5Code\":null,\"sha256Code\":\"760a06d2bc9b150d1d5b162e95bed32ed306cd1c2f7417c5e10397715ea165c1\",\"result\":false,\"orgChannel\":\"测试orgChannel\",\"mktLevel\":\"测试orgmktLevel\",\"info\":\"测试info\"}]}";
         JSONObject resultJson = JSONObject.parseObject(content);
         Integer code = resultJson.getInteger("code");
         if (code == 0) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
         } else {
-            log.error("携程短信撞库接口请求返回code 非0异常，无重试，需要是手动处理。");
+            log.error("携程短信撞库接口请求返回code 非0异常");
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
         }
 
@@ -309,13 +333,19 @@ public class XieChengService {
      * @return
      */
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<String> pushXieChengSmsCollidingDataVt(List<String> sha256CodeList) {
         /*
           data 组装
          */
+        String xieChengNewAppId = marketingCommonConfig.getXieChengNewAppId();
+        if(!StringUtils.isEmpty(xieChengNewAppId)){
+            smsCollidingVtAppId =  xieChengNewAppId;
+        }
         XieChengSmsCollidingReq xieChengSmsCollidingReq = new XieChengSmsCollidingReq(
-                appIdVt, sha256CodeList, CODETYPE, MARKETTYPE, MARKETFINANCEUSER
+                smsCollidingVtAppId, sha256CodeList, CODETYPE, MARKETTYPE, MARKETFINANCEUSER
         );
+        log.warn("携程appId:{}",smsCollidingVtAppId);
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         Map<String, Object> retMap = Maps.newHashMap();
         retMap.put("appId", smsCollidingVtAppId);
@@ -345,8 +375,14 @@ public class XieChengService {
 
     private HashMap<String,String> getTestMap(List<String> sha256CodeList){
         JSONObject map = new JSONObject();
-        map.put("code",0);
-        map.put("msg","success");
+        if(marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(2)){
+            map.put("code",9999);
+            map.put("msg","测试挡板非0异常");
+        }else {
+            map.put("code",0);
+            map.put("msg","success");
+        }
+
         JSONArray jsonArray = new JSONArray();
         for(int i=0;i<sha256CodeList.size();i++){
             JSONObject dataMap = new JSONObject();
@@ -364,7 +400,12 @@ public class XieChengService {
         }
         map.put("data",jsonArray);
         HashMap<String, String> resMap = new HashMap<>();
-        resMap.put("httpcode","200");
+        if(marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(1)){
+            resMap.put("httpcode","201");
+        }else {
+            resMap.put("httpcode","200");
+        }
+
         resMap.put("content",map.toString());
         return resMap;
 

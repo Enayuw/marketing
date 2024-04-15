@@ -72,4 +72,59 @@ public class JobManager {
         front.setStatus(status);
         transferActionFrontMapper.updateByPrimaryKeySelective(front);
     }
+
+    /**
+     * 2023-11-18 16:00
+     * 保存执行记录，赋值初始状态
+     *
+     * @return 执行记录主键
+     */
+    public Long saveFrontData(TransferActionFront front) {
+        front.setStatus(1);
+        front.setCreateTime(new Date());
+        front.setIsDel(1);
+        transferActionFrontMapper.insertSelective(front);
+        return front.getId();
+    }
+
+    /**
+     * 2023-11-18 16:00
+     * 查询执行记录
+     */
+    public TransferActionFront getFrontData(String apiCode, String date
+            , Integer actionType, String remark) {
+        TransferActionFrontExample frontExample = new TransferActionFrontExample();
+        TransferActionFrontExample.Criteria criteria = frontExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andActionDataEqualTo(date)
+                .andIsDelEqualTo(1);
+        if (remark != null) {
+            criteria.andRemarkEqualTo(remark);
+        }
+        if (actionType != null) {
+            criteria.andActionTypeEqualTo(actionType);
+        }
+        frontExample.setOrderByClause("create_time desc,update_time desc");
+        List<TransferActionFront> transferActionFronts = transferActionFrontMapper.selectByExample(frontExample);
+        if (transferActionFronts.size() == 1) {
+            return transferActionFronts.get(0);
+        } else if (transferActionFronts.size() > 1) {
+            log.error("transferActionFront请检查apiCode:{},data:{},type:{}当前执行日志有{}条记录！"
+                    , apiCode, date, actionType, transferActionFronts.size());
+            return transferActionFronts.get(0);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * 2023-11-18 15:58
+     * 获取查询状态
+     *
+     * @return true 存在状态 {@code status}
+     */
+    public boolean getActionStatus(String apiCode, String date, Integer status, Integer actionType, String remark) {
+        TransferActionFront frontData = getFrontData(apiCode, date, actionType, remark);
+        return frontData != null && frontData.getStatus().equals(status);
+    }
 }

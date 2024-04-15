@@ -5,12 +5,10 @@ import com.br.cloud.boot.EnablePrometheusEndpoint;
 import com.br.cloud.counter.EnableBrCounter;
 import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
-import com.br.cloud.threadpool.EnablePrometheusIceThreadPool;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
 import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
 import com.br.marketing.prometheus.druid.DruidCollector;
-import com.br.monitor.grpc.EnvUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
@@ -40,7 +38,6 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @EnableHystrixPrometheus
 @EnablePrometheusTiming
 @EnableBrCounter(namespace = "marketing_api")
-@EnablePrometheusIceThreadPool
 @EnableDruidPrometheus
 public class MarketingApiApplication {
 
@@ -68,9 +65,8 @@ public class MarketingApiApplication {
      */
     public static void stop() {
         try {
-            if ("GRPC".equals(EnvUtil.getProperties("GRPC_MODE"))) {
-                BrGrpcUtils.shutDown();
-            }
+            Thread.sleep(4500L);
+            BrGrpcUtils.shutDown();
         } catch (Exception e) {
             log.error("GRPC服务关闭异常", e);
         }

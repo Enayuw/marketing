@@ -2,9 +2,7 @@ package com.br.marketing.mapper;
 
 
 import com.alibaba.fastjson.JSONArray;
-import com.br.marketing.entity.MarketingNewTransferData;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.vo.TransferOfCnIdVO;
 import com.br.marketing.vo.TransferOfRdRFVO;
 import org.apache.ibatis.annotations.Param;
@@ -39,7 +37,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      */
     MarketingTransferSyncUser getNewestByCusnumInHour(@Param("cid") String cid, @Param("caseNum") String caseNum, @Param("timeAddHour") String timeAddHour);
 
-    List<MarketingTransferSyncUser> getTransferOrderInsertTime(@Param("cid") String cid, @Param("data") String data, @Param("limitStart") Integer limitStart);
+    List<MarketingTransferSyncUser> getTransferOrderInsertTime(@Param("cid") String cid, @Param("data") String data, @Param("limitStart") Integer limitStart,@Param("pageSize") Integer pageSize);
 
     List<MarketingTransferSyncUser> getTransferDataByRequestDataAndApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode, @Param("data") String data, @Param("limitStart") Integer limitStart);
 
@@ -56,6 +54,24 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
 
     List<MarketingTransferSyncUser> getTransferByRequestData(@Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
+
+    /**
+     * 查询
+     * @param transferSyncUser transferSyncUser
+     * @param startDate startDate
+     * @param endDate endDate
+     * @param orderByClause orderByClause
+     * @param rowCount rowCount
+     * @param offset offset
+     * @return java.util.List<com.br.marketing.entity.MarketingTransferSyncUser> 查询到的MarketingTransferSyncUser集合
+     */
+    List<MarketingTransferSyncUser> getTransferByStartAndEndDate(@Param("transferSyncUser") MarketingTransferSyncUser transferSyncUser,
+                                                                 @Param("startDate") String startDate,
+                                                                 @Param("endDate") String endDate,
+                                                                 @Param("orderByClause") String orderByClause,
+                                                                 @Param("rowCount") int rowCount,
+                                                                 @Param("offset") int offset);
+
 
     List<MarketingTransferSyncUser> getTransferData(@Param("apiCode") String apiCode , @Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
 
@@ -442,6 +458,11 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                  @Param("requestStartDate") String requestStartDate,
                                                                  @Param("requestEndDate") String requestEndDate,
                                                                  @Param("indexId") Long indexId);
+    List<MarketingTransferSyncUser> getZhongYuanTransferByRequestDateNoRegisterTime(@Param("tCid") String tCid,
+                                                                 @Param("apiCode") String apiCode,
+                                                                 @Param("requestStartDate") String requestStartDate,
+                                                                 @Param("requestEndDate") String requestEndDate,
+                                                                 @Param("indexId") Long indexId);
 
     Integer getCountIsBlackByCustNum(@Param("cid") String cId, @Param("custNum") String custNum);
     Integer getCountIfApplyByCustNum(@Param("cid") String cId, @Param("custNum") String custNum,
@@ -462,6 +483,54 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                @Param("requestEndDate") String requestEndDate,
                                                                @Param("querySql") String querySql,
                                                                @Param("custNums") Set<String> custNums);
+
+    /**
+     * 转化数据对应的custNum，convType是否有110，convType是否有106
+     * @param tCid
+     * @param apiCodes
+     * @param requestStartDate
+     * @param requestEndDate
+     * @param custNums
+     * @return
+     */
+    List<XieChengJudgeConvTypeValue> getXieChengJudgeConvType(@Param("tCid") String tCid,
+                                                              @Param("apiCodes") JSONArray apiCodes,
+                                                              @Param("requestStartDate") String requestStartDate,
+                                                              @Param("requestEndDate") String requestEndDate,
+                                                              @Param("custNums") Set<String> custNums);
+
+    List<MarketingTransferSyncUser> getQiFuBreakPointTransferByRequestDatetikv_(@Param("tCid") String tCid,
+                                                                           @Param("apiCode") String apiCode,
+                                                                           @Param("requestStartDate") String requestStartDate,
+                                                                           @Param("requestEndDate") String requestEndDate,
+                                                                           @Param("indexId") Long indexId);
+
+    int getCountByQiFuApplyDtEmply(@Param("tCid") String tCid, @Param("apiCode") String apiCode,
+                                   @Param("periodRangeList") List<PeriodRange> periodRangeList, @Param("custNum") String custNum);
+
+    List<MarketingTransferSyncUser> getTransferSyncUserByPage(@Param("tCid") String tCid,
+                                                              @Param("apiCode") String apiCode,
+                                                              @Param("requestStartDate") String requestStartDate,
+                                                              @Param("requestEndDate") String requestEndDate,
+                                                              @Param("indexId") Long indexId,
+                                                              @Param("querySql") String querySql);
+
+    /**
+     * 2024-03-08 9:29
+     * 根据请求批次号获取批次号内的全部数据
+     *
+     * @param apiCode     code
+     * @param tCid        tCid
+     * @param requestDate 上传时间
+     * @param requestId   请求批次号
+     * @param userTypeSet 场景集合
+     * @return List
+     */
+    List<TransferSyncReport> selectTransferSyncReportByRequestIdCount(@Param("apiCode") String apiCode
+            , @Param("tCid") String tCid
+            , @Param("requestId") String requestId
+            , @Param("userTypeSet") Set<String> userTypeSet
+            , @Param("requestDate") String requestDate);
 
 
 }

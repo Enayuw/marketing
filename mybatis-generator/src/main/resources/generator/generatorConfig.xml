@@ -29,7 +29,7 @@
 
         <!-- 数据库链接URL，用户名、密码 -->
         <jdbcConnection driverClass="com.mysql.jdbc.Driver"
-                        connectionURL="jdbc:mysql://10.100.151.104:4000/marketing"
+                        connectionURL="jdbc:mysql://tidb-pre.brapp.com:4000/marketing"
                         userId="u_pd_marketing"
                         password="f9daIYUIAXQkeyVbDoOI">
         </jdbcConnection>
@@ -59,13 +59,13 @@
         <!-- 要生成的表 tableName是数据库中的表名或视图名 domainObjectName是实体类名-->
         <!--        <table tableName="b_loan_task" domainObjectName="LoanTask" enableCountByExample="false" enableUpdateByExample="false"-->
         <!--               enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false">-->
-        <table tableName="b_zhongyou_file_data" domainObjectName="ZhongyouFileData" >
+        <table tableName="b_xiecheng_colliding_data_contrast" domainObjectName="XieChengCollidingDataContrast" >
 <!--            <property name="useActualColumnNames" value="false"/>-->
             <!-- 数据库表主键 自动返回主键值 -->
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
             <!--如果有超常字段 需要映射字段类型为VARCHAR-->
 
-            <columnOverride column="extend" javaType="java.lang.String" jdbcType="VARCHAR" />
+            <columnOverride column="field_mapping" javaType="java.lang.String" jdbcType="VARCHAR" />
 <!--            <columnOverride column="content_show" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="result_content" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="error_content" javaType="java.lang.String" jdbcType="VARCHAR" />-->

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.HaierCollidingDataMapper">
+    <select id="selectByLocalId" resultType="com.br.marketing.entity.HaierCollidingData">
+        select a.mobile_digest,
+               a.api_code,
+               a.local_id,
+               a.id
+        from b_haier_colliding_data a
+                 left join b_haier_colliding_data_log b on a.id = b.colliding_data_id and b.send_date = #{sendDate}
+        where a.local_id = #{localId}
+          and a.status = 1
+          and b.id is null
+        order by a.id limit #{pageSize}
+    </select>
+</mapper>

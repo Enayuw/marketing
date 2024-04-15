@@ -10,7 +10,6 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.mapper.SyncLogMapper;
-import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.SftpInnerServiceImpl;
@@ -22,6 +21,7 @@ import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -37,10 +37,6 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
 
     @Autowired
     MarketingCustomerMapper customerMapper;
-
-    @Resource
-    TransferFileTaskMapper transferFileTaskMapper;
-
     /*萨摩耶的实现*/
     @Resource
     ITransferToFileService transferToFileBySamoyeServiveImpl;
@@ -83,6 +79,18 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByTongChengServiceImpl transferToFileByTongChengService;
 
+    /**
+     * 同城新系统
+     */
+    @Resource
+    private TransferToFileByNewTongChengServiceImpl transferToFileByNewTongChengService;
+
+    /**
+     * 同城集团
+     */
+    @Resource
+    private TransferToFileByTongChengGroupServiceImpl transferToFileByTongChengGroupService;
+
     @Resource
     private SyncLogMapper loanSyncLogMapper;
     /**
@@ -112,6 +120,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     private NewTransferToFileByXieChengServiceImpl newTransferToFileByXieChengService;
 
     /**
+     * 携程V2
+     */
+    @Resource
+    private TransferToFileByXieChengTwoServiceImpl transferToFileByXieChengTwoService;
+
+    /**
      * 拍拍贷老客
      */
     @Resource
@@ -137,12 +151,37 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByHaierServiceImpl transferToFileByHaierService;
 
+    /**
+     * 海尔新系统
+     */
+    @Resource
+    private TransferToFileByNewHaierServiceImpl transferToFileByNewHaierServicea;
 
     /**
      * 永辉
      */
     @Resource
     private TransferToFileByYonghuiServiceImpl transferToFileByYonghuiService;
+
+    /**
+     * 众邦财富
+     */
+    @Resource
+    private TransferToFileByZhongBangServiceImpl transferToFileByZhongBangService;
+
+    /**
+     * 众邦
+     */
+    @Resource
+    private TransferToFileByZhongBangTransferServiceImpl transferToFileByZhongBangTransferService;
+
+    /**
+     * 奇富360
+     */
+    @Resource
+    private TransferToFileByQiFuServiceImpl transferToFileByQiFuServiceService;
+
+
 
     @Autowired
     ICompatibleService iCompatibleService;
@@ -155,12 +194,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"))
                 .andApiCodeIn(new ArrayList<>(bind.keySet()));
-        List<MarketingCustomer> marketingCustomers = customerMapper.selectByExampleAndShard(customerExample
-                , context.getShardingTotalCount()
-                , context.getShardingItems());
+        List<MarketingCustomer> marketingCustomers = customerMapper.selectByExample(customerExample);
         for (MarketingCustomer marketingCustomer : marketingCustomers) {
-            Boolean action = iCompatibleService.isAction(marketingCustomer.getExtendConfigInfo(),context.getJobName());
-            if(!action){
+            String redisKey = RedisKeyConstant.TRANSFER_FILE_TASK_JOB_KEY.concat(":").concat(marketingCustomer.getApiCode());
+            String value = RandomStringUtils.randomAlphabetic(16) + UUID.randomUUID();
+            Boolean action = iCompatibleService.isAction(marketingCustomer.getExtendConfigInfo(), context.getJobName());
+            if (!action) {
                 continue;
             }
             Set<ITransferToFileService> serviceImplSet = bind.get(marketingCustomer.getApiCode());
@@ -171,7 +210,18 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                     if (StringUtils.isNotBlank(myParam)) {
                         log.warn("apicode={}获取的自定义参数为{}", marketingCustomer.getApiCode(), myParam);
                     }
-                    Result<List<TransferFileTask>> listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(), myParam);
+                    Result<List<TransferFileTask>> listResult = new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Lists.newArrayList());
+                    try {
+                        boolean lock = redisChgService.lock(redisKey, value,
+                                marketingCommonConfig.getTransferFileTaskJobLockExpireTime());
+                        if (lock) {
+                            listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(), myParam);
+                        }
+                    } catch (Exception e) {
+                        log.error("该apiCode:{}执行数据提取任务获取锁:{}异常", marketingCustomer.getApiCode(), redisKey);
+                    } finally {
+                        redisChgService.unlock(redisKey, value);
+                    }
                     if (ResultCode.SUCCESS.getValue().equals(listResult.getCode()) && listResult.getData().size() > 0) {
                         List<TransferFileTask> data = listResult.getData();
                         for (TransferFileTask datum : data) {
@@ -239,6 +289,10 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByPPDService, marketingCommonConfig.getPPDTransferFileApiCodes())
                 // 同程转化数据提取
                 .addBind(transferToFileByTongChengService, marketingCommonConfig.getTongChengTransferFileApiCodes())
+                // 同程新系统转化数据提取
+                .addBind(transferToFileByNewTongChengService, marketingCommonConfig.getNewTongChengTransferFileApiCodes())
+                // 同程集团转化数据提取
+                .addBind(transferToFileByTongChengGroupService, marketingCommonConfig.getTongChengGroupTransferFileApiCodes())
                 // 小赢转化数据提取
                 .addBind(xiaoYingRealTimeService, marketingCommonConfig.getXiaoYingTransferExtractApiCodes())
                 // 众安异业撞库、转化数据提取
@@ -247,6 +301,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByXieChengService, marketingCommonConfig.getXieChengTransferApiCodes())
                 // 携程新场景转化数据提取
                 .addBind(newTransferToFileByXieChengService, marketingCommonConfig.getXieChengNewTransferApiCodes())
+                // 携程V2转化数据提取
+                .addBind(transferToFileByXieChengTwoService, marketingCommonConfig.getXieChengTwoTransferApiCodes())
                 // 拍拍贷老客转人工数据提取
                 .addBind(transferToFileByPPDOldService, marketingCommonConfig.getPPDOldTransferFileApiCodes())
                 // 桔子转化数据提取
@@ -254,10 +310,18 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByYouMeDService, marketingCommonConfig.getYouMeDApiCodes())
                 // 海尔转化数据提取
                 .addBind(transferToFileByHaierService, marketingCommonConfig.getHaierApiCodes())
+                // 海尔新系统转换数据提取
+                .addBind(transferToFileByNewHaierServicea, marketingCommonConfig.getNewHaierTransferApiCodes())
                 // 国美转化数据提取
                 .addBind(transferToFileByGomeService, marketingCommonConfig.getGomeApiCodes())
                 // 永辉转化数据提取
                 .addBind(transferToFileByYonghuiService, marketingCommonConfig.getYonghuiTransferExtractApiCodes())
+                // 众邦财富转换数据提取
+                .addBind(transferToFileByZhongBangService, marketingCommonConfig.getZhongBangTransferApiCodes())
+                // 众邦转换数据提取
+                .addBind(transferToFileByZhongBangTransferService, marketingCommonConfig.getZhongBangApiCodes())
+                //奇富360转换数据提取
+                .addBind(transferToFileByQiFuServiceService, marketingCommonConfig.getQiFuTransferApiCodes())
                 // 滴滴转化数据提取
                 .addBind(transferToFileByDiDiService,marketingCommonConfig.getDidiApiCodes())
                 .build();

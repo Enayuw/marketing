@@ -4,7 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.util.AESAlgorithmUtil;
 import com.br.marketing.api.MarketingApiApplication;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
+import com.br.marketing.origin.CaffeineCache;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailVariablesDTO;
@@ -22,6 +23,7 @@ import com.br.marketing.vo.CustGroupTempVO;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyObject;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,10 +46,30 @@ import java.util.concurrent.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = MarketingApiApplication.class)
+@Slf4j
 public class redis {
 
     @Autowired
     RabbitMqProducter producter;
+
+    @Resource
+    CaffeineCache caffeineCache;
+
+    @Test
+    public void testPriority() throws InterruptedException {
+        CustomerRoutingKeyConfig routingKeyConfig = caffeineCache.getRountingKey("3710058,6");
+        CustomerRoutingKeyConfig routingKeyConfig2 = caffeineCache.getRountingKey("3710058,1");
+        CustomerRoutingKeyConfig routingKeyConfig1 = caffeineCache.getRountingKey("3710078,1");
+        for (int i = 0; i <20;i++) {
+            producter.send("Marketing.PreUser.Receive.Small",String.valueOf(i),i);
+        }
+        for (int i = 0; i <30;i++) {
+            producter.send("Marketing.PreUser.Receive.Emergency",String.valueOf(i),i);
+        }
+        for (int i = 0; i <30;i++) {
+            producter.send("Marketing.PreUser.Receive",String.valueOf(i),i);
+        }
+    }
 
     @Test
     public void pushMQ(){
@@ -487,7 +509,7 @@ public class redis {
 //            System.out.println(bloomFilter.contains("10086"));
     }
     @Resource
-    DecodeClient decodeClient;
+    DecodeGrpcClient decodeClient;
 
 
     @Test

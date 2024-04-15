@@ -41,6 +41,8 @@ public enum RuleDataCollectionEnum {
 
     TONG_CHENG_DATA_COLLECTION_V2(11, "同程金融规则所需数据收集第二版"),
 
+    PPD_LOD_DATA_COLLECTION(12, "拍拍贷老客转化数据收集"),
+
     NIWODAI_DATA_COLLECTION(20, "你我贷规则所需数据收集"),
 
     GOME_DATA_COLLECTION(21, "国美规则所需数据收集"),
@@ -51,6 +53,12 @@ public enum RuleDataCollectionEnum {
 
     ZHONGYOU_DATA_COLLECTION(24, "中邮推送客服规则所需数据收集"),
 
+    WEIEDAI_DATA_COLLECTION(26, "微e贷规则所需数据收集"),
+
+
+    QIFU360_DATA_COLLECTION(27, "360金融规则所需数据收集"),
+    ZHONGAN_TRANSFER_FILTER_COLLECTION(28, "众安转化数据过滤规则所需数据收集"),
+    YILIAN_TRANSFER_FILTER_COLLECTION(29, "亿联转化数据过滤规则所需数据收集"),
     ;
 
 

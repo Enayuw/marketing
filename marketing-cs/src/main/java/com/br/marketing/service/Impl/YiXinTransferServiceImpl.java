@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl;
 
-import IceInternal.Ex;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
@@ -13,7 +12,10 @@ import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.*;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
@@ -37,7 +39,6 @@ import org.joda.time.Hours;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
@@ -85,6 +86,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
     @Autowired
     ZnkfPushService znkfPushService;
+
+    @Autowired
+    DynamicParameterServiceImpl dynamicParameterService;
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
@@ -159,11 +163,12 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
         String tcId = tableCreateService.getTcId(apiCode);
+        Integer pageSize = dynamicParameterService.getPageSize("yxToDx");
         Integer threadvalue = 0;
         while (mark) {
             threadvalue++;
             final Integer _threadValue = threadvalue;
-            Result<List<MarketingTransferSyncUser>> delayData = getDelayData(apiCode, date, page);
+            Result<List<MarketingTransferSyncUser>> delayData = getDelayData(apiCode, date, page, pageSize);
             if (!ResultCode.SUCCESS.getValue().equals(delayData.getCode())) {
                 mark = Boolean.FALSE;
                 continue;
@@ -419,8 +424,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         //去重后的Set
         HashSet custNumResult = new HashSet();
         List<Long> ids = new ArrayList<>();
+        Integer pageSize = dynamicParameterService.getPageSize("yxToCustomer");
         while (mark) {
-            Result<List<MarketingTransferSyncUser>> delayData = getDelayData(apiCode, date, page);
+            Result<List<MarketingTransferSyncUser>> delayData = getDelayData(apiCode, date, page, pageSize);
             if (!ResultCode.SUCCESS.getValue().equals(delayData.getCode())) {
                 mark = Boolean.FALSE;
                 continue;
@@ -468,10 +474,10 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
      * @param pageIndex
      * @return
      */
-    private Result<List<MarketingTransferSyncUser>> getDelayData(String apiCode, String date, Integer pageIndex) {
+    private Result<List<MarketingTransferSyncUser>> getDelayData(String apiCode, String date, Integer pageIndex, Integer pageSize) {
         String tcId = tableCreateService.getTcId(apiCode);
-        Integer limitStart = pageIndex * 2000;
-        List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferOrderInsertTime(tcId, date, limitStart);
+        Integer limitStart = pageIndex * pageSize;
+        List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferOrderInsertTime(tcId, date, limitStart,pageSize);
         if (transferOrderInsertTime.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }

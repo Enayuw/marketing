@@ -4,6 +4,7 @@
         <artifactId>marketing</artifactId>
         <groupId>com.br.marketing</groupId>
         <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -83,7 +84,6 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
                 <includes>
-                    <include>**/*.ObjectPrxHelperBase</include>
                     <include>mapper/**</include>
                     <include>**/*.yml</include>
                     <include>**/*.xml</include>
@@ -106,6 +106,7 @@
                 </executions>
                 <configuration>
                     <mainClass>com.br.marketing.sync.SyncApplication</mainClass>
+                    <includeSystemScope>true</includeSystemScope>
                 </configuration>
             </plugin>
         </plugins>

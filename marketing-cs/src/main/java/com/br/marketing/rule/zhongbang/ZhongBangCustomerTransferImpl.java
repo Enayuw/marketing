@@ -3,13 +3,14 @@ package com.br.marketing.rule.zhongbang;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
-import com.br.marketing.bo.SyncUserValidityPeriodBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ZhongBangRuleCollectDataImpl;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -45,17 +46,18 @@ public class ZhongBangCustomerTransferImpl implements AssembleData<ConversionDat
         ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData ruleNecessaryData =
                 (ZhongBangRuleCollectDataImpl.ZhongBangRuleNecessaryData) context.getRuleNecessaryData();
         conversionData.setInversionStatus("0");
-        Map<String, SyncUserValidityPeriodBO> syncUserPeriodMap = ruleNecessaryData.getCustomerMap();
-        SyncUserValidityPeriodBO bo = syncUserPeriodMap.get(transfer.getCustNum());
+        Map<String, SyncUserValidityPeriodsBO> syncUserPeriodMap = ruleNecessaryData.getCustomerMap();
+        SyncUserValidityPeriodsBO bo = syncUserPeriodMap.get(transfer.getCustNum());
         if (bo == null) {
             return null;
         }
-        conversionData.setPhone(BrCipherMaker.getInstance().decode(bo.getSyncUser().getCell()));
+        MarketingSyncUser marketingSyncUser = bo.getSyncUsers().get(0);
+        conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
         // 去重参数设置
         conversionData.setInitId(transfer.getId());
         conversionData.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
         conversionData.setSoleType(-1);
-        PeriodOfValidityBO periodOfValidityBO = bo.getBuilder().addDateString().addOfDayTimeStrString().builder();
+        PeriodOfValidityBO periodOfValidityBO = bo.getBuilders().get(0).addDateString().addOfDayTimeStrString().builder();
         conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
         conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());

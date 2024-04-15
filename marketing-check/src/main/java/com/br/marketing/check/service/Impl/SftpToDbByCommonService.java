@@ -5,14 +5,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.rpcclient.rpcclientImpl.DecodeClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.dto.TxtToDbDTO;
@@ -26,7 +24,6 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.base.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -86,9 +83,6 @@ public class SftpToDbByCommonService {
 
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
-
-    @Autowired
-    DecodeClient decodeClient;
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;

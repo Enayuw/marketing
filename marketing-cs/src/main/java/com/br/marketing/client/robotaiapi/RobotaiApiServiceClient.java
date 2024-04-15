@@ -3,16 +3,16 @@ package com.br.marketing.client.robotaiapi;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.cloud.counter.BrCounter;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.client.net.ApiCaller;
 import com.br.marketing.client.net.ApiCallerUtil;
 import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.*;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import com.br.marketing.mapper.InterfaceLogMapper;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
@@ -85,6 +85,7 @@ public class RobotaiApiServiceClient {
         }
     }
 
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public TransferRobotOutboundVO<TransferRobotDataVO> pushRobotai(TransferRobotOutboundDTO dto){
         dto.getJsonData().setPlatApiCode(customerServiceApiCode);
         try{
@@ -114,6 +115,7 @@ public class RobotaiApiServiceClient {
         }
     }
 
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public ReqBlackPhoneVO pushBlack(ReqBlackPhoneParentDTO parentDTO){
         ReqBlackPhoneDTO dto = parentDTO.getDto();
         com.br.marketing.entity.InterfaceLog interfaceLog = new com.br.marketing.entity.InterfaceLog();

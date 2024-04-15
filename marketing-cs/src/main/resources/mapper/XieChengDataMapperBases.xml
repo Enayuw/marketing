@@ -146,7 +146,7 @@
       #{actionType,jdbcType=VARCHAR}, #{clickId,jdbcType=VARCHAR}, #{clickTel,jdbcType=VARCHAR},#{sha256Tel,jdbcType=VARCHAR},
       #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR},
       #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
-      #{extend,jdbcType=LONGVARCHAR})
+      #{extend,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.XieChengData" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -238,7 +238,7 @@
         #{updateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="extend != null" >
-        #{extend,jdbcType=LONGVARCHAR},
+        #{extend,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -294,7 +294,7 @@
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="record.extend != null" >
-        extend = #{record.extend,jdbcType=LONGVARCHAR},
+        extend = #{record.extend,jdbcType=VARCHAR},
       </if>
     </set>
     <if test="_parameter != null" >
@@ -317,7 +317,7 @@
       create_date = #{record.createDate,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      extend = #{record.extend,jdbcType=LONGVARCHAR}
+      extend = #{record.extend,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -385,7 +385,7 @@
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="extend != null" >
-        extend = #{extend,jdbcType=LONGVARCHAR},
+        extend = #{extend,jdbcType=VARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
@@ -405,7 +405,7 @@
       create_date = #{createDate,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
-      extend = #{extend,jdbcType=LONGVARCHAR}
+      extend = #{extend,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XieChengData" >

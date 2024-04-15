@@ -4,14 +4,14 @@ package com.br.marketing.tools.job;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.client.net.ApiCaller;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.common.utils.net.ApiCaller;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import com.br.marketing.tools.dto.TidbSqlDTO;
-import com.br.marketing.tools.service.AlarmApiClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -51,8 +51,6 @@ public class DbMonitor {
 
     final static String baseUrl = "http://tidb-monitor-zw-t1.100credit.cn/";
 
-    @Resource
-    private AlarmApiClient alarmApiClient;
 
     @Scheduled(cron = "0 0/30 * * * ?")
     public void slowDbSql() {
@@ -107,7 +105,7 @@ public class DbMonitor {
                     .append("</th></tr>");
         });
 
-        alarmApiClient.send("marketing库慢sql报警",sb.toString(),receivers);
+        AlarmApiClient.sendMails("marketing库慢sql报警",sb.toString(),receivers);
     }
 
     public void testUrlSql() {

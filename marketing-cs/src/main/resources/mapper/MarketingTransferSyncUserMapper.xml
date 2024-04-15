@@ -60,7 +60,8 @@
         select * from
         b_marketing_transfer_sync_${cid}
         where request_data=#{data}
-        order by cust_num desc,insert_time desc,id desc limit #{limitStart},2000;
+        order by cust_num desc,insert_time desc,id desc
+        limit #{limitStart},#{pageSize};
     </select>
 
     <select id="getTransferDataByRequestDataAndApiCode" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
@@ -77,6 +78,27 @@
         where
         <![CDATA[  request_data = #{endDate} ]]>
         order by create_time desc,id desc limit #{limitStart},2000;
+    </select>
+
+    <select id="getTransferByStartAndEndDate" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select t2.* from b_marketing_transfer_sync_${transferSyncUser.tCid} t2,(select id from
+        b_marketing_transfer_sync_${transferSyncUser.tCid}
+        where
+            <if test="transferSyncUser.apiCode != null and transferSyncUser.apiCode.trim() neq ''">
+                api_code=#{transferSyncUser.apiCode}
+            </if>
+            <![CDATA[ and request_data >= #{startDate}  and  request_data <= #{endDate} ]]>
+        order by
+        <choose>
+            <when test="orderByClause != null and orderByClause.trim() neq ''">
+                ${orderByClause}
+            </when>
+            <otherwise>
+                id
+            </otherwise>
+        </choose>
+        limit ${rowCount},${offset}
+        ) as t1 where t1.id = t2.id
     </select>
 
     <select id="getTransferData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
@@ -823,6 +845,16 @@
         </if>
         order by id asc limit 1000
     </select>
+    <select id="getZhongYuanTransferByRequestDateNoRegisterTime" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tCid}
+        where
+        <![CDATA[ api_code = #{apiCode} and request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
+        <if test="indexId != null and indexId!=''">
+            and id > #{indexId}
+        </if>
+        order by id asc limit 1000
+    </select>
     <select id="getCountIsBlackByCustNum" resultType="java.lang.Integer">
         select count(1)
         from b_marketing_transfer_sync_${cid}
@@ -837,7 +869,7 @@
         and request_data between #{dateStartStr} and #{dateEndStr}
     </select>
     <select id="getRegisterTimeAndLoginTimeByCreateTimeOrderDesc" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-        select register_time,login_time
+        select id,register_time,login_time
         from b_marketing_transfer_sync_${cid}
         where cust_num = #{custNum}
         order by create_time desc limit 1
@@ -882,5 +914,86 @@
         </where>
     </select>
 
+    <select id="getXieChengJudgeConvType" resultType="com.br.marketing.entity.XieChengJudgeConvTypeValue">
+        select cust_num,
+               if(sum(if(reserve_field1 -> '$.convType' = '110', 1, 0)) > 0, true, false) as hasRiskControl,
+               if(sum(if(reserve_field1 -> '$.convType' = '106', 1, 0)) > 0, true, false) as hasApplySuccess,
+               if(sum(if(reserve_field1 -> '$.convType' = '107', 1, 0)) > 0, true, false) as hasInputSuccess
+        from b_marketing_transfer_sync_${tCid}
+                where api_code in
+        <foreach collection="apiCodes" item="apiCode" separator="," open="(" close=")">
+            #{apiCode}
+        </foreach>
+        <![CDATA[
+        and request_data >= #{requestStartDate}
+        and request_data <= #{requestEndDate}]]>
+        and cust_num in
+        <foreach collection="custNums" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        group by cust_num;
+    </select>
 
+    <select id="getQiFuBreakPointTransferByRequestDatetikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select id, cust_num, login_time, apply_dt, request_data
+        from b_marketing_transfer_sync_${tCid}
+                where api_code = #{apiCode}
+                  and (json_extract(reserve_field1, "$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
+        <![CDATA[
+                  and request_data >= #{requestStartDate}
+                  and request_data <= #{requestEndDate}
+        ]]>
+        <if test="indexId != null and indexId != ''">
+            and id > #{indexId}
+        </if>
+        order by id asc limit 2000
+    </select>
+
+    <select id="getCountByQiFuApplyDtEmply" resultType="java.lang.Integer">
+        select count(1)
+        from b_marketing_transfer_sync_${tCid}
+                where api_code = #{apiCode}
+                  and (json_extract(reserve_field1, "$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
+                  and
+        <foreach collection="periodRangeList" item="item" open="(" close=")" separator="or">
+            request_data between #{item.beginDateStr} and #{item.endDateStr}
+        </foreach>
+        and (apply_dt is not null and apply_dt != '')
+        and cust_num = #{custNum}
+    </select>
+
+    <select id="getTransferSyncUserByPage" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tCid}
+        <where>
+            <if test="apiCode != null">
+                AND api_code =#{apiCode}
+            </if>
+            <if test="indexId != null and indexId!=''">
+                and id > #{indexId}
+            </if>
+            <if test="requestStartDate != null and requestStartDate!='' and requestEndDate !=null and requestEndDate !=''">
+                and <![CDATA[ request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
+            </if>
+            and ${querySql}
+            order by id asc limit 2000;
+        </where>
+    </select>
+
+    <select id="selectTransferSyncReportByRequestIdCount" resultType="com.br.marketing.entity.TransferSyncReport">
+        select count(*) as dataCount, user_type as userType, id
+        , max(create_time) as appletEndTime
+        , min(create_time) as appletBeginTime
+        from b_marketing_transfer_sync_${tCid}
+        where api_code = '${apiCode}'
+        AND request_data = '${requestDate}'
+        AND request_id = '${requestId}'
+        <if test="userTypeSet != null">
+            and user_type in
+            <foreach collection="userTypeSet" open="(" close=")" separator="," item="userType">
+                '${userType}'
+            </foreach>
+        </if>
+        group by user_type
+    </select>
 </mapper>

@@ -110,7 +110,7 @@ public class TaskServiceImpl implements ITaskService {
             MarketingCustomerExample customerExample = new MarketingCustomerExample();
             customerExample.createCriteria().andApiCodeEqualTo(datum.getApiCode()).andStatusEqualTo(new Byte("1"));
             List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
-            if(marketingCustomers.size()<0){
+            if(marketingCustomers.size()<=0){
                 continue;
             }
             MarketingCustomer customer = marketingCustomers.get(0);
@@ -140,7 +140,7 @@ public class TaskServiceImpl implements ITaskService {
      */
     @Override
     public Result<MarketingTask> getScoreTask(String nowDay, Long taskId,Integer isTimeLimit,String jobNm) {
-        Integer resource = 0;
+        int resource = 0;
 
         try {
             resource = getResource();
@@ -283,11 +283,7 @@ public class TaskServiceImpl implements ITaskService {
 
     private boolean getTaskLock(MarketingTask task, String lockValue) {
         String key = RedisKeyConstant.taskGetLock.concat(":").concat(task.getId().toString());
-        Long setnx = redisChgService.setnx(key, lockValue, 10);
-        if (setnx.equals(0L)) {
-            return false;
-        }
-        return true;
+        return redisChgService.setnx(key, lockValue, 10);
     }
 
     private void removeTaskLock(MarketingTask task, String lockValue) {
@@ -298,8 +294,8 @@ public class TaskServiceImpl implements ITaskService {
         }
     }
 
-    private Integer getResource() throws Exception {
-        Integer hasResource = 0;
+    private int getResource() throws Exception {
+        int hasResource = 0;
         int maxNum = marketingCommonConfig.getTaskResourceMaxNum() == null ? 300 : marketingCommonConfig.getTaskResourceMaxNum();
         List<String> parentPaths = Arrays.asList(ZookeeperPath.loanPath, ZookeeperPath.marketPath);
         for (String parentPath : parentPaths) {
@@ -307,7 +303,8 @@ public class TaskServiceImpl implements ITaskService {
                 List<String> loanPaths = client.getChildren().forPath(parentPath);
                 for (String path : loanPaths) {
                     String concatPath = parentPath.concat("/").concat(path);
-                    hasResource += client.getData().forPath(concatPath) == null ? 0 : Integer.valueOf(new String(client.getData().forPath(concatPath)));
+                    hasResource += client.getData().forPath(concatPath) == null ?
+                            0 : Integer.parseInt(new String(client.getData().forPath(concatPath)));
                 }
             }
         }

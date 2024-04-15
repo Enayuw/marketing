@@ -5,11 +5,13 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.JobPushDecisionParameterBO;
 import com.br.marketing.enums.CustomerPushDecisionActionEnum;
+import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.speed.client.common.annotations.SpeedFile;
 import lombok.Data;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Configuration
 @SpeedFile(filename = "marketingcommon.properties", topic = "marketing")
@@ -47,9 +49,14 @@ public class MarketingCommonConfig {
     private List<String> apiCodeOfRecordTaskTime;
 
     /**
-     * 去重线程数
+     * 原始上传消费端入库线程数
      */
     private Integer soleNum;
+
+    /**
+     * 原始转化消费端入库线程数
+     */
+    private Integer soleNumTrans;
 
     /**
      * 萨摩耶场景
@@ -92,11 +99,13 @@ public class MarketingCommonConfig {
 
     /**
      * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
+     * eg：{"促首登":"T","促申完":"T-15","促首借":"T+31","促复借":"T+0"}
      */
     private Map<String, String> shuHeTransferExtractDayMap;
 
     /**
      * 数禾转化数据提取apiCode集合
+     * eg:{"3710004":["促申完","促首登"],"3710023":["促首借"],"3710043":["促复借"],"3710051":["重申"],"3710071":["促首登"]}
      */
     private HashMap<String, List<String>> shuHeTransferExtractApiCodes;
 
@@ -112,6 +121,7 @@ public class MarketingCommonConfig {
 
     /**
      * 数禾有效期, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
+     * eg：{"促首登":"T","促申完":"T-15","促首借":"T+31","促复借":"T+0"}
      */
     private Map<String, String> shuHePeriodOfValidityDayMap;
 
@@ -313,6 +323,26 @@ public class MarketingCommonConfig {
     private String tongChengTransferExecuteTime;
 
     /**
+     * 同程转化数据提取apicode集合
+     */
+    private List<String> NewTongChengTransferFileApiCodes;
+
+    /**
+     * 同程转化数据提取执行时间
+     */
+    private String NewTongChengTransferExecuteTime;
+    /**
+     * 同程集团转化数据提取apiCode集合
+     */
+    private List<String> TongChengGroupTransferFileApiCodes;
+    /**
+     * 同程转化数据提取执行时间
+     */
+    private String TongChengGroupTransferExecuteTime;
+
+
+
+    /**
      * 携程数据推送线程数
      */
     private Integer xiechengDataSendThread;
@@ -472,6 +502,26 @@ public class MarketingCommonConfig {
     private Integer xieChengSmsCollidingThread;
 
     /**
+     * 携程短信撞库线程数重试
+     */
+    private Integer xieChengSmsCollidingRetryThread;
+
+    /**
+     * 携程短信撞库报警量级
+     */
+    private Integer xieChengSmsCollidingRetryWarnCount;
+
+    /**
+     * 携程短信撞库报警量级
+     */
+    private List<String> xieChengSmsCollidingRetryWarnAllTime;
+
+    /**
+     * 携程短信撞库挡板及异常 [true,true]
+     */
+    private List<Boolean> xieChengSmsCollidingRetrySwitch;
+
+    /**
      * 携程短信撞库线程数Version2
      */
     private Integer xieChengSmsCollidingThreadVt;
@@ -512,10 +562,6 @@ public class MarketingCommonConfig {
      * 拍拍贷老客转人工数据提取执行时间
      */
     private String PPDOldTransferFileExecuteTime;
-    /**
-     * 拍拍贷有效期34；目前仅老客使用
-     */
-    private String ppdOldValidityDayStr;
 
     /**
      * 榕树转化数据生效截止时间
@@ -722,6 +768,11 @@ public class MarketingCommonConfig {
      */
     private HashMap<String, JSONObject> zhongAnDetailPush;
 
+    /**
+     * 众安明细推送Mock挡板  1: 开启, 0: 关闭
+     * {"pushSwitch":"1","retCode":"1"}
+     */
+    private String zhongAnPushMock;
 
     /**
      * 永辉化数据提取apiCode
@@ -759,11 +810,11 @@ public class MarketingCommonConfig {
      * 滴滴准入重试次数
      */
     private Integer didiAllowRetryNum;
-
-    /**
-     * 滴滴有效期天数
-     */
-    private Long didiValidDays;
+//
+//    /**
+//     * 滴滴有效期天数
+//     */
+//    private Long didiValidDays;
 
     /**
      * 推送客服黑名单apiCode(一对多分发)
@@ -864,6 +915,12 @@ public class MarketingCommonConfig {
      * 非生成默认有效期配置的apiCode集合
      */
     private Set<String> nonConfigValidDefaultApiCodes;
+
+    /**
+     * 2024-07-05 16:04
+     * 生成默认有效期定制配置的apiCode集合
+     */
+    private Set<String> customizeConfigValidDefaultApiCodes;
 
     /**
      * 推送dass意向登记判断配置{"labelNm":["A","B"]}
@@ -980,5 +1037,469 @@ public class MarketingCommonConfig {
      * 中原转化数据推Daas 7天内推送一次
      */
     private Integer zhongYuanDaysToSend;
+    /**
+     * 携程新AppId 撞库
+     */
+    private String xieChengNewAppId;
+
+    /**
+     * 2023-09-27 19:12
+     * 奇富保存触达记录删除,删除的天
+     */
+    private int qiFuSaveReachDeleteRecordDay = 43;
+
+    /**
+     * 2023-09-27 19:12
+     * 奇富钉钉告警机器人token
+     */
+    private String qiFuDingDingAccessToken = "b1d0849bd627e067d1c3be1ad8a82fa265dcb9afec94197859b0e08bda0dbaf2";
+
+    /**
+     * 2023-09-27 19:12
+     * 奇富钉钉告警机器人密钥
+     */
+    private String qiFuDingDingSecret = "SEC0d7cfb05455c035eea424a4824e63c75dd287a86d796cc96826ba7fb3f51e07e";
+
+    /**
+     * 2023-09-27 19:12
+     * 奇富接口公钥
+     */
+    private String qiFuApiPublicKey;
+
+    /**
+     * 2023-09-27 19:12
+     * 奇富接口AppId
+     */
+    private String qiFuApiAppId;
+
+
+    /**
+     * 奇富360 推送客服过滤apiCode 配置
+     * {"QiFu_TransferData_To_CustomerFilter":"3710053","QiFu_TransferData_To_CustomerFilter_Brother":"3710105"}
+     */
+    private Map<String, String> qiFuApiCodeToCustomerMap;
+
+    /**
+     * 奇富360推送决策 apiCode
+     * qiFuToJueCeApiCodes={"3710053":"3710105","7491631":"7491630"}
+     */
+    private HashMap<String, String> qiFuToJueCeApiCodes;
+
+    /**
+     * 奇富断点自动化数据推决策线程数
+     */
+    private Integer qiFuBreakPointDataToJueCeThreadNum;
+
+    /**
+     * 页数动态调整配置
+     * dynamicPageSize={"yxToDx":20000,"yxToCustomer":20000,"yhGet":20000}
+     */
+    private HashMap<String, Integer> dynamicPageSize;
+
+    /**
+     * 2023-10-28 10:35
+     * 客户定制化接口自定义配置apiCode
+     * eg:{"T_GUME":["3710076", "7492805"]}
+     */
+    private Map<String, List<String>> customerHandlerEnumConfigMap;
+
+
+    /**
+     * 转化数据执行通用规则重推流程线程数
+     */
+    private Integer universalTransferProcessResendThreadNum;
+
+    /**
+     * 推送决策系统的选择
+     */
+    private Integer pushJcSelect;
+
+    /**
+     * 众邦财富转化数据提取apiCode集合
+     */
+    private List<String> ZhongBangTransferApiCodes;
+
+    /**
+     * 众邦财富转化数据提取执行时间
+     */
+    private String ZhongBangTransferExecuteTime;
+
+    /**
+     * 众邦财富定制标签线程数
+     */
+    private Integer zhongBangCaifuLabelThreadNum;
+
+    /**
+     * 数据处理通用流程单任务线程数
+     */
+    private Integer dataProcessAnTaskThreadNum;
+
+
+    /**
+     * 众邦财富拉取文件
+     * 格式：{apiCode:{文件名称:表头}}
+     * 文件名称带扩展名时直接使用该名称,文件名最后一个字符为“_”时系统自动默认拼接日期
+     * eg:{"3710027":[{"original_caifu_":"custNum,id,cell"},{"original_daikuan_":"custNum,id","transform_":"custNum,ifLogin1"}]}
+     */
+    private Map<String, List<Map<String, String>>> zhongBangPullFileDataConfigMap;
+
+    /**
+     * 2023-11-22 13:20
+     * 众邦财富拉取文件，拉取（T+/-N）天的文件
+     */
+    private int zhongBangPullFileDataDay = -1;
+
+    /**
+     * 众邦财富定制标签测试
+     */
+    private Boolean zhongBangCaifuLabelTest;
+
+    /**
+     * 2023-12-05 10:35
+     * 众邦文件下载配置信息
+     */
+    private Map<String, String> zhongBangDownloadFileInfoMap;
+    private String zhongBangDownloadFileSlotKey;
+
+    /**
+     * 数据转化提取任务锁失效时间
+     */
+    private Long transferFileTaskJobLockExpireTime;
+
+    /**
+     * 同程不运营名单推送客户接口挡板开关 true:开启挡板。false:关闭挡板
+     * tongChengUndoMock={"switch":false,"httpcode":"200","code":"1001"}
+     */
+    private HashMap<String, Object> tongChengUndoMock;
+
+    /**
+     * 同程不运营名单推送客户接口线程数
+     */
+    private Integer tongChengUndoThreadNum;
+
+    /**
+     * 同程不运营名单推送客户接口apiCode集合
+     */
+    private List<String> tongChengUndoApiCodes;
+    /**
+     * 携程推送短信退订接口配置信息
+     * eg:{"3710090":{"appid":"bairong002","signKey":"95cc01ec07387a44","aesKey":"f3df6f62f0527bf0","aesIv":"3b2dac323465b024"}}
+     */
+    private Map<String, Map<String, String>> xieChengSmsQuitConfig;
+
+    /**
+     * 携程推送短信退订apiCode
+     */
+    private List<String> xieChengSmsQuitApiCodes;
+
+
+    /**
+     * 跑分结果推送重试次数
+     */
+    private Integer scorePushRetryNum;
+
+    /**
+     * 跑分入库线程数量
+     */
+    private Integer scoreDbAndRedisThreadNum;
+
+    /**
+     * 跑分更新顺序线程数量
+     */
+    private Integer scoreUpdateSortThreadNum;
+
+    /**
+     * 数禾电销apiCode
+     */
+    private List<String> shuheDxApiCodes;
+
+
+
+
+
+    /**
+     * 有效期变更apiCode
+     */
+    private List<String> validityPeriodApiCodeList;
+
+    /**
+     * 有效期变更接口开关
+     */
+    private Boolean changeValidityPeriodIndex;
+
+
+    /**
+     * 跑分回调获取taskId分页
+     */
+    private Integer scoreTaskPageSizeByPushCustomer;
+
+    /**
+     * 跑分回调获取数据分页
+     */
+    private Integer scoreDataPageSizeByPushCustomer;
+
+    /**
+     * 数禾上传数据推决策，策略编号设置
+     */
+    private Map<String, String> shuheToJueCeStrategy;
+
+
+    /**
+     * 海尔撞库线程池数量配置
+     */
+    private Integer haierCollidingDataThreadNum;
+    /**
+     * 海尔撞库单次查询数量配置
+     */
+    private Integer haierCollidingDataPageSize;
+
+    /**
+     * 海尔撞库配置
+     */
+    private Map<String, String> haierCollidingDataConfig;
+
+    /**
+     * 海尔接口公钥
+     */
+    private String haierApiPublicKey;
+
+    /**
+     * 海尔撞库接口mock配置
+     */
+    private HashMap<String, Object> haierCollidingDataMock;
+
+    /**
+     * 海尔撞库上传清洗apiCode配置
+     */
+    private List<String> haierCollidingDataSyncApiCode;
+
+    /**
+     * 海尔转化数据提取apiCode集合
+     */
+    private List<String> NewHaierTransferApiCodes;
+
+    /**
+     * 海尔转化数据提取执行时间
+     */
+    private String NewHaierTransferExecuteTime;
+
+    /**
+     * 众邦转化数据提取apiCode集合
+     */
+    private List<String> ZhongBangApiCodes;
+
+    /**
+     * 众邦转化数据提取执行时间
+     */
+    private String ZhongBangExecuteTime;
+
+
+    /**
+     * 模拟跑分回调异常 1-获取数据异常；2-更新排序异常；3-推送数据异常
+     * {"1":true,"2":true}
+     */
+    private HashMap<String,Boolean> mockCallBackError;
+    /**
+     * 奇富360转化数据提取apiCode集合
+     */
+    private List<String> QiFuTransferApiCodes;
+
+    /**
+     * 奇富360转化数据提取执行时间
+     */
+    private String QiFuTransferExecuteTime;
+
+    /**
+     * 同程待运营名单推送客户接口挡板开关 true:开启挡板。false:关闭挡板
+     * tongChengAgentMock={"switch":false,"httpcode":"200","code":"1001"}
+     */
+    private HashMap<String, Object> tongChengAgentMock;
+
+
+    /**
+     * 同程集团运营名单推送客户接口apiCode集合
+     */
+    private List<String> TongChengGroupOperationApiCodes;
+
+    /**
+     * 同程集团运营名单推送客户接口线程数
+     */
+    private Integer tongChengGroupOperationThreadNum;
+
+    /**
+     * 同程集团运营名单推送客户接口单批次捞数量
+     */
+    private Integer tongChengGroupOperationNum;
+    /**
+     * 2024/1/24 15:52
+     * 数禾数据场景与apiCode映射信息
+     * key userType；value apiCodeSet
+     * eg：{"促复借":["3710051","7410785"]}
+     */
+    private Map<String, List<String>> shuHeUserTypeAndApiCodeMappingMap = new HashMap<>();
+
+    /**
+    * 携程撞库异常量级钉钉通知accessToken
+     */
+    private String xieChengGroupAccessToken;
+
+    /**
+     * 携程撞库异常量级钉钉通知Secret
+     */
+    private String xieChengGroupSecret;
+
+    /**
+     * 得物撞库开关
+     * true 开启撞库  false  暂停撞库
+     */
+    private Boolean deWuCollidingSwitch;
+
+    /**
+     * 得物撞库线程池数
+     */
+    private Integer deWuCollidingThread;
+
+    /**
+     * 得物撞库数据上传线程池数
+     */
+    private Integer deWuCollidingDataUploadSyncThread;
+
+    /**
+     * 得物撞库apiCode
+     */
+    private String deWuCollidingAiCode;
+
+    /**
+     * 得物停止撞库量级
+     */
+    private Integer deWuCollidingStopCount;
+
+    /**
+     * 2024-03-01 15:12
+     * 业务名称_函数名 参考{@link DingDingAlarmFunctionEnum}
+     * 钉钉告警机器人WebHook信息token与secret(密钥);
+     * startTime：允许告警的开始时间，endTime：允许告警的结束时间，闭区间，格式: hh:mm:dd;
+     * at：需要@的人
+     * {"业务名称_函数名":{"token":"token","secret":"secret","startTime":"startTime","endTime":"endTime","at":["cell"]}}
+     */
+    private Map<String, JSONObject> dingDingWebHookInfo = new ConcurrentHashMap<>();
+
+    /**
+     * apiCode自动生成场景与统计控制
+     * ["3","4"]
+     */
+    private Set<String> userTypeAndSumRealtimeApiCodeStartsWith = new HashSet<>(Arrays.asList("3", "4"));
+
+
+    /**
+     * 得物撞库limit 数量降级的量级
+     */
+    private Integer deWuCollidingStopThresholdCount;
+
+    /**
+     *  得物撞库url地址
+     */
+
+    private String deWuCollidingUrl;
+    /**
+     * 得物撞库appId
+     */
+    private String deWuAppId;
+    /**
+     * 得物撞库一次性从基表中获取数据量
+     */
+    private int deWuCollidingLimit = 10000;
+    /**
+     * 得物mock数据开关["开关","httpcode","code","status"],
+     * 样例：
+     *   deWuCollidingMockSwitch=["true","200","200","1"] 开启挡板，并且得到网络响应200,数据中code=200,status=1的样例数据
+     * 详解：
+     *   开关:
+     *     "true":开启挡板,使用测试数据
+     *     "false"关闭挡板,使用真实调用客户的返回结果
+     *   httpcode:
+     *     "200":返回httpcode=200的mock数据
+     *     "500":返回httpcode=500的mock数据
+     *     "1001":返回httpcode=1001的mock数据
+     *   code:
+     *     "200":返回code=200的mock数据
+     *     "401":返回code=401的签名认证失败的mock数据
+     *   status:
+     *     "0":status=0的mock数据
+     *     "1":status=1的mock数据
+     */
+    private List<String> deWuCollidingMockSwitch;
+
+    /**
+     * 2024-03-13 22:06
+     * 数禾非黑名单判断生效apicode集合
+     */
+    private Set<String> shuHeNonBlackListApiCodeSet = new HashSet<>(
+            Arrays.asList("3710071", "3710051", "3710023", "3710128", "3710117", "3710123", "7410785"));
+
+    /**
+     * 2024-03-22 16:11
+     * 上传和转化实时统计开关，false 关闭实时统计，true 开启实时统计
+     */
+    private Boolean uploadAndTransferDataRealtimeStatisSwitch = false;
+
+    /**
+     * 携程强制开启撞库开关
+     * true 打开，false 关闭
+     */
+    private Boolean xieChengForceOpenSwitch;
+
+    /**
+     * 携程非周期撞库线程池数
+     */
+    private Integer xiechengRobCollidingThread;
+
+    /**
+     * 携程撞库分钟阈值
+     */
+    private Integer xiechengPerMinuteThreshold;
+
+
+    /**
+     * 携程撞库分页大小
+     */
+    private Integer xiechengCollidingPageSize;
+
+
+    /**
+     * 携程记录撞库日志线程数
+     */
+    private Integer xiechengSaveCollidingLogThread;
+
+    /**
+     * 携程数据清洗线程数
+     */
+    private Integer xieChengCleanThreadCount;
+    /**
+     * 携程数据清洗limit 量级
+     */
+    private Integer xieChengCleanLimitCount;
+
+    /**
+     * 清洗暂停开关 true 开启清洗  false 关闭 清洗
+     */
+    private Boolean xieChengCleanSwitch;
+
+    /**
+     * 携程定制化配置ApiCode
+     */
+    private String xieChengDingZhiApiCode;
+
+    /**
+     * 携程转化数据提取apiCode集合
+     */
+    private List<String> XieChengTwoTransferApiCodes;
+
+
+    /**
+     * 携程转化数据提取执行时间,携程撞库提取时间
+     */
+    private List<String> XieChengTwoTransferExecuteTime;
+
 }
 

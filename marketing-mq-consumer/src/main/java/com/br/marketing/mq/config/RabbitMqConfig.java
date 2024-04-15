@@ -17,6 +17,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 @Configuration
 public class RabbitMqConfig {
@@ -44,6 +47,32 @@ public class RabbitMqConfig {
         return new TopicExchange(MQConstants.MARKETINGEXCHANGER_DEAD_NAME, true, false);
     }
 
+    /**
+     * 2024-03-02 23:44
+     * 发送场景消息的延迟队列
+     */
+    @Bean(name = MQConstants.MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE)
+    public Queue sendUsertypeMessageDelayQueue() {
+        Map<String, Object> args = new HashMap<>(2);
+        // x-dead-letter-exchange    这里声明当前队列绑定的死信交换机
+        args.put("x-dead-letter-exchange", MQConstants.MARKETINGEXCHANGER_DEAD_NAME);
+        // x-dead-letter-routing-key  这里声明当前队列的死信路由key
+        args.put("x-dead-letter-routing-key", MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE);
+        args.put("x-max-priority", 10);
+        return QueueBuilder.durable(MQConstants.MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE).withArguments(args).build();
+    }
+
+    /**
+     * 2024-03-03 0:13
+     * 发送场景消息的延迟队列绑定普通交换机
+     */
+    @Bean
+    public Binding sendUsertypeMessageDelayQueueBindingGateExchange(
+            @Qualifier(MQConstants.MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE) Queue delayQueue
+            , @Qualifier(MQConstants.MARKETINGEXCHANGER_NAME) TopicExchange gateExchange) {
+        return BindingBuilder.bind(delayQueue).to(gateExchange).with(
+                MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE);
+    }
 
 
     @Bean
@@ -133,6 +162,35 @@ public class RabbitMqConfig {
             SimpleRabbitListenerContainerFactoryConfigurer configurer,
             @Qualifier("primaryConnectionFactory") ConnectionFactory connectionFactory) {
         return containerFactory(configurer, connectionFactory,5);
+    }
+
+
+    @Bean(name = "concurrentContainerFactory")
+    public SimpleRabbitListenerContainerFactory concurrentContainerFactory(SimpleRabbitListenerContainerFactoryConfigurer configurer,
+                                                                           ConnectionFactory connectionFactory) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        //设置线程数
+        factory.setConcurrentConsumers(1);
+        //最大线程数
+        factory.setMaxConcurrentConsumers(5);
+        factory.setPrefetchCount(10);
+        factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+        configurer.configure(factory, connectionFactory);
+        return factory;
+    }
+
+    @Bean(name = "consumerTenPrefetchTwoFactory")
+    public SimpleRabbitListenerContainerFactory consumerTenFactory(
+            SimpleRabbitListenerContainerFactoryConfigurer configurer, ConnectionFactory connectionFactory) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        //设置线程数
+        factory.setConcurrentConsumers(2);
+        //最大线程数
+        factory.setMaxConcurrentConsumers(5);
+        factory.setPrefetchCount(2);
+        factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+        configurer.configure(factory, connectionFactory);
+        return factory;
     }
 
     /**

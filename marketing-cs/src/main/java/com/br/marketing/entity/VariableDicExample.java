@@ -694,6 +694,66 @@ public class VariableDicExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andFieldValueSourceIsNull() {
+            addCriterion("field_value_source is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldValueSourceIsNotNull() {
+            addCriterion("field_value_source is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldValueSourceEqualTo(Integer value) {
+            addCriterion("field_value_source =", value, "fieldValueSource");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldValueSourceNotEqualTo(Integer value) {
+            addCriterion("field_value_source <>", value, "fieldValueSource");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldValueSourceGreaterThan(Integer value) {
+            addCriterion("field_value_source >", value, "fieldValueSource");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldValueSourceGreaterThanOrEqualTo(Integer value) {
+            addCriterion("field_value_source >=", value, "fieldValueSource");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldValueSourceLessThan(Integer value) {
+            addCriterion("field_value_source <", value, "fieldValueSource");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldValueSourceLessThanOrEqualTo(Integer value) {
+            addCriterion("field_value_source <=", value, "fieldValueSource");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldValueSourceIn(List<Integer> values) {
+            addCriterion("field_value_source in", values, "fieldValueSource");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldValueSourceNotIn(List<Integer> values) {
+            addCriterion("field_value_source not in", values, "fieldValueSource");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldValueSourceBetween(Integer value1, Integer value2) {
+            addCriterion("field_value_source between", value1, value2, "fieldValueSource");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldValueSourceNotBetween(Integer value1, Integer value2) {
+            addCriterion("field_value_source not between", value1, value2, "fieldValueSource");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

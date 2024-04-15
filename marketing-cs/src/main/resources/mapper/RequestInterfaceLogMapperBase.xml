@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.RequestInterfaceLogMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.RequestInterfaceLog" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="request_id" property="requestId" jdbcType="VARCHAR" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="request_param" property="requestParam" jdbcType="VARCHAR" />
+    <result column="url" property="url" jdbcType="VARCHAR" />
+    <result column="header" property="header" jdbcType="VARCHAR" />
+    <result column="result" property="result" jdbcType="VARCHAR" />
+    <result column="http_code" property="httpCode" jdbcType="INTEGER" />
+    <result column="call_time" property="callTime" jdbcType="INTEGER" />
+    <result column="expire" property="expire" jdbcType="BIGINT" />
+    <result column="extend_info" property="extendInfo" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, request_id, api_code, request_param, url, `header`, `result`, http_code, call_time, 
+    expire, extend_info, create_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.RequestInterfaceLogExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_request_interface_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_request_interface_log
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_request_interface_log
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.RequestInterfaceLogExample" >
+    delete from b_request_interface_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.RequestInterfaceLog" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_request_interface_log (request_id, api_code, request_param, 
+      url, `header`, `result`, 
+      http_code, call_time, expire, 
+      extend_info, create_time)
+    values (#{requestId,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{requestParam,jdbcType=VARCHAR}, 
+      #{url,jdbcType=VARCHAR}, #{header,jdbcType=VARCHAR}, #{result,jdbcType=VARCHAR}, 
+      #{httpCode,jdbcType=INTEGER}, #{callTime,jdbcType=INTEGER}, #{expire,jdbcType=BIGINT}, 
+      #{extendInfo,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.RequestInterfaceLog" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_request_interface_log
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="requestId != null" >
+        request_id,
+      </if>
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="requestParam != null" >
+        request_param,
+      </if>
+      <if test="url != null" >
+        url,
+      </if>
+      <if test="header != null" >
+        `header`,
+      </if>
+      <if test="result != null" >
+        `result`,
+      </if>
+      <if test="httpCode != null" >
+        http_code,
+      </if>
+      <if test="callTime != null" >
+        call_time,
+      </if>
+      <if test="expire != null" >
+        expire,
+      </if>
+      <if test="extendInfo != null" >
+        extend_info,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="requestId != null" >
+        #{requestId,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="requestParam != null" >
+        #{requestParam,jdbcType=VARCHAR},
+      </if>
+      <if test="url != null" >
+        #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="header != null" >
+        #{header,jdbcType=VARCHAR},
+      </if>
+      <if test="result != null" >
+        #{result,jdbcType=VARCHAR},
+      </if>
+      <if test="httpCode != null" >
+        #{httpCode,jdbcType=INTEGER},
+      </if>
+      <if test="callTime != null" >
+        #{callTime,jdbcType=INTEGER},
+      </if>
+      <if test="expire != null" >
+        #{expire,jdbcType=BIGINT},
+      </if>
+      <if test="extendInfo != null" >
+        #{extendInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.RequestInterfaceLogExample" resultType="java.lang.Integer" >
+    select count(*) from b_request_interface_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_request_interface_log
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.requestId != null" >
+        request_id = #{record.requestId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.requestParam != null" >
+        request_param = #{record.requestParam,jdbcType=VARCHAR},
+      </if>
+      <if test="record.url != null" >
+        url = #{record.url,jdbcType=VARCHAR},
+      </if>
+      <if test="record.header != null" >
+        `header` = #{record.header,jdbcType=VARCHAR},
+      </if>
+      <if test="record.result != null" >
+        `result` = #{record.result,jdbcType=VARCHAR},
+      </if>
+      <if test="record.httpCode != null" >
+        http_code = #{record.httpCode,jdbcType=INTEGER},
+      </if>
+      <if test="record.callTime != null" >
+        call_time = #{record.callTime,jdbcType=INTEGER},
+      </if>
+      <if test="record.expire != null" >
+        expire = #{record.expire,jdbcType=BIGINT},
+      </if>
+      <if test="record.extendInfo != null" >
+        extend_info = #{record.extendInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_request_interface_log
+    set id = #{record.id,jdbcType=BIGINT},
+      request_id = #{record.requestId,jdbcType=VARCHAR},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      request_param = #{record.requestParam,jdbcType=VARCHAR},
+      url = #{record.url,jdbcType=VARCHAR},
+      `header` = #{record.header,jdbcType=VARCHAR},
+      `result` = #{record.result,jdbcType=VARCHAR},
+      http_code = #{record.httpCode,jdbcType=INTEGER},
+      call_time = #{record.callTime,jdbcType=INTEGER},
+      expire = #{record.expire,jdbcType=BIGINT},
+      extend_info = #{record.extendInfo,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.RequestInterfaceLog" >
+    update b_request_interface_log
+    <set >
+      <if test="requestId != null" >
+        request_id = #{requestId,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="requestParam != null" >
+        request_param = #{requestParam,jdbcType=VARCHAR},
+      </if>
+      <if test="url != null" >
+        url = #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="header != null" >
+        `header` = #{header,jdbcType=VARCHAR},
+      </if>
+      <if test="result != null" >
+        `result` = #{result,jdbcType=VARCHAR},
+      </if>
+      <if test="httpCode != null" >
+        http_code = #{httpCode,jdbcType=INTEGER},
+      </if>
+      <if test="callTime != null" >
+        call_time = #{callTime,jdbcType=INTEGER},
+      </if>
+      <if test="expire != null" >
+        expire = #{expire,jdbcType=BIGINT},
+      </if>
+      <if test="extendInfo != null" >
+        extend_info = #{extendInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.RequestInterfaceLog" >
+    update b_request_interface_log
+    set request_id = #{requestId,jdbcType=VARCHAR},
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      request_param = #{requestParam,jdbcType=VARCHAR},
+      url = #{url,jdbcType=VARCHAR},
+      `header` = #{header,jdbcType=VARCHAR},
+      `result` = #{result,jdbcType=VARCHAR},
+      http_code = #{httpCode,jdbcType=INTEGER},
+      call_time = #{callTime,jdbcType=INTEGER},
+      expire = #{expire,jdbcType=BIGINT},
+      extend_info = #{extendInfo,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

@@ -30,6 +30,8 @@ public class CustomerBatchNumDTO {
 
     @ApiModelProperty(value = "跑分执行结束时间")
     private String scoreEndTime;
+    @ApiModelProperty(value = "场景")
+    private String userType;
 
     private Integer current;
 

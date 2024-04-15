@@ -6,6 +6,7 @@ import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.origin.MqFact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,27 +60,61 @@ public class RabbitMqProducter {
     }
 
     /**
-     * 发送mq信息
+     * 发送mq信息(支持优先级)
      * @param routeKey
      * @param message
+     * @param priority 消息优先级
      */
-    public void sendByExpiration(String routeKey,String message, String expireTime){
+    public void send(String routeKey,String message, Integer priority){
         CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(),message);
-        rabbitTemplate.convertAndSend(exchange,routeKey,message,arg0 -> {
+        rabbitTemplate.convertAndSend(exchange,routeKey,message,(Message arg0) -> {
             arg0.getMessageProperties().setContentEncoding("UTF-8");
-            arg0.getMessageProperties().setExpiration(expireTime);
+            arg0.getMessageProperties().setPriority(priority);
             return arg0;
         },correlationData);
     }
 
     /**
      * 发送mq信息
+     * @param routeKey
+     * @param message
+     */
+    public void sendByExpiration(String routeKey, String message, String expireTime) {
+        CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(), message);
+        rabbitTemplate.convertAndSend(exchange, routeKey, message, arg0 -> {
+            arg0.getMessageProperties().setContentEncoding("UTF-8");
+            arg0.getMessageProperties().setExpiration(expireTime);
+            return arg0;
+        }, correlationData);
+    }
+
+    /**
+     * 发送延时且设定优先级的消息
+     *
+     * @param routeKey   路由key
+     * @param message    消息
+     * @param expireTime 延迟时间，毫秒
+     * @param priority   优先级，具体需根据队列中设定最大优先级内设置
+     */
+    public void sendByExpiration(String routeKey, String message, String expireTime, int priority) {
+        CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(), message);
+        rabbitTemplate.convertAndSend(exchange, routeKey, message, (Message arg0) -> {
+            arg0.getMessageProperties().setContentEncoding("UTF-8");
+            arg0.getMessageProperties().setExpiration(expireTime);
+            arg0.getMessageProperties().setPriority(priority);
+            return arg0;
+        }, correlationData);
+    }
+
+    /**
+     * 发送mq信息
+     *
      * @param mqFact
      */
-    public void sendToUniversalTransferQueue(MqFact mqFact){
+    public void sendToUniversalTransferQueue(MqFact mqFact) {
         String message = JSON.toJSONString(mqFact);
-        CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(),message);
-        rabbitTemplate.convertAndSend(exchange, MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE,message, arg0 -> {
+        CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(), message);
+        rabbitTemplate.convertAndSend(exchange, MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, message, arg0 -> {
             arg0.getMessageProperties().setContentEncoding("UTF-8");
             return arg0;
         },correlationData);

@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.ClusterEnum;
+import com.br.marketing.common.utils.StringUtils;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,8 +31,11 @@ import java.util.*;
 public class CustomerStrategyController {
     @Resource
     RestTemplate restTemplate;
-    private static final String STRATEGY_DISTRIBUTION_LIST = "http://STRATEGY-DISTRIBUTION/strategy-customizer/distributeList?" +
+    private static final String STRATEGY_DISTRIBUTION_LIST = "http://k8s.brapp.com/compass-api/api/strategy-distribution/strategy-customizer/distributeList?" +
             "apiCode={apiCode}&strategyCategory={strategyCategory}&distributeType={distributeType}&strategyType={strategyType}";
+
+    @Value("${cluster.flag}")
+    private String clusterConfig;
 
     @Value("${api.productManagement.url}")
     private String productUrl;
@@ -38,17 +43,21 @@ public class CustomerStrategyController {
     @Value("${api.productManagement.productTypeUrl}")
     private String productTypeUrl;
 
+
     @GetMapping("distributeList")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public JSONObject distributeList(String apiCode, String strategyCategory, String distributeType, String strategyType) {
+        String enumName = ClusterEnum.CLUSTER_PROD_C.getName();
+        String url = STRATEGY_DISTRIBUTION_LIST;
+        if (StringUtils.isNotBlank(clusterConfig) && enumName.equals(clusterConfig)) {
+             url = STRATEGY_DISTRIBUTION_LIST.replace("k8s.brapp.com","k8s-bak.brapp.com");
+        }
         Map<String, Object> urlVariables = getStringObjectMap(apiCode, strategyCategory, distributeType, strategyType);
-        String result = restTemplate.getForObject(STRATEGY_DISTRIBUTION_LIST, String.class, urlVariables);
+        String result = restTemplate.getForObject(url, String.class, urlVariables);
         return (JSONObject) JSONObject.parse(result);
     }
 
     //productChineseName、productName、secondTypeName、spreadStatus、version、versions
     @GetMapping("createView")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Map<String, Object>> createView() {
         String result = restTemplate.getForObject(productUrl, String.class);
         String productType = restTemplate.getForObject(productTypeUrl, String.class);

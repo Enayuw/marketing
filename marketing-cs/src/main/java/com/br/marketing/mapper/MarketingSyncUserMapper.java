@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.bo.CellValidityPeriodBO;
+import com.br.marketing.entity.MarketingCustomizeDataValidConfig;
 import com.br.marketing.entity.MarketingDataValidConfig;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -48,20 +49,20 @@ public interface MarketingSyncUserMapper {
     List<MarketingSyncUser> getSyncUserLastByCustNumsAndStatusAndDate(@Param("apiCode") String apiCode, @Param("custNums") Set<String> custs, @Param("limitDate") String limitDate);
 
     List<MarketingSyncUser> getSyncUserLastByInAppletDateList(@Param("apiCode") String apiCode
-            , @Param("configList") List<MarketingDataValidConfig> configList
-            , @Param("transferSyncUserList") List<MarketingTransferSyncUser> transferSyncUserList);
+        , @Param("configList") List<MarketingDataValidConfig> configList
+        , @Param("transferSyncUserList") List<MarketingTransferSyncUser> transferSyncUserList);
 
     List<MarketingSyncUser> getSyncUserLastByInAppletDateUserTypeList(@Param("apiCode") String apiCode
-            , @Param("configList") List<MarketingDataValidConfig> configList
-            , @Param("transferSyncUserList") List<MarketingTransferSyncUser> transferSyncUserList);
+        , @Param("configList") List<MarketingDataValidConfig> configList
+        , @Param("transferSyncUserList") List<MarketingTransferSyncUser> transferSyncUserList);
 
     List<MarketingSyncUser> getSyncUserLastByNotInAppletDateList(@Param("apiCode") String apiCode
-            , @Param("configList") List<MarketingDataValidConfig> configList
-            , @Param("transferSyncUserList") List<MarketingTransferSyncUser> transferSyncUserList);
+        , @Param("configList") List<MarketingDataValidConfig> configList
+        , @Param("transferSyncUserList") List<MarketingTransferSyncUser> transferSyncUserList);
 
     List<MarketingSyncUser> getSyncUserLastByNotInAppletDateUserTypeList(@Param("apiCode") String apiCode
-            , @Param("configList") List<MarketingDataValidConfig> configList
-            , @Param("transferSyncUserList") List<MarketingTransferSyncUser> transferSyncUserList, @Param("limitDate") String limitDate);
+        , @Param("configList") List<MarketingDataValidConfig> configList
+        , @Param("transferSyncUserList") List<MarketingTransferSyncUser> transferSyncUserList, @Param("limitDate") String limitDate);
 
     List<MarketingSyncUser> getNewestByCustNums(@Param("apiCode") String apiCode, @Param("custNums") Set<String> custNums);
 
@@ -73,9 +74,9 @@ public interface MarketingSyncUserMapper {
      * @return list
      */
     List<MarketingSyncUser> getSyncUserTimeMaxByCustNums(@Param("apiCode") String apiCode
-            , @Param("custNums") Set<String> custNums
-            , @Param("userType") String userType
-            , @Param("dateTimeEnd") String dateTimeEnd);
+        , @Param("custNums") Set<String> custNums
+        , @Param("userType") String userType
+        , @Param("dateTimeEnd") String dateTimeEnd);
 
     /**
      * 2022/9/22 11:20
@@ -85,8 +86,8 @@ public interface MarketingSyncUserMapper {
      * @return list
      */
     List<MarketingSyncUser> getFreeUserTypeAndDateAllFieldList(@Param("apiCode") String apiCode
-            , @Param("custNumSet") Set<String> custNumSet
-            , @Param("freeUserTypeAndDateMap") Map<String, Set<String>> freeUserTypeAndDateMap);
+        , @Param("custNumSet") Set<String> custNumSet
+        , @Param("freeUserTypeAndDateMap") Map<String, Set<String>> freeUserTypeAndDateMap);
 
     /**
      * 2022/9/22 11:20
@@ -96,8 +97,8 @@ public interface MarketingSyncUserMapper {
      * @return list
      */
     List<MarketingSyncUser> getFreeUserTypeAndDateList(@Param("apiCode") String apiCode
-            , @Param("custNumSet") Set<String> custNumSet
-            , @Param("freeUserTypeAndDateMap") Map<String, Set<String>> freeUserTypeAndDateMap);
+        , @Param("custNumSet") Set<String> custNumSet
+        , @Param("freeUserTypeAndDateMap") Map<String, Set<String>> freeUserTypeAndDateMap);
 
     /**
      * 2022/10/10 11:20
@@ -106,7 +107,7 @@ public interface MarketingSyncUserMapper {
      * @return list
      */
     List<MarketingSyncUser> getCellByCustNumsAndMaxCreateTime(@Param("apiCode") String apiCode
-            , @Param("set") Set<String> set);
+        , @Param("set") Set<String> set);
 
     /**
      * 2022/10/10 11:20
@@ -115,7 +116,7 @@ public interface MarketingSyncUserMapper {
      * @return list
      */
     List<MarketingSyncUser> getCellByCellAndMaxAppletTime(@Param("apiCode") String apiCode
-            , @Param("cellSet") Set<String> cellSet);
+        , @Param("cellSet") Set<String> cellSet);
 
 
     /**
@@ -138,7 +139,7 @@ public interface MarketingSyncUserMapper {
      * @param minId
      * @return
      */
-    List<MarketingSyncUser> getSyncUserByAppletDateAndUserType(@Param("apiCode") String apiCode, @Param("executeDate") String executeDate, @Param("minId") Long minId,@Param("userType") String userType);
+    List<MarketingSyncUser> getSyncUserByAppletDateAndUserType(@Param("apiCode") String apiCode, @Param("executeDate") String executeDate, @Param("minId") Long minId, @Param("userType") String userType);
 
     /**
      * 获取appletDate日期集合
@@ -148,7 +149,7 @@ public interface MarketingSyncUserMapper {
      * @param endDate
      * @return
      */
-    List<String> getAppletDateByUserType(@Param("apiCode") String apiCode, @Param("startDate") String startDate, @Param("endDate") String endDate,@Param("userType") String userType);
+    List<String> getAppletDateByUserType(@Param("apiCode") String apiCode, @Param("startDate") String startDate, @Param("endDate") String endDate, @Param("userType") String userType);
 
     /**
      * 获取案件的上传时间
@@ -188,9 +189,9 @@ public interface MarketingSyncUserMapper {
      * @return
      */
     List<MarketingSyncUser> getNewSyncUserByDate(@Param("apiCode") String apiCode
-            , @Param("appletDate") String appletDate
-            , @Param("pageSize") Integer pageSize
-            , @Param("minId") Long minId);
+        , @Param("appletDate") String appletDate
+        , @Param("pageSize") Integer pageSize
+        , @Param("minId") Long minId);
 
     Integer countByAppletDate(@Param("apiCode") String apiCode, @Param("appletDate") String appletDate);
 
@@ -203,7 +204,10 @@ public interface MarketingSyncUserMapper {
      * 根据案件编号获取最新手机号
      */
     List<MarketingSyncUser> getCellLastByCustNums(@Param("apiCode") String apiCode
-            , @Param("custNums") Set<String> custNumSet);
+        , @Param("custNums") Set<String> custNumSet);
+
+    MarketingSyncUser getUserLastByCell(@Param("apiCode") String apiCode
+            , @Param("cell") String cell);
 
 
     List<MarketingSyncUser> getCellByAppletDateAndUserType(@Param("apiCode") String apiCode, @Param("appletDate") String executeDate, @Param("minId") Long minId, @Param("userType") String userType);
@@ -217,31 +221,102 @@ public interface MarketingSyncUserMapper {
      * @param cellValidityPeriodBOList 封装类
      */
     List<MarketingSyncUser> getSyncUserLastByCellAndInAppletDateUserTypeList(@Param("apiCode") String apiCode
-            , @Param("configList") List<MarketingDataValidConfig> configList
-            , @Param("cellValidityPeriodBOList") List<CellValidityPeriodBO> cellValidityPeriodBOList);
+        , @Param("configList") List<MarketingDataValidConfig> configList
+        , @Param("cellValidityPeriodBOList") List<CellValidityPeriodBO> cellValidityPeriodBOList);
 
     /**
      * 2023-07-13 20:15
      * 根据手机号+有效期配置获取上传数据
      */
     List<MarketingSyncUser> getSyncUserLastByCellAndInAppletDatList(@Param("apiCode") String apiCode
-            , @Param("configList") List<MarketingDataValidConfig> configList
-            , @Param("cellSet") Set<String> cellSet);
+        , @Param("configList") List<MarketingDataValidConfig> configList
+        , @Param("cellSet") Set<String> cellSet);
 
     /**
      * 2023-07-13 20:15
      * 根据案件编号+有效期配置获取上传数据
      */
     List<MarketingSyncUser> getSyncUserLastByCustNumAndInAppletDatList(@Param("apiCode") String apiCode
-            , @Param("configList") List<MarketingDataValidConfig> configList
-            , @Param("custNumSet") Set<String> custNumSet);
+        , @Param("configList") List<MarketingDataValidConfig> configList
+        , @Param("custNumSet") Set<String> custNumSet);
 
     /**
      * 修改数据状态
+     *
      * @param apiCode
      * @param custNum
      * @param appletDate
      * @return
      */
-    Integer updateStatus(@Param("apiCode") String apiCode,@Param("custNum") String custNum,@Param("appletDate") String appletDate);
+    Integer updateStatus(@Param("apiCode") String apiCode, @Param("custNum") String custNum, @Param("appletDate") String appletDate);
+
+
+    /**
+     * 查找指定上传日期批次号集合
+     *
+     * @param apiCode    apiCode
+     * @param appletDate 入库日期
+     * @return CusBatch 集合
+     */
+    List<String> findCusBatchByAppletDatePage(@Param("apiCode") String apiCode
+            , @Param("cusBatch") String cusBatch
+            , @Param("appletDate") String appletDate
+            , @Param("pageSize") int pageSize);
+
+    /**
+     * 根据案件编号+有效期配置获取上传数据
+     *
+     * @param apiCode    apiCode
+     * @param configList 有效配置
+     * @param custNumSet custNum集合
+     * @return {@link List }<{@link MarketingSyncUser }>
+     * @author senyang.zheng
+     * @date 2023/10/07
+     */
+    List<MarketingSyncUser> getSyncUserByCustNumAndAppletDateList(@Param("apiCode") String apiCode,
+                                                                  @Param("configList") List<MarketingDataValidConfig> configList,
+                                                                  @Param("custNumSet") Set<String> custNumSet);
+
+    /**
+     * 根据手机号+有效期配置获取上传数据
+     *
+     * @param apiCode    apiCode
+     * @param configList 有效配置
+     * @param cellSet    cell集合
+     * @return {@link List }<{@link MarketingSyncUser }>
+     * @author senyang.zheng
+     * @date 2023/12/08
+     */
+    List<MarketingSyncUser> getSyncUserByCellAndAppletDateList(@Param("apiCode") String apiCode,
+                                                               @Param("configList") List<MarketingDataValidConfig> configList,
+                                                               @Param("cellSet") Set<String> cellSet);
+
+    /**
+     * 根据案件编号+定制化 有效期配置获取上传数据
+     *
+     * @param apiCode api代码
+     * @param configList 有效期配置
+     * @param custNumSet custNum集合
+     * @return {@link List }<{@link MarketingSyncUser }>
+     * @author senyang.zheng
+     * @date 2024/01/13
+     */
+    List<MarketingSyncUser> getSyncUserByCustNumAndTaskIdsList(@Param("apiCode") String apiCode,
+                                                               @Param("configList") List<MarketingCustomizeDataValidConfig> configList,
+                                                               @Param("custNumSet") Set<String> custNumSet);
+
+
+    /**
+     * 2024-03-08 9:29
+     * 根据请求批次号获取批次号内的全部数据
+     *
+     * @param apiCode      code
+     * @param appletDate   上传时间
+     * @param requestBatch 请求批次号
+     * @param userTypeSet  场景集合
+     */
+    List<MarketingSyncUser> selectSyncUserByRequestBatchList(@Param("apiCode") String apiCode
+            , @Param("requestBatch") String requestBatch
+            , @Param("userTypeSet") Set<String> userTypeSet
+            , @Param("appletDate") String appletDate);
 }

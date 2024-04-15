@@ -26,6 +26,9 @@
         <elasticsearch.version>7.7.1</elasticsearch.version>
         <log4j.onver.slf4j.version>1.7.25</log4j.onver.slf4j.version>
         <pulsar.version>1.0.0</pulsar.version>
+        <speed.version>2.0.1</speed.version>
+        <lettuce.version>6.2.0.RELEASE</lettuce.version>
+        <reactor.version>3.4.24</reactor.version>
     </properties>
     <dependencies>
         <dependency>
@@ -118,36 +121,42 @@
                     <artifactId>bsf-ext</artifactId>
                 </exclusion>
                 <exclusion>
+                    <groupId>com.br.ice.service</groupId>
+                    <artifactId>alarm-rely-new</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-core</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- elasticJob -->
-
+        <!-- 升级guava包 并解决包冲突 开始 -->
         <dependency>
-            <groupId>com.dangdang</groupId>
-            <artifactId>br-elastic-job-core</artifactId>
-            <version>${elastic-job.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>30.1-android</version>
         </dependency>
-
         <dependency>
-            <groupId>com.dangdang</groupId>
-            <artifactId>br-elastic-job-spring</artifactId>
-            <version>${elastic-job.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>spring-context</artifactId>
-                    <groupId>org.springframework</groupId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+            <version>2.12.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-client</artifactId>
+            <version>2.12.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>2.12.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-test</artifactId>
+            <version>2.12.0</version>
+        </dependency>
+        <!-- 升级guava包 并解决包冲突 结束 -->
         <!-- 用于log4j通过slf4j转向logback 的一个适配包 -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -181,6 +190,11 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>io.projectreactor</groupId>
+                <artifactId>reactor-core</artifactId>
+                <version>${reactor.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
                 <version>Dalston.RELEASE</version>
@@ -193,6 +207,11 @@
                 <version>${spring.boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.br.speed</groupId>
+                <artifactId>speed-client</artifactId>
+                <version>${speed.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -223,6 +242,8 @@
         <module>marketing-tools</module>
         <module>marketing-mq-consumer</module>
         <module>marketing-data-monkey</module>
+        <module>marketing-xc-general</module>
+        <module>marketing-xc-loop-cycle</module>
         <!--        <module>marketing-fast-task</module>-->
     </modules>
 </project>

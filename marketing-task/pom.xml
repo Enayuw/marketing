@@ -4,7 +4,7 @@
         <artifactId>marketing</artifactId>
         <groupId>com.br.marketing</groupId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>pom.xml</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>marketing-task</artifactId>
@@ -53,40 +53,13 @@
             <artifactId>metrics-httpclient</artifactId>
             <version>3.0.2</version>
         </dependency>
-        <dependency>
-            <groupId>com.dangdang</groupId>
-            <artifactId>br-elastic-job-core</artifactId>
-            <version>1.1.7-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.dangdang</groupId>
-            <artifactId>br-elastic-job-spring</artifactId>
-            <version>1.1.7-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>spring-context</artifactId>
-                    <groupId>org.springframework</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
         <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
             <version>3.14.9</version>
         </dependency>
-        <!-- exporter 监控 http://c.100credit.cn/pages/viewpage.action?pageId=38205220 -->
-        <!--<dependency>
-            <groupId>com.br.cloud</groupId>
-            <artifactId>spring_boot_exporter</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>-->
+
     </dependencies>
     <!-- 预发、生产环境打包方式-->
     <build>
@@ -96,7 +69,6 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
                 <includes>
-                    <include>**/*.ObjectPrxHelperBase</include>
                     <include>mapper/**</include>
                     <include>**/*.yml</include>
                     <include>**/*.xml</include>
@@ -119,6 +91,7 @@
                 </executions>
                 <configuration>
                     <mainClass>com.br.marketing.task.Scheduler</mainClass>
+                    <includeSystemScope>true</includeSystemScope>
                 </configuration>
             </plugin>
         </plugins>

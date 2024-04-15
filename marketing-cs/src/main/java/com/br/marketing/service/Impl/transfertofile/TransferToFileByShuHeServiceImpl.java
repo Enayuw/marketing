@@ -193,13 +193,23 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 transferFileTask.setApiCode(apiCode);
                 transferFileTask.setFileType(dataExtractMap.getOrDefault(userType, null));
                 transferFileTask.setBatchNumber(userType);
-                transferFileTask.setFileName("");
+                String fileName;
+                if (appointTime != null) {
+                    // 指定日期
+                    fileName = getFileName(userType, apiCode, appointTime.format(DateTimeFormatter.BASIC_ISO_DATE).concat("_")
+                        .concat(dateYyyyMmDdStr), EXTENSION);
+                } else {
+                    // 前一天
+                    fileName = getFileName(userType, apiCode, dateYyyyMmDdStr, EXTENSION);
+                }
+                transferFileTask.setFileName(fileName);
                 transferFileTask.setStartDate(dateYyyyMmDdStr);
                 transferFileTask.setContextId(contextId);
                 transferFileTask.setTaskNumber(0);
                 transferFileTask.setStatus(1);
                 transferFileTask.setCreateTime(new Date());
                 transferFileTask.setUpdateTime(transferFileTask.getCreateTime());
+                transferFileTaskMapper.insertSelective(transferFileTask);
                 transferFileTaskList.add(transferFileTask);
             });
         }
@@ -358,12 +368,11 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
             transferFileTask.setBatchNumber(getFileName(userType, apiCode, dateYyyyMmDdStr
                     , "_" + transferFileTask.getContextId()));
             transferFileTask.setStatus(2);
-            transferFileTaskMapper.insertSelective(transferFileTask);
+            transferFileTaskMapper.updateByPrimaryKeySelective(transferFileTask);
         } catch (IOException e) {
             log.error(e.getMessage(), e);
             result.setCode(ResultCode.FAIL.getValue());
             result.setDate(e.getMessage());
-            transferFileTaskMapper.insertSelective(transferFileTask);
             return result;
         }
         result.setCode(ResultCode.SUCCESS.getValue());

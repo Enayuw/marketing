@@ -1,16 +1,15 @@
 package com.br.marketing.client;
 
-import com.br.redisengin.MultiRedisClusterUtil;
+import com.brgroup.redis.BrRedisClients;
+import com.brgroup.redis.client.BrRedisClient;
+import io.lettuce.core.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.ScanParams;
-import redis.clients.jedis.ScanResult;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -26,63 +25,103 @@ public class RedisChgService {
 
     public void set(String key, String value) {
         try {
-            JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-            jedis.set(key, value);
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            marketingRedisClient.set(key, value);
         }catch (Exception e){
             log.warn("set error",e);
             try{
-                JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-                jedis.set(key, value);
+                BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+                marketingRedisClient.set(key, value);
             }catch (Exception e1){
                 log.error("set error",e1);
             }
         }
     }
-    public void setex(String key, String value,int  seconds) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        jedis.setex(key,seconds,value);
+
+    /**
+     * 写入值，并且加上过期时间
+     * @param key
+     * @param value
+     * @param seconds 秒
+     */
+    public void setex(String key, String value,int seconds) {
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        marketingRedisClient.setex(key,seconds,value);
     }
 
-    public Long setnx(String key,String value,int seconds){
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        Long setnx = jedis.setnx(key, value);
-        jedis.expire(key,seconds);
+    /**
+     * key不存在才会写入
+     * 失效时间和写入操作非原子性
+     * @param key redisKey
+     * @param value redis值
+     * @param seconds 失效时间 单位秒
+     * @return
+     */
+    public Boolean setnx(String key,String value,int seconds){
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        Boolean setnx = marketingRedisClient.setnx(key, value);
+        if(setnx){
+            marketingRedisClient.expire(key,seconds);
+        }
         return setnx;
     }
 
     public String get(String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        String str = jedis.get(key);
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        String str = marketingRedisClient.get(key);
         return str;
     }
 
     //删除key
     public long del(String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        long size = jedis.del(key);
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        long size = marketingRedisClient.del(key);
         return size;
     }
+
     /**
-     * INCR命令用于由一个递增key的整数值。如果该key不存在，它被设置为0执行操作之前
+     * 2024-03-21 16:37
+     * 批量删除key
+     *
+     * @param keys key集合
+     * @return 删除成功量级
+     */
+    public long del(String... keys) throws Exception {
+        try {
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.del(keys);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    /**
+     * INCR命令用于由一个递增key的整数值。如果该key不存在，返回1
      *
      * @param key
      * @return
      */
     public Long incr(String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        Long count = jedis.incr(key);
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        Long count = marketingRedisClient.incr(key);
         return count;
     }
 
+    /**
+     * 增加传入的数量
+     * @param key
+     * @param number
+     * @return
+     */
     public Long incrBy(String key, long number) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         try{
-            Long count = jedis.incrBy(key, number);
+            Long count = marketingRedisClient.incrby(key, number);
             return count;
         }catch (Exception e){
             log.warn("incrBy error",e);
             try{
-                Long count = jedis.incrBy(key, number);
+                Long count = marketingRedisClient.incrby(key, number);
                 return count;
             }catch (Exception e1){
                 log.error("incrBy error",e1);
@@ -92,67 +131,190 @@ public class RedisChgService {
 
     }
 
-    public Long expire(String key, int seconds) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        Long result = jedis.expire(key, seconds);
-        return result;
+    /**
+     * 给key添加过期时间
+     * @param key
+     * @param seconds 单位 秒
+     * @return
+     */
+    public Boolean expire(String key, int seconds) {
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.expire(key, seconds);
     }
 
-    public Set<String> hkeys(String hkey) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        return jedis.hkeys(hkey);
+    /**
+     * 获取该hash的所有key
+     * @param hkey
+     * @return
+     */
+    public List<String> hkeys(String hkey) {
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.hkeys(hkey);
     }
+
+
+    /**
+     * 获取hash的长度
+     *
+     * @param hkey hkey
+     * @return {@link Integer }
+     * @author senyang.zheng
+     * @date 2024/03/20
+     */
+    public Long hlen(String hkey) {
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.hlen(hkey);
+    }
+
+    /**
+     * 获取该hash中key的值
+     * @param hkey
+     * @param key
+     * @return
+     */
     public String hget(String hkey, String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        String result = jedis.hget(hkey, key);
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        String result = marketingRedisClient.hget(hkey, key);
         return result;
     }
 
-    public Long hset(String hkey, String key, String value) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        Long result = jedis.hset(hkey, key, value);
-        return result;
+    public List<KeyValue<String, String>> hmget(String hkey, String... key) {
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.hmget(hkey, key);
     }
 
+    /**
+     * 获取该hash中key的值
+     * @param hkey hash key
+     * @param key  key值
+     * @param num  增加数值
+     * @return
+     */
+    public Long hincrby(String hkey, String key, long num) {
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.hincrby(hkey, key, num);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    /**
+     * 2024-03-12 13:48
+     * 返回哈希表中，所有的字段和值
+     *
+     * @param hkey hash key
+     * @return 字段名(field name), 字段的值(value)
+     */
+    public Map<String, Object> hgetall(String hkey) {
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.hgetall(hkey);
+    }
+
+
+    /**
+     * 给hash赋值一个key和value
+     *
+     * @param hkey
+     * @param key
+     * @param value
+     * @return
+     */
+    public Boolean hset(String hkey, String key, String value) {
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.hset(hkey, key, value);
+    }
+
+    public String hset(String hkey, HashMap<String, String> map) {
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.hmset(hkey, map);
+    }
+
+    /**
+     * 2024-03-12 11:40
+     * hash 根据key批量添加field-value (字段-值)
+     *
+     * @param hkey hash key
+     * @param map  field-value (字段-值)
+     * @return 命令执行成功，返回 OK
+     */
+    public boolean hmset(String hkey, Map<String, String> map) {
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return "OK".equals(marketingRedisClient.hmset(hkey, map));
+    }
+
+    /**
+     * 删除hash中的key
+     *
+     * @param hkey
+     * @param key
+     * @return
+     */
     public Long hdel(String hkey, String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        Long result = jedis.hdel(hkey, key);
-        return result;
-    }
-
-    public boolean exists(String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        boolean flag = jedis.exists(key);
-        return flag;
-    }
-
-    public Long sadd(String key, List<String> value){
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        String[] values = new String[]{};
-        String[] vals = value.toArray(values);
-        Long result = jedis.sadd(key, vals);
-        return result;
-    }
-
-    public Long saddMember(String key,String... member){
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        Long result = jedis.sadd(key, member);
-        return result;
-    }
-
-    public Boolean sismember(String key, String member) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        Boolean result = jedis.sismember(key, member);
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        Long result = marketingRedisClient.hdel(hkey, key);
         return result;
     }
 
     /**
-     * 2022/11/17 15:53
-     * 返回集合中的所有成员
+     * 判断数据key是否存在
+     * @param key
+     * @return
+     */
+    public Boolean exists(String key) {
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        Long flag = marketingRedisClient.exists(key);
+        return !new Long(0L).equals(flag);
+    }
+
+    /**
+     * set添加一个list
+     *
+     * @param key
+     * @param value
+     * @return 返回的添加成功的数量
+     */
+    public Long sadd(String key, List<String> value){
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        String[] values = new String[]{};
+        String[] vals = value.toArray(values);
+        Long result = marketingRedisClient.sadd(key, vals);
+        return result;
+    }
+
+    /**
+     * set添加一个数组
+     * @param key
+     * @param member
+     * @return 返回添加成功的数量
+     */
+    public Long saddMember(String key,String... member){
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        Long result = marketingRedisClient.sadd(key, member);
+        return result;
+    }
+
+    /**
+     * 判断set中是否存在该对象
+     * @param key
+     * @param member
+     * @return
+     */
+    public Boolean sismember(String key, String member) {
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        Boolean result = marketingRedisClient.sismember(key, member);
+        return result;
+    }
+
+
+    /**
+     * 返回set中所有的成员
+     * @param key
+     * @return
      */
     public Set<String> smembers(String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        return jedis.smembers(key);
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        Set<String> smembers = marketingRedisClient.smembers(key);
+        return smembers;
     }
 
     /**
@@ -160,8 +322,8 @@ public class RedisChgService {
      * 移除集合中的指定 key 的一个或多个随机元素，移除后会返回移除的元素
      */
     public Set<String> spop(String key, int count) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        return jedis.spop(key, count);
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.spop(key, count);
     }
 
     /**
@@ -169,8 +331,8 @@ public class RedisChgService {
      * 获取set元素中的个数
      */
     public Long scard(String key) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        return jedis.scard(key);
+        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        return marketingRedisClient.scard(key);
     }
 
     public void lock(String lockKey, String value) {
@@ -192,44 +354,68 @@ public class RedisChgService {
         throw new NullPointerException("获取锁失败");
     }
 
-    public boolean lock(String lockKey, String requestId, long milliseconds) {
-        JedisCluster jedisCluster = MultiRedisClusterUtil.createJedisCluster("2");
+    public boolean lock(String lockKey, String requestId, Long milliseconds) {
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         String script = "return redis.call('set',KEYS[1],ARGV[1],'NX','PX',ARGV[2])";
-        Object result = jedisCluster.eval(script, Collections.singletonList(lockKey), Arrays.asList(requestId, "" + milliseconds));
+        String[] keys = new String[1];
+        keys[0] = lockKey;
+        String result = marketingRedisClient.eval(script, ScriptOutputType.STATUS, keys, requestId, milliseconds.toString());
         return LOCK_SUCCESS.equals(result);
     }
 
     public boolean unlock(String lockKey, String requestId) {
-        JedisCluster jedisCluster = MultiRedisClusterUtil.createJedisCluster("2");
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
         String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
-        Object result = jedisCluster.eval(script, Collections.singletonList(lockKey), Collections.singletonList(requestId));
+        String[] keys = new String[1];
+        keys[0] = lockKey;
+        Long result = marketingRedisClient.eval(script, ScriptOutputType.INTEGER, keys, requestId);
         return RELEASE_SUCCESS.equals(result);
     }
 
     public void delBigSet(String bigSetKey, int deleteCount) {
-        JedisCluster jedis = MultiRedisClusterUtil.createJedisCluster("2");
-        ScanParams scanParams = new ScanParams().count(deleteCount);
-        String cursor = ScanParams.SCAN_POINTER_START;
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        String cursorIndex = "0";
+        ScanCursor cursor = ScanCursor.of(cursorIndex);
         do {
-            ScanResult<String> scanResult = jedis.sscan(bigSetKey, cursor, scanParams);
-            List<String> memberList = scanResult.getResult();
+            ValueScanCursor<String> sscan = marketingRedisClient.sscan(bigSetKey, cursor, ScanArgs.Builder.limit(deleteCount));
+            List<String> memberList = sscan.getValues();
             if (CollectionUtils.isNotEmpty(memberList)) {
                 String[] members = memberList.stream().map(Object::toString).toArray(String[]::new);
-                jedis.srem(bigSetKey, members);
-                sleep(bigSetKey, members);
+                marketingRedisClient.srem(bigSetKey, members);
+                sleep();
             }
-            cursor = scanResult.getStringCursor();
-        } while (!"0".equals(cursor));
-
+            cursorIndex = sscan.getCursor();
+            cursor.setCursor(cursorIndex);
+        } while (!"0".equals(cursorIndex));
         //删除bigkey
-        jedis.del(bigSetKey);
+        marketingRedisClient.del(bigSetKey);
     }
 
-    private void sleep(String key, String[] members) {
+    public void delBigHash(String bigSetKey, int deleteCount) {
+        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+        String cursorIndex = "0";
+        ScanCursor cursor = ScanCursor.of(cursorIndex);
+        do {
+            MapScanCursor<String, String> hscan = marketingRedisClient.hscan(bigSetKey, cursor, ScanArgs.Builder.limit(deleteCount));
+            Map<String, String> map = hscan.getMap();
+            if (map!=null) {
+                String[] keys = map.keySet().stream().toArray(String[]::new);
+                if(keys.length>0) {
+                    marketingRedisClient.hdel(bigSetKey, keys);
+                    sleep();
+                }
+            }
+            cursorIndex = hscan.getCursor();
+            cursor.setCursor(cursorIndex);
+        } while (!"0".equals(cursorIndex));
+        //删除bigkey
+        marketingRedisClient.del(bigSetKey);
+    }
+
+    private void sleep() {
         try {
                 Thread.sleep(10);
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
             log.error(e.getMessage(), e);
         }
     }

@@ -100,6 +100,20 @@
             and (${whereStr})
     </select>
 
+    <select id="queryUserTypeListWithDatetikv_" resultType="java.lang.String">
+        select distinct(user_type)
+        from b_marketing_sync_${apiCode}
+        where is_repeat in (1,2)
+            and status = 1
+            <if test="sDate != null and sDate !=''">
+                and applet_date = #{sDate}
+            </if>
+            <if test="sDate != null and sDate !=''">
+                <![CDATA[ and applet_time < #{eTimeStr} ]]>
+            </if>
+            and (${whereStr})
+    </select>
+
     <select id="countByRuleScoreWithDate" resultType="java.lang.Integer">
         select count(*)
         from b_marketing_sync_${apiCode}
@@ -428,4 +442,15 @@
            <![CDATA[ AND create_time >= #{startDate} and create_time < #{endDate} ]]>
           and status = 1
     </select>
+    <select id="getAppletDateByCusBatch" resultType="java.lang.String">
+        select applet_date from b_marketing_sync_${apiCode}
+        where cus_batch = #{cusBatch}
+        and status = 1 limit 1
+    </select>
+    <select id="getCusBatchByAppletDate" resultType="java.lang.String">
+        select cus_batch from b_marketing_sync_${apiCode}
+        where applet_date = #{appletDate}
+        group by cus_batch;
+    </select>
+
 </mapper>

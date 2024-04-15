@@ -1,9 +1,15 @@
 package com.br.marketing.service.Impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
+import com.br.marketing.client.intelligentcustomerservice.output.PolicyResultByTaskIdsDTO;
 import com.br.marketing.client.marketingapi.MarketingApiService;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.ApiReturnEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.PushInfoFilterDTO;
@@ -12,6 +18,7 @@ import com.br.marketing.entity.CustomerInfoPushBatchExample;
 import com.br.marketing.mapper.CustomerInfoPushBatchMapper;
 import com.br.marketing.mapper.CustomerInfoPushLogMapper;
 import com.br.marketing.mapper.CustomerInfoPushMainMapper;
+import com.br.marketing.mapper.MarketingTaskUserTypeMapper;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.vo.PushInfoListVO;
 import com.br.marketing.vo.RulePushLogOfStatusVO;
@@ -19,7 +26,9 @@ import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +47,11 @@ public class PushInfoServiceImpl implements PushInfoService {
 
     @Autowired
     private CustomerInfoPushLogMapper customerInfoPushLogMapper;
+    @Resource
+    MarketingTaskUserTypeMapper marketingTaskUserTypeMapper;
+
+    @Autowired
+    private IntelligentCustomerServiceClient intelligentCustomerServiceClient;
 
     @Override
     public PageResultReturn getPushInfoList(PushInfoFilterDTO dto) {
@@ -45,6 +59,7 @@ public class PushInfoServiceImpl implements PushInfoService {
         PageHelper.startPage(dto.getCurrent(), dto.getSize());
         List<PushInfoListVO> list = customerInfoPushMainMapper.getPushInfoList(dto);
         List<Long> ids = list.stream().map(t -> t.getId()).collect(Collectors.toList());
+        List<String> failStatusIds =list.stream().filter(t->t.getmStatus().equals(5)).map(t->String.valueOf(t.getId())).collect(Collectors.toList());
         if(ids.size()>0) {
             CustomerInfoPushBatchExample example = new CustomerInfoPushBatchExample();
             example.createCriteria().andMIdIn(ids).andIsDelEqualTo(1);
@@ -58,19 +73,30 @@ public class PushInfoServiceImpl implements PushInfoService {
             List<RulePushLogOfStatusVO> rulePushLogOfStatusVOS = customerInfoPushLogMapper.selectRealStatusByMid(ids);
             Map<Long, List<RulePushLogOfStatusVO>> realStatusOfMid = rulePushLogOfStatusVOS.stream()
                     .collect(Collectors.groupingBy(RulePushLogOfStatusVO::getMId));
-
-            list.forEach(t -> {
-                t.setBatchNumbers(batchNumberOfMid.get(t.getId()));
-                List<RulePushLogOfStatusVO> rulePushLogOfStatusVOS1 = realStatusOfMid.get(t.getId());
-                List<Map> msgList = new ArrayList<>();
-                if(rulePushLogOfStatusVOS1!=null){
-                    rulePushLogOfStatusVOS1.forEach(k -> {
-                        Map msg = new HashMap();
-                        msg.put("code", k.getRealStatus());
-                        msg.put("message", ApiReturnEnum.getByCode(k.getRealStatus()));
-                        msgList.add(msg);
+            Map<String,Map<String,Object>> resultMap = new HashMap<>();
+            if (!CollectionUtils.isEmpty(failStatusIds)) {
+                Result<List<PolicyResultByTaskIdsDTO>> result = intelligentCustomerServiceClient.getTaskIdsResult(dto.getmApiCode(), failStatusIds);
+                if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                    List<PolicyResultByTaskIdsDTO> resultByTaskIdsDTOS = result.getData();
+                    resultByTaskIdsDTOS.forEach(policyResultByTaskIdsDTO -> {
+                        Map errorMap = JSON.parseObject(policyResultByTaskIdsDTO.getVerificationReason());
+                        resultMap.put(policyResultByTaskIdsDTO.getVerification(), errorMap);
                     });
+                } else {
+                    log.warn("决策查询接口异常result={}", JSON.toJSONString(result));
                 }
+            }
+            list.forEach(t -> {
+                String batchNumber = batchNumberOfMid.get(t.getId());
+                t.setBatchNumbers(batchNumber);
+                List<String> userTypeList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumbertikv_(batchNumber);
+                if(null != userTypeList){
+                    String userType = userTypeList.stream().collect(Collectors.joining(","));
+                    t.setUserType(userType);
+                }
+                List<Map> msgList = new ArrayList<>();
+                Map map = resultMap.get(t.getId().toString());
+                msgList.add(map);
                 t.setReturnMessages(msgList);
             });
         }

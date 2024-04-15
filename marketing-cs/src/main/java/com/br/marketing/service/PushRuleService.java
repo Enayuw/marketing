@@ -19,8 +19,19 @@ import java.util.Map;
 public interface PushRuleService {
 
 
-
+    /**
+     * 查询apiCode对应的公司信息
+     * @param apiCode apiCode
+     * @return com.br.marketing.common.commondto.Result<Map<java.lang.String,java.lang.Object>> 响应结果
+     */
     Result<Map<String,Object>> getCompanyAndModule(String apiCode);
+
+    /**
+     * 获取跑分批次号对应的场景
+     * @param apiCode apiCode
+     * @return com.br.marketing.common.commondto.Result<java.lang.String> 响应结果
+     */
+    Result<String> getUserType(String apiCode);
 
     /**
      * 获取批次信息
@@ -104,6 +115,8 @@ public interface PushRuleService {
      */
     Result insertTransferData(String apiCode, String jsonData);
 
+    Result insertTransferData(String apiCode, String jsonData, TransferDataDTO transferDataDTO);
+
     Result<Boolean> consumerTransferInfo(String msg);
 
     Result consumerTransferData(Long id);
@@ -184,4 +197,8 @@ public interface PushRuleService {
      * @param apiCode
      */
     void mockDbOrRedisError(Integer mockType,String apiCode);
+
+    Result<Boolean> cunsumerZhongBangLabelData(Long id);
+
+    Result<Integer> checkThreekEnc(List<Long> fileIds);
 }

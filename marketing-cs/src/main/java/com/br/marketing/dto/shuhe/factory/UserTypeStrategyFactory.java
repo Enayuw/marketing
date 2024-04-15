@@ -1,10 +1,14 @@
 package com.br.marketing.dto.shuhe.factory;
 
 import com.br.marketing.dto.shuhe.strategy.*;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
+import javax.annotation.Resource;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 场景策略工厂
@@ -12,8 +16,12 @@ import java.util.Set;
  * @author Guo Zeqiang
  * @dateTime 2022/2/11 10:13
  */
+@Component
 public class UserTypeStrategyFactory {
-    private final static Map<String, IUserType> USER_TYPE_CACHE = new HashMap<>();
+
+    private static MarketingCommonConfig marketingCommonConfig;
+
+    private final static Map<String, IUserType> USER_TYPE_CACHE = new ConcurrentHashMap<>();
 
     static {
         USER_TYPE_CACHE.put("促首登", new CuShouDeng());
@@ -23,12 +31,40 @@ public class UserTypeStrategyFactory {
         USER_TYPE_CACHE.put("重申", new ChongShen());
     }
 
+    @Resource
+    public void setMarketingCommonConfig(MarketingCommonConfig marketingCommonConfig) {
+        UserTypeStrategyFactory.marketingCommonConfig = marketingCommonConfig;
+    }
+
     public Set<String> getUserTypes() {
         return USER_TYPE_CACHE.keySet();
     }
 
     public static IUserType getUserTypeStrategy(String userType) {
-        return USER_TYPE_CACHE.getOrDefault(userType, new UnknownUserType()).setUserType(userType);
+        if (userType == null) {
+            return new UnknownUserType();
+        }
+        IUserType iUserType = USER_TYPE_CACHE.getOrDefault(userType, new UnknownUserType()).setUserType(userType);
+        try {
+            Map<String, List<String>> mappingMap = marketingCommonConfig.getShuHeUserTypeAndApiCodeMappingMap();
+            List<String> apiCodeList = mappingMap.get(userType);
+            if (apiCodeList == null) {
+                return iUserType;
+            }
+            List<String> apiCodes = iUserType.getApiCodes();
+            if (apiCodeList.size() == 0) {
+                apiCodes.clear();
+            } else {
+                for (String apiCode : apiCodeList) {
+                    if (apiCodes.contains(apiCode)) {
+                        continue;
+                    }
+                    apiCodes.add(apiCode);
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return iUserType;
     }
 
 }

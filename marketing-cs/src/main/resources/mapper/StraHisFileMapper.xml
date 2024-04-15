@@ -12,4 +12,29 @@
                 #{fileId}
               </foreach>
     </select>
+
+    <select id="getFileByRule" resultType="com.br.marketing.entity.StraHisFile">
+        select shf.*
+        from stra_his_file shf
+        left join b_marketing_task btbp on shf.batch_number = btbp.batch_number
+        left join b_marketing_task_extend bmte on btbp.id = bmte.task_id
+        left join b_score_rule_config bsrc on bsrc.id = bmte.rule_id
+        where shf.create_time >=#{time}
+        <if test="ruleNumber!=null and ruleNumber!=''">
+            and bsrc.rule_name_short =#{ruleNumber}
+        </if>
+        <choose>
+            <when test="isOrNoStatus == 1">
+                and shf.push_status in
+            </when>
+            <when test="isOrNoStatus == 0">
+                and shf.push_status not in
+            </when>
+        </choose>
+        <foreach collection="pushStatusList" open="(" close=")" separator="," item="pushStatus">
+            #{pushStatus}
+        </foreach>
+         and shf.status =2 and btbp.monitor_type !=2 order by shf.create_time desc limit 1
+    </select>
+
 </mapper>
