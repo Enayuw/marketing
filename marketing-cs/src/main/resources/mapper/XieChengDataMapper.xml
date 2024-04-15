@@ -55,4 +55,30 @@
     order by id limit 5000;
   </select>
 
+  <select id="getXieChengDataCounttikv_" resultType="java.lang.Integer">
+    select count(distinct sha256_tel)
+    from b_xiecheng_data
+    where <![CDATA[ create_time >=#{requestData} and create_time < #{endData} ]]>
+      and push_status = 2 and status = 1
+    <if test="apiCode != null and apiCode!=''">
+      and api_code = #{apiCode}
+    </if>
+  </select>
+
+  <select id="getUploadCounttikv_" resultType="java.lang.Integer">
+    select count(distinct a.sha256_tel)
+    from b_xiecheng_data as a left join b_marketing_transfer_sync_#{cid} as b
+    on a.sha256_tel = b.cust_num
+    where b.request_data =#{requestData}
+      and a.push_status = 2 and a.status = 1
+      and <![CDATA[ a.create_time >=#{requestData} and a.create_time < #{endData} ]]>
+    <if test="apiCode != null and apiCode!=''">
+      and b.api_code = #{apiCode}
+      and a.api_code = #{apiCode}
+    </if>
+    <if test="convType != null and convType!=''">
+      and b.reserve_field1 ->'$.convType'=#{convType}
+    </if>
+  </select>
+
 </mapper>
