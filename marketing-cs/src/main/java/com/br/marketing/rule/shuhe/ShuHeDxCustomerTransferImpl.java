@@ -19,9 +19,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,8 +36,6 @@ import java.util.Map;
 @Slf4j
 public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData> {
 
-    private static final List<String> USER_TYPE_LIST = new ArrayList<>(Arrays.asList(
-            "轻资产", "促复借", "促首借", "促申完", "促首登"));
     /**
      * 2024-04-15 15:48
      * 已转化
@@ -57,10 +52,10 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(transfer.getId().toString());
-        conversionData.setInversionStatus(USER_TYPE_LIST.contains(transfer.getUserType()) ? HAS_TRANSFER : HAS_EXPIRE);
         JSONObject reserveFieldObject = JSONObject.parseObject(transfer.getReserveField1());
         String usrForbidCallEndTim = reserveFieldObject.getString("usr_forbid_call_end_tim");
         if (StringUtils.hasText(usrForbidCallEndTim)) {
+            conversionData.setInversionStatus(HAS_EXPIRE);
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(
                     DateHelper.LINE_DATE_COLON_TIME_FORMAT);
             try {
@@ -75,6 +70,8 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
                 } catch (Exception ignored) {
                 }
             }
+        } else {
+            conversionData.setInversionStatus(HAS_TRANSFER);
         }
         ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeRuleNecessaryData =
                 (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
