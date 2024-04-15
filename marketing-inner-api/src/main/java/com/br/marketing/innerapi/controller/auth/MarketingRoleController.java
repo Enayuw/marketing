@@ -40,7 +40,6 @@ public class MarketingRoleController {
      * 创建角色
      */
     @GetMapping("/save")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> saveRole(MarketingRole role) {
         //创建角色
         marketingRoleService.saveRole(role);
@@ -53,7 +52,6 @@ public class MarketingRoleController {
      * @param ids 多个id用逗号分隔
      */
     @GetMapping("/delete")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> delete(String ids) {
         if(marketingRoleService.deleteByIds(ids)){
             return new ApiResult<Boolean>().success();
@@ -68,7 +66,6 @@ public class MarketingRoleController {
      * 编辑角色
      */
     @GetMapping("/update")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> update(MarketingRole role) {
         marketingRoleService.updateRole(role);
         return new ApiResult<Boolean>().success();
@@ -78,7 +75,6 @@ public class MarketingRoleController {
      *
      */
     @GetMapping("/list")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<PageResultReturn> list(String createStart, String createEnd, String updateStart,
                                             String updateEnd, String key, Integer current, Integer size) {
         PageResultReturn listPage =  marketingRoleService.selectRoleListBySearch(
@@ -95,7 +91,6 @@ public class MarketingRoleController {
      *
      */
     @GetMapping("/getById")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<MarketingRole> getRoleById(Integer roleId) {
         return new ApiResult<MarketingRole>().success(marketingRoleService.selectById(roleId));
     }
@@ -105,7 +100,6 @@ public class MarketingRoleController {
      *
      */
     @GetMapping("/getResourceTree")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<List<ResourceTreeBean>> getTree(Integer roleId) {
         return new ApiResult<List<ResourceTreeBean>>().success(marketingResourceService.getResourcesTree(roleId));
     }
@@ -115,7 +109,6 @@ public class MarketingRoleController {
      *
      */
     @GetMapping("/checkName")
-    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ApiResult<Boolean> checkName(Integer id, String roleName) {
         return new ApiResult<Boolean>().success(marketingRoleService.checkName(id, roleName));
     }

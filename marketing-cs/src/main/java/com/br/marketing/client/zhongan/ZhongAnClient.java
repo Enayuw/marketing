@@ -1,6 +1,8 @@
 package com.br.marketing.client.zhongan;
 
 import com.alibaba.fastjson.JSON;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.zhongan.input.ZaMarketDataDTO;
 import com.br.marketing.client.zhongan.input.ZaMarketDetail;
@@ -83,6 +85,7 @@ public class ZhongAnClient {
      * @param dto
      * @return
      */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result pushDetail(ZaMarketDataDTO dto) {
         try {
             HashMap<String, List<Boolean>> isLog = getIsLog();
@@ -155,6 +158,7 @@ public class ZhongAnClient {
      * @param zkReqDTO
      * @return
      */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<ZkReponseVO> zkXd(ZkReqDTO zkReqDTO) {
 //        上线需要去除掉,模拟调用不可营销的数据
        /* if(Arrays.asList("baca0e6571447795d04c60b9388c5a9d","9acb88dc59a878889d25aba379a844c5").contains(zkReqDTO.getCustMobileMd5())){
@@ -167,7 +171,6 @@ public class ZhongAnClient {
         }*/
         return zk(zkReqDTO, xinDaiZKApiKey);
     }
-
 
     public Result<ZkReponseVO> zk(ZkReqDTO zkReqDTO, String apiKey) {
         try {

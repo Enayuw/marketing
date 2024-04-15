@@ -2,6 +2,10 @@ package com.br.marketing.service;
 
 import com.br.marketing.commonentity.PageResultReturn;
 
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
 /**
  * 文件接口
  * <p>
@@ -26,4 +30,5 @@ public interface LocalFileService {
      */
     PageResultReturn list(int page, int pageSize,String search, String apiCode, String uploadStartTime,String uploadEndTime, String fileType);
     Integer allCount(String search, String apiCode, String uploadStartTime, String uploadEndTime, String fileType);
+    void refreshPushNumber(List<Map<String, Object>> quantityList, Date pushStartTime, Date pushEndTime);
 }

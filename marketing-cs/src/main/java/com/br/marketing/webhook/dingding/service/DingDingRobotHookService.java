@@ -3,6 +3,8 @@ package com.br.marketing.webhook.dingding.service;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.webhook.dingding.msgtype.AbstractRobotSendRequest;
 
+import java.util.Map;
+
 /**
  * 钉钉自定义机器人接入
  * <p>
@@ -112,4 +114,16 @@ public interface DingDingRobotHookService {
     ApiResult<String> sendMessageGroupWebHook(String webHook, String secret
             , AbstractRobotSendRequest robotSendRequest, boolean isProxy);
 
-}
+
+
+    /**
+     * 2024-03-05 17:47
+     * 发送钉钉文本消息
+     * @param content 消息内容
+     * @param sendMgsInfoMap speed配置见：dingDingWebHookInfo
+     */
+     void sendDingDingTextMessage(String content, Map<String, Object> sendMgsInfoMap);
+
+
+
+    }

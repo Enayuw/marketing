@@ -118,6 +118,11 @@ public class CallRecord {
      */
     private Date createTime;
 
+    /**
+     * 线路名称
+     */
+    private String lineName;
+
     public Long getId() {
         return id;
     }
@@ -300,5 +305,13 @@ public class CallRecord {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+
+    public String getLineName() {
+        return lineName;
+    }
+
+    public void setLineName(String lineName) {
+        this.lineName = lineName == null ? null : lineName.trim();
     }
 }

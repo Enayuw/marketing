@@ -4,6 +4,8 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.http.HttpRequest;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.haier.input.HaierCollidingDataDTO;
 import com.br.marketing.client.haier.input.HaierReqDTO;
@@ -103,6 +105,7 @@ public class HaierServiceClient {
      * @dateTime 2021/12/3 16:43
      */
 //    public <T> Response2Entity pushToTeleSales(List<T> list, Function<List<T>, Set<PushDTO.DataItems>> function
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<Response2Entity> pushToTeleSales(PushDTO.FormData formData, int retr) throws Exception {
         Result<Response2Entity> result = new Result<>();
         Assert.notNull(formData, "\"List\" is not null");
@@ -127,6 +130,7 @@ public class HaierServiceClient {
 
 
     //    @RetryMethod
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<Response2Entity> pushToTeleSalesWithIds(HaierReqDTO haierReqDTO, int retr) throws Exception {
         PushDTO.FormData formData = haierReqDTO.getFormData();
         List<Long> ids = haierReqDTO.getIds();
@@ -250,6 +254,7 @@ public class HaierServiceClient {
      * @author Guo Zeqiang
      * @dateTime 2021/12/6 12:14
      */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<ResponseInfoEntity> resultQueryPushToTeleSales(String requestId, int retr) throws Exception {
         Result<ResponseInfoEntity> result = new Result<>();
         log.warn("##查询接口地址：{}；apicode：{}；apikey：{}", urlInfo, apiCode, apiKey);
@@ -276,6 +281,7 @@ public class HaierServiceClient {
     }
 
     @RetryMethod(retryNowNum = 1)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<String> pushHaierCollidingData(String mobileDigest ,String apiCode) {
         String aesKey = RandomStringUtils.randomAlphabetic(16);
         String haierPublicKey = marketingCommonConfig.getHaierApiPublicKey();
