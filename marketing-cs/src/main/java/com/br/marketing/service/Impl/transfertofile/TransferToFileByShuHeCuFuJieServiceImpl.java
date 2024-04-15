@@ -10,10 +10,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.TransferFileTask;
-import com.br.marketing.entity.TransferFileTaskExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.ThreeKeyEncryptEnum;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
@@ -65,6 +62,8 @@ public class TransferToFileByShuHeCuFuJieServiceImpl implements ITransferToFileS
     private RuleRedisServiceImpl ruleRedisService;
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+    @Resource
+    private MarketingDataValidConfigMapper marketingDataValidConfigMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
@@ -175,19 +174,45 @@ public class TransferToFileByShuHeCuFuJieServiceImpl implements ITransferToFileS
         Long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         Integer page = 0;
+        Boolean mark = Boolean.TRUE;
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
         LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE).minusDays(1L);
         String yesterday = localDate.toString();
+        LocalDate startDate = localDate.minusDays(30);
+        LocalDate endDate = localDate;
+        LocalDate today = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
+        List<MarketingDataValidConfig> validityDataByApiCode = marketingDataValidConfigMapper.getValidityDataByApiCode(apiCode, yesterday);
+        if (validityDataByApiCode.size() <= 0){
+            log.warn("列表可能为空");
+            mark = Boolean.FALSE;
+        }
+        Optional<MarketingDataValidConfig> minDateConfig = validityDataByApiCode.stream()
+                .min(Comparator.comparing(MarketingDataValidConfig::getValidStartDate));
+        if (minDateConfig.isPresent()) {
+            startDate = LocalDate.parse(minDateConfig.get().getValidStartDate(), YYYYMMDDSHORTLINE);
+        } else {
+            log.warn("列表为空，无法获取最小的startDate");
+        }
+        Optional<MarketingDataValidConfig> maxDateConfig = validityDataByApiCode.stream()
+                .max(Comparator.comparing(MarketingDataValidConfig::getValidEndDate));
+        if (maxDateConfig.isPresent()) {
+            endDate = LocalDate.parse(maxDateConfig.get().getValidEndDate(), YYYYMMDDSHORTLINE);
+            if (endDate.isBefore(today) || endDate.isEqual(today)){
+                endDate = today.plusDays(1);
+            }
+        } else {
+            log.warn("列表为空，无法获取最大的ValidEndDate");
+        }
+
         MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
-        syncUser.setRequestData(yesterday);
         Integer pageSize = dynamicParameterService.getPageSize(null);
-        for (; ; ) {
+        while (mark) {
             List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
-                    .findTransferByApiCodeAndCreateTimePage(syncUser, null, null, null, page * pageSize, pageSize);
+                    .getTransferByStartAndEndDate(syncUser, startDate.toString(), endDate.toString(), null, page * pageSize, pageSize);
             if (CollectionUtils.isEmpty(transferData)) {
                 break;
             }
@@ -200,7 +225,6 @@ public class TransferToFileByShuHeCuFuJieServiceImpl implements ITransferToFileS
                 for (MarketingTransferSyncUser transferFilterData : transferData) {
                     String custNum = transferFilterData.getCustNum();
                     String cell = "";
-                    String firstName = "";
                     String taskId = "";
                     String isTurn = "";
                     String isBlack = "";
@@ -278,15 +302,15 @@ public class TransferToFileByShuHeCuFuJieServiceImpl implements ITransferToFileS
                 if (log.isInfoEnabled()) {
                     long taskCount = threadPool.getTaskCount();
                     long completedTaskCount = threadPool.getCompletedTaskCount();
-                    log.info("众邦转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
+                    log.info("数禾促复借转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
                             , taskCount, completedTaskCount, taskCount - completedTaskCount);
                 }
             }
             saveUpdateTask(transferFileTask, totalSize.intValue());
-            log.warn("众邦转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
+            log.warn("数禾促复借转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
                     , apiCode, System.currentTimeMillis() - start, totalSize.intValue());
         } catch (InterruptedException e) {
-            log.error("众邦转化数据提取-本地文件生成失败！" , e);
+            log.error("数禾促复借转化数据提取-本地文件生成失败！" , e);
             threadPool.shutdownNow();
             Thread.currentThread().interrupt();
             transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
