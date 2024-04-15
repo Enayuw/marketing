@@ -16,4 +16,31 @@ public interface CallRecordMapper extends CallRecordMapperBase {
      * @param custNumMap key custNum;value bizDate
      */
     List<CallRecord> getBlackListSettikv_(@Param("custNumMap") Map<String, String> custNumMap, @Param("apiCode") String apiCode);
+
+    /**
+     * 携程百万量级转化统计报表数据获取 外呼相关量级
+     * @param cid cid
+     * @param apiCode apiCode
+     * @param requestData T-1
+     * @param endData T
+     * @param convType  convType
+     * @param lineName  线路名称
+     * @return Integer
+     */
+    Integer getCallRecordCounttikv_(@Param("cid") Long cid, @Param("apiCode") String apiCode,
+                                    @Param("requestData") String requestData, @Param("endData") String endData,
+                                    @Param("convType") String convType, @Param("lineName") String lineName);
+    /**
+     * 携程百万量级转化统计报表数据获取 外呼相关量级
+     * @param cid cid
+     * @param apiCode apiCode
+     * @param requestData T-1
+     * @param endData T
+     * @param convType  convType
+     * @param lineName  线路名称
+     * @return Integer
+     */
+    Integer getOutboundCounttikv_(@Param("cid") Long cid, @Param("apiCode") String apiCode,
+                                  @Param("requestData") String requestData, @Param("endData") String endData,
+                                  @Param("convType") String convType, @Param("lineName") String lineName);
 }

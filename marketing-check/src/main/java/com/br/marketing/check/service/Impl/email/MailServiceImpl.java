@@ -126,14 +126,18 @@ public class MailServiceImpl implements IMailService {
                 helper.setText(content, true);
 
                 FileSystemResource file = new FileSystemResource(new File(filePath));
-                String fileName = filePath.substring(filePath.lastIndexOf(File.separator));
-                log.info("attachmentFilename:[{}]", fileName);
+                String fileName = filePath.substring(filePath.lastIndexOf(File.separator)+1);
+                if(log.isInfoEnabled()){
+                    log.info("attachmentFilename:[{}]", fileName);
+                }
                 helper.addAttachment(fileName, file);
                 mailSender.send(message);
-                //日志信息
-                log.info("邮件已经发送。");
+                if(log.isInfoEnabled()){
+                    //日志信息
+                    log.info("邮件已经发送。");
+                }
             } catch (MessagingException e) {
-                log.error("发送邮件时发生异常！", e);
+                log.error("subject[{}]filePath[{}]to[{}]发送邮件时发生异常！", subject, filePath, to, e);
             }
         }
     }

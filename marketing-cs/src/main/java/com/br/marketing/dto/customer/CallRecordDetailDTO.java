@@ -69,4 +69,9 @@ public class CallRecordDetailDTO {
      * 标签列表
      */
     private String tagList;
+    /**
+     * 线路名称
+     */
+    private String lineName;
+
 }
