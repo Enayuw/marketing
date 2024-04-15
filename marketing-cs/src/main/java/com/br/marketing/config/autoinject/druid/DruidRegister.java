@@ -1,10 +1,8 @@
 package com.br.marketing.config.autoinject.druid;
 
 
-import IceInternal.Ex;
 import com.br.marketing.prometheus.druid.DruidCollector;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
 
