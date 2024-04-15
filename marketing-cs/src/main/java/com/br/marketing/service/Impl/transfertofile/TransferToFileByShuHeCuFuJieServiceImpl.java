@@ -248,14 +248,22 @@ public class TransferToFileByShuHeCuFuJieServiceImpl implements ITransferToFileS
                         cell = Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(cellLog));
                         isTurn = JSON.parseObject(transferFilterData.getReserveField1()).getString("is_turn");
                         isBlack = JSON.parseObject(transferFilterData.getReserveField1()).getString("is_black");
-                        clcUsrLstAppStaTim = JSON.parseObject(transferFilterData.getReserveField1()).getString("clc_usr_lst_app_sta_tim");
-                        clcUsrLstNonCcpTrsTim = JSON.parseObject(transferFilterData.getReserveField1()).getString("clc_usr_lst_non_dcp_trs_tim");
-                        offUsrLstOrdTimAll = JSON.parseObject(transferFilterData.getReserveField1()).getString("off_usr_lst_ord_tim_all");
-                        clcUsrAvlLmtLv0 = JSON.parseObject(transferFilterData.getReserveField1()).getString("clc_usr_avl_lmt_lv0");
-                        clcUsrAdtLmtLv0 = JSON.parseObject(transferFilterData.getReserveField1()).getString("clc_usr_adt_lmt_lv0");
-                        clcUsrLstOrdTimAllWizard = JSON.parseObject(transferFilterData.getReserveField1()).getString("clc_usr_lst_ord_tim_all_wizard");
-                        clcUsrAdtLmtFstAll = JSON.parseObject(transferFilterData.getReserveField1()).getString("clc_usr_adt_lmt_fst_all");
-                        clcUsrLstAdtApyTimHvy = JSON.parseObject(transferFilterData.getReserveField1()).getString("clc_usr_lst_adt_apy_tim_hvy");
+                        clcUsrLstAppStaTim = JSON.parseObject(transferFilterData.getReserveField1())
+                                .getString("clc_usr_lst_app_sta_tim");
+                        clcUsrLstNonCcpTrsTim = JSON.parseObject(transferFilterData.getReserveField1())
+                                .getString("clc_usr_lst_non_dcp_trs_tim");
+                        offUsrLstOrdTimAll = JSON.parseObject(transferFilterData.getReserveField1())
+                                .getString("off_usr_lst_ord_tim_all");
+                        clcUsrAvlLmtLv0 = JSON.parseObject(transferFilterData.getReserveField1())
+                                .getString("clc_usr_avl_lmt_lv0");
+                        clcUsrAdtLmtLv0 = JSON.parseObject(transferFilterData.getReserveField1())
+                                .getString("clc_usr_adt_lmt_lv0");
+                        clcUsrLstOrdTimAllWizard = JSON.parseObject(transferFilterData.getReserveField1())
+                                .getString("clc_usr_lst_ord_tim_all_wizard");
+                        clcUsrAdtLmtFstAll = JSON.parseObject(transferFilterData.getReserveField1())
+                                .getString("clc_usr_adt_lmt_fst_all");
+                        clcUsrLstAdtApyTimHvy = JSON.parseObject(transferFilterData.getReserveField1())
+                                .getString("clc_usr_lst_adt_apy_tim_hvy");
                     }
                     taskId = StringUtils.isNotEmpty(taskId) ? taskId : "";
                     String userType = StringUtils.isNotEmpty(transferFilterData.getUserType()) ? transferFilterData.getUserType() : "";
