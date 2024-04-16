@@ -395,7 +395,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     String getCanPushTaskLock(Long taskId) {
         try {
-            String taskByPushRuleGetLock = RedisKeyConstant.taskByPushRuleGetLock.concat(":" + taskId);
+            String taskByPushRuleGetLock = RedisKeyConstant.TASK_PUSH_RULE_GET_LOCK.concat(":" + taskId);
             UUID uuid = UUID.randomUUID();
             Boolean setnx = redisChgService.setnx(taskByPushRuleGetLock, uuid.toString(), 3);
             if (!setnx) {
@@ -409,7 +409,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     void removeCanPushTaskLock(Long taskId, String lockValue) {
-        String taskByPushRuleGetLock = RedisKeyConstant.taskByPushRuleGetLock.concat(":" + taskId);
+        String taskByPushRuleGetLock = RedisKeyConstant.TASK_PUSH_RULE_GET_LOCK.concat(":" + taskId);
         String s = redisChgService.get(taskByPushRuleGetLock);
         if (lockValue.equals(s)) {
             redisChgService.del(taskByPushRuleGetLock);

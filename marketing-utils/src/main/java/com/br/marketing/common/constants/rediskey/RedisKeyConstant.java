@@ -44,7 +44,7 @@ public class RedisKeyConstant {
 
     public static final String taskGetLock = prefix.concat("tasklock");
 
-    public static final String taskByPushRuleGetLock = prefix.concat("pushruletasklock");
+    public static final String TASK_PUSH_RULE_GET_LOCK = prefix.concat("pushruletasklock");
 
     /**
      * 任务已经跑分的数量key
