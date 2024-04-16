@@ -2087,7 +2087,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_3.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }else{
-                user.setCellMd5(DigestUtils.md5DigestAsHex(content.getBytes()));
+                user.setCellMd5(Md5Utils.cell32(content));
                 user.setCellSha256(Sha256Util.getSHA256Encrypt(content));
             }
             user.setCell(BrCipherMaker.getInstance().encode(content));

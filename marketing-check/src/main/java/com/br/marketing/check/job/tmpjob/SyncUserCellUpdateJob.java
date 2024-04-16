@@ -2,6 +2,7 @@ package com.br.marketing.check.job.tmpjob;
 
 import cn.hutool.core.collection.ListUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.Md5Utils;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.utils.BrExecutors;
@@ -81,7 +82,7 @@ public class SyncUserCellUpdateJob extends AbstractSimpleElasticJob {
                     try {
                         for (MarketingSyncUser marketingSyncUser : marketingSyncUsers) {
                             String cell = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
-                            String md5 = DigestUtils.md5DigestAsHex(cell.getBytes());
+                            String md5 = Md5Utils.cell32(cell);
                             String sha256 = Sha256Util.getSHA256Encrypt(cell);
                             marketingSyncUser.setCellMd5(md5);
                             marketingSyncUser.setCellSha256(sha256);
