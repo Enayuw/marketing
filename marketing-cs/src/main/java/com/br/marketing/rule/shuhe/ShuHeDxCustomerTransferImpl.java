@@ -3,6 +3,7 @@ package com.br.marketing.rule.shuhe;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -11,7 +12,9 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -52,6 +55,8 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(transfer.getId().toString());
+//        conversionData.setCid(transfer.getCid());
+        conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), DateHelper.LINE_DATE_COLON_TIME_FORMAT));
         JSONObject reserveFieldObject = JSONObject.parseObject(transfer.getReserveField1());
         String usrForbidCallEndTim = reserveFieldObject.getString("usr_forbid_call_end_tim");
         if (StringUtils.hasText(usrForbidCallEndTim)) {
@@ -81,9 +86,14 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
         if (map != null && map.containsKey(transfer.getCustNum())) {
             MarketingSyncUser marketingSyncUser = map.get(transfer.getCustNum());
             conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
+//            conversionData.setTaskId(marketingSyncUser.getCusBatch());
         } else {
             conversionData.setPhone("");
+//            conversionData.setTaskId("");
         }
+        TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
+        BeanUtils.copyProperties(transfer, vo);
+        conversionData.setInversionInfo(JSON.toJSONString(vo));
         return conversionData;
     }
 
