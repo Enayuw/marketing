@@ -202,12 +202,14 @@ public class TransferToFileByZhongBangTransferServiceImpl implements ITransferTo
                     break;
                 }
                 page++;
-                Set<String> set = transferData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+
                 //判断转化数据是否在有效期内
-                LocalDate curDate = LocalDate.parse(curDateStr);
-                LocalDate invalidDate = curDate.plusDays(-1);
+                Set<String> set = transferData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+                LocalDate requestLocalDate = LocalDate.parse(requestDate);
+                LocalDate invalidDate = requestLocalDate.plusDays(-1);
                 Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService
                         .getValidityPeriodsByCustNum(set, apiCode, invalidDate);
+
                 threadPool.submit(() -> {
                     for (MarketingTransferSyncUser transferFilterData : transferData) {
                         String custNum = transferFilterData.getCustNum();
