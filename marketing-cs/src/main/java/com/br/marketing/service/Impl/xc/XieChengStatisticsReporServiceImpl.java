@@ -32,7 +32,7 @@ public class XieChengStatisticsReporServiceImpl implements XieChengStatisticsRep
     private XieChengStatisticsReportMapper xieChengStatisticsReportMapper;
 
     @Override
-    public String getUploadCountAndInsert(String apiCode, Long cid, String requestData, String endData){
+    public String getUploadCountAndInsert(String apiCode, Long cid, String requestData, String endData, String lineName){
         XieChengStatisticsReportExample xieChengStatisticsReportExample = new XieChengStatisticsReportExample();
         xieChengStatisticsReportExample.createCriteria()
                 .andIsDeleteEqualTo(0)
@@ -54,17 +54,17 @@ public class XieChengStatisticsReporServiceImpl implements XieChengStatisticsRep
         Integer reportedDrawingsCount = xieChengDataMapper.getUploadCounttikv_(cid, apiCode, requestData, endData, "106");
         // 上报百万量级授信量 经过讨论取消了
         // 外呼量级
-        Integer outboundCount = callRecordMapper.getCallRecordCounttikv_(cid, apiCode, requestData, endData, "","HZL挡板");
+        Integer outboundCount = callRecordMapper.getCallRecordCounttikv_(cid, apiCode, requestData, endData, "", lineName);
         // 外呼进入首页量级
-        Integer outboundHomePageCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, endData, "214","HZL挡板");
+        Integer outboundHomePageCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, endData, "214", lineName);
         // 外呼进件发起量级
-        Integer outboundInitiateCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, endData, "108","HZL挡板");
+        Integer outboundInitiateCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, endData, "108", lineName);
         // 外呼进件成功量级
-        Integer outboundSuccessCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, endData, "107","HZL挡板");
+        Integer outboundSuccessCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, endData, "107", lineName);
         // 外呼授信量级
-        Integer outboundCreditCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, endData, "105","HZL挡板");
+        Integer outboundCreditCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, endData, "105", lineName);
         // 外呼提现量级
-        Integer outboundDrawingsCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, endData, "106","HZL挡板");
+        Integer outboundDrawingsCount = callRecordMapper.getOutboundCounttikv_(cid, apiCode, requestData, endData, "106", lineName);
         // 外呼百万量级授信量 经过讨论取消了
         XieChengStatisticsReport xieChengStatisticsReport = new XieChengStatisticsReport();
         xieChengStatisticsReport.setApiCode(apiCode);
