@@ -132,12 +132,14 @@ public class SyncReportController {
             , @RequestParam(required = false) String appletTimeEnd
             , @RequestParam String apiCodes
             , @RequestParam(required = false) String userTypes
-            , @RequestParam String cell) {
+            , @RequestParam String cell
+            , @RequestParam String orderField
+            , @RequestParam String descField) {
         if(StringUtils.isBlank(apiCodes) || StringUtils.isBlank(cell)){
             return new ApiResult<JSONArray>().fail(ServiceResultEnum.SUCCESS_1);
         }
-        JSONArray cellList = marketingSyncReportService.getReportByCell(cidOrName,
-                appletTimeStart,appletTimeEnd,apiCodes,userTypes,cell);
+        JSONArray cellList = marketingSyncReportService.getReportByCell(cidOrName, appletTimeStart, appletTimeEnd
+                , apiCodes, userTypes, cell, orderField, descField);
         if (cellList != null) {
             return new ApiResult<JSONArray>().success(cellList);
         }

@@ -21,11 +21,13 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
 import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.entity.eventtrack.EventTrackingCellReport;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.MarketingSyncReportService;
 import com.br.marketing.service.ValidityPeriodResendRecordService;
+import com.br.marketing.service.eventtrack.EventTrackService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.MarketingSyncReportNumVO;
 import com.br.marketing.vo.MarketingSyncReportVO;
@@ -105,6 +107,9 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private EventTrackService eventTrackService;
 
     @Override
     public void syncReportProcess(String uploadDate, String jobName) {
@@ -415,8 +420,13 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     }
 
     @Override
-    public JSONArray getReportByCell(String cidOrName, String appletTimeStart,
-                                     String appletTimeEnd, String apiCodes, String userTypes, String cell){
+    public JSONArray getReportByCell(String cidOrName, String appletTimeStart, String appletTimeEnd
+            , String apiCodes, String userTypes, String cell, String orderField, String descField){
+        // 1. 明文 cell 需要log加密
+        if(CellUtils.isValidateCell(cell)){
+            cell = DataMask.mask(cell, SensitiveType.LogMask, "");
+        }
+        packageAndSendEventTrack(cidOrName, appletTimeStart, appletTimeEnd, apiCodes, userTypes, cell);
         List<String> apiCodeList = new ArrayList<>();
         if(apiCodes != null && !"".equals(apiCodes)){
             String[] split = apiCodes.split(",");
@@ -431,39 +441,40 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 userTypeList.add(item);
             }
         }
-        // 1. 通过 apiCodes 获取客户信息,并将结果填充到响应中
+        // 2. 通过 apiCodes 获取客户信息,并将结果填充到响应中
         MarketingCustomerExample example = new MarketingCustomerExample();
         example.createCriteria().andStatusEqualTo((byte) 1).andApiCodeIn(apiCodeList);
         List<MarketingCustomer> list = marketingCustomerMapper.selectByExample(example);
         Map<String, MarketingCustomer> customerMap = list.stream()
                 .collect(Collectors.toMap(MarketingCustomer::getApiCode, Function.identity()));
 
-        // 2. 明文 cell 需要log加密
-        if(CellUtils.isValidateCell(cell)){
-            cell = DataMask.mask(cell, SensitiveType.LogMask, "");
-        }
         // 3. 根据 apiCodes,cell 查询结果
         JSONArray resultArray = new JSONArray();
-        List<MarketingSyncUser> syncUserListAllApiCode = new ArrayList<>();
+        List<MarketingSyncUserCell> syncUserListAllApiCode = new ArrayList<>();
         for (int i = 0; i < apiCodeList.size(); i++) {
             String apiCode = apiCodeList.get(i);
-            List<MarketingSyncUser> syncUsersList = marketingSyncUserMapper.selectSyncUserByCelltikvs(appletTimeStart
-                    , appletTimeEnd, apiCode, userTypeList, cell);
+            List<MarketingSyncUserCell> syncUsersList = marketingSyncUserMapper.selectSyncUserByCelltikv_(appletTimeStart
+                    , appletTimeEnd, apiCode, userTypeList, cell, orderField, descField);
             syncUserListAllApiCode.addAll(syncUsersList);
         }
-        syncUserListAllApiCode.stream().sorted(Comparator.comparing(MarketingSyncUser::getAppletDate)).collect(Collectors.toList());
-        syncUserListAllApiCode.forEach(t->{
-            String apiCode = t.getApiCode();
+        syncUserListAllApiCode.stream().forEach(c ->{
+            String apiCode = c.getApiCode();
             MarketingCustomer marketingCustomer = customerMap.get(apiCode);
-            JSONObject result = new JSONObject();
-            result.put("cid",marketingCustomer.getCid());
-            result.put("apiCode",apiCode);
-            result.put("shortName",marketingCustomer.getShortName());
-            result.put("appletDate",t.getAppletDate());
-            result.put("userType",t.getUserType());
-            resultArray.add(result);
+            c.setCid(marketingCustomer.getCid());
+            c.setShortName(marketingCustomer.getShortName());
         });
-
+        syncUserListAllApiCode.stream().sorted(Comparator.comparing(MarketingSyncUserCell::getAppletDate)).collect(Collectors.toList());
+//        syncUserListAllApiCode.forEach(t->{
+//            String apiCode = t.getApiCode();
+//            MarketingCustomer marketingCustomer = customerMap.get(apiCode);
+//            JSONObject result = new JSONObject();
+//            result.put("cid",marketingCustomer.getCid());
+//            result.put("apiCode",apiCode);
+//            result.put("shortName",marketingCustomer.getShortName());
+//            result.put("appletDate",t.getAppletDate());
+//            result.put("userType",t.getUserType());
+//            resultArray.add(result);
+//        });
 
 //        List<MarketingSyncUser> syncUsersList = marketingSyncUserMapper.selectSyncUserByCelltikvs(appletTimeStart
 //                , appletTimeEnd, apiCodeList, userTypeList, cell);
@@ -480,6 +491,27 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
 //            resultArray.add(result);
 //        }
         return resultArray;
+    }
+
+    public void packageAndSendEventTrack(String cidOrName, String appletTimeStart,
+                                  String appletTimeEnd, String apiCodes, String userTypes, String cell){
+        EventTrackingCellReport cellReport = new EventTrackingCellReport();
+        cellReport.setCell(cell);
+        cellReport.setCreateTime(new Date());
+        cellReport.setUpdateTime(new Date());
+        cellReport.setIsDelete(0);
+        cellReport.setUserId();
+        cellReport.setUserName();
+        cellReport.setRealName();
+        JSONObject param = new JSONObject();
+        param.put("cidOrName", cidOrName);
+        param.put("appletTimeStart", appletTimeStart);
+        param.put("appletTimeEnd", appletTimeEnd);
+        param.put("apiCodes", apiCodes);
+        param.put("userTypes", userTypes);
+        param.put("cell", cell);
+        cellReport.setRequestParam(param.toJSONString());
+        eventTrackService.insertAsync(cellReport);
     }
 
     private Date addDay(String date, Integer addDays, String format) {

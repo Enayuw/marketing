@@ -1,10 +1,7 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.bo.CellValidityPeriodBO;
-import com.br.marketing.entity.MarketingCustomizeDataValidConfig;
-import com.br.marketing.entity.MarketingDataValidConfig;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.*;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -332,10 +329,12 @@ public interface MarketingSyncUserMapper {
      * @param cell
      * @return List<MarketingSyncUser>
      */
-    List<MarketingSyncUser> selectSyncUserByCelltikvs(@Param("appletTimeStart") String appletTimeStart
+    List<MarketingSyncUserCell> selectSyncUserByCelltikv_(@Param("appletTimeStart") String appletTimeStart
             , @Param("appletTimeEnd") String appletTimeEnd
             , @Param("apiCode") String apiCode
             , @Param("userTypeList") List<String> userTypeList
-            , @Param("cell") String cell);
+            , @Param("cell") String cell
+            , @Param("orderField") String orderField
+            , @Param("descField") String descField);
 
 }
