@@ -243,6 +243,11 @@ public class ShuHeUserServiceImpl {
             res.put("userTypeUknow", false);
             caseShuheUser = assembleShuheDxUser(jsonDTO, apiCode, jsonData);
             caseShuheUser.setUserType(userType);
+            if (StringUtils.isEmpty(userType)) {
+                this.sendAlarmMgs("数禾电销全场景数据定制化清洗入库", msg.concat("\napiCode“").concat(apiCode)
+                        .concat("”\n案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
+                        .concat("请及时跟进或与数禾客户及时沟通^_^"), alarmClient);
+            }
         } else {
             final IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(userType);
             caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType

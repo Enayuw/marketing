@@ -7,6 +7,7 @@ import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -80,16 +81,20 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
         } else {
             conversionData.setInversionStatus(HAS_TRANSFER);
         }
-        ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeRuleNecessaryData =
-                (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
-        Map<String, MarketingSyncUser> map = shuHeRuleNecessaryData.getCustomerMap();
-        if (map != null && map.containsKey(transfer.getCustNum())) {
-            MarketingSyncUser marketingSyncUser = map.get(transfer.getCustNum());
-            conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
-//            conversionData.setTaskId(marketingSyncUser.getCusBatch());
+        String cell = reserveFieldObject.getString("cell");
+        if (StringUtils.hasText(cell)) {
+            conversionData.setPhone(BrCipherMaker.getInstance().decode(cell));
         } else {
-            conversionData.setPhone("");
-//            conversionData.setTaskId("");
+            ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeRuleNecessaryData =
+                    (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
+            Map<String, MarketingSyncUser> map = shuHeRuleNecessaryData.getCustomerMap();
+            if (map != null && map.containsKey(transfer.getCustNum())) {
+                MarketingSyncUser marketingSyncUser = map.get(transfer.getCustNum());
+                conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
+//            conversionData.setTaskId(marketingSyncUser.getCusBatch());
+            } else {
+                return null;
+            }
         }
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
@@ -146,6 +151,6 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
 
     @Override
     public Integer ruleDataCollection() {
-        return null;
+        return RuleDataCollectionEnum.SHU_HE_RULE_DATA_COLLECTION.getCode();
     }
 }
