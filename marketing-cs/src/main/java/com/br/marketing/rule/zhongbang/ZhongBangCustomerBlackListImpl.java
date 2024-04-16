@@ -1,11 +1,13 @@
 package com.br.marketing.rule.zhongbang;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.BlackDetailDTO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ZhongBangRuleCollectDataImpl;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
@@ -34,10 +36,11 @@ public class ZhongBangCustomerBlackListImpl implements AssembleData<BlackDetailD
 
         Map<String, SyncUserValidityPeriodsBO> customerMap = zhongBangContext.getCustomerMap();
         SyncUserValidityPeriodsBO userValidityPeriodsBO = customerMap.get(transfer.getCustNum());
+        MarketingSyncUser marketingSyncUser = userValidityPeriodsBO.getSyncUsers().get(0);
 
         BlackDetailDTO blackDetailDTO = new BlackDetailDTO();
         blackDetailDTO.setDataId(String.valueOf(transfer.getId()));
-        blackDetailDTO.setPhone(userValidityPeriodsBO.getSyncUsers().get(0).getCell());
+        blackDetailDTO.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
         return blackDetailDTO;
     }
 
