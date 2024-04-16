@@ -130,6 +130,7 @@ public class SyncUserCellUpdateJob extends AbstractSimpleElasticJob {
                 }
             } catch (InterruptedException ex) {
                 log.warn(ex.getMessage(), ex);
+                Thread.currentThread().interrupt();
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
