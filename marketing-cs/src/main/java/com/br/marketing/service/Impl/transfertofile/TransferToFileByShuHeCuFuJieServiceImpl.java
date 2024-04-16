@@ -217,7 +217,7 @@ public class TransferToFileByShuHeCuFuJieServiceImpl implements ITransferToFileS
             Set<String> set = transferData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
             //判断转化数据是否在有效期内
             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService
-                    .getValidityPeriodsByCustNumAndUserType(set, "促复借", apiCode, yesterday);
+                    .getValidityPeriodsByCustNum(set, apiCode, yesterday);
             threadPool.submit(() -> {
                 for (MarketingTransferSyncUser transferFilterData : transferData) {
                     String custNum = transferFilterData.getCustNum();
