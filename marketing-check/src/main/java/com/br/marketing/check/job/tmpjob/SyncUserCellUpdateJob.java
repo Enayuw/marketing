@@ -72,7 +72,7 @@ public class SyncUserCellUpdateJob extends AbstractSimpleElasticJob {
                     continue;
                 }
                 minId = marketingSyncUsers.get(marketingSyncUsers.size() - 1).getId();
-                if (updateConfig != null && updateConfig.getInteger("threadSize") != threadSize) {
+                if (updateConfig != null && !threadSize.equals(updateConfig.getInteger("threadSize"))) {
                     threadSize = updateConfig.getInteger("threadSize");
                     threadPool.setCorePoolSize(threadSize);
                     threadPool.setMaximumPoolSize(threadSize);
@@ -128,6 +128,8 @@ public class SyncUserCellUpdateJob extends AbstractSimpleElasticJob {
                 while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
                     log.warn(String.format("apiCode:【%s】清洗结束", code));
                 }
+            } catch (InterruptedException ex) {
+                log.warn(ex.getMessage(), ex);
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
