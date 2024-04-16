@@ -142,32 +142,32 @@ public class RedisTestServiceImpl {
             try {
                 dels(key12);
             } catch (Exception ex) {
-
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 hlen(key13);
             } catch (Exception ex) {
-
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 hmget(key14);
             } catch (Exception ex) {
-
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 hincrby(key15);
             } catch (Exception ex) {
-
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 hgetall(key16);
             } catch (Exception ex) {
-
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 hmset(key17);
             } catch (Exception ex) {
-
+                log.warn(ex.getMessage(),ex);
             }
 
         } else if (new Integer(2).equals(redisOpt)) {
@@ -236,32 +236,32 @@ public class RedisTestServiceImpl {
             try{
                 del(key12);
             }catch (Exception ex){
-
+                log.warn(ex.getMessage(),ex);
             }
             try{
                 del(key13);
             }catch (Exception ex){
-
+                log.warn(ex.getMessage(),ex);
             }
             try{
                 del(key14);
             }catch (Exception ex){
-
+                log.warn(ex.getMessage(),ex);
             }
             try{
                 del(key15);
             }catch (Exception ex){
-
+                log.warn(ex.getMessage(),ex);
             }
             try{
                 del(key16);
             }catch (Exception ex){
-
+                log.warn(ex.getMessage(),ex);
             }
             try{
                 del(key17);
             }catch (Exception ex){
-
+                log.warn(ex.getMessage(),ex);
             }
         }
     }
