@@ -11,3 +11,4 @@ spring:
       proxy-uri: redis://pd1-2-marketing.brapp.com:6401
       gray-proxy-uri: redis://pd1-2-marketing.brapp.com:7401
       proxy-id: camellia-pd1
+      zone: yz
