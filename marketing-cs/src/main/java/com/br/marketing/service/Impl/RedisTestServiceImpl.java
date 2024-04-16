@@ -53,91 +53,113 @@ public class RedisTestServiceImpl {
             String key17 = applicationName.concat(":juman17");
             try {
                 set(key1);
-            } catch (Exception exception) {
+            } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 setex(key2);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 setnx(key3);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 get(key1);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 del(key1);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 incr(key4);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 incrBy(key5);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 expire(key6);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 hkeys(key7);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 hget(key7);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 hset(key7);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 hdel(key7);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 exists(key7);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 sadd(key8);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 saddMember(key8);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 sismember(key8);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 smembers(key8);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 spop(key8);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 scard(key8);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 lock(key9);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 unlock(key10);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 delBigSet(key11);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 dels(key12);
@@ -192,46 +214,57 @@ public class RedisTestServiceImpl {
             try {
                 del(key1);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 del(key2);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 del(key3);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 del(key4);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 del(key5);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 del(key6);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 del(key7);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 del(key8);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 del(key9);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 del(key10);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try {
                 del(key11);
             } catch (Exception ex) {
+                log.warn(ex.getMessage(),ex);
             }
             try{
                 del(key12);
