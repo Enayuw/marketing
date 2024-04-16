@@ -185,7 +185,7 @@ public class TransferToFileByZhongBangTransferServiceImpl implements ITransferTo
             return;
         }
         Set<String> dateSet = computeValidDate(configList, requestDate);
-        if(dateSet ==null || dateSet.size()<1){
+        if(CollectionUtils.isEmpty(dateSet)){
             return;
         }
         for(String curDateStr : dateSet) {
