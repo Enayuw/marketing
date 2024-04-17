@@ -70,10 +70,18 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
                         DateHelper.LINE_DATE_COLON_TIME_FORMAT_SSS)).atZone(ZoneId.systemDefault()).toLocalDateTime();
                 conversionData.setExpireDate(localDateTime.format(dateTimeFormatter));
             } catch (Exception e) {
-                log.warn(e.getMessage(), e);
+                log.warn(e.getMessage() + "\n 数禾电销转化推送外呼转化时间格式错误，usr_forbid_call_end_tim:"
+                        + usrForbidCallEndTim, e);
                 // 兼容时间格式错误情况，默认到当天结束
-                conversionData.setExpireDate(LocalDate.parse(usrForbidCallEndTim).atTime(23, 59, 59)
-                        .atZone(ZoneId.systemDefault()).format(dateTimeFormatter));
+                try {
+                    conversionData.setExpireDate(LocalDate.parse(usrForbidCallEndTim).atTime(23, 59, 59)
+                            .atZone(ZoneId.systemDefault()).format(dateTimeFormatter));
+                } catch (Exception exception) {
+                    log.error(exception.getMessage() + "数禾电销转化推送外呼转化时间格式无法转换!\n usr_forbid_call_end_tim:"
+                            + usrForbidCallEndTim + "\ninfoId:" + context.getTransferInfoId()
+                            + "\nsyncId:" + transfer.getId(), exception);
+                    return null;
+                }
             }
         } else {
             conversionData.setInversionStatus(HAS_TRANSFER);
