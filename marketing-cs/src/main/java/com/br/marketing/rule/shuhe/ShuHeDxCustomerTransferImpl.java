@@ -121,12 +121,14 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
                             if (StringUtils.hasText(usrLoanSucBtcashLimt1st)) {
                                 return true;
                             }
+                            break;
                         case "促申完":
                         case "促首登":
                             String usrCompAplAiClSpUse = reserveFieldObject.getString("usr_comp_apl_ai_cl_sp_use");
                             if (StringUtils.hasText(usrCompAplAiClSpUse)) {
                                 return true;
                             }
+                            break;
                         default:
                             return false;
                     }
