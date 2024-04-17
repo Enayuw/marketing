@@ -71,13 +71,9 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
                 conversionData.setExpireDate(localDateTime.format(dateTimeFormatter));
             } catch (Exception e) {
                 log.warn(e.getMessage(), e);
-                try {
-                    // 兼容时间格式错误情况，默认到当天结束
-                    conversionData.setExpireDate(LocalDate.parse(usrForbidCallEndTim)
-                            .atTime(23, 59, 59).atZone(ZoneId.systemDefault()).format(dateTimeFormatter));
-                } catch (Exception exception) {
-                    log.error(e.getMessage(), e);
-                }
+                // 兼容时间格式错误情况，默认到当天结束
+                conversionData.setExpireDate(LocalDate.parse(usrForbidCallEndTim).atTime(23, 59, 59)
+                        .atZone(ZoneId.systemDefault()).format(dateTimeFormatter));
             }
         } else {
             conversionData.setInversionStatus(HAS_TRANSFER);
