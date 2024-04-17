@@ -70,7 +70,7 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
                         DateHelper.LINE_DATE_COLON_TIME_FORMAT_SSS)).atZone(ZoneId.systemDefault()).toLocalDateTime();
                 conversionData.setExpireDate(localDateTime.format(dateTimeFormatter));
             } catch (Exception e) {
-                log.error(e.getMessage(), e);
+                log.warn(e.getMessage(), e);
                 try {
                     // 兼容时间格式错误情况，默认到当天结束
                     conversionData.setExpireDate(LocalDate.parse(usrForbidCallEndTim)
