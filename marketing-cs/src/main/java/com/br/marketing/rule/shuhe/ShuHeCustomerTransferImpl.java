@@ -92,8 +92,14 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
             conversionData.setInversionDate(transfer.getTransformTime());
             conversionData.setEffectiveDate(transfer.getRequestTime());
             //生效截止时间
-            LocalDate requestDate = LocalDateTime.parse(transfer.getRequestTime(), dateTimeFormatter).toLocalDate();
-            LocalDate plusDays = requestDate.with(TemporalAdjusters.lastDayOfMonth());
+            String plusDays;
+            if ("3710043".equals(context.getApiCode()) || "7410799".equals(context.getApiCode())) {
+                Map<String, SyncUserValidityPeriodsBO> boMap = shuHeRuleNecessaryData.getUserValidityPeriodsBOMap();
+                plusDays = boMap.get(transfer.getCustNum()).getBuilders().get(0).addDateString().builder().getEnDateStr();
+            } else {
+                LocalDate requestDate = LocalDateTime.parse(transfer.getRequestTime(), dateTimeFormatter).toLocalDate();
+                plusDays = requestDate.with(TemporalAdjusters.lastDayOfMonth()).toString();
+            }
             conversionData.setExpireDate(plusDays + " 23:59:59");
         }
         //重申：填充有效期截止时间字段
@@ -144,6 +150,7 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                         Map<String, SyncUserValidityPeriodsBO> periods = transferDataValidityPeriodService
                                 .getValidityPeriodsByCustNumAndUserType(Collections.singleton(transfer.getCustNum())
                                         , transfer.getUserType(), context.getApiCode(), localDate);
+                        shuHeContext.setUserValidityPeriodsBOMap(periods);
                         boolPeriod = periods.containsKey(transfer.getCustNum());
                     } else {
                         Integer day = handlerService.getShuHePeriodOfValidityDay(caseShuheUser.getUserType());
