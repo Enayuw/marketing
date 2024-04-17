@@ -68,7 +68,7 @@ public class ResultUtil {
                 try {
                     jsonObject = JSONObject.parseObject(user.getExtendJson());
                 } catch (Exception ex) {
-                    log.error("跑分扩展信息解析有误 apiCode:{},id:{}", user.getApiCode(), user.getId());
+                    log.error("跑分扩展信息解析有误 apiCode:{},id:{}", user.getApiCode(), user.getId(), ex);
                 }
             }
             BaseHeadConfigVO o = JSON.parseObject(baseHeadInfo, new TypeReference<BaseHeadConfigVO>() {
@@ -334,7 +334,7 @@ public class ResultUtil {
                     icData = JSON.parseObject(syncUser.getReserveField1());
                 } catch (Exception ex) {
                     log.error("用户上传数据非法的扩展信息：apiCode:{},id:{}"
-                            , syncUser.getApiCode(), syncUser.getId());
+                            , syncUser.getApiCode(), syncUser.getId(), ex);
                 }
             }
             for (String s : baseHeadConfigVO.getShowBaseHead()) {

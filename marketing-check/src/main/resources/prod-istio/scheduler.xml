@@ -24,6 +24,65 @@
                    nested-port="${NESTED_PORT}"
                    nested-data-dir="${NESTED_DATA_DIR}"/>
 
+
+    <job:simple id="closeDateAlarmJob"
+                class="com.br.marketing.check.job.CloseDateAlarmJob"
+                cron="00 00 10 * * ?"
+                description="监控今日到期"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+    <!--    <job:simple id="finishPutJob"-->
+    <!--                class="com.br.marketing.check.job.FinishPutJob"-->
+    <!--                cron="00 00 10 * * ?"-->
+    <!--                description="推送finish文件"-->
+    <!--                registry-center-ref="regCenter"-->
+    <!--                sharding-total-count="1"-->
+    <!--                sharding-item-parameters="0=A"-->
+    <!--                monitor-execution="true"-->
+    <!--                failover="false"-->
+    <!--                misfire="false"-->
+    <!--                disabled="true"-->
+    <!--                overwrite="true"-->
+    <!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
+    <!--    />-->
+
+    <job:simple id="monitoringExpirationAlarmJob"
+                class="com.br.marketing.check.job.MonitoringExpirationAlarmJob"
+                cron="00 00 10 * * ?"
+                description="监控即将到期"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+    <job:simple id="progressReportJob"
+                class="com.br.marketing.check.job.ProgressReportJob"
+                cron="00 00 09 * * ?"
+                description="早上9点任务进度统计"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
     <job:simple id="SftpToDbByResultDataJob"
                 class="com.br.marketing.check.job.SftpToDbByResultDataJob"
                 cron="0 2/30 * * * ? "
@@ -37,7 +96,6 @@
                 disabled="true"
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-
     />
     <job:simple id="SftpToDbByDxTransferDataJob"
                 class="com.br.marketing.check.job.SftpToDbByDxTransferDataJob"
@@ -69,7 +127,7 @@
     />
     <job:simple id="SftpToDbByTwoSevenJob"
                 class="com.br.marketing.check.job.SftpToDbByTwoSevenJob"
-                cron="0 0/30 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="77转化文件数据入库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -81,9 +139,37 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+<!--    <job:simple id="ApiToDbJob"-->
+<!--                class="com.br.marketing.check.job.ApiToDbJob"-->
+<!--                cron="0 0/10 * * * ? "-->
+<!--                description="接口导入数据迁移跑批用户"-->
+<!--                registry-center-ref="regCenter"-->
+<!--                sharding-total-count="1"-->
+<!--                sharding-item-parameters="0=A"-->
+<!--                monitor-execution="true"-->
+<!--                failover="false"-->
+<!--                misfire="false"-->
+<!--                disabled="true"-->
+<!--                overwrite="true"-->
+<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
+<!--    />-->
+<!--    <job:simple id="ApiToDbByTimeJob"-->
+<!--                class="com.br.marketing.check.job.ApiToDbByTimeJob"-->
+<!--                cron="0 0 18 29 9 ? 2050-2050"-->
+<!--                description="接口导入数据迁移跑批用户(手动)"-->
+<!--                registry-center-ref="regCenter"-->
+<!--                sharding-total-count="1"-->
+<!--                sharding-item-parameters="0=A"-->
+<!--                monitor-execution="true"-->
+<!--                failover="false"-->
+<!--                misfire="false"-->
+<!--                disabled="true"-->
+<!--                overwrite="true"-->
+<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
+<!--    />-->
     <job:simple id="SftpToDbByCommonJob"
                 class="com.br.marketing.check.job.SftpToDbByCommonJob"
-                cron="0 0/20 * * * ? "
+                cron="0 4/40 * * * ? "
                 description="sftp文件数据入库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -139,10 +225,24 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="RetryCommonServiceJob"
-                class="com.br.marketing.check.job.RetryCommonServiceJob"
-                cron="0 1/10 * * * ? "
-                description="重试作业"
+    <job:simple id="pushCustomerJob"
+                class="com.br.marketing.check.job.PushCustomerJob"
+                cron="0 0/10 * * * ? "
+                description="api推送跑批结果"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+    <job:simple id="pushCustomerRetryJob"
+                class="com.br.marketing.check.job.PushCustomerRetryJob"
+                cron="0 0/10 * * * ? "
+                description="api推送失败重试job"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
@@ -158,8 +258,8 @@
                 cron="0 1/10 * * * ? "
                 description="转化数据作业"
                 registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters="1=B"
+                sharding-total-count="9"
+                sharding-item-parameters="0=A"
                 monitor-execution="true"
                 failover="false"
                 misfire="false"
@@ -167,13 +267,13 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="ZhongYouTransferToFileTaskJob"
-                class="com.br.marketing.check.job.zhongyou.ZhongYouTransferToFileTaskJob"
+    <job:simple id="RetryCommonServiceJob"
+                class="com.br.marketing.check.job.RetryCommonServiceJob"
                 cron="0 1/10 * * * ? "
-                description="中邮转化数据作业"
+                description="重试作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
-                sharding-item-parameters="1=B"
+                sharding-item-parameters="0=A"
                 monitor-execution="true"
                 failover="false"
                 misfire="false"
@@ -197,7 +297,7 @@
     />
     <job:simple id="SftpToDbByCallingJbo"
                 class="com.br.marketing.check.job.SftpToDbByCallingJbo"
-                cron="0 0/10 * * * ?"
+                cron="0 0 0 1/1 * ?"
                 description="客服拨打明细落库"
                 registry-center-ref="regCenter"
                 sharding-total-count="4"
@@ -209,24 +309,25 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <!--    <job:simple id="CallingToSendJob"-->
-    <!--                class="com.br.marketing.check.job.CallingToSendJob"-->
-    <!--                cron="0/1 * * * * ?"-->
-    <!--                description="客服拨打明细发送给第三方"-->
-    <!--                registry-center-ref="regCenter"-->
-    <!--                sharding-total-count="1"-->
-    <!--                sharding-item-parameters="0=A"-->
-    <!--                monitor-execution="true"-->
-    <!--                failover="false"-->
-    <!--                misfire="false"-->
-    <!--                disabled="true"-->
-    <!--                overwrite="true"-->
-    <!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
-    <!--    />-->
-    <job:simple id="YiXinTransferToDxJob"
-                class="com.br.marketing.check.job.YiXinTransferToDxJob"
-                cron="0 0 0/1 * * ?"
-                description="宜信转化数据非实时数据推送电销"
+    <job:simple id="CallingToSendJob"
+                class="com.br.marketing.check.job.CallingToSendJob"
+                cron="0 0 0 1/1 * ?"
+                description="客服拨打明细发送给第三方"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="PPDTransferToDxJob"
+                class="com.br.marketing.check.job.PPDTransferToDxJob"
+                cron="0 0/10 * * * ?"
+                description="拍拍贷转化数据推电销"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
@@ -237,6 +338,22 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="ShuHeBlackPhonePushDaasJob"
+                class="com.br.marketing.check.job.ShuHeBlackPhonePushDaasJob"
+                cron="0 0 20 * * ?"
+                description="数禾黑名单推电销转化接口"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="true"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
     <job:simple id="HaluoDassJob"
                 class="com.br.marketing.check.job.HaluoDassJob"
                 cron="0 0 10 * * ? "
@@ -251,27 +368,13 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="SqlCheckTestJob"
-                class="com.br.marketing.check.job.SqlCheckTestJob"
-                cron="0 0 0/1 * * ?"
-                description="sql测试JOB"
-                registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters="0=A"
-                monitor-execution="true"
-                failover="true"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
 
     <job:simple id="TaskTransferSyncReportJob"
                 class="com.br.marketing.check.job.report.TaskTransferSyncReportJob"
                 cron="0 1 * * * ? "
                 description="转化数据统计调度任务"
                 registry-center-ref="regCenter"
-                sharding-total-count="1"
+                sharding-total-count="9"
                 sharding-item-parameters="0=A,1=B"
                 monitor-execution="true"
                 failover="true"
@@ -312,7 +415,7 @@
     />
     <job:simple id="XieChengSmsDataCollidingToSendJob"
                 class="com.br.marketing.check.job.XieChengSmsDataCollidingToSendJob"
-                cron="0 0/10 20-23 * * ?"
+                cron="0 0/10 20-23 * * ? "
                 description="携程短信撞库数据发送定时任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -325,6 +428,35 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
+    <job:simple id="OrangeTransferCyclicalPushDassJob"
+                class="com.br.marketing.check.job.juzi.OrangeTransferCyclicalPushDassJob"
+                cron="0 30/10 10-20 * * ? 2050-2050"
+                description="桔子周期性自动化转Daas"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A,1=B"
+                monitor-execution="true"
+                failover="true"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="JuZiTransferRealTimePushDaasJob"
+                class="com.br.marketing.check.job.juzi.JuZiTransferRealTimePushDaasJob"
+                cron="0 0/30 * * * ? 2050-2050"
+                description="桔子实时自动化转Daas"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
     <job:simple id="SmyUploadDataToDaasJob"
                 class="com.br.marketing.check.job.SmyUploadDataToDaasJob"
                 cron="0 0 9 * * ?"
@@ -397,55 +529,10 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="fenqilePeriodPushDecisionJob"
-                class="com.br.marketing.check.job.fenqile.FenqilePeriodPushDecisionJob"
-                cron="0 30/29 9-23 * * ? *"
-                description="分期乐自动化周期转决策"
-                registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters="0=A"
-                job-parameter=""
-                monitor-execution="true"
-                failover="true"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
-    <job:simple id="RsToPolicyJob"
-                class="com.br.marketing.check.job.RsToPolicyJob"
-                cron="0 0 10 * * ?"
-                description="榕树推送决策作业"
-                registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters=""
-                monitor-execution="true"
-                failover="false"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
-
-    <job:simple id="OrangeTransferDataPeriodToDassJob"
-                class="com.br.marketing.check.job.juzi.OrangeTransferDataPeriodToDassJob"
-                cron="0 0/30 9-23 * * ? "
-                description="桔子周期推送电销Daas"
-                registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters="0=A"
-                monitor-execution="true"
-                failover="false"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
-
-    <job:simple id="AutomatedPushDecisionJob"
-                class="com.br.marketing.check.job.decision.AutomatedPushDecisionJob"
-                cron="0 1/10 * * * ? "
-                description="自动化推送决策作业"
+    <job:simple id="RongShuCyclePushDaasJob"
+                class="com.br.marketing.check.job.RongShuCyclePushDaasJob"
+                cron="0 0 10 * * ? "
+                description="榕树周期性推送人工IBU任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
@@ -459,11 +546,26 @@
 
     <job:simple id="ToPolicyByRuleJob"
                 class="com.br.marketing.check.job.ruletopolicy.ToPolicyByRuleJob"
-                cron="0 0/5 * * * ? "
+                cron="0 0/1 * * * ? "
                 description="规则中心推送决策任务"
                 registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters="0=A"
+                sharding-total-count="4"
+                sharding-item-parameters="0=A,1=B,2=C,3=D"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="CustomerPushStatusQueryJob"
+                class="com.br.marketing.check.job.ruletopolicy.CustomerPushStatusQueryJob"
+                cron="0 0/1 * * * ? "
+                description="规则中心推送决策结果查询"
+                registry-center-ref="regCenter"
+                sharding-total-count="4"
+                sharding-item-parameters="0=A,1=B,2=C,3=D"
                 monitor-execution="true"
                 failover="false"
                 misfire="false"
