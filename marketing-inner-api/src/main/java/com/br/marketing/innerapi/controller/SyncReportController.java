@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**
@@ -134,12 +135,12 @@ public class SyncReportController {
             , @RequestParam(required = false) String userTypes
             , @RequestParam String cell
             , @RequestParam String orderField
-            , @RequestParam String descField) {
+            , @RequestParam String descField, HttpServletRequest request) {
         if(StringUtils.isBlank(apiCodes) || StringUtils.isBlank(cell)){
             return new ApiResult<JSONArray>().fail(ServiceResultEnum.SUCCESS_1);
         }
         JSONArray cellList = marketingSyncReportService.getReportByCell(cidOrName, appletTimeStart, appletTimeEnd
-                , apiCodes, userTypes, cell, orderField, descField);
+                , apiCodes, userTypes, cell, orderField, descField, request);
         if (cellList != null) {
             return new ApiResult<JSONArray>().success(cellList);
         }

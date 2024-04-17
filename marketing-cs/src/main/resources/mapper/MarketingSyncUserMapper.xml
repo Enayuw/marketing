@@ -859,11 +859,11 @@
             <if test="descField != null and descField != '' ">
                 #{descField}
             </if>
-            <if test="descField != null and descField != '' ">
+            <if test="descField == null or descField == '' ">
                 desc
             </if>
         </if>
-        <if test="orderField == null and orderField == '' ">
+        <if test="orderField == null or orderField == '' ">
             order by applet_date desc
         </if>
     </select>

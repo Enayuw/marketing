@@ -35,20 +35,20 @@ public class MarketingSyncUserCell {
     /**
      * 手机号对应单条数据总计
      */
-    private String num;
+    private Long num;
 
     /**
      * 手机号根据去重规则后的对应单条数据总计
      */
-    private String useRemovalRuleNum;
+    private Long useRemovalRuleNum;
 
     /**
      * 本次查询全部结果总数
      */
-    private String total;
+    private Long total;
 
     /**
      * 本次查询手机号根据去重规则全部结果总数
      */
-    private String useRemovalRuleTotal;
+    private Long useRemovalRuleTotal;
 }

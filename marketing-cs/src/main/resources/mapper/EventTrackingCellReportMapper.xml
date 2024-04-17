@@ -2,4 +2,58 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.eventtrack.EventTrackingCellReportMapper" >
 
+    <select id="selectCellReportList" resultType="com.br.marketing.entity.eventtrack.EventTrackingCellReportCount">
+        select create_time as createTime, user_name as userName,count(*) as count
+        from b_event_tracking_cell_report
+        where is_delete=0
+        <if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+            <![CDATA[ and create_time>=#{startTime} and create_time<=#{endTime} ]]>
+        </if>
+        <if test="userName != null and userName != ''">
+            and user_name = #{userName}
+        </if>
+        <if test="orderField != null and orderField != '' ">
+            order by #{orderField}
+            <if test="descField != null and descField != '' ">
+                #{descField}
+            </if>
+            <if test="descField == null or descField == '' ">
+                desc
+            </if>
+        </if>
+        group by create_time,user_name
+        <if test="orderField == null or orderField == '' ">
+            order by create_time desc
+        </if>
+        limit #{current * size},#{size};
+    </select>
+
+    <select id="selectCellReportDetailList" resultType="com.br.marketing.entity.eventtrack.EventTrackingCellReport">
+        select *
+        from b_event_tracking_cell_report
+        where is_delete=0
+        <if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+            <![CDATA[ and create_time>=#{startTime} and create_time<=#{endTime} ]]>
+        </if>
+        <if test="userName != null and userName != ''">
+            and user_name = #{userName}
+        </if>
+        <if test="apiCodes != null and apiCodes != ''">
+            and request_param->'$.apiCodes' like cancat('%',#{apiCodes},'%')
+        </if>
+        <if test="orderField != null and orderField != '' ">
+            order by #{orderField}
+            <if test="descField != null and descField != '' ">
+                #{descField}
+            </if>
+            <if test="descField == null or descField == '' ">
+                desc
+            </if>
+        </if>
+        <if test="orderField == null or orderField == '' ">
+            order by create_time desc
+        </if>
+        limit #{current * size},#{size};
+    </select>
+
 </mapper>

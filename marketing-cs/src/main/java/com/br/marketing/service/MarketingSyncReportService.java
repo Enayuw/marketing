@@ -5,6 +5,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**
@@ -72,10 +73,12 @@ public interface MarketingSyncReportService {
      * @param cell
      * @param orderField
      * @param descField
+     * @param request
      * @return
      */
     JSONArray getReportByCell(String cidOrName, String appletTimeStart, String appletTimeEnd
-            , String apiCodes, String userTypes, String cell, String orderField, String descField);
+            , String apiCodes, String userTypes, String cell, String orderField, String descField
+            , HttpServletRequest request);
 
     /**
      * 根据上传日期和apicode进行删除统计

@@ -27,9 +27,13 @@ public interface EventTrackService {
      * @param size
      * @param startTime
      * @param endTime
+     * @param userName
+     * @param orderField
+     * @param descField
      * @return PageResultReturn
      */
-    PageResultReturn getCellReport(int current, int size, String startTime, String endTime);
+    PageResultReturn getCellReport(int current, int size, String startTime, String endTime
+            , String userName, String orderField, String descField);
 
     /**
      *
@@ -39,8 +43,13 @@ public interface EventTrackService {
      * @param size
      * @param startTime
      * @param endTime
+     * @param userName
+     * @param apiCodes
+     * @param orderField
+     * @param descField
      * @return PageResultReturn
      */
-    PageResultReturn getCellReportDetail(int current, int size, String startTime, String endTime);
+    PageResultReturn getCellReportDetail(int current, int size, String startTime, String endTime
+            , String userName, String apiCodes, String orderField, String descField);
 
 }

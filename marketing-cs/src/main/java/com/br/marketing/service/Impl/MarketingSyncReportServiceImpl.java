@@ -20,6 +20,7 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
 import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
+import com.br.marketing.dto.userinfo.UserDetail;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.eventtrack.EventTrackingCellReport;
 import com.br.marketing.mapper.*;
@@ -43,6 +44,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -421,12 +423,13 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
 
     @Override
     public JSONArray getReportByCell(String cidOrName, String appletTimeStart, String appletTimeEnd
-            , String apiCodes, String userTypes, String cell, String orderField, String descField){
+            , String apiCodes, String userTypes, String cell, String orderField, String descField
+            , HttpServletRequest request){
         // 1. 明文 cell 需要log加密
         if(CellUtils.isValidateCell(cell)){
             cell = DataMask.mask(cell, SensitiveType.LogMask, "");
         }
-        packageAndSendEventTrack(cidOrName, appletTimeStart, appletTimeEnd, apiCodes, userTypes, cell);
+        packageAndSendEventTrack(cidOrName, appletTimeStart, appletTimeEnd, apiCodes, userTypes, cell, request);
         List<String> apiCodeList = new ArrayList<>();
         if(apiCodes != null && !"".equals(apiCodes)){
             String[] split = apiCodes.split(",");
@@ -464,6 +467,13 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             c.setShortName(marketingCustomer.getShortName());
         });
         syncUserListAllApiCode.stream().sorted(Comparator.comparing(MarketingSyncUserCell::getAppletDate)).collect(Collectors.toList());
+        resultArray.add(syncUserListAllApiCode);
+        JSONObject countObject = new JSONObject();
+        Long total = syncUserListAllApiCode.stream().mapToLong(MarketingSyncUserCell::getNum).sum();
+        Long useRemovalRuleTotal = syncUserListAllApiCode.stream().mapToLong(MarketingSyncUserCell::getUseRemovalRuleNum).sum();
+        countObject.put("total",total);
+        countObject.put("useRemovalRuleTotal",useRemovalRuleTotal);
+        resultArray.add(countObject);
 //        syncUserListAllApiCode.forEach(t->{
 //            String apiCode = t.getApiCode();
 //            MarketingCustomer marketingCustomer = customerMap.get(apiCode);
@@ -493,16 +503,17 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         return resultArray;
     }
 
-    public void packageAndSendEventTrack(String cidOrName, String appletTimeStart,
-                                  String appletTimeEnd, String apiCodes, String userTypes, String cell){
+    public void packageAndSendEventTrack(String cidOrName, String appletTimeStart, String appletTimeEnd
+            , String apiCodes, String userTypes, String cell, HttpServletRequest request){
+        UserDetail userDetail = (UserDetail)request.getSession().getAttribute("userDetail");
         EventTrackingCellReport cellReport = new EventTrackingCellReport();
         cellReport.setCell(cell);
         cellReport.setCreateTime(new Date());
         cellReport.setUpdateTime(new Date());
         cellReport.setIsDelete(0);
-        cellReport.setUserId();
-        cellReport.setUserName();
-        cellReport.setRealName();
+        cellReport.setUserId(userDetail.getUserId());
+        cellReport.setUserName(userDetail.getUsername());
+        cellReport.setRealName(userDetail.getRealName());
         JSONObject param = new JSONObject();
         param.put("cidOrName", cidOrName);
         param.put("appletTimeStart", appletTimeStart);
