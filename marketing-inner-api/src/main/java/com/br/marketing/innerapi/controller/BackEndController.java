@@ -41,9 +41,9 @@ public class BackEndController {
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public Result queryCustInfo(@RequestParam(required = false) String cid,
                                 @RequestParam(required = false) String apiCode,
-                                @RequestParam(required = true) String custNum) {
+                                String custNum, String cell) {
         try {
-            return pushRuleService.queryCustInfo(cid, apiCode, custNum);
+            return pushRuleService.queryCustInfo(cid, apiCode, custNum, cell);
         } catch (Exception ex) {
             log.error("外呼查询营销客户信息接口异常",ex);
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
