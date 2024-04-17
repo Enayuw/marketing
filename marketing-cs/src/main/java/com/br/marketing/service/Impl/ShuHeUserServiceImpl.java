@@ -245,6 +245,7 @@ public class ShuHeUserServiceImpl {
             caseShuheUser = assembleShuheDxUser(jsonDTO, apiCode, jsonData);
             caseShuheUser.setUserType(userType);
             if (empty) {
+                msg = "不存在的业务类型电销转化数据，不会触发后续业务流程!";
                 this.sendAlarmMgs("数禾电销全场景数据定制化清洗入库", msg.concat("\napiCode“").concat(apiCode)
                         .concat("”\n案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
                         .concat("请及时跟进或与数禾客户及时沟通^_^"), alarmClient);
