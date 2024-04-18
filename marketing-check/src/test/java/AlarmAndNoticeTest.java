@@ -361,6 +361,45 @@ public class AlarmAndNoticeTest {
 
     }
 
+    @Resource
+    private TransferToFileByShuHeCuFuJieServiceImpl toFileByShuHeCuFuJieService;
+
+    private final static String TABLE_HEADER_CUFUJIE = "apicode,taskid,groupType,cust_num,cell,is_turn,is_black" +
+            ",clc_usr_lst_app_sta_tim,clc_usr_lst_non_dcp_trs_tim,off_usr_lst_ord_tim_all,clc_usr_avl_lmt_lv0" +
+            ",clc_usr_adt_lmt_lv0,createtime,clc_usr_lst_ord_tim_all_wizard,clc_usr_adt_lmt_fst_all,clc_usr_lst_adt_apy_tim_hvy";
+
+    @Test
+    public void ShuHeCuFuJieTransferFileTest() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7410799");
+        String myParam = "7410799#2024-04-15";
+        String dd = isMyParam("7410799", myParam);
+        transferFileTask.setStartDate(dd);
+        String apiCode = transferFileTask.getApiCode();
+        String recordDate = transferFileTask.getStartDate();
+        boolean isParam = StringUtils.isNotBlank(dd);
+        String dateyyyymmddStr = isParam ? dd.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        transferFileTask.setFileName(String.format("%s_cufujie_%s.txt", apiCode, dateyyyymmddStr));
+        log.warn("数禾促复借转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(date).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
+            fw.append(TABLE_HEADER_CUFUJIE);
+            fw.append("\r\n");
+            toFileByShuHeCuFuJieService.writeShuHeCuFuJieTransferToFile(fw,apiCode,transferFileTask, recordDate);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+
+    }
+
 
     @Resource
     private TransferToFileByZhongAnServiceImpl transferToFileByZhongAnService;

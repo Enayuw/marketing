@@ -64,6 +64,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     private TransferToFileByShuHeServiceImpl transferToFileByShuHeService;
 
     /**
+     * 数禾促复借转化数据提取
+     */
+    @Resource
+    private TransferToFileByShuHeCuFuJieServiceImpl transferToFileByShuHeCuFuJieService;
+
+    /**
      * 宜信
      */
     @Resource
@@ -281,6 +287,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByShuHeService, ObjectUtil.isEmpty(
                         marketingCommonConfig.getShuHeTransferExtractApiCodes())
                         ? null : marketingCommonConfig.getShuHeTransferExtractApiCodes().keySet())
+                // 数禾促复借转化数据提取
+                .addBind(transferToFileByShuHeCuFuJieService, marketingCommonConfig.getShuHeCuFuJieTransferFileApiCodes())
                 // 宜信实时转化数据提取
                 .addBind(transferToFileByYiXinRealTimeService, marketingCommonConfig.getYinXinTransferRealTimeApiCodes())
                 // 玖富转化数据提取
