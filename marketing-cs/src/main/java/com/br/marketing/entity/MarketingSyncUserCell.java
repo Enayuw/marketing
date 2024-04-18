@@ -42,13 +42,4 @@ public class MarketingSyncUserCell {
      */
     private Long useRemovalRuleNum;
 
-    /**
-     * 本次查询全部结果总数
-     */
-    private Long total;
-
-    /**
-     * 本次查询手机号根据去重规则全部结果总数
-     */
-    private Long useRemovalRuleTotal;
 }

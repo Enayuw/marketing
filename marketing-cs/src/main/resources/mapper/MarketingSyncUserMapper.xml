@@ -841,7 +841,7 @@
     <select id="selectSyncUserByCelltikv_" resultType="com.br.marketing.entity.MarketingSyncUserCell">
         select applet_date as appletDate ,api_code as apiCode, user_type as userType,
             count(*) as num, count(case when is_repeat=3 then 0 else 1 end) as useRemovalRuleNum
-        from b_marketing_sync_#{apiCode}
+        from b_marketing_sync_${apiCode}
         where (cell=#{cell} or cell_md5=#{cell} or cell_sha256=#{cell})
           <if test="appletTimeStart != null and appletTimeStart != '' and appletTimeEnd != null and appletTimeEnd != ''">
               <![CDATA[ and applet_date>=#{appletTimeStart} and applet_date<=#{appletTimeEnd} ]]>
@@ -855,9 +855,9 @@
           </if>
         group by applet_date,api_code,user_type
         <if test="orderField != null and orderField != '' ">
-            order by #{orderField}
+            order by ${orderField}
             <if test="descField != null and descField != '' ">
-                #{descField}
+                ${descField}
             </if>
             <if test="descField == null or descField == '' ">
                 desc
@@ -867,22 +867,4 @@
             order by applet_date desc
         </if>
     </select>
-<!--    <select id="selectSyncUserByCelltikvs" resultType="com.br.marketing.entity.MarketingSyncUser">-->
-<!--        select * from-->
-<!--        <foreach collection="apiCodeList" open="(" close=")" separator=" union all " item="apiCode">-->
-<!--            select applet_date,api_code,user_type-->
-<!--            from b_marketing_sync_#{apiCode}-->
-<!--            where (cell=#{cell} or cell_md5=#{cell} or cell_sha256=#{cell})-->
-<!--            <![CDATA[ and applet_date>=#{appletTimeStart} and applet_date<=#{appletTimeEnd} ]]>-->
-<!--            and status=1 and is_repeat!=3-->
-<!--            <if test="userTypeList != null and userTypeList.size()>0">-->
-<!--                and user_type in-->
-<!--                <foreach collection="userTypeList" item="item" open="(" separator="," close=")">-->
-<!--                    #{item}-->
-<!--                </foreach>-->
-<!--            </if>-->
-<!--        </foreach>-->
-<!--        group by applet_date,api_code,user_type-->
-<!--        order by applet_date desc;-->
-<!--    </select>-->
 </mapper>

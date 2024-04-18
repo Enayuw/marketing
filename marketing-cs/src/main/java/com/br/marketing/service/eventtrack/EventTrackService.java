@@ -17,7 +17,7 @@ public interface EventTrackService {
      * @Date 2024/4/15 17:48
      * @param eventTrackingCellReport
      */
-    void insertAsync(EventTrackingCellReport eventTrackingCellReport);
+    void insertSync(EventTrackingCellReport eventTrackingCellReport);
 
     /**
      * 查询

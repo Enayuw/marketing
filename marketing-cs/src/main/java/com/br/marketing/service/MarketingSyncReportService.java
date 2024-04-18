@@ -1,11 +1,9 @@
 package com.br.marketing.service;
 
-import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
-import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**
@@ -73,12 +71,10 @@ public interface MarketingSyncReportService {
      * @param cell
      * @param orderField
      * @param descField
-     * @param request
      * @return
      */
-    JSONArray getReportByCell(String cidOrName, String appletTimeStart, String appletTimeEnd
-            , String apiCodes, String userTypes, String cell, String orderField, String descField
-            , HttpServletRequest request);
+    JSONObject getReportByCell(String cidOrName, String appletTimeStart, String appletTimeEnd
+            , String apiCodes, String userTypes, String cell, String orderField, String descField);
 
     /**
      * 根据上传日期和apicode进行删除统计

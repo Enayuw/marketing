@@ -29,8 +29,8 @@ public class EventTrackingController {
             , @RequestParam(required = false) String startTime
             , @RequestParam(required = false) String endTime
             , @RequestParam(required = false) String userName
-            , @RequestParam(required = false) String orderField
-            , @RequestParam(required = false) String descField){
+            , @RequestParam(defaultValue = "create_time") String orderField
+            , @RequestParam(defaultValue = "desc") String descField){
         PageResultReturn listPage = eventTrackService.getCellReport(current, size
                 , startTime, endTime, userName, orderField, descField);
         if (listPage != null) {
@@ -46,8 +46,8 @@ public class EventTrackingController {
             , @RequestParam(required = false) String endTime
             , @RequestParam(required = false) String userName
             , @RequestParam(required = false) String apiCodes
-            , @RequestParam(required = false) String orderField
-            , @RequestParam(required = false) String descField){
+            , @RequestParam(defaultValue = "create_time") String orderField
+            , @RequestParam(defaultValue = "desc") String descField){
         PageResultReturn listPage = eventTrackService.getCellReportDetail(current, size
                 , startTime, endTime, userName, apiCodes, orderField, descField);
         if (listPage != null) {

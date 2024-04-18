@@ -7,22 +7,22 @@ import java.util.Date;
 @Data
 public class EventTrackingCellReport {
     /**
-     * 
+     * 主键
      */
     private Long id;
 
     /**
-     * 
+     * 登录名
      */
     private String userName;
 
     /**
-     * 
+     * 用户账号对应主键
      */
     private String userId;
 
     /**
-     * 
+     * 真实用户名
      */
     private String realName;
 
