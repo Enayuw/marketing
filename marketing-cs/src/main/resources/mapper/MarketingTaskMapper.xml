@@ -647,6 +647,7 @@
 
         where bsrc.is_del = 1
             and bmt.status !=0
+            and bmc.status =1
         <if test="status !=null">
             and bmt.status = #{status}
         </if>

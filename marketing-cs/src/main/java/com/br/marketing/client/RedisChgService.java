@@ -27,57 +27,76 @@ public class RedisChgService {
         try {
             BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
             marketingRedisClient.set(key, value);
-        }catch (Exception e){
-            log.warn("set error",e);
-            try{
+        } catch (Exception e) {
+            log.warn("set error", e);
+            try {
                 BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
                 marketingRedisClient.set(key, value);
-            }catch (Exception e1){
-                log.error("set error",e1);
+            } catch (Exception e1) {
+                log.error("set error", e1);
             }
         }
     }
 
     /**
      * 写入值，并且加上过期时间
+     *
      * @param key
      * @param value
      * @param seconds 秒
      */
-    public void setex(String key, String value,int seconds) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        marketingRedisClient.setex(key,seconds,value);
+    public void setex(String key, String value, int seconds) {
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            marketingRedisClient.setex(key, seconds, value);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * key不存在才会写入
      * 失效时间和写入操作非原子性
-     * @param key redisKey
-     * @param value redis值
+     *
+     * @param key     redisKey
+     * @param value   redis值
      * @param seconds 失效时间 单位秒
      * @return
      */
-    public Boolean setnx(String key,String value,int seconds){
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        Boolean setnx = marketingRedisClient.setnx(key, value);
-        if(setnx){
-            marketingRedisClient.expire(key,seconds);
+    public Boolean setnx(String key, String value, int seconds) {
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            Boolean setnx = marketingRedisClient.setnx(key, value);
+            if (setnx) {
+                marketingRedisClient.expire(key, seconds);
+            }
+            return setnx;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        return setnx;
     }
 
     public String get(String key) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        String str = marketingRedisClient.get(key);
-        return str;
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            String str = marketingRedisClient.get(key);
+            return str;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     //删除key
     public long del(String key) {
-        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        long size = marketingRedisClient.del(key);
-        return size;
+        try {
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            long size = marketingRedisClient.del(key);
+            return size;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
+
 
     /**
      * 2024-03-21 16:37
@@ -102,54 +121,73 @@ public class RedisChgService {
      * @return
      */
     public Long incr(String key) {
-        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        Long count = marketingRedisClient.incr(key);
-        return count;
+        try {
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            Long count = marketingRedisClient.incr(key);
+            return count;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * 增加传入的数量
+     *
      * @param key
      * @param number
      * @return
      */
     public Long incrBy(String key, long number) {
-        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        try{
-            Long count = marketingRedisClient.incrby(key, number);
-            return count;
-        }catch (Exception e){
-            log.warn("incrBy error",e);
-            try{
+        try {
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            try {
                 Long count = marketingRedisClient.incrby(key, number);
                 return count;
-            }catch (Exception e1){
-                log.error("incrBy error",e1);
-                return null;
+            } catch (Exception e) {
+                log.warn("incrBy error", e);
+                try {
+                    Long count = marketingRedisClient.incrby(key, number);
+                    return count;
+                } catch (Exception e1) {
+                    log.error("incrBy error", e1);
+                    return null;
+                }
             }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
 
     }
 
     /**
      * 给key添加过期时间
+     *
      * @param key
      * @param seconds 单位 秒
      * @return
      */
     public Boolean expire(String key, int seconds) {
-        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        return marketingRedisClient.expire(key, seconds);
+        try {
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.expire(key, seconds);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * 获取该hash的所有key
+     *
      * @param hkey
      * @return
      */
     public List<String> hkeys(String hkey) {
-        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        return marketingRedisClient.hkeys(hkey);
+        try {
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.hkeys(hkey);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -162,29 +200,43 @@ public class RedisChgService {
      * @date 2024/03/20
      */
     public Long hlen(String hkey) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        return marketingRedisClient.hlen(hkey);
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.hlen(hkey);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * 获取该hash中key的值
+     *
      * @param hkey
      * @param key
      * @return
      */
     public String hget(String hkey, String key) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        String result = marketingRedisClient.hget(hkey, key);
-        return result;
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            String result = marketingRedisClient.hget(hkey, key);
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public List<KeyValue<String, String>> hmget(String hkey, String... key) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        return marketingRedisClient.hmget(hkey, key);
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.hmget(hkey, key);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * 获取该hash中key的值
+     *
      * @param hkey hash key
      * @param key  key值
      * @param num  增加数值
@@ -198,6 +250,7 @@ public class RedisChgService {
             throw new RuntimeException(e);
         }
     }
+
     /**
      * 2024-03-12 13:48
      * 返回哈希表中，所有的字段和值
@@ -206,8 +259,12 @@ public class RedisChgService {
      * @return 字段名(field name), 字段的值(value)
      */
     public Map<String, Object> hgetall(String hkey) {
-        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        return marketingRedisClient.hgetall(hkey);
+        try {
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.hgetall(hkey);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -220,13 +277,21 @@ public class RedisChgService {
      * @return
      */
     public Boolean hset(String hkey, String key, String value) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        return marketingRedisClient.hset(hkey, key, value);
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.hset(hkey, key, value);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public String hset(String hkey, HashMap<String, String> map) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        return marketingRedisClient.hmset(hkey, map);
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.hmset(hkey, map);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -238,8 +303,12 @@ public class RedisChgService {
      * @return 命令执行成功，返回 OK
      */
     public boolean hmset(String hkey, Map<String, String> map) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        return "OK".equals(marketingRedisClient.hmset(hkey, map));
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return "OK".equals(marketingRedisClient.hmset(hkey, map));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -250,20 +319,29 @@ public class RedisChgService {
      * @return
      */
     public Long hdel(String hkey, String key) {
-        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        Long result = marketingRedisClient.hdel(hkey, key);
-        return result;
+        try {
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            Long result = marketingRedisClient.hdel(hkey, key);
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * 判断数据key是否存在
+     *
      * @param key
      * @return
      */
     public Boolean exists(String key) {
-        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        Long flag = marketingRedisClient.exists(key);
-        return !new Long(0L).equals(flag);
+        try {
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            Long flag = marketingRedisClient.exists(key);
+            return !new Long(0L).equals(flag);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -273,48 +351,67 @@ public class RedisChgService {
      * @param value
      * @return 返回的添加成功的数量
      */
-    public Long sadd(String key, List<String> value){
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        String[] values = new String[]{};
-        String[] vals = value.toArray(values);
-        Long result = marketingRedisClient.sadd(key, vals);
-        return result;
+    public Long sadd(String key, List<String> value) {
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            String[] values = new String[]{};
+            String[] vals = value.toArray(values);
+            Long result = marketingRedisClient.sadd(key, vals);
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * set添加一个数组
+     *
      * @param key
      * @param member
      * @return 返回添加成功的数量
      */
-    public Long saddMember(String key,String... member){
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        Long result = marketingRedisClient.sadd(key, member);
-        return result;
+    public Long saddMember(String key, String... member) {
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            Long result = marketingRedisClient.sadd(key, member);
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * 判断set中是否存在该对象
+     *
      * @param key
      * @param member
      * @return
      */
     public Boolean sismember(String key, String member) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        Boolean result = marketingRedisClient.sismember(key, member);
-        return result;
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            Boolean result = marketingRedisClient.sismember(key, member);
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
     /**
      * 返回set中所有的成员
+     *
      * @param key
      * @return
      */
     public Set<String> smembers(String key) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        Set<String> smembers = marketingRedisClient.smembers(key);
-        return smembers;
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            Set<String> smembers = marketingRedisClient.smembers(key);
+            return smembers;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -322,8 +419,12 @@ public class RedisChgService {
      * 移除集合中的指定 key 的一个或多个随机元素，移除后会返回移除的元素
      */
     public Set<String> spop(String key, int count) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        return marketingRedisClient.spop(key, count);
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.spop(key, count);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -331,8 +432,12 @@ public class RedisChgService {
      * 获取set元素中的个数
      */
     public Long scard(String key) {
-        BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        return marketingRedisClient.scard(key);
+        try {
+            BrRedisClient<String, Object> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            return marketingRedisClient.scard(key);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void lock(String lockKey, String value) {
@@ -355,66 +460,82 @@ public class RedisChgService {
     }
 
     public boolean lock(String lockKey, String requestId, Long milliseconds) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        String script = "return redis.call('set',KEYS[1],ARGV[1],'NX','PX',ARGV[2])";
-        String[] keys = new String[1];
-        keys[0] = lockKey;
-        String result = marketingRedisClient.eval(script, ScriptOutputType.STATUS, keys, requestId, milliseconds.toString());
-        return LOCK_SUCCESS.equals(result);
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            String script = "return redis.call('set',KEYS[1],ARGV[1],'NX','PX',ARGV[2])";
+            String[] keys = new String[1];
+            keys[0] = lockKey;
+            String result = marketingRedisClient.eval(script, ScriptOutputType.STATUS, keys, requestId, milliseconds.toString());
+            return LOCK_SUCCESS.equals(result);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public boolean unlock(String lockKey, String requestId) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
-        String[] keys = new String[1];
-        keys[0] = lockKey;
-        Long result = marketingRedisClient.eval(script, ScriptOutputType.INTEGER, keys, requestId);
-        return RELEASE_SUCCESS.equals(result);
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+            String[] keys = new String[1];
+            keys[0] = lockKey;
+            Long result = marketingRedisClient.eval(script, ScriptOutputType.INTEGER, keys, requestId);
+            return RELEASE_SUCCESS.equals(result);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void delBigSet(String bigSetKey, int deleteCount) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        String cursorIndex = "0";
-        ScanCursor cursor = ScanCursor.of(cursorIndex);
-        do {
-            ValueScanCursor<String> sscan = marketingRedisClient.sscan(bigSetKey, cursor, ScanArgs.Builder.limit(deleteCount));
-            List<String> memberList = sscan.getValues();
-            if (CollectionUtils.isNotEmpty(memberList)) {
-                String[] members = memberList.stream().map(Object::toString).toArray(String[]::new);
-                marketingRedisClient.srem(bigSetKey, members);
-                sleep();
-            }
-            cursorIndex = sscan.getCursor();
-            cursor.setCursor(cursorIndex);
-        } while (!"0".equals(cursorIndex));
-        //删除bigkey
-        marketingRedisClient.del(bigSetKey);
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            String cursorIndex = "0";
+            ScanCursor cursor = ScanCursor.of(cursorIndex);
+            do {
+                ValueScanCursor<String> sscan = marketingRedisClient.sscan(bigSetKey, cursor, ScanArgs.Builder.limit(deleteCount));
+                List<String> memberList = sscan.getValues();
+                if (CollectionUtils.isNotEmpty(memberList)) {
+                    String[] members = memberList.stream().map(Object::toString).toArray(String[]::new);
+                    marketingRedisClient.srem(bigSetKey, members);
+                    sleep();
+                }
+                cursorIndex = sscan.getCursor();
+                cursor.setCursor(cursorIndex);
+            } while (!"0".equals(cursorIndex));
+            //删除bigkey
+            marketingRedisClient.del(bigSetKey);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void delBigHash(String bigSetKey, int deleteCount) {
-        BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
-        String cursorIndex = "0";
-        ScanCursor cursor = ScanCursor.of(cursorIndex);
-        do {
-            MapScanCursor<String, String> hscan = marketingRedisClient.hscan(bigSetKey, cursor, ScanArgs.Builder.limit(deleteCount));
-            Map<String, String> map = hscan.getMap();
-            if (map!=null) {
-                String[] keys = map.keySet().stream().toArray(String[]::new);
-                if(keys.length>0) {
-                    marketingRedisClient.hdel(bigSetKey, keys);
-                    sleep();
+        try {
+            BrRedisClient<String, String> marketingRedisClient = BrRedisClients.getRedisClient("marketing_redis");
+            String cursorIndex = "0";
+            ScanCursor cursor = ScanCursor.of(cursorIndex);
+            do {
+                MapScanCursor<String, String> hscan = marketingRedisClient.hscan(bigSetKey, cursor, ScanArgs.Builder.limit(deleteCount));
+                Map<String, String> map = hscan.getMap();
+                if (map != null) {
+                    String[] keys = map.keySet().stream().toArray(String[]::new);
+                    if (keys.length > 0) {
+                        marketingRedisClient.hdel(bigSetKey, keys);
+                        sleep();
+                    }
                 }
-            }
-            cursorIndex = hscan.getCursor();
-            cursor.setCursor(cursorIndex);
-        } while (!"0".equals(cursorIndex));
-        //删除bigkey
-        marketingRedisClient.del(bigSetKey);
+                cursorIndex = hscan.getCursor();
+                cursor.setCursor(cursorIndex);
+            } while (!"0".equals(cursorIndex));
+            //删除bigkey
+            marketingRedisClient.del(bigSetKey);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void sleep() {
         try {
-                Thread.sleep(10);
+            Thread.sleep(10);
         } catch (InterruptedException e) {
             log.error(e.getMessage(), e);
         }

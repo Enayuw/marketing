@@ -1,5 +1,6 @@
 package com.br.marketing.vo;
 
+import com.br.marketing.enums.PushRuleStatusEnum;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.math.BigDecimal;
@@ -47,16 +48,18 @@ public class PushInfoListVO {
     private String userType;
 
     public String getmStatusDesc() {
-        if (mStatus.equals(1)) {
-            return "执行中";
-        } else if (mStatus.equals(2)) {
-            return "待确认";
-        } else if (mStatus.equals(3)) {
-            return "推送失败";
-        } else if (mStatus.equals(4)) {
-            return "确认成功";
-        } else if (mStatus.equals(5)) {
-            return "确认失败";
+        if (mStatus.equals(PushRuleStatusEnum.RUNNING.getValue())) {
+            return PushRuleStatusEnum.RUNNING.getDesc();
+        } else if (mStatus.equals(PushRuleStatusEnum.TO_BE_CONFIRMED.getValue())) {
+            return PushRuleStatusEnum.TO_BE_CONFIRMED.getDesc();
+        } else if (mStatus.equals(PushRuleStatusEnum.PUSH_FAIL.getValue())) {
+            return PushRuleStatusEnum.PUSH_FAIL.getDesc();
+        } else if (mStatus.equals(PushRuleStatusEnum.CONFIRMED_SUCCESS.getValue())) {
+            return PushRuleStatusEnum.CONFIRMED_SUCCESS.getDesc();
+        } else if (mStatus.equals(PushRuleStatusEnum.CONFIRMED_FAIL.getValue())) {
+            return PushRuleStatusEnum.CONFIRMED_FAIL.getDesc();
+        } else if (mStatus.equals(PushRuleStatusEnum.TO_BE_RUNNING.getValue())) {
+            return PushRuleStatusEnum.TO_BE_RUNNING.getDesc();
         } else {
             return "状态异常";
         }

@@ -44,6 +44,8 @@ public class RedisKeyConstant {
 
     public static final String taskGetLock = prefix.concat("tasklock");
 
+    public static final String TASK_PUSH_RULE_GET_LOCK = prefix.concat("pushruletasklock");
+
     /**
      * 任务已经跑分的数量key
      */
@@ -181,6 +183,11 @@ public class RedisKeyConstant {
      * 得物撞库所
      */
     public static final String PUSH_DEWU_COLLIDING_DATA_LOCK = prefix.concat("dewu:pushDewuCollidingDataLock");
+
+    /**
+     * 客户信息推送状态查询
+     */
+    public static final String CUSTOMER_PUSH_STATUS_QUERY_LOCK = prefix.concat("customerPushStatusQuery:pushMainLock");
 
     /**
      * 携程撞库条件开关
