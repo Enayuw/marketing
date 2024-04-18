@@ -140,6 +140,7 @@ public class MarketingUserPreController {
                                 @RequestParam(required = false) String apiCode,
                                 String custNum, String cell) {
         try {
+            log.error("外呼调用了api服务客户信息接口，需要关注！");
             return pushRuleService.queryCustInfo(cid, apiCode, custNum, cell);
         } catch (ParamValidErrorException ex) {
             log.error(ex.getMessage());
