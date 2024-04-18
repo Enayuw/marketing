@@ -457,10 +457,10 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         result.put("records", JSON.toJSON(syncUserListAllApiCode));
         JSONObject countObject = new JSONObject();
         // 单独计算全部数据的统计总数
-        Long total = syncUserListAllApiCode.stream().mapToLong(MarketingSyncUserCell::getNum).sum();
-        Long useRemovalRuleTotal = syncUserListAllApiCode.stream().mapToLong(MarketingSyncUserCell::getUseRemovalRuleNum).sum();
-        countObject.put("total",total);
-        countObject.put("useRemovalRuleTotal",useRemovalRuleTotal);
+        Long normalNumTotal = syncUserListAllApiCode.stream().mapToLong(MarketingSyncUserCell::getNormalNum).sum();
+        Long duplicateRemovalNumTotal = syncUserListAllApiCode.stream().mapToLong(MarketingSyncUserCell::getDuplicateRemovalNum).sum();
+        countObject.put("normalNumTotal",normalNumTotal);
+        countObject.put("duplicateRemovalNumTotal",duplicateRemovalNumTotal);
         result.put("totals", countObject);
         return result;
     }

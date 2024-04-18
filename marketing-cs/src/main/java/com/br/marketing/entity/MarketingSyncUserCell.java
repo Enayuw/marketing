@@ -35,11 +35,11 @@ public class MarketingSyncUserCell {
     /**
      * 手机号对应单条数据总计
      */
-    private Long num;
+    private Long normalNum;
 
     /**
      * 手机号根据去重规则后的对应单条数据总计
      */
-    private Long useRemovalRuleNum;
+    private Long duplicateRemovalNum;
 
 }

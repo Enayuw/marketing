@@ -840,7 +840,7 @@
 
     <select id="selectSyncUserByCelltikv_" resultType="com.br.marketing.entity.MarketingSyncUserCell">
         select applet_date as appletDate ,api_code as apiCode, user_type as userType,
-            count(*) as num, count(case when is_repeat=3 then 0 else 1 end) as useRemovalRuleNum
+            count(*) as normalNum, count(case when is_repeat=3 then 0 else 1 end) as duplicateRemovalNum
         from b_marketing_sync_${apiCode}
         where (cell=#{cell} or cell_md5=#{cell} or cell_sha256=#{cell})
           <if test="appletTimeStart != null and appletTimeStart != '' and appletTimeEnd != null and appletTimeEnd != ''">
