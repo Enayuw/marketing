@@ -7,6 +7,7 @@ import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
+import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
 import com.br.marketing.service.Impl.ConsumerService;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @EnablePrometheusJvm
 @EnableHystrixPrometheus
 @EnablePrometheusTiming
+@EnableDruidPrometheus
 @EnableBrCounter(namespace = "marketing_inner_api")
 public class MarketingInnerApiApplication {
 

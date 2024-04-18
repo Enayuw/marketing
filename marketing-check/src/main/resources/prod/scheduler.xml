@@ -1008,6 +1008,22 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="PrometheusGetApiCode"
+                class="com.br.marketing.check.job.monitor.PrometheusGetApiCode"
+                cron="0 0/10 * * * ? "
+                description="Prometheus监控实时获取ApiCode"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
     <job:simple id="ToPolicyByRuleJob"
                 class="com.br.marketing.check.job.ruletopolicy.ToPolicyByRuleJob"
                 cron="0 0/1 * * * ? "
