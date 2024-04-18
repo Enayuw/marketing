@@ -51,7 +51,8 @@ public class LogRecordAspect {
         insertLog(joinPoint);
     }
 
-    /**LogRecordAspect
+    /**
+     * LogRecordAspect
      * 进行插入日志
      *
      * @param joinPoint
@@ -75,8 +76,8 @@ public class LogRecordAspect {
             CompletableFuture.runAsync(() ->
                     logRecordService.insert(requestOperationLog)
             );
-        }catch (Exception e){
-            throw new Exception("目标方法执行异常,"+ e.getMessage());
+        } catch (Exception e) {
+            throw new Exception("目标方法执行异常," + e.getMessage());
         }
     }
 
