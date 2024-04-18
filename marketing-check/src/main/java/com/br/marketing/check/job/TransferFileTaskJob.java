@@ -64,6 +64,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     private TransferToFileByShuHeServiceImpl transferToFileByShuHeService;
 
     /**
+     * 数禾促复借转化数据提取
+     */
+    @Resource
+    private TransferToFileByShuHeCuFuJieServiceImpl transferToFileByShuHeCuFuJieService;
+
+    /**
      * 宜信
      */
     @Resource
@@ -218,7 +224,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                             listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(), myParam);
                         }
                     } catch (Exception e) {
-                        log.error("该apiCode:{}执行数据提取任务获取锁:{}异常", marketingCustomer.getApiCode(), redisKey);
+                        log.error("该apiCode:{}执行数据提取任务获取锁:{}异常", marketingCustomer.getApiCode(), redisKey, e);
                     } finally {
                         redisChgService.unlock(redisKey, value);
                     }
@@ -281,6 +287,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByShuHeService, ObjectUtil.isEmpty(
                         marketingCommonConfig.getShuHeTransferExtractApiCodes())
                         ? null : marketingCommonConfig.getShuHeTransferExtractApiCodes().keySet())
+                // 数禾促复借转化数据提取
+                .addBind(transferToFileByShuHeCuFuJieService, marketingCommonConfig.getShuHeCuFuJieTransferFileApiCodes())
                 // 宜信实时转化数据提取
                 .addBind(transferToFileByYiXinRealTimeService, marketingCommonConfig.getYinXinTransferRealTimeApiCodes())
                 // 玖富转化数据提取

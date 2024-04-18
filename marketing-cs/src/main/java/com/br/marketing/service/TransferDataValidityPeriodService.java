@@ -281,5 +281,5 @@ public interface TransferDataValidityPeriodService {
      * @dateTime 2024-01-09 15:30
      */
     List<MarketingDataValidConfig> getDataValidityPeriodPageList(
-            String apiCode, Object requestDateObj, int page, int pageSize);
+            String apiCode, Object requestDateObj, Integer page, Integer pageSize);
 }

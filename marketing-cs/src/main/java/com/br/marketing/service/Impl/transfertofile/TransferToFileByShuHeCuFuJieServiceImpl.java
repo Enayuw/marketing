@@ -1,7 +1,9 @@
 package com.br.marketing.service.Impl.transfertofile;
 
 import com.alibaba.fastjson.JSON;
+import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
+import com.br.common.util.DateUtils;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -9,7 +11,6 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
-import com.br.marketing.enums.ThreeKeyEncryptEnum;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
@@ -20,12 +21,10 @@ import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.util.EncAndDecUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
@@ -41,12 +40,12 @@ import java.util.stream.Collectors;
 
 /**
  * @Author 李广秀
- * @Date 2023/12/11 10:31
- * @Description:同程新系统转化数据提取
+ * @Date 2024/04/14 10:31
+ * @Description:数禾促复借数据提取
  */
 @Slf4j
 @Service
-public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileService {
+public class TransferToFileByShuHeCuFuJieServiceImpl implements ITransferToFileService {
 
     @Autowired
     SyncConfigService syncConfigService;
@@ -68,16 +67,17 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
     private TransferDataValidityPeriodService validityPeriodService;
 
 
-    private final static String TABLE_HEAD_TRANSFER = "custNum,cell,userType,applyDt,applyResult,auditTime," +
-            "ifLent,lentTime,lentAmount,effectiveTime,applyLoan";
+    private final static String TABLE_HEADER_CUFUJIE = "apicode,taskid,groupType,cust_num,cell,is_turn,is_black" +
+            ",clc_usr_lst_app_sta_tim,clc_usr_lst_non_dcp_trs_tim,off_usr_lst_ord_tim_all,clc_usr_avl_lmt_lv0" +
+            ",clc_usr_adt_lmt_lv0,createtime,clc_usr_lst_ord_tim_all_wizard,clc_usr_adt_lmt_fst_all,clc_usr_lst_adt_apy_tim_hvy";
 
-    final static String EXECUTE_TIME = "08:00:00";
+    final static String EXECUTE_TIME = "06:00:00";
 
 
     final static DateTimeFormatter YYYYMMDDSHORTLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
 
     /**
-     * 2023-12-11 10:50
+     * 2024-01-04 10:50
      * 指定日期提取参数格式：
      * apiCode#yyyy-MM-dd
      * eg:7492900#2023-05-09
@@ -98,8 +98,8 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
     @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam) {
         List<TransferFileTask> resultList = new ArrayList<>();
-        String extractTime = StringUtils.isBlank(marketingCommonConfig.getNewTongChengTransferExecuteTime())
-                ? EXECUTE_TIME : marketingCommonConfig.getNewTongChengTransferExecuteTime();
+        String extractTime = StringUtils.isBlank(marketingCommonConfig.getShuHeCuFuJieTransferFileExecuteTime())
+                ? EXECUTE_TIME : marketingCommonConfig.getShuHeCuFuJieTransferFileExecuteTime();
         LocalTime localTime = LocalTime.parse(extractTime);
         boolean isParam = StringUtils.isNotBlank(myParam);
         if (LocalTime.now().isAfter(localTime) || isParam) {
@@ -111,14 +111,14 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
                     .andFileTypeEqualTo(1);
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
             if (CollectionUtils.isEmpty(transferFileTasks)) {
-                log.warn("同程新系统转化数据提取-开始执行,apiCode ={}", apiCode);
+                log.warn("数禾促复借转化数据提取-开始执行,apiCode ={}", apiCode);
                 Long transferFileContextId = ruleRedisService.getTransferFileContextId();
                 String batchNumber = createBatchNumber(apiCode, transferFileContextId, dateyyyymmddStr);
                 TransferFileTask transferFileTask = new TransferFileTask();
                 transferFileTask.setApiCode(apiCode);
                 transferFileTask.setFileType(1);
                 transferFileTask.setBatchNumber(batchNumber);
-                transferFileTask.setFileName(String.format("tongcheng_zhuanhua_%s.txt", dateyyyymmddStr));
+                transferFileTask.setFileName(String.format("%s_cufujie_%s.txt", apiCode, dateyyyymmddStr));
                 transferFileTask.setTaskNumber(0);
                 transferFileTask.setStartDate(date);
                 transferFileTask.setContextId(transferFileContextId);
@@ -137,7 +137,7 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
 
     @Override
     public Result actionTransferToFile(TransferFileTask transferFileTask,String jobParameter) {
-        log.warn("同程新系统转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        log.warn("数禾促复借转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         Result<String> result = new Result<>();
         String apiCode = transferFileTask.getApiCode();
         String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
@@ -155,9 +155,9 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
         transferFileTask.setFilePath(descPath);
         File file = new File(fileAllPath);
         try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
-            fw.append(TABLE_HEAD_TRANSFER);
+            fw.append(TABLE_HEADER_CUFUJIE);
             fw.append("\r\n");
-            writeNewTongChengTransferToFile(fw, apiCode, transferFileTask, requestDate);
+            writeShuHeCuFuJieTransferToFile(fw, apiCode, transferFileTask, requestDate);
         } catch (Exception ex) {
             log.error("写入文件错误！",ex);
             result.setCode(ResultCode.FAIL.getValue());
@@ -167,20 +167,20 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
         return result;
     }
 
-    public void writeNewTongChengTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
+    public void writeShuHeCuFuJieTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
         Long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         Integer page = 0;
         Boolean mark = Boolean.TRUE;
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
-        LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
-        LocalDate startDate = localDate.minusDays(31);
+        LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE).minusDays(1L);
+        String yesterday = localDate.toString();
+        LocalDate startDate = localDate.minusDays(30);
         LocalDate endDate = localDate;
         LocalDate today = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
-        String appletDate = localDate.minusDays(1).toString();
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50, 1);
-        List<MarketingDataValidConfig> validityDataByApiCode = marketingDataValidConfigMapper.getValidityDataByApiCode(apiCode, appletDate);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
+        List<MarketingDataValidConfig> validityDataByApiCode = marketingDataValidConfigMapper.getValidityDataByApiCode(apiCode, yesterday);
         if (validityDataByApiCode.size() <= 0){
             log.warn("列表可能为空");
             mark = Boolean.FALSE;
@@ -217,58 +217,84 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
             Set<String> set = transferData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
             //判断转化数据是否在有效期内
             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService
-                    .getValidityPeriodsByCustNum(set, apiCode, appletDate);
+                    .getValidityPeriodsByCustNum(set, apiCode, yesterday);
             threadPool.submit(() -> {
                 for (MarketingTransferSyncUser transferFilterData : transferData) {
                     String custNum = transferFilterData.getCustNum();
-                    String effectiveTime = "";
-                    String applyLoan = "";
                     String cell = "";
+                    String taskId = "";
+                    String isTurn = "";
+                    String isBlack = "";
+                    String clcUsrLstAppStaTim = "";
+                    String clcUsrLstNonCcpTrsTim = "";
+                    String offUsrLstOrdTimAll = "";
+                    String clcUsrAvlLmtLv0 = "";
+                    String clcUsrAdtLmtLv0 = "";
+                    String clcUsrLstOrdTimAllWizard = "";
+                    String clcUsrAdtLmtFstAll = "";
+                    String clcUsrLstAdtApyTimHvy = "";
+
                     SyncUserValidityPeriodsBO boMap = validityPeriodsByCustNum.get(custNum);
                     if (boMap == null) {
                         log.warn("{}不满足案件编号“有效期内”条件", custNum);
                         continue;
                     }
-                    MarketingSyncUser marketingSyncUser = boMap.getSyncUsers().get(0);
-                    if (StringUtils.isNotEmpty(marketingSyncUser.getCell())){
-                        cell = EncAndDecUtil.logTodigest(marketingSyncUser.getCell(), ThreeKeyEncryptEnum.md5);
-                    }
-                    if (StringUtils.isNotEmpty(marketingSyncUser.getReserveField1())) {
-                        effectiveTime = JSON.parseObject(marketingSyncUser.getReserveField1()).getString("effectiveTime");
-                        effectiveTime = StringUtils.isNotEmpty(effectiveTime) ? effectiveTime.replace(":000","") : "";
-                    }
                     if (StringUtils.isNotEmpty(transferFilterData.getReserveField1())) {
-                        applyLoan = JSON.parseObject(transferFilterData.getReserveField1()).getString("applyLoan");
-                        applyLoan = StringUtils.isNotEmpty(applyLoan) ? applyLoan : "";
+                        taskId = JSON.parseObject(transferFilterData.getReserveField1()).getString("taskId");
+                        String cellLog = JSON.parseObject(transferFilterData.getReserveField1()).getString("cell");
+                        cell = Sha256Util.getSHA256Encrypt(BrCipherMaker.getInstance().decode(cellLog));
+                        isTurn = JSON.parseObject(transferFilterData.getReserveField1()).getString("is_turn");
+                        isBlack = JSON.parseObject(transferFilterData.getReserveField1()).getString("is_black");
+                        clcUsrLstAppStaTim = JSON.parseObject(transferFilterData.getReserveField1())
+                                .getString("clc_usr_lst_app_sta_tim");
+                        clcUsrLstNonCcpTrsTim = JSON.parseObject(transferFilterData.getReserveField1())
+                                .getString("clc_usr_lst_non_dcp_trs_tim");
+                        offUsrLstOrdTimAll = JSON.parseObject(transferFilterData.getReserveField1())
+                                .getString("off_usr_lst_ord_tim_all");
+                        clcUsrAvlLmtLv0 = JSON.parseObject(transferFilterData.getReserveField1())
+                                .getString("clc_usr_avl_lmt_lv0");
+                        clcUsrAdtLmtLv0 = JSON.parseObject(transferFilterData.getReserveField1())
+                                .getString("clc_usr_adt_lmt_lv0");
+                        clcUsrLstOrdTimAllWizard = JSON.parseObject(transferFilterData.getReserveField1())
+                                .getString("clc_usr_lst_ord_tim_all_wizard");
+                        clcUsrAdtLmtFstAll = JSON.parseObject(transferFilterData.getReserveField1())
+                                .getString("clc_usr_adt_lmt_fst_all");
+                        clcUsrLstAdtApyTimHvy = JSON.parseObject(transferFilterData.getReserveField1())
+                                .getString("clc_usr_lst_adt_apy_tim_hvy");
                     }
+                    taskId = StringUtils.isNotEmpty(taskId) ? taskId : "";
+                    String userType = StringUtils.isNotEmpty(transferFilterData.getUserType()) ? transferFilterData.getUserType() : "";
+                    custNum = StringUtils.isNotEmpty(transferFilterData.getCustNum()) ? transferFilterData.getCustNum() : "";
+                    cell = StringUtils.isNotEmpty(cell) ? cell : "";
+                    isTurn = StringUtils.isNotEmpty(isTurn) ? isTurn : "";
+                    isBlack = StringUtils.isNotEmpty(isBlack) ? isBlack : "";
+                    clcUsrLstAppStaTim = StringUtils.isNotEmpty(clcUsrLstAppStaTim) ? clcUsrLstAppStaTim : "";
+                    clcUsrLstNonCcpTrsTim = StringUtils.isNotEmpty(clcUsrLstNonCcpTrsTim) ? clcUsrLstNonCcpTrsTim : "";
+                    offUsrLstOrdTimAll = StringUtils.isNotEmpty(offUsrLstOrdTimAll) ? offUsrLstOrdTimAll : "";
+                    clcUsrAvlLmtLv0 = StringUtils.isNotEmpty(clcUsrAvlLmtLv0) ? clcUsrAvlLmtLv0 : "";
+                    clcUsrAdtLmtLv0 = StringUtils.isNotEmpty(clcUsrAdtLmtLv0) ? clcUsrAdtLmtLv0 : "";
+                    String createTime = StringUtils.isNotEmpty(transferFilterData.getCreateTime())
+                            ? DateUtils.format(transferFilterData.getCreateTime(), "yyyy-MM-dd HH:mm:ss") : "";
+                    clcUsrLstOrdTimAllWizard = StringUtils.isNotEmpty(clcUsrLstOrdTimAllWizard) ? clcUsrLstOrdTimAllWizard : "";
+                    clcUsrAdtLmtFstAll = StringUtils.isNotEmpty(clcUsrAdtLmtFstAll) ? clcUsrAdtLmtFstAll : "";
+                    clcUsrLstAdtApyTimHvy = StringUtils.isNotEmpty(clcUsrLstAdtApyTimHvy) ? clcUsrLstAdtApyTimHvy : "";
                     StringBuilder sb = new StringBuilder();
-                    custNum = StringUtils.isNotEmpty(transferFilterData.getCustNum())
-                            ? transferFilterData.getCustNum() : "";
-                    String userType = StringUtils.isNotEmpty(transferFilterData.getUserType())
-                            ? transferFilterData.getUserType() : "";
-                    String applyDt = StringUtils.isNotEmpty(transferFilterData.getApplyDt())
-                            ? transferFilterData.getApplyDt().replace(":000","") : "";
-                    String applyResult = StringUtils.isNotEmpty(transferFilterData.getApplyResult())
-                            ? transferFilterData.getApplyResult() : "";
-                    String auditTime = StringUtils.isNotEmpty(transferFilterData.getAuditTime())
-                            ? transferFilterData.getAuditTime().replace(":000","")  : "";
-                    String ifLent = StringUtils.isNotEmpty(transferFilterData.getIfLent())
-                            ? transferFilterData.getIfLent() : "";
-                    String lentTime = StringUtils.isNotEmpty(transferFilterData.getLentTime())
-                            ? transferFilterData.getLentTime().replace(":000","") : "";
-                    String lentAmount = StringUtils.isNotEmpty(transferFilterData.getLentAmount())
-                            ? transferFilterData.getLentAmount() : "";
-                    sb.append(custNum.concat(","))
-                            .append(cell.concat(","))
+                    sb.append(transferFilterData.getApiCode().concat(","))
+                            .append(taskId.concat(","))
                             .append(userType.concat(","))
-                            .append(applyDt.concat(","))
-                            .append(applyResult.concat(","))
-                            .append(auditTime.concat(","))
-                            .append(ifLent.concat(","))
-                            .append(lentTime.concat(","))
-                            .append(lentAmount.concat(","))
-                            .append(effectiveTime.concat(","))
-                            .append(applyLoan)
+                            .append(custNum.concat(","))
+                            .append(cell.concat(","))
+                            .append(isTurn.concat(","))
+                            .append(isBlack.concat(","))
+                            .append(clcUsrLstAppStaTim.concat(","))
+                            .append(clcUsrLstNonCcpTrsTim.concat(","))
+                            .append(offUsrLstOrdTimAll.concat(","))
+                            .append(clcUsrAvlLmtLv0.concat(","))
+                            .append(clcUsrAdtLmtLv0.concat(","))
+                            .append(createTime.concat(","))
+                            .append(clcUsrLstOrdTimAllWizard.concat(","))
+                            .append(clcUsrAdtLmtFstAll.concat(","))
+                            .append(clcUsrLstAdtApyTimHvy)
                             .append("\r\n");
                     try {
                         fw.append(sb.toString());
@@ -287,15 +313,15 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
                 if (log.isInfoEnabled()) {
                     long taskCount = threadPool.getTaskCount();
                     long completedTaskCount = threadPool.getCompletedTaskCount();
-                    log.info("同程新系统转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
+                    log.info("数禾促复借转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
                             , taskCount, completedTaskCount, taskCount - completedTaskCount);
                 }
             }
             saveUpdateTask(transferFileTask, totalSize.intValue());
-            log.warn("同程新系统转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
+            log.warn("数禾促复借转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
                     , apiCode, System.currentTimeMillis() - start, totalSize.intValue());
         } catch (InterruptedException e) {
-            log.error("同程新系统转化数据提取-本地文件生成失败！" , e);
+            log.error("数禾促复借转化数据提取-本地文件生成失败！" , e);
             threadPool.shutdownNow();
             Thread.currentThread().interrupt();
             transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());

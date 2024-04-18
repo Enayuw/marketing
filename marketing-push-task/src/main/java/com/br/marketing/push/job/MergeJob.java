@@ -57,7 +57,7 @@ public class MergeJob extends AbstractSimpleElasticJob {
                 flowService.flow(customer);
 
             } catch (Exception e) {
-                log.error("程序跑批异常，apiCode={}",customer.getApiCode());
+                log.error("程序跑批异常，apiCode={}",customer.getApiCode(), e);
             }
         });
         Long end =System.currentTimeMillis();

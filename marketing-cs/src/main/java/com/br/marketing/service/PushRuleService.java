@@ -6,6 +6,7 @@ import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.*;
+import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -53,6 +54,9 @@ public interface PushRuleService {
      */
     Result<List<PushInfoDetailVO>> getPushInfos(@Valid RequestPushInfoDTO dto);
 
+    Result<Long> getPushTask();
+
+    Result isCanPushTask(Long taskId);
     /**
      * 推送客服
      *
@@ -78,10 +82,10 @@ public interface PushRuleService {
     /**
      * 查询推送结果
      *
-     * @param mId
+     * @param customerInfoPushMain
      * @return
      */
-    Result<Boolean> getCustomerStatus(Long mId);
+    Result<Boolean> getCustomerStatus(CustomerInfoPushMain customerInfoPushMain);
 
 
     /**

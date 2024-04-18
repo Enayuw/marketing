@@ -220,26 +220,37 @@ public class ShuHeUserServiceImpl {
     @Transactional(rollbackFor = Exception.class)
     public Map saveShTransferData(String apiCode, String jsonData,String requestId, ResponseShuheDTO responseShuheDTO,Date createTime){
         HashMap<String, Object> res = new HashMap<>();
-        String msg="";
+        String msg = "";
         ShuheTransferJsonDTO jsonDTO = JSONObject.parseObject(jsonData, new TypeReference<ShuheTransferJsonDTO>() {
         }.getType());
         String userType = jsonDTO.getBizType();
         //todo 模拟异常上线后要删除
-        pushRuleService.mockDbOrRedisError(1,apiCode);
+        pushRuleService.mockDbOrRedisError(1, apiCode);
         CaseShuheUser caseShuheUser;
-        if(marketingCommonConfig.getShuheDxApiCodes().contains(apiCode)) {
-            res.put("userTypeUknow", false);
-            caseShuheUser = assembleShuheDxUser(jsonDTO, apiCode, jsonData);
-        }else {
-            // 2、判断场景类型
-            if (StringUtils.isEmpty(userType)) {
-                /*
-                 * 对bizType字段做兜底，对应营销userType,
-                 * 当bizType未传时，需要主动去上传接口中查找，
-                 * 如果未查到需要返回给客户提示信息，并将数据落库到本地
-                 */
-                userType = iMarketingSyncUserService.getUserTypeLatestByCustNum(apiCode, jsonDTO.getOrderId());
+        // 2、判断场景类型
+        if (StringUtils.isEmpty(userType)) {
+            /*
+             * 对bizType字段做兜底，对应营销userType,
+             * 当bizType未传时，需要主动去上传接口中查找，
+             * 如果未查到需要返回给客户提示信息，并将数据落库到本地
+             */
+            userType = iMarketingSyncUserService.getUserTypeLatestByCustNum(apiCode, jsonDTO.getOrderId());
+            if (userType == null) {
+                userType = jsonDTO.getBizType();
             }
+        }
+        if (marketingCommonConfig.getShuheDxApiCodes().contains(apiCode)) {
+            boolean empty = StringUtils.isEmpty(userType);
+            res.put("userTypeUknow", empty);
+            caseShuheUser = assembleShuheDxUser(jsonDTO, apiCode, jsonData);
+            caseShuheUser.setUserType(userType);
+            if (empty) {
+                msg = "不存在的业务类型电销转化数据，不会触发后续业务流程!";
+                this.sendAlarmMgs("数禾电销全场景数据定制化清洗入库", msg.concat("\napiCode“").concat(apiCode)
+                        .concat("”\n案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
+                        .concat("请及时跟进或与数禾客户及时沟通^_^"), alarmClient);
+            }
+        } else {
             final IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(userType);
             caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType
                     , jsonDTO, apiCode, jsonData);
