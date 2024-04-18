@@ -1250,7 +1250,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
 
     @Override
     public List<MarketingDataValidConfig> getDataValidityPeriodPageList(
-            String apiCode, Object requestDateObj, int page, int pageSize) {
+            String apiCode, Object requestDateObj, Integer page, Integer pageSize) {
         //统一时间格式
         String requestDateStr = switchDateStr(requestDateObj);
         return getDataValidConfig(apiCode, requestDateStr, null, page, pageSize);
