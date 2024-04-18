@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.RequestOperationLogMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.RequestOperationLog" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="operator" property="operator" jdbcType="VARCHAR" />
+    <result column="biz_no" property="bizNo" jdbcType="VARCHAR" />
+    <result column="request_param" property="requestParam" jdbcType="VARCHAR" />
+    <result column="result" property="result" jdbcType="VARCHAR" />
+    <result column="url" property="url" jdbcType="VARCHAR" />
+    <result column="extendInfo" property="extendInfo" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, operator, biz_no, request_param,`result`, url, extendInfo, create_time
+  </sql>
+  <insert id="insert" parameterType="com.br.marketing.entity.RequestOperationLog" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_request_operation_log (operator, biz_no, request_param,`result`,
+      url, `extendInfo`, `create_time`)
+    values (#{operator,jdbcType=VARCHAR}, #{bizNo,jdbcType=VARCHAR}, #{requestParam,jdbcType=VARCHAR},
+      #{result,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR}, #{extendInfo,jdbcType=VARCHAR},#{createTime,jdbcType=TIMESTAMP})
+  </insert>
+</mapper>
