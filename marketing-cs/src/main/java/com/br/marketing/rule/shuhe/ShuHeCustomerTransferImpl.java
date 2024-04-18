@@ -35,6 +35,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 数禾推送转化至客服转化 业务
@@ -86,14 +87,15 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
-
         //促复借新增推送字段
-        if("促复借".equals(transfer.getUserType())){
+        if ("促复借".equals(transfer.getUserType())) {
             conversionData.setInversionDate(transfer.getTransformTime());
             conversionData.setEffectiveDate(transfer.getRequestTime());
+            Map<String, Set<String>> validityMap = marketingCommonConfig.getShuHeNewPeriodOfValidityMap();
+            Set<String> set = validityMap.get(transfer.getApiCode());
             //生效截止时间
             String plusDays;
-            if ("3710043".equals(context.getApiCode()) || "7410799".equals(context.getApiCode())) {
+            if (set != null && set.contains(transfer.getUserType())) {
                 Map<String, SyncUserValidityPeriodsBO> boMap = shuHeRuleNecessaryData.getUserValidityPeriodsBOMap();
                 plusDays = boMap.get(transfer.getCustNum()).getBuilders().get(0).addDateString().builder().getEnDateStr();
             } else {
@@ -137,9 +139,10 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                     IUserType iUserType = shuHeContext.getIUserType();
                     Date creatTime = shuHeContext.getCreatTime();
                     CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-                    boolean boolCuFuJie = iUserType instanceof CuFuJie;
+                    Map<String, Set<String>> validityMap = marketingCommonConfig.getShuHeNewPeriodOfValidityMap();
+                    Set<String> set = validityMap.get(context.getApiCode());
                     boolean boolPeriod;
-                    if (boolCuFuJie && ("3710043".equals(context.getApiCode()) || "7410799".equals(context.getApiCode()))) {
+                    if (set != null && set.contains(transfer.getUserType())) {
                         /* 2024-04-12 13:50 需求：
                          * title：D20240408数禾促复借数据有效期变更-3710043
                          * url：https://c.100credit.cn/pages/viewpage.action?pageId=155694311
@@ -168,7 +171,7 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                             iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
                             shuHeContext.setContinueJudgeRule(false);
                             bool = Boolean.TRUE;
-                        } else if (boolCuFuJie && ((CuFuJie) iUserType).ifTransfer(caseShuheUser
+                        } else if (iUserType instanceof CuFuJie && ((CuFuJie) iUserType).ifTransfer(caseShuheUser
                                 , creatTime, marketingCommonConfig)) {
                             // 转化
                             transferSyncUser.setIfTransform("1");

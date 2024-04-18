@@ -1510,5 +1510,11 @@ public class MarketingCommonConfig {
      * 数禾促复借转化数据提取执行时间
      */
     private String ShuHeCuFuJieTransferFileExecuteTime;
+
+    /**
+     * 2024-04-18 10:53
+     * 数禾适配新有效期apiCode与场景信息eg:{apiCode:[场景]}
+     */
+    private Map<String, Set<String>> shuHeNewPeriodOfValidityMap = new HashMap<>();
 }
 
