@@ -74,7 +74,7 @@ public class ZhongBangCustomerBlackListImpl implements AssembleData<BlackDetailD
 
     @Override
     public String label() {
-        return "ZhongAn_TransferData_CustomerBlackList";
+        return "ZhongBang_TransferData_CustomerBlackList";
     }
 
     @Override
