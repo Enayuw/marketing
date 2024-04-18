@@ -154,7 +154,7 @@ public interface MarketingUserMapper {
 
         List<MarketingSyncUser> selectSyncUser(@Param("apiCode") String apiCode, @Param("requestId") String requestId);
 
-        MarketingSyncUser selectSyncUserByCustNum(@Param("apiCode") String apiCode, @Param("custNum") String custNum);
+        MarketingSyncUser selectSyncUserByCustNum(@Param("apiCode") String apiCode, @Param("custNum") String custNum, @Param("cell") String cell);
 
         List<MarketingSyncUser> findCustNumCellUserTypeScoreDatePage(@Param("apiCode") String apiCode
                 , @Param("beginTime") String beginTime

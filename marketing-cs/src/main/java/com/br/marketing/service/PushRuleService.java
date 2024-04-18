@@ -144,7 +144,7 @@ public interface PushRuleService {
      * @param custNum
      * @return
      */
-    Result<MarketingSyncUser> queryCustInfo(String cid, String apiCode, String custNum);
+    Result<MarketingSyncUser> queryCustInfo(String cid, String apiCode, String custNum, String cell);
 
 
     /**

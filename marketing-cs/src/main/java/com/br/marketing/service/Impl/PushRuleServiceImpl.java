@@ -2261,10 +2261,10 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @return
      */
     @Override
-    public Result<MarketingSyncUser> queryCustInfo(String cid, String apiCode, String custNum) {
+    public Result<MarketingSyncUser> queryCustInfo(String cid, String apiCode, String custNum, String cell) {
         Result<MarketingSyncUser> result = new Result<>();
         //校验
-        if ((StringUtils.isBlank(cid) && StringUtils.isBlank(apiCode)) || StringUtils.isBlank(custNum)) {
+        if ((StringUtils.isBlank(cid) && StringUtils.isBlank(apiCode)) || (StringUtils.isBlank(custNum) && StringUtils.isBlank(cell))) {
             return result.setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数缺失");
         }
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
@@ -2280,7 +2280,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 String ac = customer.getApiCode();
                 if (StringUtils.isNotBlank(ac)) {
                     try {
-                        MarketingSyncUser vo = marketingUserMapper.selectSyncUserByCustNum(ac, custNum);
+                        MarketingSyncUser vo = marketingUserMapper.selectSyncUserByCustNum(ac, custNum, cell);
                         if (vo != null) {
                             list.add(vo);
                         }
