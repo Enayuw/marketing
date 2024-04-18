@@ -1515,6 +1515,6 @@ public class MarketingCommonConfig {
      * 2024-04-18 10:53
      * 数禾适配新有效期apiCode与场景信息eg:{apiCode:[场景]}
      */
-    private Map<String, Set<String>> shuHeNewPeriodOfValidityMap = new HashMap<>();
+    private Map<String, JSONArray> shuHeNewPeriodOfValidityMap = new HashMap<>();
 }
 

@@ -1,6 +1,7 @@
 package com.br.marketing.rule.shuhe;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
@@ -35,7 +36,6 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * 数禾推送转化至客服转化 业务
@@ -91,8 +91,8 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
         if ("促复借".equals(transfer.getUserType())) {
             conversionData.setInversionDate(transfer.getTransformTime());
             conversionData.setEffectiveDate(transfer.getRequestTime());
-            Map<String, Set<String>> validityMap = marketingCommonConfig.getShuHeNewPeriodOfValidityMap();
-            Set<String> set = validityMap.get(transfer.getApiCode());
+            Map<String, JSONArray> validityMap = marketingCommonConfig.getShuHeNewPeriodOfValidityMap();
+            JSONArray set = validityMap.get(context.getApiCode());
             //生效截止时间
             String plusDays;
             if (set != null && set.contains(transfer.getUserType())) {
@@ -139,8 +139,8 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                     IUserType iUserType = shuHeContext.getIUserType();
                     Date creatTime = shuHeContext.getCreatTime();
                     CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-                    Map<String, Set<String>> validityMap = marketingCommonConfig.getShuHeNewPeriodOfValidityMap();
-                    Set<String> set = validityMap.get(context.getApiCode());
+                    Map<String, JSONArray> validityMap = marketingCommonConfig.getShuHeNewPeriodOfValidityMap();
+                    JSONArray set = validityMap.get(context.getApiCode());
                     boolean boolPeriod;
                     if (set != null && set.contains(transfer.getUserType())) {
                         /* 2024-04-12 13:50 需求：
