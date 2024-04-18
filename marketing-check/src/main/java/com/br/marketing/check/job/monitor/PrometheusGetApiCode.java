@@ -35,7 +35,7 @@ public class PrometheusGetApiCode extends AbstractSimpleElasticJob {
 
         List<MarketingCustomer> list = marketingCustomerMapper.selectByExample(example);
 
-        list.forEach(marketingCustomer -> {
+        list.forEach((MarketingCustomer marketingCustomer) -> {
             BrCounter.count(PrometheusMonitorUtils.CUSTOMER_APICODE_METRIC_NAME, marketingCustomer.getApiCode(), marketingCustomer.getName());
         });
 
