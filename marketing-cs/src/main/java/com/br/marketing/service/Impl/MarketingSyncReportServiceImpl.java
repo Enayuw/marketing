@@ -424,6 +424,9 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     @Override
     public JSONObject getReportByCell(String cidOrName, String appletTimeStart, String appletTimeEnd
             , String apiCodes, String userTypes, String cell, String orderField, String descField){
+        if (StringUtils.isNotEmpty(appletTimeEnd)){
+            appletTimeEnd = DateUtils.format(addDay(appletTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
+        }
         // 1. 明文 cell 需要log加密
         if(CellUtils.isValidateCell(cell)){
             cell = DataMask.mask(cell, SensitiveType.LogMask, "");
