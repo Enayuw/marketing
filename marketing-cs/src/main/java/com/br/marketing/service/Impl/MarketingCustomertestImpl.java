@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import com.br.marketing.config.datasourceconfig.datasourceannotion.DbOfDorisMarketing;
 import com.br.marketing.config.datasourceconfig.datasourceannotion.DbOfTikvMarketing;
 import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.mapper.MarketingCustomerMapper;
@@ -18,5 +19,13 @@ public class MarketingCustomertestImpl {
     @Transactional
     public List<MarketingCustomer> getMarketingOftikvs(){
         return marketingCustomerMapper.selectCustomerBytestPartiontikv_();
+    }
+    @DbOfDorisMarketing
+//    @Transactional
+    public List<MarketingCustomer> getMarketingOfdoris(){
+        return marketingCustomerMapper.selectCustomerBytestPartiondoris();
+    }
+    public List<MarketingCustomer> getMarketingOf2doris(){
+        return marketingCustomerMapper.selectCustomerBytestPartiondoris_();
     }
 }

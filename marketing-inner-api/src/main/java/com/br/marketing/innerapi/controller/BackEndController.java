@@ -4,6 +4,8 @@ import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.service.Impl.MarketingCustomertestImpl;
 import com.br.marketing.service.PushRuleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * @Description 后台接口控制器
@@ -27,6 +31,8 @@ public class BackEndController {
     private static final Logger log = LoggerFactory.getLogger(BackEndController.class);
     @Autowired
     PushRuleService pushRuleService;
+    @Autowired
+    MarketingCustomertestImpl marketingCustomertest;
 
     /**
      * 查询客户信息接口（外呼→营销）
@@ -48,5 +54,14 @@ public class BackEndController {
             log.error("外呼查询营销客户信息接口异常",ex);
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
+    }
+
+    @PostMapping("/queryCustInfo2")
+    public void testDoris(){
+//        log.warn("注解方式查询doris：{}",marketingCustomertest.getMarketingOfdoris());
+//        System.out.println(marketingCustomertest.getMarketingOfdoris());
+        List<MarketingCustomer> marketingOftikvs = marketingCustomertest.getMarketingOftikvs();
+        log.warn("方法名查询doris：{}",marketingCustomertest.getMarketingOf2doris());
+        System.out.println(marketingCustomertest.getMarketingOf2doris());
     }
 }

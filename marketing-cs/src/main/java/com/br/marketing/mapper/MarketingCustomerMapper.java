@@ -50,6 +50,8 @@ public interface MarketingCustomerMapper extends MarketingCustomerMapperBase {
     List<MarketingCustomer> selectCustomerBytestPartiontifh_();
 
     List<MarketingCustomer> selectCustomerBytestPartiontikv_();
+    List<MarketingCustomer> selectCustomerBytestPartiondoris();
+    List<MarketingCustomer> selectCustomerBytestPartiondoris_();
 
     List<MarketingCustomer> getNameByApiCodeList(@Param("apiCode") String apiCode);
 

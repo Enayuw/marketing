@@ -159,6 +159,14 @@
         where a.num = 1
     </select>
 
+    <select id="selectCustomerBytestPartiondoris" resultType="string">
+        select cust_num from t3 where id =1
+    </select>
+
+    <select id="selectCustomerBytestPartiondoris_" resultType="string">
+        select cust_num from t3 where id =2
+    </select>
+
     <select id="getNameByApiCodeList" resultType="com.br.marketing.entity.MarketingCustomer">
         select name, short_name, cid, api_code
         from b_marketing_customer
