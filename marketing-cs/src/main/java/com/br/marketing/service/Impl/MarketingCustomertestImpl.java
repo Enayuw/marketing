@@ -22,10 +22,10 @@ public class MarketingCustomertestImpl {
     }
     @DbOfDorisMarketing
 //    @Transactional
-    public List<MarketingCustomer> getMarketingOfdoris(){
+    public List<String> getMarketingOfdoris(){
         return marketingCustomerMapper.selectCustomerBytestPartiondoris();
     }
-    public List<MarketingCustomer> getMarketingOf2doris(){
+    public List<String> getMarketingOf2doris(){
         return marketingCustomerMapper.selectCustomerBytestPartiondoris_();
     }
 }
