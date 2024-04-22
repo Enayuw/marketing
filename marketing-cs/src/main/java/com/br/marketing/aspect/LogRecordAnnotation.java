@@ -1,5 +1,7 @@
 package com.br.marketing.aspect;
 
+import com.br.marketing.enums.InterfaceOperationsEnum;
+
 import java.lang.annotation.*;
 
 /**
@@ -16,7 +18,7 @@ public @interface LogRecordAnnotation {
      * 关联的接口操作枚举
      * 对应：InterfaceOperationsEnum
      */
-    String bizNo() default "";
+    InterfaceOperationsEnum bizNo();
 
     /**
      * 比较详细的一条操作日志 比如：

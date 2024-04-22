@@ -6,6 +6,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.entity.RequestOperationLog;
 import com.br.marketing.entity.auth.MarketingUserDetail;
+import com.br.marketing.enums.InterfaceOperationsEnum;
 import com.br.marketing.handle.LogSpelProcess;
 import com.br.marketing.service.LogRecordService;
 import com.google.common.collect.Lists;
@@ -89,7 +90,9 @@ public class LogRecordAspect {
      */
     private RequestOperationLog recordLog(LogRecordAnnotation annotation, ProceedingJoinPoint joinPoint) {
         // 获取存在Spel表达式的属性
-        List<String> templates = Lists.newArrayList(annotation.bizNo(), annotation.extendInfo(),annotation.originalValue());
+        InterfaceOperationsEnum interfaceOperationsEnum = annotation.bizNo();
+        String code = interfaceOperationsEnum.getCode();
+        List<String> templates = Lists.newArrayList(code,annotation.extendInfo(),annotation.originalValue());
         templates = templates.stream().filter(e -> StringUtils.isNotBlank(e)).collect(Collectors.toList());
         // 解析SPEL属性和方法
         HashMap<String, String> processMap = logSpelProcess.processBeforeExec(templates, joinPoint);
@@ -104,7 +107,7 @@ public class LogRecordAspect {
 
         RequestOperationLog requestOperationLog = new RequestOperationLog();
         requestOperationLog.setOperator(userDetail.getUserName());
-        requestOperationLog.setBizNo(process.get(annotation.bizNo()));
+        requestOperationLog.setBizNo(code);
         requestOperationLog.setRequestParam(JSONObject.toJSONString(args));
         requestOperationLog.setUrl(attributes.getRequest().getRequestURI());
         requestOperationLog.setExtendInfo(process.get(annotation.extendInfo()));
