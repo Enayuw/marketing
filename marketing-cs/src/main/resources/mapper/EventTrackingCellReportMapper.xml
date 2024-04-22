@@ -33,6 +33,8 @@
     <select id="selectCellReportDetailListtikv_" resultType="com.br.marketing.entity.eventtrack.EventTrackingCellReportDetail">
         select DATE_FORMAT(create_time, '%Y-%m-%d') as createDate, user_name as userName,
             json_unquote(json_extract(request_param,'$.cidOrName')) as cidOrName,
+            json_unquote(json_extract(request_param,'$.cid')) as cid,
+            json_unquote(json_extract(request_param,'$.shortName')) as shortName,
             json_unquote(json_extract(request_param,'$.apiCodes')) as apiCodes,
             cell, create_time as createTime
         from b_event_tracking_cell_report

@@ -25,6 +25,14 @@ public class EventTrackingCellReportDetail {
      */
     private String cidOrName;
     /**
+     * apiCode对应的cid
+     */
+    private String cid;
+    /**
+     * apiCode对应的shortName
+     */
+    private String shortName;
+    /**
      * 使用手机号查询时入参：apiCode
      */
     private String apiCodes;

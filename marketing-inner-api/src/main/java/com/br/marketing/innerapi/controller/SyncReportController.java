@@ -144,9 +144,9 @@ public class SyncReportController {
     public ApiResult<JSONObject> getReportByCell(@RequestParam(required = false) String cidOrName
             , @RequestParam(required = false) String appletTimeStart
             , @RequestParam(required = false) String appletTimeEnd
-            , @RequestParam String apiCodes
+            , @RequestParam(required = false) String apiCodes
             , @RequestParam(required = false) String userTypes
-            , @RequestParam String cell
+            , @RequestParam(required = false) String cell
             , @RequestParam(defaultValue = "applet_date") String orderField
             , @RequestParam(defaultValue = "desc") String descField) {
         if(StringUtils.isBlank(apiCodes) || StringUtils.isBlank(cell)){

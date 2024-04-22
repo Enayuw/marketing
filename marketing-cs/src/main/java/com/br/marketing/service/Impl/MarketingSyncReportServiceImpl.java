@@ -431,7 +431,6 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         if(CellUtils.isValidateCell(cell)){
             cell = DataMask.mask(cell, SensitiveType.LogMask, "");
         }
-        packageAndSendEventTrack(cidOrName, appletTimeStart, appletTimeEnd, apiCodes, userTypes, cell);
         List<String> apiCodeList = transformStringToListByComma(apiCodes);
         List<String> userTypeList = transformStringToListByComma(userTypes);
         // 2. 通过 apiCodes 获取客户信息,并将结果填充到响应中
@@ -440,7 +439,8 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         List<MarketingCustomer> list = marketingCustomerMapper.selectByExample(example);
         Map<String, MarketingCustomer> customerMap = list.stream()
                 .collect(Collectors.toMap(MarketingCustomer::getApiCode, Function.identity()));
-
+        // 发送日志记录
+        packageAndSendEventTrack(cidOrName, appletTimeStart, appletTimeEnd, apiCodes, userTypes, cell, customerMap);
         // 3. 根据 apiCodes,cell 查询结果
         JSONObject result = new JSONObject();
         List<MarketingSyncUserCell> syncUserListAllApiCode = new ArrayList<>();
@@ -487,7 +487,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     }
 
     public void packageAndSendEventTrack(String cidOrName, String appletTimeStart, String appletTimeEnd
-            , String apiCodes, String userTypes, String cell){
+            , String apiCodes, String userTypes, String cell, Map<String, MarketingCustomer> customerMap){
         try{
             MarketingUserDetail userDetail = ThreadContextInfo.getUser();
             EventTrackingCellReport cellReport = new EventTrackingCellReport();
@@ -500,6 +500,11 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             cellReport.setRealName(userDetail.getRealName());
             JSONObject param = new JSONObject();
             param.put("cidOrName", cidOrName);
+            MarketingCustomer marketingCustomer = customerMap.get(apiCodes);
+            if(null != marketingCustomer){
+                param.put("cid", marketingCustomer.getCid());
+                param.put("shortName", marketingCustomer.getShortName());
+            }
             param.put("appletTimeStart", appletTimeStart);
             param.put("appletTimeEnd", appletTimeEnd);
             param.put("apiCodes", apiCodes);
