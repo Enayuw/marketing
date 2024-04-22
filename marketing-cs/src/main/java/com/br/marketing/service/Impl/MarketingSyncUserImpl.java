@@ -268,6 +268,11 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     }
 
     @Override
+    public Long noDesUploadOfMinId(String apiCode) {
+        return marketingSyncUserMapper.noDesUploadByMinIdtiflash_(apiCode);
+    }
+
+    @Override
     public Integer updateSqlByNoDes(String updateSql) {
         return marketingSyncUserMapper.updateSqlByNoDestikv_(updateSql);
     }

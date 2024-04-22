@@ -324,5 +324,7 @@ public interface MarketingSyncUserMapper {
 
     List<MarketingSyncUser> noDesUploadByMinIdtikv_(@Param("apiCode") String apiCode, @Param("minId") Long minId);
 
+    Long noDesUploadByMinIdtiflash_(@Param("apiCode") String apiCode);
+
     Integer updateSqlByNoDestikv_(@Param("updateSql") String updateSql);
 }

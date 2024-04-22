@@ -242,5 +242,7 @@ public interface IMarketingSyncUserService {
 
     List<MarketingSyncUser> noDesUploadByMinId(String apiCode,Long minId);
 
+    Long noDesUploadOfMinId(String apiCode);
+
     Integer updateSqlByNoDes(String updateSql);
 }

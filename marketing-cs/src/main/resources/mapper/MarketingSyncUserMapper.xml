@@ -868,5 +868,11 @@
             </if>
         order by `id` asc limit 2000
     </select>
+    <select id="noDesUploadByMinIdtiflash_" resultType="java.lang.Long">
+        select min(id)
+        from b_marketing_sync_${apiCode}
+        where
+        cell_md5 is null and status = 1
+    </select>
 
 </mapper>
