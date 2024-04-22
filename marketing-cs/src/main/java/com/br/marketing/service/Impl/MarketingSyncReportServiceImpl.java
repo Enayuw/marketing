@@ -440,7 +440,8 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         Map<String, MarketingCustomer> customerMap = list.stream()
                 .collect(Collectors.toMap(MarketingCustomer::getApiCode, Function.identity()));
         // 发送日志记录
-        packageAndSendEventTrack(cidOrName, appletTimeStart, appletTimeEnd, apiCodes, userTypes, cell, customerMap);
+        packageAndSendEventTrack(cidOrName, appletTimeStart, appletTimeEnd, apiCodes
+                , userTypes, cell, customerMap, apiCodeList);
         // 3. 根据 apiCodes,cell 查询结果
         JSONObject result = new JSONObject();
         List<MarketingSyncUserCell> syncUserListAllApiCode = new ArrayList<>();
@@ -487,7 +488,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     }
 
     public void packageAndSendEventTrack(String cidOrName, String appletTimeStart, String appletTimeEnd
-            , String apiCodes, String userTypes, String cell, Map<String, MarketingCustomer> customerMap){
+            , String apiCodes, String userTypes, String cell, Map<String, MarketingCustomer> customerMap, List<String> apiCodeList){
         try{
             MarketingUserDetail userDetail = ThreadContextInfo.getUser();
             EventTrackingCellReport cellReport = new EventTrackingCellReport();
@@ -500,7 +501,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             cellReport.setRealName(userDetail.getRealName());
             JSONObject param = new JSONObject();
             param.put("cidOrName", cidOrName);
-            MarketingCustomer marketingCustomer = customerMap.get(apiCodes);
+            MarketingCustomer marketingCustomer = customerMap.get(apiCodeList.get(0));
             if(null != marketingCustomer){
                 param.put("cid", marketingCustomer.getCid());
                 param.put("shortName", marketingCustomer.getShortName());
