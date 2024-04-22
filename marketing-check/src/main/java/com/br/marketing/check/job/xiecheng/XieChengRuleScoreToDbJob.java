@@ -1,4 +1,4 @@
-package com.br.marketing.check.job.xiecheng.colliding;
+package com.br.marketing.check.job.xiecheng;
 
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
