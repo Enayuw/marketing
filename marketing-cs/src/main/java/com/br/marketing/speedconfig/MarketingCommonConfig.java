@@ -1516,5 +1516,16 @@ public class MarketingCommonConfig {
      * 数禾适配新有效期apiCode与场景信息eg:{apiCode:[场景]}
      */
     private Map<String, JSONArray> shuHeNewPeriodOfValidityMap = new HashMap<>();
+
+    /**
+     * 携程跑分数据同步、TRUE数据剔除、非TRUE数据清洗apicode集合
+     */
+    private List<String> xieChengCollidingDataProcessApiCodes;
+
+    /**
+     * 携程跑分数据同步 查询T-n~T日跑分记录表
+     * XieChengRuleScoreToDbLastDays=3（T-3~T）
+     */
+    private Integer XieChengRuleScoreToDbLastDays;
 }
 
