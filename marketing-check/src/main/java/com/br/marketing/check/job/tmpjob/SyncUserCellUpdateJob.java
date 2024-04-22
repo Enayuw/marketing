@@ -61,6 +61,10 @@ public class SyncUserCellUpdateJob extends AbstractSimpleElasticJob {
                     .getThreadPool(threadSize, threadSize);
             Boolean mark = Boolean.TRUE;
             Long minId = iMarketingSyncUserService.noDesUploadOfMinId(code);
+            if (minId == null) {
+                continue;
+            }
+            minId = minId - 1;
             while (mark) {
                 List<MarketingSyncUser> marketingSyncUsers = iMarketingSyncUserService.noDesUploadByMinId(code, minId);
                 if (marketingSyncUsers.size() <= 0) {
