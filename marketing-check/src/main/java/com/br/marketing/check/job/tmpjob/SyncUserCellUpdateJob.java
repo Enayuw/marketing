@@ -64,6 +64,7 @@ public class SyncUserCellUpdateJob extends AbstractSimpleElasticJob {
             if (minId == null) {
                 continue;
             }
+            log.warn(String.format("apiCode:【%s】清洗开始", code));
             minId = minId - 1;
             while (mark) {
                 List<MarketingSyncUser> marketingSyncUsers = iMarketingSyncUserService.noDesUploadByMinId(code, minId);
