@@ -23,5 +23,4 @@ public class LogRecordServiceImpl implements LogRecordService {
     public void insert(RequestOperationLog requestOperationLog) {
         requestOperationLogMapper.insert(requestOperationLog);
     }
-
 }

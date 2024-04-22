@@ -1,8 +1,10 @@
 package com.br.marketing.mapper;
 
-/**
- * @author kongbx
- * @date 2024/4/18
- */
+import com.br.marketing.entity.RequestOperationLog;
+import com.br.marketing.entity.RequestOperationLogExample;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+
 public interface RequestOperationLogMapper extends RequestOperationLogMapperBase{
 }
