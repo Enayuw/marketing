@@ -6,6 +6,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.entity.RequestOperationLog;
 import com.br.marketing.entity.auth.MarketingUserDetail;
+import com.br.marketing.handle.LogSpelProcess;
 import com.br.marketing.service.LogRecordService;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -92,9 +93,9 @@ public class LogRecordAspect {
         List<String> templates = Lists.newArrayList(annotation.bizNo(), annotation.extendInfo());
         templates = templates.stream().filter(e -> StringUtils.isNotBlank(e)).collect(Collectors.toList());
         // 解析SPEL属性和方法
-        HashMap<String, String> process = logSpelProcess.processBeforeExec(templates, joinPoint);
+        HashMap<String, String> processMap = logSpelProcess.processBeforeExec(templates, joinPoint);
         // 解析三目运算
-        //HashMap<String, String> process = logSpelProcess.ternaryProcess(processMap, joinPoint);
+        HashMap<String, String> process = logSpelProcess.ternaryProcess(processMap, joinPoint);
         // 获取当前登录人信息
         MarketingUserDetail userDetail = ThreadContextInfo.getUser();
         // 从当前请求上下文中获取ServletRequestAttributes对象
