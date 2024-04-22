@@ -55,13 +55,4 @@ public class BackEndController {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
     }
-
-    @PostMapping("/queryCustInfo2")
-    public void testDoris(){
-//        log.warn("注解方式查询doris：{}",marketingCustomertest.getMarketingOfdoris());
-//        System.out.println(marketingCustomertest.getMarketingOfdoris());
-        List<MarketingCustomer> marketingOftikvs = marketingCustomertest.getMarketingOftikvs();
-        log.warn("方法名查询doris：{}",marketingCustomertest.getMarketingOf2doris());
-        System.out.println(marketingCustomertest.getMarketingOf2doris());
-    }
 }

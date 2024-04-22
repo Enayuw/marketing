@@ -20,12 +20,4 @@ public class MarketingCustomertestImpl {
     public List<MarketingCustomer> getMarketingOftikvs(){
         return marketingCustomerMapper.selectCustomerBytestPartiontikv_();
     }
-    @DbOfDorisMarketing
-//    @Transactional
-    public List<String> getMarketingOfdoris(){
-        return marketingCustomerMapper.selectCustomerBytestPartiondoris();
-    }
-    public List<String> getMarketingOf2doris(){
-        return marketingCustomerMapper.selectCustomerBytestPartiondoris_();
-    }
 }
