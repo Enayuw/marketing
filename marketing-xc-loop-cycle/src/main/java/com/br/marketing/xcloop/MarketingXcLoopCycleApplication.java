@@ -5,6 +5,7 @@ import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
+import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
@@ -23,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @EnablePrometheusJvm
 @EnableHystrixPrometheus
 @EnablePrometheusTiming
+@EnableDruidPrometheus
 @Slf4j
 public class MarketingXcLoopCycleApplication {
     public static ConfigurableApplicationContext ac;

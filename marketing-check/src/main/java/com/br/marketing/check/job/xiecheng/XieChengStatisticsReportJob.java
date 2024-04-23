@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -50,9 +49,9 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
 
     /**
      * job参数：
-     * 说明： apiCode,cid,resultData(T),skipSendEmail (参数整体一次传一组)
-     * 样例1： 3710058,643,2024-04-02,true (单独生成某个apiCode和对应cid的 T-1 数据,不发送邮件)
-     * 样例2： 3710058,643,2024-04-01,false (每月月末触发job，生成每月的报表并发邮件)
+     * 说明： apiCode,cid,resultData(T),skipSendEmail,excludeLineName (参数整体一次传一组)
+     * 样例1： 3710058,643,2024-04-02,true,挡板 (单独生成某个apiCode和对应cid的 T-1 数据,不发送邮件)
+     * 样例2： 3710058,643,2024-04-01,false,挡板 (每月月末触发job，生成每月的报表并发邮件)
      * @Author yu.xia@brgroup.com
      * @Date 2024/4/1 20:42
      * @param context
@@ -62,8 +61,11 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
         String uuid = UUID.randomUUID().toString();
         String jobParameter = context.getJobParameter();
         log.warn("XieChengStatisticsReportJob-start-{}-jobParam:[{}]",uuid,jobParameter);
+        // 没有配置job参数，默认使用下面这些值
         String apiCode = "3710058";
         Long cid = 643L;
+        String emailRecipient = "yu.xia@brgroup.com,bin.huang@brgroup.com";
+        String excludeLineName = "挡板";
         String resultData="";
         // 是否跳过生成Excel和发送邮件 判断标识
         String skipSendEmail = "false";
@@ -73,10 +75,8 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
             cid = Long.valueOf(split[1]);
             resultData = split[2];
             skipSendEmail = split[3];
+            excludeLineName = split[4];
         }
-//        String emailRecipient = "yu.xia@brgroup.com";
-        String emailRecipient = "yu.xia@brgroup.com,bin.huang@brgroup.com";
-//        String emailRecipient = "mmg@brgroup.com,yu.xia@brgroup.com,bin.huang@brgroup.com";
         // 路径
 //        String excelFilePath = "D:\\test\\";
         String excelFilePath = syncConfigService.getPath().concat("excel/").concat("xc/").concat(apiCode).concat("/");
@@ -124,7 +124,7 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
         String excelPath = excelFilePath + fileName;
         try{
             //1.执行sql查询前一天的数据，并写入数据库表 b_xiecheng_statistics_report 中
-            xieChengStatisticsReporService.getUploadCountAndInsert(apiCode, cid, requestData, endData);
+            xieChengStatisticsReporService.getUploadCountAndInsert(apiCode, cid, requestData, endData, excludeLineName);
             if("false".equalsIgnoreCase(skipSendEmail)){
                 //2.读取数据库中的数据
                 List<XieChengStatisticsReport> xieChengStatisticsReports =
@@ -149,7 +149,7 @@ public class XieChengStatisticsReportJob extends AbstractSimpleElasticJob {
                 }
             }
         }
-        log.warn("XieChengStatisticsReportJob-end-{}apiCode[{}]cid[{}]requestData[{}]skipSendEmail[{}]",
-                uuid,apiCode,cid,requestData,skipSendEmail);
+        log.warn("XieChengStatisticsReportJob-end-{}-apiCode[{}]cid[{}]requestData[{}]skipSendEmail[{}]excludeLineName[{}]",
+                uuid,apiCode,cid,requestData,skipSendEmail,excludeLineName);
     }
 }

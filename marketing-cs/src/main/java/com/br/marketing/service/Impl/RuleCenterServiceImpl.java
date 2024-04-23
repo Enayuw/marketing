@@ -28,7 +28,7 @@ public class RuleCenterServiceImpl {
         }
 
         //region push mq
-        producter.send("Marketing.Push.CustomerService", res.getData());
+//        producter.send("Marketing.Push.CustomerService", res.getData());
         //endregion
 
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());

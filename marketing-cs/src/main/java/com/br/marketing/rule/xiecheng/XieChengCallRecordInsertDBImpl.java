@@ -42,6 +42,9 @@ public class XieChengCallRecordInsertDBImpl implements AssembleData<XieChengData
         xieChengData.setActionType("IVR");
         xieChengDataDTO.setInitId(bo.getId());
         xieChengData.setSha256Tel(bo.getCaseNum());
+
+        // 保存通话明细扩展字段
+        xieChengData.setExtend(bo.getDetail().getUserProperties());
         return xieChengDataDTO;
     }
 

@@ -79,7 +79,8 @@ public class IntelligentCustomerServiceClient {
             if (transfer.getHttpCode() != 200) {
                 throw new RuntimeException(String.format("接口状态返回非200 是%d", transfer.getHttpCode()));
             }
-            if ("00".equals(jsonObject.getString("code"))) {
+            if ("00".equals(jsonObject.getString("code"))
+                    || "900031".equals(jsonObject.getString("code"))) {
                 result.setCode(ResultCode.SUCCESS.getValue());
                 try {
                     //调用数量监控
@@ -112,7 +113,8 @@ public class IntelligentCustomerServiceClient {
                 result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
                 return result;
             }
-            if ("00".equals(jsonObject.getString("code"))) {
+            if ("00".equals(jsonObject.getString("code"))
+                    || "900031".equals(jsonObject.getString("code"))) {
                 result.setCode(ResultCode.SUCCESS.getValue());
                 try {
                     //监控
@@ -126,7 +128,7 @@ public class IntelligentCustomerServiceClient {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
             }
         } catch (Exception ex) {
-            logger.error(ex.getMessage(),ex);
+            logger.error(ex.getMessage(), ex);
             result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
         return result;

@@ -2,6 +2,7 @@ package com.br.marketing.context.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.RuleNecessaryData;
@@ -139,6 +140,11 @@ public class ShuHeRuleCollectDataImpl extends CommonMethodHandlerService {
         private MarketingSyncUser marketingSyncUserByCell;
 
         private MarketingTransferSyncUser transfer;
+
+        /**
+         * 转化所需要的有效期数据
+         */
+        private Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBOMap;
 
         public void setTransfer(MarketingTransferSyncUser transfer) {
             this.transfer = transfer;

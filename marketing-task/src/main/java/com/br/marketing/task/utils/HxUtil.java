@@ -44,7 +44,7 @@ public class HxUtil {
             try {
                 extendConfigInfoJson = JSONObject.parseObject(extendConfigInfo);
             } catch (Exception e) {
-                log.error("客户扩展字段格式化异常,apiCode={},data={}", customer.getApiCode(), extendConfigInfo);
+                log.error("客户扩展字段格式化异常,apiCode={},data={}", customer.getApiCode(), extendConfigInfo, e);
             }
         }
         String replaceApiCode = extendConfigInfoJson.getString("replaceApiCode");
@@ -126,7 +126,7 @@ public class HxUtil {
             try {
                 extendConfigInfoJson = JSONObject.parseObject(extendConfigInfo);
             } catch (Exception e) {
-                log.error("客户扩展字段格式化异常,apiCode={},data={}", customer.getApiCode(), extendConfigInfo);
+                log.error("客户扩展字段格式化异常,apiCode={},data={}", customer.getApiCode(), extendConfigInfo, e);
             }
         }
         String replaceApiCode = extendConfigInfoJson.getString("replaceApiCode");

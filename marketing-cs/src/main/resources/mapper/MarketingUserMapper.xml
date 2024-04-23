@@ -263,9 +263,16 @@
 		where request_batch = #{requestId}
 	</select>
 	<select id="selectSyncUserByCustNum" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select *
-        from  b_marketing_sync_${apiCode}
-        where cust_num = #{custNum} and status = 1 order by applet_time desc limit 1
+		select *
+		from b_marketing_sync_${apiCode}
+		where status = 1
+		<if test="custNum != null and custNum != ''">
+			and cust_num = #{custNum}
+		</if>
+		<if test="cell != null and cell != ''">
+			and cell = #{cell}
+		</if>
+		order by applet_time desc limit 1
     </select>
     <insert id="insertLoanUser" parameterType="map">
 		INSERT INTO b_marketing_user (`api_code`,

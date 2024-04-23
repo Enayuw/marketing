@@ -678,7 +678,7 @@ public class MethodRetryHandlerService {
                 pushMarketingUserDTO.setJsonData(taskInfoDTO);
             }
         } catch (Exception e) {
-            log.error("决策重试接口类型转化失败", e.getMessage());
+            log.error("决策重试接口类型转化失败", e);
         }
         Long infoId = dto.getInfoId();
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);

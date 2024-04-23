@@ -232,7 +232,7 @@ public class MergeServiceImpl implements MergeService {
             blf.setScoreStatus(2);
 
         }catch (Exception e){
-            log.error("上传fastdfs异常，{}",blf.getFilePath());
+            log.error("上传fastdfs异常，{}",blf.getFilePath(), e);
         }
     }
     private ArrayList<String> standard(String fileName, String separator, Integer total) {
