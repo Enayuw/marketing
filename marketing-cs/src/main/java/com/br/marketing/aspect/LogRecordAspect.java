@@ -22,10 +22,13 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.lang.reflect.Method;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -42,6 +45,8 @@ public class LogRecordAspect {
 
     @Autowired
     private LogRecordService logRecordService;
+
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(50);
 
     @Pointcut("@annotation(com.br.marketing.aspect.LogRecordAnnotation)")
     private void method() {
@@ -72,13 +77,14 @@ public class LogRecordAspect {
             Object proceed = joinPoint.proceed();
             // 返回值
             String result = JSONUtil.parseObj(proceed).toString();
-            requestOperationLog.setResult(result);
-            //异步存储，这里用默认线程池，也可以自定义线程池
-            CompletableFuture.runAsync(() ->
-                    logRecordService.insert(requestOperationLog)
-            );
+            if(StringUtils.isNotEmpty(result)){
+                requestOperationLog.setResult(result);
+            }
+            executorService.submit(() -> {
+                logRecordService.insert(requestOperationLog);
+            });
         } catch (Exception e) {
-            throw new Exception("目标方法执行异常," + e.getMessage());
+            log.error("目标方法执行异常",e);
         }
     }
 
