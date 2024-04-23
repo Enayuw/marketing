@@ -1,6 +1,7 @@
 package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.aspect.LogAnnotation;
+import com.br.marketing.aspect.LogRecordAnnotation;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
@@ -9,6 +10,7 @@ import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
 import com.br.marketing.context.ThreadContextInfo;
+import com.br.marketing.enums.InterfaceOperationsEnum;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.Impl.RuleCenterServiceImpl;
@@ -187,5 +189,18 @@ public class PushRuleFilterController {
         return "true";
     }
 
+    /**
+     * 测试通用日志
+     */
+    @ApiOperation(value = "测试通用日志")
+    @GetMapping("/testLog")
+    @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_INSERT_DATA,
+            extendInfo= "修改了数据包一中的原开启撞库时间{#dto.apiCode}的设定撞得量级[getUserName{#dto.cell}]修改为{#dto.cell}的设定撞得量级{#dto.dataCode}")
+    //@LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_INSERT_DATA,
+    //        extendInfo= "#dto.custNum == null ? '新增' + #dto.custNum + '用户':'将用户id为' + #dto.custNum + '的用户名更新为' + #dto.custNum")
+    public ApiResult testLog(@RequestBody DataJoinLogDTO dto) {
+        Result<Map<String, Object>> companyAndModule = pushRuleService.getCompanyAndModule("7491630");
+        return new ApiResult().fromResult(companyAndModule, CODE_000000);
+    }
 
 }
