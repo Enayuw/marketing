@@ -82,7 +82,7 @@
       distinct
     </if>
     <include refid="Base_Column_List" />
-    from b_xiecheng_rule_score_record
+    from b_xiecheng_colliding_rule_score_record
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
@@ -93,15 +93,15 @@
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
-    from b_xiecheng_rule_score_record
+    from b_xiecheng_colliding_rule_score_record
     where id = #{id,jdbcType=BIGINT}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
-    delete from b_xiecheng_rule_score_record
+    delete from b_xiecheng_colliding_rule_score_record
     where id = #{id,jdbcType=BIGINT}
   </delete>
   <delete id="deleteByExample" parameterType="com.br.marketing.entity.XieChengRuleScoreRecordExample" >
-    delete from b_xiecheng_rule_score_record
+    delete from b_xiecheng_colliding_rule_score_record
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
@@ -110,7 +110,7 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_xiecheng_rule_score_record (api_code, batch_number, file_name, 
+    insert into b_xiecheng_colliding_rule_score_record (api_code, batch_number, file_name, 
       record_status, actual_number, extend, 
       error_message, create_time, update_time, 
       is_delete)
@@ -123,7 +123,7 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_xiecheng_rule_score_record
+    insert into b_xiecheng_colliding_rule_score_record
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
         api_code,
@@ -190,13 +190,13 @@
     </trim>
   </insert>
   <select id="countByExample" parameterType="com.br.marketing.entity.XieChengRuleScoreRecordExample" resultType="java.lang.Integer" >
-    select count(*) from b_xiecheng_rule_score_record
+    select count(*) from b_xiecheng_colliding_rule_score_record
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
   <update id="updateByExampleSelective" parameterType="map" >
-    update b_xiecheng_rule_score_record
+    update b_xiecheng_colliding_rule_score_record
     <set >
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
@@ -237,7 +237,7 @@
     </if>
   </update>
   <update id="updateByExample" parameterType="map" >
-    update b_xiecheng_rule_score_record
+    update b_xiecheng_colliding_rule_score_record
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       batch_number = #{record.batchNumber,jdbcType=VARCHAR},
@@ -254,7 +254,7 @@
     </if>
   </update>
   <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.XieChengRuleScoreRecord" >
-    update b_xiecheng_rule_score_record
+    update b_xiecheng_colliding_rule_score_record
     <set >
       <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
@@ -290,7 +290,7 @@
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XieChengRuleScoreRecord" >
-    update b_xiecheng_rule_score_record
+    update b_xiecheng_colliding_rule_score_record
     set api_code = #{apiCode,jdbcType=VARCHAR},
       batch_number = #{batchNumber,jdbcType=VARCHAR},
       file_name = #{fileName,jdbcType=VARCHAR},
