@@ -6,7 +6,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.common.mask.DataMask;
+import com.br.common.mask.SensitiveType;
 import com.br.common.util.DateUtils;
+import com.br.common.validator.CellUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -15,14 +18,18 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
 import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.entity.auth.MarketingUserDetail;
+import com.br.marketing.entity.eventtrack.EventTrackingCellReport;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.MarketingSyncReportService;
 import com.br.marketing.service.ValidityPeriodResendRecordService;
+import com.br.marketing.service.eventtrack.EventTrackService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.MarketingSyncReportNumVO;
 import com.br.marketing.vo.MarketingSyncReportVO;
@@ -46,6 +53,7 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -94,10 +102,16 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     private MarketingCustomerService marketingCustomerService;
 
     @Resource
+    private MarketingCustomerMapper marketingCustomerMapper;
+
+    @Resource
     private PlatformTransactionManager platformTransactionManager;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private EventTrackService eventTrackService;
 
     @Override
     public void syncReportProcess(String uploadDate, String jobName) {
@@ -405,6 +419,104 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         map.put("normalNumTotal", normalNumTotal);
         map.put("duplicateRemovalNumTotal", duplicateRemovalNumTotal);
         return map;
+    }
+
+    @Override
+    public JSONObject getReportByCell(String cidOrName, String appletTimeStart, String appletTimeEnd
+            , String apiCodes, String userTypes, String cell, String orderField, String descField){
+        if (StringUtils.isNotEmpty(appletTimeEnd)){
+            appletTimeEnd = DateUtils.format(addDay(appletTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
+        }
+        // 1. 明文 cell 需要log加密
+        if(CellUtils.isValidateCell(cell)){
+            cell = DataMask.mask(cell, SensitiveType.LogMask, "");
+        }
+        List<String> apiCodeList = transformStringToListByComma(apiCodes);
+        List<String> userTypeList = transformStringToListByComma(userTypes);
+        // 2. 通过 apiCodes 获取客户信息,并将结果填充到响应中
+        MarketingCustomerExample example = new MarketingCustomerExample();
+        example.createCriteria().andStatusEqualTo((byte) 1).andApiCodeIn(apiCodeList);
+        List<MarketingCustomer> list = marketingCustomerMapper.selectByExample(example);
+        Map<String, MarketingCustomer> customerMap = list.stream()
+                .collect(Collectors.toMap(MarketingCustomer::getApiCode, Function.identity()));
+        // 发送日志记录
+        packageAndSendEventTrack(cidOrName, appletTimeStart, appletTimeEnd, apiCodes
+                , userTypes, cell, customerMap, apiCodeList);
+        // 3. 根据 apiCodes,cell 查询结果
+        JSONObject result = new JSONObject();
+        List<MarketingSyncUserCell> syncUserListAllApiCode = new ArrayList<>();
+        for (int i = 0; i < apiCodeList.size(); i++) {
+            String apiCode = apiCodeList.get(i);
+            List<MarketingSyncUserCell> syncUsersList = marketingSyncUserMapper.selectSyncUserByCelltikv_(appletTimeStart
+                    , appletTimeEnd, apiCode, userTypeList, cell, orderField, descField);
+            syncUserListAllApiCode.addAll(syncUsersList);
+        }
+        syncUserListAllApiCode.stream().forEach(c ->{
+            String apiCode = c.getApiCode();
+            MarketingCustomer marketingCustomer = customerMap.get(apiCode);
+            c.setCid(marketingCustomer.getCid());
+            c.setShortName(marketingCustomer.getShortName());
+        });
+        syncUserListAllApiCode.stream().sorted(Comparator.comparing(MarketingSyncUserCell::getAppletDate)).collect(Collectors.toList());
+        result.put("records", JSON.toJSON(syncUserListAllApiCode));
+        JSONObject countObject = new JSONObject();
+        // 单独计算全部数据的统计总数
+        Long normalNumTotal = syncUserListAllApiCode.stream().mapToLong(MarketingSyncUserCell::getNormalNum).sum();
+        Long duplicateRemovalNumTotal = syncUserListAllApiCode.stream().mapToLong(MarketingSyncUserCell::getDuplicateRemovalNum).sum();
+        countObject.put("normalNumTotal",normalNumTotal);
+        countObject.put("duplicateRemovalNumTotal",duplicateRemovalNumTotal);
+        result.put("totals", countObject);
+        return result;
+    }
+
+    /**
+     * 对含有逗号的String类型进行分割转换成List<String>
+     * @Author yu.xia@brgroup.com
+     * @Date 2024/4/18 10:37
+     * @param params 含有逗号的String参数
+     * @return List<String>
+     */
+    public List<String> transformStringToListByComma(String params){
+        List<String> list = new ArrayList<>();
+        if(StringUtils.isNotBlank(params)){
+            String[] split = params.split(",");
+            for(String item : split){
+                list.add(item);
+            }
+        }
+        return list;
+    }
+
+    public void packageAndSendEventTrack(String cidOrName, String appletTimeStart, String appletTimeEnd
+            , String apiCodes, String userTypes, String cell, Map<String, MarketingCustomer> customerMap, List<String> apiCodeList){
+        try{
+            MarketingUserDetail userDetail = ThreadContextInfo.getUser();
+            EventTrackingCellReport cellReport = new EventTrackingCellReport();
+            cellReport.setCell(cell);
+            cellReport.setCreateTime(new Date());
+            cellReport.setUpdateTime(new Date());
+            cellReport.setIsDelete(0);
+            cellReport.setUserId(userDetail.getId().toString());
+            cellReport.setUserName(userDetail.getUserName());
+            cellReport.setRealName(userDetail.getRealName());
+            JSONObject param = new JSONObject();
+            param.put("cidOrName", cidOrName);
+            MarketingCustomer marketingCustomer = customerMap.get(apiCodeList.get(0));
+            if(null != marketingCustomer){
+                param.put("cid", marketingCustomer.getCid());
+                param.put("shortName", marketingCustomer.getShortName());
+            }
+            param.put("appletTimeStart", appletTimeStart);
+            param.put("appletTimeEnd", appletTimeEnd);
+            param.put("apiCodes", apiCodes);
+            param.put("userTypes", userTypes);
+            param.put("cell", cell);
+            cellReport.setRequestParam(param.toJSONString());
+            eventTrackService.insertSync(cellReport);
+        }catch (Exception e){
+            log.error("cidOrName[{}]appletTimeStart[{}]appletTimeEnd[{}]apiCodes[{}]userTypes[{}]cell[{}]--"
+                    ,cidOrName,appletTimeStart,appletTimeEnd,apiCodes,userTypes,cell,e);
+        }
     }
 
     private Date addDay(String date, Integer addDays, String format) {

@@ -1,10 +1,7 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.bo.CellValidityPeriodBO;
-import com.br.marketing.entity.MarketingCustomizeDataValidConfig;
-import com.br.marketing.entity.MarketingDataValidConfig;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.*;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -319,6 +316,27 @@ public interface MarketingSyncUserMapper {
             , @Param("requestBatch") String requestBatch
             , @Param("userTypeSet") Set<String> userTypeSet
             , @Param("appletDate") String appletDate);
+
+
+    /**
+     * 通过条件获取cell在不同apiCode对应表中的数据
+     * @Author yu.xia@brgroup.com
+     * @Date 2024/4/13 11:50
+     * @param appletTimeStart
+     * @param appletTimeEnd
+     * @param apiCode
+     * @param userTypeList
+     * @param cell
+     * @return List<MarketingSyncUser>
+     */
+    List<MarketingSyncUserCell> selectSyncUserByCelltikv_(@Param("appletTimeStart") String appletTimeStart
+            , @Param("appletTimeEnd") String appletTimeEnd
+            , @Param("apiCode") String apiCode
+            , @Param("userTypeList") List<String> userTypeList
+            , @Param("cell") String cell
+            , @Param("orderField") String orderField
+            , @Param("descField") String descField);
+
 
     Integer existUploadTable(@Param("tableNm") String tableNm);
 
