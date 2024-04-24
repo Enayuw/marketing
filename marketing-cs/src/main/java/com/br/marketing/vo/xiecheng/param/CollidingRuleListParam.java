@@ -1,4 +1,4 @@
-package com.br.marketing.vo.xiecheng;
+package com.br.marketing.vo.xiecheng.param;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -6,10 +6,13 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
 @ApiModel(value = "携程撞库规则列表查询参数")
-public class PackageRuleListParam {
+public class CollidingRuleListParam implements Serializable {
 
+    private static final long serialVersionUID = -5816759852739248423L;
     @ApiModelProperty("数据包名称")
     private String keyword;
 

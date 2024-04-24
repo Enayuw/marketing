@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.XiechengCollidingDataPackageRuleStagingMapper">
+    <select id="getCollidingRuleStagingList" resultType="com.br.marketing.vo.xiecheng.XiechengCollidingStagingRuleVO">
+        select *
+        from b_xiecheng_colliding_data_package_rule_staging
+        where is_delete = 0
+        order by create_time desc;
+    </select>
 </mapper>

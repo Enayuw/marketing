@@ -1,6 +1,8 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
+import com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO;
+import com.br.marketing.vo.xiecheng.param.CollidingRuleListParam;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
@@ -51,4 +53,14 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
      * @return
      */
     int updateBatchByIdOfRetryCount(@Param("ids") List<Long> ids);
+
+    /**
+     * 获取调度任务列表-True-不分页
+     *
+     * @param listParam 列表参数
+     * @return {@link List }<{@link XiechengCollidingRuleVO }>
+     * @author senyang.zheng
+     * @date 2024/04/24
+     */
+    List<XiechengCollidingRuleVO> getCollidingRuleTrueList(@Param("listParam") CollidingRuleListParam listParam);
 }

@@ -5,10 +5,12 @@ import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 @Data
+@ApiModel(value = "携程撞库规则VO")
 public class XiechengCollidingRuleVO implements Serializable {
     private static final long serialVersionUID = 6038761827928494339L;
 
