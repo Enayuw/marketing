@@ -97,4 +97,13 @@
             AND dlc.release_time BETWEEN #{listParam.collidingStartTime} AND #{listParam.collidingEndTime}
         </if>
     </select>
+
+    <select id="selectCycleNumData" resultType="java.util.Map">
+        select count(cell_sha256_code_list) as CellNum
+        ,max(release_time) as requestEndTime
+        ,min(release_time) as requestBeginTime
+        from b_xiecheng_colliding_data_loop_cycle
+        where is_delete = 0
+    </select>
+
 </mapper>

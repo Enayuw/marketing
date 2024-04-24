@@ -100,6 +100,7 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -488,18 +489,23 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     private Result<Integer> getTotal(PushCustomerDTO dto) {
-        QueryBaseBean queryBaseBean = new QueryBaseBean();
-        queryBaseBean.setApiCode(dto.getApiCode());
-        queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
-        queryBaseBean.setFileIds(Joiner.on(",").join(dto.getFileIdList()));
-        queryBaseBean.setJsonData(dto.getmRuleCondition());
-        if (dto.getmPlanNum() != null && dto.getmPlanNum() <= 0) {
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送数量不能小于等于0");
+        int total;
+        if (marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().contains(dto.getApiCode())) {
+            total = getXieChengDataNum(dto.getmRuleCondition(),dto.getBatchNumberList());
+        } else {
+            QueryBaseBean queryBaseBean = new QueryBaseBean();
+            queryBaseBean.setApiCode(dto.getApiCode());
+            queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
+            queryBaseBean.setFileIds(Joiner.on(",").join(dto.getFileIdList()));
+            queryBaseBean.setJsonData(dto.getmRuleCondition());
+            if (dto.getmPlanNum() != null && dto.getmPlanNum() <= 0) {
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送数量不能小于等于0");
+            }
+            if (dto.getmPlanNum() != null && dto.getmPlanNum() > 0) {
+                queryBaseBean.setAmountTop("0,".concat(dto.getmPlanNum().toString()));
+            }
+            total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         }
-        if (dto.getmPlanNum() != null && dto.getmPlanNum() > 0) {
-            queryBaseBean.setAmountTop("0,".concat(dto.getmPlanNum().toString()));
-        }
-        int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         if (total <= 0) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
         }
@@ -511,6 +517,154 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
         }
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
+    }
+
+    private int getXieChengDataNum(String mRuleCondition,List<String> batchNumberList) {
+
+        int total;
+        JSONObject jsonObject =JSON.parseObject(mRuleCondition);
+        JSONArray jsonArray =jsonObject.getJSONArray("data");
+        String result ="", releaseTime="",cleanTime="";
+        for (int i = 0; i < jsonArray.size(); i++) {
+            JSONObject jsonData = jsonArray.getJSONObject(i);
+            if(jsonData.getString("type").equals("operation")){
+                if(jsonData.getString("key").equals("release_time")){
+                    releaseTime = jsonData.getString("value");
+                    jsonArray.remove(jsonData);
+                }else if(jsonData.getString("key").equals("result")){
+                    result = jsonData.getString("value");
+                    jsonArray.remove(jsonData);
+                }}else if(jsonData.getString("key").equals("clean_time")){
+                cleanTime = jsonData.getString("value");
+                jsonArray.remove(jsonData);
+            }
+
+            }
+        if("true".equals(result)) {
+            if(StringUtils.isNotEmpty(releaseTime)) {
+
+            }else {
+                total= cycleDataQuery(jsonObject,batchNumberList);
+            }
+        }else {
+            total= FalseDataQuery(jsonObject,batchNumberList,cleanTime);
+        }
+           return 0;
+        }
+
+    private int FalseDataQuery(JSONObject jsonObject, List<String> batchNumberList, String cleanTime) {
+        String cycleDataSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where is_delete =0";
+        String FalseDataSql ="";
+        //在时间内
+        //TODO
+        if(true){
+            FalseDataSql = "select cell_sha256_code_list as cell from b_xiecheng_colliding_data_rob where package_id in () and is_delete=0";
+        }
+        //待清洗去重
+        //TODO
+
+        String scoreSql = scoreSql(jsonObject,batchNumberList);
+        StringBuilder falseAndscoreSql = new StringBuilder();
+        falseAndscoreSql.append("select count(1) from (").append(scoreSql).append(") score left join (").append(cycleDataSql)
+                .append(") cycle on score.cell = cycle.cell ").append("left join (").append(FalseDataSql)
+                .append(") false on score.cell = false.cell ");
+
+        return 0;
+    }
+
+    private int cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList) {
+        String scoreSql = scoreSql(jsonObject,batchNumberList);
+        //True关联查询
+        String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time<= DATE_ADD(CURDATE(), INTERVAL 6 DAY";
+        StringBuilder cycleAndscoreSql = new StringBuilder();
+        cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle inner join (").append(scoreSql).append(") score on " +
+                "score.cell = cycle.cell;");
+
+        //TODO
+        // 查询Doris
+        return 0;
+    }
+
+    private String scoreSql(JSONObject jsonObject, List<String> batchNumberList) {
+
+        String sqlCondition = jsonTransferSql(jsonObject,"");
+        String scoreSql = "";
+        for (int i = 0; i < batchNumberList.size(); i++) {
+            if (i == batchNumberList.size() - 1) {
+                scoreSql = scoreSql.concat("select cell from b_xiecheng_colliding_").concat(batchNumberList.get(i)).concat(" where ").concat(sqlCondition);
+            }else{
+                scoreSql = scoreSql.concat("select cell from b_xiecheng_colliding_").concat(batchNumberList.get(i)).concat(" where ").concat(sqlCondition).concat(" union all ");
+            }
+
+        }
+        return scoreSql;
+    }
+
+    private String jsonTransferSql(JSONObject jsonObject, String parentLogic) {
+        String logic = jsonObject.getString("logic");
+        JSONArray dataArray = jsonObject.getJSONArray("data");
+        StringBuilder sqlResult = new StringBuilder();
+        for (int i = 0; i < dataArray.size(); i++) {
+            JSONObject jsonNodeObject = dataArray.getJSONObject(i);
+            if (jsonNodeObject.getString("type").equals("operation")) {
+                String filedDeal = assemblefiled(jsonNodeObject.getString("key"), jsonNodeObject.getString("operation"), jsonNodeObject.get("value"));
+                if (i < dataArray.size() - 1) {
+                    sqlResult.append(filedDeal).append(" ").append(logic).append(" ");
+                } else {
+                    sqlResult.append(filedDeal).append(" ");
+                }
+            } else if (jsonNodeObject.getString("type").equals("logic")) {
+                //递归处理
+                sqlResult.append(jsonTransferSql(jsonNodeObject, logic));
+            }
+        }
+        if (com.br.marketing.common.utils.StringUtils.isNotEmpty(parentLogic)) {
+            sqlResult.insert(0," (").append(" )");
+        }
+        return sqlResult.toString();
+
+    }
+
+    private String assemblefiled(String key, String operation, Object value) {
+
+        String sqlTep;
+        List<String> operateList = Lists.newArrayList("=", "!=", "<", "<=", ">", ">=", "in", "not_in", "between", "between_right", "between_left",
+                "between_open");
+        if (!operateList.contains(operation)) {
+            System.out.println("操作符异常");
+        }
+        switch (operation) {
+
+            case "in":
+                List<String> inList = (List) value;
+                sqlTep = key.concat(" in (").concat(String.join(",", inList).concat(" )"));
+                break;
+            case "not_in":
+                List<String> notinList = (List) value;
+                sqlTep = key.concat(" not in (").concat(String.join(",", notinList).concat(" )"));
+                break;
+            case "between":
+                List<String> betweenList = Arrays.asList(((String) value).split(","));
+                sqlTep = key.concat(" >=").concat(betweenList.get(0)).concat(" and ").concat(key).concat(" <=").concat(betweenList.get(1));
+                break;
+            case "between_right":
+                List<String> betweenRightList = Arrays.asList(((String) value).split(","));
+                sqlTep = key.concat(" >=").concat(betweenRightList.get(0)).concat(" and ").concat(key).concat(" <").concat(betweenRightList.get(1));
+                break;
+            case "between_left":
+                List<String> betweenLeftList = Arrays.asList(((String) value).split(","));
+                sqlTep = key.concat(" >").concat(betweenLeftList.get(0)).concat(" and ").concat(key).concat(" <=").concat(betweenLeftList.get(1));
+                break;
+            case "between_open":
+                List<String> betweenOpenList = Arrays.asList(((String) value).split(","));
+                sqlTep = key.concat(" >").concat(betweenOpenList.get(0)).concat(" and ").concat(key).concat(" <").concat(betweenOpenList.get(1));
+                break;
+            default:
+                sqlTep = key.concat(operation).concat(value.toString());
+
+        }
+        return sqlTep;
+
     }
 
     @Override

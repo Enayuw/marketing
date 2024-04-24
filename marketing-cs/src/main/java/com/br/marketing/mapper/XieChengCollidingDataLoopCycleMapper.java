@@ -63,4 +63,10 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
      * @date 2024/04/24
      */
     List<XiechengCollidingRuleVO> getCollidingRuleTrueList(@Param("listParam") CollidingRuleListParam listParam);
+
+
+    /**
+     * 查询周期数据量及release_time
+     */
+    Map<String, String> selectCycleNumData();
 }

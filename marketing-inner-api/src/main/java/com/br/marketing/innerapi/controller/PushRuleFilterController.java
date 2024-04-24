@@ -11,6 +11,7 @@ import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.enums.InterfaceOperationsEnum;
+import com.br.marketing.innerapi.service.RuleCenterCollidingService;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.Impl.RuleCenterServiceImpl;
@@ -18,8 +19,10 @@ import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.PushInfoDetailVO;
 import com.br.marketing.vo.ScoreConditionDetailVO;
-import com.br.marketing.vo.ScoreDetailVo;
+import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +58,9 @@ public class PushRuleFilterController {
 
     @Autowired
     RuleCenterServiceImpl ruleCenterService;
+
+    @Autowired
+    RuleCenterCollidingService ruleCenterCollidingService;
 
 
 
@@ -167,6 +173,18 @@ public class PushRuleFilterController {
     @PostMapping("/getConditionPageData")
     public ApiResult<PageResultReturn<ScoreConditionDetailVO>> getConditionPageData(@RequestBody SearchConditionDTO dto) {
         return new ApiResult<PageResultReturn<ScoreConditionDetailVO>>().fromResult(pushRuleService.getConditionPageData(dto), CODE_1);
+    }
+
+    /**
+     * 根据apiCode 查询撞库结果数据
+     * @param apiCode
+     * @return
+     */
+    @ApiOperation(value = "撞库结果数据", notes = "撞库结果数据", httpMethod = "GET")
+    @ApiImplicitParams({@ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
+    @GetMapping("/getCollidingResultData")
+    public ApiResult getCollidingResultData(String apiCode) {
+        return new ApiResult<List<XiechengCollidingDataVO>>().fromResult(ruleCenterCollidingService.getCollidingResultData(apiCode), CODE_1);
     }
 
     @ApiOperation(value = "测试消费")

@@ -9,6 +9,7 @@ import com.br.marketing.entity.StraHisFileExample;
 import com.br.marketing.mapper.MarketingTaskExtendMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.MarketingTaskExtendService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.StrategyProductDetailVO;
@@ -16,6 +17,7 @@ import com.br.marketing.vo.TaskInfoVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -31,6 +33,9 @@ public class MarketingTaskExtendServiceImpl implements MarketingTaskExtendServic
 
     @Resource
     StraHisFileMapper straHisFileMapper;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public MarketingTaskExtend getMarketingTaskExtend(Long taskId) {
@@ -55,6 +60,15 @@ public class MarketingTaskExtendServiceImpl implements MarketingTaskExtendServic
         List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
         List<String> batchNumbers = straHisFiles.stream().map(t -> t.getBatchNumber()).collect(Collectors.toList());
         Assert.notEmpty(batchNumbers,"没有匹配到批次号");
+        List<String> apiCodes = straHisFiles.stream().map(t -> t.getApiCode()).collect(Collectors.toList());
+        List<String>xieChengApiCodes= marketingCommonConfig.getXieChengCollidingDataProcessApiCodes();
+        xieChengApiCodes.retainAll(apiCodes);
+        //添加携程撞库基础字段
+        if (!CollectionUtils.isEmpty(xieChengApiCodes)) {
+            baseHeadList.add("result");
+            baseHeadList.add("release_time");
+            baseHeadList.add("clean_time");
+        }
         List<TaskInfoVO> products = marketingTaskExtendMapper.getProducts(batchNumbers);
         //endregion
 
