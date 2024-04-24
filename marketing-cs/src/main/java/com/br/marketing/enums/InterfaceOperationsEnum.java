@@ -12,6 +12,10 @@ import lombok.Getter;
 public enum InterfaceOperationsEnum {
 
     XIECHENG_INSERT_DATA("700001","携程生成数据接口"),
+    XIECHENG_SAVE_COLLIDING_RULE("100000","创建数据包"),
+    XIECHENG_UPDATE_PRIORITY("100001","修改数据包优先级"),
+    XIECHENG_UPDATE_COLLIDING_SWITCH("100002","规则启用禁用"),
+    XIECHENG_UPDATE_COLLIDING_RULE("100003","修改撞库规则"),
     ;
     /**
      * 接口状态码

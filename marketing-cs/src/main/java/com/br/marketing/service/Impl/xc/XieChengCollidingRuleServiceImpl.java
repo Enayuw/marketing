@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.vo.xiecheng.param.UpdateCollidingRuleParam;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -106,6 +107,25 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
     @Override
     public XiechengCollidingRuleVO getCollidingRuleDetail(Long dprId) {
         return packageRuleMapper.getPackageRuleDetail(dprId);
+    }
+
+    /**
+     * 更新撞库规则
+     *
+     * @param param 更新参数
+     * @return {@link Boolean }
+     * @author senyang.zheng
+     * @date 2024/04/24
+     */
+    @Override
+    public Boolean updateCollidingRule(UpdateCollidingRuleParam param) {
+        XiechengCollidingDataPackageRule update = new XiechengCollidingDataPackageRule();
+        update.setCollidingBackNumber(param.getCollidingBackNumber());
+        update.setCollidingTimes(param.getCollidingTimes());
+        update.setCollidingStartTime(DateUtil.parse(param.getCollidingStartTime(), DatePattern.NORM_DATETIME_PATTERN));
+        update.setCollidingEndTime(DateUtil.parse(param.getCollidingEndTime(), DatePattern.NORM_DATETIME_PATTERN));
+        update.setId(param.getDprId());
+        return packageRuleMapper.updateByPrimaryKeySelective(update) == 1;
     }
 
     /**
@@ -252,6 +272,19 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
             packageRuleMapper.insert(insert);
         });
         return new ApiResult<Boolean>().success(Boolean.TRUE);
+    }
+
+    /**
+     * 删除已确认暂存规则
+     *
+     * @param prsId prs id
+     * @return {@link Boolean }
+     * @author senyang.zheng
+     * @date 2024/04/24
+     */
+    @Override
+    public Boolean deleteStagingCollidingRule(Long prsId) {
+        return stagingMapper.deleteByPrimaryKey(prsId) == 1;
     }
 
 }

@@ -9,6 +9,7 @@ import com.br.marketing.vo.xiecheng.XiechengCollidingStagingRuleVO;
 import com.br.marketing.vo.xiecheng.XiechengPackageVO;
 import com.br.marketing.vo.xiecheng.param.CollidingRuleConfirmParam;
 import com.br.marketing.vo.xiecheng.param.CollidingRuleListParam;
+import com.br.marketing.vo.xiecheng.param.UpdateCollidingRuleParam;
 import com.br.marketing.vo.xiecheng.param.UpdateCollidingSwitchParam;
 import com.br.marketing.vo.xiecheng.param.UpdatePriorityParam;
 
@@ -52,6 +53,16 @@ public interface XieChengCollidingRuleService {
      * @date 2024/04/23
      */
     XiechengCollidingRuleVO getCollidingRuleDetail(Long dprId);
+
+    /**
+     * 更新撞库规则
+     *
+     * @param param 更新参数
+     * @return {@link Boolean }
+     * @author senyang.zheng
+     * @date 2024/04/24
+     */
+    Boolean updateCollidingRule(UpdateCollidingRuleParam param);
 
     /**
      * 变更任务状态
@@ -111,5 +122,15 @@ public interface XieChengCollidingRuleService {
      */
     ApiResult<Boolean> saveCollidingRule();
 
+
+    /**
+     * 删除已确认暂存规则
+     *
+     * @param prsId prs id
+     * @return {@link Boolean }
+     * @author senyang.zheng
+     * @date 2024/04/24
+     */
+    Boolean deleteStagingCollidingRule(Long prsId);
 
 }

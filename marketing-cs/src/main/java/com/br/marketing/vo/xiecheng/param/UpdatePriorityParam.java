@@ -14,7 +14,13 @@ public class UpdatePriorityParam implements Serializable {
     @ApiModelProperty("包主键id")
     private Long pkgId;
 
+    @ApiModelProperty("数据包名称")
+    private String packageName;
+
     @ApiModelProperty("优先级")
     private Integer priority;
+
+    @ApiModelProperty("原-优先级")
+    private Integer originalPriority;
 
 }
