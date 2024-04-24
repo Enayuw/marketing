@@ -1,6 +1,10 @@
 package com.br.marketing.service.Impl.xc;
 
+import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.common.annoation.RetryMethod;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.StraHisFile;
@@ -26,6 +30,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -58,6 +63,8 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
     @Value("${datasource.database.marketingDoris.replicationAllocation}")
     String replicationAllocation;
 
+    private static final int BATCH_SIZE = 50;
+
     @Override
     public void process() {
         marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().forEach(apiCode -> {
@@ -85,8 +92,13 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
 
                     createTableAndInsert(straHisFile);
 
-                    scoreRecord.setRecordStatus(2);
-                    scoreRecordMapper.updateByPrimaryKey(scoreRecord);
+                    String tableName = "b_xiecheng_colliding_" + straHisFile.getBatchNumber();
+                    Long actualNumber = scoreRecordMapper.getXieChengScoreTidbTableCount(tableName);
+                    XieChengRuleScoreRecord updateRecord = new XieChengRuleScoreRecord();
+                    updateRecord.setId(scoreRecord.getId());
+                    updateRecord.setRecordStatus(2);
+                    updateRecord.setActualNumber(actualNumber.intValue());
+                    scoreRecordMapper.updateByPrimaryKey(updateRecord);
                 }
             });
         });
@@ -130,10 +142,18 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 String tableName = "b_xiecheng_colliding_" + straHisFile.getBatchNumber();
                 createTidbAndDorisTable(columns, straHisFile, firstLine, tableName);
 
+                List<String> batchData = new ArrayList<>();
                 String dataLine;
                 while ((dataLine = reader.readLine()) != null) {
-                    List<String> dataList = Arrays.asList(dataLine.split(",", -1));
-                    threadPool.submit(() -> writeFileDataToTidb(tableName, columns, dataList));
+                    batchData.add(dataLine);
+                    if (batchData.size() == BATCH_SIZE) {
+                        threadPool.submit(() -> writeFileDataToTidb(tableName, columns, new ArrayList<>(batchData)));
+                        batchData.clear();
+                    }
+                }
+
+                if (!batchData.isEmpty()) {
+                    writeFileDataToTidb(tableName, columns, new ArrayList<>(batchData));
                 }
 
             } catch (IOException e) {
@@ -228,7 +248,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         }
     }
 
-    private void writeFileDataToTidb(String tableName, List<String> columns, List<String> dataList) {
+    private void writeFileDataToTidb(String tableName, List<String> columns, List<String> batchData) {
         try {
             StringBuilder insertSql = new StringBuilder("INSERT INTO ");
             insertSql.append(tableName);
@@ -240,14 +260,39 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
             insertSql.append("update_time,");
             insertSql.append("is_delete");
 
-            insertSql.append(") VALUES (");
-            for (String value : dataList) {
-                insertSql.append("'").append(value.trim()).append("', ");
+            insertSql.append(") VALUES ");
+
+            List<String> dataList;
+            for (String dataLine : batchData) {
+                // clear
+                dataList = Arrays.asList(dataLine.split(",", -1));
+                insertSql.append("(");
+                for (String value : dataList) {
+                    insertSql.append("'").append(value.trim()).append("', ");
+                }
+
+                insertSql.append("null, now(), now(), 0");
+                insertSql.append(")");
+                dataList.clear();
             }
-            insertSql.append("null, now(), now(), 0");
-            insertSql.append(")");
+
+            insertXieChengScoreTidbTable(insertSql.toString(), batchData);
+
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+    }
+
+    @RetryMethod(retryNowNum = 2)
+    public Result insertXieChengScoreTidbTable(String insertSql, List<String> batchData) {
+        try {
+            ruleScoreRecordMapper.insertXieChengScoreTidbTable(insertSql);
+        } catch (Exception e) {
+            alarmClient.sendAlarm("写入数据库异常: " + String.join(";", batchData), "携程跑分数据同步作业",
+                    AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode());
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 }
