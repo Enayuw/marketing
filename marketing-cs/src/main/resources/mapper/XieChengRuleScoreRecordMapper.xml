@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.XieChengSmsCollidingDataLogMapper">
+<mapper namespace="com.br.marketing.mapper.XieChengRuleScoreRecordMapper">
+    <update id="createXieChengScoreTidbTableByBatchNum" parameterType="java.lang.String">
+        ${createTidbDDL}
+    </update>
+
+    <update id="createXieChengScoreDorisTableByBatchNumdoris_" parameterType="java.lang.String">
+        ${createDorisDDL}
+    </update>
+
+    <insert id="insertXieChengScoreTidbTable">
+        ${insertTidbSql}
+    </insert>
+
+    <select id="getXieChengScoreTidbTableCount" resultType="java.lang.Long">
+        select count(1) from ${tableName}
+    </select>
 </mapper>
