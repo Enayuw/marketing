@@ -227,6 +227,7 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
      * @date 2024/04/24
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ApiResult<Boolean> saveCollidingRule() {
         XiechengCollidingDataPackageRuleStagingExample example = new XiechengCollidingDataPackageRuleStagingExample();
         example.createCriteria().andIsDeleteEqualTo(0);
