@@ -113,9 +113,9 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 return;
             }
 
+            // todo 新增线程池配置
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                // Read the first header to get table headers
                 String header = reader.readLine();
                 if (header == null) {
                     alarmClient.sendAlarm("File is empty: " + file.getAbsolutePath(), "携程跑分数据同步作业",
@@ -136,7 +136,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                             AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode());
                     return;
                 }
-                List<String> firstLine = Arrays.asList(reader.readLine().split(",", -1));
+                List<String> firstLine = Arrays.asList(header.split(",", -1));
 
                 // todo 校验第一行数据
                 String tableName = "b_xiecheng_colliding_" + straHisFile.getBatchNumber();
@@ -199,18 +199,16 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
             }
         }
 
-        createTidbDDL.setLength(createTidbDDL.length() - 2); // Remove the last comma
-        createDorisDDL.append(" extend longtext,");
-        createDorisDDL.append(" create_time datetime,");
-        createDorisDDL.append(" update_time timestamp null on update CURRENT_TIMESTAMP,");
-        createDorisDDL.append(" is_delete int default 0");
+        createTidbDDL.append(" extend longtext,");
+        createTidbDDL.append(" create_time datetime,");
+        createTidbDDL.append(" update_time timestamp null on update CURRENT_TIMESTAMP,");
+        createTidbDDL.append(" is_delete int default 0");
 
         createTidbDDL.append("); ");
         createTidbDDL.append("ALTER TABLE ").append(tableName).append(" ADD UNIQUE INDEX idx_cell (cell);");
 
         ruleScoreRecordMapper.createXieChengScoreTidbTableByBatchNum(createTidbDDL.toString());
 
-        createDorisDDL.setLength(createTidbDDL.length() - 2); // Remove the last comma
         createDorisDDL.append(" extend string,");
         createDorisDDL.append(" create_time datetime,");
         createDorisDDL.append(" update_time timestamp null on update CURRENT_TIMESTAMP,");
@@ -251,7 +249,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
     private void writeFileDataToTidb(String tableName, List<String> columns, List<String> batchData) {
         try {
             StringBuilder insertSql = new StringBuilder("INSERT INTO ");
-            insertSql.append(tableName);
+            insertSql.append(tableName).append(" (");
             for (String header : columns) {
                 insertSql.append(header.trim()).append(", ");
             }
@@ -264,7 +262,6 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
 
             List<String> dataList;
             for (String dataLine : batchData) {
-                // clear
                 dataList = Arrays.asList(dataLine.split(",", -1));
                 insertSql.append("(");
                 for (String value : dataList) {
@@ -272,10 +269,11 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 }
 
                 insertSql.append("null, now(), now(), 0");
-                insertSql.append(")");
+                insertSql.append("),");
                 dataList.clear();
             }
 
+            insertSql.setLength(insertSql.length() - 1);
             insertXieChengScoreTidbTable(insertSql.toString(), batchData);
 
         } catch (Exception e) {
