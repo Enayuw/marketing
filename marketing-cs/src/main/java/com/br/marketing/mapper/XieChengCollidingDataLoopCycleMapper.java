@@ -68,5 +68,5 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
     /**
      * 查询周期数据量及release_time
      */
-    Map<String, String> selectCycleNumData();
+    Map<String, Object> selectCycleNumData();
 }

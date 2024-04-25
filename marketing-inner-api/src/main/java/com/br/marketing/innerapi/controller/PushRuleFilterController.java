@@ -187,6 +187,40 @@ public class PushRuleFilterController {
         return new ApiResult<List<XiechengCollidingDataVO>>().fromResult(ruleCenterCollidingService.getCollidingResultData(apiCode), CODE_1);
     }
 
+
+    /**
+     * 撞库数据剔除
+     * @param dto
+     * @return
+     */
+    @ApiOperation(value = "撞库数据剔除", notes = "撞库数据剔除", httpMethod = "POST")
+    @PostMapping("/collidingDataDelete")
+    public ApiResult collidingDataDelete(@RequestBody PushCustomerDTO dto) {
+        return new ApiResult().fromResult(pushRuleService.collidingDataDelete(dto), CODE_1);
+    }
+
+    /**
+     * 撞库数据剔除数据量
+     * @param dto
+     * @return
+     */
+    @ApiOperation(value = "撞库数据剔除数据量", notes = "撞库数据剔除数据量", httpMethod = "GET")
+    @GetMapping("/collidingDataDeleteNum")
+    public ApiResult collidingDataDeleteNum(@RequestBody PushCustomerDTO dto) {
+        return new ApiResult<Integer>().fromResult(pushRuleService.collidingDataDeleteNum(dto), CODE_1);
+    }
+
+    /**
+     * 撞库数据包生成
+     * @param dto
+     * @return
+     */
+    @ApiOperation(value = "撞库数据包生成", notes = "撞库数据包生成", httpMethod = "POST")
+    @PostMapping("/collidingDataPachageMake")
+    public ApiResult collidingDataPachageMake(@RequestBody PushCustomerDTO dto) {
+        return new ApiResult().fromResult(pushRuleService.collidingDataPachageMake(dto), CODE_1);
+    }
+
     @ApiOperation(value = "测试消费")
     @GetMapping("/testConsumerCustomer")
     public Result testConsumerCustomer(Long id) {

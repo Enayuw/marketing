@@ -16,4 +16,9 @@
     <select id="getXieChengScoreTidbTableCount" resultType="java.lang.Long">
         select count(1) from ${tableName}
     </select>
+
+
+    <select id="getXieChengDataNumdoris_" resultType="java.lang.Integer">
+        ${querySql}
+    </select>
 </mapper>

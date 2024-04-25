@@ -59,6 +59,16 @@ public class PushCustomerDTO {
     @ApiModelProperty(value = "用户信息",hidden = true)
     private MarketingUserDetail userDetail;
 
+    @ApiModelProperty(value = "生成数据包名称")
+    private String dataPackageName;
+
+    public String getDataPackageName() {
+        return dataPackageName;
+    }
+    public void setDataPackageName(String dataPackageName) {
+        this.dataPackageName = dataPackageName;
+    }
+
     public String getApiCode() {
         return apiCode;
     }

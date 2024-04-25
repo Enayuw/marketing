@@ -29,10 +29,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.exception.KnowException;
-import com.br.marketing.common.utils.AESUtil;
-import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.common.utils.*;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.commonentity.StatusConstants;
@@ -41,6 +38,7 @@ import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
 import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
+import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.PushRuleStatusEnum;
 import com.br.marketing.enums.CustomerQueueEnum;
@@ -182,6 +180,18 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private XiechengCollidingDataPackageRuleMapper xiechengCollidingDataPackageRuleMapper;
+
+    @Resource
+    private XiechengCollidingDataProcessTaskMapper xiechengCollidingDataProcessTaskMapper;
+
+    @Resource
+    private XieChengCollidingDataPackageMapper xieChengCollidingDataPackageMapper;
+
+    @Resource
+    private XieChengRuleScoreRecordMapper scoreRecordMapper;
 
     @Override
     public Result<Map<String, Object>> getCompanyAndModule(String apiCode) {
@@ -490,8 +500,10 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private Result<Integer> getTotal(PushCustomerDTO dto) {
         int total;
-        if (marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().contains(dto.getApiCode())) {
-            total = getXieChengDataNum(dto.getmRuleCondition(),dto.getBatchNumberList());
+        Object result = JSON.parseObject(dto.getmRuleCondition()).getJSONArray("data").stream().filter(obj ->
+                ((JSONObject) obj).getString("key").equals("result")).findAny().orElse(null);
+        if (marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().contains(dto.getApiCode()) && (!ObjectUtils.isEmpty(result))) {
+            total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList());
         } else {
             QueryBaseBean queryBaseBean = new QueryBaseBean();
             queryBaseBean.setApiCode(dto.getApiCode());
@@ -519,80 +531,131 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
     }
 
-    private int getXieChengDataNum(String mRuleCondition,List<String> batchNumberList) {
-
-        int total;
-        JSONObject jsonObject =JSON.parseObject(mRuleCondition);
-        JSONArray jsonArray =jsonObject.getJSONArray("data");
-        String result ="", releaseTime="",cleanTime="";
-        for (int i = 0; i < jsonArray.size(); i++) {
-            JSONObject jsonData = jsonArray.getJSONObject(i);
-            if(jsonData.getString("type").equals("operation")){
-                if(jsonData.getString("key").equals("release_time")){
-                    releaseTime = jsonData.getString("value");
-                    jsonArray.remove(jsonData);
-                }else if(jsonData.getString("key").equals("result")){
-                    result = jsonData.getString("value");
-                    jsonArray.remove(jsonData);
-                }}else if(jsonData.getString("key").equals("clean_time")){
-                cleanTime = jsonData.getString("value");
-                jsonArray.remove(jsonData);
-            }
-
-            }
-        if("true".equals(result)) {
-            if(StringUtils.isNotEmpty(releaseTime)) {
-
-            }else {
-                total= cycleDataQuery(jsonObject,batchNumberList);
-            }
-        }else {
-            total= FalseDataQuery(jsonObject,batchNumberList,cleanTime);
+    private int getXieChengDataNum(String mRuleCondition, List<String> batchNumberList) {
+        int total = 0;
+        String querySql = "";
+        JSONObject jsonObject = JSON.parseObject(mRuleCondition);
+        XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
+        handlerJson(jsonObject, collidingFilterDTO);
+        if ("true".equals(collidingFilterDTO.getResult())) {
+            querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getReleaseTime());
+        } else {
+            querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
         }
-           return 0;
+        // 查询Doris
+        try {
+            total = scoreRecordMapper.getXieChengDataNumdoris_(querySql);
+        } catch (Exception e) {
+            log.error("规则中心-携程撞库筛选查询Doris异常", e);
         }
-
-    private int FalseDataQuery(JSONObject jsonObject, List<String> batchNumberList, String cleanTime) {
-        String cycleDataSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where is_delete =0";
-        String FalseDataSql ="";
-        //在时间内
-        //TODO
-        if(true){
-            FalseDataSql = "select cell_sha256_code_list as cell from b_xiecheng_colliding_data_rob where package_id in () and is_delete=0";
-        }
-        //待清洗去重
-        //TODO
-
-        String scoreSql = scoreSql(jsonObject,batchNumberList);
-        StringBuilder falseAndscoreSql = new StringBuilder();
-        falseAndscoreSql.append("select count(1) from (").append(scoreSql).append(") score left join (").append(cycleDataSql)
-                .append(") cycle on score.cell = cycle.cell ").append("left join (").append(FalseDataSql)
-                .append(") false on score.cell = false.cell ");
-
-        return 0;
+        return total;
     }
 
-    private int cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList) {
-        String scoreSql = scoreSql(jsonObject,batchNumberList);
+    private void handlerJson(JSONObject jsonObject, XieChengCollidingFilterDTO collidingFilterDTO) {
+        JSONArray jsonArray = jsonObject.getJSONArray("data");
+        Map<String, String> releaseTimeMap = new HashMap<>();
+        Iterator<Object> iterator = jsonArray.iterator();
+        while (iterator.hasNext()) {
+            JSONObject jsonData = (JSONObject) iterator.next();
+            if (jsonData.getString("type").equals("operation")) {
+                if (jsonData.getString("key").equals("release_time")) {
+                    releaseTimeMap.put("value", jsonData.getString("value"));
+                    releaseTimeMap.put("operation", jsonData.getString("operation"));
+                    releaseTimeMap.put("key", jsonData.getString("key"));
+                    collidingFilterDTO.setReleaseTime(releaseTimeMap);
+                    iterator.remove();
+                } else if (jsonData.getString("key").equals("result")) {
+                    collidingFilterDTO.setResult(jsonData.getString("value"));
+                    iterator.remove();
+                } else if (jsonData.getString("key").equals("clean_time")) {
+                    collidingFilterDTO.setCleanTime(jsonData.getString("value"));
+                    iterator.remove();
+                }
+            }
+        }
+
+    }
+
+    private String falseDataQuery(JSONObject jsonObject, List<String> batchNumberList, String cleanTime) {
+        String cycleDataSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where is_delete =0";
+        String scoreSql = scoreSql(jsonObject, batchNumberList);
+        StringBuilder falseAndscoreSql = new StringBuilder();
+        StringBuilder whereSql = new StringBuilder();
+        //与True的全量数据去重
+        falseAndscoreSql.append("select count(1) from (").append(scoreSql).append(") score left join (").append(cycleDataSql)
+                .append(") cycle on score.cell = cycle.cell ");
+        //where条件拼接
+        whereSql.append(" where cycle.id is null");
+        if (StringUtils.isNotEmpty(cleanTime)) {
+            XiechengCollidingDataPackageRuleExample packageRuleExample = new XiechengCollidingDataPackageRuleExample();
+            packageRuleExample.createCriteria().andCollidingStartTimeLessThanOrEqualTo(DateHelper.parseDate(cleanTime))
+                    .andCollidingEndTimeGreaterThanOrEqualTo(DateHelper.parseDate(cleanTime));
+            List<XiechengCollidingDataPackageRule> packageRules = xiechengCollidingDataPackageRuleMapper.selectByExample(packageRuleExample);
+            String packageId = packageRules.stream().map(xiechengCollidingDataPackageRule -> xiechengCollidingDataPackageRule.getPackageId().toString())
+                    .collect(Collectors.joining(","));
+            //清洗时间在撞库区间内
+            if (StringUtils.isNotEmpty(packageId)) {
+                String FalseDataSql = "select cell_sha256_code_list as cell from b_xiecheng_colliding_data_rob where package_id in (" + packageId + ") and " +
+                        "is_delete=0";
+                falseAndscoreSql.append("left join (").append(FalseDataSql).append(") false on score.cell = false.cell ");
+                whereSql.append(" and false.id is null");
+            }
+        }
+        //与待清洗去重
+        XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
+        processTaskExample.createCriteria().andTaskTypeEqualTo(0).andTaskStatusEqualTo(0);
+        List<XiechengCollidingDataProcessTask> processTasks = xiechengCollidingDataProcessTaskMapper.selectByExample(processTaskExample);
+        processTasks.forEach(processTask -> {
+            falseAndscoreSql.append(" left join (").append(processTask.getTaskExecutionConditions()).append(") d").append(processTask.getId())
+                    .append("on score.cell = ").append("d").append(processTask.getId()).append(".cell ");
+            whereSql.append(" and  d").append(processTask.getId()).append(".id is null");
+        });
+        falseAndscoreSql.append(whereSql);
+        return falseAndscoreSql.toString();
+    }
+
+    private String cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList, Map<String, String> releaseTime) {
+        String scoreSql = scoreSql(jsonObject, batchNumberList);
+        String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
+                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time<= DATE_ADD(CURDATE(), INTERVAL 6 DAY and is_delete=0";
         //True关联查询
-        String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time<= DATE_ADD(CURDATE(), INTERVAL 6 DAY";
+        //传输releaseTime处理
+        if (!CollectionUtils.isEmpty(releaseTime)) {
+            String releaseTimeSql = assemblefiled("release_time", releaseTime.get("operation"), releaseTime.get("value"));
+            cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where " + releaseTimeSql + " and is_delete=0";
+        }
         StringBuilder cycleAndscoreSql = new StringBuilder();
         cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle inner join (").append(scoreSql).append(") score on " +
                 "score.cell = cycle.cell;");
-
-        //TODO
-        // 查询Doris
-        return 0;
+        return cycleAndscoreSql.toString();
     }
 
+    private String cycleDataDeleteQuery(JSONObject jsonObject, List<String> batchNumberList, Map<String, String> releaseTime) {
+        String scoreSql = scoreSql(jsonObject, batchNumberList);
+        String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
+                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time<= DATE_ADD(CURDATE(), INTERVAL 6 DAY and is_delete=0";
+        //True关联查询
+        StringBuilder cycleAndscoreSql = new StringBuilder();
+        cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle left join (").append(scoreSql).append(") score on " +
+                "score.cell = cycle.cell where score.id is null;");
+        return cycleAndscoreSql.toString();
+    }
+
+    /**
+     * 组装跑分筛选SQL
+     *
+     * @param jsonObject      入参jsonsql
+     * @param batchNumberList batchNumber集合
+     * @return String
+     */
     private String scoreSql(JSONObject jsonObject, List<String> batchNumberList) {
 
-        String sqlCondition = jsonTransferSql(jsonObject,"");
+        String sqlCondition = jsonTransferSql(jsonObject, "");
         String scoreSql = "";
         for (int i = 0; i < batchNumberList.size(); i++) {
             if (i == batchNumberList.size() - 1) {
                 scoreSql = scoreSql.concat("select cell from b_xiecheng_colliding_").concat(batchNumberList.get(i)).concat(" where ").concat(sqlCondition);
-            }else{
+            } else {
                 scoreSql = scoreSql.concat("select cell from b_xiecheng_colliding_").concat(batchNumberList.get(i)).concat(" where ").concat(sqlCondition).concat(" union all ");
             }
 
@@ -619,7 +682,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         if (com.br.marketing.common.utils.StringUtils.isNotEmpty(parentLogic)) {
-            sqlResult.insert(0," (").append(" )");
+            sqlResult.insert(0, " (").append(" )");
         }
         return sqlResult.toString();
 
@@ -704,6 +767,65 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("多个跑分记录包含不同的加密类型");
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(encrgyTypes.stream().findFirst().get());
+    }
+
+    @Override
+    public Result collidingDataDelete(PushCustomerDTO dto) {
+        JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
+        XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
+        handlerJson(jsonObject, collidingFilterDTO);
+        XiechengCollidingDataProcessTask xiechengCollidingDataProcessTask = new XiechengCollidingDataProcessTask();
+        xiechengCollidingDataProcessTask.setApiCode(dto.getApiCode());
+        xiechengCollidingDataProcessTask.setBatchNumber(String.join(",", dto.getBatchNumberList()));
+        xiechengCollidingDataProcessTask.setTaskStatus(0);
+        xiechengCollidingDataProcessTask.setDiscreetNumber(dto.getmPlanNum());
+        xiechengCollidingDataProcessTask.setTaskStartTime(DateHelper.parseDate(collidingFilterDTO.getCleanTime()));
+        xiechengCollidingDataProcessTask.setTaskType(1);
+        xiechengCollidingDataProcessTask.setTaskExecutionConditions(jsonTransferSql(jsonObject, ""));
+        xiechengCollidingDataProcessTask.setTaskExecutionSql(cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getReleaseTime()));
+        xiechengCollidingDataProcessTask.setCreateTime(new Date());
+        xiechengCollidingDataProcessTask.setUpdateTime(new Date());
+        xiechengCollidingDataProcessTaskMapper.insertSelective(xiechengCollidingDataProcessTask);
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public Result collidingDataPachageMake(PushCustomerDTO dto) {
+        JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
+        XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
+        handlerJson(jsonObject, collidingFilterDTO);
+        XiechengCollidingDataProcessTask xiechengCollidingDataProcessTask = new XiechengCollidingDataProcessTask();
+        xiechengCollidingDataProcessTask.setApiCode(dto.getApiCode());
+        xiechengCollidingDataProcessTask.setBatchNumber(String.join(",", dto.getBatchNumberList()));
+        xiechengCollidingDataProcessTask.setTaskStatus(0);
+        xiechengCollidingDataProcessTask.setDiscreetNumber(dto.getmPlanNum());
+        xiechengCollidingDataProcessTask.setTaskStartTime(DateHelper.parseDate(collidingFilterDTO.getCleanTime()));
+        xiechengCollidingDataProcessTask.setTaskType(0);
+        xiechengCollidingDataProcessTask.setTaskExecutionConditions(jsonTransferSql(jsonObject, ""));
+        xiechengCollidingDataProcessTask.setTaskExecutionSql(falseDataQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getCleanTime()));
+        xiechengCollidingDataProcessTask.setCreateTime(new Date());
+        xiechengCollidingDataProcessTask.setUpdateTime(new Date());
+        xiechengCollidingDataProcessTaskMapper.insertSelective(xiechengCollidingDataProcessTask);
+        XieChengCollidingDataPackage xieChengCollidingDataPackage = new XieChengCollidingDataPackage();
+        xieChengCollidingDataPackage.setPackageName(dto.getDataPackageName());
+        xieChengCollidingDataPackage.setCreateTime(new Date());
+        xieChengCollidingDataPackage.setUpdateTime(new Date());
+        xieChengCollidingDataPackage.setCollidingDataTaskId(xiechengCollidingDataProcessTask.getId());
+        xieChengCollidingDataPackage.setDiscreetNumber(dto.getmPlanNum());
+        xieChengCollidingDataPackageMapper.insertSelective(xieChengCollidingDataPackage);
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public Result<Integer> collidingDataDeleteNum(PushCustomerDTO dto) {
+        int num = 0;
+        JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
+        XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
+        handlerJson(jsonObject, collidingFilterDTO);
+        String deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getReleaseTime());
+        // doris查询
+        num = scoreRecordMapper.getXieChengDataNumdoris_(deleteSql);
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(num);
     }
 
     public String encrypt3k(Integer type, String content) {

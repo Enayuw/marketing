@@ -2,9 +2,12 @@ package com.br.marketing.innerapi.service.impl;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.entity.XieChengCollidingDataPackage;
+import com.br.marketing.entity.XieChengCollidingDataPackageExample;
 import com.br.marketing.entity.XieChengCollidingDataRobExample;
 import com.br.marketing.innerapi.service.RuleCenterCollidingService;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
+import com.br.marketing.mapper.XieChengCollidingDataPackageMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
@@ -15,6 +18,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -28,6 +32,9 @@ public class RuleCenterCollidingServiceImpl implements RuleCenterCollidingServic
 
     @Resource
     XieChengCollidingDataRobMapper robMapper;
+
+    @Resource
+    private XieChengCollidingDataPackageMapper packageMapper;
 
     /**
      * 获取撞库结果数据
@@ -43,22 +50,26 @@ public class RuleCenterCollidingServiceImpl implements RuleCenterCollidingServic
             return new Result<>().setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("非撞库的apiCode，请检查");
         }
         //周期数据包
-        Map<String, String> xiechengCycleMap = xieChengCollidingDataLoopCycleMapper.selectCycleNumData();
+        Map<String, Object> xiechengCycleMap = xieChengCollidingDataLoopCycleMapper.selectCycleNumData();
         XiechengCollidingDataVO cycleData = new XiechengCollidingDataVO();
         cycleData.setApiCode(apiCode);
         cycleData.setResultData("True的数据包");
-        cycleData.setResultNum(xiechengCycleMap.get("CellNum"));
+        cycleData.setResultNum(xiechengCycleMap.get("CellNum").toString());
         cycleData.setUpdateTime(xiechengCycleMap.get("requestBeginTime") + "-" + xiechengCycleMap.get("requestEndTime"));
         xiechengCollidingDataVOList.add(cycleData);
         //周期数据包
+        XieChengCollidingDataPackageExample packageExample = new XieChengCollidingDataPackageExample();
+        packageExample.createCriteria().andIsDeleteEqualTo(0);
+        List<XieChengCollidingDataPackage> packages = packageMapper.selectByExample(packageExample);
         XieChengCollidingDataRobExample robExample = new XieChengCollidingDataRobExample();
-        robExample.createCriteria().andIsDeleteEqualTo(0);
+        robExample.createCriteria().andIsDeleteEqualTo(0).andPackageIdIn(packages.stream().map(XieChengCollidingDataPackage::getId)
+                .collect(Collectors.toList()));
         int robCount = robMapper.countByExample(robExample);
         XiechengCollidingDataVO falseData = new XiechengCollidingDataVO();
-        cycleData.setApiCode(apiCode);
-        cycleData.setResultData("False的数据包");
-        cycleData.setResultNum(Integer.toString(robCount));
-        cycleData.setUpdateTime("-");
+        falseData.setApiCode(apiCode);
+        falseData.setResultData("False的数据包");
+        falseData.setResultNum(Integer.toString(robCount));
+        falseData.setUpdateTime("-");
         xiechengCollidingDataVOList.add(falseData);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(xiechengCollidingDataVOList);
     }

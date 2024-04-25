@@ -7,4 +7,7 @@ public interface XieChengRuleScoreRecordMapper extends XieChengRuleScoreRecordMa
     void createXieChengScoreDorisTableByBatchNumdoris_(@Param("createDorisDDL") String createDorisDDL);
     Integer insertXieChengScoreTidbTable(@Param("insertTidbSql") String insertTidbSql);
     Long getXieChengScoreTidbTableCount(@Param("tableName") String tableName);
+
+    Integer getXieChengDataNumdoris_(@Param("querySql") String querySql);
+
 }
