@@ -8,13 +8,12 @@
     <result column="cell_sha256_code_list" property="cellSha256CodeList" jdbcType="VARCHAR" />
     <result column="release_time" property="releaseTime" jdbcType="TIMESTAMP" />
     <result column="push_time" property="pushTime" jdbcType="TIMESTAMP" />
+    <result column="colliding_count" property="collidingCount" jdbcType="INTEGER" />
     <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="retry_count" property="retryCount" jdbcType="INTEGER" />
-  </resultMap>
-  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.XieChengCollidingDataRob" extends="BaseResultMap" >
-    <result column="extend" property="extend" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -76,27 +75,8 @@
   </sql>
   <sql id="Base_Column_List" >
     id, package_id, data_source_type, cell_sha256_code_list, release_time, push_time, 
-    is_delete, create_time, update_time, retry_count
+    colliding_count, is_delete, extend, create_time, update_time, retry_count
   </sql>
-  <sql id="Blob_Column_List" >
-    extend
-  </sql>
-  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.XieChengCollidingDataRobExample" >
-    select
-    <if test="distinct" >
-      distinct
-    </if>
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
-    from b_xiecheng_colliding_data_rob
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null" >
-      order by ${orderByClause}
-    </if>
-  </select>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.XieChengCollidingDataRobExample" >
     select
     <if test="distinct" >
@@ -111,11 +91,9 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
     from b_xiecheng_colliding_data_rob
     where id = #{id,jdbcType=BIGINT}
   </select>
@@ -134,13 +112,13 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_xiecheng_colliding_data_rob (package_id, data_source_type, cell_sha256_code_list, 
-      release_time, push_time, is_delete, 
-      create_time, update_time, retry_count, 
-      extend)
+      release_time, push_time, colliding_count, 
+      is_delete, extend, create_time, 
+      update_time, retry_count)
     values (#{packageId,jdbcType=BIGINT}, #{dataSourceType,jdbcType=VARCHAR}, #{cellSha256CodeList,jdbcType=VARCHAR}, 
-      #{releaseTime,jdbcType=TIMESTAMP}, #{pushTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{retryCount,jdbcType=INTEGER}, 
-      #{extend,jdbcType=LONGVARCHAR})
+      #{releaseTime,jdbcType=TIMESTAMP}, #{pushTime,jdbcType=TIMESTAMP}, #{collidingCount,jdbcType=INTEGER}, 
+      #{isDelete,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{retryCount,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.XieChengCollidingDataRob" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -163,8 +141,14 @@
       <if test="pushTime != null" >
         push_time,
       </if>
+      <if test="collidingCount != null" >
+        colliding_count,
+      </if>
       <if test="isDelete != null" >
         is_delete,
+      </if>
+      <if test="extend != null" >
+        extend,
       </if>
       <if test="createTime != null" >
         create_time,
@@ -174,9 +158,6 @@
       </if>
       <if test="retryCount != null" >
         retry_count,
-      </if>
-      <if test="extend != null" >
-        extend,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -195,8 +176,14 @@
       <if test="pushTime != null" >
         #{pushTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="collidingCount != null" >
+        #{collidingCount,jdbcType=INTEGER},
+      </if>
       <if test="isDelete != null" >
         #{isDelete,jdbcType=INTEGER},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
       </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
@@ -206,9 +193,6 @@
       </if>
       <if test="retryCount != null" >
         #{retryCount,jdbcType=INTEGER},
-      </if>
-      <if test="extend != null" >
-        #{extend,jdbcType=LONGVARCHAR},
       </if>
     </trim>
   </insert>
@@ -239,8 +223,14 @@
       <if test="record.pushTime != null" >
         push_time = #{record.pushTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.collidingCount != null" >
+        colliding_count = #{record.collidingCount,jdbcType=INTEGER},
+      </if>
       <if test="record.isDelete != null" >
         is_delete = #{record.isDelete,jdbcType=INTEGER},
+      </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
       </if>
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -251,27 +241,7 @@
       <if test="record.retryCount != null" >
         retry_count = #{record.retryCount,jdbcType=INTEGER},
       </if>
-      <if test="record.extend != null" >
-        extend = #{record.extend,jdbcType=LONGVARCHAR},
-      </if>
     </set>
-    <if test="_parameter != null" >
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExampleWithBLOBs" parameterType="map" >
-    update b_xiecheng_colliding_data_rob
-    set id = #{record.id,jdbcType=BIGINT},
-      package_id = #{record.packageId,jdbcType=BIGINT},
-      data_source_type = #{record.dataSourceType,jdbcType=VARCHAR},
-      cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
-      release_time = #{record.releaseTime,jdbcType=TIMESTAMP},
-      push_time = #{record.pushTime,jdbcType=TIMESTAMP},
-      is_delete = #{record.isDelete,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      retry_count = #{record.retryCount,jdbcType=INTEGER},
-      extend = #{record.extend,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -284,7 +254,9 @@
       cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
       release_time = #{record.releaseTime,jdbcType=TIMESTAMP},
       push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+      colliding_count = #{record.collidingCount,jdbcType=INTEGER},
       is_delete = #{record.isDelete,jdbcType=INTEGER},
+      extend = #{record.extend,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       retry_count = #{record.retryCount,jdbcType=INTEGER}
@@ -310,8 +282,14 @@
       <if test="pushTime != null" >
         push_time = #{pushTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="collidingCount != null" >
+        colliding_count = #{collidingCount,jdbcType=INTEGER},
+      </if>
       <if test="isDelete != null" >
         is_delete = #{isDelete,jdbcType=INTEGER},
+      </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
       </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -322,24 +300,7 @@
       <if test="retryCount != null" >
         retry_count = #{retryCount,jdbcType=INTEGER},
       </if>
-      <if test="extend != null" >
-        extend = #{extend,jdbcType=VARCHAR},
-      </if>
     </set>
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.XieChengCollidingDataRob" >
-    update b_xiecheng_colliding_data_rob
-    set package_id = #{packageId,jdbcType=BIGINT},
-      data_source_type = #{dataSourceType,jdbcType=VARCHAR},
-      cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
-      release_time = #{releaseTime,jdbcType=TIMESTAMP},
-      push_time = #{pushTime,jdbcType=TIMESTAMP},
-      is_delete = #{isDelete,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      retry_count = #{retryCount,jdbcType=INTEGER},
-      extend = #{extend,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XieChengCollidingDataRob" >
@@ -349,7 +310,9 @@
       cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
       release_time = #{releaseTime,jdbcType=TIMESTAMP},
       push_time = #{pushTime,jdbcType=TIMESTAMP},
+      colliding_count = #{collidingCount,jdbcType=INTEGER},
       is_delete = #{isDelete,jdbcType=INTEGER},
+      extend = #{extend,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       retry_count = #{retryCount,jdbcType=INTEGER}
