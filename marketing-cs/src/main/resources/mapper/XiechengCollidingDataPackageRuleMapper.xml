@@ -37,7 +37,7 @@
         </if>
         <if test="listParam.collidingStartTime != null and listParam.collidingStartTime != '' and listParam.collidingEndTime != null and listParam.collidingEndTime != ''">
             AND (dpr.colliding_start_time BETWEEN #{listParam.collidingStartTime} AND #{listParam.collidingEndTime} OR
-                 dpr.colliding_end_time BETWEEN #{listParam.collidingStartTime} AND #{listParam.collidingEndTime});
+                 dpr.colliding_end_time BETWEEN #{listParam.collidingStartTime} AND #{listParam.collidingEndTime})
         </if>
     </select>
 

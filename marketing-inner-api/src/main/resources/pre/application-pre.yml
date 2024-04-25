@@ -97,6 +97,7 @@ datasource:
       connectionErrorRetryAttempts: 5 # 连接出错后再尝试连接三次
       breakAfterAcquireFailure: true # 数据库服务宕机自动重连机制
       timeBetweenConnectErrorMillis: 300000 # 连接出错后重试时间间隔
+      replicationAllocation: tag.location.default:1
 
 spring:
   rabbitmq:

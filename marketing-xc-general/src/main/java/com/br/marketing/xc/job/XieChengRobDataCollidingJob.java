@@ -16,6 +16,12 @@ import com.google.common.base.Splitter;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 携程非周期撞库
+ *
+ * @author senyang.zheng
+ * @date 2024/04/18
+ */
 @Slf4j
 @Component
 public class XieChengRobDataCollidingJob extends AbstractSimpleElasticJob {
