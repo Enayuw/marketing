@@ -68,9 +68,9 @@ public class XiechengSaveCollidingRuleLogFunction implements CustomFunction {
         XieChengCollidingDataPackage dataPackage = packageMapper.selectByPrimaryKey(packageId);
         res.append("创建").append(dataPackage.getPackageName()).append("具体规则为:\n");
         stagingRuleList.forEach((XiechengCollidingDataPackageRuleStaging stagingRule) -> res.append("开启撞库时间：")
-            .append(DateUtil.format(stagingRule.getCollidingStartTime(), DatePattern.NORM_DATETIME_PATTERN)).append("——")
-            .append(DateUtil.format(stagingRule.getCollidingEndTime(), DatePattern.NORM_DATETIME_PATTERN)).append("的设定撞得量级")
-            .append(stagingRule.getCollidingBackNumber()).append("设定撞得次数").append(stagingRule.getCollidingTimes()).append("\n"));
+            .append(DateUtil.format(stagingRule.getCollidingStartTime(), DatePattern.NORM_DATETIME_PATTERN)).append(" —— ")
+            .append(DateUtil.format(stagingRule.getCollidingEndTime(), DatePattern.NORM_DATETIME_PATTERN)).append(" 的设定撞得量级 ")
+            .append(stagingRule.getCollidingBackNumber()).append(" 设定撞得次数").append(stagingRule.getCollidingTimes()).append("\n"));
         return res.toString();
     }
 }

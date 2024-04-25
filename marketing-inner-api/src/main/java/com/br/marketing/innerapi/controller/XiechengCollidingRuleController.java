@@ -94,9 +94,10 @@ public class XiechengCollidingRuleController {
     @ApiOperation(value = "5-修改撞库规则")
     @PostMapping("/rule/update")
     @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_UPDATE_COLLIDING_RULE,
-        extendInfo = "修改了{#param.packageName}中的原撞库时间{#param.originalCollidingStartTime}——{#param.originalCollidingEndTime}的"
-            + "设定撞得量级{#param.originalCollidingBackNumber}和设定撞库次数{#param.originalCollidingTimes} "
-            + "修改为 {#param.collidingStartTime}——{#param.collidingEndTime}的" + "设定撞得量级{#param.collidingBackNumber}和设定撞库次数{#param.collidingTimes}")
+        extendInfo = "修改了{#param.packageName}中的原撞库时间 {#param.originalCollidingStartTime} —— {#param.originalCollidingEndTime} 的"
+            + "设定撞得量级 {#param.originalCollidingBackNumber} 和设定撞库次数 {#param.originalCollidingTimes} "
+            + "修改为 {#param.collidingStartTime} —— {#param.collidingEndTime} 的"
+            + "设定撞得量级 {#param.collidingBackNumber} 和设定撞库次数 {#param.collidingTimes}")
     public ApiResult<Boolean> updateCollidingRule(UpdateCollidingRuleParam param) {
         try {
             return new ApiResult<Boolean>().success(xieChengCollidingRuleService.updateCollidingRule(param));
@@ -169,7 +170,7 @@ public class XiechengCollidingRuleController {
         try {
             return new ApiResult<Boolean>().success(xieChengCollidingRuleService.deleteStagingCollidingRule(prsId));
         } catch (Exception e) {
-            log.error("确认撞库规则异常", e);
+            log.error("删除已确认撞库规则异常", e);
             return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
         }
     }
@@ -178,7 +179,8 @@ public class XiechengCollidingRuleController {
     @PostMapping("/rule/save")
     @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_SAVE_COLLIDING_RULE, extendInfo = "[saveCollidingRuleLog]")
     public ApiResult<Boolean> saveCollidingRule() {
-        return xieChengCollidingRuleService.saveCollidingRule();
+        ApiResult<Boolean> result = xieChengCollidingRuleService.saveCollidingRule();
+        return result;
     }
 
 }

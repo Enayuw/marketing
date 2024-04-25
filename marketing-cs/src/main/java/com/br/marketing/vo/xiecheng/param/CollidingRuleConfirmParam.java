@@ -12,6 +12,9 @@ public class CollidingRuleConfirmParam implements Serializable {
 
     private static final long serialVersionUID = 1270257474084816056L;
 
+    @ApiModelProperty("主键id")
+    private Long prsId;
+
     @ApiModelProperty("商户编号")
     private String apiCode;
 
