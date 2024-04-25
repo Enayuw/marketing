@@ -1,6 +1,10 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
+import com.br.marketing.entity.XieChengRuleScoreData;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 public interface XieChengRuleScoreRecordMapper extends XieChengRuleScoreRecordMapperBase {
     void createXieChengScoreTidbTableByBatchNum(@Param("createTidbDDL") String createTidbDDL);
@@ -10,4 +14,11 @@ public interface XieChengRuleScoreRecordMapper extends XieChengRuleScoreRecordMa
 
     Integer getXieChengDataNumdoris_(@Param("querySql") String querySql);
 
+
+
+    /**
+     * @param queryRuleScoreDataSql
+     * @return
+     */
+    List<XieChengRuleScoreData> selectRuleScoreDataExcludeTrueData(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql);
 }

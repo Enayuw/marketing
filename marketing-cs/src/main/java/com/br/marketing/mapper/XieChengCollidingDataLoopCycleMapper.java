@@ -69,4 +69,18 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
      * 查询周期数据量及release_time
      */
     Map<String, Object> selectCycleNumData();
+
+    /**
+     * 查询true表和携程跑分临时表交集数据
+     * @param queryRuleScoreDataSql
+     * @return
+     */
+    List<Long> selectIdsOfTrueDataProcessTask(@Param("minId") Long minId,@Param("queryRuleScoreDataSql") String queryRuleScoreDataSql);
+
+    /**
+     * 更新is_delete：is_delete = 1,update_time = now()
+     * @param ids
+     * @return
+     */
+    int updateIsDeleteByIds(@Param("ids") List<Long> ids);
 }

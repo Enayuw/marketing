@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl.xc;
 
-import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;

@@ -1,7 +1,9 @@
 package com.br.marketing.mapper;
 
 import java.util.List;
+import java.util.Set;
 
+import com.br.marketing.entity.XieChengCollidingDataRobPriority;
 import org.apache.ibatis.annotations.Param;
 
 import com.br.marketing.entity.XieChengCollidingDataRob;
@@ -51,4 +53,10 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
 
     List<XieChengCollidingDataRob> selectRobByRetryCount(@Param("minId")Long minId, @Param("isLast")Boolean isLast
             , @Param("pageSize")Integer pageSize);
+
+    List<XieChengCollidingDataRobPriority> selectRobDataByRuleScoreData(@Param("cells") List<String> cells);
+    // todo sql性能
+    List<XieChengCollidingDataRobPriority> selectMaxCollidingEndTimeGroupByCell(@Param("cells") List<String> cells);
+
+    int updateBatchByCellToIsDeleted(@Param("cells") List<String> cells);
 }
