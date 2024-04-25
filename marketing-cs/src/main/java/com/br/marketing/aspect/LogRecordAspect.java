@@ -54,8 +54,8 @@ public class LogRecordAspect {
 
     //举例：Prr在4,12号，20点26修改了数据包一中的原开启撞库时间4月15号 20:24:34 的设定撞得量级2,000,000修改为4月16号 20:24:34的设定撞得量级1,000,000
     @Around("method()")
-    public void around(ProceedingJoinPoint joinPoint) throws Throwable {
-        insertLog(joinPoint);
+    public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
+        return insertLog(joinPoint);
     }
 
     /**
@@ -64,17 +64,18 @@ public class LogRecordAspect {
      *
      * @param joinPoint
      */
-    private void insertLog(ProceedingJoinPoint joinPoint) throws Throwable {
+    private Object insertLog(ProceedingJoinPoint joinPoint) throws Throwable {
         // 获取切点方法上的注解
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         Method method = methodSignature.getMethod();
         LogRecordAnnotation annotation = method.getAnnotation(LogRecordAnnotation.class);
         // 拼接操作日志
         RequestOperationLog requestOperationLog = this.recordLog(annotation, joinPoint);
+        Object proceed = null;
         // 方法执行
         try {
             // 执行被拦截的方法,如果是系统异常那就直接抛出异常也不需要记录日志，但如果是业务异常，那就用记录这个日志是否成功
-            Object proceed = joinPoint.proceed();
+            proceed = joinPoint.proceed();
             // 返回值
             String result = JSONUtil.parseObj(proceed).toString();
             if(StringUtils.isNotEmpty(result)){
@@ -86,6 +87,7 @@ public class LogRecordAspect {
         } catch (Exception e) {
             log.error("目标方法执行异常",e);
         }
+        return proceed;
     }
 
     /**
