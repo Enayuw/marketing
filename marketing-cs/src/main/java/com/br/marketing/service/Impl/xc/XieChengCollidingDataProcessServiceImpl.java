@@ -8,8 +8,6 @@ import com.br.marketing.entity.XieChengCollidingDataPackageExample;
 import com.br.marketing.entity.XieChengCollidingDataRob;
 import com.br.marketing.entity.XieChengCollidingDataRobPriority;
 import com.br.marketing.entity.XieChengRuleScoreData;
-import com.br.marketing.entity.XiechengCollidingDataPackageRule;
-import com.br.marketing.entity.XiechengCollidingDataPackageRuleExample;
 import com.br.marketing.entity.XiechengCollidingDataProcessTask;
 import com.br.marketing.entity.XiechengCollidingDataProcessTaskExample;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
@@ -27,12 +25,8 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -175,23 +169,28 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
 
         // 旧包优先级大于等于新包优先级的重复数据
         List<String> robPriorityCells =
-                robList.stream().filter(rob -> rob.getPriority() >= collidingDataPackage.getPriority()).collect(Collectors.toList()).stream().map(XieChengCollidingDataRob::getCellSha256CodeList).collect(Collectors.toList());
+                robList.stream().filter(rob -> rob.getPriority() >= collidingDataPackage.getPriority())
+                        .collect(Collectors.toList())
+                        .stream().map(XieChengCollidingDataRob::getCellSha256CodeList).collect(Collectors.toList());
 
         List<XieChengCollidingDataRobPriority> robMaxCollidingEndTimeList = robMapper.selectMaxCollidingEndTimeGroupByCell(robPriorityCells);
         List<String> exculeCells = robMaxCollidingEndTimeList.stream().filter(t -> {
-            // todo 转年月日小于等于
-            if (task.getTaskStartTime().before(t.getCollidingEndTime())) {
+            LocalDate cleanDate = task.getTaskStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate collidingMaxDate = t.getCollidingEndTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+            if (cleanDate.compareTo(collidingMaxDate) <= 0) {
                 return true;
             }
+
             return false;
         }).collect(Collectors.toList()).stream().map(XieChengCollidingDataRob::getCellSha256CodeList).collect(Collectors.toList());
 
 
         ArrayList<XieChengCollidingDataRobPriority> robListCopy = new ArrayList<>(robList);
         robListCopy.stream().map(XieChengCollidingDataRob::getCellSha256CodeList).collect(Collectors.toList()).removeAll(exculeCells);
-        List<String> deleteCells = robListCopy.stream().map(XieChengCollidingDataRob::getCellSha256CodeList).collect(Collectors.toList());
+        List<Long> deleteIds = robListCopy.stream().map(XieChengCollidingDataRob::getId).collect(Collectors.toList());
 
-        robMapper.updateBatchByCellToIsDeleted(deleteCells);
+        robMapper.updateDeleteByIds(deleteIds);
 
         // 关联rob表 保留没关联上的
         // task_start_time小于等于旧包最大结束时间，且旧包优先级大于等于当前包优先级：从当前包中剔除

@@ -99,17 +99,18 @@
         from b_xiecheng_colliding_data_rob a
                  join b_xiecheng_colliding_data_package b on b.id = a.package_id
                  join b_xiecheng_colliding_data_package_rule c on b.id = c.package_id
-        where a.cell_sha256_code_list in
+        where a.is_delete = 0 and b.is_delete = 0 and c.is_delete = 0
+        and a.cell_sha256_code_list in
         <foreach collection="cells" item="cell" open="(" separator="," close=")">
             #{cell}
         </foreach>
         group by a.cell_sha256_code_list
     </select>
 
-    <update id="updateBatchByCellToIsDeleted">
-        update b_xiecheng_colliding_data_rob set is_delete = 1,update_time = now() where cell_sha256_code_list in
-        <foreach collection="cells" item="cell" open="(" separator="," close=")">
-            #{cell}
+    <update id="updateDeleteByIds">
+        update b_xiecheng_colliding_data_rob set is_delete = 1,update_time = now() where is_delete = 0 and id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
         </foreach>
     </update>
 </mapper>
