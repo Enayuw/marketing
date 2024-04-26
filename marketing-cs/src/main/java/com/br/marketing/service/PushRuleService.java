@@ -11,6 +11,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.vo.*;
+import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
 
 import javax.validation.Valid;
@@ -66,7 +67,7 @@ public interface PushRuleService {
      */
     Result<String> pushCustomer(@Valid PushCustomerDTO dto);
 
-    Result<Integer> pushPreview(@Valid PushCustomerDTO dto);
+    Result<PushViewVO> pushPreview(@Valid PushCustomerDTO dto);
 
     String encrypt3k(Integer type, String content);
 

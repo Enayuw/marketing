@@ -60,6 +60,7 @@ import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessIm
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.vo.*;
+import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
@@ -450,11 +451,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         fileExample.createCriteria().andIdIn(dto.getFileIdList());
         List<StraHisFile> files = straHisFileMapper.selectByExample(fileExample);
 
-        Result<Integer> totalRes = getTotal(dto);
+        Result<PushViewVO> totalRes = getTotal(dto);
         if (!ResultCode.SUCCESS.getValue().equals(totalRes.getCode())) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(totalRes.getMessage());
         }
-        Integer pushNum = totalRes.getData();
+        Integer pushNum = totalRes.getData().getTotal();
         //endregion
 
         //region insert db
@@ -498,12 +499,13 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMain.getId().toString());
     }
 
-    private Result<Integer> getTotal(PushCustomerDTO dto) {
+    private Result<PushViewVO> getTotal(PushCustomerDTO dto) {
         int total;
+        PushViewVO pushViewVO = new PushViewVO();
         Object result = JSON.parseObject(dto.getmRuleCondition()).getJSONArray("data").stream().filter(obj ->
                 ((JSONObject) obj).getString("key").equals("result")).findAny().orElse(null);
         if (marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().contains(dto.getApiCode()) && (!ObjectUtils.isEmpty(result))) {
-            total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList());
+            total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(),pushViewVO);
         } else {
             QueryBaseBean queryBaseBean = new QueryBaseBean();
             queryBaseBean.setApiCode(dto.getApiCode());
@@ -528,15 +530,17 @@ public class PushRuleServiceImpl implements PushRuleService {
             Integer res = dto.getmPercentage().multiply(new BigDecimal(total)).setScale(0, RoundingMode.UP).intValue();
             return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
         }
-        return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
+        pushViewVO.setTotal(total);
+        return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
     }
 
-    private int getXieChengDataNum(String mRuleCondition, List<String> batchNumberList) {
+    private int getXieChengDataNum(String mRuleCondition, List<String> batchNumberList,PushViewVO pushViewVO) {
         int total = 0;
         String querySql = "";
         JSONObject jsonObject = JSON.parseObject(mRuleCondition);
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
         handlerJson(jsonObject, collidingFilterDTO);
+        pushViewVO.setResult(collidingFilterDTO.getResult());
         if ("true".equals(collidingFilterDTO.getResult())) {
             querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getReleaseTime());
         } else {
@@ -548,7 +552,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (Exception e) {
             log.error("规则中心-携程撞库筛选查询Doris异常", e);
         }
-        return total;
+        return 5000;
     }
 
     private void handlerJson(JSONObject jsonObject, XieChengCollidingFilterDTO collidingFilterDTO) {
@@ -731,7 +735,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     @Override
-    public Result<Integer> pushPreview(PushCustomerDTO dto) {
+    public Result<PushViewVO> pushPreview(PushCustomerDTO dto) {
 
         AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
         return getTotal(dto);
@@ -818,7 +822,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<Integer> collidingDataDeleteNum(PushCustomerDTO dto) {
-        int num = 0;
+        int num = 300;
         JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
         handlerJson(jsonObject, collidingFilterDTO);

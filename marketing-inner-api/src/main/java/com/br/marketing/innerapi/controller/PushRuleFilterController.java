@@ -19,6 +19,7 @@ import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.PushInfoDetailVO;
 import com.br.marketing.vo.ScoreConditionDetailVO;
+import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -147,8 +148,8 @@ public class PushRuleFilterController {
 
     @ApiOperation(value = "推送预览")
     @PostMapping("/pushPreview")
-    public ApiResult<Integer> pushPreview(@RequestBody PushCustomerDTO dto) {
-        return new ApiResult<Integer>().fromResult(pushRuleService.pushPreview(dto), CODE_1);
+    public ApiResult<PushViewVO> pushPreview(@RequestBody PushCustomerDTO dto) {
+        return new ApiResult<PushViewVO>().fromResult(pushRuleService.pushPreview(dto), CODE_1);
     }
 
     @ApiOperation(value = "保存模板")
