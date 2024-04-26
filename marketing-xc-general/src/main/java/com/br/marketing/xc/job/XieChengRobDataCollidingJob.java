@@ -31,10 +31,7 @@ public class XieChengRobDataCollidingJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        String param = context.getJobParameter();
-        List<Long> packageIds = Optional.ofNullable(param).filter(s -> !s.trim().isEmpty()).map(s -> Splitter.on(",").splitToList(s))
-            .orElseGet(Collections::emptyList).stream().map(Long::parseLong).collect(Collectors.toList());
-        xieChengRobDataCollidingService.collidingData(packageIds);
+        xieChengRobDataCollidingService.collidingData();
     }
 
 }

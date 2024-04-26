@@ -12,7 +12,7 @@ import com.br.marketing.entity.XieChengCollidingDataRob;
  */
 public interface XieChengRobDataCollidingService extends DataCollidingService<XieChengCollidingDataRob> {
 
-    void collidingData(List<Long> packageIds);
+    void collidingData();
 
     void initializeTodayReleaseTime(String key);
 

@@ -198,4 +198,9 @@ public class RedisKeyConstant {
      * 携程撞库releaseTime
      */
     public static final String XIECHENG_RELEASE_TIME = prefix.concat("xiecheng:releaseTime:");
+
+    /**
+     * 携程撞库规则
+     */
+    public static final String XIECHENG_PACKAGE_RULE = prefix.concat("xiecheng:package:rule:");
 }

@@ -86,4 +86,17 @@
             #{id}
         </foreach>
     </update>
+
+    <select id="getCollidingPackageRules" resultType="com.br.marketing.entity.XiechengCollidingDataPackageRule">
+        SELECT r.*
+        FROM b_xiecheng_colliding_data_package_rule r
+                 JOIN b_xiecheng_colliding_data_package p ON p.id = r.package_id
+        WHERE p.is_delete = 0
+          AND r.is_delete = 0
+          AND r.colliding_switch = 0
+          AND r.colliding_start_time <![CDATA[ <= ]]> NOW()
+          AND r.colliding_end_time <![CDATA[ >= ]]> NOW()
+        ORDER BY p.priority,
+                 IF(r.colliding_back_number IS NULL, 0, 1);
+    </select>
 </mapper>

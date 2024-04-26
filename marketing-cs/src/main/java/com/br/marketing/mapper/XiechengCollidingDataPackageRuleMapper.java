@@ -18,4 +18,6 @@ public interface XiechengCollidingDataPackageRuleMapper extends XiechengCollidin
     List<XiechengCollidingDataPackageRule> listByIds(@Param("ids") List<Long> ids);
 
     void deleteByIds(@Param("ids") List<Long> ids);
+
+    List<XiechengCollidingDataPackageRule> getCollidingPackageRules();
 }
