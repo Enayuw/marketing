@@ -1,6 +1,5 @@
 package com.br.marketing.mapper;
 
-import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
 import com.br.marketing.entity.XieChengRuleScoreData;
 import org.apache.ibatis.annotations.Param;
 

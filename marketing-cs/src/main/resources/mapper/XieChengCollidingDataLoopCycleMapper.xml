@@ -112,8 +112,8 @@
         from b_xiecheng_colliding_data_loop_cycle a
         join ( ${queryRuleScoreDataSql} ) b on a.cell_sha256_code_list = b.cell
         where a.is_delete = 0
-        and a.release_time > curdate()
-        and a.release_time < date_sub(curdate(), interval -7 day)
+        <![CDATA[ and a.release_time > curdate()
+        and a.release_time < date_sub(curdate(), interval -7 day) ]]>
         <if test="minId != null and minId>0">
             and id > #{minId}
         </if>

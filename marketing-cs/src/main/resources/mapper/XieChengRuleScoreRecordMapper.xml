@@ -22,11 +22,7 @@
         ${querySql}
     </select>
 
-    <select id="getXieChengScoreTidbTableCount" resultType="java.lang.String">
-        select count(1) from ${tableName}
-    </select>
-
-    <select id="selectRuleScoreDataExcludeTrueData" resultType="java.lang.String">
+    <select id="selectRuleScoreDataExcludeTrueData" resultType="com.br.marketing.entity.XieChengRuleScoreData">
         ${queryRuleScoreDataSql}
         a left join b_xiecheng_colliding_data_loop_cycle b on a.cell = b.cell_sha256_code_list
         where b.id is null order by a.id limit 2000;
