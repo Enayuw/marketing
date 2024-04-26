@@ -57,7 +57,6 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
     @Resource
     XiechengCollidingDataPackageRuleMapper packageRuleMapper;
 
-
     @Override
     public void process() {
         LocalDate localDate = LocalDate.now();
@@ -178,7 +177,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             LocalDate cleanDate = task.getTaskStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
             LocalDate collidingMaxDate = t.getCollidingEndTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-            if (cleanDate.compareTo(collidingMaxDate) <= 0) {
+            if (!cleanDate.isAfter(collidingMaxDate)) {
                 return true;
             }
 
