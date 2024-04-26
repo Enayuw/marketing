@@ -824,7 +824,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         handlerJson(jsonObject, collidingFilterDTO);
         String deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getReleaseTime());
         // doris查询
-        num = scoreRecordMapper.getXieChengDataNumdoris_(deleteSql);
+        // 查询Doris
+        try {
+            num = scoreRecordMapper.getXieChengDataNumdoris_(deleteSql);
+        } catch (Exception e) {
+            log.error("规则中心-携程撞库筛选查询Doris异常", e);
+        }
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(num);
     }
 
