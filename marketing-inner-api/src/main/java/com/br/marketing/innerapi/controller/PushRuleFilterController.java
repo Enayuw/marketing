@@ -204,8 +204,8 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    @ApiOperation(value = "撞库数据剔除数据量", notes = "撞库数据剔除数据量", httpMethod = "GET")
-    @GetMapping("/collidingDataDeleteNum")
+    @ApiOperation(value = "撞库数据剔除数据量", notes = "撞库数据剔除数据量", httpMethod = "POST")
+    @PostMapping("/collidingDataDeleteNum")
     public ApiResult collidingDataDeleteNum(@RequestBody PushCustomerDTO dto) {
         return new ApiResult<Integer>().fromResult(pushRuleService.collidingDataDeleteNum(dto), CODE_1);
     }

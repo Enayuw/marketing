@@ -610,7 +610,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     .append("on score.cell = ").append("d").append(processTask.getId()).append(".cell ");
             whereSql.append(" and  d").append(processTask.getId()).append(".id is null");
         });
-        falseAndscoreSql.append(whereSql);
+        falseAndscoreSql.append(whereSql).append(";");
         return falseAndscoreSql.toString();
     }
 
