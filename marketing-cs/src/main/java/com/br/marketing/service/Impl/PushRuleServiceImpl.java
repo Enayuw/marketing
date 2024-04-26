@@ -610,7 +610,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     .append("on score.cell = ").append("d").append(processTask.getId()).append(".cell ");
             whereSql.append(" and  d").append(processTask.getId()).append(".id is null");
         });
-        falseAndscoreSql.append(whereSql);
+        falseAndscoreSql.append(whereSql).append(";");
         return falseAndscoreSql.toString();
     }
 
@@ -824,7 +824,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         handlerJson(jsonObject, collidingFilterDTO);
         String deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getReleaseTime());
         // doris查询
-        num = scoreRecordMapper.getXieChengDataNumdoris_(deleteSql);
+        // 查询Doris
+        try {
+            num = scoreRecordMapper.getXieChengDataNumdoris_(deleteSql);
+        } catch (Exception e) {
+            log.error("规则中心-携程撞库筛选查询Doris异常", e);
+        }
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(num);
     }
 

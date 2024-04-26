@@ -2,6 +2,7 @@ package com.br.marketing.mapper;
 
 import java.util.List;
 
+import com.br.marketing.entity.XieChengCollidingDataRobPriority;
 import org.apache.ibatis.annotations.Param;
 
 import com.br.marketing.entity.XieChengCollidingDataRob;
@@ -20,7 +21,7 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
 
     /**
      * 根据id批量更新is_deleted = 1
-     * 
+     *
      * @param ids
      */
     int updateBatchByIdToIsDeleted(@Param("ids") List<Long> ids, @Param("rollbackFlag") String rollbackFlag);
@@ -46,4 +47,12 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
         @Param("pageSize") Integer pageSize);
 
     int countByCollidingCount(@Param("packageId") Long packageId, @Param("collidingTimes") Integer collidingTimes);
+    List<XieChengCollidingDataRob> selectRobByRetryCount(@Param("minId")Long minId, @Param("isLast")Boolean isLast
+            , @Param("pageSize")Integer pageSize);
+
+    List<XieChengCollidingDataRobPriority> selectRobDataByRuleScoreData(@Param("cells") List<String> cells);
+    // todo sql性能
+    List<XieChengCollidingDataRobPriority> selectMaxCollidingEndTimeGroupByCell(@Param("cells") List<String> cells);
+
+    int updateDeleteByIds(@Param("ids")  List<Long> ids);
 }

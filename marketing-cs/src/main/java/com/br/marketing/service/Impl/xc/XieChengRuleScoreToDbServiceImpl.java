@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl.xc;
 
-import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
@@ -60,7 +59,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
     @Resource
     private AlarmApiClient alarmClient;
 
-    @Value("${datasource.database.marketingDoris.replicationAllocation}")
+    @Value("${datasource.database.marketingDoris.replicationAllocation:0}")
     String replicationAllocation;
 
     private static final int BATCH_SIZE = 50;

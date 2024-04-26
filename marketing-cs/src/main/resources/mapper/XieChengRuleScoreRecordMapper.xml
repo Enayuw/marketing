@@ -21,4 +21,20 @@
     <select id="getXieChengDataNumdoris_" resultType="java.lang.Integer">
         ${querySql}
     </select>
+
+    <select id="selectRuleScoreDataExcludeTrueData" resultType="com.br.marketing.entity.XieChengRuleScoreData">
+        SELECT id, cell
+        FROM (SELECT id,
+        cell,
+        ROW_NUMBER() OVER (PARTITION BY a.cell ORDER BY a.id) AS row_num
+        FROM (${queryRuleScoreDataSql}) AS a
+        LEFT JOIN b_xiecheng_colliding_data_loop_cycle AS b ON a.cell = b.cell_sha256_code_list
+        WHERE b.id IS NULL) AS t
+        WHERE row_num = 1
+        <if test="minId != null and minId>0">
+            and id > #{minId}
+        </if>
+        order by t.id
+        LIMIT 2000;
+    </select>
 </mapper>

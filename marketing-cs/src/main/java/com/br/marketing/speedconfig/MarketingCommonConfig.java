@@ -1527,5 +1527,10 @@ public class MarketingCommonConfig {
      * XieChengRuleScoreToDbLastDays=3（T-3~T）
      */
     private Integer XieChengRuleScoreToDbLastDays;
+
+    /**
+     * 携程撞库数据清洗线程数
+     */
+    private Integer xieChengCollidingDataProcessThread;
 }
 
