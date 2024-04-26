@@ -19,7 +19,6 @@ import com.br.marketing.client.xiecheng.XieChengServiceNew;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.XieChengCollidingDataLoopCycleExample;
 import com.br.marketing.entity.XieChengCollidingDataRob;
 import com.br.marketing.entity.XiechengCollidingDataPackageRule;
@@ -99,33 +98,14 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     }
 
     private XiechengCollidingDataPackageRule getCurrentPackageRule() {
-        List<XiechengCollidingDataPackageRule> collidingDataPackageRules = optimizeCollidingRules(packageRuleMapper.getCollidingPackageRules());
+        List<XiechengCollidingDataPackageRule> collidingDataPackageRules = packageRuleMapper.getCollidingPackageRules();
         for (XiechengCollidingDataPackageRule packageRule : collidingDataPackageRules) {
-            String today = DateUtil.today();
-            String key = RedisKeyConstant.XIECHENG_PACKAGE_RULE + today + ":" + packageRule.getId();
-            if ("true".equals(redisChgService.get(key))) {
-                continue;
-            }
             if (checkPackageRule(packageRule)) {
-                redisChgService.setex(key, "true", DateHelper.getRemainSecondsOneDay(new Date()));
                 continue;
             }
             return packageRule;
         }
         return null;
-    }
-
-    public List<XiechengCollidingDataPackageRule> optimizeCollidingRules(List<XiechengCollidingDataPackageRule> collidingDataPackageRules) {
-        // 使用流处理对规则按照 PackageId 进行分组
-        Map<Long, List<XiechengCollidingDataPackageRule>> groupedRules =
-            collidingDataPackageRules.stream().collect(Collectors.groupingBy(XiechengCollidingDataPackageRule::getPackageId));
-        // 对每个 PackageId 组进行过滤和优化
-        return groupedRules.values().stream().flatMap(rules -> {
-            // 剔除 colliding_back_number 为 null 的规则
-            List<XiechengCollidingDataPackageRule> nonNullBackNumberRules =
-                rules.stream().filter(rule -> rule.getCollidingBackNumber() != null).collect(Collectors.toList());
-            return nonNullBackNumberRules.stream();
-        }).collect(Collectors.toList());
     }
 
     private Boolean checkPackageRule(XiechengCollidingDataPackageRule packageRule) {
@@ -134,7 +114,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
         int count = xieChengCollidingDataRobMapper.countByCollidingCount(packageRule.getPackageId(), packageRule.getCollidingTimes());
         if (collidingBackNumber == null) {
             // 如果不需要判断撞得量级，则只需判断是否有满足撞库次数的记录
-            return count > 0;
+            return count == 0;
         }
         // 查询撞得量级
         XieChengCollidingDataLoopCycleExample example = new XieChengCollidingDataLoopCycleExample();
@@ -142,7 +122,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             .andCreateTimeGreaterThanOrEqualTo(DateUtil.beginOfDay(new Date()));
         int packageTrueCount = xieChengCollidingDataLoopCycleMapper.countByExample(example);
         // 判断是否满足撞得量级和撞库次数的条件
-        return packageTrueCount >= collidingBackNumber || count <= 0;
+        return packageTrueCount >= collidingBackNumber || count == 0;
     }
 
     /**

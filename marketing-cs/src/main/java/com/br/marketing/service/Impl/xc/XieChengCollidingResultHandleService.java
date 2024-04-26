@@ -71,6 +71,7 @@ public class XieChengCollidingResultHandleService {
                 String cell = returnData.getString("sha256Code");
                 Boolean result = returnData.getBoolean("result");
                 XieChengCollidingDataRob robData = cellMap.getOrDefault(cell, new XieChengCollidingDataRob());
+                robData.setCollidingCount(robData.getCollidingCount() + 1);
                 if (result) {
                     // 增加try-catch保证50条一批其他数据正常处理，异常数据单条告警
                     try {
@@ -93,6 +94,7 @@ public class XieChengCollidingResultHandleService {
             for (Map.Entry<String, XieChengCollidingDataRob> entry : cellMap.entrySet()) {
                 XieChengCollidingDataRob robData = entry.getValue();
                 robData.setPushTime(new Date());
+                robData.setCollidingCount(robData.getCollidingCount() + 1);
                 robData.setRetryCount(robData.getRetryCount() + 1);
                 xieChengCollidingDataRobMapper.updateByPrimaryKeySelective(robData);
                 collidingLogs.add(xieChengCollidingDataLogService.buildFailXieChengCollidingDataLog(robData.getId(), robData.getPackageId(), "F",

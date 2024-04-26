@@ -11,7 +11,6 @@
           AND rob.is_delete = 0
           AND rob.colliding_count <![CDATA[ < ]]> #{collidingTimes,jdbcType=INTEGER}
         ORDER BY IF(rob.push_time IS NULL, 0, 1),
-                 rob.colliding_count,
                  rob.push_time
         limit #{pageSize,jdbcType=INTEGER}
     </select>
