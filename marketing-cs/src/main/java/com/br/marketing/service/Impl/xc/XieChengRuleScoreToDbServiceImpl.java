@@ -59,7 +59,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
     @Resource
     private AlarmApiClient alarmClient;
 
-    @Value("${datasource.database.marketingDoris.replicationAllocation}")
+//    @Value("${datasource.database.marketingDoris.replicationAllocation}")
     String replicationAllocation;
 
     private static final int BATCH_SIZE = 50;

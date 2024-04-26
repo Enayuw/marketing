@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl.xc;
 
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.XieChengCollidingDataPackage;
 import com.br.marketing.entity.XieChengCollidingDataPackageExample;
 import com.br.marketing.entity.XieChengCollidingDataRob;
@@ -106,6 +107,10 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         Long minId = null;
         String conditions = task.getTaskExecutionConditions();
         for (String batchNumber : task.getBatchNumber().split(",")) {
+            if (StringUtils.isEmpty(batchNumber)) {
+                continue;
+            }
+
             String queryRuleScoreDataSql = "select cell from b_xiecheng_colliding_" + batchNumber + " where " + conditions;
             while (true) {
                 List<Long> longs = cycleMapper.selectIdsOfTrueDataProcessTask(minId, queryRuleScoreDataSql);
@@ -118,7 +123,6 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 threadPool.submit(() -> cycleMapper.updateIsDeleteByIds(longs));
             }
         }
-
 
         // todo 钉钉告警
     }
@@ -143,6 +147,10 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         Long minId = null;
         String conditions = task.getTaskExecutionConditions();
         for (String batchNumber : task.getBatchNumber().split(",")) {
+            if (StringUtils.isEmpty(batchNumber)) {
+                continue;
+            }
+
             String queryRuleScoreDataSql = "select id, cell from b_xiecheng_colliding_" + batchNumber + " where " + conditions;
             while (true) {
                 List<XieChengRuleScoreData> scoreDataExcludeTrueData = ruleScoreRecordMapper.selectRuleScoreDataExcludeTrueData(minId,
