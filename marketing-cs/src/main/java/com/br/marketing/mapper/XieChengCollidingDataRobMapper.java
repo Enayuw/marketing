@@ -47,8 +47,6 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
         @Param("pageSize") Integer pageSize);
 
     int countByCollidingCount(@Param("packageId") Long packageId, @Param("collidingTimes") Integer collidingTimes);
-    List<XieChengCollidingDataRob> selectRobByRetryCount(@Param("minId")Long minId, @Param("isLast")Boolean isLast
-            , @Param("pageSize")Integer pageSize);
 
     List<XieChengCollidingDataRobPriority> selectRobDataByRuleScoreData(@Param("cells") List<String> cells);
     // todo sql性能
