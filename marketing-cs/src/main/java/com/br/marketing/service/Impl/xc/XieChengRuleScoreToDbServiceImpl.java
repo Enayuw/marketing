@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -32,9 +33,11 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @Description XieChengRuleScoreToDbServiceImpl
@@ -44,6 +47,8 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Slf4j
 public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbService {
+    @Resource
+    private XieChengRuleScoreToDbServiceImpl ruleScoreToDbService;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
@@ -59,13 +64,16 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
     @Resource
     private AlarmApiClient alarmClient;
 
-    @Value("${datasource.database.marketingDoris.replicationAllocation:0}")
+    @Value("${datasource.database.marketingDoris.replicationAllocation:1}")
     String replicationAllocation;
 
     private static final int BATCH_SIZE = 50;
 
+
     @Override
     public void process() {
+
+
         marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().forEach(apiCode -> {
             LocalDate createTimeStartLocalDate = LocalDate.now().minusDays(marketingCommonConfig.getXieChengRuleScoreToDbLastDays());
             Date createTimeStartDate = Date.from(createTimeStartLocalDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -89,97 +97,125 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
 
                     scoreRecordMapper.insertSelective(scoreRecord);
 
-                    createTableAndInsert(straHisFile);
+                    Result<Integer> result = createTableAndInsert(straHisFile);
 
-                    String tableName = "b_xiecheng_colliding_" + straHisFile.getBatchNumber();
-                    Long actualNumber = scoreRecordMapper.getXieChengScoreTidbTableCount(tableName);
-                    XieChengRuleScoreRecord updateRecord = new XieChengRuleScoreRecord();
-                    updateRecord.setId(scoreRecord.getId());
-                    updateRecord.setRecordStatus(2);
-                    updateRecord.setActualNumber(actualNumber.intValue());
-                    scoreRecordMapper.updateByPrimaryKey(updateRecord);
+                    if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                        String tableName = "b_xiecheng_colliding_" + straHisFile.getBatchNumber();
+                        Long actualNumber = scoreRecordMapper.getXieChengScoreTidbTableCount(tableName);
+                        XieChengRuleScoreRecord updateRecord = new XieChengRuleScoreRecord();
+                        updateRecord.setId(scoreRecord.getId());
+                        updateRecord.setRecordStatus(2);
+                        updateRecord.setUpdateTime(new Date());
+                        updateRecord.setActualNumber(actualNumber.intValue());
+                        scoreRecordMapper.updateByPrimaryKeySelective(updateRecord);
+                    } else if (ResultCode.FAIL.getValue().equals(result.getCode())) {
+                        XieChengRuleScoreRecord updateRecord = new XieChengRuleScoreRecord();
+                        updateRecord.setId(scoreRecord.getId());
+                        updateRecord.setRecordStatus(3);
+                        updateRecord.setUpdateTime(new Date());
+                        scoreRecordMapper.updateByPrimaryKeySelective(updateRecord);
+                    }
                 }
             });
         });
     }
 
-    private void createTableAndInsert(StraHisFile straHisFile) {
+    private Result<Integer> createTableAndInsert(StraHisFile straHisFile) {
+        Result result = new Result();
         for (String fileName : straHisFile.getFileName().split(",")) {
-            File file = new File(straHisFile.getFilePath(), fileName);
+//            File file = new File(straHisFile.getFilePath(), fileName);
+            String path =
+                    "D:\\opt\\data1\\inloan\\download\\marketing\\once\\7410950\\7410950_20240425000000_8332\\2024-04-25" + File.separator + fileName;
+            File file = new File(path);
             if (!file.exists()) {
                 // todo 是否重新配置告警码
-                alarmClient.sendAlarm("File not found: " + file.getAbsolutePath(), "携程跑分数据同步作业", AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode());
-                return;
+                String errMsg = "跑分文件不存在";
+                alarmClient.sendAlarm(errMsg + ": " + file.getAbsolutePath(), "携程跑分数据同步作业",
+                        AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode());
+                return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
             }
 
-            // todo 新增线程池配置
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 String header = reader.readLine();
                 if (header == null) {
-                    alarmClient.sendAlarm("File is empty: " + file.getAbsolutePath(), "携程跑分数据同步作业",
+                    String errMsg = "文件内容为空";
+                    alarmClient.sendAlarm(errMsg + ": " + file.getAbsolutePath(), "携程跑分数据同步作业",
                             AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode());
-                    return;
+                    return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
                 }
 
-                List<String> columns = Arrays.asList(header.split(",", -1));
+                String headerColumn = header.replace(",id,", ",t_id,");
+                List<String> columns = Arrays.asList(headerColumn.split(",", -1));
                 if (!columns.contains("cell")) {
-                    alarmClient.sendAlarm("文件表头缺少cell字段: " + file.getAbsolutePath(), "携程跑分数据同步作业",
+                    String errMsg = "文件表头缺少cell字段";
+                    alarmClient.sendAlarm(errMsg + ": " + file.getAbsolutePath(), "携程跑分数据同步作业",
                             AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode());
-                    return;
+                    return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
                 }
 
                 boolean anyMatchBlank = columns.stream().anyMatch(StringUtils::isBlank);
                 if (anyMatchBlank) {
-                    alarmClient.sendAlarm("文件表头缺失字段: " + file.getAbsolutePath(), "携程跑分数据同步作业",
+                    String errMsg = "文件表头缺失字段";
+                    alarmClient.sendAlarm(errMsg + ": " + file.getAbsolutePath(), "携程跑分数据同步作业",
                             AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode());
-                    return;
+                    return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
                 }
-                List<String> firstLine = Arrays.asList(header.split(",", -1));
 
-                // todo 校验第一行数据
+                String firstLine = reader.readLine();
+                List<String> firstLineList = Arrays.asList(firstLine.split(",", -1));
+
                 String tableName = "b_xiecheng_colliding_" + straHisFile.getBatchNumber();
-                createTidbAndDorisTable(columns, straHisFile, firstLine, tableName);
+
+                // 创建tidb和doris表结构
+                createTidbAndDorisTable(columns, firstLineList, tableName);
 
                 List<String> batchData = new ArrayList<>();
+                batchData.add(firstLine);
                 String dataLine;
+
+                ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(marketingCommonConfig.getXieChengCollidingRuleScoreToDBThread(),
+                        marketingCommonConfig.getXieChengCollidingRuleScoreToDBThread());
                 while ((dataLine = reader.readLine()) != null) {
                     batchData.add(dataLine);
                     if (batchData.size() == BATCH_SIZE) {
-                        threadPool.submit(() -> writeFileDataToTidb(tableName, columns, new ArrayList<>(batchData)));
+                        ArrayList<String> subList = new ArrayList<>(batchData);
+                        threadPool.submit(() -> writeFileDataToTidb(tableName, columns, subList));
                         batchData.clear();
                     }
+                }
+
+                threadPool.shutdown();
+                try {
+                    while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                        log.info("携程跑分数据同步作业线程池关闭");
+                    }
+                } catch (InterruptedException ex) {
+                    threadPool.shutdownNow();
+                    log.error("携程跑分数据同步作业，日志保存线程池结束异常！", ex);
+                    Thread.currentThread().interrupt();
                 }
 
                 if (!batchData.isEmpty()) {
                     writeFileDataToTidb(tableName, columns, new ArrayList<>(batchData));
                 }
 
-            } catch (IOException e) {
+            } catch (Exception e) {
                 log.error(e.getMessage(), e);
-            }
-
-            threadPool.shutdown();
-            try {
-                while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                    log.info("携程跑分数据同步作业线程池关闭");
-                }
-            } catch (InterruptedException ex) {
-                threadPool.shutdownNow();
-                log.error("携程跑分数据同步作业，日志保存线程池结束异常！", ex);
-                Thread.currentThread().interrupt();
+                return result.setCode(ResultCode.FAIL.getValue()).setMessage("未知异常");
             }
         }
+
+        return result.setCode(ResultCode.SUCCESS.getValue());
     }
 
-    private void createTidbAndDorisTable(List<String> columns, StraHisFile straHisFile, List<String> firstLine, String tableName) {
+    private void createTidbAndDorisTable(List<String> columns, List<String> firstLine, String tableName) {
         StringBuilder createTidbDDL = new StringBuilder();
         createTidbDDL.append("CREATE TABLE IF NOT EXISTS ").append(tableName).append(" (");
         createTidbDDL.append(" id bigint auto_increment primary key, ");
 
         StringBuilder createDorisDDL = new StringBuilder();
         createDorisDDL.append("CREATE TABLE IF NOT EXISTS ").append(tableName).append(" (");
-        createDorisDDL.append(" id bigint auto_increment primary key, ");
+        createDorisDDL.append(" id bigint, ");
 
         for (int i = 0; i < columns.size(); i++) {
             String column = columns.get(i);
@@ -201,25 +237,25 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         createTidbDDL.append(" extend longtext,");
         createTidbDDL.append(" create_time datetime,");
         createTidbDDL.append(" update_time timestamp null on update CURRENT_TIMESTAMP,");
-        createTidbDDL.append(" is_delete int default 0");
+        createTidbDDL.append(" is_delete int default 0,");
+        createTidbDDL.append(" unique index idx_cell (cell) ");
 
         createTidbDDL.append("); ");
-        createTidbDDL.append("ALTER TABLE ").append(tableName).append(" ADD UNIQUE INDEX idx_cell (cell);");
 
         ruleScoreRecordMapper.createXieChengScoreTidbTableByBatchNum(createTidbDDL.toString());
 
         createDorisDDL.append(" extend string,");
         createDorisDDL.append(" create_time datetime,");
-        createDorisDDL.append(" update_time timestamp null on update CURRENT_TIMESTAMP,");
-        createDorisDDL.append(" is_delete int default 0");
+        createDorisDDL.append(" update_time datetime,");
+        createDorisDDL.append(" is_delete int default '0'");
 
         createDorisDDL.append(") ENGINE=OLAP\n" +
                 "Unique KEY(id)\n" +
                 "DISTRIBUTED BY HASH(id) BUCKETS 16\n" +
                 "PROPERTIES (\n" +
-                "'replication_allocation' = ");
+                "'replication_allocation' = '");
         createDorisDDL.append(replicationAllocation);
-        createDorisDDL.append(",\n" +
+        createDorisDDL.append("',\n" +
                 "'in_memory' = 'false',\n" +
                 "'storage_format' = 'V2',\n" +
                 "'disable_auto_compaction' = 'false'\n" +
@@ -249,9 +285,19 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         try {
             StringBuilder insertSql = new StringBuilder("INSERT INTO ");
             insertSql.append(tableName).append(" (");
-            for (String header : columns) {
-                insertSql.append(header.trim()).append(", ");
+            List<Integer> numColumns = new ArrayList<>(columns.size());
+            for (int i = 0; i < columns.size(); i++) {
+                insertSql.append(columns.get(i).trim()).append(", ");
+
+                if (columns.get(i).startsWith("score") || columns.get(i).endsWith("age")) {
+                    numColumns.add(i);
+                }
             }
+
+//            for (String header : columns) {
+//                insertSql.append(header.trim()).append(", ");
+//            }
+
             insertSql.append("extend,");
             insertSql.append("create_time,");
             insertSql.append("update_time,");
@@ -263,20 +309,24 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
             for (String dataLine : batchData) {
                 dataList = Arrays.asList(dataLine.split(",", -1));
                 insertSql.append("(");
-                for (String value : dataList) {
-                    insertSql.append("'").append(value.trim()).append("', ");
+                for (int i = 0; i < dataList.size(); i++) {
+                    String value = dataList.get(i).trim();
+                    if (numColumns.contains(i) && StringUtils.isEmpty(value)) {
+                        insertSql.append("null, ");
+                    } else {
+                        insertSql.append("'").append(value).append("', ");
+                    }
                 }
 
                 insertSql.append("null, now(), now(), 0");
                 insertSql.append("),");
-                dataList.clear();
             }
 
             insertSql.setLength(insertSql.length() - 1);
-            insertXieChengScoreTidbTable(insertSql.toString(), batchData);
+            ruleScoreToDbService.insertXieChengScoreTidbTable(insertSql.toString(), batchData);
 
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error("携程跑分数据同步作业，子线程异常", e.getMessage(), e);
         }
     }
 
@@ -284,9 +334,11 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
     public Result insertXieChengScoreTidbTable(String insertSql, List<String> batchData) {
         try {
             ruleScoreRecordMapper.insertXieChengScoreTidbTable(insertSql);
+        } catch (DuplicateKeyException e) {
+            log.error("携程跑分数据同步作业,写入数据库cell重复:" + String.join(";", batchData), e.getMessage(), e);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
         } catch (Exception e) {
-            alarmClient.sendAlarm("写入数据库异常: " + String.join(";", batchData), "携程跑分数据同步作业",
-                    AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode());
+            log.error("携程跑分数据同步作业,写入数据库异常:" + String.join(";", batchData), e.getMessage(), e);
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
 

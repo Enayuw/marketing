@@ -7,8 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
-
 /**
  * @Description 携程跑分数据同步作业
  * 技术方案地址：https://c.100credit.cn/pages/viewpage.action?pageId=155705775
@@ -17,7 +15,7 @@ import javax.annotation.Resource;
  */
 @Component
 @Slf4j
-public class XieChengRuleScoreToDbJob extends AbstractSimpleElasticJob {
+public class XieChengCollidingRuleScoreToDbJob extends AbstractSimpleElasticJob {
     @Autowired
     XieChengRuleScoreToDbService service;
     @Override
