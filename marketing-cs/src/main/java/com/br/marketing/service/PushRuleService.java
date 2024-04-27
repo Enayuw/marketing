@@ -56,7 +56,7 @@ public interface PushRuleService {
      */
     Result<List<PushInfoDetailVO>> getPushInfos(@Valid RequestPushInfoDTO dto);
 
-    Result<Long> getPushTask();
+    Result<CustomerInfoPushMain> getPushTask();
 
     Result isCanPushTask(Long taskId);
     /**

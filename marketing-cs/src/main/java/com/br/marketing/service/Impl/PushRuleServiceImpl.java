@@ -59,6 +59,8 @@ import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.util.EsConditionTransferSqlUtil;
+import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
 import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.github.pagehelper.PageHelper;
@@ -372,7 +374,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
 
     @Override
-    public Result<Long> getPushTask() {
+    public Result<CustomerInfoPushMain> getPushTask() {
         Date date = Date.from(LocalDate.now().minusDays(2L).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         CustomerInfoPushMainExample pushMainExample = new CustomerInfoPushMainExample();
         pushMainExample.setOrderByClause(" create_time,id limit 1");
@@ -381,7 +383,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 .andCreateTimeGreaterThanOrEqualTo(date);
         List<CustomerInfoPushMain> customerInfoPushMains = customerInfoPushMainMapper.selectByExample(pushMainExample);
         if (customerInfoPushMains.size() > 0) {
-            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMains.get(0).getId());
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMains.get(0));
         }
         return new Result<>().setCode(ResultCode.FAIL.getValue());
     }
@@ -446,7 +448,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (dto.getmPercentage() != null && dto.getmPercentage().compareTo(new BigDecimal(0)) <= 0) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
         }
-
+        JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
+        XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
+        XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
         StraHisFileExample fileExample = new StraHisFileExample();
         fileExample.createCriteria().andIdIn(dto.getFileIdList());
         List<StraHisFile> files = straHisFileMapper.selectByExample(fileExample);
@@ -478,6 +482,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setmStatus(PushRuleStatusEnum.TO_BE_RUNNING.getValue());
         customerInfoPushMain.setOptUserId(String.valueOf(dto.getUserDetail().getId()));
         customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
+        Object result = JSON.parseObject(dto.getmRuleCondition()).getJSONArray("data").stream().filter(obj ->
+                ((JSONObject) obj).getString("key").equals("result")).findAny().orElse(null);
+        if (marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().contains(dto.getApiCode()) && (!ObjectUtils.isEmpty(result))) {
+            customerInfoPushMain.setFilterType(1);
+            customerInfoPushMain.setExtend(cycleDataQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getReleaseTime()));
+        }
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
 
         files.forEach(t -> {
@@ -539,7 +549,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         String querySql = "";
         JSONObject jsonObject = JSON.parseObject(mRuleCondition);
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
-        handlerJson(jsonObject, collidingFilterDTO);
+        XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
         pushViewVO.setResult(collidingFilterDTO.getResult());
         if ("true".equals(collidingFilterDTO.getResult())) {
             querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getReleaseTime());
@@ -553,31 +563,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.error("规则中心-携程撞库筛选查询Doris异常", e);
         }
         return 5000;
-    }
-
-    private void handlerJson(JSONObject jsonObject, XieChengCollidingFilterDTO collidingFilterDTO) {
-        JSONArray jsonArray = jsonObject.getJSONArray("data");
-        Map<String, String> releaseTimeMap = new HashMap<>();
-        Iterator<Object> iterator = jsonArray.iterator();
-        while (iterator.hasNext()) {
-            JSONObject jsonData = (JSONObject) iterator.next();
-            if (jsonData.getString("type").equals("operation")) {
-                if (jsonData.getString("key").equals("release_time")) {
-                    releaseTimeMap.put("value", jsonData.getString("value"));
-                    releaseTimeMap.put("operation", jsonData.getString("operation"));
-                    releaseTimeMap.put("key", jsonData.getString("key"));
-                    collidingFilterDTO.setReleaseTime(releaseTimeMap);
-                    iterator.remove();
-                } else if (jsonData.getString("key").equals("result")) {
-                    collidingFilterDTO.setResult(jsonData.getString("value"));
-                    iterator.remove();
-                } else if (jsonData.getString("key").equals("clean_time")) {
-                    collidingFilterDTO.setCleanTime(jsonData.getString("value"));
-                    iterator.remove();
-                }
-            }
-        }
-
     }
 
     private String falseDataQuery(JSONObject jsonObject, List<String> batchNumberList, String cleanTime) {
@@ -654,7 +639,7 @@ public class PushRuleServiceImpl implements PushRuleService {
      */
     private String scoreSql(JSONObject jsonObject, List<String> batchNumberList) {
 
-        String sqlCondition = jsonTransferSql(jsonObject, "");
+        String sqlCondition = EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, "");
         String scoreSql = "";
         for (int i = 0; i < batchNumberList.size(); i++) {
             if (i == batchNumberList.size() - 1) {
@@ -667,30 +652,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         return scoreSql;
     }
 
-    private String jsonTransferSql(JSONObject jsonObject, String parentLogic) {
-        String logic = jsonObject.getString("logic");
-        JSONArray dataArray = jsonObject.getJSONArray("data");
-        StringBuilder sqlResult = new StringBuilder();
-        for (int i = 0; i < dataArray.size(); i++) {
-            JSONObject jsonNodeObject = dataArray.getJSONObject(i);
-            if (jsonNodeObject.getString("type").equals("operation")) {
-                String filedDeal = assemblefiled(jsonNodeObject.getString("key"), jsonNodeObject.getString("operation"), jsonNodeObject.get("value"));
-                if (i < dataArray.size() - 1) {
-                    sqlResult.append(filedDeal).append(" ").append(logic).append(" ");
-                } else {
-                    sqlResult.append(filedDeal).append(" ");
-                }
-            } else if (jsonNodeObject.getString("type").equals("logic")) {
-                //递归处理
-                sqlResult.append(jsonTransferSql(jsonNodeObject, logic));
-            }
-        }
-        if (com.br.marketing.common.utils.StringUtils.isNotEmpty(parentLogic)) {
-            sqlResult.insert(0, " (").append(" )");
-        }
-        return sqlResult.toString();
 
-    }
 
     private String assemblefiled(String key, String operation, Object value) {
 
@@ -777,7 +739,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     public Result collidingDataDelete(PushCustomerDTO dto) {
         JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
-        handlerJson(jsonObject, collidingFilterDTO);
+        XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
         XiechengCollidingDataProcessTask xiechengCollidingDataProcessTask = new XiechengCollidingDataProcessTask();
         xiechengCollidingDataProcessTask.setApiCode(dto.getApiCode());
         xiechengCollidingDataProcessTask.setBatchNumber(String.join(",", dto.getBatchNumberList()));
@@ -785,7 +747,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         xiechengCollidingDataProcessTask.setDiscreetNumber(dto.getmPlanNum());
         xiechengCollidingDataProcessTask.setTaskStartTime(DateHelper.parseDate(collidingFilterDTO.getCleanTime()));
         xiechengCollidingDataProcessTask.setTaskType(1);
-        xiechengCollidingDataProcessTask.setTaskExecutionConditions(jsonTransferSql(jsonObject, ""));
+        xiechengCollidingDataProcessTask.setTaskExecutionConditions(EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, ""));
         xiechengCollidingDataProcessTask.setTaskExecutionSql(cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getReleaseTime()));
         xiechengCollidingDataProcessTask.setCreateTime(new Date());
         xiechengCollidingDataProcessTask.setUpdateTime(new Date());
@@ -797,7 +759,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     public Result collidingDataPachageMake(PushCustomerDTO dto) {
         JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
-        handlerJson(jsonObject, collidingFilterDTO);
+        XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
         XiechengCollidingDataProcessTask xiechengCollidingDataProcessTask = new XiechengCollidingDataProcessTask();
         xiechengCollidingDataProcessTask.setApiCode(dto.getApiCode());
         xiechengCollidingDataProcessTask.setBatchNumber(String.join(",", dto.getBatchNumberList()));
@@ -805,7 +767,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         xiechengCollidingDataProcessTask.setDiscreetNumber(dto.getmPlanNum());
         xiechengCollidingDataProcessTask.setTaskStartTime(DateHelper.parseDate(collidingFilterDTO.getCleanTime()));
         xiechengCollidingDataProcessTask.setTaskType(0);
-        xiechengCollidingDataProcessTask.setTaskExecutionConditions(jsonTransferSql(jsonObject, ""));
+        xiechengCollidingDataProcessTask.setTaskExecutionConditions(EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, ""));
         xiechengCollidingDataProcessTask.setTaskExecutionSql(falseDataQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getCleanTime()));
         xiechengCollidingDataProcessTask.setCreateTime(new Date());
         xiechengCollidingDataProcessTask.setUpdateTime(new Date());
@@ -825,7 +787,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         int num = 300;
         JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
-        handlerJson(jsonObject, collidingFilterDTO);
+        XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
         String deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getReleaseTime());
         // doris查询
         // 查询Doris

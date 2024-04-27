@@ -1537,5 +1537,10 @@ public class MarketingCommonConfig {
      * 携程撞库跑分数据同步线程数
      */
     private Integer xieChengCollidingRuleScoreToDBThread;
+
+    /**
+     * 携程撞库数据推送决策线程数
+     */
+    private Integer xieChengCollidingDataPushPolicyThread;
 }
 

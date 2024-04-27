@@ -129,4 +129,16 @@
             #{id}
         </foreach>
     </update>
+
+    <select id="selectCycleDataByCondition" resultType="com.br.marketing.entity.XieChengCollidingDataLoopCycle">
+        select
+        id, cell_sha256_code_list, package_id
+        from b_xiecheng_colliding_data_loop_cycle
+        where   ${querySql}  and  is_delete = 0 and retry_count = 0
+        <if test="minId != null and minId>0">
+            and id > #{minId}
+        </if>
+        order by id limit #{pageSize};
+    </select>
+
 </mapper>
