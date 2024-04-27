@@ -92,9 +92,8 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
                 futures.add(future);
             });
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-            limit -= pageSize;
+            limit -= robDataList.size();
         }
-
     }
 
     private XiechengCollidingDataPackageRule getCurrentPackageRule() {

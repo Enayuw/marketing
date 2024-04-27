@@ -5,7 +5,8 @@
         SELECT rob.id,
                rob.cell_sha256_code_list,
                rob.package_id,
-               rob.retry_count
+               rob.retry_count,
+               rob.colliding_count
         FROM b_xiecheng_colliding_data_rob rob
         WHERE rob.package_id = #{packageId,jdbcType=BIGINT}
           AND rob.is_delete = 0
