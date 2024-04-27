@@ -123,10 +123,10 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
     private Result<Integer> createTableAndInsert(StraHisFile straHisFile) {
         Result result = new Result();
         for (String fileName : straHisFile.getFileName().split(",")) {
-//            File file = new File(straHisFile.getFilePath(), fileName);
-            String path =
-                    "D:\\opt\\data1\\inloan\\download\\marketing\\once\\7410950\\7410950_20240425000000_8332\\2024-04-25" + File.separator + fileName;
-            File file = new File(path);
+            File file = new File(straHisFile.getFilePath(), fileName);
+//            String path =
+//                    "D:\\opt\\data1\\inloan\\download\\marketing\\once\\7410950\\7410950_20240425000000_8332\\2024-04-25" + File.separator + fileName;
+//            File file = new File(path);
             if (!file.exists()) {
                 // todo 是否重新配置告警码
                 String errMsg = "跑分文件不存在";
