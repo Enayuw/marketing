@@ -1532,5 +1532,10 @@ public class MarketingCommonConfig {
      * 携程撞库数据清洗线程数
      */
     private Integer xieChengCollidingDataProcessThread;
+
+    /**
+     * 携程撞库跑分数据同步线程数
+     */
+    private Integer xieChengCollidingRuleScoreToDBThread;
 }
 
