@@ -586,8 +586,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (StringUtils.isNotEmpty(packageId)) {
                 String FalseDataSql = "select cell_sha256_code_list as cell from b_xiecheng_colliding_data_rob where package_id in (" + packageId + ") and " +
                         "is_delete=0";
-                falseAndscoreSql.append("left join (").append(FalseDataSql).append(") false on score.cell = false.cell ");
-                whereSql.append(" and false.id is null");
+                falseAndscoreSql.append("left join (").append(FalseDataSql).append(") rob on score.cell = rob.cell ");
+                whereSql.append(" and rob.id is null");
             }
         }
         //与待清洗去重
@@ -596,7 +596,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<XiechengCollidingDataProcessTask> processTasks = xiechengCollidingDataProcessTaskMapper.selectByExample(processTaskExample);
         processTasks.forEach(processTask -> {
             falseAndscoreSql.append(" left join (").append(processTask.getTaskExecutionConditions()).append(") d").append(processTask.getId())
-                    .append("on score.cell = ").append("d").append(processTask.getId()).append(".cell ");
+                    .append(" on score.cell = ").append("d").append(processTask.getId()).append(".cell ");
             whereSql.append(" and  d").append(processTask.getId()).append(".id is null");
         });
         falseAndscoreSql.append(whereSql).append(";");

@@ -31,8 +31,8 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.EncAndDecUtil;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
 import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
-import com.google.api.client.util.Lists;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -125,7 +125,11 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                 threadPool.setMaximumPoolSize(marketingCommonConfig.getXieChengCollidingDataPushPolicyThread());
                 log.warn("携程撞库推送决策线程调整,corePoolSize={},maxPoolSize={}", threadPool.getCorePoolSize(), threadPool.getMaximumPoolSize());
             }
-            resList.add(threadPool.submit(() -> pushPolicy(list, numList, fileIds, customerInfoPushMain, threeEncrypt)));
+            //数据切分，为了兼容跑分文件重复数据，业务侧若保证撞库本次跑分文件不重复，该段逻辑去掉
+            List<List<XieChengCollidingDataLoopCycle>> dataLoopCycleLists =  Lists.partition(list, 1000);
+            dataLoopCycleLists.forEach(dataLoopCycleList -> {
+                resList.add(threadPool.submit(() -> pushPolicy(dataLoopCycleList, numList, fileIds, customerInfoPushMain, threeEncrypt)));
+            });
         }
        try {
             for (Future<Result<Integer>> pushFuture : resList) {
@@ -163,11 +167,11 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
         Result<Integer> result = new Result<>();
         try {
             List<String> cells = list.stream().map(XieChengCollidingDataLoopCycle::getCellSha256CodeList).collect(Collectors.toList());
-            List<String> logCells = Lists.newArrayList();
+            List<String> logCells = new ArrayList<>();
+            //es查询cell为Log加密
             cells.forEach(cell->{
                 logCells.add(EncAndDecUtil.digestToLog(cell, ThreeKeyTypeEnum.CELL, ThreeKeyEncryptEnum.sha256).getData());
             });
-
             JSONObject jsonRule = JSON.parseObject(customerInfoPushMain.getmRuleCondition());
             //去除result，release_time
             XieChengEsJsonHandler.handlerJson(jsonRule, new XieChengCollidingFilterDTO());
@@ -185,8 +189,9 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
             queryBaseBean.setJsonData(jsonRule.toString());
             //兼容数据重复的情况
-            queryBaseBean.setPageSize(2500);
+            queryBaseBean.setPageSize(2000);
             List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+            log.warn("携程撞库查询es匹配数据量num={}",marketingHistories.size());
             List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
             assmbleUserDetail(marketingHistories, userDetailDTOS, threeEncrypt);
             //推送任务基础信息
