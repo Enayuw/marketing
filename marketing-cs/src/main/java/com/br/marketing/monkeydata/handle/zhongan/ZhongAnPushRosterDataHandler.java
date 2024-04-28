@@ -428,7 +428,7 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
         Integer dataSource = pageParam.getDataSource();
         boolean a = "CG".equals(tag) && "1".equals(String.valueOf(dataSource)) && "1".equals(userType);
         boolean b = "MG".equals(tag) && "1".equals(String.valueOf(dataSource)) && "1".equals(userType);
-        boolean c = "MG".equals(tag) && "2".equals(String.valueOf(dataSource)) && "7".equals(userType);
+        boolean c = "MG".equals(tag) && "2".equals(String.valueOf(dataSource)) && "8".equals(userType);
         return a || b || c;
     }
 
