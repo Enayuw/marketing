@@ -180,6 +180,10 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                     }
                 }
 
+                if (!batchData.isEmpty()) {
+                    writeFileDataToTidb(tableName, columns, new ArrayList<>(batchData));
+                }
+
                 threadPool.shutdown();
                 try {
                     while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
@@ -189,10 +193,6 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                     threadPool.shutdownNow();
                     log.error("携程跑分数据同步作业，日志保存线程池结束异常！", ex);
                     Thread.currentThread().interrupt();
-                }
-
-                if (!batchData.isEmpty()) {
-                    writeFileDataToTidb(tableName, columns, new ArrayList<>(batchData));
                 }
 
             } catch (Exception e) {
