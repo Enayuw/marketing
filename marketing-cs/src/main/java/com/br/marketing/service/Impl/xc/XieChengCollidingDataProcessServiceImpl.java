@@ -185,7 +185,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
 
             while (true) {
-                List<XieChengCollidingDataRobPriority> repeatWithFalseData = ruleScoreRecordMapper.selectRuleScoreDataRepeatWithFalseData(minId,
+                List<XieChengCollidingDataRobPriority> repeatWithFalseData = ruleScoreRecordMapper.selectRuleScoreDataRepeatWithFalseDatatikv_(minId,
                         queryRuleScoreDataSql);
                 if (CollectionUtils.isEmpty(repeatWithFalseData)) {
                     break;
@@ -224,7 +224,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
 
             while (true) {
-                List<XieChengRuleScoreData> ruleScoreData = ruleScoreRecordMapper.selectRuleScoreDataExcludeTrueAndFalseData(minId,
+                List<XieChengRuleScoreData> ruleScoreData = ruleScoreRecordMapper.selectRuleScoreDataExcludeTrueAndFalseDatatikv_(minId,
                         queryRuleScoreDataSql);
                 if (CollectionUtils.isEmpty(ruleScoreData)) {
                     break;
@@ -277,7 +277,8 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             }
 
             List<Long> ids =
-                    repeatWithFalseData.stream().filter(t -> !reserveCells.contains(t.getCellSha256CodeList())).map(XieChengCollidingDataRob::getId).collect(Collectors.toList());
+                    repeatWithFalseData.stream().filter(t -> !reserveCells.contains(t.getCellSha256CodeList()))
+                            .map(XieChengCollidingDataRob::getId).collect(Collectors.toList());
 
             robMapper.updateDeleteByIds(ids);
         } catch (Exception e) {
