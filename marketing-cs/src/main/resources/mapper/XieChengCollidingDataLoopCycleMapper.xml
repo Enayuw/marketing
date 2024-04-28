@@ -115,7 +115,7 @@
         <![CDATA[ and a.release_time > curdate()
         and a.release_time < date_sub(curdate(), interval -7 day) ]]>
         <if test="minId != null and minId>0">
-            and id > #{minId}
+            and a.id > #{minId}
         </if>
         order by a.id limit 2000;
     </select>
