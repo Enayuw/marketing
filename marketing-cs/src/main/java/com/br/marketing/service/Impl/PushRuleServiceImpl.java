@@ -562,11 +562,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (Exception e) {
             log.error("规则中心-携程撞库筛选查询Doris异常,sql={}", querySql, e);
         }
-        return 5000;
+        return total;
     }
 
     private String falseDataQuery(JSONObject jsonObject, List<String> batchNumberList, String cleanTime) {
-        String cycleDataSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where is_delete =0";
+        String cycleDataSql = "select  cell_sha256_code_list as cell,id from  b_xiecheng_colliding_data_loop_cycle where is_delete =0";
         String scoreSql = scoreSql(jsonObject, batchNumberList);
         StringBuilder falseAndscoreSql = new StringBuilder();
         StringBuilder whereSql = new StringBuilder();
@@ -584,21 +584,21 @@ public class PushRuleServiceImpl implements PushRuleService {
                     .collect(Collectors.joining(","));
             //清洗时间在撞库区间内
             if (StringUtils.isNotEmpty(packageId)) {
-                String FalseDataSql = "select cell_sha256_code_list as cell from b_xiecheng_colliding_data_rob where package_id in (" + packageId + ") and " +
+                String FalseDataSql = "select cell_sha256_code_list as cell,id from b_xiecheng_colliding_data_rob where package_id in (" + packageId + ") and " +
                         "is_delete=0";
                 falseAndscoreSql.append("left join (").append(FalseDataSql).append(") rob on score.cell = rob.cell ");
                 whereSql.append(" and rob.id is null");
             }
         }
         //与待清洗去重
-        XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
+    /*    XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria().andTaskTypeEqualTo(0).andTaskStatusEqualTo(0);
         List<XiechengCollidingDataProcessTask> processTasks = xiechengCollidingDataProcessTaskMapper.selectByExample(processTaskExample);
         processTasks.forEach(processTask -> {
             falseAndscoreSql.append(" left join (").append(processTask.getTaskExecutionConditions()).append(") d").append(processTask.getId())
                     .append(" on score.cell = ").append("d").append(processTask.getId()).append(".cell ");
             whereSql.append(" and  d").append(processTask.getId()).append(".id is null");
-        });
+        });*/
         falseAndscoreSql.append(whereSql).append(";");
         return falseAndscoreSql.toString();
     }
@@ -643,9 +643,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         String scoreSql = "";
         for (int i = 0; i < batchNumberList.size(); i++) {
             if (i == batchNumberList.size() - 1) {
-                scoreSql = scoreSql.concat("select cell from b_xiecheng_colliding_").concat(batchNumberList.get(i)).concat(" where ").concat(sqlCondition);
+                scoreSql = scoreSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumberList.get(i)).concat(" where ").concat(sqlCondition);
             } else {
-                scoreSql = scoreSql.concat("select cell from b_xiecheng_colliding_").concat(batchNumberList.get(i)).concat(" where ").concat(sqlCondition).concat(" union all ");
+                scoreSql = scoreSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumberList.get(i)).concat(" where ").concat(sqlCondition).concat(" union all ");
             }
 
         }
@@ -750,7 +750,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<Integer> collidingDataDeleteNum(PushCustomerDTO dto) {
-        int num = 300;
+        int num = 0;
         JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
