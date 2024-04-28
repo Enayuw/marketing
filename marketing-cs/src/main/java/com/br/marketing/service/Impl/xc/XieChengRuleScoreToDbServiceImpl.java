@@ -112,6 +112,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                         XieChengRuleScoreRecord updateRecord = new XieChengRuleScoreRecord();
                         updateRecord.setId(scoreRecord.getId());
                         updateRecord.setRecordStatus(3);
+                        updateRecord.setErrorMessage(result.getMessage());
                         updateRecord.setUpdateTime(new Date());
                         scoreRecordMapper.updateByPrimaryKeySelective(updateRecord);
                     }
@@ -125,39 +126,36 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         for (String fileName : straHisFile.getFileName().split(",")) {
             File file = new File(straHisFile.getFilePath(), fileName);
 //            String path =
-//                    "D:\\opt\\data1\\inloan\\download\\marketing\\once\\7410950\\7410950_20240425000000_8332\\2024-04-25" + File.separator + fileName;
+//                    "D:\\opt\\data1\\inloan\\download\\marketing\\once\\7410950\\7410950_20240425000000_8332\\2024-04-25" + File.separator +
+//                    fileName;
 //            File file = new File(path);
             if (!file.exists()) {
                 // todo 是否重新配置告警码
-                String errMsg = "跑分文件不存在";
-                alarmClient.sendAlarm(errMsg + ": " + file.getAbsolutePath(), "携程跑分数据同步作业",
-                        AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode());
+                String errMsg = "跑分文件不存在，path：" + file.getAbsolutePath();
+                log.error(errMsg);
                 return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
             }
 
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 String header = reader.readLine();
                 if (header == null) {
-                    String errMsg = "文件内容为空";
-                    alarmClient.sendAlarm(errMsg + ": " + file.getAbsolutePath(), "携程跑分数据同步作业",
-                            AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode());
+                    String errMsg = "文件内容为空，path：" + file.getAbsolutePath();
+                    log.error(errMsg);
                     return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
                 }
 
                 String headerColumn = header.replace(",id,", ",t_id,");
                 List<String> columns = Arrays.asList(headerColumn.split(",", -1));
                 if (!columns.contains("cell")) {
-                    String errMsg = "文件表头缺少cell字段";
-                    alarmClient.sendAlarm(errMsg + ": " + file.getAbsolutePath(), "携程跑分数据同步作业",
-                            AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode());
+                    String errMsg = "文件表头缺少cell字段，path：" + file.getAbsolutePath();
+                    log.error(errMsg);
                     return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
                 }
 
                 boolean anyMatchBlank = columns.stream().anyMatch(StringUtils::isBlank);
                 if (anyMatchBlank) {
-                    String errMsg = "文件表头缺失字段";
-                    alarmClient.sendAlarm(errMsg + ": " + file.getAbsolutePath(), "携程跑分数据同步作业",
-                            AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode());
+                    String errMsg = "文件表头缺失字段，path：" + file.getAbsolutePath();
+                    log.error(errMsg);
                     return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
                 }
 
