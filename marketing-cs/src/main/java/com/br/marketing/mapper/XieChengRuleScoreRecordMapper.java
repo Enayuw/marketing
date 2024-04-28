@@ -1,5 +1,7 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.entity.XieChengCollidingDataRob;
+import com.br.marketing.entity.XieChengCollidingDataRobPriority;
 import com.br.marketing.entity.XieChengRuleScoreData;
 import org.apache.ibatis.annotations.Param;
 
@@ -19,5 +21,12 @@ public interface XieChengRuleScoreRecordMapper extends XieChengRuleScoreRecordMa
      * @param queryRuleScoreDataSql
      * @return
      */
+    List<XieChengCollidingDataRobPriority> selectRuleScoreDataRepeatWithFalseData(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql);
+
+    /**
+     * @param queryRuleScoreDataSql
+     * @return
+     */
+    List<XieChengRuleScoreData> selectRuleScoreDataExcludeTrueAndFalseData(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql);
     List<XieChengRuleScoreData> selectRuleScoreDataExcludeTrueData(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql);
 }
