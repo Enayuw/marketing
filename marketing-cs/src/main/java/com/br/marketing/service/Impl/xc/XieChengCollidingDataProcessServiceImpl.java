@@ -152,7 +152,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
 
         // 发送钉钉告警
         if (totalDeleteCount.get() > 0) {
-            String msg = "携程撞库周期TRUE数据删除量级：" + totalDeleteCount.get();
+            String msg = "携程撞库周期TRUE数据删除量级:" + totalDeleteCount.get();
             Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
             Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.XIECHENG_TRUE_DELETE_NOTICE.toString());
 
