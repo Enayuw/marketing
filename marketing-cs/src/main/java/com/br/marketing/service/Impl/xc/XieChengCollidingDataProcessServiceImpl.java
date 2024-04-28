@@ -93,7 +93,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                     insertToNewPackage(newPackage, task);
                 }
 
-                if (task.getTaskStatus() == 1) {
+                if (task.getTaskType() == 1) {
                     deleteTrueData(task);
                 }
 
@@ -122,7 +122,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
 
             while (true) {
-                List<Long> longs = cycleMapper.selectIdsOfTrueDataProcessTask(minId, queryRuleScoreDataSql);
+                List<Long> longs = cycleMapper.selectIdsOfTrueDataProcessTasktikv_(minId, queryRuleScoreDataSql);
                 if (CollectionUtils.isEmpty(longs)) {
                     break;
                 }
@@ -151,11 +151,14 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         }
 
         // 发送钉钉告警
-        String msg = "携程撞库周期TRUE数据剔除通知,剔除量级：" + totalDeleteCount.get();
-        Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
-        Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.XIECHENG_TRUE_DELETE_NOTICE.toString());
+        if (totalDeleteCount.get() > 0) {
+            String msg = "携程撞库周期TRUE数据删除量级：" + totalDeleteCount.get();
+            Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+            Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.XIECHENG_TRUE_DELETE_NOTICE.toString());
 
-        dingDingRobotHookService.sendDingDingTextMessage(msg, map);
+            dingDingRobotHookService.sendDingDingTextMessage(msg, map);
+        }
+
     }
 
     /**

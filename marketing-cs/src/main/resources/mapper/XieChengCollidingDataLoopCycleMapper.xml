@@ -107,7 +107,7 @@
     </select>
 
 
-    <select id="selectIdsOfTrueDataProcessTask" parameterType="java.lang.String" resultType="java.lang.Long">
+    <select id="selectIdsOfTrueDataProcessTasktikv_" parameterType="java.lang.String" resultType="java.lang.Long">
         select a.id
         from b_xiecheng_colliding_data_loop_cycle a
         join ( ${queryRuleScoreDataSql} ) b on a.cell_sha256_code_list = b.cell
