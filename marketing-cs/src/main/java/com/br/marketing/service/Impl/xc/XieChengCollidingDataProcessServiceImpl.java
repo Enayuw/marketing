@@ -96,6 +96,11 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 if (task.getTaskStatus() == 1) {
                     deleteTrueData(task);
                 }
+
+                // 更新结束时间
+                task.setTaskEndTime(new Date());
+                task.setUpdateTime(new Date());
+                taskMapper.updateByPrimaryKeySelective(task);
             });
         });
 
