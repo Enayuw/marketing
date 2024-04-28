@@ -1,6 +1,6 @@
 datasource:
   database:
-    names: shardingmarketing,marketingTikiv,marketingTiFlash
+    names: shardingmarketing,marketingTikiv,marketingTiFlash,marketingDoris
     defaultSource: shardingmarketing
     shardingmarketing:
       url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
@@ -97,6 +97,7 @@ datasource:
       connectionErrorRetryAttempts: 5 # 连接出错后再尝试连接三次
       breakAfterAcquireFailure: true # 数据库服务宕机自动重连机制
       timeBetweenConnectErrorMillis: 300000 # 连接出错后重试时间间隔
+      replicationAllocation: tag.location.default:1
 eureka:
   client:
     service-url.defaultZone: http://10.100.123.121:18000/eureka/
