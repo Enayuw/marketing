@@ -72,8 +72,6 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
 
     @Override
     public void process() {
-
-
         marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().forEach(apiCode -> {
             LocalDate createTimeStartLocalDate = LocalDate.now().minusDays(marketingCommonConfig.getXieChengRuleScoreToDbLastDays());
             Date createTimeStartDate = Date.from(createTimeStartLocalDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -236,7 +234,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         createTidbDDL.append(" create_time datetime,");
         createTidbDDL.append(" update_time timestamp null on update CURRENT_TIMESTAMP,");
         createTidbDDL.append(" is_delete int default 0,");
-        createTidbDDL.append(" unique index idx_cell (cell) ");
+        createTidbDDL.append(" index idx_cell (cell) ");
 
         createTidbDDL.append("); ");
 
@@ -332,9 +330,6 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
     public Result insertXieChengScoreTidbTable(String insertSql, List<String> batchData) {
         try {
             ruleScoreRecordMapper.insertXieChengScoreTidbTable(insertSql);
-        } catch (DuplicateKeyException e) {
-            log.error("携程跑分数据同步作业,写入数据库cell重复:" + String.join(";", batchData), e.getMessage(), e);
-            return new Result().setCode(ResultCode.SUCCESS.getValue());
         } catch (Exception e) {
             log.error("携程跑分数据同步作业,写入数据库异常:" + String.join(";", batchData), e.getMessage(), e);
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
