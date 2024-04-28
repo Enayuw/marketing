@@ -560,7 +560,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         try {
             total = scoreRecordMapper.getXieChengDataNumdoris_(querySql);
         } catch (Exception e) {
-            log.error("规则中心-携程撞库筛选查询Doris异常", e);
+            log.error("规则中心-携程撞库筛选查询Doris异常,sql={}", querySql, e);
         }
         return 5000;
     }
@@ -610,7 +610,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //True关联查询
         //传输releaseTime处理
         if (!CollectionUtils.isEmpty(releaseTime)) {
-            String releaseTimeSql = assemblefiled("release_time", releaseTime.get("operation"), releaseTime.get("value"));
+            String releaseTimeSql = EsConditionTransferSqlUtil.assemblefiled("release_time", releaseTime.get("operation"), releaseTime.get("value"));
             cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where " + releaseTimeSql + " and is_delete=0";
         }
         StringBuilder cycleAndscoreSql = new StringBuilder();
@@ -650,50 +650,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         }
         return scoreSql;
-    }
-
-
-
-    private String assemblefiled(String key, String operation, Object value) {
-
-        String sqlTep;
-        List<String> operateList = Lists.newArrayList("=", "!=", "<", "<=", ">", ">=", "in", "not_in", "between", "between_right", "between_left",
-                "between_open");
-        if (!operateList.contains(operation)) {
-            System.out.println("操作符异常");
-        }
-        switch (operation) {
-
-            case "in":
-                List<String> inList = (List) value;
-                sqlTep = key.concat(" in (").concat(String.join(",", inList).concat(" )"));
-                break;
-            case "not_in":
-                List<String> notinList = (List) value;
-                sqlTep = key.concat(" not in (").concat(String.join(",", notinList).concat(" )"));
-                break;
-            case "between":
-                List<String> betweenList = Arrays.asList(((String) value).split(","));
-                sqlTep = key.concat(" >=").concat(betweenList.get(0)).concat(" and ").concat(key).concat(" <=").concat(betweenList.get(1));
-                break;
-            case "between_right":
-                List<String> betweenRightList = Arrays.asList(((String) value).split(","));
-                sqlTep = key.concat(" >=").concat(betweenRightList.get(0)).concat(" and ").concat(key).concat(" <").concat(betweenRightList.get(1));
-                break;
-            case "between_left":
-                List<String> betweenLeftList = Arrays.asList(((String) value).split(","));
-                sqlTep = key.concat(" >").concat(betweenLeftList.get(0)).concat(" and ").concat(key).concat(" <=").concat(betweenLeftList.get(1));
-                break;
-            case "between_open":
-                List<String> betweenOpenList = Arrays.asList(((String) value).split(","));
-                sqlTep = key.concat(" >").concat(betweenOpenList.get(0)).concat(" and ").concat(key).concat(" <").concat(betweenOpenList.get(1));
-                break;
-            default:
-                sqlTep = key.concat(operation).concat(value.toString());
-
-        }
-        return sqlTep;
-
     }
 
     @Override
@@ -745,7 +701,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         xiechengCollidingDataProcessTask.setBatchNumber(String.join(",", dto.getBatchNumberList()));
         xiechengCollidingDataProcessTask.setTaskStatus(0);
         xiechengCollidingDataProcessTask.setDiscreetNumber(dto.getmPlanNum());
-        xiechengCollidingDataProcessTask.setTaskStartTime(DateHelper.parseDate(collidingFilterDTO.getCleanTime()));
+        try {
+            xiechengCollidingDataProcessTask.setTaskStartTime(DateHelper.parseDate(collidingFilterDTO.getCleanTime()));
+        }catch(Exception e){
+            log.error("clean_time日期格式异常",e.getMessage());
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("clean_time日期格式异常");
+        }
         xiechengCollidingDataProcessTask.setTaskType(1);
         xiechengCollidingDataProcessTask.setTaskExecutionConditions(EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, ""));
         xiechengCollidingDataProcessTask.setTaskExecutionSql(cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getReleaseTime()));
@@ -765,7 +726,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         xiechengCollidingDataProcessTask.setBatchNumber(String.join(",", dto.getBatchNumberList()));
         xiechengCollidingDataProcessTask.setTaskStatus(0);
         xiechengCollidingDataProcessTask.setDiscreetNumber(dto.getmPlanNum());
-        xiechengCollidingDataProcessTask.setTaskStartTime(DateHelper.parseDate(collidingFilterDTO.getCleanTime()));
+        try {
+            xiechengCollidingDataProcessTask.setTaskStartTime(DateHelper.parseDate(collidingFilterDTO.getCleanTime()));
+        } catch (Exception e) {
+            log.error("clean_time日期格式异常", e.getMessage());
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("clean_time日期格式异常");
+        }
         xiechengCollidingDataProcessTask.setTaskType(0);
         xiechengCollidingDataProcessTask.setTaskExecutionConditions(EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, ""));
         xiechengCollidingDataProcessTask.setTaskExecutionSql(falseDataQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getCleanTime()));
@@ -794,7 +760,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         try {
             num = scoreRecordMapper.getXieChengDataNumdoris_(deleteSql);
         } catch (Exception e) {
-            log.error("规则中心-携程撞库筛选查询Doris异常", e);
+            log.error("规则中心-携程撞库筛选查询Doris异常,sql={}",deleteSql, e);
         }
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(num);
     }

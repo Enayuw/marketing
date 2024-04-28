@@ -17,6 +17,8 @@ import com.br.marketing.entity.CustomerInfoPushBatchExample;
 import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
 import com.br.marketing.enums.PushRuleStatusEnum;
+import com.br.marketing.enums.ThreeKeyEncryptEnum;
+import com.br.marketing.enums.ThreeKeyTypeEnum;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
@@ -26,8 +28,10 @@ import com.br.marketing.mapper.CustomerInfoPushMainMapper;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.EncAndDecUtil;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
 import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
+import com.google.api.client.util.Lists;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,6 +163,11 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
         Result<Integer> result = new Result<>();
         try {
             List<String> cells = list.stream().map(XieChengCollidingDataLoopCycle::getCellSha256CodeList).collect(Collectors.toList());
+            List<String> logCells = Lists.newArrayList();
+            cells.forEach(cell->{
+                logCells.add(EncAndDecUtil.digestToLog(cell, ThreeKeyTypeEnum.CELL, ThreeKeyEncryptEnum.sha256).getData());
+            });
+
             JSONObject jsonRule = JSON.parseObject(customerInfoPushMain.getmRuleCondition());
             //去除result，release_time
             XieChengEsJsonHandler.handlerJson(jsonRule, new XieChengCollidingFilterDTO());
@@ -168,7 +177,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             cellCondition.put("type", "operation");
             cellCondition.put("key", "cell");
             cellCondition.put("operation", "in");
-            cellCondition.put("value", cells);
+            cellCondition.put("value", logCells);
             jsonArray.add(cellCondition);
             QueryBaseBean queryBaseBean = new QueryBaseBean();
             queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
