@@ -606,7 +606,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     private String cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList, Map<String, String> releaseTime) {
         String scoreSql = scoreSql(jsonObject, batchNumberList);
         String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
-                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time<= DATE_ADD(CURDATE(), INTERVAL 6 DAY and is_delete=0";
+                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time<= DATE_ADD(CURDATE(), INTERVAL 6 DAY) and is_delete=0";
         //True关联查询
         //传输releaseTime处理
         if (!CollectionUtils.isEmpty(releaseTime)) {
@@ -622,7 +622,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     private String cycleDataDeleteQuery(JSONObject jsonObject, List<String> batchNumberList, Map<String, String> releaseTime) {
         String scoreSql = scoreSql(jsonObject, batchNumberList);
         String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
-                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time<= DATE_ADD(CURDATE(), INTERVAL 6 DAY and is_delete=0";
+                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time<= DATE_ADD(CURDATE(), INTERVAL 6 DAY) and is_delete=0";
         //True关联查询
         StringBuilder cycleAndscoreSql = new StringBuilder();
         cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle left join (").append(scoreSql).append(") score on " +
