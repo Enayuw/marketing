@@ -251,8 +251,9 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             // 未获取到上传数据
             if (CollectionUtils.isEmpty(cellToSyncUserBoMap)) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode(),
-                        "tag:" + tag + ",apiCode:" + apiCode + "未获取到上传数据或未配置有效期！",
-                        apiCode + "," + tag + "锁定名单推送众安异常"));
+                        "apiCode:" + apiCode + ", bizDate:" + bizDate + ", tag:" + tag+ ", dataSource:" + dataSource
+                                + ", userType:" + userType + "未获取到上传数据或未配置有效期！",
+                        "锁定名单推送众安异常"));
                 if(judgeChangeStatus(pageParam)) {
                     List<Long> ids = pageList.parallelStream().map(ZhonganRosterLockingData::getId).collect(Collectors.toList());
                     updatePushStatusById(ids, 4);
@@ -301,7 +302,7 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
                     }
             }
             // distribute去重 cell + distribute_date
-            distributeIds = distributeSoleProcessor.process(pushList);
+            distributeIds = distributeSoleProcessor.process(pushList, pageParam);
 
             log.warn(TITLE+"notValidityIds:{}",JSONObject.toJSON(notValidityIds));
             log.warn(TITLE+"notPushIds:{}",JSONObject.toJSON(notPushIds));

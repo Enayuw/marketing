@@ -8,6 +8,7 @@ import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.entity.DataDistributeDetailLog;
 import com.br.marketing.entity.DataDistributeDetailLogExample;
+import com.br.marketing.entity.ZhonganRosterLockingData;
 import com.br.marketing.mapper.DataDistributeDetailLogMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,11 +28,12 @@ public class DistributeSoleProcessor {
     @Resource
     DataDistributeDetailLogMapper dataDistributeDetailLogMapper;
 
-    public List<Long> process(List<ZhonganRosterLockingDataBO> pushList){
+    public List<Long> process(List<ZhonganRosterLockingDataBO> pushList, ZhonganRosterLockingData pageParam){
         List<Long> notPushIds = new ArrayList<>();
         String key = RedisKeyConstant.PUSH_ZHONGAN_DISTRIBUTE_DATA_SLOE_LOCK;
         Integer distributeType = DistributeTypeEnum.ZHONGAN_PUSH_DETAIL.getValue();
         Integer soleDay = 1;
+        String userType = pageParam.getUserType();
 
         Iterator<ZhonganRosterLockingDataBO> iterator = pushList.iterator();
         long startTime = System.currentTimeMillis();
@@ -40,9 +42,9 @@ public class DistributeSoleProcessor {
             String apiCode = next.getApiCode();
             String cell = next.getSyncUser().getCell();
             key = key.concat(String.format(":%d:%d:%s:%s", distributeType, soleDay, apiCode, cell));
-            UUID uuid = UUID.randomUUID();
+            String lockValue = UUID.randomUUID().toString();
             try {
-                redisChgService.lock(key, uuid.toString());
+                redisChgService.lock(key, lockValue);
                 String distributeDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                 DataDistributeDetailLogExample logExample = new DataDistributeDetailLogExample();
                 logExample.setOrderByClause(" id limit 1 ");
@@ -50,12 +52,14 @@ public class DistributeSoleProcessor {
                 criteria.andApiCodeEqualTo(apiCode)
                         .andDistributeTypeEqualTo(distributeType)
                         .andDistributeDateEqualTo(distributeDate)
-                        .andCellEqualTo(cell);
+                        .andCellEqualTo(cell)
+                        .andExtendLike("{\"userType\":\""+userType+"\"}")
+                        ;
                 List<DataDistributeDetailLog> dataDistributeDetailLogs = dataDistributeDetailLogMapper.selectByExample(logExample);
                 if (dataDistributeDetailLogs.size() > 0) {
                     iterator.remove();
                     notPushIds.add(next.getData().getId());
-                    redisChgService.unlock(key, uuid.toString());
+                    redisChgService.unlock(key, lockValue);
                     continue;
                 } else {
                     DataDistributeDetailLog distributeLog = new DataDistributeDetailLog();
@@ -70,12 +74,12 @@ public class DistributeSoleProcessor {
                     distributeLog.setCreateTime(new Date());
                     distributeLog.setSourceId(next.getSyncUser().getId());
                     distributeLog.setSourceType(DistributeSourceTypeEnum.ZHONGAN_LOCKING_DATA.getValue());
-                    // distributeLog.setExtend("");
+                    distributeLog.setExtend("{\"userType\":\""+userType+"\"}");
                     dataDistributeDetailLogMapper.insertSelective(distributeLog);
                 }
-                redisChgService.unlock(key, uuid.toString());
+                redisChgService.unlock(key, lockValue);
             }catch (Exception e){
-                redisChgService.unlock(key, uuid.toString());
+                redisChgService.unlock(key, lockValue);
                 continue;
             }
         }
