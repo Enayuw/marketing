@@ -23,4 +23,7 @@ public class XiechengPackageVO implements Serializable {
     @ApiModelProperty("优先级")
     private Integer priority;
 
+    @ApiModelProperty("ApiCode")
+    private Integer apiCode;
+
 }
