@@ -22,13 +22,12 @@
         ${querySql}
     </select>
 
-    <select id="selectRuleScoreDataRepeatWithFalseDatatikv_" resultType="com.br.marketing.entity.XieChengCollidingDataRobPriority">
-        select a.id, a.cell_sha256_code_list, a.package_id ,d.priority
+    <select id="selectRuleScoreDataRepeatWithFalseDatatikv_" resultType="com.br.marketing.entity.XieChengCollidingDataRob">
+        select a.id
         from b_xiecheng_colliding_data_rob a
         join (${queryRuleScoreDataSql}) AS b on a.cell_sha256_code_list = b.cell
-        join b_xiecheng_colliding_data_package d on a.package_id = d.id
         left join b_xiecheng_colliding_data_loop_cycle c on a.cell_sha256_code_list = c.cell_sha256_code_list and c.is_delete = 0
-        where c.id is null and a.is_delete = 0 and d.is_delete = 0
+        where c.id is null and a.is_delete = 0 and a.package_id = #{packageId}
         <if test="minId != null and minId>0">
             and a.id > #{minId}
         </if>

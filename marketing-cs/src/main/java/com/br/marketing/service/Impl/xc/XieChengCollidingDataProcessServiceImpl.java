@@ -9,6 +9,7 @@ import com.br.marketing.entity.XieChengCollidingDataPackageExample;
 import com.br.marketing.entity.XieChengCollidingDataRob;
 import com.br.marketing.entity.XieChengCollidingDataRobPriority;
 import com.br.marketing.entity.XieChengRuleScoreData;
+import com.br.marketing.entity.XiechengCollidingDataPackageRule;
 import com.br.marketing.entity.XiechengCollidingDataProcessTask;
 import com.br.marketing.entity.XiechengCollidingDataProcessTaskExample;
 import com.br.marketing.enums.DingDingAlarmFunctionEnum;
@@ -87,7 +88,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                     }
                     XieChengCollidingDataPackage newPackage = packages.get(0);
 
-                    deleteRepeatDataFromOldPackage(newPackage, task);
+                    deleteFromOldPackage(newPackage, task);
 
                     // 插入新包
                     insertToNewPackage(newPackage, task);
@@ -171,7 +172,35 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         pool.setMaximumPoolSize(threadNum);
     }
 
-    private void deleteRepeatDataFromOldPackage(XieChengCollidingDataPackage newPackage, XiechengCollidingDataProcessTask task) {
+    private void deleteFromOldPackage(XieChengCollidingDataPackage newPackage, XiechengCollidingDataProcessTask task) {
+        // 找到所有有效的旧数据包
+        XieChengCollidingDataPackageExample packageExample = new XieChengCollidingDataPackageExample();
+        packageExample.createCriteria().andIsDeleteEqualTo(0).andCollidingDataTaskIdNotEqualTo(task.getId());
+        List<XieChengCollidingDataPackage> oldPackages = packageMapper.selectByExample(packageExample);
+
+        // 找到要保留的数据包：旧包优先级大于等于新包优先级&&清洗时间小于等于旧包最大结束时间
+        List<Long> priorityPackageIds =
+                oldPackages.stream().filter(t -> t.getPriority() >= newPackage.getPriority()).map(XieChengCollidingDataPackage::getId).collect(Collectors.toList());
+
+        List<XiechengCollidingDataPackageRule> maxEndTimeGroupByPackageId = packageRuleMapper.getMaxEndTimeGroupByPackageId(priorityPackageIds);
+
+        List<Long> reserveIds = maxEndTimeGroupByPackageId.stream().filter(t -> {
+            LocalDate cleanDate = task.getTaskStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate collidingMaxDate = t.getCollidingEndTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+            if (!cleanDate.isAfter(collidingMaxDate)) {
+                return true;
+            }
+            return false;
+        }).map(XiechengCollidingDataPackageRule::getId).collect(Collectors.toList());
+
+        // 遍历要剔除的数据包，关联跑分和true表，根据id删除
+        List<XieChengCollidingDataPackage> deletePackages =
+                oldPackages.stream().filter(t -> !reserveIds.contains(t.getId())).collect(Collectors.toList());
+
+        Integer threadPoolSize = marketingCommonConfig.getXieChengCollidingDataProcessThread();
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
+
         Long minId = null;
         String conditions = task.getTaskExecutionConditions();
         for (String batchNumber : task.getBatchNumber().split(",")) {
@@ -179,34 +208,41 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 continue;
             }
 
-            String queryRuleScoreDataSql = "select cell from b_xiecheng_colliding_" + batchNumber + " where " + conditions;
+            for (XieChengCollidingDataPackage deletePackage : deletePackages) {
+                String queryRuleScoreDataSql = "select cell from b_xiecheng_colliding_" + batchNumber + " where " + conditions;
 
-            Integer threadPoolSize = marketingCommonConfig.getXieChengCollidingDataProcessThread();
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
+                while (true) {
+                    List<XieChengCollidingDataRob> repeatWithFalseData = ruleScoreRecordMapper.selectRuleScoreDataRepeatWithFalseDatatikv_(minId,
+                            deletePackage.getId(),
+                            queryRuleScoreDataSql);
+                    if (CollectionUtils.isEmpty(repeatWithFalseData)) {
+                        break;
+                    }
 
-            while (true) {
-                List<XieChengCollidingDataRobPriority> repeatWithFalseData = ruleScoreRecordMapper.selectRuleScoreDataRepeatWithFalseDatatikv_(minId,
-                        queryRuleScoreDataSql);
-                if (CollectionUtils.isEmpty(repeatWithFalseData)) {
-                    break;
+                    List<Long> ids = repeatWithFalseData.stream().map(XieChengCollidingDataRob::getId).collect(Collectors.toList());
+                    minId = repeatWithFalseData.get(repeatWithFalseData.size() - 1).getId();
+
+                    modifyThreadPool(threadPool);
+                    threadPool.submit(() -> {
+                        try {
+                            robMapper.updateDeleteByIds(ids);
+                        } catch (Exception e) {
+                            log.error("携程撞库FALSE数据删除，单线程处理异常：" + e.getMessage(), e);
+                        }
+                    });
                 }
-
-                minId = repeatWithFalseData.get(repeatWithFalseData.size() - 1).getId();
-
-                modifyThreadPool(threadPool);
-                threadPool.submit(() -> deleteFalseData(newPackage, task, repeatWithFalseData));
             }
+        }
 
-            threadPool.shutdown();
-            try {
-                while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                    log.info("携程撞库数据处理作业线程池关闭");
-                }
-            } catch (InterruptedException ex) {
-                threadPool.shutdownNow();
-                log.error("携程撞库数据处理作业，日志保存线程池结束异常！", ex);
-                Thread.currentThread().interrupt();
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("携程撞库数据处理作业线程池关闭");
             }
+        } catch (InterruptedException ex) {
+            threadPool.shutdownNow();
+            log.error("携程撞库数据处理作业，日志保存线程池结束异常！", ex);
+            Thread.currentThread().interrupt();
         }
     }
 

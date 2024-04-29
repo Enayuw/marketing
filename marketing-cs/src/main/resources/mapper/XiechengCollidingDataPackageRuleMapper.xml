@@ -99,4 +99,15 @@
         ORDER BY p.priority,
                  IF(r.colliding_back_number IS NULL, 0, 1);
     </select>
+
+    <select id="getMaxEndTimeGroupByPackageId" resultType="com.br.marketing.entity.XiechengCollidingDataPackageRule">
+        select package_id, max(colliding_end_time)
+        from b_xiecheng_colliding_data_package_rule
+        where is_delete = 0
+        and package_id in
+        <foreach collection="packageIds" item="packageId" open="(" separator="," close=")">
+            #{packageId}
+        </foreach>
+        group by package_id;
+    </select>
 </mapper>

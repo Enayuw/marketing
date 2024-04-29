@@ -20,4 +20,5 @@ public interface XiechengCollidingDataPackageRuleMapper extends XiechengCollidin
     void deleteByIds(@Param("ids") List<Long> ids);
 
     List<XiechengCollidingDataPackageRule> getCollidingPackageRules();
+    List<XiechengCollidingDataPackageRule> getMaxEndTimeGroupByPackageId(@Param("packageIds") List<Long> packageIds);
 }
