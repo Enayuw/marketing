@@ -90,7 +90,6 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
 
                     deleteFromOldPackage(newPackage, task);
 
-                    // 插入新包
                     insertToNewPackage(newPackage, task);
                 }
 
