@@ -121,6 +121,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                 .andTypeEqualTo(1);
         List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
         for (SyncConfig syncConfig : syncConfigs) {
+            // 组装本地下载路径
             String targetPath = syncConfigService.getPath().concat("initPath/").concat(syncConfig.getApiCode()).concat("/");
             SftpClient sftpClient = new SftpClient(sftpHost, sftpPort, sftpUsername, sftpPwd);
             Result<List<String>> res = iFileActionService.downSyncFileBySftp(sftpClient, syncConfig, targetPath);
@@ -157,13 +158,17 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
         String tasId = apiCode.concat("_").concat(yyyyMMdd);
         String requestIdPrefix = apiCode.concat("_").concat(fileNm).concat("_");
         String fileStr = path.concat(fileNm);
+        // json转化为字段属性list
         List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(fileConfig.getFieldConfig(), FileToMarketingFieldVO.class);
+        // 根据 headField 字段分组
         Map<String, List<FileToMarketingFieldVO>> fieldVosMap = fieldVos.stream().collect(Collectors.groupingBy(FileToMarketingFieldVO::getHeadField));
+        // 筛选出 非必须且有默认值的数据 并 根据 interfaceField 字段分组
         Map<String, List<FileToMarketingFieldVO>> _noMustDefaultFieldMap = fieldVos.stream().filter(t -> !t.getIsMust() && StringUtils.isNotBlank(t.getDefalutValue())).collect(Collectors.groupingBy(FileToMarketingFieldVO::getInterfaceField));
         Set<String> _noMustDefaultFieldSet = null;
         if (_noMustDefaultFieldMap != null) {
             _noMustDefaultFieldSet = _noMustDefaultFieldMap.keySet();
         }
+        // 筛选出 必须的字段，根据 headField 字段分组
         List<String> mustHeads = fieldVos.stream().filter(t -> t.getIsMust()).map(t -> t.getHeadField()).collect(Collectors.toList());
         File file = new File(fileStr);
         Integer line = 0;
@@ -219,7 +224,9 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
 
                         //region 每列的字段处理逻辑
                         for (int i = 0; i < datas.size(); i++) {
+                            // 列字段值
                             String value = datas.get(i);
+                            // 列名
                             String headNm = address.get(i);
                             FileToMarketingFieldVO fieldVO = null;
                             //根据当前表头名获取配置信息
@@ -242,9 +249,11 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                             //endregion
 
                             //region 根据配置信息进行处理
+                            // 表里没值 但存在默认值则使用默认值
                             if (StringUtils.isBlank(value) && StringUtils.isNotBlank(fieldVO.getDefalutValue())) {
                                 value = fieldVO.getDefalutValue();
                             }
+                            // 必填字段没值 则报错
                             if (fieldVO.getIsMust() && StringUtils.isBlank(value)) {
                                 errorMsg.append(String.format("字段名:%s 未赋值;", fieldVO.getHeadField()));
                                 continue;
