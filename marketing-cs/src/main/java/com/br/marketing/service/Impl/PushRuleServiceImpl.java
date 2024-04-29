@@ -463,12 +463,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
 
         //region insert db
+        CustomerInfoPushMain customerInfoPushMain = new CustomerInfoPushMain();
         try {
             StraHisFileExample straHisFileExample = new StraHisFileExample();
             straHisFileExample.createCriteria().andIdIn(dto.getFileIdList());
             List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
             List<String> showTitles = straHisFiles.stream().map(t -> t.getBatchNumber()).collect(Collectors.toList());
-            CustomerInfoPushMain customerInfoPushMain = new CustomerInfoPushMain();
             customerInfoPushMain.setmApiCode(dto.getApiCode());
             customerInfoPushMain.setmRuleCondition(dto.getmRuleCondition());
             customerInfoPushMain.setmRuleConditionShow(dto.getmRuleConditionShow());
