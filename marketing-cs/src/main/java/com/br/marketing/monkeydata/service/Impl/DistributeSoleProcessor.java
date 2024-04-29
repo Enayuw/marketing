@@ -53,7 +53,7 @@ public class DistributeSoleProcessor {
                         .andDistributeTypeEqualTo(distributeType)
                         .andDistributeDateEqualTo(distributeDate)
                         .andCellEqualTo(cell)
-                        .andExtendLike("{\"userType\":\""+userType+"\"}")
+                        .andExtendLike("%\"userType\":\""+userType+"\"%")
                         ;
                 List<DataDistributeDetailLog> dataDistributeDetailLogs = dataDistributeDetailLogMapper.selectByExample(logExample);
                 if (dataDistributeDetailLogs.size() > 0) {
