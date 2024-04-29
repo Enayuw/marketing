@@ -3,10 +3,12 @@
 <mapper namespace="com.br.marketing.mapper.XieChengCollidingDataPackageMapper">
 
     <select id="getPackageList" resultType="com.br.marketing.vo.xiecheng.XiechengPackageVO">
-        select id, package_name, colliding_data_task_id, priority
-        from b_xiecheng_colliding_data_package
-        where is_delete = 0
-        order by create_time desc;
+        select pkg.id, pkg.package_name, pkg.colliding_data_task_id, pkg.priority, dpt.api_code
+        from b_xiecheng_colliding_data_package pkg
+                 join b_xiecheng_colliding_data_process_task dpt on pkg.colliding_data_task_id = dpt.id
+        where pkg.is_delete = 0
+          and dpt.is_delete = 0
+        order by pkg.create_time desc;
     </select>
 
 </mapper>

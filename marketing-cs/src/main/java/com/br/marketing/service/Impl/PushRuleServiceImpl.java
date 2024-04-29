@@ -430,7 +430,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
     }
 
-    @Transactional(rollbackFor = Exception.class)
+    //@Transactional(rollbackFor = Exception.class)
     @Override
     public Result<String> pushCustomer(PushCustomerDTO dto) {
         AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
@@ -463,43 +463,47 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
 
         //region insert db
-
-        StraHisFileExample straHisFileExample = new StraHisFileExample();
-        straHisFileExample.createCriteria().andIdIn(dto.getFileIdList());
-        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
-        List<String> showTitles = straHisFiles.stream().map(t -> t.getBatchNumber()).collect(Collectors.toList());
         CustomerInfoPushMain customerInfoPushMain = new CustomerInfoPushMain();
-        customerInfoPushMain.setmApiCode(dto.getApiCode());
-        customerInfoPushMain.setmRuleCondition(dto.getmRuleCondition());
-        customerInfoPushMain.setmRuleConditionShow(dto.getmRuleConditionShow());
-        customerInfoPushMain.setmPercentage(dto.getmPercentage());
-        customerInfoPushMain.setmPlanNum(dto.getmPlanNum());
-        customerInfoPushMain.setmRealyNum(pushNum);
-        Date date = new Date();
-        customerInfoPushMain.setCreateTime(date);
-        customerInfoPushMain.setUpdateTime(date);
-        customerInfoPushMain.setmCusBatchNumberList(Joiner.on(",").join(showTitles));
-        customerInfoPushMain.setmStatus(PushRuleStatusEnum.TO_BE_RUNNING.getValue());
-        customerInfoPushMain.setOptUserId(String.valueOf(dto.getUserDetail().getId()));
-        customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
-        Object result = JSON.parseObject(dto.getmRuleCondition()).getJSONArray("data").stream().filter(obj ->
-                ((JSONObject) obj).getString("key").equals("result")).findAny().orElse(null);
-        if (marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().contains(dto.getApiCode()) && (!ObjectUtils.isEmpty(result))) {
-            customerInfoPushMain.setFilterType(1);
-            customerInfoPushMain.setExtend(cycleDataQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getReleaseTime()));
-        }
-        customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
+        try {
+            StraHisFileExample straHisFileExample = new StraHisFileExample();
+            straHisFileExample.createCriteria().andIdIn(dto.getFileIdList());
+            List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
+            List<String> showTitles = straHisFiles.stream().map(t -> t.getBatchNumber()).collect(Collectors.toList());
+            customerInfoPushMain.setmApiCode(dto.getApiCode());
+            customerInfoPushMain.setmRuleCondition(dto.getmRuleCondition());
+            customerInfoPushMain.setmRuleConditionShow(dto.getmRuleConditionShow());
+            customerInfoPushMain.setmPercentage(dto.getmPercentage());
+            customerInfoPushMain.setmPlanNum(dto.getmPlanNum());
+            customerInfoPushMain.setmRealyNum(pushNum);
+            Date date = new Date();
+            customerInfoPushMain.setCreateTime(date);
+            customerInfoPushMain.setUpdateTime(date);
+            customerInfoPushMain.setmCusBatchNumberList(Joiner.on(",").join(showTitles));
+            customerInfoPushMain.setmStatus(PushRuleStatusEnum.TO_BE_RUNNING.getValue());
+            customerInfoPushMain.setOptUserId(String.valueOf(dto.getUserDetail().getId()));
+            customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
+            Object result = JSON.parseObject(dto.getmRuleCondition()).getJSONArray("data").stream().filter(obj ->
+                    ((JSONObject) obj).getString("key").equals("result")).findAny().orElse(null);
+            if (marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().contains(dto.getApiCode()) && (!ObjectUtils.isEmpty(result))) {
+                customerInfoPushMain.setFilterType(1);
+                customerInfoPushMain.setExtend(cycleDataQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getReleaseTime()));
+            }
+            customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
 
-        files.forEach(t -> {
-            CustomerInfoPushBatch customerInfoPushBatch = new CustomerInfoPushBatch();
-            customerInfoPushBatch.setmId(customerInfoPushMain.getId());
-            customerInfoPushBatch.setmApiCode(dto.getApiCode());
-            customerInfoPushBatch.setmBatchNumber(t.getBatchNumber());
-            customerInfoPushBatch.setCreateTime(date);
-            customerInfoPushBatch.setUpdateTime(date);
-            customerInfoPushBatch.setmFileId(t.getId());
-            customerInfoPushBatchMapper.insertSelective(customerInfoPushBatch);
-        });
+            files.forEach(t -> {
+                CustomerInfoPushBatch customerInfoPushBatch = new CustomerInfoPushBatch();
+                customerInfoPushBatch.setmId(customerInfoPushMain.getId());
+                customerInfoPushBatch.setmApiCode(dto.getApiCode());
+                customerInfoPushBatch.setmBatchNumber(t.getBatchNumber());
+                customerInfoPushBatch.setCreateTime(date);
+                customerInfoPushBatch.setUpdateTime(date);
+                customerInfoPushBatch.setmFileId(t.getId());
+                customerInfoPushBatchMapper.insertSelective(customerInfoPushBatch);
+            });
+        }catch(Exception e){
+            log.error("规则中心推送决策插入表失败，请检查推决策任务",e.getMessage());
+            new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("规则中心推送决策插入表失败");
+        }
         //endregion
 
         //region push mq
@@ -556,7 +560,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         } else {
             querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
         }
-        querySql = "select * from t3";
         // 查询Doris
         try {
             total = scoreRecordMapper.getXieChengDataNumdoris_(querySql);
