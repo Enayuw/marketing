@@ -114,7 +114,9 @@ public class LogRecordAspect {
         final Object[] args = joinPoint.getArgs();
 
         RequestOperationLog requestOperationLog = new RequestOperationLog();
-//        requestOperationLog.setOperator(userDetail.getUserName());
+        if(userDetail != null){
+            requestOperationLog.setOperator(userDetail.getUserName());
+        }
         requestOperationLog.setBizNo(code);
         requestOperationLog.setRequestParam(JSONObject.toJSONString(args));
         requestOperationLog.setUrl(attributes.getRequest().getRequestURI());
