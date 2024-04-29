@@ -101,7 +101,7 @@
     </select>
 
     <select id="getMaxEndTimeGroupByPackageId" resultType="com.br.marketing.entity.XiechengCollidingDataPackageRule">
-        select package_id, max(colliding_end_time)
+        select package_id, max(colliding_end_time) colliding_end_time
         from b_xiecheng_colliding_data_package_rule
         where is_delete = 0
         and package_id in

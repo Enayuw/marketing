@@ -183,7 +183,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
 
         List<XiechengCollidingDataPackageRule> maxEndTimeGroupByPackageId = packageRuleMapper.getMaxEndTimeGroupByPackageId(priorityPackageIds);
 
-        List<Long> reserveIds = maxEndTimeGroupByPackageId.stream().filter(t -> {
+        List<Long> reserveIds = maxEndTimeGroupByPackageId.stream().filter(t -> t.getCollidingEndTime() != null).filter(t -> {
             LocalDate cleanDate = task.getTaskStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
             LocalDate collidingMaxDate = t.getCollidingEndTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
@@ -191,7 +191,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 return true;
             }
             return false;
-        }).map(XiechengCollidingDataPackageRule::getId).collect(Collectors.toList());
+        }).map(XiechengCollidingDataPackageRule::getPackageId).collect(Collectors.toList());
 
         // 遍历要剔除的数据包，关联跑分和true表，根据id删除
         List<XieChengCollidingDataPackage> deletePackages =
