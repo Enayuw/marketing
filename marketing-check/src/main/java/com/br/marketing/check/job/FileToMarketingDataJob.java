@@ -155,13 +155,22 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
      * @param iFileToMarketingRuleService
      */
     private void fileAction(String apiCode, MarketingDataFileConfig fileConfig, String path, String fileNm, Long localId, IFileToMarketingRuleService iFileToMarketingRuleService) {
-
         LocalFile updateFile = new LocalFile();
         updateFile.setId(localId);
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String tasId = apiCode.concat("_").concat(yyyyMMdd);
         String requestIdPrefix = apiCode.concat("_").concat(fileNm).concat("_");
         String fileStr = path.concat(fileNm);
+        // 校验表名称
+        if(fileConfig.getIsChecklistName() == 0){
+            String regex = fileConfig.getValidationRules();
+            Pattern pattern = Pattern.compile(regex);
+            // 匹配不带 .success 后缀的文件名
+            Matcher matcherWithoutSuccess = pattern.matcher(fileNm);
+            if (!matcherWithoutSuccess.matches()) {
+                log.warn("文件名:{};校验规则:{};错误:{};", fileNm, regex, "文件名称校验失败");
+            }
+        }
         // json转化为字段属性list
         List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(fileConfig.getFieldConfig(), FileToMarketingFieldVO.class);
         // 根据 headField 字段分组
