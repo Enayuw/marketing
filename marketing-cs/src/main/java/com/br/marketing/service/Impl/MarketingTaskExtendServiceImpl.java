@@ -61,10 +61,9 @@ public class MarketingTaskExtendServiceImpl implements MarketingTaskExtendServic
         List<String> batchNumbers = straHisFiles.stream().map(t -> t.getBatchNumber()).collect(Collectors.toList());
         Assert.notEmpty(batchNumbers,"没有匹配到批次号");
         List<String> apiCodes = straHisFiles.stream().map(t -> t.getApiCode()).collect(Collectors.toList());
-        List<String>xieChengApiCodes= marketingCommonConfig.getXieChengCollidingDataProcessApiCodes();
-        xieChengApiCodes.retainAll(apiCodes);
+        List<String> xieChengApiCodes = marketingCommonConfig.getXieChengCollidingDataProcessApiCodes();
         //添加携程撞库基础字段
-        if (!CollectionUtils.isEmpty(xieChengApiCodes)) {
+        if (xieChengApiCodes.contains(apiCodes.get(0))) {
             baseHeadList.add("result");
             baseHeadList.add("release_time");
             baseHeadList.add("clean_time");

@@ -38,7 +38,7 @@ public class ToPolicyByRuleJob extends AbstractSimpleElasticJob {
             CustomerInfoPushMain pushTaskData= pushTask.getData();
             Result canPushTask = pushRuleService.isCanPushTask(pushTaskData.getId());
             if(ResultCode.SUCCESS.getValue().equals(canPushTask.getCode())){
-                if(pushTaskData.getFilterType().equals("0")) {
+                if(pushTaskData.getFilterType().equals(0)) {
                     booleanResult = pushRuleService.consumerPushCustomer(pushTaskData.getId());
                 }else{
                     //携程撞库数据推决策
