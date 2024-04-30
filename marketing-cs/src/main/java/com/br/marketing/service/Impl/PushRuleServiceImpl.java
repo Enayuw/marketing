@@ -210,8 +210,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         map.put("model", module);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(map).setMessage("查询成功");
     }
+
     @Override
-    public Result<String> getUserType(String apiCode){
+    public Result<String> getUserType(String apiCode) {
         List<String> userTypeList = marketingTaskUserTypeMapper.queryUserTypeByApiCodetikv_(apiCode);
         String userType = userTypeList.stream().collect(Collectors.joining(","));
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(userType).setMessage("查询成功");
@@ -222,7 +223,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         dto = getCustomerBatchNumDTO(dto);
         PageHelper.startPage(dto.getCurrent(), dto.getSize()).setOrderBy(" scoreBeginTime desc,fileId desc ");
         List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchs(dto);
-        scoreDetailVos.stream().forEach((ScoreDetailVo t)->{
+        scoreDetailVos.stream().forEach((ScoreDetailVo t) -> {
             String batchNumber = t.getBatchNumber();
             List<String> batchNumberList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumbertikv_(batchNumber);
             String allUserType = batchNumberList.stream().collect(Collectors.joining(","));
@@ -514,10 +515,8 @@ public class PushRuleServiceImpl implements PushRuleService {
     private Result<PushViewVO> getTotal(PushCustomerDTO dto) {
         int total;
         PushViewVO pushViewVO = new PushViewVO();
-        Object result = JSON.parseObject(dto.getmRuleCondition()).getJSONArray("data").stream().filter(obj ->
-                ((JSONObject) obj).getString("key").equals("result")).findAny().orElse(null);
-        if (marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().contains(dto.getApiCode()) && (!ObjectUtils.isEmpty(result))) {
-            total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(),pushViewVO);
+        if (isXieChengData(dto)) {
+            total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(), pushViewVO);
         } else {
             QueryBaseBean queryBaseBean = new QueryBaseBean();
             queryBaseBean.setApiCode(dto.getApiCode());
@@ -546,7 +545,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
     }
 
-    private int getXieChengDataNum(String mRuleCondition, List<String> batchNumberList,PushViewVO pushViewVO) {
+    private int getXieChengDataNum(String mRuleCondition, List<String> batchNumberList, PushViewVO pushViewVO) {
         int total = 0;
         String querySql = "";
         JSONObject jsonObject = JSON.parseObject(mRuleCondition);
@@ -569,7 +568,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private String falseDataQuery(JSONObject jsonObject, List<String> batchNumberList, String cleanTime) {
         StringBuilder querySql = new StringBuilder();
-        String condition = falseDataCondition(jsonObject,batchNumberList,cleanTime);
+        String condition = falseDataCondition(jsonObject, batchNumberList, cleanTime);
         querySql.append("select count(1) from (").append(condition).append(") a ;");
         return querySql.toString();
 
@@ -665,11 +664,14 @@ public class PushRuleServiceImpl implements PushRuleService {
 
 
     private Boolean isXieChengData(PushCustomerDTO dto) {
-        Boolean isXieCheng =Boolean.FALSE;
-        Object result = JSON.parseObject(dto.getmRuleCondition()).getJSONArray("data").stream().filter(obj ->
-                ((JSONObject) obj).getString("key").equals("result")).findAny().orElse(null);
-        if (marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().contains(dto.getApiCode()) && (!ObjectUtils.isEmpty(result))) {
-            isXieCheng= Boolean.TRUE;
+        Boolean isXieCheng = Boolean.FALSE;
+        JSONArray datas = JSON.parseObject(dto.getmRuleCondition()).getJSONArray("data");
+        if (!CollectionUtils.isEmpty(datas)) {
+            Object result = datas.stream().filter(obj ->
+                    ((JSONObject) obj).getString("key").equals("result")).findAny().orElse(null);
+            if (marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().contains(dto.getApiCode()) && (!ObjectUtils.isEmpty(result))) {
+                isXieCheng = Boolean.TRUE;
+            }
         }
         return isXieCheng;
 
@@ -726,8 +728,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         xiechengCollidingDataProcessTask.setDiscreetNumber(dto.getmPlanNum());
         try {
             xiechengCollidingDataProcessTask.setTaskStartTime(DateHelper.parseDate(collidingFilterDTO.getCleanTime()));
-        }catch(Exception e){
-            log.error("clean_time日期格式异常",e.getMessage());
+        } catch (Exception e) {
+            log.error("clean_time日期格式异常", e.getMessage());
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("clean_time日期格式异常");
         }
         xiechengCollidingDataProcessTask.setTaskType(1);
@@ -783,7 +785,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         try {
             num = scoreRecordMapper.getXieChengDataNumdoris_(deleteSql);
         } catch (Exception e) {
-            log.error("规则中心-携程撞库筛选查询Doris异常,sql={}",deleteSql, e);
+            log.error("规则中心-携程撞库筛选查询Doris异常,sql={}", deleteSql, e);
         }
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(num);
     }
@@ -1323,10 +1325,11 @@ public class PushRuleServiceImpl implements PushRuleService {
     /**
      * 根据配置表发送到对应MQ
      * 配置表：b_marketing_customer_routingKey_mapping
+     *
      * @param apiCode
      * @param defaultRoutingKey 默认路由键
-     * @param infoId 原始数据表id
-     * @param queueEnum 队列类型
+     * @param infoId            原始数据表id
+     * @param queueEnum         队列类型
      */
     private void sendToMqByConfig(String apiCode, String defaultRoutingKey, String infoId, CustomerQueueEnum queueEnum) {
         try {
