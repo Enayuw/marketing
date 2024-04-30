@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class FileToMarketingDataFieldVO extends FileToMarketingFieldVO {
     private String dataValue;
-    private Boolean isExtend;
+    //private Boolean isExtend;
 }

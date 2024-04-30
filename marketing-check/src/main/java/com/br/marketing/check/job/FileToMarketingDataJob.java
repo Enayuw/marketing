@@ -26,6 +26,7 @@ import com.br.marketing.vo.FileToMarketingDataFieldVO;
 import com.br.marketing.vo.FileToMarketingFieldVO;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
@@ -38,11 +39,14 @@ import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -170,6 +174,9 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
         }
         // 筛选出 必须的字段，根据 headField 字段分组
         List<String> mustHeads = fieldVos.stream().filter(t -> t.getIsMust()).map(t -> t.getHeadField()).collect(Collectors.toList());
+        // 定义一个map<表名:字段值>
+        Map<String, String> tableMap = new HashMap<>();
+
         File file = new File(fileStr);
         Integer line = 0;
         Integer errorNum = 0;
@@ -185,6 +192,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
             List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
             Integer headSum = 0;
             Boolean isNotFinal = Boolean.TRUE;
+            String[] headers = new String[0];
             while (isNotFinal) {
                 row = br.readLine();
                 if (row == null) {
@@ -198,9 +206,13 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                 if (isNotFinal) {
                     if (line == 1) {
                         //region 文件头处理
-                        String[] split = row.split(",", -1);
-                        headSum = split.length;
-                        Result result = SftpToDbUtils.statisticsHeadByCommon(row, address, extra, mustHeads);
+                        headers = row.split(",", -1);
+                        // 存储表头信息
+                        for (String header : headers) {
+                            tableMap.put(header, null);
+                        }
+                        headSum = headers.length;
+                        Result result = SftpToDbUtils.statisticsHeadByCommon(row, address, extra, mustHeads,fieldVosMap);
                         if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                             updateFile.setComplete("2");
                             localFileMapper.updateByPrimaryKeySelective(updateFile);
@@ -215,6 +227,13 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                             errorNum++;
                             log.warn("文件名:{};行数:{};错误:{};", fileNm, line, "该行与表头列数不一致");
                             continue;
+                        }
+                        // 确保表头和数据数量一致
+                        if (headers.length == datas.size()) {
+                            // 使用索引来按顺序添加数据到对应的表头中
+                            for (int i = 0; i < headers.length; i++) {
+                                tableMap.put(headers[i], datas.get(i)); // 更新map中对应键的值
+                            }
                         }
                         StringBuilder errorMsg = new StringBuilder();
                         List<FileToMarketingDataFieldVO> dataFieldVOS = new ArrayList<>();
@@ -244,14 +263,35 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                                     fieldVO.setHeadField(headNm);
                                     fieldVO.setInterfaceField(headNm);
                                     fieldVO.setIsMust(Boolean.FALSE);
+                                    fieldVO.setIsExtend(true);
                                 }
                             }
                             //endregion
 
                             //region 根据配置信息进行处理
-                            // 表里没值 但存在默认值则使用默认值
-                            if (StringUtils.isBlank(value) && StringUtils.isNotBlank(fieldVO.getDefalutValue())) {
-                                value = fieldVO.getDefalutValue();
+                            // 表里没有初始值，需要动态赋值或取默认值（初始数据 > 动态赋值 > 默认值）
+                            if(StringUtils.isBlank(value)){
+                                // 根据动态配置赋值
+                                if(StringUtils.isNotBlank(fieldVO.getDynamicData())){
+                                    value = tableMap.get(fieldVO.getDynamicData());
+                                }else if(StringUtils.isNotBlank(fieldVO.getDefalutValue())) { // 默认值
+                                    value = fieldVO.getDefalutValue();
+                                }
+                            }
+                            // 字典项不为空 则进行字典项映射
+                            if(StringUtils.isNotEmpty(value) && StringUtils.isNotBlank(fieldVO.getConversion())){
+                                String conversion = fieldVO.getConversion();
+                                ObjectMapper objectMapper = new ObjectMapper(); // 创建ObjectMapper实例
+                                try {
+                                    // 将JSON字符串转换为List<Map<String, String>>
+                                    List<Map<String, String>> genderMappings = objectMapper.readValue(conversion, List.class);
+                                    if (!genderMappings.isEmpty()) {
+                                        Map<String, String> genderMapping = genderMappings.get(0);
+                                        value = genderMapping.get(value);
+                                    }
+                                } catch (IOException ex) {
+                                    log.error(ex.getMessage(), ex);
+                                }
                             }
                             // 必填字段没值 则报错
                             if (fieldVO.getIsMust() && StringUtils.isBlank(value)) {
@@ -266,7 +306,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                                 vo.setInterfaceField(headNm);
                             }
                             vo.setDataValue(value);
-                            vo.setIsExtend(extra.contains(headNm) ? Boolean.TRUE : Boolean.FALSE);
+                            //vo.setIsExtend(extra.contains(headNm) ? Boolean.TRUE : Boolean.FALSE);
                             hasSet.add(vo.getInterfaceField());
                             dataFieldVOS.add(vo);
                             dataFieldMap.put(vo.getHeadField(), vo);
