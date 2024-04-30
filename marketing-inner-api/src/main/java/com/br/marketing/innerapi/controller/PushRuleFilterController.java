@@ -207,8 +207,8 @@ public class PushRuleFilterController {
      */
     @ApiOperation(value = "撞库数据剔除数据量", notes = "撞库数据剔除数据量", httpMethod = "POST")
     @PostMapping("/collidingDataDeleteNum")
-    @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_DELETE_COLLIDING_PACKAGE,
-            extendInfo = "使用{#dto.mRuleCondition}，进行数据量级{#dto.mPlanNum}的数据剔除")
+   /* @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_DELETE_COLLIDING_PACKAGE,
+            extendInfo = "使用{#dto.mRuleCondition}，进行数据量级{#dto.mPlanNum}的数据剔除")*/
     public ApiResult collidingDataDeleteNum(@RequestBody PushCustomerDTO dto) {
         return new ApiResult<Integer>().fromResult(pushRuleService.collidingDataDeleteNum(dto), CODE_1);
     }
@@ -220,8 +220,8 @@ public class PushRuleFilterController {
      */
     @ApiOperation(value = "撞库数据包生成", notes = "撞库数据包生成", httpMethod = "POST")
     @PostMapping("/collidingDataPachageMake")
-    @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_MAKE_COLLIDING_PACKAGE,
-            extendInfo = "使用{#dto.mRuleCondition}，生成数据量级{#dto.mPlanNum}的{#dto.dataPackageName}数据包")
+    /*@LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_MAKE_COLLIDING_PACKAGE,
+            extendInfo = "使用{#dto.mRuleCondition}，生成数据量级{#dto.mPlanNum}的{#dto.dataPackageName}数据包")*/
     public ApiResult collidingDataPachageMake(@RequestBody PushCustomerDTO dto) {
         return new ApiResult().fromResult(pushRuleService.collidingDataPachageMake(dto), CODE_1);
     }

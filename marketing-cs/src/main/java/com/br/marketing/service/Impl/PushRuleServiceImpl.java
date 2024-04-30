@@ -449,9 +449,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (dto.getmPercentage() != null && dto.getmPercentage().compareTo(new BigDecimal(0)) <= 0) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
         }
-        JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
-        XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
-        XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
         StraHisFileExample fileExample = new StraHisFileExample();
         fileExample.createCriteria().andIdIn(dto.getFileIdList());
         List<StraHisFile> files = straHisFileMapper.selectByExample(fileExample);
@@ -460,6 +457,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         //携程撞库，则不再查询Doris，由前端透传
         //事务@Transactional方法中，切换数据源会失效
         if (isXieChengData(dto)) {
+            JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
+            XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
+            XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
             pushNum = dto.getmPlanNum();
             customerInfoPushMain.setFilterType(1);
             customerInfoPushMain.setExtend(cycleDataQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getReleaseTime()));
