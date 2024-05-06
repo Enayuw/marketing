@@ -53,6 +53,9 @@ public class PushCustomerDTO {
     @ApiModelProperty(value = "推送数量")
     private Integer mPlanNum;
 
+    @ApiModelProperty(value = "预览推送数量")
+    private Integer mPrePlanNum;
+
     @ApiModelProperty(value = "百分比")
     private BigDecimal mPercentage;
 
@@ -61,6 +64,14 @@ public class PushCustomerDTO {
 
     @ApiModelProperty(value = "生成数据包名称")
     private String dataPackageName;
+
+    public Integer getmPrePlanNum() {
+        return mPrePlanNum;
+    }
+
+    public void setmPrePlanNum(Integer mPrePlanNum) {
+        this.mPrePlanNum = mPrePlanNum;
+    }
 
     public String getDataPackageName() {
         return dataPackageName;

@@ -460,7 +460,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
             XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
             XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
-            pushNum = dto.getmPlanNum();
+            pushNum = dto.getmPrePlanNum();
             customerInfoPushMain.setFilterType(1);
             customerInfoPushMain.setExtend(cycleDataQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getReleaseTime()));
         } else {
