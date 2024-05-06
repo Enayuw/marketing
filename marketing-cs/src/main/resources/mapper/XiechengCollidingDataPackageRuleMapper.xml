@@ -32,7 +32,7 @@
         <if test="listParam.apiCode != null and listParam.apiCode != ''">
             and dpr.api_code = #{listParam.apiCode}
         </if>
-        <if test="listParam.collidingSwitch != null and listParam.collidingSwitch != ''">
+        <if test="listParam.collidingSwitch != null">
             and dpr.colliding_switch = #{listParam.collidingSwitch}
         </if>
         <if test="listParam.collidingStartTime != null and listParam.collidingStartTime != '' and listParam.collidingEndTime != null and listParam.collidingEndTime != ''">
