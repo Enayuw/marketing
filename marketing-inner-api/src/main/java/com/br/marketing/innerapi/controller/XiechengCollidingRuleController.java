@@ -25,6 +25,7 @@ import com.br.marketing.vo.xiecheng.param.UpdateCollidingRuleParam;
 import com.br.marketing.vo.xiecheng.param.UpdateCollidingSwitchParam;
 import com.br.marketing.vo.xiecheng.param.UpdatePriorityParam;
 
+import cn.hutool.core.date.DateUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,8 @@ public class XiechengCollidingRuleController {
     @GetMapping("/rule/list/false")
     public ApiResult<PageResultReturn<XiechengCollidingRuleVO>> getCollidingRuleFalseList(CollidingRuleListParam listParam) {
         try {
+            listParam.setCollidingStartTime(DateUtil.formatDateTime(DateUtil.parse(listParam.getCollidingStartTime(), "yyyy-MM-dd+HH:mm:ss")));
+            listParam.setCollidingEndTime(DateUtil.formatDateTime(DateUtil.parse(listParam.getCollidingEndTime(), "yyyy-MM-dd+HH:mm:ss")));
             PageResultReturn<XiechengCollidingRuleVO> list = xieChengCollidingRuleService.getCollidingRuleFalseList(listParam);
             return new ApiResult<PageResultReturn<XiechengCollidingRuleVO>>().success(list);
         } catch (Exception e) {
@@ -60,6 +63,8 @@ public class XiechengCollidingRuleController {
     @GetMapping("/rule/list/true")
     public ApiResult<List<XiechengCollidingRuleVO>> getCollidingRuleTrueList(CollidingRuleListParam listParam) {
         try {
+            listParam.setCollidingStartTime(DateUtil.formatDateTime(DateUtil.parse(listParam.getCollidingStartTime(), "yyyy-MM-dd+HH:mm:ss")));
+            listParam.setCollidingEndTime(DateUtil.formatDateTime(DateUtil.parse(listParam.getCollidingEndTime(), "yyyy-MM-dd+HH:mm:ss")));
             return new ApiResult<List<XiechengCollidingRuleVO>>().success(xieChengCollidingRuleService.getCollidingRuleTrueList(listParam));
         } catch (Exception e) {
             log.error("获取调度任务列表-True-不分页异常", e);
