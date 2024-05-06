@@ -92,7 +92,9 @@ public class LogSpelProcess {
                 while (matcher.find()) {
                     String paramName = matcher.group(1);
                     Object value = cachedExpressionEvaluator.parseExpression(paramName, elementKey, evaluationContext);
-                    matcher.appendReplacement(bufferStr, value.toString());
+                    if(value != null){
+                        matcher.appendReplacement(bufferStr, value.toString());
+                    }
                 }
                 matcher.appendTail(bufferStr);
                 map.put(template, bufferStr.toString());
