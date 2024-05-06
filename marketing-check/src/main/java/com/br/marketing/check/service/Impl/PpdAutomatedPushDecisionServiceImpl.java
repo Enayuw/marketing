@@ -109,6 +109,14 @@ public class PpdAutomatedPushDecisionServiceImpl implements AutomatedPushDecisio
         String tcId = tableCreateService.getTcId(apiCode);
         String startDate = LocalDate.now().toString();
         String endDate = LocalDate.now().plusDays(1).toString();
+        if (parameter.getParamMap()!=null
+                && parameter.getParamMap().containsKey("transferStartDate")) {
+            startDate = (String) parameter.getParamMap().get("transferStartDate");
+        }
+        if (parameter.getParamMap()!=null
+                && parameter.getParamMap().containsKey("transferEndDate")) {
+            endDate = (String) parameter.getParamMap().get("transferEndDate");
+        }
         Map<String, String> stautsAndUserTypeMap = new LinkedHashMap<>();
         stautsAndUserTypeMap.put("a", "801");
         stautsAndUserTypeMap.put("b", "802");
